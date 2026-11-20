@@ -16,6 +16,10 @@ export interface FacadeOpening {
   room: number;
 }
 export interface FacadeLayout {
+  bays: number;
+  floors: number;
+  bayWidth: number;
+  floorHeight: number;
   openings: FacadeOpening[];
   /** A complete, non-overlapping partition of the wall outside the holes. */
   wall: [number, number, number, number][];
@@ -98,7 +102,7 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
     rect(edge, v0, length, v1);
   }
   rect(0, floors * floorH, length, s.height);
-  return { openings, wall };
+  return { openings, wall, bays, floors, bayWidth: span, floorHeight: floorH };
 }
 
 /** Palette identity, not a per-pixel hue guess: brick and dressed stone

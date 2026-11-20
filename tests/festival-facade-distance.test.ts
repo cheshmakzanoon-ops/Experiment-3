@@ -1,7 +1,8 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { Buildings } from '../src/rendering/open-world/buildings.ts';
-import { FACADE_RECESS } from '../src/rendering/open-world/facade-layout.ts';
+import { FacadeAtlas } from '../src/rendering/open-world/facade-atlas.ts';
+import { FACADE_RECESS, facadeLayout } from '../src/rendering/open-world/facade-layout.ts';
 
 describe('Festival building distance geometry', () => {
   it('retains room identity and wall coverage, and restores recessed glazing when zoomed in', () => {
@@ -58,7 +59,18 @@ describe('Festival building distance geometry', () => {
     };
     try {
       const near = view(10),
-        far = view(400);
+        far = view(400),
+        skyline = view(1500);
+      const cards = new Map<number, number>();
+      for (let j = g.drawRange.start; j < g.drawRange.start + g.drawRange.count; j += 3) {
+        const i = index.getX(j),
+          tag = tags.getZ(i);
+        if (tag <= -8) cards.set(tag, (cards.get(tag) ?? 0) + 1);
+      }
+      expect(cards.size).toBe(4);
+      expect([...cards.values()]).toEqual([2, 2, 2, 2]);
+      expect(skyline.count).toBeLessThan(far.count * 0.45);
+      expect(skyline.panes).toHaveLength(0);
       expect(near.reveals.length).toBe(near.panes.length * 4);
       expect(far.reveals).toHaveLength(0);
       expect(far.base).toEqual(near.base);
@@ -72,11 +84,67 @@ describe('Festival building distance geometry', () => {
         expect(projected[3]).toBe(y);
         expect(Math.hypot(projected[2] - x, projected[4] - z)).toBeCloseTo(FACADE_RECESS, 5);
       }
+      expect(view(1500, 4)).toEqual(far);
       expect(view(400, 4)).toEqual(near);
       expect(view(400)).toEqual(far);
       expect(view(10)).toEqual(near);
     } finally {
       buildings.dispose();
+    }
+  });
+
+  it('addresses the same occupied rooms, shops, and blank wall bays across texture rows', () => {
+    const atlas = new FacadeAtlas();
+    const fixture = {
+      x: 0,
+      z: 0,
+      heading: 0,
+      hx: 14,
+      hz: 8,
+      base: 0,
+      height: 36,
+      floors: 10,
+      style: 41711,
+    };
+    const walls = Array.from({ length: 16 }, (_, i) => {
+      const layout = facadeLayout({ ...fixture, kind: i % 2 ? 'shop' : 'house' }, 32, i % 4)!;
+      return { layout, id: atlas.add(layout) };
+    });
+    const texture = atlas.texture();
+    try {
+      expect(texture.image.height).toBeGreaterThan(1);
+      expect(texture.generateMipmaps).toBe(false);
+      let empty = 0,
+        shops = 0;
+      const data = texture.image.data as Float32Array;
+      for (const { layout, id } of walls) {
+        const { bayWidth, floorHeight, bays, floors } = layout;
+        expect(Array.from(data.slice(id * 4, id * 4 + 4))).toEqual(
+          Array.from(new Float32Array([bayWidth, floorHeight, bays, floors])),
+        );
+        for (let y = 0; y < floors; y++)
+          for (let x = 0; x < bays; x++) {
+            const at = (id + 1 + y * bays + x) * 4;
+            const hole = layout.openings.find(
+              (h) => Math.round(h.cell0 / bayWidth) === x && Math.round(h.row0 / floorHeight) === y,
+            );
+            if (!hole) {
+              expect(data[at]).toBe(-1);
+              empty++;
+              continue;
+            }
+            const shop = hole.kind === 'shop';
+            expect(data[at] - (shop ? 2 : 0)).toBeCloseTo(hole.room, 6);
+            expect(data[at + 1]).toBeCloseTo((hole.u1 - hole.u0) / 2, 5);
+            expect(data[at + 2]).toBeCloseTo(hole.v0 - hole.row0, 5);
+            expect(data[at + 3]).toBeCloseTo(hole.v1 - hole.row0, 5);
+            if (shop) shops++;
+          }
+      }
+      expect(empty).toBeGreaterThan(25);
+      expect(shops).toBeGreaterThan(25);
+    } finally {
+      texture.dispose();
     }
   });
 });

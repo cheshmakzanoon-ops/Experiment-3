@@ -3,10 +3,12 @@ import type { Structure } from '../../simulation/open-world/placement.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
 import {
   facadeLayout,
+  facadeFinish,
   addRecessedFacade,
   FACADE_RECESS,
   type FacadePlacement,
 } from './facade-layout.ts';
+import { FACADE_ATLAS_GLSL, FacadeAtlas } from './facade-atlas.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
 import type { QualityPreset } from '../options.ts';
 import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
@@ -40,6 +42,9 @@ class Mesher {
   facade: number[] = [];
   index: number[] = [];
   readonly recessed: number[] = [];
+  readonly piers: number[] = [];
+  readonly cards: number[] = [];
+  readonly trim: number[] = [];
   readonly projected: number[] = [];
   private c = new T.Color();
   quad(
@@ -48,7 +53,11 @@ class Mesher {
     uvs: readonly (readonly [number, number])[],
     color: number,
     facade: readonly [number, number, number, number],
-    target = facade[2] === -4 || facade[2] === -5 ? this.recessed : this.index,
+    target = facade[2] === -4 || facade[2] === -5
+      ? this.recessed
+      : facade[2] === -3
+        ? this.piers
+        : this.index,
   ) {
     const base = this.position.length / 3;
     this.c.setHex(color);
@@ -91,15 +100,23 @@ class Mesher {
     g.setAttribute('uv', new T.Float32BufferAttribute(this.uv, 2));
     g.setAttribute('color', new T.Float32BufferAttribute(this.color, 3));
     g.setAttribute('facade', new T.Float32BufferAttribute(this.facade, 4));
-    // Both levels share the whole permanent shell and one GPU allocation.
-    // Overlapping contiguous draw ranges avoid duplicate walls or extra draws.
+    // Near and intermediate share piers, roof and trim. The skyline
+    // range references the same structural vertices plus one face per
+    // authored wall. No second mesh or draw is needed at a transition.
     const Index = this.position.length / 3 > 65535 ? Uint32Array : Uint16Array;
-    const index = new Index(this.recessed.length + this.index.length + this.projected.length);
-    index.set(this.recessed);
-    index.set(this.index, this.recessed.length);
-    index.set(this.projected, this.recessed.length + this.index.length);
+    const ranges = [this.recessed, this.piers, this.trim, this.index, this.projected];
+    if (this.cards.length) ranges.push(this.index, this.cards);
+    const index = new Index(ranges.reduce((sum, list) => sum + list.length, 0));
+    let offset = 0;
+    for (const list of ranges) {
+      index.set(list, offset);
+      offset += list.length;
+    }
     g.setIndex(new T.BufferAttribute(index, 1));
-    g.setDrawRange(0, this.recessed.length + this.index.length);
+    g.setDrawRange(
+      0,
+      this.recessed.length + this.piers.length + this.trim.length + this.index.length,
+    );
     g.computeBoundingBox();
     g.computeBoundingSphere();
     return g;
@@ -114,7 +131,11 @@ class Mesher {
  * slope of the tempered-glass roller wave (period about 0.31 m) and the
  * air-glass interfaces of a double-glazed unit. */
 export const GLAZING = Object.freeze({ tilt: 0.016, roller: 0.0045, interfaces: 4 });
-function facadeMaterial(night: { value: number }, interiorDepth: { value: number }) {
+function facadeMaterial(
+  night: { value: number },
+  interiorDepth: { value: number },
+  atlas: { value: T.DataTexture | null },
+) {
   const material = new T.MeshStandardMaterial({
     vertexColors: true,
     roughness: 0.85,
@@ -124,6 +145,7 @@ function facadeMaterial(night: { value: number }, interiorDepth: { value: number
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.owNight = night;
+    shader.uniforms.owFacadeAtlas = atlas;
     shader.uniforms.owInteriorDepth = interiorDepth;
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -140,6 +162,7 @@ uniform float owInteriorDepth;
 varying vec4 vFacade;
 ${OW_NOISE_GLSL}
 ${FACADE_INTERIORS_GLSL}
+${FACADE_ATLAS_GLSL}
 float owGlass;
 float owLit;
 float owRib;
@@ -152,17 +175,22 @@ vec2 owPaneTilt;`,
         '#include <color_fragment>',
         `#include <color_fragment>
 {
-  float style = vFacade.x, kind = vFacade.y, height = vFacade.w;
-  vec2 q = vUv;
+  vec4 facade=vFacade;
+  vec2 q=vUv;
+  vec2 footprint=fwidth(q);
+  float paneCoverage=1.0;
+  vec3 wallAlbedo=diffuseColor.rgb;
+  if(facade.z<=-8.0)owResolveFacade(facade,q,footprint,paneCoverage);
+  float style = facade.x, kind = facade.y, height = facade.w;
   vec3 interiorColor = vec3(0.0);
   float interiorVisibility = 0.0;
   owGlass = 0.0; owLit = 0.0; owRib = 0.0; owWallRelief = 0.0; owWallRoughness = -1.0; owLamp = vec3(1.0, 0.7, 0.42);
   owPaneTilt = vec2(0.0);
   bool shed = kind > 4.5 && kind < 5.5 || kind > 8.5;
-  bool roof = vFacade.z < -0.5 && vFacade.z > -1.5;
-  bool trim = vFacade.z < -1.5;
-  bool physicalPane = abs(vFacade.z + 4.0) < 0.1;
-  bool physicalWall = abs(vFacade.z + 3.0) < 0.1;
+  bool roof = facade.z < -0.5 && facade.z > -1.5;
+  bool trim = facade.z < -1.5;
+  bool physicalPane = abs(facade.z + 4.0) < 0.1;
+  bool physicalWall = abs(facade.z + 3.0) < 0.1;
   // Weathering: rain streaks down from sills, grime near the ground.
   float streak = owNoise(vec2(q.x * 1.7, q.y * 0.08 + style * 13.0));
   float grime = 1.0 - smoothstep(0.0, 1.6, q.y);
@@ -172,10 +200,10 @@ vec2 owPaneTilt;`,
   if (physicalPane) {
     // Geometry supplies the actual reveal depth. This inset pane adds a
     // bounded interior illustration, not a ray-traced or enterable room.
-    float room = vFacade.x;
-    vec2 aa = max(fwidth(q), vec2(0.001));
-    float upright = vFacade.w > 0.5 ? min(abs(q.x-0.3333),abs(q.x-0.6667)) : abs(q.x-0.5);
-    float transom = abs(q.y - (vFacade.w > 0.5 ? 0.78 : 0.63));
+    float room = facade.x;
+    vec2 aa = max(footprint, vec2(0.001));
+    float upright = facade.w > 0.5 ? min(abs(q.x-0.3333),abs(q.x-0.6667)) : abs(q.x-0.5);
+    float transom = abs(q.y - (facade.w > 0.5 ? 0.78 : 0.63));
     float perimeter = min(min(q.x,1.0-q.x),min(q.y,1.0-q.y));
     float frame = max(1.0-smoothstep(0.012,0.012+aa.x,upright),
                       1.0-smoothstep(0.012,0.012+aa.y,transom));
@@ -191,7 +219,7 @@ vec2 owPaneTilt;`,
     owLit = step(0.57,room)*(0.34+room*0.45)*owGlass*ceiling*curtain*furniture;
     if (owInteriorDepth > 0.0 && dot(vViewPosition,vViewPosition) < 16900.0) {
       float facing, roomLamp;
-      bool shopRoom = vFacade.w > 0.5;
+      bool shopRoom = facade.w > 0.5;
       vec3 roomColor = owFacadeRoom(q,room,shopRoom,vViewPosition,facing,roomLamp);
       // Keep a minority of shop bays frosted and some residential blinds
       // closed. Room lighting never illuminates the frame or the wall.
@@ -214,8 +242,8 @@ vec2 owPaneTilt;`,
     diffuseColor.rgb *= 1.0 + (grit-0.5)*0.055*gritFade;
     owWallRelief = (grit-0.5)*0.0012*gritFade;
     owWallRoughness = 0.87 + (grit-0.5)*0.08*gritFade;
-    if (vFacade.w > 0.5) {
-      bool stone = vFacade.w > 1.5;
+    if (facade.w > 0.5) {
+      bool stone = facade.w > 1.5;
       vec2 course = stone ? vec2(0.61,0.285) : vec2(0.245,0.078);
       vec2 tile = q/course;
       tile.x += mod(floor(tile.y),2.0)*0.5;
@@ -302,7 +330,7 @@ vec2 owPaneTilt;`,
   // Unequal room depth, sill shadow and a few closed blinds make each bay
   // read as a recess instead of a flat repeated black rectangle. These are
   // authored facade cues; the material does not claim to ray trace rooms.
-  float roomId = physicalPane ? vFacade.x : owHash(floor(q / vec2(3.3, 3.2)) + style * 43.0);
+  float roomId = physicalPane ? facade.x : owHash(floor(q / vec2(3.3, 3.2)) + style * 43.0);
   vec2 roomUv = physicalPane ? q : fract(q / vec2(3.3, 3.2));
   float blind = step(0.77, roomId) * (0.65 + 0.35 * sin(q.y * 56.0)
     * (1.0 - smoothstep(0.6, 3.2, fwidth(q.y * 56.0))));
@@ -312,7 +340,9 @@ vec2 owPaneTilt;`,
   glass = mix(glass, vec3(0.17, 0.155, 0.125), blind * 0.72);
   glass = mix(glass,interiorColor,interiorVisibility);
   diffuseColor.rgb = mix(diffuseColor.rgb, glass, owGlass);
-  owLit *= 1.0 - blind * 0.72;
+  owLit *= (1.0 - blind * 0.72)*paneCoverage;
+  diffuseColor.rgb=mix(wallAlbedo,diffuseColor.rgb,paneCoverage);
+  owGlass*=paneCoverage;
 }`,
       )
       .replace(
@@ -376,7 +406,7 @@ if (owGlass > 0.001) {
 }`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v10-lapped-roofs';
+  material.customProgramCacheKey = () => 'festival-facades-v11-distant-bays';
   return material;
 }
 
@@ -397,19 +427,22 @@ export class Buildings {
   readonly lantern: T.MeshStandardMaterial;
   readonly joinery: FacadeJoinery;
   private readonly openings: FacadePlacement[] = [];
+  private readonly atlas = new FacadeAtlas();
+  private readonly atlasMap: { value: T.DataTexture | null } = { value: null };
   private readonly blocks: {
     geometry: T.BufferGeometry;
     bounds: T.Box3;
     common: number;
     near: number;
     far: number;
-    detailed: boolean;
+    distant: number;
+    level: 0 | 1 | 2;
   }[] = [];
   private readonly cameraPosition = new T.Vector3();
   stats = { buildings: 0, triangles: 0, openings: 0 };
   constructor(structures: readonly Structure[]) {
     this.root.name = 'Festival buildings';
-    this.material = facadeMaterial(this.night, this.interiorDepth);
+    this.material = facadeMaterial(this.night, this.interiorDepth, this.atlasMap);
     this.lantern = new T.MeshStandardMaterial({
       color: 0xfff6d8,
       emissive: 0xfff0c0,
@@ -433,15 +466,16 @@ export class Buildings {
       for (const s of block) this.add(m, s);
       const g = m.geometry();
       if (!g) continue;
-      triangles += (m.index.length + m.recessed.length) / 3;
+      triangles += (m.piers.length + m.trim.length + m.index.length + m.recessed.length) / 3;
       if (m.projected.length)
         this.blocks.push({
           geometry: g,
           bounds: g.boundingBox!,
-          common: m.index.length,
+          common: m.piers.length + m.trim.length + m.index.length,
           near: m.recessed.length,
           far: m.projected.length,
-          detailed: true,
+          distant: m.index.length + m.cards.length,
+          level: 0,
         });
       const mesh = new T.Mesh(g, this.material);
       mesh.name = `Buildings ${key}`;
@@ -456,6 +490,7 @@ export class Buildings {
       lamp.name = 'Lighthouse lantern';
       this.root.add(lamp);
     }
+    this.atlasMap.value = this.atlas.texture();
     this.joinery = new FacadeJoinery(this.openings);
     this.root.add(this.joinery.root);
     this.stats = { buildings: structures.length, triangles, openings: this.openings.length };
@@ -498,6 +533,11 @@ export class Buildings {
         y1 = y + h / 2,
         z0 = z - d / 2,
         z1 = z + d / 2;
+      // A thin mounted trim keeps its exterior face at skyline distances;
+      // only the hidden back and the subpixel return faces drop out.
+      const faceZ = Math.abs(z) >= s.hz - 0.06 && d <= 0.32 && y + h / 2 < top + 0.02;
+      const faceX = Math.abs(x) >= s.hx - 0.06 && w <= 0.32 && y + h / 2 < top + 0.02;
+      const micro = y > top && h <= 0.12 && d <= 0.08;
       const face = (
         points: readonly (readonly [number, number, number])[],
         normal: readonly [number, number, number],
@@ -515,6 +555,9 @@ export class Buildings {
           ],
           color,
           detailFacade,
+          micro || (faceZ && normal[2] * z <= 0) || (faceX && normal[0] * x <= 0)
+            ? m.trim
+            : m.index,
         );
       };
       face(
@@ -683,6 +726,20 @@ export class Buildings {
           style,
           kind,
           this.openings,
+        );
+        const wallId = this.atlas.add(layout);
+        m.quad(
+          [b, a, e, d],
+          [c * nx - n * nz, 0, n * nx + c * nz],
+          [
+            [0, 0],
+            [len, 0],
+            [len, eave - base],
+            [0, eave - base],
+          ],
+          wall,
+          [style, kind, -8 - wallId, facadeFinish(wall)],
+          m.cards,
         );
         continue;
       }
@@ -929,13 +986,20 @@ export class Buildings {
       (FACADE_RECESS * viewportHeight * camera.projectionMatrix.elements[5] * 0.5) / pixels;
     for (const block of this.blocks) {
       const distance = block.bounds.distanceToPoint(this.cameraPosition);
-      const detailed = distance < threshold * (block.detailed ? 1.12 : 0.96);
-      if (detailed === block.detailed) continue;
-      block.detailed = detailed;
-      block.geometry.setDrawRange(
-        detailed ? 0 : block.near,
-        block.common + (detailed ? block.near : block.far),
-      );
+      const skyline = threshold * 3.3;
+      const level =
+        distance < threshold * (block.level === 0 ? 1.12 : 0.96)
+          ? 0
+          : distance < skyline * (block.level === 2 ? 0.9 : 1.08)
+            ? 1
+            : 2;
+      if (level === block.level) continue;
+      block.level = level;
+      const start =
+        level === 0 ? 0 : level === 1 ? block.near : block.near + block.common + block.far;
+      const count =
+        level === 2 ? block.distant : block.common + (level === 0 ? block.near : block.far);
+      block.geometry.setDrawRange(start, count);
     }
   }
   setNight(night: number) {
@@ -944,6 +1008,7 @@ export class Buildings {
   }
   dispose() {
     this.joinery.dispose();
+    this.atlasMap.value?.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
