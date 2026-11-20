@@ -5,6 +5,7 @@ import {
   MX_ARENA_LIGHT,
   MX_ARENA_LIGHT_HOOK,
 } from '../src/rendering/offroad/mx-arena-lighting.ts';
+import { MxArenaBikeLight } from '../src/rendering/offroad/mx-arena-bike-light.ts';
 import { mxFloodlightHead, mxFloodlightMount } from '../src/rendering/offroad/mx-floodlight.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
@@ -45,6 +46,51 @@ describe('supercross roof floodlight grid', () => {
       mesh.material.dispose();
     }
     for (const part of Object.values(head)) part.dispose();
+  });
+
+  it('lights the same six directions as the forty roof lamps at bike height across cell edges', () => {
+    const stadium = new Stadium(rigTrack('arena-nord-sx')),
+      grid = stadium.lampGrid;
+    const field = new MxArenaBikeLight(),
+      p = new T.Vector3();
+    const w = grid.spanX / grid.columns,
+      d = grid.spanZ / grid.rows;
+    try {
+      for (const [col, row, height] of [
+        [0, 0, 1.3],
+        [2.5, 2.5, 4],
+        [3 - 1e-5, 1, 0.6],
+        [3 + 1e-5, 1, 0.6],
+      ]) {
+        p.set(grid.minX + col * w, grid.y - 22 + height, grid.minZ + row * d);
+        field.update(grid, p);
+        const plus = new T.Vector3(),
+          minus = new T.Vector3();
+        for (let z = 0; z < grid.rows; z++)
+          for (let x = 0; x < grid.columns; x++) {
+            const dir = new T.Vector3(
+              grid.minX + (x + 0.5) * w,
+              grid.y,
+              grid.minZ + (z + 0.5) * d,
+            ).sub(p);
+            const radius = Math.hypot(x + 0.5 - col, z + 0.5 - row);
+            const light =
+              (MX_ARENA_LIGHT.intensity * (1 - T.MathUtils.smoothstep(radius, 1, 2))) /
+              dir.lengthSq();
+            dir.normalize().multiplyScalar(light);
+            for (const axis of ['x', 'y', 'z'] as const) {
+              plus[axis] += Math.max(0, dir[axis]);
+              minus[axis] += Math.max(0, -dir[axis]);
+            }
+          }
+        expect(field.positive.value.distanceTo(plus)).toBeLessThan(1e-7);
+        expect(field.negative.value.distanceTo(minus)).toBeLessThan(1e-7);
+      }
+      field.update(undefined, p);
+      expect(field.key.value.w).toBe(0);
+    } finally {
+      stadium.dispose();
+    }
   });
 
   it('retains its single haze draw on Medium without enabling High surface detail', () => {

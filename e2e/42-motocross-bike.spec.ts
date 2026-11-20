@@ -134,6 +134,23 @@ for (const id of ['mx450', 'mx250', 'sm450'])
     expect(triangles[1]).toBeGreaterThan(triangles[2]);
   });
 
+test('the indoor roof light reaches real rider and bike materials and restores the outdoor image on a seek', async ({
+  review,
+}) => {
+  const { capture, attach } = review;
+  const [outside, firstPool, edge, restored] = await capture({
+    id: 'mx250',
+    detail: 'high',
+    view: 'three-quarter',
+    samples: [{}, { arenaPosition: [-9, 1, 0] }, { arenaPosition: [-72, 1, -70] }, {}],
+  });
+  await attach('mx250-indoor-bank', firstPool);
+  expect(firstPool.hash).not.toBe(outside.hash);
+  expect(edge.hash).not.toBe(firstPool.hash);
+  expect(restored.hash).toBe(outside.hash);
+  expect(firstPool.triangles).toBe(outside.triangles);
+});
+
 for (const [name, view, sample] of [
   ['standing-side', 'side', { standing: 1, body: 0.6 }],
   ['braced-front', 'front', { standing: 1, body: -0.8, steer: 0.12 }],

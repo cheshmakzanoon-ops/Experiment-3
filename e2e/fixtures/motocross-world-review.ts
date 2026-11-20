@@ -35,13 +35,18 @@ export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-
   queue.runSynchronously();
   for (let step = 0; step < 120 * 10; step++) {
     simulation.step(1 / 120);
-    if (step % 4 === 0) world.update(simulation.makeFrame());
+    if (step % 4 === 0) {
+      const snapshot = simulation.makeFrame();
+      world.recordWheelPassage(snapshot);
+      world.update(snapshot);
+    }
   }
   console.info(`[MX world] ${circuit} grid and recorded terrain ready`);
   const frame = simulation.makeFrame();
-  world.update(frame);
+  world.recordWheelPassage(frame);
   const delta = simulation.offroad!.terrain.renderDelta(true);
   world.record(delta, frame[H.TIME], true);
+  world.update(frame);
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1280, 800);
   renderer.setPixelRatio(1);
@@ -90,6 +95,8 @@ export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-
   floor.receiveShadow = true;
   scene.add(floor);
   const shells = new BikeShells();
+  shells.arenaGrid = world.stadium?.lampGrid;
+  shells.motocrossGround = world.terrain ?? undefined;
   const cars = simulation.cars.map((_, id) => {
     const k = carBase(id),
       root = new T.Object3D();
@@ -132,6 +139,7 @@ export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-
       camera.lookAt(point.x + point.tx * 10, frame[o + F.Y] + 0.5, point.z + point.tz * 10);
     }
     camera.updateProjectionMatrix();
+    world.stadium?.audience.update(camera);
     shells.update(frame, frame, 1, cars, camera, 'high', 0);
   };
   const strength = lightPoolUniforms.lightPoolStrength.value;

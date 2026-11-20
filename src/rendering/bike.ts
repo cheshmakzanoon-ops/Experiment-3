@@ -6,6 +6,8 @@ import {
   gpSilencer,
 } from './gp-appearance.ts';
 import * as T from 'three';
+import { MxArenaBikeLight } from './offroad/mx-arena-bike-light.ts';
+import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
@@ -2183,6 +2185,7 @@ interface Entry {
   materials: BikeMaterials;
   levels: (PresentedBike | undefined)[];
   dirtMud?: MudUniforms;
+  arenaLight?: MxArenaBikeLight;
   level: number;
   /** Paddock stands and carried wheels, shown only during a pit service. */
   rig: BikeServiceRig;
@@ -2238,6 +2241,7 @@ export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, ta
  * corrected distance like the cars. */
 export class BikeShells {
   motocrossGround?: MxDabSurface;
+  arenaGrid?: MxArenaGrid;
   private readonly roadContact = new RoadBikeContactPose();
   private readonly dirtGeometry = new MxGeometryPool();
   readonly root = new T.Group();
@@ -2474,6 +2478,14 @@ export class BikeShells {
       model.root.visible = model.rider.root.visible = true;
       model.root.position.copy(car.position);
       model.root.quaternion.copy(car.quaternion);
+      if (entry.dirtMud) {
+        const grid = this.arenaGrid;
+        if (grid) {
+          entry.arenaLight ??= new MxArenaBikeLight();
+          entry.arenaLight.bind(model.root);
+        }
+        entry.arenaLight?.update(grid, car.position);
+      }
       // On the stands the whole machine (and its seated rider) rises by the
       // recorded lift along its own up axis; the stands stay on the floor.
       if (service)

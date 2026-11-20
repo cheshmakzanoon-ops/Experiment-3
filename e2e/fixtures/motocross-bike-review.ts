@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../../src/rendering/bike.ts';
+import { MxArenaBikeLight } from '../../src/rendering/offroad/mx-arena-bike-light.ts';
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
 import { VEHICLES, vehicleIndex, type VehicleDefinition } from '../../src/simulation/vehicles.ts';
@@ -33,6 +34,8 @@ export interface MotocrossPoseSample {
   rearWear?: number;
   frontWater?: number;
   rearWater?: number;
+  /** Sample roof irradiance at a controlled entrant position for the indoor review. */
+  arenaPosition?: readonly [number, number, number];
 }
 
 /** Prescribe the recorded chassis for synthetic suspension samples supported
@@ -106,6 +109,10 @@ export function captureMotocrossBike(
   const model = new DirtBikeModel(def, 0, detail, materials, mud),
     sag = staticSag(def);
   scene.add(model.root);
+  const arenaLight = samples.some((s) => s.arenaPosition) ? new MxArenaBikeLight() : undefined;
+  arenaLight?.bind(model.root);
+  const grid = { minX: -72, minZ: -70, spanX: 144, spanZ: 140, y: 26, columns: 8, rows: 5 };
+  const location = new T.Vector3();
   const camera = new T.PerspectiveCamera(36, 1280 / 800, 0.03, 80);
   if (view === 'side') camera.position.set(3.9, 1.43, 0.06);
   else if (view === 'motion-side') camera.position.set(4.5, 1.68, 0.06);
@@ -160,6 +167,10 @@ export function captureMotocrossBike(
   };
   try {
     return samples.map((sample, sampleIndex) => {
+      arenaLight?.update(
+        sample.arenaPosition ? grid : undefined,
+        sample.arenaPosition ? location.fromArray(sample.arenaPosition) : location,
+      );
       const fork = sag.fork + (sample.forkOffset ?? 0),
         shock = sag.shock + (sample.shockOffset ?? 0),
         chassis = motocrossInspectionChassis(def, fork, shock),

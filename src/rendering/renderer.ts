@@ -1040,6 +1040,7 @@ export class RacingRenderer {
             await yieldFrame();
             if (this.disposed || cancelled()) return false;
           }
+          this.bikeShells.arenaGrid = this.circuit.offroad?.stadium?.lampGrid;
           this.bikeShells.update(
             frame,
             frame,
@@ -2101,7 +2102,10 @@ export class RacingRenderer {
       this.mirrorsFromBody = !!bodyMirrors;
     }
     this.mirrorRoot = bodyMirrors?.root ?? car.root;
-    if (this.bikeShells) this.bikeShells.motocrossGround = this.circuit.offroad?.terrain ?? undefined;
+    if (this.bikeShells) {
+      this.bikeShells.motocrossGround = studio ? undefined : this.circuit.offroad?.terrain ?? undefined;
+      this.bikeShells.arenaGrid = studio ? undefined : this.circuit.offroad?.stadium?.lampGrid;
+    }
     this.bikeShells?.update(a, b, alpha, this.cars, this.camera, this.quality, this.follow);
     this.bikeShells?.setFirstPerson(
       bikeFirstPersonView(cameraMode, menu, pregame, this.photo?.view) ? this.follow : -1,
