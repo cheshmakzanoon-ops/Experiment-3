@@ -1,9 +1,11 @@
 import * as T from 'three';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
-import { mxFootprintMatrix } from './mx-ground-pose.ts';
+import { mxFootprintMatrix, mxFurnitureGround } from './mx-ground-pose.ts';
+import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
+import { attachMxClothShadows, installMxClothWind } from './mx-event-cloth.ts';
 import { mxStrawBale } from './mx-straw-bale.ts';
 import { mxTeamVanGeometry, mxTeamVanMaterial } from './mx-paddock-models.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
@@ -14,7 +16,6 @@ import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts'
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
-import { terrainFor } from '../terrain.ts';
 import { valueNoise } from '../terrain-profile.ts';
 import {
   mxShoulderPlantGeometry,
@@ -161,7 +162,7 @@ export class MxCourseDressing {
   private readonly frame = new T.Matrix4();
   private readonly object = new T.Object3D();
   private readonly surface: TrackTerrainSurface;
-  private readonly plantTime = { value: 0 };
+  private readonly venueTime = { value: 0 };
   private stopTufts: (() => void) | null = null;
   private disposed = false;
   constructor(private readonly track: Track) {
@@ -183,6 +184,7 @@ export class MxCourseDressing {
       side: T.DoubleSide,
       name: 'MX printed woven barriers',
     });
+    if (!indoor) installMxClothWind(cloth, this.venueTime, true);
     const yellow = new T.MeshStandardMaterial({
       color: 0xc8cf56,
       roughness: 0.68,
@@ -357,6 +359,20 @@ export class MxCourseDressing {
       }
     }
     for (const [material, geometries] of this.batches) {
+      if (material === cloth && !indoor) {
+        // Banners bolted to the gantry share the cloth material but do
+        // not move. All geometries need the same schema for one batch.
+        for (const part of geometries)
+          if (!part.hasAttribute('mxCloth')) {
+            part.setAttribute(
+              'mxCloth',
+              new T.Float32BufferAttribute(
+                new Float32Array(part.getAttribute('position').count * 3),
+                3,
+              ),
+            );
+          }
+      }
       const geometry = mergeGeometries(geometries, false);
       for (const g of geometries) g.dispose();
       if (!geometry) throw new Error('MX static batch contains incompatible geometry');
@@ -364,6 +380,7 @@ export class MxCourseDressing {
       mesh.name = material.name;
       mesh.castShadow = mesh.receiveShadow = true;
       geometry.computeBoundingSphere();
+      if (material === cloth && !indoor) attachMxClothShadows(mesh, this.venueTime);
       this.root.add(mesh);
     }
     // Materials created for an empty batch still have a lifecycle.
@@ -467,12 +484,17 @@ export class MxCourseDressing {
       ahead = trackPoint(),
       behind = trackPoint(),
       occupied = [...this.trackside.plan.sites, ...planMxCourseSites(track).landmarks];
-    const sail = (row: number) => {
+    const sail = (row: number, phase: number) => {
       const columns = 6,
         rows = 10,
         g = new T.PlaneGeometry(1, 1, columns, rows),
         p = g.getAttribute('position'),
         uv = g.getAttribute('uv');
+      const wind = new Float32Array(p.count * 3);
+      // The mast sleeve and curved head batten take the fabric tension.
+      // The trailing lower half carries most of the wave.
+      const nx = this.frame.elements[8],
+        nz = this.frame.elements[10];
       for (let i = 0; i < p.count; i++) {
         const u = p.getX(i) + 0.5,
           v = p.getY(i) + 0.5,
@@ -482,10 +504,13 @@ export class MxCourseDressing {
           y = bottom + (top - bottom) * v,
           width = 0.72 * (1 - 0.25 * v * v);
         p.setXYZ(i, 0.03 + u * width, y, 0.07 * Math.sin(Math.PI * u) * (0.6 + 0.4 * v));
+        const deflection = 0.15 * u * u * (1 - v * v);
+        wind.set([nx * deflection, nz * deflection, phase + 4.3 * u + 2.1 * y], i * 3);
         // Atlas along the height (text reads upward), across the row's band.
         uv.setXY(i, 0.04 + v * 0.62, u);
       }
       g.computeVertexNormals();
+      g.setAttribute('mxCloth', new T.Float32BufferAttribute(wind, 3));
       return mxAtlasRow(g, row);
     };
     const pole = () => new T.CylinderGeometry(0.014, 0.02, 3.18, 6).translate(0, 1.59, 0);
@@ -510,7 +535,7 @@ export class MxCourseDressing {
         this.object.updateMatrix();
         this.frame.copy(this.object.matrix);
         this.part(pole(), steel);
-        this.part(sail(k === 1 ? 3 : (clusters + k) % 2 ? 0 : 1), cloth);
+        this.part(sail(k === 1 ? 3 : (clusters + k) % 2 ? 0 : 1, (s + ds) * 0.21), cloth);
         this.stats.flags++;
       }
       clusters++;
@@ -645,6 +670,7 @@ export class MxCourseDressing {
   private banner(s: number, lateral: number, material: T.Material, row: number) {
     const g = new T.PlaneGeometry(8, 0.6, 16, 2);
     const p = g.getAttribute('position');
+    const wind = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
       const x = p.getX(i),
         fraction = (x + 4) / 8;
@@ -655,9 +681,12 @@ export class MxCourseDressing {
         0.55 +
         p.getY(i) -
         0.075 * Math.sin(fraction * Math.PI);
+      const deflection = 0.085 * Math.sin(Math.PI * fraction) ** 2 * (0.72 - p.getY(i) * 0.8);
+      wind.set([at.nx * deflection, at.nz * deflection, s * 0.21 + x * 1.55 + 2.1 * y], i * 3);
       const flutter = 0.035 * Math.sin(fraction * Math.PI * 6);
       p.setXYZ(i, at.x + at.nx * (lateral + flutter), y, at.z + at.nz * (lateral + flutter));
     }
+    g.setAttribute('mxCloth', new T.Float32BufferAttribute(wind, 3));
     g.computeVertexNormals();
     mxAtlasRow(g, row);
     this.frame.identity();
@@ -673,13 +702,12 @@ export class MxCourseDressing {
       shrubPoses: T.Matrix4[] = [],
       shrubColours: T.Color[] = [],
       stonePoses: T.Matrix4[] = [];
-    const ground = terrainFor(track),
-      plantGeometry = {
-        grass: mxShoulderPlantGeometry('grass'),
-        fern: mxShoulderPlantGeometry('fern'),
-        scrub: mxShoulderPlantGeometry('scrub'),
-        tuft: mxShoulderPlantGeometry('tuft'),
-      };
+    const plantGeometry = {
+      grass: mxShoulderPlantGeometry('grass'),
+      fern: mxShoulderPlantGeometry('fern'),
+      scrub: mxShoulderPlantGeometry('scrub'),
+      tuft: mxShoulderPlantGeometry('tuft'),
+    };
     // The same low-frequency field clusters all three plant layers. Bare
     // loam gaps and short inner tufts leave room for the outside berm line.
     const patchAt = (x: number, z: number) => valueNoise(x * 0.055 + 7.2, z * 0.055 - 3.4);
@@ -812,7 +840,6 @@ export class MxCourseDressing {
         track.isPitSection(s)
       )
         continue;
-      this.object.position.set(rockX, ground.height(rockX, rockZ) + 0.3, rockZ);
       this.object.rotation.set(
         random.next() * 0.7,
         random.next() * Math.PI * 2,
@@ -820,6 +847,7 @@ export class MxCourseDressing {
       );
       const rock = 0.5 + random.next() * 1.6;
       this.object.scale.set(rock, rock * 0.65, rock * 0.9);
+      this.object.position.set(rockX, mxFurnitureGround(track, rockX, rockZ) + rock * 0.14, rockZ);
       this.object.updateMatrix();
       stonePoses.push(this.object.matrix.clone());
     }
@@ -882,9 +910,10 @@ export class MxCourseDressing {
         ),
       );
     }
-    const grassMaterial = mxShoulderPlantMaterial(this.plantTime);
+    const grassMaterial = mxShoulderPlantMaterial(this.venueTime);
     const rockMaterial = new T.MeshStandardMaterial({
-      color: 0x807a68,
+      color: 0x8b8376,
+      vertexColors: true,
       roughness: 0.92,
       name: 'MX weathered shoulder stones',
     });
@@ -935,7 +964,7 @@ export class MxCourseDressing {
         if (tufts) tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
         for (const { mesh, full } of verge) mesh.count = high ? full : Math.floor(full * 0.45);
       });
-    this.instances('MX shoulder stones', new T.IcosahedronGeometry(1, 1), rockMaterial, stonePoses);
+    this.instances('MX shoulder stones', mxFieldstoneGeometry(), rockMaterial, stonePoses);
     if (!grassPoses.length && !fernPoses.length && !shrubPoses.length && !tuftPoses.length)
       grassMaterial.dispose();
     if (!stonePoses.length) rockMaterial.dispose();
@@ -946,7 +975,7 @@ export class MxCourseDressing {
     this.stats.stones = stonePoses.length;
   }
   update(time: number) {
-    if (!this.disposed && Number.isFinite(time)) this.plantTime.value = Math.max(0, time);
+    if (!this.disposed && Number.isFinite(time)) this.venueTime.value = Math.max(0, time);
   }
   dispose() {
     if (this.disposed) return;

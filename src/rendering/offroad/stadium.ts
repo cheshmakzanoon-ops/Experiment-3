@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
@@ -7,7 +8,7 @@ import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { mxAtlasRow, mxEventAtlas } from './mx-course-dressing.ts';
-import { onMxAtmosphere } from './mx-quality.ts';
+import { onMxAtmosphere, onMxDetail } from './mx-quality.ts';
 import { STADIUM } from './stadium-dimensions.ts';
 import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
 export { STADIUM } from './stadium-dimensions.ts';
@@ -95,6 +96,7 @@ export class Stadium {
   readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
   private readonly textures = new Set<T.Texture>();
   private stopHaze: (() => void) | null = null;
+  private stopCrowdDetail: (() => void) | null = null;
   private disposed = false;
   private readonly crowdUniforms = {
     crowdClock: { value: new T.Vector2() },
@@ -175,6 +177,9 @@ export class Stadium {
       beams: T.BufferGeometry[] = [],
       soffits: T.BufferGeometry[] = [];
     let portals = 0;
+    const chairsBySection: T.Matrix4[] = [],
+      chairColours: T.Color[] = [];
+    const plastic = [0x29424c, 0x36525b, 0x556469, 0x98633d].map((value) => new T.Color(value));
     const seats: T.Matrix4[] = [],
       clothes: T.Color[] = [],
       skins: T.Color[] = [],
@@ -229,7 +234,8 @@ export class Stadium {
         for (let i = 0; i < n; i++) {
           // Paired gaps give the bowl visible access aisles instead of a
           // uniform carpet of figures that reads as a texture from the bike.
-          if (i % 20 < 2 || r.next() > STADIUM.occupancy) continue;
+          if (i % 20 < 2) continue;
+          const occupied = r.next() <= STADIUM.occupancy;
           const t = (i + 0.5) / n - 0.5;
           const m = new T.Matrix4().makeRotationY(yaw);
           m.setPosition(
@@ -237,6 +243,10 @@ export class Stadium {
             top,
             side.axis === 'z' ? cz : cz + t * extent,
           );
+          chairsBySection.push(m);
+          const section = Math.floor(i / 20);
+          chairColours.push(plastic[k === 9 || k === 10 ? 3 : (section + (k >= 10 ? 1 : 0)) % 3]);
+          if (!occupied) continue;
           seats.push(m);
           // Keep the same three random samples per material as the original
           // seat planner: occupancy, aisles and chair positions do not move.
@@ -428,7 +438,8 @@ export class Stadium {
       roughness: 0.94,
       name: 'Distant arena spectator fabric, skin and hair',
     });
-    installCrowdImpostorShader(distantClothing, new T.Vector2(0.2, 1));
+    const crowdRange = new T.Vector2(0.2, 1);
+    installCrowdImpostorShader(distantClothing, crowdRange);
     this.crowd = new T.InstancedMesh(distant, distantClothing, seats.length);
     const seated = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.485, 0.02);
     const standing = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.3, 0.02);
@@ -459,15 +470,26 @@ export class Stadium {
       crowd.boundingSphere!.radius += 0.6;
       this.root.add(crowd);
     }
-    const seatParts = [
-      new T.BoxGeometry(0.43, 0.07, 0.38).translate(0, 0.47, 0.015),
-      new T.BoxGeometry(0.43, 0.37, 0.06).rotateX(-0.12).translate(0, 0.69, -0.2),
-    ];
-    const seatGeometry = mergeGeometries(seatParts, false)!;
-    seatParts.forEach((g) => g.dispose());
-    const chairs = new T.InstancedMesh(seatGeometry, housing, seats.length);
+    // The same seat table, colours and skin carry into the low-cost cards.
+    // The rank interval and mesh visibility change together, without
+    // rebuilding instance buffers or leaving gaps in the front four rows.
+    this.stopCrowdDetail = onMxDetail((sculpted) => {
+      crowdRange.x = sculpted ? 0.2 : 0;
+      this.nearCrowd.visible = sculpted;
+    });
+    const seatGeometry = mxStadiumSeatGeometry();
+    const polymer = new T.MeshStandardMaterial({
+      name: 'Arena moulded seat polymer',
+      roughness: 0.61,
+      vertexColors: true,
+      side: T.DoubleSide,
+    });
+    const chairs = new T.InstancedMesh(seatGeometry, polymer, chairsBySection.length);
     chairs.name = 'Moulded stadium chairs (instanced)';
-    seats.forEach((m, i) => chairs.setMatrixAt(i, m));
+    chairsBySection.forEach((matrix, index) => {
+      chairs.setMatrixAt(index, matrix);
+      chairs.setColorAt(index, chairColours[index]);
+    });
     chairs.receiveShadow = true;
     chairs.computeBoundingSphere();
     this.root.add(chairs);
@@ -644,6 +666,8 @@ export class Stadium {
     this.disposed = true;
     this.stopHaze?.();
     this.stopHaze = null;
+    this.stopCrowdDetail?.();
+    this.stopCrowdDetail = null;
     disposeOffroadResources([this.root], [], this.textures);
     this.textures.clear();
   }

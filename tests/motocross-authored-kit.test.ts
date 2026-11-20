@@ -147,7 +147,11 @@ describe('original Blender-authored motocross kit', () => {
     const chairs = stadium.root.getObjectByName(
       'Moulded stadium chairs (instanced)',
     ) as T.InstancedMesh;
-    expect(chairs.count).toBe(stadium.crowd.count);
+    expect(stadium.crowd.count / chairs.count).toBeGreaterThan(0.78);
+    expect(stadium.crowd.count / chairs.count).toBeLessThan(0.86);
+    expect(chairs.geometry.index!.count / 3).toBe(20);
+    expect(chairs.instanceColor).toBeTruthy();
+    expect((chairs.material as T.MeshStandardMaterial).metalness).toBe(0);
     expect(chairs.count).toBeGreaterThan(1000);
     expect(stadium.root.userData.concoursePortals).toBeGreaterThan(10);
     expect(stadium.root.getObjectByName('Arena service walls and acoustic cladding')).toBeTruthy();

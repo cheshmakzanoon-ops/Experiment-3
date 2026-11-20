@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
+import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -71,6 +72,41 @@ describe('motocross event feather flags', () => {
           expect(Math.hypot(site.x - p.x, site.z - p.z)).toBeGreaterThan(site.radius + 2.5);
         }
       }
+    } finally {
+      dressing.dispose();
+    }
+  });
+
+  it('pins the sail seams and replays the same wind field in the colour and two shadow passes', () => {
+    const dressing = new MxCourseDressing(rigTrack('valley-ridge-mx'));
+    try {
+      const cloth = dressing.root.getObjectByName('MX printed woven barriers') as T.Mesh;
+      const binding = cloth.geometry.getAttribute('mxCloth') as T.BufferAttribute;
+      const amplitudes = Array.from({ length: binding.count }, (_, i) =>
+        Math.hypot(binding.getX(i), binding.getY(i)),
+      );
+      expect(amplitudes.filter((a) => a === 0).length).toBeGreaterThan(dressing.stats.flags * 8);
+      expect(Math.max(...amplitudes)).toBeCloseTo(0.15, 5);
+      expect(amplitudes.filter((a) => a > 0.1).length).toBeGreaterThan(dressing.stats.flags);
+      const clock = (material: T.Material, kind: 'standard' | 'depth' | 'distanceRGBA') => {
+        const src = T.ShaderLib[kind];
+        const shader = {
+          vertexShader: src.vertexShader,
+          fragmentShader: src.fragmentShader,
+          uniforms: T.UniformsUtils.clone(src.uniforms),
+        } as StudioShader;
+        material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+        expect(shader.vertexShader).toContain('transformed.xz += mxCloth.xy');
+        return shader.uniforms.mxClothTime;
+      };
+      const time = clock(cloth.material as T.Material, 'standard');
+      expect(clock(cloth.customDepthMaterial!, 'depth')).toBe(time);
+      expect(clock(cloth.customDistanceMaterial!, 'distanceRGBA')).toBe(time);
+      for (const value of [8.25, 19.5, 19.5, 8.25]) {
+        dressing.update(value);
+        expect(time.value).toBe(value);
+      }
+      expect(binding.version).toBe(0);
     } finally {
       dressing.dispose();
     }

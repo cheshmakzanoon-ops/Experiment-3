@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { crowdGarmentColour } from '../src/rendering/crowd-wardrobe.ts';
+import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -17,6 +18,26 @@ function compile(material: T.Material) {
 }
 
 describe('motocross stadium audience', () => {
+  it('assigns every lower-row seat to cards on Low and Medium and restores its sculpt on High', () => {
+    const arena = new Stadium(rigTrack('arena-nord-sx'));
+    const range = compile(arena.crowd.material as T.Material).uniforms.crowdLodRange
+      .value as T.Vector2;
+    const version = arena.nearCrowd.instanceMatrix.version;
+    try {
+      for (const preset of ['low', 'medium', 'high', 'ultra', 'medium', 'high'] as const) {
+        setMxQuality(preset);
+        const close = preset === 'high' || preset === 'ultra';
+        expect(arena.nearCrowd.visible).toBe(close);
+        expect(range.x).toBe(close ? 0.2 : 0);
+        expect(arena.crowd.visible).toBe(true);
+        expect(range.y).toBe(1);
+      }
+      expect(arena.nearCrowd.instanceMatrix.version).toBe(version);
+    } finally {
+      setMxQuality('high');
+      arena.dispose();
+    }
+  });
   it('draws every occupied seat once with detailed lower rows below the previous crowd geometry cost', () => {
     const arena = new Stadium(rigTrack('arena-nord-sx'));
     const all = arena.crowd,
@@ -47,7 +68,28 @@ describe('motocross stadium audience', () => {
     expect(closeIndex).toBe(close.count);
     expect(close.count).toBeGreaterThan(200);
     expect(closeIndex + distantCount).toBe(all.count);
-    expect(chairs.count).toBe(all.count);
+    // Empty bucket seats still belong to the bowl. Check every occupied
+    // chair against the actual planned row, including a standing person's
+    // different vertical offset from the pan.
+    const style = all.geometry.getAttribute('spectatorStyle');
+    const floorLocations = new Set<string>(),
+      m = new T.Matrix4(),
+      v = new T.Vector3();
+    const key = (p: T.Vector3) => [p.x, p.y, p.z].map((n) => Math.round(n * 100)).join(',');
+    for (let i = 0; i < chairs.count; i++) {
+      chairs.getMatrixAt(i, m);
+      floorLocations.add(key(v.setFromMatrixPosition(m)));
+    }
+    const people = new Set<string>();
+    for (let i = 0; i < all.count; i++) {
+      all.getMatrixAt(i, m);
+      // The spectator pose faces sideways in the shared authored kit.
+      const floor = v.set(0.02, style.getZ(i) > 0.5 ? -0.3 : -0.485, 0).applyMatrix4(m);
+      people.add(key(floor));
+    }
+    expect(people.size).toBe(all.count);
+    expect([...people].every((position) => floorLocations.has(position))).toBe(true);
+    expect(chairs.count).toBeGreaterThan(all.count);
     expect(all.count).toBeGreaterThan(1000);
     arena.root.traverse((object) => {
       if (!(object instanceof T.Mesh)) return;
