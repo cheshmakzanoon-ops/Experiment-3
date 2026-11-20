@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { roadTyreSection, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
 import { B, BIKE_BASE, F } from '../simulation/protocol.ts';
 import type { VehicleDefinition } from '../simulation/vehicles.ts';
 import { RoadBikeContactPose, RoadBikeWheelPose } from './road-bike-pose.ts';
@@ -35,7 +36,8 @@ export class GpTyreContactProjector {
     rear: T.Vector4,
     shape: T.Vector4,
   ) {
-    const spec = definition.bike!;
+    const spec = definition.bike!,
+      section = roadTyreSection(definition.classId);
     const lean = finiteValue(presented, o + BIKE_BASE + B.LEAN),
       pitch = T.MathUtils.clamp(finiteValue(presented, o + BIKE_BASE + B.PITCH), -1.3, 1.3),
       fallen = Math.abs(lean) > 1.2,
@@ -126,8 +128,8 @@ export class GpTyreContactProjector {
         radius = i === 0 ? spec.frontWheelRadius : spec.rearWheelRadius,
         // BikeModel's broad rear slick uses a larger visual crown. Keep the
         // physics crown above for pivot inversion, this one for the mesh.
-        crown = i === 0 ? spec.crownRadius : Math.max(spec.crownRadius, 0.11),
-        halfWidth = i === 0 ? 0.06 : 0.1,
+        crown = i === 0 ? spec.crownRadius : section.rearCrown,
+        halfWidth = i === 0 ? section.frontHalfWidth : section.rearHalfWidth,
         contact = i === 0 ? front : rear;
       this.point
         .fromArray(centre)
@@ -135,7 +137,7 @@ export class GpTyreContactProjector {
         .add(position)
         .addScaledVector(this.up, lift);
       if (planeNormal > 1e-5) {
-        const reach = Math.min(1.25, Math.asin(Math.min(0.98, halfWidth / crown))),
+        const reach = Math.asin(tyreShoulderSine(halfWidth, crown)),
           angle = Math.min(reach, Math.atan2(Math.abs(axleDot), planeNormal)),
           radial = (radius - crown + crown * Math.cos(angle)) / planeNormal,
           axial = -Math.sign(axleDot) * crown * Math.sin(angle);

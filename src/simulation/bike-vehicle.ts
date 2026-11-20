@@ -1,4 +1,4 @@
-import { ROAD_TYRE_HALF_WIDTH, tyreShoulderSine, tyreRollingRadius } from './bike-tyre-profile.ts';
+import { roadTyreSection, tyreShoulderSine, tyreRollingRadius } from './bike-tyre-profile.ts';
 import { GpSteeringPlane } from './motogp-physics.ts';
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
@@ -136,6 +136,7 @@ export class BikeVehicle extends Vehicle {
   private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0, frontRadius: 0, rearRadius: 0, steeringPlane: new GpSteeringPlane() };
   private readonly frontShoulder: number;
   private readonly rearShoulder: number;
+  private readonly rearCrown: number;
   private readonly nextFrontSurface = surfaceSample();
   private readonly nextRearSurface = surfaceSample();
   private readonly roadRayOrigin = new Vec3();
@@ -193,8 +194,10 @@ export class BikeVehicle extends Vehicle {
     this.gearing = this.setup.gearing;
     this.engineBrake =
       ENGINE_BRAKE_MAPS[Math.min(3, Math.max(0, Math.round(this.setup.engineBrakeMap)))];
-    this.frontShoulder = tyreShoulderSine(ROAD_TYRE_HALF_WIDTH.front, this.bikeSpec.crownRadius);
-    this.rearShoulder = tyreShoulderSine(ROAD_TYRE_HALF_WIDTH.rear, Math.max(0.11, this.bikeSpec.crownRadius));
+    const section = roadTyreSection(definition.classId);
+    this.rearCrown = section.rearCrown;
+    this.frontShoulder = tyreShoulderSine(section.frontHalfWidth, this.bikeSpec.crownRadius);
+    this.rearShoulder = tyreShoulderSine(section.rearHalfWidth, this.rearCrown);
     this.forkFirmness = dampingFirmness(this.setup.frontDamping);
     this.shockFirmness = dampingFirmness(this.setup.rearDamping);
     this.roadSuspension = new RoadBikeSuspension({
@@ -644,7 +647,7 @@ export class BikeVehicle extends Vehicle {
       this.body.orientation.rotate(this.offset, this.scratch);
       this.roadLoads.rearRadius = tyreRollingRadius(
         s.rearWheelRadius,
-        Math.max(0.11, s.crownRadius),
+        this.rearCrown,
         this.rearShoulder,
         this.scratch.dot(this.contacts[2].normal),
       );

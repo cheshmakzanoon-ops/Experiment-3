@@ -12,6 +12,7 @@ import {
   RoadBikeWheelPose,
 } from '../src/rendering/road-bike-pose.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { roadTyreSection } from '../src/simulation/bike-tyre-profile.ts';
 import { RoadBikeInstruments } from '../src/rendering/road-bike-instruments.ts';
 
 const catalogue = [
@@ -170,6 +171,14 @@ describe('road motorcycles in the GP selector', () => {
         speed: 30,
       };
       try {
+        const section = roadTyreSection(def.classId),
+          widths = new Set<number>();
+        model.root.traverse((object) => {
+          if (!(object instanceof T.Mesh)) return;
+          const bind = object.geometry.getAttribute('gpTyreBind');
+          if (bind) widths.add(Number(bind.getW(0).toFixed(4)));
+        });
+        expect([...widths].sort()).toEqual([section.frontHalfWidth, section.rearHalfWidth]);
         const lever = model.root.getObjectByName('Road front-brake lever pivot')!,
           sleeve = model.root.getObjectByName('Road right throttle sleeve')!;
         for (const [brake, throttle] of [

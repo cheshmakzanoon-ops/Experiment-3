@@ -1,4 +1,7 @@
 import * as T from 'three';
+import type { BikeSpec } from '../simulation/bike-definitions.ts';
+import { roadTyreSection } from '../simulation/bike-tyre-profile.ts';
+import type { VehicleClass } from '../simulation/vehicles.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 import { drawWordmark, fitHeight } from './studio/brand-atlas.ts';
 import { wheelBlur } from './studio/tyre-letters.ts';
@@ -26,6 +29,9 @@ export function bindGpTyre<G extends T.BufferGeometry>(geometry: G, halfWidth: n
 export interface GpTyreAppearance {
   /** Presented chassis lean (rad); the scrubbed shoulder follows it. */
   chassisLean?: number;
+  /** Independent snapshot angular velocities in rad/s. Zero is a locked wheel. */
+  frontOmega?: number;
+  rearOmega?: number;
   compound?: number;
   frontWear?: number;
   rearWear?: number;
@@ -60,7 +66,7 @@ export const GP_TYRE_SIDEWALL = Object.freeze({
   glyphWidth: 0.49,
   /** Average lettering coverage over a band row, shown once the wheel spins. */
   meanInk: 0.09,
-  words: Object.freeze(['MOTOBOUND', 'SLICK 18  RACING  MS'] as const),
+  words: Object.freeze(['MOTOBOUND', '17  MOTORCYCLE'] as const),
 });
 
 /** Across-tread position (0 centre .. 1 tread edge) of the contact patch at a
@@ -103,7 +109,7 @@ export function gpTyreLetteringAtlas(): T.CanvasTexture | null {
   lettering.wrapS = T.RepeatWrapping;
   lettering.wrapT = T.ClampToEdgeWrapping;
   lettering.anisotropy = 8;
-  lettering.name = 'GP slick sidewall lettering';
+  lettering.name = 'Motorcycle sidewall lettering';
   return lettering;
 }
 
@@ -121,11 +127,19 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
   const hasLetters = !!letters.value;
   const f = GP_TYRE_SIDEWALL.front,
     r = GP_TYRE_SIDEWALL.rear;
-  chainShaderHook(material, 'gp-tyre-drainage-v3', (shader) => {
+  let section = roadTyreSection('gp-bike'),
+    frontCrown: number = f.crown,
+    frontRadius = 0.3,
+    rearRadius = 0.32;
+  // Threshold between the two authored widths and the permanent tread design
+  // (race slick, road sport, period rib). Shared by the three LODs of one bike.
+  const sectionUniform = { value: new T.Vector2((f.halfWidth + r.halfWidth) / 2, 0) };
+  chainShaderHook(material, 'gp-tyre-drainage-v4', (shader) => {
     Object.assign(shader.uniforms, {
       gpTyreFront: front,
       gpTyreRear: rear,
       gpTyreStyle: style,
+      gpTyreSection: sectionUniform,
       gpTyreMotion: motion,
       ...(hasLetters ? { gpTyreLetters: letters } : {}),
     });
@@ -142,7 +156,7 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       `
       varying vec4 vGpTyreBind;
       uniform vec4 gpTyreFront, gpTyreRear, gpTyreMotion;
-      uniform vec2 gpTyreStyle;
+      uniform vec2 gpTyreStyle, gpTyreSection;
       ${hasLetters ? 'uniform sampler2D gpTyreLetters;' : ''}
       float gpTyreRelief, gpTyreRoughness, gpTyreCoverage;
     `,
@@ -157,13 +171,18 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       gpTyreCoverage=step(.025,p.w)*gpTyreStyle.y;
       float across=abs(p.x)/max(p.w,.03);
       float crown=1.-smoothstep(.62,.97,across);
-      vec4 condition=mix(gpTyreFront,gpTyreRear,step(.08,p.w));
+      float rearTyre=step(gpTyreSection.x,p.w);
+      vec4 condition=mix(gpTyreFront,gpTyreRear,rearTyre);
       float heat=smoothstep(45.,95.,condition.y);
       float water=clamp(condition.z * max(condition.w,2.) / 25.,0.,1.);
       // Integer circumferential pitch closes exactly at the angular seam.
       float theta=atan(p.z,p.y)/6.28318530718;
-      float cuts=mix(28.,40.,step(1.5,gpTyreStyle.x));
-      float phase=theta*cuts + across*.85 + sin(across*3.14159265)*.16;
+      float road=step(.5,gpTyreSection.y);
+      float vintage=step(1.5,gpTyreSection.y);
+      float cuts=mix(mix(28.,32.,road),40.,step(1.5,gpTyreStyle.x));
+      float phase=theta*cuts + across*mix(.85,.58,vintage) + sin(across*3.14159265)*.16;
+      // Stagger the two banks of road channels; the centre rib stays continuous.
+      phase+=road*smoothstep(-.12,.12,p.x/max(p.w,.03))*.32;
       // Derivatives of the continuous plane, not of fract(), avoid a dark
       // unfiltered seam at every groove. Fade subpixel grooves to no relief.
       float px=max(fwidth(phase),.00001);
@@ -171,7 +190,12 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       float width=mix(.033,.048,step(1.5,gpTyreStyle.x));
       float groove=(1.-smoothstep(width-px*.5,width+px*.5,abs(fract(phase)-.5)))
         * smoothstep(.1,.2,across) * (1.-smoothstep(.87,.97,across))
-        * step(.5,gpTyreStyle.x) * resolved;
+        * max(step(.5,gpTyreStyle.x),road) * resolved;
+      float ribDistance=abs(across-(.21+.026*sin(theta*6.28318530718*24.)));
+      float ribPixel=max(fwidth(across),.0001);
+      float rib=(1.-smoothstep(.018-ribPixel*.5,.018+ribPixel*.5,ribDistance))
+        *(1.-smoothstep(.024,.095,ribPixel));
+      groove=max(groove,rib*vintage);
       // Scrubbed band (REF 002/015/060/096): a run-in race tyre is matt and
       // slightly lighter from the centre out to where it has been leaned;
       // the band reaches the edge as the presented lean moves the contact
@@ -179,16 +203,15 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       // its darker sheen; the patch itself carries a hot, darker stripe.
       // Integer angular harmonics close at atan's seam; grain uses continuous
       // axle-local metres and fades before either scale becomes subpixel.
-      float rearTyre=step(.08,p.w);
       float contact=mix(gpTyreMotion.x,gpTyreMotion.y,rearTyre);
-      float edge=clamp(max(.62,contact+.12),.62,.97);
+      float edge=clamp(max(.62,abs(contact)+.12),.62,.97);
       float pixel=length(fwidth(p.xyz));
       float streak=sin(theta*6.28318530718*54. + across*84.)*.5+.5;
       float resolvedScrub=1.-smoothstep(.006,.025,pixel);
       float scrub=smoothstep(.06,.18,across)*(1.-smoothstep(edge-.05,edge,across))
         *(.55+.45*sqrt(condition.x));
       float fresh=smoothstep(edge-.03,edge+.02,across)*(1.-smoothstep(.93,.99,across));
-      float hotPatch=exp(-pow((across-contact)/.07,2.))*smoothstep(.15,.3,contact)*(.4+.6*heat);
+      float hotPatch=exp(-pow((p.x/max(p.w,.03)-contact)/.07,2.))*smoothstep(.15,.3,abs(contact))*(.4+.6*heat);
       float scuff=resolvedScrub*scrub;
       float grain=sin(p.y*1221.+sin(p.z*891.)*.8)*sin(p.x*1493.+p.z*823.);
       float resolvedGrain=1.-smoothstep(.00065,.0025,pixel);
@@ -251,14 +274,27 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
     rear,
     style,
     motion,
-    update(state: GpTyreAppearance, enabled = true) {
+    sectionUniform,
+    configure(classId: VehicleClass, spec: BikeSpec) {
+      section = roadTyreSection(classId);
+      frontCrown = spec.crownRadius;
+      frontRadius = spec.frontWheelRadius;
+      rearRadius = spec.rearWheelRadius;
+      sectionUniform.value.set(
+        (section.frontHalfWidth + section.rearHalfWidth) / 2,
+        classId === 'classic-bike' ? 2 : classId === 'road-bike' ? 1 : 0,
+      );
+    },
+    update(state: GpTyreAppearance, enabled = true, treadContact?: readonly number[]) {
       const speed = finite(state.speed, 0, 0, 150);
       const lean = finite(state.chassisLean, 0, -1.5, 1.5);
       motion.value.set(
-        gpTyreContactAcross(lean, f.crown, f.halfWidth),
-        gpTyreContactAcross(lean, r.crown, r.halfWidth),
-        wheelBlur(speed / 0.3),
-        wheelBlur(speed / 0.32),
+        treadContact?.[0] ??
+          Math.sign(lean) * gpTyreContactAcross(lean, frontCrown, section.frontHalfWidth),
+        treadContact?.[1] ??
+          Math.sign(lean) * gpTyreContactAcross(lean, section.rearCrown, section.rearHalfWidth),
+        wheelBlur(finite(state.frontOmega, speed / frontRadius, -1600, 1600)),
+        wheelBlur(finite(state.rearOmega, speed / rearRadius, -1600, 1600)),
       );
       front.value.set(
         finite(state.frontWear, 0, 0, 1),

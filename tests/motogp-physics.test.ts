@@ -5,7 +5,7 @@ import { BikeVehicle, bikeOrientation } from '../src/simulation/bike-vehicle.ts'
 import { GP_R1, GP_R2 } from '../src/simulation/bike-definitions.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
-  ROAD_TYRE_HALF_WIDTH,
+  roadTyreSection,
   tyreShoulderSine,
   tyreRollingRadius,
 } from '../src/simulation/bike-tyre-profile.ts';
@@ -171,7 +171,7 @@ describe('MotoGP-only single-track tyre/yaw dynamics', () => {
   it('rolls faster on the shoulder and keeps an unsupported wheel free', () => {
     const b = GP_R1.bike!,
       crown = b.crownRadius;
-    const shoulder = tyreShoulderSine(ROAD_TYRE_HALF_WIDTH.front, crown);
+    const shoulder = tyreShoulderSine(roadTyreSection('gp-bike').frontHalfWidth, crown);
     const frontRadius = tyreRollingRadius(geometry.frontRadius, crown, shoulder, 0.57);
     expect(tyreRollingRadius(geometry.frontRadius, crown, shoulder, 0)).toBe(geometry.frontRadius);
     expect(frontRadius).toBeLessThan(geometry.frontRadius - 0.005);

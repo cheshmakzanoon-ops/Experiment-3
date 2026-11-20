@@ -1,5 +1,5 @@
 import {
-  ROAD_TYRE_HALF_WIDTH,
+  roadTyreSection,
   tyreShoulderSine,
   tyreRollingRadius,
 } from '../simulation/bike-tyre-profile.ts';
@@ -100,6 +100,8 @@ export class RoadBikeWheelPose {
   readonly hubs = [new T.Vector3(), new T.Vector3()];
   readonly patches = [new T.Vector3(), new T.Vector3()];
   readonly localGround = new T.Plane();
+  /** Signed position across each crown, in tyre half-widths. */
+  readonly treadContact = [0, 0];
   private readonly axis = new T.Vector3();
   private readonly axle = new T.Vector3();
   private readonly support = new T.Vector3();
@@ -123,6 +125,7 @@ export class RoadBikeWheelPose {
     contact: RoadBikeContactPose,
   ) {
     const b = definition.bike!,
+      section = roadTyreSection(definition.classId),
       c = Math.cos(ROAD_BIKE_RAKE),
       s = Math.sin(ROAD_BIKE_RAKE);
     this.head.set(
@@ -152,14 +155,17 @@ export class RoadBikeWheelPose {
         this.axle.set(1, 0, 0).applyQuaternion(orientation);
       }
       hub.copy(this.local).applyQuaternion(orientation).add(position);
+      const crown = i === 0 ? b.crownRadius : section.rearCrown,
+        width = i === 0 ? section.frontHalfWidth : section.rearHalfWidth;
       tyreSupport(
         normal,
         this.axle,
         i === 0 ? b.frontWheelRadius : b.rearWheelRadius,
-        i === 0 ? b.crownRadius : Math.max(b.crownRadius, 0.11),
-        i === 0 ? ROAD_TYRE_HALF_WIDTH.front : ROAD_TYRE_HALF_WIDTH.rear,
+        crown,
+        width,
         this.support,
       );
+      this.treadContact[i] = this.support.dot(this.axle) / width;
       const distance = normal.dot(hub) + normal.dot(this.support) - normal.dot(contact.points[i]),
         correction = contact.gaps[i] * normal.y - distance;
       if (i === 1) {

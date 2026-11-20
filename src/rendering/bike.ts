@@ -3,7 +3,7 @@ import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
 import { gpGripGeometry, gpLeverGuard } from './gp-handlebar-controls.ts';
 import { gpThrottleAngle } from './gp-rider-contact.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
-import { ROAD_TYRE_HALF_WIDTH, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
+import { roadTyreSection, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
 import {
   bindGpBareMetal,
   calibrateGpMaterials,
@@ -881,6 +881,7 @@ export class BikeModel {
       sport = full && !gp,
       shell = gp || sport;
     calibrateGpMaterials(m, definition.id);
+    m.tyreFinish.configure(definition.classId, b);
     const gpPrototype = authored || definition.id === 'gpr2';
     if (!gpPrototype) {
       m.disc.color.setHex(classic ? 0x898b8a : 0xa5aaaf);
@@ -894,6 +895,7 @@ export class BikeModel {
     // ---- Wheels, tyres and brakes (front lives on the sliding fork lowers).
     const frontR = b.frontWheelRadius,
       rearR = b.rearWheelRadius,
+      tyreSection = roadTyreSection(definition.classId),
       rim = 0.2159;
     const wheel = (
       spin: T.Group,
@@ -1296,7 +1298,7 @@ export class BikeModel {
     if (gpPrototype) this.frontSpin.name = 'GP front wheel spin';
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, FORK_OFFSET);
-    wheel(this.frontSpin, frontR, ROAD_TYRE_HALF_WIDTH.front, b.crownRadius, true);
+    wheel(this.frontSpin, frontR, tyreSection.frontHalfWidth, b.crownRadius, true);
     if (gpPrototype && detail !== 'far')
       this.gpFrontHydraulics = new GPFrontHydraulics(
         this.steer,
@@ -1863,7 +1865,7 @@ export class BikeModel {
     if (gp) {
       add(
         this.swingarm,
-        gpRearHugger(rearR, Math.max(b.crownRadius, 0.11), arm, detail),
+        gpRearHugger(rearR, tyreSection.rearCrown, arm, detail),
         gpSatinCarbon(m),
         0,
         0,
@@ -1901,7 +1903,7 @@ export class BikeModel {
     this.rearWheel.position.copy(this.rearAxle);
     this.rearWheel.add(this.rearSpin);
     this.root.add(this.rearWheel);
-    wheel(this.rearSpin, rearR, ROAD_TYRE_HALF_WIDTH.rear, Math.max(b.crownRadius, 0.11), false);
+    wheel(this.rearSpin, rearR, tyreSection.rearHalfWidth, tyreSection.rearCrown, false);
     // ---- Rider.
     const scheme = liveryScheme(id);
     const colours = {
@@ -1999,7 +2001,6 @@ export class BikeModel {
     this.cockpit?.update(v);
     this.roadClocks?.update(v);
     this.gpRearsets?.update(v.rearBrake);
-    this.m.tyreFinish.update(v, this.definition.id === 'gpr1' || this.definition.id === 'gpr2');
     const road = v.roadContact?.valid
       ? this.roadWheels.solve(
           this.definition,
@@ -2009,6 +2010,7 @@ export class BikeModel {
           v.roadContact,
         )
       : undefined;
+    this.m.tyreFinish.update(v, true, road?.treadContact);
     // Legacy frames derive visual heave/pitch. A live road body already owns
     // both; applying this local spring transform again doubles the motion.
     const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
@@ -2623,6 +2625,8 @@ export class BikeShells {
     v.fork = sampleBikeField(a, b, o, B.FORK, t);
     v.shock = sampleBikeField(a, b, o, B.SHOCK, t);
     v.steer = sampleBikeField(a, b, o, B.STEER, t);
+    v.frontOmega = wheelValue(a, b, o, front, W.OMEGA, t);
+    v.rearOmega = wheelValue(a, b, o, rear, W.OMEGA, t);
     v.frontRotation = wheelPhase(a, b, o, front, t);
     v.rearRotation = wheelPhase(a, b, o, rear, t);
     v.chassisLean = chassisLean(sampleBikeField(a, b, o, B.LEAN, t), bike);

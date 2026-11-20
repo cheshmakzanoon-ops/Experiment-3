@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
+import { VEHICLES } from '../src/simulation/vehicles.ts';
 import {
   bindGpTyre,
   gpDrainageStyle,
@@ -104,7 +105,23 @@ describe('GP R5 recorded tyre material state', () => {
     const shader = shaderFor(material);
     expect(shader.uniforms.gpTyreFront).toBe(finish.front);
     expect(shader.uniforms.gpTyreRear).toBe(finish.rear);
-    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v3');
+    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v4');
+    material.dispose();
+  });
+  it('selects both classic tyres correctly and presents a locked front and spinning rear independently', () => {
+    const material = new T.MeshStandardMaterial(),
+      finish = installGpTyreFinish(material);
+    const classic = VEHICLES.cr750;
+    finish.configure(classic.classId, classic.bike!);
+    expect(finish.sectionUniform.value.x).toBeGreaterThan(0.05);
+    expect(finish.sectionUniform.value.x).toBeLessThan(0.065);
+    expect(finish.sectionUniform.value.y).toBe(2);
+    const frame = { speed: 20, compound: 0, chassisLean: -0.42, frontOmega: 0, rearOmega: -55 };
+    finish.update(frame, true, [-0.6, 0.42]);
+    expect(finish.motion.value.toArray()).toEqual([-0.6, 0.42, 0, 1]);
+    finish.update({ ...frame, frontOmega: 80, rearOmega: 0 }, true, [0.3, -0.4]);
+    finish.update(frame, true, [-0.6, 0.42]);
+    expect(finish.motion.value.toArray()).toEqual([-0.6, 0.42, 0, 1]);
     material.dispose();
   });
   it('bounds damaged telemetry and does not allocate replacement uniform vectors', () => {
