@@ -1,255 +1,190 @@
-### browser (5) (job 136042572832)
+### browser (5) (job 136047739933)
 --- error digest (first 120 matching lines) ---
-374:browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.4918679Z ##[error]The operation was canceled.
+57:browser (5)	Run actions/checkout@v4	2026-11-20T02:55:34.0468690Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.0584180Z yarn: 1.22.22
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.0585251Z ##[endgroup]
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.0594273Z [command]/opt/hostedtoolcache/node/22.23.4/x64/bin/npm config get cache
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.2980764Z /home/runner/.npm
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.3739110Z Cache hit for: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.3818603Z (node:2164) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.6748168Z Received 34267551 of 34267551 (100.0%), 123.3 MBs/sec
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.6748709Z Cache Size: ~33 MB (34267551 B)
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.6763571Z [command]/usr/bin/tar -xf /home/runner/work/_temp/68d4f200-8e43-4bb6-a5d4-44b905539e07/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.7099787Z Cache restored successfully
-browser (5)	Run actions/setup-node@v4	2026-11-20T02:46:40.7112889Z Cache restored from key: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-20T02:46:40.7792388Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:40.7793210Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:41.0011254Z shell: /usr/bin/bash -e {0}
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:41.0011628Z env:
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:41.0012190Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:41.0012459Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:41.0012701Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:41.0013016Z ##[endgroup]
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:44.4165058Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:44.6751912Z 
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:44.6752764Z added 192 packages in 3s
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:45.2806591Z (node:2213) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-browser (5)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T02:46:45.2807326Z (Use `node --trace-warnings ...` to show where the warning was created)
-browser (5)	Download tested build (attempt 1 of 3)	﻿2026-11-20T02:46:45.2955681Z ##[group]Run actions/download-artifact@v4
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2955985Z with:
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2956226Z   name: apex-formula-web
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2956474Z   path: dist/
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2956732Z   merge-multiple: false
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2956989Z   repository: cheshmakzanoon-ops/Experiment-3
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2957279Z   run-id: 44661778033
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2957511Z env:
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2957749Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2958050Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2958318Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.2958541Z ##[endgroup]
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.4063874Z Downloading single artifact
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.4177267Z (node:2246) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.4178113Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.4733709Z Preparing to download the following artifacts:
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.4735043Z - apex-formula-web (ID: 14595274427, Size: 79159105, Expected Digest: sha256:9fdfcdd97d19182d5f21dd1294d221a54e793fd3a1af39cba3fd82a3942e0391)
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.5740952Z Redirecting to blob download url: https://productionresultssa14.blob.core.windows.net/actions-results/f45408bb-7b66-8774-97d7-c7a6735adeb3/workflow-job-run-3145e8d1-5498-5c9c-a826-9b68514cbab9/artifacts/a099db7dccca2bea13cabdb75d09ca0f68509ae9b06d93f8e4352c66fb8393f2.zip
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:45.5743231Z Starting download of artifact to: /home/runner/work/Experiment-3/Experiment-3/dist
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:46.0283345Z (node:2246) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:46.8573100Z SHA256 digest of downloaded artifact is 9fdfcdd97d19182d5f21dd1294d221a54e793fd3a1af39cba3fd82a3942e0391
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:46.8573908Z Artifact download completed successfully.
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:46.8574277Z Total of 1 artifact(s) downloaded
-browser (5)	Download tested build (attempt 1 of 3)	2026-11-20T02:46:46.8576364Z Download artifact has finished successfully
-browser (5)	Require downloaded build before continuing	﻿2026-11-20T02:46:46.8729672Z ##[group]Run set -euo pipefail
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8730131Z ^[[36;1mset -euo pipefail^[[0m
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8730447Z ^[[36;1mtest "$DOWNLOAD_SUCCEEDED" = true^[[0m
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8730732Z ^[[36;1mtest -s dist/index.html^[[0m
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8730988Z ^[[36;1mtest -d dist/assets^[[0m
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8759232Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8759587Z env:
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8759835Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8760124Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8760429Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8760688Z   DOWNLOAD_SUCCEEDED: true
-browser (5)	Require downloaded build before continuing	2026-11-20T02:46:46.8760922Z ##[endgroup]
-browser (5)	Use HTTPS for Ubuntu packages	﻿2026-11-20T02:46:46.8829776Z ##[group]Run sudo python3 scripts/ci-ubuntu-https.py
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8830163Z ^[[36;1msudo python3 scripts/ci-ubuntu-https.py^[[0m
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8850683Z shell: /usr/bin/bash -e {0}
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8850965Z env:
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8851281Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8851537Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8852010Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.8852302Z ##[endgroup]
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.9539007Z Using Ubuntu HTTPS sources in /etc/apt/apt-mirrors.txt
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.9539587Z Using Ubuntu HTTPS sources in /etc/apt/sources.list.d/ubuntu.sources
-browser (5)	Use HTTPS for Ubuntu packages	2026-11-20T02:46:46.9540115Z Updated 2 Ubuntu source files; suites and signing options retained.
-browser (5)	Run npx playwright install --with-deps chromium	﻿2026-11-20T02:46:46.9615292Z ##[group]Run npx playwright install --with-deps chromium
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9615710Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9640722Z shell: /usr/bin/bash -e {0}
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9641094Z env:
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9641329Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9641629Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9642095Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.9642335Z ##[endgroup]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.5041100Z Installing dependencies...
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.5089001Z Switching to root user to install dependencies...
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.6262416Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.6564474Z Get:5 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.7257005Z Get:6 https://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.7339407Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [799 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.7606822Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [728 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.8384611Z Get:9 https://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1198 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9020097Z Get:10 https://security.ubuntu.com/ubuntu noble-security/main Translation-en [239 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9167024Z Get:11 https://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1231 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9392308Z Get:12 https://security.ubuntu.com/ubuntu noble-security/universe Translation-en [248 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9536182Z Get:13 https://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1792 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9707981Z Hit:2 https://archive.ubuntu.com/ubuntu noble InRelease
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9781943Z Get:14 https://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [414 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:47.9932635Z Get:15 https://security.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.7 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.0750801Z Get:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.4231676Z Get:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.5280617Z Get:16 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1475 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.5513902Z Get:17 https://archive.ubuntu.com/ubuntu noble-updates/main Translation-en [319 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.5635503Z Get:18 https://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.5815994Z Get:19 https://archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.5910698Z Get:20 https://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1922 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.6145239Z Get:21 https://archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [443 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:48.6265327Z Get:22 https://archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.6 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:58.0215436Z Fetched 13.3 MB in 1s (9313 kB/s)
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:58.9558820Z Reading package lists...
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:58.9815148Z Reading package lists...
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.1700582Z Building dependency tree...
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.1704902Z Reading state information...
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3136319Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3137038Z libasound2t64 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3137729Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3138237Z libatk-bridge2.0-0t64 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3138829Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3139354Z libatk1.0-0t64 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3139821Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3140250Z libatspi2.0-0t64 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3140617Z libcairo2 is already the newest version (1.18.0-3build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3141490Z libcairo2 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3142226Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3142770Z libcups2t64 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3143256Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3143682Z libdbus-1-3 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3144073Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3144485Z libdrm2 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3144873Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3145296Z libglib2.0-0t64 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3145712Z libnspr4 is already the newest version (2:4.35-1.1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3146064Z libnspr4 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3146465Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3146920Z libnss3 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3147330Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3147696Z libpango-1.0-0 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3148093Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3148452Z libx11-6 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3148814Z libxcb1 is already the newest version (1.15-1ubuntu2).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3149233Z libxcb1 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3149631Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3150030Z libxcomposite1 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3150434Z libxdamage1 is already the newest version (1:1.1.6-1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3150812Z libxdamage1 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3151209Z libxext6 is already the newest version (2:1.3.4-1build2).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3151543Z libxext6 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3152131Z libxfixes3 is already the newest version (1:6.0.0-2build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3152504Z libxfixes3 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3152943Z libxkbcommon0 is already the newest version (1.6.0-1build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3153298Z libxkbcommon0 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3153657Z libxrandr2 is already the newest version (2:1.5.2-2build1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3154042Z libxrandr2 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3154400Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3154905Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3155382Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3155924Z libfontconfig1 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3156340Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3156754Z libfreetype6 set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3157130Z fonts-liberation is already the newest version (1:2.1.5-3).
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3157524Z fonts-liberation set to manually installed.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3157907Z The following additional packages will be installed:
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3158370Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3158979Z Recommended packages:
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3159344Z   fonts-ipafont-mincho fonts-tlwg-loma
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4716908Z The following NEW packages will be installed:
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4717856Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4729213Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4729996Z   xfonts-utils
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4734934Z The following packages will be upgraded:
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4740742Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4904608Z 4 upgraded, 9 newly installed, 0 to remove and 80 not upgraded.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4905344Z Need to get 32.1 MB of archives.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4906116Z After this operation, 79.7 MB of additional disk space will be used.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.4906574Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.5629951Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.6043614Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.6412059Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.6500277Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.6770131Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.7222845Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.7346346Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.7516119Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.7609958Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.8272329Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.8379649Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.8479266Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.8581046Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:00.6691307Z Fetched 32.1 MB in 0s (84.7 MB/s)
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:00.7264592Z Selecting previously unselected package fonts-ipafont-gothic.
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0793552Z (Reading database ... 
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0794533Z (Reading database ... 5%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0794868Z (Reading database ... 10%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0795208Z (Reading database ... 15%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0795526Z (Reading database ... 20%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0795885Z (Reading database ... 25%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0796194Z (Reading database ... 30%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0796516Z (Reading database ... 35%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0796845Z (Reading database ... 40%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0797197Z (Reading database ... 45%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.0797788Z (Reading database ... 50%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.2736975Z (Reading database ... 55%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.6764032Z (Reading database ... 60%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.8953255Z (Reading database ... 65%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.0547661Z (Reading database ... 70%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.1421277Z (Reading database ... 75%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.3674403Z (Reading database ... 80%
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.4918679Z ##[error]The operation was canceled.
-browser (5)	Browser screenshots and diagnostics	﻿2026-11-20T02:47:02.4980441Z ##[group]Run actions/upload-artifact@v4
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4980777Z with:
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4981026Z   name: browser-validation-5-of-16
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4981488Z   path: test-results/
+browser (5)	Set up job	﻿2026-11-20T02:55:27.1788813Z Current runner version: '2.338.2'
+browser (5)	Set up job	2026-11-20T02:55:27.1808271Z ##[group]Runner Image Provisioner
+browser (5)	Set up job	2026-11-20T02:55:27.1809166Z Hosted Compute Agent
+browser (5)	Set up job	2026-11-20T02:55:27.1809631Z Version: 20261103.629
+browser (5)	Set up job	2026-11-20T02:55:27.1810087Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+browser (5)	Set up job	2026-11-20T02:55:27.1810653Z Build Date: 2026-11-03T17:26:59Z
+browser (5)	Set up job	2026-11-20T02:55:27.1811144Z Worker ID: {ad52aa74-1796-44e2-829c-efef44e3430e}
+browser (5)	Set up job	2026-11-20T02:55:27.1811677Z Region: us-west-2
+browser (5)	Set up job	2026-11-20T02:55:27.1812086Z Cloud: AWS
+browser (5)	Set up job	2026-11-20T02:55:27.1812450Z ##[endgroup]
+browser (5)	Set up job	2026-11-20T02:55:27.1813391Z ##[group]Operating System
+browser (5)	Set up job	2026-11-20T02:55:27.1814079Z Ubuntu
+browser (5)	Set up job	2026-11-20T02:55:27.1814486Z 24.04.5
+browser (5)	Set up job	2026-11-20T02:55:27.1814858Z LTS
+browser (5)	Set up job	2026-11-20T02:55:27.1815226Z ##[endgroup]
+browser (5)	Set up job	2026-11-20T02:55:27.1815616Z ##[group]Runner Image
+browser (5)	Set up job	2026-11-20T02:55:27.1816025Z Image: ubuntu-24.04
+browser (5)	Set up job	2026-11-20T02:55:27.1816421Z Version: 20261111.127.1
+browser (5)	Set up job	2026-11-20T02:55:27.1817190Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.127/images/ubuntu/Ubuntu2404-Readme.md
+browser (5)	Set up job	2026-11-20T02:55:27.1818524Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261111.127
+browser (5)	Set up job	2026-11-20T02:55:27.1819202Z ##[endgroup]
+browser (5)	Set up job	2026-11-20T02:55:27.1820010Z ##[group]GITHUB_TOKEN Permissions
+browser (5)	Set up job	2026-11-20T02:55:27.1821583Z Contents: read
+browser (5)	Set up job	2026-11-20T02:55:27.1821969Z Metadata: read
+browser (5)	Set up job	2026-11-20T02:55:27.1822383Z ##[endgroup]
+browser (5)	Set up job	2026-11-20T02:55:27.1824352Z Secret source: Actions
+browser (5)	Set up job	2026-11-20T02:55:27.1825042Z Cache mode: write
+browser (5)	Set up job	2026-11-20T02:55:27.1825517Z Prepare workflow directory
+browser (5)	Set up job	2026-11-20T02:55:27.2091337Z Prepare all required actions
+browser (5)	Set up job	2026-11-20T02:55:27.2128447Z Getting action download info
+browser (5)	Set up job	2026-11-20T02:55:27.6078504Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+browser (5)	Set up job	2026-11-20T02:55:29.6461625Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+browser (5)	Set up job	2026-11-20T02:55:29.8555270Z Download action repository 'actions/download-artifact@v4' (SHA:d3f86a106a0bac45b974a628896c90dbdf5c8093)
+browser (5)	Set up job	2026-11-20T02:55:30.3042280Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+browser (5)	Set up job	2026-11-20T02:55:30.6763154Z Complete job name: browser (5)
+browser (5)	Run actions/checkout@v4	﻿2026-11-20T02:55:30.7310022Z ##[group]Run actions/checkout@v4
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7310532Z with:
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7310771Z   repository: cheshmakzanoon-ops/Experiment-3
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7312571Z   token: ***
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7312815Z   ssh-strict: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7313038Z   ssh-user: git
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7313274Z   persist-credentials: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7313533Z   clean: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7314014Z   sparse-checkout-cone-mode: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7314300Z   fetch-depth: 1
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7314524Z   fetch-tags: false
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7314767Z   show-progress: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7314987Z   lfs: false
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7315198Z   submodules: false
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7315430Z   set-safe-directory: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7315666Z   allow-unsafe-pr-checkout: false
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7316087Z env:
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7316326Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7316580Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7316836Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:30.7317164Z ##[endgroup]
+browser (5)	Run actions/checkout@v4	2026-11-20T02:55:34.0468690Z ##[error]The operation was canceled.
+browser (5)	Browser screenshots and diagnostics	﻿2026-11-20T02:55:34.0606767Z ##[group]Run actions/upload-artifact@v4
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0607073Z with:
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0607302Z   name: browser-validation-5-of-16
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0607753Z   path: test-results/
 browser (5)	Browser screenshots and diagnostics	playwright-report/
 browser (5)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (5)	Browser screenshots and diagnostics	browser-backend.json
 browser (5)	Browser screenshots and diagnostics	browser-progress.json
 browser (5)	Browser screenshots and diagnostics	
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4982400Z   retention-days: 7
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4982672Z   if-no-files-found: warn
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4982992Z   compression-level: 6
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4983252Z   overwrite: false
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4983565Z   include-hidden-files: false
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4983862Z env:
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4984108Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4984423Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4984679Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.4984940Z ##[endgroup]
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.6230684Z (node:2662) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.6231401Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.6268403Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.6303848Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (5)	Browser screenshots and diagnostics	2026-11-20T02:47:02.6322371Z ##[warning]No files were found with the provided path: test-results/
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0608234Z   retention-days: 7
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0608519Z   if-no-files-found: warn
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0608754Z   compression-level: 6
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0608976Z   overwrite: false
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0609323Z   include-hidden-files: false
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0609574Z env:
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0609825Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0610073Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0610452Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.0610709Z ##[endgroup]
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.7465138Z (node:2084) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.7466060Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.7538518Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.7540252Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (5)	Browser screenshots and diagnostics	2026-11-20T02:55:34.7552071Z ##[warning]No files were found with the provided path: test-results/
 browser (5)	Browser screenshots and diagnostics	playwright-report/
 browser (5)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (5)	Browser screenshots and diagnostics	browser-backend.json
 browser (5)	Browser screenshots and diagnostics	browser-progress.json. No artifacts will be uploaded.
-browser (5)	Post Run actions/checkout@v4	﻿2026-11-20T02:47:02.6425756Z Post job cleanup.
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7122828Z [command]/usr/bin/git version
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7145276Z git version 2.56.1
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7174914Z Temporarily overriding HOME='/home/runner/work/_temp/eac01ea3-57bc-4590-8c08-f0b37e1ebb88' before making global git config changes
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7175747Z Adding repository directory to the temporary git global config as a safe directory
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7179306Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7214194Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7239391Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7416774Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7461717Z http.https://github.com/.extraheader
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7463257Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7491332Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7676341Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (5)	Post Run actions/checkout@v4	2026-11-20T02:47:02.7691527Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (5)	Complete job	﻿2026-11-20T02:47:02.7978137Z Cleaning up orphan processes
-browser (5)	Complete job	2026-11-20T02:47:02.8157511Z Terminate orphan process: pid (2264) (npm exec playwright install --with-deps chromium)
-browser (5)	Complete job	2026-11-20T02:47:02.8184961Z Terminate orphan process: pid (2276) (sh)
-browser (5)	Complete job	2026-11-20T02:47:02.8210281Z Terminate orphan process: pid (2277) (node)
-browser (5)	Complete job	2026-11-20T02:47:02.8304727Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (5)	Post Run actions/checkout@v4	﻿2026-11-20T02:55:34.7837739Z Post job cleanup.
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:34.8582103Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:34.8583575Z ##[group]Getting Git version info
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:34.8584318Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:34.8585033Z [command]/usr/bin/git version
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0105958Z git version 2.56.1
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0120146Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0131413Z Temporarily overriding HOME='/home/runner/work/_temp/d183edcf-2ff1-4f99-af38-8f3680d81da4' before making global git config changes
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0132435Z Adding repository directory to the temporary git global config as a safe directory
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0135545Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0205018Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0208775Z ##[group]Initializing the repository
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.0213275Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1015545Z hint: Using 'master' as the name for the initial branch. This default branch name
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1016386Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1016859Z hint: to use in all of your new repositories, which will suppress this warning,
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1017190Z hint: call:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1017418Z hint:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1017707Z hint: 	git config --global init.defaultBranch <name>
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1018026Z hint:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1018319Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1018900Z hint: 'development'. The just-created branch can be renamed via this command:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1019265Z hint:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1019481Z hint: 	git branch -m <name>
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1019734Z hint:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1020148Z hint: Disable this message with "git config set advice.defaultBranchName false"
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1031376Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1040489Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1101195Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1101653Z ##[group]Disabling automatic garbage collection
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1104365Z [command]/usr/bin/git config --local gc.auto 0
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1127848Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1128410Z ##[group]Setting up auth
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1133548Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.1164798Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.3882137Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.3910843Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.4100596Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.4128533Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.4281984Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.4309502Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.4310099Z ##[group]Fetching the repository
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:35.4324173Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +db1e7055ff57bd36ca700f85f9f741b02f67c800:refs/remotes/origin/main
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2218426Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2218992Z  * [new ref]         db1e7055ff57bd36ca700f85f9f741b02f67c800 -> origin/main
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2224480Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2225650Z ##[group]Determining the checkout info
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2226469Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2230226Z [command]/usr/bin/git sparse-checkout disable
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2324850Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2337845Z ##[group]Checking out the ref
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:49.2341488Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.2503348Z Updating files:  61% (5575/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.2552740Z Updating files:  62% (5610/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.2635800Z Updating files:  63% (5700/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.2805925Z Updating files:  64% (5791/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.2974181Z Updating files:  65% (5881/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.3196308Z Updating files:  66% (5972/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.3557116Z Updating files:  67% (6062/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.3745126Z Updating files:  68% (6152/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.3911635Z Updating files:  69% (6243/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.4069740Z Updating files:  70% (6333/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.4516159Z Updating files:  71% (6424/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.4548432Z Updating files:  72% (6514/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.4590002Z Updating files:  73% (6605/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.4626264Z Updating files:  74% (6695/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.5015905Z Updating files:  75% (6786/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.5541609Z Updating files:  76% (6876/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.8657869Z Updating files:  77% (6967/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.9883476Z Updating files:  78% (7057/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:50.9966243Z Updating files:  79% (7148/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0038210Z Updating files:  80% (7238/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0076445Z Updating files:  81% (7329/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0383124Z Updating files:  82% (7419/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0537933Z Updating files:  83% (7510/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0698384Z Updating files:  84% (7600/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0747382Z Updating files:  85% (7690/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0888838Z Updating files:  86% (7781/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0939626Z Updating files:  87% (7871/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.0986968Z Updating files:  88% (7962/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1032450Z Updating files:  89% (8052/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1077725Z Updating files:  90% (8143/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1124359Z Updating files:  91% (8233/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1161422Z Updating files:  92% (8324/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1204930Z Updating files:  93% (8414/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1241881Z Updating files:  94% (8505/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1280561Z Updating files:  95% (8595/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1318272Z Updating files:  96% (8686/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1358509Z Updating files:  97% (8776/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1395431Z Updating files:  98% (8867/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1434896Z Updating files:  99% (8957/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1435654Z Updating files: 100% (9047/9047)
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1436054Z Updating files: 100% (9047/9047), done.
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1518120Z Switched to a new branch 'main'
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1528841Z branch 'main' set up to track 'origin/main'.
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1594212Z ##[endgroup]
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1638803Z [command]/usr/bin/git log -1 --format=%H
+browser (5)	Post Run actions/checkout@v4	2026-11-20T02:55:51.1658837Z db1e7055ff57bd36ca700f85f9f741b02f67c800
+browser (5)	Complete job	﻿2026-11-20T02:55:51.1785577Z Cleaning up orphan processes
+browser (5)	Complete job	2026-11-20T02:55:51.1967666Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
