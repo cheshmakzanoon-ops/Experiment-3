@@ -6,6 +6,7 @@ import type {
   ToTileWorker,
 } from '../../workers/open-world-protocol.ts';
 import { terrainMaterial } from './terrain-material.ts';
+import { terrainPatchIndex } from './terrain-topology.ts';
 import { terrainParentMorph } from './terrain-morph.ts';
 
 /** Quadtree levels: level L tiles are TILE_SIZE·2^L wide. Level 6 tiles
@@ -158,7 +159,7 @@ export class TerrainStreamer {
         list.push(a, b, a2, b, b2, a2, a, a2, b, b, a2, b2);
       }
     });
-    index = new T.BufferAttribute(new Uint32Array(list), 1);
+    index = new T.BufferAttribute(new Uint16Array(list), 1);
     this.indices.set(r, index);
     return index;
   }
@@ -208,7 +209,7 @@ export class TerrainStreamer {
     geometry.setAttribute('normal', new T.BufferAttribute(normal, 3));
     geometry.setAttribute('splat', new T.BufferAttribute(splat, 4));
     geometry.setAttribute('shade', new T.BufferAttribute(shade, 4));
-    geometry.setIndex(this.indexFor(r));
+    let parentSurface: ReturnType<typeof terrainParentMorph> | undefined;
     const parent = this.tiles.get(key(tile.level + 1, tile.ix >> 1, tile.iz >> 1));
     if (parent?.data) {
       const morph = terrainParentMorph(
@@ -221,6 +222,7 @@ export class TerrainStreamer {
         tile.ix & 1,
         tile.iz & 1,
       );
+      parentSurface = morph;
       geometry.morphAttributes.position = [new T.BufferAttribute(morph.position, 3)];
       geometry.morphAttributes.normal = [new T.BufferAttribute(morph.normal, 3)];
       geometry.setAttribute('parentSplat', new T.BufferAttribute(morph.splat, 4));
@@ -231,6 +233,10 @@ export class TerrainStreamer {
       );
       this.stats.morphBytes += tile.morphBytes;
     }
+    const grid = this.indexFor(r);
+    const full = grid.array as Uint16Array;
+    const optimized = terrainPatchIndex(r, full, { position, normal, splat, shade }, parentSurface);
+    geometry.setIndex(optimized === full ? grid : new T.BufferAttribute(optimized, 1));
     // Include both fine and parent targets; a partially morphed mountain must
     // not be culled using only the fine surface's bounds.
     geometry.computeBoundingBox();

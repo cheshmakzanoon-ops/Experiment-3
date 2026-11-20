@@ -63,7 +63,9 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
         (1 - smoothstep(region.seaLevel + 1.8, region.seaLevel + 4.2, h)) * (1 - smoothstep(140, 260, coast)),
         valley.distance < region.valley.channel * 1.6 ? 0.75 : 0,
       ) * (1 - rock);
-      const town = Math.max(field.flatWeight('town', x, z), field.flatWeight('village', x, z) * 0.6);
+      const urban = field.flatWeight('town', x, z);
+      const village = field.flatWeight('village', x, z) * 0.6;
+      const town = Math.max(urban, village);
       const airfield = field.flatWeight('airfield', x, z);
       const farm = h < 150 ? smoothstep(0.42, 0.5, field.farmPattern(x, z)) * (1 - town) * (1 - airfield) : 0;
       // Soil: ploughed fields, bare verges and worn town ground.
@@ -77,7 +79,9 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
       shade[v * 4] = road;
       shade[v * 4 + 1] = forest;
       shade[v * 4 + 2] = farm ? field.farmPattern(x, z) : 0;
-      shade[v * 4 + 3] = Math.max(town, airfield);
+      // Magnitude retains the maintained-ground mask. Its sign distinguishes
+      // Port Ilse's paved ground from village greens and airport grass.
+      shade[v * 4 + 3] = urban >= Math.max(village, airfield) ? urban : -Math.max(village, airfield);
     }
   // Trees on the near levels, grounded on this tile's own surface.
   let trees = new Float32Array(0);

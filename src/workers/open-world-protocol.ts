@@ -46,7 +46,8 @@ export interface TileMeshData {
   type: 'tile';
   id: number;
   /** (res + 1)² heights, normals (xyz), splat weights (rock, soil, sand,
-   * snow) and verge/forest/farm shading (road, forest, farm, wet). */
+   * snow) and shading masks (road, forest, farm, maintained ground).
+   * Positive maintained ground is town paving, negative is airfield or village. */
   heights: Float32Array;
   normals: Float32Array;
   splat: Float32Array;

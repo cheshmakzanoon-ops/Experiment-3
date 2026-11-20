@@ -204,7 +204,7 @@ ${SCAN_COMMON_GLSL}`,
   float soil = clamp(vSplat.y * (0.7 + 0.6 * meso), 0.0, 1.0);
   float sand = clamp(vSplat.z * (0.85 + 0.3 * micro), 0.0, 1.0);
   float snow = clamp(vSplat.w * (0.8 + 0.5 * meso) - 0.05, 0.0, 1.0);
-  float town = vShade.w;
+  float town = abs(vShade.w);
   float forest = vShade.y;
   // Grass: lush to dry by macro noise, darker forest floor under woods.
   vec3 lush = vec3(0.075, 0.13, 0.035), dry = vec3(0.16, 0.17, 0.065);
@@ -283,6 +283,38 @@ ${SCAN_COMMON_GLSL}`,
   float hx = owFbm((p + vec2(e, 0.0)) * 0.21, near) * near * (0.35 + 0.65 * rock + 0.3 * soil) + owFbm((p + vec2(e, 0.0)) * 0.019, mid) * 0.6 * mid;
   float hz = owFbm((p + vec2(0.0, e)) * 0.21, near) * near * (0.35 + 0.65 * rock + 0.3 * soil) + owFbm((p + vec2(0.0, e)) * 0.019, mid) * 0.6 * mid;
   owBump = vec2(hx - h0, hz - h0) / e * (0.55 * (1.0 - snow * 0.7));
+  // Port Ilse uses the paved contact material. Its town mask previously
+  // coloured turf brown and let beach sand show between footways and doors.
+  float urban = smoothstep(0.50,0.64,vShade.w) * smoothstep(-0.5,0.2,owAbove) * (1.0-snow);
+  vec2 footprint = max(fwidth(p),vec2(0.0001));
+  if(urban>0.001) {
+    // Staggered granite setts near the road, larger concrete yard slabs
+    // farther back. Filter both the mortar line and individual stone relief.
+    vec2 size = verge>0.16 ? vec2(0.46,0.23) : vec2(1.20,0.84);
+    vec2 grid = p/size;
+    grid.x += 0.5*mod(floor(grid.y),2.0);
+    vec2 cell = floor(grid), f=fract(grid);
+    vec2 edge = min(f,1.0-f)*size;
+    float joint = verge>0.16 ? 0.004 : 0.0055;
+    vec2 mask = smoothstep(vec2(joint),vec2(joint)+footprint,edge);
+    float resolve = 1.0-smoothstep(0.10,0.62,max(footprint.x/size.x,footprint.y/size.y));
+    float grain = (owNoise(p*45.0)-0.5)*(1.0-smoothstep(0.003,0.025,max(footprint.x,footprint.y)));
+    float value=owHash(cell + vec2(72,114));
+    vec3 mean=mix(vec3(0.165,0.15,0.13),vec3(0.215,0.216,0.206),0.4+0.45*meso);
+    vec3 stone=mean*(0.87+0.27*value+grain*0.14);
+    float face=mask.x*mask.y;
+    vec3 paved=mix(mean*0.97,mix(vec3(0.057,0.055,0.051),stone,face),resolve)*(0.93+0.12*micro);
+    diffuseColor.rgb=mix(diffuseColor.rgb,paved*(1.0-wet*0.26),urban);
+    owRoughness=mix(owRoughness,mix(0.88,mix(0.36,0.51,face),wet),urban);
+    // The shallow rounded joints catch side light. Their slope vanishes
+    // before the sett does, keeping long street views stable in motion.
+    vec2 bevel=(1.0-smoothstep(vec2(joint),vec2(joint+0.009)+footprint,edge))*sign(0.5-f);
+    owBump=mix(owBump,bevel*0.17*resolve,urban);
+    owGrass*=1.0-urban;
+#ifdef APEX_SCAN
+    owScanN=normalize(mix(owScanN,vec3(0,0,1),urban));
+#endif
+  }
 }`,
       )
       .replace(
@@ -317,7 +349,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v6-native-morph';
+  material.customProgramCacheKey = () => 'festival-terrain-v7-town-paving';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }
