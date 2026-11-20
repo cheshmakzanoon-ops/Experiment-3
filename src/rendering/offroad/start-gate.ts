@@ -14,7 +14,7 @@ import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shad
 import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
 
 /** Gate panel (m): a perforated steel grate hinged at its foot. */
-const PANEL = Object.freeze({ height: 0.52, thickness: 0.035, gap: 0.08 });
+const PANEL = Object.freeze({ height: 0.52, gap: 0.08 });
 
 /** The starter's pad after a day of motos: a patchy skin of tracked-in soil,
  * clods shed at the gate, a worn, rubber-dark lane under every slot and the
@@ -68,7 +68,7 @@ float mxPadNoise( vec2 p ) {
   float lane = ( 1.0 - smoothstep( 0.04, 0.12, across ) ) * smoothstep( -0.6, -0.3, p.y )
     * ( 1.0 - smoothstep( 0.95, 1.25, p.y ) ) * ( 0.55 + 0.45 * patches );
   float spray = ( 1.0 - smoothstep( 0.05 + behind * 0.3, 0.2 + behind * 0.45, across ) )
-    * smoothstep( -0.25, -0.55, p.y ) * smoothstep( 0.25, 0.75, patches + 0.25 * grit );
+    * ( 1.0 - smoothstep( -0.55, -0.25, p.y ) ) * smoothstep( 0.25, 0.75, patches + 0.25 * grit );
   mxPadDirt = clamp( 0.16 + 0.3 * broad + 0.34 * patches + 0.42 * gate * ( 0.5 + 0.5 * patches )
     + 0.4 * spray, 0.0, 1.0 );
   mxPadDirt *= smoothstep( 0.05, 0.45, mxPadDirt + 0.22 * ( grit - 0.5 ) * fine );
@@ -112,7 +112,7 @@ float mxPadNoise( vec2 p ) {
  */
 export class StartGate {
   readonly root = new T.Group();
-  private readonly panels: T.Group[] = [];
+  private hinge = new T.Group();
   private body = new T.Group();
   private slots = 0;
   private disposed = false;
@@ -156,54 +156,92 @@ export class StartGate {
     this.root.remove(this.body);
     const oldGeometry = new Set<T.BufferGeometry>();
     this.body.traverse((o) => {
+      if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh) oldGeometry.add(o.geometry);
     });
     for (const g of oldGeometry) g.dispose();
     this.body = new T.Group();
-    this.panels.length = 0;
+    this.hinge = new T.Group();
     const { lateral } = gateSlots(this.track, this.course, riders);
     this.slots = lateral.length;
     // Equally spaced slot centres: the pad's lane pattern repeats with them.
     this.lanes.value.set(gate.spacing, lateral[0] ?? 0);
     const panelWidth = gate.spacing - PANEL.gap;
-    // Open welded bars reveal the soil and the front tyre through each
-    // panel. The hinge and release timing are still the session's gate.
-    const bars: T.BufferGeometry[] = [];
-    for (let i = 0; i < 9; i++)
-      bars.push(
-        new T.BoxGeometry(0.022, PANEL.height, PANEL.thickness).translate(
-          (i / 8 - 0.5) * (panelWidth - 0.022),
-          PANEL.height / 2,
+    // Identical gate leaves share a shaft and release time. One rotating
+    // parent keeps the hinge pin stationary without uploading instance data.
+    const half = panelWidth / 2 - 0.018;
+    const crossTube = (length: number, radius: number, segments = 10) =>
+      new T.CylinderGeometry(radius, radius, length, segments).rotateZ(Math.PI / 2);
+    const merged = (parts: T.BufferGeometry[]) => {
+      const geometry = mergeGeometries(parts, false)!;
+      for (const part of parts) part.dispose();
+      return geometry;
+    };
+    const welds: T.BufferGeometry[] = [];
+    for (let i = 1; i < 8; i++)
+      welds.push(
+        new T.CylinderGeometry(0.0105, 0.0105, PANEL.height - 0.043, 7).translate(
+          (i / 4 - 1) * half,
+          PANEL.height * 0.5,
           0,
         ),
       );
-    for (const y of [0.02, PANEL.height * 0.46, PANEL.height - 0.02])
-      bars.push(new T.BoxGeometry(panelWidth, 0.024, PANEL.thickness).translate(0, y, 0));
-    const grate = mergeGeometries(bars, false)!;
-    for (const g of bars) g.dispose();
-    const bar = new T.BoxGeometry(panelWidth, 0.05, 0.05);
-    for (const l of lateral) {
-      const hinge = new T.Group();
-      hinge.position.set(l, 0.02, 0.06);
-      const panel = new T.Mesh(grate, this.steel);
-      panel.castShadow = panel.receiveShadow = true;
-      const top = new T.Mesh(bar, this.frame);
-      top.position.y = PANEL.height;
-      hinge.add(panel, top);
-      this.body.add(hinge);
-      this.panels.push(hinge);
+    for (const y of [0.025, PANEL.height * 0.46])
+      welds.push(crossTube(half * 2, 0.012).translate(0, y, -0.003));
+    // Continuous bent outer hoop, rounded over the top corners.
+    const bow = new T.CurvePath<T.Vector3>();
+    const v = (x: number, y: number) => new T.Vector3(x, y, 0);
+    const h = PANEL.height,
+      r = 0.052;
+    bow.add(new T.LineCurve3(v(-half, 0), v(-half, h - r)));
+    bow.add(new T.QuadraticBezierCurve3(v(-half, h - r), v(-half, h), v(-half + r, h)));
+    bow.add(new T.LineCurve3(v(-half + r, h), v(half - r, h)));
+    bow.add(new T.QuadraticBezierCurve3(v(half - r, h), v(half, h), v(half, h - r)));
+    bow.add(new T.LineCurve3(v(half, h - r), v(half, 0)));
+    const tubes = [new T.TubeGeometry(bow, 48, 0.0175, 8, false)];
+    for (const side of [-1, 1])
+      tubes.push(crossTube(0.085, 0.026).translate(side * (half - 0.025), 0, 0));
+    this.hinge.name = 'MX synchronised gate leaves';
+    this.hinge.position.set(0, 0.028, 0.06);
+    this.body.add(this.hinge);
+    const mounts = new T.Matrix4();
+    for (const [geometry, material] of [
+      [merged(welds), this.steel],
+      [merged(tubes), this.frame],
+    ] as const) {
+      const leaves = new T.InstancedMesh(geometry, material, lateral.length);
+      lateral.forEach((x, i) => leaves.setMatrixAt(i, mounts.makeTranslation(x, 0, 0)));
+      leaves.castShadow = leaves.receiveShadow = true;
+      leaves.computeBoundingSphere();
+      this.hinge.add(leaves);
     }
-    // The hinge beam across the whole gate and its end posts.
     const span = (lateral.length + 1) * gate.spacing;
-    const beam = new T.Mesh(new T.BoxGeometry(span, 0.08, 0.12), this.frame);
-    beam.position.set(0, 0.04, 0.06);
-    beam.castShadow = beam.receiveShadow = true;
-    this.body.add(beam);
+    const hardware = [crossTube(span, 0.014).translate(0, 0.028, 0.06)];
+    const anchorParts = [new T.BoxGeometry(span, 0.036, 0.12).translate(0, 0.005, 0.06)];
+    for (const x of lateral)
+      for (const side of [-1, 1]) {
+        const lug = x + side * (half + 0.025);
+        anchorParts.push(new T.BoxGeometry(0.016, 0.046, 0.07).translate(lug, 0.022, 0.06));
+        hardware.push(crossTube(0.023, 0.0185).translate(lug, 0.028, 0.06));
+      }
     for (const side of [-1, 1]) {
-      const post = new T.Mesh(new T.BoxGeometry(0.14, 1.1, 0.14), this.frame);
-      post.position.set((side * span) / 2, 0.55, 0.06);
-      post.castShadow = post.receiveShadow = true;
-      this.body.add(post);
+      const x = (side * span) / 2;
+      anchorParts.push(new T.BoxGeometry(0.14, 1.06, 0.14).translate(x, 0.54, 0.06));
+      hardware.push(new T.BoxGeometry(0.148, 0.02, 0.148).translate(x, 1.08, 0.06));
+      anchorParts.push(new T.BoxGeometry(0.29, 0.024, 0.28).translate(x, 0.014, 0.06));
+      for (const a of [-0.107, 0.107])
+        for (const b of [-0.1, 0.1])
+          hardware.push(
+            new T.CylinderGeometry(0.012, 0.012, 0.012, 6).translate(x + a, 0.032, 0.06 + b),
+          );
+    }
+    for (const [parts, material] of [
+      [hardware, this.steel],
+      [anchorParts, this.frame],
+    ] as const) {
+      const mesh = new T.Mesh(merged(parts), material);
+      mesh.castShadow = mesh.receiveShadow = true;
+      this.body.add(mesh);
     }
     // Starter's pad (riders' side): concrete, flush with the dirt.
     const slab = new T.Mesh(new T.BoxGeometry(span, 0.12, 2.6), this.pad);
@@ -215,7 +253,7 @@ export class StartGate {
   }
   /** Panel count (the venue's slots, or the larger field it was widened for). */
   get panelCount() {
-    return this.panels.length;
+    return this.slots;
   }
   /** Panel angle from the snapshot: standing until the release, then falling. */
   update(frame: Float32Array) {
@@ -227,13 +265,13 @@ export class StartGate {
     const drop = phase < PHASE.RACING ? 0 : clamp(t / GATE_DROP_SECONDS, 0, 1);
     // Falls forward (away from the riders) onto the track.
     const angle = (Math.PI / 2) * drop * drop;
-    for (const panel of this.panels) panel.rotation.x = angle;
+    this.hinge.rotation.x = angle;
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
     disposeOffroadResources([this.root], [this.steel, this.frame, this.pad], this.ownedTextures);
-    this.panels.length = 0;
+    this.hinge.clear();
     this.body.clear();
     this.ownedTextures.clear();
   }

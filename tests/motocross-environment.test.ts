@@ -219,20 +219,42 @@ describe('reference-informed MX environments', () => {
     const gate = new StartGate(track, course),
       frame = frameAt();
     const hinge = gate.root.children[0].children.find((o) => o instanceof T.Group) as T.Group;
-    const panel = hinge.children[0] as T.Mesh;
+    const panel = hinge.children[0] as T.InstancedMesh;
+    const draws = () => {
+      let count = 0;
+      gate.root.traverse((object) => {
+        if (object instanceof T.Mesh) count++;
+      });
+      return count;
+    };
+    expect(panel).toBeInstanceOf(T.InstancedMesh);
+    expect(panel.count).toBe(gate.panelCount);
+    expect(draws()).toBe(5);
+    const version = panel.instanceMatrix.version;
     expect(panel.geometry.index!.count).toBeGreaterThan(200);
     const ray = new T.Raycaster(new T.Vector3(0.065, 0.35, -1), new T.Vector3(0, 0, 1));
-    panel.material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+    const twoSided = new T.MeshBasicMaterial({ side: T.DoubleSide });
     panel.updateMatrixWorld(true);
     // The child panel in local space has a visible hole between welded bars.
-    const local = new T.Mesh(panel.geometry, panel.material);
+    const local = new T.Mesh(panel.geometry, twoSided);
     local.updateMatrixWorld(true);
     expect(ray.intersectObject(local)).toHaveLength(0);
     frame[H.PHASE] = PHASE.RACING;
     frame[H.RACE_TIME] = 2;
     gate.update(frame);
     expect(hinge.rotation.x).toBeCloseTo(Math.PI / 2, 6);
-    (panel.material as T.Material).dispose();
+    frame[H.RACE_TIME] = 0;
+    gate.update(frame);
+    expect(hinge.rotation.x).toBe(0);
+    expect(panel.instanceMatrix.version).toBe(version);
+    let disposed = 0;
+    panel.addEventListener('dispose', () => disposed++);
+    frame[H.CARS] = gate.panelCount + 4;
+    gate.update(frame);
+    expect(disposed).toBe(1);
+    expect(gate.panelCount).toBe(frame[H.CARS]);
+    expect(draws()).toBe(5);
+    twoSided.dispose();
     gate.dispose();
   });
 });

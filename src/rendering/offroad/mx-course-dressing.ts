@@ -3,6 +3,8 @@ import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture, mxFurnitureGround } from './mx-trackside-furniture.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
+import { mxStrawBale } from './mx-straw-bale.ts';
+import { mxTeamVanGeometry, mxTeamVanMaterial } from './mx-paddock-models.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
 import { onMxDetail } from './mx-quality.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -519,7 +521,7 @@ export class MxCourseDressing {
   /** Trackside life: round straw bales stacked in front of the turn-outside
    * flag clusters (between the flags and the tape) and team vans parked
    * behind each service canopy, side-on to the course. One instanced draw
-   * each, no textures (instance colours and vertex-coloured glazing). */
+   * each, with a shared straw atlas and per-team van paint. */
   private paddockLife() {
     const track = this.track,
       course = this.surface.course,
@@ -580,76 +582,18 @@ export class MxCourseDressing {
         );
       }
     }
-    const straw = new T.MeshStandardMaterial({
-      color: 0xc9a85e,
-      roughness: 0.96,
-      name: 'MX round straw bales',
-    });
-    const bale = new T.CylinderGeometry(0.62, 0.62, 1.15, 14, 3);
-    {
-      // Wound straw: darker spiral bands on the faces and coarse rows along
-      // the roll, as vertex colour (no texture).
-      const p = bale.getAttribute('position'),
-        colour = new Float32Array(p.count * 3);
-      for (let i = 0; i < p.count; i++) {
-        const r = Math.hypot(p.getX(i), p.getZ(i)),
-          band = 0.84 + 0.16 * Math.sin(r * 38 + Math.atan2(p.getZ(i), p.getX(i)) * 2),
-          rows = 0.9 + 0.1 * Math.sin(p.getY(i) * 31);
-        const v = band * rows;
-        colour.set([v, v * 0.98, v * 0.92], i * 3);
-      }
-      bale.setAttribute('color', new T.BufferAttribute(colour, 3));
-      straw.vertexColors = true;
+    if (bales.length) {
+      const { geometry, material } = mxStrawBale();
+      this.instances('MX round straw bales', geometry, material, bales);
     }
-    this.instances('MX round straw bales', bale, straw, bales);
-    if (!bales.length) straw.dispose();
-    const van = this.vanGeometry();
-    const paint = new T.MeshStandardMaterial({
-      roughness: 0.38,
-      metalness: 0.15,
-      vertexColors: true,
-      name: 'MX team vans',
-    });
+    const van = mxTeamVanGeometry();
+    const paint = mxTeamVanMaterial();
     this.instances('MX team vans', van, paint, vans, vanColours);
     const mesh = this.root.getObjectByName('MX team vans');
     if (mesh) mesh.castShadow = true;
     if (!vans.length) paint.dispose();
     this.stats.bales = bales.length;
     this.stats.vans = vans.length;
-  }
-  /** A panel van about 5.4 m long: body, sloped bonnet and windscreen,
-   * dark glazing and tyres by vertex colour (white = instance paint). */
-  private vanGeometry() {
-    const parts: T.BufferGeometry[] = [];
-    const piece = (g: T.BufferGeometry, shade: number, x = 0, y = 0, z = 0) => {
-      g.translate(x, y, z);
-      const n = g.index ? g.toNonIndexed() : g;
-      if (n !== g) g.dispose();
-      const count = n.getAttribute('position').count,
-        colour = new Float32Array(count * 3).fill(shade);
-      n.setAttribute('color', new T.BufferAttribute(colour, 3));
-      n.deleteAttribute('uv');
-      parts.push(n);
-    };
-    piece(new T.BoxGeometry(2.0, 2.05, 3.9), 1, 0, 1.4, -0.65);
-    piece(new T.BoxGeometry(1.98, 1.15, 1.5), 1, 0, 0.98, 1.95);
-    piece(new T.BoxGeometry(1.9, 0.62, 0.9), 0.08, 0, 1.78, 1.55);
-    piece(new T.BoxGeometry(2.02, 0.5, 2.6), 0.08, 0, 1.95, -0.9);
-    for (const [x, z] of [
-      [-0.88, 1.75],
-      [0.88, 1.75],
-      [-0.88, -1.8],
-      [0.88, -1.8],
-    ]) {
-      const wheel = new T.CylinderGeometry(0.36, 0.36, 0.26, 12);
-      wheel.rotateZ(Math.PI / 2);
-      piece(wheel, 0.05, x, 0.36, z);
-    }
-    const merged = mergeGeometries(parts, false)!;
-    for (const g of parts) g.dispose();
-    merged.computeVertexNormals();
-    merged.computeBoundingSphere();
-    return merged;
   }
   private clear(s: number, lateral: number, margin: number) {
     const p = this.track.at(s, this.point),
