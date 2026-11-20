@@ -30,6 +30,11 @@ export const GP_ASSIST = Object.freeze({
   trimLimit: 0.035,
   feedback: 1.2,
   yawDamping: 4,
+  /** Rear rolling-plane slip (rad). Increase handlebar yaw damping before
+   * the slick reaches its lateral peak, preserving the normal turn-in. */
+  rearSlipBegin: 0.032,
+  rearSlipFull: 0.122,
+  slidingYawDamping: 10,
 });
 
 /** Road-adapter roll control. Lean uses the existing 72% grip target;
@@ -542,11 +547,21 @@ export class Bike {
             this.contactLoads.rearGroundAngle,
           )
         : gp.rearFy,
+      rearSlip =
+        Math.atan2(gp.lateralSpeed - gp.geometry.rearArm * gp.yawRate, v) -
+        (this.contactLoads?.rearGroundAngle ?? 0),
+      slide = clamp(
+        (Math.abs(rearSlip) - GP_ASSIST.rearSlipBegin) /
+          (GP_ASSIST.rearSlipFull - GP_ASSIST.rearSlipBegin),
+        0,
+        1,
+      ),
+      yawDamping = lerp(GP_ASSIST.yawDamping, GP_ASSIST.slidingYawDamping, slide),
       yawError = gp.yawRate - lateral / v,
       frontForce =
         m * lateral -
         rearForce -
-        (GP_ASSIST.yawDamping * gp.geometry.yawInertia * yawError) / gp.geometry.frontArm,
+        (yawDamping * gp.geometry.yawInertia * yawError) / gp.geometry.frontArm,
       staticFront =
         (m * G * p.cgToRear) / p.wheelbase +
         (p.downforce ?? 0) * this.speed * this.speed * (p.downforceFront ?? 0.6),
