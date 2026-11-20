@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { ShadowProxies } from '../shadow-proxies.ts';
 import { F, H, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
 import { FestivalHeadlamps } from './festival-headlamps.ts';
@@ -53,14 +54,35 @@ export class FestivalCars {
   private readonly formula = new Map<number, FormulaCar>();
   private readonly releaseFormula = new Map<number, () => void>();
   private readonly lights = new FestivalHeadlamps();
+  private readonly shadowCasters = new ShadowProxies();
   readonly reflectivePaint: T.Material[] = [];
   private readonly paintSet = new Set<T.Material>();
   paintVersion = 0;
   constructor() {
     this.root.name = 'Festival cars';
+    this.shadowCasters.shadowSubstitutes = () => this.bodies.shadowSubstitutes(true);
     this.root.add(this.bodies.root);
     this.bodies.onBuild = () => this.refreshPaint();
     this.root.add(this.lights.root);
+  }
+  /** The circuit and Festival can share a WebGLRenderer. Substitute a posed
+   * opaque body only inside this scene's actual shadow draw, and restore the
+   * previous shadow owner even if a post-process or camera render fails. */
+  drawWithVehicleShadows(renderer: T.WebGLRenderer, scene: T.Scene, draw: () => void) {
+    const map = renderer.shadowMap;
+    if (!map.enabled) return draw();
+    const previous = map.render;
+    map.render = (lights, renderedScene, camera) => {
+      const render = () => previous.call(map, lights, renderedScene, camera);
+      if (renderedScene !== scene || !lights.length || !(map.autoUpdate || map.needsUpdate))
+        return render();
+      return this.shadowCasters.withCasters(render);
+    };
+    try {
+      draw();
+    } finally {
+      map.render = previous;
+    }
   }
   /** Rebuild on body identity, including equal-sized garage replacements.
    * Removed car materials must not stay owned by the reflection probe. */

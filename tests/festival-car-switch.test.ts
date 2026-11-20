@@ -343,3 +343,43 @@ describe('festival garage presentation', () => {
     }
   });
 });
+
+it('uses one posed intact-car shadow only inside the Festival map and restores the shared renderer', () => {
+  stubCanvas();
+  const cars = new FestivalCars(),
+    scene = new T.Scene(),
+    camera = new T.PerspectiveCamera();
+  const frame = snapshot('sc7', 1, [0, 1, 0], 0);
+  scene.add(cars.root);
+  cars.update(frame, frame, frame, 1, 1 / 60, 0, camera, false, 'high');
+  const pair = cars.bodies.shadowSubstitutes(true)[0];
+  expect(pair).toBeDefined();
+  const fine = pair.fine.getObjectByProperty('castShadow', true)!;
+  let during = false;
+  const base = vi.fn((_lights: T.Light[], _scene: T.Scene, _camera: T.Camera) => {
+    during = pair.coarse.visible && !fine.castShadow;
+  });
+  const map = { enabled: true, autoUpdate: true, needsUpdate: false, render: base };
+  const renderer = { shadowMap: map } as unknown as T.WebGLRenderer;
+  const run = () => map.render([new T.DirectionalLight()], scene, camera);
+  expect(() =>
+    cars.drawWithVehicleShadows(renderer, scene, () => {
+      expect(pair.coarse.visible).toBe(false);
+      run();
+      expect(during).toBe(true);
+      expect(pair.coarse.visible).toBe(false);
+      expect(fine.castShadow).toBe(true);
+      map.render([new T.DirectionalLight()], new T.Scene(), camera);
+      expect(during).toBe(false);
+      throw new Error('interrupted post-processing');
+    }),
+  ).toThrow('interrupted post-processing');
+  expect(map.render).toBe(base);
+  expect(base).toHaveBeenCalledTimes(2);
+  const sample = frame.slice();
+  sample[carBase(0) + F.FRONT_HEALTH] = 0;
+  sample[carBase(0) + F.REAR_HEALTH] = 0;
+  cars.update(sample, sample, sample, 1, 1 / 60, 0, camera, false, 'high');
+  expect(cars.bodies.shadowSubstitutes(true)).toHaveLength(0);
+  cars.clear();
+});

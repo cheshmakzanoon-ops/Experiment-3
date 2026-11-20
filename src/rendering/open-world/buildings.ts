@@ -454,9 +454,12 @@ export class Buildings {
     near: number;
     far: number;
     distant: number;
+    colorStart: number;
+    colorCount: number;
     level: 0 | 1 | 2;
   }[] = [];
   private readonly cameraPosition = new T.Vector3();
+  private readonly shadowViewport = new T.Vector4();
   stats = { buildings: 0, triangles: 0, openings: 0 };
   private readonly nearestRoad = trackPoint();
   constructor(
@@ -489,17 +492,46 @@ export class Buildings {
       const g = m.geometry();
       if (!g) continue;
       triangles += (m.piers.length + m.trim.length + m.index.length + m.recessed.length) / 3;
-      if (m.projected.length)
-        this.blocks.push({
+      const mesh = new T.Mesh(g, this.material);
+      if (m.projected.length) {
+        const common = m.piers.length + m.trim.length + m.index.length;
+        const distant = m.index.length + m.cards.length;
+        const distantStart = m.recessed.length + common + m.projected.length;
+        const ranges: (typeof this.blocks)[number] = {
           geometry: g,
           bounds: g.boundingBox!,
-          common: m.piers.length + m.trim.length + m.index.length,
+          common,
           near: m.recessed.length,
           far: m.projected.length,
-          distant: m.index.length + m.cards.length,
+          distant,
           level: 0,
-        });
-      const mesh = new T.Mesh(g, this.material);
+          colorStart: 0,
+          colorCount: g.drawRange.count,
+        };
+        this.blocks.push(ranges);
+        let changed = false;
+        const restore = () => {
+          if (!changed) return;
+          g.setDrawRange(ranges.colorStart, ranges.colorCount);
+          changed = false;
+        };
+        mesh.onBeforeShadow = (renderer, _mesh, _camera, lightCamera) => {
+          restore();
+          if (!(lightCamera instanceof T.OrthographicCamera)) return;
+          const pixels = renderer.getCurrentViewport(this.shadowViewport).w;
+          if (
+            pixels <= 0 ||
+            (lightCamera.top - lightCamera.bottom) / (lightCamera.zoom * pixels) < FACADE_RECESS
+          )
+            return;
+          changed = true;
+          g.setDrawRange(distantStart, distant);
+        };
+        // Three brackets each light draw individually. The colour hook also
+        // recovers an interrupted draw before the building returns on screen.
+        mesh.onAfterShadow = restore;
+        mesh.onBeforeRender = restore;
+      }
       mesh.name = `Buildings ${key}`;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
@@ -1041,6 +1073,8 @@ export class Buildings {
         level === 0 ? 0 : level === 1 ? block.near : block.near + block.common + block.far;
       const count =
         level === 2 ? block.distant : block.common + (level === 0 ? block.near : block.far);
+      block.colorStart = start;
+      block.colorCount = count;
       block.geometry.setDrawRange(start, count);
     }
   }

@@ -160,3 +160,54 @@ describe('Festival building distance geometry', () => {
     }
   });
 });
+
+it('draws the same roof and wall silhouette in a coarse sun map and restores the view range', () => {
+  const buildings = new Buildings([
+    {
+      kind: 'shop',
+      x: 0,
+      z: 0,
+      heading: 0.4,
+      hx: 8,
+      hz: 5,
+      height: 10.2,
+      base: 0,
+      floors: 3,
+      style: 41711,
+    },
+  ]);
+  const mesh = buildings.root.children.find((object) =>
+    object.name.startsWith('Buildings '),
+  ) as T.Mesh;
+  const scene = new T.Scene(),
+    view = new T.PerspectiveCamera(),
+    sun = new T.OrthographicCamera(-640, 640, 640, -640, 0.1, 3000);
+  const renderer = {
+    getCurrentViewport: (out: T.Vector4) => out.set(0, 0, 1024, 1024),
+  } as T.WebGLRenderer;
+  const geometry = mesh.geometry,
+    depth = new T.MeshDepthMaterial(),
+    initial = { ...geometry.drawRange };
+  const shadow = () => mesh.onBeforeShadow(renderer, scene, view, sun, geometry, depth, null!);
+  try {
+    shadow();
+    expect(geometry.drawRange.count).toBeLessThan(initial.count * 0.25);
+    mesh.onAfterShadow(renderer, scene, view, sun, geometry, depth, null!);
+    expect(geometry.drawRange).toEqual(initial);
+    sun.top = 32;
+    sun.bottom = -32;
+    sun.updateProjectionMatrix();
+    shadow();
+    expect(geometry.drawRange).toEqual(initial);
+    // Recover at the next colour draw if an auxiliary draw was interrupted.
+    sun.top = 640;
+    sun.bottom = -640;
+    sun.updateProjectionMatrix();
+    shadow();
+    mesh.onBeforeRender(renderer, scene, view, geometry, depth, null!);
+    expect(geometry.drawRange).toEqual(initial);
+  } finally {
+    depth.dispose();
+    buildings.dispose();
+  }
+});

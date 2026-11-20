@@ -977,9 +977,13 @@ export class FestivalRenderer {
       otherDof: false,
       cut,
     });
-    this.streetLights.renderWithShadows(this.renderer, time, this.terrain.shadowRevision, () =>
-      this.composer.render(),
-    );
+    this.streetLights.renderWithShadows(this.renderer, time, this.terrain.shadowRevision, () => {
+      // Close-up photography retains the detailed vehicle shadow. Ordinary
+      // driving uses the live wheel/axle silhouette in the same light map.
+      if (this.photo) this.composer.render();
+      else
+        this.cars.drawWithVehicleShadows(this.renderer, this.scene, () => this.composer.render());
+    });
     this.ultra.afterFrame();
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;

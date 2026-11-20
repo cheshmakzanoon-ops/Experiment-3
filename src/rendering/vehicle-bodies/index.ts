@@ -570,10 +570,19 @@ export class VehicleBodies {
     return body?.root.visible ? (body.lods[0].cabin ?? null) : null;
   }
   /** Shadow-pass substitution pairs (renderer ShadowProxies). */
-  shadowSubstitutes(): ShadowSubstitute[] {
+  shadowSubstitutes(intactOnly = false): ShadowSubstitute[] {
     const out: ShadowSubstitute[] = [];
-    for (const body of this.bodies.values())
-      if (body.root.visible) out.push({ fine: body.fine, coarse: body.proxy });
+    for (const body of this.bodies.values()) {
+      if (!body.root.visible) continue;
+      if (intactOnly) {
+        // The merged silhouette represents the intact catalogue shell. Use
+        // the current geometry for broken parts and a replaced active wing.
+        const lod = body.lods[body.level];
+        if (lod.front.some((part) => !part.visible) || lod.rear.some((part) => !part.visible))
+          continue;
+      }
+      out.push({ fine: body.fine, coarse: body.proxy });
+    }
     return out;
   }
   private dispose(body: Built) {
