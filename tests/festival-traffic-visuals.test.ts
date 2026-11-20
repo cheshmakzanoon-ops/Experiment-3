@@ -170,9 +170,31 @@ describe('festival traffic visual geometry', () => {
     expect(cars.wheels.count).toBe(8);
     const colour = new T.Color();
     cars.lamps.getColorAt(0, colour);
-    expect(colour.r).toBeCloseTo(3, 5);
+    expect(colour.r).toBeCloseTo(0.38, 5);
+    expect(colour.g).toBeCloseTo(0.28, 5);
+    expect(colour.b).toBeCloseTo(3, 5);
     cars.lamps.getColorAt(1, colour);
-    expect(colour.r).toBeCloseTo(2.6, 5);
+    expect(colour.r).toBeCloseTo(0.38, 5);
+    expect(colour.g).toBeCloseTo(2.6, 5);
+    expect(colour.b).toBeCloseTo(0.12, 5);
+    // The same held frame keeps its blink phase, even with a different render clock.
+    cars.update(older, newer, 0.25, 1, 37.3);
+    cars.lamps.getColorAt(0, colour);
+    expect(colour.r).toBeCloseTo(2.53, 5);
+    expect(colour.b).toBeCloseTo(3, 5);
+    older[1] = newer[1] = 0.55;
+    cars.update(older, newer, 0.25, 1, 0);
+    cars.lamps.getColorAt(0, colour);
+    expect(colour.b).toBeCloseTo(0.12, 5);
+    const optics = cars.lamps.geometry;
+    const channels = optics.getAttribute('trafficLampCircuit');
+    expect(channels.count).toBe(optics.getAttribute('position').count);
+    expect(new Set(channels.array)).toEqual(new Set([0, 1, 2]));
+    for (let i = 0; i < channels.count; i++) {
+      const z = optics.getAttribute('position').getZ(i);
+      if (channels.getX(i) === 0) expect(z).toBeGreaterThan(0);
+      if (channels.getX(i) === 1) expect(z).toBeLessThan(0);
+    }
     // The reordered sedan retains its own silhouette; the hatch is the base.
     const target = new T.Mesh(cars.bodies.geometry);
     cars.bodies.getMorphAt(0, target);

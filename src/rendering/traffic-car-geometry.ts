@@ -106,7 +106,9 @@ export function trafficBodyGeometry({
   const paint: Parts = [],
     glazing: Parts = [],
     trim: Parts = [],
-    lamps: Parts = [];
+    headlamps: Parts = [],
+    stopLamps: Parts = [],
+    indicators: Parts = [];
   const white = 0xffffff,
     dark = 0x172026,
     rubber = 0x15181b,
@@ -394,22 +396,45 @@ export function trafficBodyGeometry({
     box(trim, x, noseY - 0.075, nose + 0.028, 0.29, 0.09, 0.012, metal);
     for (const dx of [-0.07, 0.07])
       add(
-        lamps,
+        headlamps,
         new T.CylinderGeometry(0.03, 0.03, 0.008, 10)
           .rotateX(Math.PI / 2)
           .translate(x + dx, noseY - 0.08, nose + 0.039),
         0xfff3db,
       );
-    box(lamps, x, noseY - 0.035, nose + 0.038, 0.27, 0.014, 0.008, 0xf4f8ff);
-    box(lamps, x + side * 0.137, noseY - 0.07, nose + 0.039, 0.018, 0.057, 0.008, 0xff8c24);
+    box(headlamps, x, noseY - 0.035, nose + 0.038, 0.27, 0.014, 0.008, 0xf4f8ff);
+    box(indicators, x + side * 0.137, noseY - 0.07, nose + 0.039, 0.018, 0.057, 0.008, 0xff8c24);
     const rearX = side * hx * 0.64;
     box(trim, rearX, tailY - 0.11, tail - 0.01, 0.34, 0.13, 0.03, dark);
     box(trim, rearX, tailY - 0.11, tail - 0.028, 0.3, 0.1, 0.01, 0x493038);
     for (let i = 0; i < 3; i++)
-      box(lamps, rearX - 0.1 + i * 0.1, tailY - 0.105, tail - 0.038, 0.075, 0.044, 0.008, 0xff2418);
-    box(lamps, rearX + side * 0.14, tailY - 0.11, tail - 0.038, 0.018, 0.08, 0.008, 0xff4828);
+      box(
+        stopLamps,
+        rearX - 0.1 + i * 0.1,
+        tailY - 0.105,
+        tail - 0.038,
+        0.075,
+        0.044,
+        0.008,
+        0xff2418,
+      );
+    box(indicators, rearX + side * 0.14, tailY - 0.11, tail - 0.038, 0.018, 0.08, 0.008, 0xff8c24);
   }
-  return { paint: merge(paint), glazing: merge(glazing), trim: merge(trim), lamps: merge(lamps) };
+  // Circuit assignment is constant across every catalogue morph. Only the
+  // three drive levels change per instance, preserving a single optical draw.
+  const circuits = [headlamps, stopLamps, indicators];
+  const vertexCounts = circuits.map((parts) =>
+    parts.reduce((count, part) => count + part.getAttribute('position').count, 0),
+  );
+  const optics = merge(circuits.flat());
+  const channels = new Uint8Array(optics.getAttribute('position').count);
+  let start = 0;
+  for (let circuit = 0; circuit < vertexCounts.length; circuit++) {
+    channels.fill(circuit, start, start + vertexCounts[circuit]);
+    start += vertexCounts[circuit];
+  }
+  optics.setAttribute('trafficLampCircuit', new T.BufferAttribute(channels, 1));
+  return { paint: merge(paint), glazing: merge(glazing), trim: merge(trim), lamps: optics };
 }
 
 /** Shared circular wheel, unit radius and unit section width, axle along X.

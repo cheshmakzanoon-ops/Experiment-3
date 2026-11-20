@@ -24,6 +24,28 @@ const PAINT = [
 const X_AXIS = new T.Vector3(1, 0, 0),
   Y_AXIS = new T.Vector3(0, 1, 0);
 
+/** Three optical circuits share one instanced draw. Pigment comes from the
+ * lens vertices. The instance stores independent running, stop and signal
+ * intensities in its RGB components instead of tinting the whole car. */
+function trafficLampMaterial() {
+  const material = new T.MeshBasicMaterial({ vertexColors: true });
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float trafficLampCircuit;')
+      .replace(
+        '#include <color_vertex>',
+        `#include <color_vertex>
+#ifdef USE_INSTANCING_COLOR
+  float drive = trafficLampCircuit < 0.5 ? instanceColor.r
+              : trafficLampCircuit < 1.5 ? instanceColor.g : instanceColor.b;
+  vColor.xyz = color * drive;
+#endif`,
+      );
+  };
+  material.customProgramCacheKey = () => 'festival-traffic-optics-v1';
+  return material;
+}
+
 /** Versioned auxiliary frames are independently validated: a stale worker or
  * truncated block must never become NaN transforms or be read at a new stride. */
 function blockCount(block: Float32Array | null) {
@@ -105,11 +127,7 @@ export class TrafficCars {
     );
     fixtures.name = 'Ambient traffic trim (instanced)';
     fixtures.castShadow = fixtures.receiveShadow = true;
-    this.lamps = new T.InstancedMesh(
-      geometry.lamps,
-      new T.MeshBasicMaterial({ vertexColors: true }),
-      TRAFFIC_CAPACITY,
-    );
+    this.lamps = new T.InstancedMesh(geometry.lamps, trafficLampMaterial(), TRAFFIC_CAPACITY);
     this.lamps.name = 'Ambient traffic lamps (instanced)';
     this.wheels = new T.InstancedMesh(
       trafficWheelGeometry(),
@@ -137,9 +155,7 @@ export class TrafficCars {
     installSpecularIBL(this.root);
   }
 
-  /** Pose and wheel phase are pure functions of these two traffic blocks.
-   * `time` only controls the established hazard blink; held/seeked snapshots
-   * never advance the wheels by render time. */
+  /** Pose, wheel phase and signal cadence follow the recorded traffic clocks. */
   update(
     a: Float32Array | null,
     b: Float32Array | null,
@@ -154,9 +170,13 @@ export class TrafficCars {
       return;
     }
     const blend = Number.isFinite(alpha) ? T.MathUtils.clamp(alpha, 0, 1) : 1;
+    const previousCount = blockCount(a);
+    const timeB = Number.isFinite(b[1]) ? b[1] : time;
+    const signalTime =
+      a && previousCount && Number.isFinite(a[1]) ? a[1] + (timeB - a[1]) * blend : timeB;
     this.index.clear();
     if (a)
-      for (let k = 0, m = blockCount(a); k < m; k++)
+      for (let k = 0; k < previousCount; k++)
         this.index.set(a[TRAFFIC_HEADER + k * TRAFFIC_STRIDE + TF.ID], k);
     for (let k = 0; k < n; k++) {
       const o = TRAFFIC_HEADER + k * TRAFFIC_STRIDE,
@@ -227,9 +247,10 @@ export class TrafficCars {
         this.colour.setHex(PAINT[Math.abs(Math.round(id) * 7919) % PAINT.length]),
       );
       const flags = b[o + TF.FLAGS],
-        hazard = (flags & TRAFFIC_FLAG.HAZARD) !== 0 && Math.floor(time * 2.5) % 2 === 0;
-      const glow = Math.max(0.35 + night * 2.2, b[o + TF.BRAKE] > 0.05 ? 2.6 : 0, hazard ? 3 : 0);
-      this.lamps.setColorAt(k, this.colour.setScalar(glow));
+        hazard = (flags & TRAFFIC_FLAG.HAZARD) !== 0 && Math.floor(signalTime * 2.5) % 2 === 0;
+      const head = 0.38 + night * 2.15;
+      const tail = b[o + TF.BRAKE] > 0.05 ? 2.6 : 0.28 + night * 0.58;
+      this.lamps.setColorAt(k, this.colour.setRGB(head, tail, hazard ? 3 : 0.12));
       const wheelDef = profile.vehicle,
         radius = wheelDef.spec.wheelRadius;
       const phase = T.MathUtils.euclideanModulo(distance / (radius * this.scale.y), Math.PI * 2);
