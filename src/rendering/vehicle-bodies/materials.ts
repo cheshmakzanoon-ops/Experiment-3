@@ -37,18 +37,20 @@ export function installPanelGaps(material: T.MeshPhysicalMaterial, gaps: readonl
       (g) => `{
       vec3 lo = ${glslVec(g.min)}, hi = ${glslVec(g.max)};
       vec3 p = vec3(abs(vPaintPosition.x), vPaintPosition.yz);
+      float distanceToPlane = dot(p, ${glslVec(g.n)}) - ${g.d.toFixed(4)};
+      float pixel = max(fwidth(distanceToPlane), 1e-5);
       if (all(greaterThanEqual(p, lo)) && all(lessThanEqual(p, hi))) {
-        float dist = abs(dot(p, ${glslVec(g.n)}) - ${g.d.toFixed(4)});
-        float fw = max(fwidth(dist), 1e-5);
-        float line = 1.0 - smoothstep(0.00125 - fw, 0.00125 + fw, dist);
-        gap = max(gap, mix(line, 0.0025 / (fw * 4.0), smoothstep(0.0012, 0.004, fw)));
+        float loEdge = max(distanceToPlane - 0.5 * pixel, -0.00125);
+        float hiEdge = min(distanceToPlane + 0.5 * pixel, 0.00125);
+        gap = max(gap, clamp((hiEdge - loEdge) / pixel, 0.0, 1.0));
       }
     }`,
     )
     .join('\n');
-  const key = `vehicle-panel-gaps-${gaps.length}-${Math.abs(
-    Math.round(gaps.reduce((s, g) => s + g.d * 997 + g.min[2] * 31 + g.max[1] * 17, 0) * 1000),
-  )}-v1`;
+  // All plane equations and clipping bounds participate in shader identity.
+  let hash = 2166136261;
+  for (let i = 0; i < body.length; i++) hash = Math.imul(hash ^ body.charCodeAt(i), 16777619);
+  const key = `vehicle-panel-gaps-v2-${hash >>> 0}`;
   return chainShaderHook(material, key, (shader) => {
     injectAfter(
       shader,

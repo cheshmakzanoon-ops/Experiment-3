@@ -4,7 +4,7 @@ import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { ClosedSheet, WingSheet } from './body-sheet.ts';
 import type { ClosedBodyModel, Greenhouse } from './closed-body.ts';
 import type { BuiltLod, CarMaterials } from './common.ts';
-import { flipWinding, rodGeometry, roundedBox, tubeGeometry, type Pt } from './loft.ts';
+import { aerofoil, flipWinding, rodGeometry, roundedBox, tubeGeometry, type Pt } from './loft.ts';
 import { sharedMaterials } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
@@ -861,10 +861,23 @@ function bonnetSurface(
   return geometry;
 }
 
-function bonnetPocketBand(pocket: FestivalLampPocket, wall: boolean) {
+/** Share the surface-conforming edge samples between the painted lip, wall
+ * and floor. A long straight chord can cut through a stamped crease. */
+function bonnetRim(pocket: FestivalLampPocket, detail: Detail): Pt[] {
+  const rim: Pt[] = [];
+  for (let i = 0; i < pocket.outline.length; i++) {
+    const [x, z] = pocket.outline[i],
+      [bx, bz] = pocket.outline[(i + 1) % pocket.outline.length];
+    const steps = Math.ceil(Math.hypot(bx - x, bz - z) / (detail === 0 ? 0.032 : 0.045));
+    for (let j = 0; j < steps; j++)
+      rim.push([x + ((bx - x) * j) / steps, z + ((bz - z) * j) / steps]);
+  }
+  return rim;
+}
+function bonnetPocketBand(outline: readonly Pt[], wall: boolean) {
   const positions: number[] = [],
     indices: number[] = [];
-  for (const [x, z] of pocket.outline)
+  for (const [x, z] of outline)
     positions.push(
       x * (wall ? 1 : 1.04),
       wall ? -0.001 : 0.0008,
@@ -873,9 +886,9 @@ function bonnetPocketBand(pocket: FestivalLampPocket, wall: boolean) {
       wall ? -0.036 : -0.001,
       z * (wall ? 0.96 : 1),
     );
-  for (let i = 0; i < pocket.outline.length; i++) {
+  for (let i = 0; i < outline.length; i++) {
     const a = i * 2,
-      b = ((i + 1) % pocket.outline.length) * 2;
+      b = ((i + 1) % outline.length) * 2;
     indices.push(a, a + 1, b, b, a + 1, b + 1);
   }
   const geometry = new T.BufferGeometry();
@@ -892,13 +905,23 @@ function addBonnetPocket(
   mats: CarMaterials,
   detail: Detail,
 ) {
-  parts.add(bonnetSurface(bonnetPocketBand(pocket, false), model, pocket), mats.paint);
-  parts.add(bonnetSurface(bonnetPocketBand(pocket, true), model, pocket), darkOptics);
+  const rim = bonnetRim(pocket, detail);
+  parts.add(bonnetSurface(bonnetPocketBand(rim, false), model, pocket), mats.paint);
+  parts.add(bonnetSurface(bonnetPocketBand(rim, true), model, pocket), darkOptics);
   const positions = [0, -0.036, 0],
     indices: number[] = [];
-  for (const [x, z] of pocket.outline) positions.push(x * 0.96, -0.036, z * 0.96);
-  for (let i = 0; i < pocket.outline.length; i++)
-    indices.push(0, ((i + 1) % pocket.outline.length) + 1, i + 1);
+  const rows = detail === 0 ? 4 : 3;
+  for (let row = 1; row <= rows; row++) {
+    const scale = (0.96 * row) / rows,
+      first = positions.length / 3;
+    for (const [x, z] of rim) positions.push(x * scale, -0.036, z * scale);
+    for (let i = 0; i < rim.length; i++) {
+      const a = first + i,
+        b = first + ((i + 1) % rim.length);
+      if (row === 1) indices.push(0, b, a);
+      else indices.push(a - rim.length, b, a, a - rim.length, b - rim.length, b);
+    }
+  }
   const floor = new T.BufferGeometry();
   floor.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   floor.setIndex(indices);
@@ -907,9 +930,9 @@ function addBonnetPocket(
   const count = detail === 0 ? 6 : 4;
   for (let k = 0; k < count; k++) {
     const z = ((k + 0.5) / count - 0.5) * pocket.depth * 0.77;
-    const blade = roundedBox(pocket.width * 0.75, 0.006, 0.025, 0.002, 1)
+    const blade = aerofoil(0.025, 0.18, 0.0006, pocket.width * 0.75, 4, detail === 0 ? 7 : 5)
       .rotateX(-0.25)
-      .translate(0, -0.011, z);
+      .translate(0, -0.012, z + 0.012);
     parts.add(bonnetSurface(blade, model, pocket), sharedMaterials.carbonSatin());
   }
 }

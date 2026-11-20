@@ -21,6 +21,37 @@ function modelFor(id: string) {
 }
 
 describe('Festival car surface construction', () => {
+  it('keeps each original road bonnet, its crease and its centre stripe aligned through every detail level', () => {
+    for (const id of ['eh3', 'sc7', 'rh3', 'rs5', 'rm8', 'lx12', 'rg63', 'rr4', 'rp6', 'rd2']) {
+      const model = modelFor(id);
+      const [relief] = model.s.bonnetPress!;
+      const cowl = model.f.z(model.s.cabin[0]) + 0.045,
+        nose = model.zFront - 0.15;
+      const station = (cowl + nose) / 2;
+      const levels = ([0, 1, 2] as const).map((detail) => model.ring(station, detail).half);
+      for (const [detail, profile] of levels.entries()) {
+        expect(profile.at(-1)![1] - model.topY(station), id).toBeCloseTo(relief, 5);
+        const start = model.deckSample(detail as 0 | 1 | 2);
+        const deck = profile.slice(start);
+        for (let i = 1; i < deck.length; i++) expect(deck[i][0], id).toBeLessThan(deck[i - 1][0]);
+        for (const [x, y] of deck) expect(model.surfaceY(station, x), id).toBeCloseTo(y, 2);
+        expect(deck.at(-2)![0] / deck[0][0], id).toBeCloseTo(0.18, 6);
+        if (id === 'rm8') {
+          expect(model.slot(station, profile.length - 2, detail as 0 | 1 | 2)).toBe(3);
+          expect(model.slot(station, profile.length - 3, detail as 0 | 1 | 2)).toBe(0);
+        }
+      }
+      const sideSeam = model.gaps().find((gap) => gap.n[0] > 0.5)!;
+      expect(sideSeam.max[2] - sideSeam.min[2], id).toBeGreaterThan(0.35);
+      for (const z of [sideSeam.min[2] + 0.015, sideSeam.max[2] - 0.015]) {
+        const x = (sideSeam.d - z * sideSeam.n[2]) / sideSeam.n[0];
+        expect(x, id).toBeGreaterThanOrEqual(sideSeam.min[0]);
+        expect(x, id).toBeLessThanOrEqual(sideSeam.max[0]);
+        expect(model.surfaceY(z, x), id).toBeGreaterThan(sideSeam.min[1]);
+      }
+    }
+  });
+
   it('opens the pickup load box down to the ribbed floor with wheel clearance at all distances', () => {
     const model = modelFor('rp6');
     const body = buildVehicleBody(0, VEHICLES.rp6, model.s);

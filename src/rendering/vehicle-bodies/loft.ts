@@ -296,6 +296,7 @@ export function aerofoil(
   camber: number,
   span: number,
   steps = 12,
+  spanSteps = 1,
 ) {
   const upper: Pt[] = [],
     lower: Pt[] = [];
@@ -314,7 +315,7 @@ export function aerofoil(
   }
   const outline = [...upper, ...lower.reverse().slice(1, -1)];
   const shape = new T.Shape(outline.map(([z, y]) => new T.Vector2(z, y)));
-  const g = new T.ExtrudeGeometry(shape, { depth: span, bevelEnabled: false, steps: 1 });
+  const g = new T.ExtrudeGeometry(shape, { depth: span, bevelEnabled: false, steps: spanSteps });
   // Shape X -> car Z, shape Y -> car Y, extrusion -> car X (span).
   g.rotateY(Math.PI / 2);
   g.translate(-span / 2, 0, 0);

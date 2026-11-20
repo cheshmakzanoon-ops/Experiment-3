@@ -45,6 +45,12 @@ const SEGMENTS: Record<Detail, readonly number[]> = {
   1: [2, 2, 2, 1, 3, 3, 2, 2],
   2: [1, 1, 1, 1, 2, 1, 1, 1],
 };
+// The final segment runs from the top of the fender to the body centre.
+const PRESS_COUNTS: Record<Detail, readonly number[]> = {
+  0: [...SEGMENTS[0].slice(0, 7), 8],
+  1: [...SEGMENTS[1].slice(0, 7), 6],
+  2: [...SEGMENTS[2].slice(0, 7), 4],
+};
 const SPACING: Record<Detail, number> = { 0: 0.03, 1: 0.075, 2: 0.2 };
 /** Body material slots (loft groups). */
 const M = { paint: 0, liner: 1, floor: 2, accent: 3, interior: 4 } as const;
@@ -234,11 +240,59 @@ export class ClosedBodyModel {
       ...upper(belt),
     ];
   }
+  /** Longitudinal position within the visible bonnet, zero at the cowl. */
+  private bonnetFraction(z: number) {
+    const rear = this.f.z(this.s.cabin[0]) + 0.045;
+    return clamp((z - rear) / (this.zFront - 0.15 - rear), 0, 1);
+  }
+
+  /** Re-section the existing top surface at the moving shoulders of the
+   * stamping. All LODs retain the two sides of the crease, centre height
+   * and exact stripe edge. The rest of the body and wheel tubs are untouched. */
+  private pressBonnet(half: Pt[], z: number, detail: Detail) {
+    const press = this.s.bonnetPress!;
+    const start = this.deckSample(detail);
+    const deck = half[start];
+    const centre = half[half.length - 1];
+    const t = this.bonnetFraction(z),
+      smooth = (u: number) => {
+        const v = clamp(u, 0, 1);
+        return v * v * (3 - 2 * v);
+      };
+    const ridge = press[1] + (press[2] - press[1]) * smooth(t);
+    const profile =
+      detail === 0
+        ? [
+            1,
+            0.9,
+            ridge + 0.09,
+            ridge + 0.035,
+            ridge - 0.03,
+            ridge - 0.1,
+            (ridge - 0.1 + 0.18) / 2,
+            0.18,
+            0,
+          ]
+        : detail === 1
+          ? [1, ridge + 0.09, ridge + 0.035, ridge - 0.1, (ridge - 0.1 + 0.18) / 2, 0.18, 0]
+          : [1, ridge + 0.035, ridge - 0.1, 0.18, 0];
+    const strength = press[0] * smooth(t / 0.17) * smooth((1 - t) / 0.22);
+    // A symmetric quadratic crown has a horizontal tangent at the centre
+    // seam. Narrow radii at the shoulder catch a moving reflection in turns.
+    const crown = deck[1] - centre[1];
+    half.length = start;
+    for (const u of profile) {
+      const land = smooth((ridge + 0.035 - u) / 0.135);
+      half.push([u * deck[0], centre[1] + crown * u * u + strength * land * (1 - 0.17 * u * u)]);
+    }
+  }
+
   /** Sampled ring at z for a detail level. */
   ring(z: number, detail: Detail): Ring {
     const counts = SEGMENTS[detail],
       half = sampleProfile(this.control(z), counts);
     shapeFestivalSide(this, z, half, counts);
+    if (this.s.bonnetPress) this.pressBonnet(half, z, detail);
     return { z, half };
   }
   /** First sample of the deck-to-centreline segment (the top under the glass). */
@@ -303,7 +357,7 @@ export class ClosedBodyModel {
   /** Material slot of a lower-body face: liners in the wheel wells, floor
    * underneath, interior in an open cockpit, accent stripes. */
   slot(zMid: number, j: number, detail: Detail) {
-    const counts = SEGMENTS[detail];
+    const counts = this.s.bonnetPress ? PRESS_COUNTS[detail] : SEGMENTS[detail];
     let seg = 0,
       acc = 0;
     while (seg < counts.length - 1 && j >= acc + counts[seg]) acc += counts[seg++];
@@ -343,18 +397,34 @@ export class ClosedBodyModel {
       if (s.style === 'saloon' || s.style === 'rally') out.push(door(f.z(rr) + 0.02));
     } else out.push(door(f.z(ws) - 0.06), door(f.z(rr) + 0.04));
     const cowl = f.z(ws) + 0.1;
+    const nose = this.zFront - (s.style === 'truck' ? 0.18 : 0.25);
+    const cowlX = this.halfWidth(cowl) * (s.style === 'truck' ? 0.88 : 0.77);
+    const noseX = this.halfWidth(nose) * (s.style === 'truck' ? 0.84 : 0.66);
     out.push({
       n: [0, 0, 1],
       d: cowl,
       min: [0, f.y(s.belt), cowl - 0.02],
-      max: [hw * 0.8, big, cowl + 0.02],
+      max: [s.bonnetPress ? cowlX : hw * 0.8, big, cowl + 0.02],
     });
-    out.push({
-      n: [1, 0, 0],
-      d: hw * 0.74,
-      min: [hw * 0.72, f.y(s.belt + 0.02), this.zFront - 0.42],
-      max: [hw * 0.76, big, cowl],
-    });
+    if (s.bonnetPress) {
+      const slope = (noseX - cowlX) / (nose - cowl);
+      const length = Math.hypot(1, slope);
+      const minY = Math.min(this.surfaceY(cowl, cowlX), this.surfaceY(nose, noseX)) - 0.025;
+      out.push(
+        {
+          n: [1 / length, 0, -slope / length],
+          d: (cowlX - slope * cowl) / length,
+          min: [Math.min(noseX, cowlX) - 0.01, minY, cowl],
+          max: [Math.max(noseX, cowlX) + 0.01, big, nose],
+        },
+        {
+          n: [0, 0, 1],
+          d: nose,
+          min: [0, minY, nose - 0.01],
+          max: [noseX, big, nose + 0.01],
+        },
+      );
+    }
     const lid = f.z(s.cabin[3]) - 0.1;
     out.push({
       n: [0, 0, 1],
