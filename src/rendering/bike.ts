@@ -1462,7 +1462,12 @@ export class BikeModel {
     if (look.headlamp === 'round') {
       installRoadsterLamp(this.steer, m, detail, RAKE, FORK_OFFSET);
       const mirrors = buildRoadBikeMirrors(
-        'roadster', detail, m, new T.Vector3(0.23 + barX, -0.048 + barY, -0.03),
+        'roadster',
+        detail,
+        m,
+        new T.Vector3(0.23 + barX, -0.048 + barY, -0.03),
+        this.steer,
+        BIKE_ONBOARD.eye,
       );
       this.steer.add(mirrors.root);
       this.rearViews.push(...mirrors.faces);
@@ -1669,7 +1674,9 @@ export class BikeModel {
         installSportHeadlights(this.sprung, moulding.body, m, detail);
         const foot = sportMirrorFoot(moulding.body, detail);
         if (foot) {
-          const mirrors = buildRoadBikeMirrors('sport', detail, m, foot);
+          const mirrors = buildRoadBikeMirrors(
+            'sport', detail, m, foot, this.sprung, BIKE_ONBOARD.eye,
+          );
           this.sprung.add(mirrors.root);
           this.rearViews.push(...mirrors.faces);
         }

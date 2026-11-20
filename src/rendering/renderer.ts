@@ -2386,7 +2386,13 @@ export class RacingRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
       );
       this.drawLedger.mark('mirrors');
-      this.reflection.renderMirrors(this.renderer, this.scene, this.mirrorRoot ?? car.root, dt);
+      this.reflection.renderMirrors(
+        this.renderer,
+        this.scene,
+        this.mirrorRoot ?? car.root,
+        dt,
+        this.camera.position,
+      );
       this.drawLedger.mark('wet');
       // Planar reflection about the road under the followed car, only while the
       // track carries water; the film's own masks decide where it shows.
@@ -2770,7 +2776,7 @@ export class RacingRenderer {
           // when a feed renders, and can lag far behind on slow frames.
           // Each feed with the detail its passes show.
           mirrors: mergeCensus(
-            this.reflection.poseMirrorCameras(car.root).map((camera) => {
+            this.reflection.poseMirrorCameras(this.mirrorRoot ?? car.root, this.camera.position).map((camera) => {
               this.showMirrorDetail(camera as T.PerspectiveCamera, this.reflection.mirrorHeight);
               try {
                 return renderCensus(this.scene, [camera], roots);

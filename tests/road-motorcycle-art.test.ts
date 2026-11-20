@@ -1,7 +1,7 @@
 import { MirrorViews } from '../src/rendering/mirrors.ts';
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
+import { BIKE_ONBOARD, BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
 import { GPRearSuspension } from '../src/rendering/gp-rear-chassis.ts';
 import { bikeEntrantScheme } from '../src/rendering/bike-sheet.ts';
 import { motorcycleWheel } from '../src/rendering/gp-forged-wheel.ts';
@@ -274,14 +274,47 @@ describe('road motorcycles in the GP selector', () => {
         }
         const original = model.rearViews[0].material;
         views.bind(model.rearViews);
-        views.orient(model.root);
+        const eye = new T.Vector3(...BIKE_ONBOARD.eye);
+        const directions = () => {
+          views.orient(model.root, eye);
+          return views.cameras.map((camera) => camera.getWorldDirection(new T.Vector3()));
+        };
+        model.pose(pose);
+        const neutral = directions();
         for (let i = 0; i < 2; i++) {
-          const camera = views.cameras[i],
-            direction = camera.getWorldDirection(new T.Vector3());
-          expect(camera.position.distanceTo(turned[i])).toBeLessThan(1e-6);
-          expect(direction.z).toBeLessThan(-0.9);
-          expect(Math.sign(direction.x)).toBe(i === 0 ? -1 : 1);
+          expect(neutral[i].z).toBeLessThan(-0.97);
+          expect(Math.sign(neutral[i].x)).toBe(i === 0 ? -1 : 1);
+          expect(views.cameras[i].aspect).toBeCloseTo(
+            model.rearViews[i].userData.opticalRearViewAspect,
+            6,
+          );
         }
+        model.pose({ ...pose, steer: 0.26 });
+        const steering = directions();
+        for (let i = 0; i < 2; i++) {
+          expect(views.cameras[i].position.distanceTo(turned[i])).toBeLessThan(1e-6);
+          const sweep = neutral[i].angleTo(steering[i]);
+          if (id === 'nr900') expect(sweep).toBeGreaterThan(0.15);
+          else expect(sweep).toBeLessThan(1e-6);
+        }
+        // Move the rider's eye and put the whole motorcycle on a bank.
+        // Both rays must reflect off the moving physical glass in world space.
+        eye.x += 0.105;
+        model.root.rotation.set(0.07, 0.5, -0.55);
+        model.root.position.set(13, 3, -7);
+        model.root.localToWorld(eye);
+        const leaned = directions();
+        for (let i = 0; i < 2; i++) {
+          const face = model.rearViews[i],
+            center = face.getWorldPosition(new T.Vector3()),
+            normal = new T.Vector3(0, 0, -1).applyQuaternion(
+              face.getWorldQuaternion(new T.Quaternion()),
+            ),
+            incident = center.clone().sub(eye).normalize();
+          expect(leaned[i].distanceTo(incident.reflect(normal))).toBeLessThan(1e-7);
+        }
+        model.root.position.set(0, 0, 0);
+        model.root.quaternion.identity();
         views.unbind();
         expect(model.rearViews[0].material).toBe(original);
         model.pose(pose);

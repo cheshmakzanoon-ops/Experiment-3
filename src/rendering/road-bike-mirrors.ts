@@ -104,12 +104,19 @@ export function buildRoadBikeMirrors(
   detail: RiderDetail,
   m: BikeMaterials,
   foot: T.Vector3,
+  mount: T.Object3D,
+  nominalEye: readonly [number, number, number],
 ) {
   const root = new T.Group(),
     fixed = new T.Group(),
     faces: T.Mesh[] = [];
   root.name =
     style === 'sport' ? 'Fairing-mounted aerodynamic mirrors' : 'Handlebar-mounted road mirrors';
+  // At rest the silvered face bisects the directions to the helmet and
+  // the adjacent rear lane. Keep that tilt in the physical mounting frame.
+  const eye = mount.worldToLocal(new T.Vector3(...nominalEye));
+  const inverseMount = mount.getWorldQuaternion(new T.Quaternion()).invert();
+  const up = new T.Vector3(0, 1, 0).applyQuaternion(inverseMount);
   for (const side of [-1, 1]) {
     const start = foot.clone();
     start.x *= side;
@@ -120,8 +127,12 @@ export function buildRoadBikeMirrors(
         : new T.Vector3(side * 0.355, start.y + 0.137, start.z + 0.024);
     const view = new T.Group();
     view.position.copy(end);
-    view.rotation.set(0.16, side * 0.18, 0, 'YXZ');
-    const pivot = end.clone().add(new T.Vector3(-side * 0.035, -0.023, 0.034));
+    const rear = new T.Vector3(side * 0.16, 0.015, -1).normalize().applyQuaternion(inverseMount);
+    const normal = eye.clone().sub(end).normalize().add(rear).normalize();
+    view.quaternion.setFromRotationMatrix(new T.Matrix4().lookAt(end, end.clone().add(normal), up));
+    const pivot = new T.Vector3(-side * 0.035, -0.023, 0.034)
+      .applyQuaternion(view.quaternion)
+      .add(end);
     rod(fixed, m.steel, start, elbow, style === 'roadster' ? 0.008 : 0.012);
     rod(fixed, m.dark, elbow, pivot, style === 'roadster' ? 0.01 : 0.014);
     const shoe = mesh(fixed, new T.SphereGeometry(1, 12, 6), m.dark, start.x, start.y, start.z);
@@ -138,16 +149,15 @@ export function buildRoadBikeMirrors(
     fixed.add(view);
     const pts = perimeter(style, side, detail === 'high' ? 28 : detail === 'mid' ? 18 : 10);
     mesh(view, housing(pts), style === 'sport' ? m.paint : m.dark);
-    const glass = mirrorFace(
-      pts,
-      style === 'sport' ? 0.084 : 0.091,
-      style === 'sport' ? 0.053 : 0.057,
-    );
+    const halfWidth = style === 'sport' ? 0.084 : 0.091,
+      halfHeight = style === 'sport' ? 0.053 : 0.057;
+    const glass = mirrorFace(pts, halfWidth, halfHeight);
     const lens = mesh(view, glass, m.roadMirrorGlass());
     lens.castShadow = false;
     if (detail !== 'far') {
       const feed = new T.Mesh(glass.clone(), m.roadMirrorGlass());
       feed.name = side < 0 ? 'Road mirror feed right' : 'Road mirror feed left';
+      feed.userData.opticalRearViewAspect = halfWidth / halfHeight;
       feed.position.copy(end);
       feed.quaternion.copy(view.quaternion);
       feed.translateZ(-0.0025);

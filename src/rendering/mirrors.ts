@@ -30,6 +30,8 @@ export class MirrorViews {
   private visible: boolean[] = [];
   private direction = new T.Vector3();
   private quaternion = new T.Quaternion();
+  private readonly faceRotation = new T.Quaternion();
+  private readonly normal = new T.Vector3();
   private viewport = new T.Vector4();
   private scissor = new T.Vector4();
   private clock = Infinity;
@@ -59,6 +61,8 @@ export class MirrorViews {
     this.visible = [true, true];
     surfaces.forEach((s, i) => {
       s.material = this.materials[i];
+      this.cameras[i].aspect = s.userData.opticalRearViewAspect ?? 8 / 3;
+      this.cameras[i].updateProjectionMatrix();
     });
     this.clock = Infinity;
   }
@@ -75,21 +79,28 @@ export class MirrorViews {
     this.targets.forEach((t) => t.setSize(width, (width * 3) / 8));
     this.clock = Infinity;
   }
-  orient(root: T.Object3D) {
-    root.updateWorldMatrix(true, true);
+  orient(root: T.Object3D, eye?: T.Vector3) {
     root.getWorldQuaternion(this.quaternion);
     this.surfaces.forEach((s, i) => {
       const c = this.cameras[i];
-      s.getWorldPosition(c.position);
       // The near plane clears the housing. A modest outward toe includes the
       // adjacent lane while keeping the rearward horizon readable.
-      this.direction.set(i === 0 ? -0.16 : 0.16, 0.015, -1).applyQuaternion(this.quaternion);
-      c.up.set(0, 1, 0).applyQuaternion(this.quaternion);
+      if (eye && s.userData.opticalRearViewAspect) {
+        s.getWorldQuaternion(this.faceRotation);
+        c.position.setFromMatrixPosition(s.matrixWorld);
+        this.normal.set(0, 0, -1).applyQuaternion(this.faceRotation);
+        this.direction.subVectors(c.position, eye).normalize().reflect(this.normal);
+        c.up.set(0, 1, 0).applyQuaternion(this.faceRotation);
+      } else {
+        s.getWorldPosition(c.position);
+        this.direction.set(i === 0 ? -0.16 : 0.16, 0.015, -1).applyQuaternion(this.quaternion);
+        c.up.set(0, 1, 0).applyQuaternion(this.quaternion);
+      }
       c.lookAt(this.direction.add(c.position));
       c.updateMatrixWorld();
     });
   }
-  render(renderer: T.WebGLRenderer, scene: T.Scene, root: T.Object3D, dt: number) {
+  render(renderer: T.WebGLRenderer, scene: T.Scene, root: T.Object3D, dt: number, eye?: T.Vector3) {
     this.passes = 0;
     if (this.surfaces.length !== 2 || !root.visible) return;
     this.clock += dt;
@@ -100,7 +111,7 @@ export class MirrorViews {
     const both = this.clock === Infinity;
     if (!both && this.clock < this.period / 2) return;
     this.clock = 0;
-    this.orient(root);
+    this.orient(root, eye);
     const previousTarget = renderer.getRenderTarget();
     const previousFace = renderer.getActiveCubeFace();
     const previousMip = renderer.getActiveMipmapLevel();

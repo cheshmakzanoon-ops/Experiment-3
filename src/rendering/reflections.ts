@@ -112,8 +112,8 @@ export class ReflectionSystem {
   }
   /** Pose the mirror cameras on `root` now. Feeds are rendered at their own
    * rate, so between passes the cameras can lag a moving car (profiling). */
-  poseMirrorCameras(root: T.Object3D) {
-    this.views.orient(root);
+  poseMirrorCameras(root: T.Object3D, eye?: T.Vector3) {
+    this.views.orient(root, eye);
     return this.views.cameras;
   }
   probeUpdates = 0;
@@ -315,8 +315,14 @@ export class ReflectionSystem {
     this.enabled = cockpit;
     for (const mirror of this.mirrors) mirror.visible = cockpit;
   }
-  renderMirrors(renderer: T.WebGLRenderer, scene: T.Scene, root: T.Object3D, dt: number) {
-    if (this.enabled && !this.activePass) this.views.render(renderer, scene, root, dt);
+  renderMirrors(
+    renderer: T.WebGLRenderer,
+    scene: T.Scene,
+    root: T.Object3D,
+    dt: number,
+    eye?: T.Vector3,
+  ) {
+    if (this.enabled && !this.activePass) this.views.render(renderer, scene, root, dt, eye);
   }
   /** Roots omitted from the rear-view feeds (spectators, pit people, props). */
   set mirrorExclusions(roots: T.Object3D[]) {
