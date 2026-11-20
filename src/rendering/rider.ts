@@ -501,6 +501,7 @@ export class Rider {
   private riding = false;
   private readonly materials: T.Material[] = [];
   private readonly q = new T.Quaternion();
+  private readonly recoveryStep = new T.Vector3();
   private readonly recoveryBoot = new T.Quaternion();
   private readonly recoveryTilt = new T.Quaternion();
   private readonly euler = new T.Euler();
@@ -1827,9 +1828,18 @@ export class Rider {
       // Hands: spread when sliding, swinging when jogging, on the bars at the bike.
       c.set(side * (0.38 - 0.07 * bracing), -0.25 * rise - 0.18 * bracing,
         T.MathUtils.lerp(0.35, 0.15 + side * stride * 0.4, rise));
+      if (running > 0) {
+        // The wrist advances as its own boot drives back. Read the actual
+        // recorded stance/swing curve so a held or rewound step stays paired.
+        motocrossRecoveryStep(tumble, i === 1, this.recoveryStep);
+        const counter = T.MathUtils.clamp(-this.recoveryStep.z / 0.38, -1, 1);
+        c.x = T.MathUtils.lerp(c.x, side * 0.09, running);
+        c.y = T.MathUtils.lerp(c.y, -0.32 + 0.09 * Math.max(0, counter), running);
+        c.z = T.MathUtils.lerp(c.z, 0.13 + 0.27 * counter, running);
+      }
       if (phase === 2) c.set(side * 0.25, -0.05, 0.45);
       c.applyQuaternion(this.torso.quaternion).add(a);
-      pole.copy(a).add(b.set(side * 0.4, -0.4, -0.2));
+      pole.copy(a).add(b.set(side * (0.4 - 0.26 * running), -0.4, -0.2 - 0.08 * running));
       twoBone(this.upperArms[i], this.forearms[i], a, c, pole, joint);
       a.set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
@@ -1840,10 +1850,7 @@ export class Rider {
       if (mxRise !== undefined && rise > 0) {
         // Resolve the foot against the ground under the rider, including on
         // a sloping landing several metres away from the fallen motorcycle.
-        b.set(side * 0.11, 0, 0);
-        if (phase === 1) motocrossRecoveryStep(tumble, i === 1, b);
-        b.y *= running;
-        b.z *= running;
+        b.set(side * 0.11, this.recoveryStep.y * running, this.recoveryStep.z * running);
         if (floor && floor.normal.y > 0.1)
           b.y -= (floor.normal.x * b.x + floor.normal.z * b.z + floor.constant) / floor.normal.y;
         motocrossBootFrame(this.q);

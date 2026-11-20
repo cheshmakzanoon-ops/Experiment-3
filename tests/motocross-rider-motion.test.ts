@@ -49,6 +49,43 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('runs with the wrists beside the ribs and each hand opposing the boot on its own side', () => {
+    const rider = new Rider(colours, 'mid', 'motocross');
+    const point = new T.Vector3();
+    const floor = new T.Plane(new T.Vector3(0, 1, 0), 0);
+    try {
+      for (const side of ['left', 'right']) {
+        const hand = rider.root.getObjectByName(`Motocross ${side} hand`)!;
+        const boot = rider.root.getObjectByName(`Motocross ${side} boot`)!;
+        const steps: { wrist: number; foot: number }[] = [];
+        let width = 0;
+        for (let i = 0; i < 48; i++) {
+          rider.separated(1, i * Math.PI / 24, 0, 1, floor);
+          rider.root.updateMatrixWorld(true);
+          point.fromArray(MX_GLOVE_GRIP).applyMatrix4(hand.matrixWorld);
+          width = Math.max(width, Math.abs(point.x));
+          const wrist = point.z;
+          point.fromArray(MX_BOOT_PEG).applyMatrix4(boot.matrixWorld);
+          steps.push({ wrist, foot: point.z });
+        }
+        const mean = steps.reduce((s, v) => s + v.wrist, 0) / steps.length;
+        const meanFoot = steps.reduce((s, v) => s + v.foot, 0) / steps.length;
+        let covariance = 0, wristVariance = 0, footVariance = 0;
+        for (const sample of steps) {
+          const h = sample.wrist - mean, f = sample.foot - meanFoot;
+          covariance += h * f;
+          wristVariance += h * h;
+          footVariance += f * f;
+        }
+        expect(width).toBeLessThan(0.39);
+        expect(Math.sqrt(wristVariance / steps.length)).toBeGreaterThan(0.13);
+        expect(covariance / Math.sqrt(wristVariance * footVariance)).toBeLessThan(-0.85);
+      }
+    } finally {
+      rider.dispose();
+    }
+  });
+
   it('braces on the rider’s own berm and reproduces the same stride through a replay seek', () => {
     const rider = new Rider(colours, 'mid', 'motocross');
     const recovery = new MxRecoveryPose();
