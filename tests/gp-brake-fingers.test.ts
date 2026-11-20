@@ -4,7 +4,7 @@ import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
 import { GpBrakeFingers } from '../src/rendering/gp-brake-fingers.ts';
 import { gpFrontBrakeGeometry } from '../src/rendering/gp-front-brake.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
-import { GP_GLOVE_GRIP } from '../src/rendering/gp-rider-contact.ts';
+import { GP_GLOVE_GRIP, gpThrottleAngle } from '../src/rendering/gp-rider-contact.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -117,6 +117,61 @@ describe('GP control fingers solve the actual moving blade', () => {
         expect(Array.from(positions.array)).toEqual(original);
         expect(mesh.skeleton.bones).toHaveLength(10);
         expect(mesh.geometry.index!.count / 3).toBeLessThan(800);
+      } finally {
+        model.dispose();
+        materials.dispose();
+      }
+    },
+  );
+
+  it.each(['gpr1', 'gpr2'])(
+    '%s rolls the sleeve and palm about the same fixed grip and restores the pose on seek',
+    (id) => {
+      const materials = new BikeMaterials(4),
+        model = new BikeModel(VEHICLES[id], 4, 'high', materials, true);
+      const sleeve = model.root.getObjectByName('GP right throttle sleeve')!;
+      const right = model.root.getObjectByName('GP right hand')!,
+        left = model.root.getObjectByName('GP left hand')!;
+      const pose = input(id, 0, 0.21);
+      const q = (object: T.Object3D) => object.getWorldQuaternion(new T.Quaternion());
+      try {
+        expect(model.rider.raceNumber).toBe(6);
+        model.pose(pose);
+        model.root.updateMatrixWorld(true);
+        const rest = q(right),
+          stationary = q(left),
+          centre = sleeve.getWorldPosition(new T.Vector3());
+        for (const throttle of [0.2, 0.7, 1, 0.2, 0]) {
+          model.pose({ ...pose, throttle });
+          model.root.updateMatrixWorld(true);
+          expect(sleeve.rotation.y).toBeCloseTo(-gpThrottleAngle(throttle), 12);
+          expect(q(right).angleTo(rest)).toBeCloseTo(Math.abs(gpThrottleAngle(throttle)), 5);
+          expect(q(left).angleTo(stationary)).toBeLessThan(1e-6);
+          expect(
+            right.localToWorld(new T.Vector3(...GP_GLOVE_GRIP)).distanceTo(centre),
+          ).toBeLessThan(0.001);
+        }
+        model.pose({ ...pose, throttle: 0.55, brake: 0.8 });
+        model.root.updateMatrixWorld(true);
+        const fingers = model.root.getObjectByName(
+          'GP continuous brake-finger leather',
+        ) as T.SkinnedMesh;
+        for (const finger of [0, 1]) {
+          const tip = fingers.skeleton.bones[finger * 5 + 4].localToWorld(
+            new T.Vector3(0, 0, finger ? 0.019 : 0.018),
+          );
+          const goal = model.rider.root.localToWorld(
+            model.rider.brakeFingerTargets![finger].clone(),
+          );
+          expect(tip.distanceTo(goal)).toBeLessThan(0.001);
+        }
+        const dry = materials.lamp.emissiveIntensity;
+        model.pose({ ...pose, brake: 1, rearBrake: 1 });
+        expect(materials.lamp.emissiveIntensity).toBe(dry);
+        model.pose({ ...pose, rainVisibility: 1 });
+        expect(materials.lamp.emissiveIntensity).toBeGreaterThan(3);
+        model.pose(pose);
+        expect(materials.lamp.emissiveIntensity).toBe(dry);
       } finally {
         model.dispose();
         materials.dispose();

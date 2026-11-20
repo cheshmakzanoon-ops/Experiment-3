@@ -1,3 +1,4 @@
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { loadLazyData } from '../core/lazy-data.ts';
 import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
@@ -753,7 +754,9 @@ export class RacingRenderer {
       // MX and SX have their own mechanics area, service vans and gate.
       // Loading Aurel's detached garages here retains the decoded models;
       // installing the tyre trolleys also draws them against a dirt layout.
-      if (!isMotocrossVenue(track)) {
+      // The four GP venues build permanent open bays and their own pit wall.
+      // Detached Aurel assets never enter those scenes or a reflection pass.
+      if (!isMotocrossVenue(track) && !isGpCourse(track)) {
         progress({
           completed: 0,
           total: 1,
@@ -775,11 +778,6 @@ export class RacingRenderer {
           label: 'Loading Aurel pit-wall command station',
         });
         renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);
-        // A35 owns its instancing/LODs outside destructive static prop batching.
-        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
-        renderer.tyreEquipment = await loadTyreEquipment(cancelled);
-        installTyreEquipment(renderer.tyreEquipment, track);
-        renderer.circuit.group.add(renderer.tyreEquipment.root);
         progress({
           completed: 0,
           total: 1,
@@ -787,6 +785,13 @@ export class RacingRenderer {
           label: 'Loading Aurel pit-building frontage',
         });
         renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
+      }
+      if (!isMotocrossVenue(track)) {
+        // A35 owns its instancing/LODs outside destructive static prop batching.
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
+        renderer.tyreEquipment = await loadTyreEquipment(cancelled);
+        installTyreEquipment(renderer.tyreEquipment, track);
+        renderer.circuit.group.add(renderer.tyreEquipment.root);
       }
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
       renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
@@ -1025,19 +1030,16 @@ export class RacingRenderer {
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
       const gpGrid = gpGridForFrame(frame);
+      this.circuit.setGrandPrixGrid(gpGrid);
+      if (this.tyreEquipment && isGpCourse(this.circuit.track)) this.tyreEquipment.root.visible = !gpGrid;
       // Construct the actual motorcycle materials before compileAsync. Building
       // them for the first time inside the chase draw put cold shader linking
       // and uploads on the first GPU fence instead of the compilation stage.
       // The same models, LOD policy, warmup views and completion gate remain.
-      if (gpGrid) {
-        progress('Building GP motorcycles and riders…');
-        await yieldFrame();
-        if (cancelled()) return false;
-      }
-      if (this.circuit.offroad && total > 1) {
+      if ((gpGrid || this.circuit.offroad) && total > 1) {
         for (let id = 0; id < this.cars.length; id++) {
           if (id < total) {
-            progress(`Building motocross grid ${id + 1} / ${total}…`);
+            progress(`Building ${gpGrid ? 'GP' : 'motocross'} grid ${id + 1} / ${total}…`);
             await yieldFrame();
             if (this.disposed || cancelled()) return false;
           }
@@ -1053,12 +1055,14 @@ export class RacingRenderer {
             id,
           );
         }
-        progress('Preparing motocross rider detail for race cameras…');
-        const ready = await this.bikeShells.prepareDirtField(
-          () => this.disposed || cancelled(),
-          yieldFrame,
-        );
-        if (!ready) return false;
+        if (this.circuit.offroad) {
+          progress('Preparing motocross rider detail for race cameras…');
+          const ready = await this.bikeShells.prepareDirtField(
+            () => this.disposed || cancelled(),
+            yieldFrame,
+          );
+          if (!ready) return false;
+        }
       } else {
         this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
       }
@@ -1103,7 +1107,7 @@ export class RacingRenderer {
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
-      await compileSceneTarget(
+      await this.bikeShells.warmGpDetails(() => compileSceneTarget(
         this.renderer,
         this.scene,
         this.camera,
@@ -1113,7 +1117,7 @@ export class RacingRenderer {
           cancelled: () => this.disposed || cancelled(),
           beforeMetadata: () => progress('Preparing circuit and vehicle materials…'),
         },
-      );
+      ));
       if (cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
@@ -1218,14 +1222,14 @@ export class RacingRenderer {
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
       if (stopped()) return false;
-      await compileSceneTarget(
+      await this.bikeShells.warmGpDetails(() => compileSceneTarget(
         this.renderer,
         this.scene,
         this.camera,
         this.composer.readBuffer,
         undefined,
         { cancelled: stopped },
-      );
+      ));
       complete = !stopped();
       return complete;
     } catch (error) {
@@ -1508,7 +1512,9 @@ export class RacingRenderer {
         followedDefinition.classId === 'motocross' &&
         !!followedDefinition.bike?.offroad;
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
-    this.circuit.setGrandPrixGrid(gpGridForFrame(presented));
+    const gpGrid = gpGridForFrame(presented);
+    this.circuit.setGrandPrixGrid(gpGrid);
+    if (this.tyreEquipment && isGpCourse(this.circuit.track)) this.tyreEquipment.root.visible = !gpGrid;
     // W1: a followed GP prototype gets the GP chase rig, lens and shutter.
     const gpFollow =
       bikeFollow && !motocrossFollow && followedDefinition.classId === 'gp-bike' && this.gpCamera;

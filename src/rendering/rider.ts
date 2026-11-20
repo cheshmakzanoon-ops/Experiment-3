@@ -1,8 +1,9 @@
+import { paintDistantGpRider } from './gp-distant-rider.ts';
 import * as T from 'three';
 import { MotocrossDab, type MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { tagWeatherSurface } from './weather-presentation.ts';
-import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
+import { helmetLiveryTexture, riderPanelTexture, type GpRiderPrints } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { installSsrMask } from './ultra/ssr-mask.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
@@ -38,6 +39,7 @@ import {
   gpBootFrame,
   gpContactJoint,
   gpGripFrame,
+  gpThrottleAngle,
 } from './gp-rider-contact.ts';
 import {
   GP_TORSO_PROFILE,
@@ -504,10 +506,12 @@ export class Rider {
     readonly kit: RiderKit = 'leathers',
     readonly raceNumber = 2,
     readonly gp = false,
+    private readonly sharedPrints?: GpRiderPrints,
   ) {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
     const gpSuit = gp && !mx && detail !== 'far';
+    const distantGp = gp && !mx && detail === 'far';
     // Textile kit: matte woven fabric with a soft sheen, no lacquer.
     const leather = new T.MeshPhysicalMaterial(
       mx
@@ -783,12 +787,21 @@ export class Rider {
       }
     }
     if (!mx && detail !== 'far') {
-      leather.map = riderPanelTexture(colours, false, gpSuit);
+      leather.map = sharedPrints?.limb ?? riderPanelTexture(colours, false, gpSuit);
       leather.color.setHex(0xffffff);
-      torsoLeather.map = riderPanelTexture(colours, true, gpSuit);
+      torsoLeather.map = sharedPrints?.torso ?? riderPanelTexture(colours, true, gpSuit, gpSuit ? raceNumber : undefined);
       torsoLeather.color.setHex(0xffffff);
-      helmet.map = gp ? gpHelmetLivery(colours, raceNumber) : helmetLiveryTexture(colours);
+      helmet.map = sharedPrints?.helmet ?? (gp ? gpHelmetLivery(colours, raceNumber) : helmetLiveryTexture(colours));
       helmet.color.setHex(0xffffff);
+    }
+    if (distantGp) {
+      for (const material of [helmet, torsoLeather]) {
+        material.color.setHex(0xffffff);
+        material.vertexColors = true;
+      }
+      helmet.roughness = 0.29;
+      helmet.clearcoat = 0.78;
+      helmet.clearcoatRoughness = 0.18;
     }
     this.materials.push(torsoLeather);
     if (!mx && detail !== 'far')
@@ -839,11 +852,11 @@ export class Rider {
           ];
     const torsoGeometry = mx
       ? motocrossGarmentGeometry('jersey', detail)
-      : gpSuit
+      : gpSuit || distantGp
         ? gpTorsoGeometry(detail)
         : bodyLoft(torsoSections, sides);
     if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
-    const torsoMesh = part(this.torso, torsoGeometry, torsoLeather);
+    const torsoMesh = part(this.torso, distantGp ? paintDistantGpRider(torsoGeometry, colours, false) : torsoGeometry, torsoLeather);
     torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
     this.motocrossSpine?.bind(torsoMesh);
     if (mx) {
@@ -983,7 +996,7 @@ export class Rider {
     const shell = part(
       this.head,
       gpHelmet
-        ? gpHelmetShell(detail)
+        ? distantGp ? paintDistantGpRider(gpHelmetShell(detail), colours, true) : gpHelmetShell(detail)
         : mx
           ? motocrossHelmetShell(detail)
           : detail === 'far'
@@ -1661,7 +1674,7 @@ export class Rider {
         .applyQuaternion(chest.quaternion)
         .add(chest.position);
       pole.copy(shoulder).add(posture.elbowPoles[i]);
-      gpGripFrame(this.gripAxes[i], this.q);
+      gpGripFrame(this.gripAxes[i], this.q, i === 1 ? gpThrottleAngle(pose.throttle) : 0);
       gpContactJoint(this.grips[i], this.q, GP_GLOVE_GRIP, GP_GLOVE_WRIST, target);
       // A braking rider can protract the outside shoulder within the suit.
       // Preserve a little elbow flex at full hang-off rather than letting
@@ -1890,6 +1903,7 @@ export class Rider {
       for (const value of Object.values(m)) if (value instanceof T.Texture) textures.add(value);
       m.dispose();
     }
+    if (this.sharedPrints) for (const texture of Object.values(this.sharedPrints)) textures.delete(texture);
     for (const texture of textures) texture.dispose();
   }
 }

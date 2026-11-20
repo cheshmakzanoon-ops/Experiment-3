@@ -1,3 +1,5 @@
+import type * as T from 'three';
+import { gpHelmetLivery } from './gp-rider-helmet.ts';
 import { canvasTexture } from './geometry.ts';
 import { drawWordmark } from './studio/brand-atlas.ts';
 import type { RiderColours } from './rider.ts';
@@ -5,7 +7,28 @@ import type { RiderColours } from './rider.ts';
 /** Original rider suit and helmet artwork, not copied team marks. The GP
  * machines' own liveries are painted by gp-race-bodywork.ts. */
 
-export function riderPanelTexture(colours: RiderColours, torso: boolean, outwardReadable = false) {
+export interface GpRiderPrints {
+  limb: T.Texture;
+  torso: T.Texture;
+  helmet: T.Texture;
+}
+
+/** The two close rider LODs use identical dye and helmet artwork. The
+ * entrant owns one set so moving the camera never drops or reuploads it. */
+export function gpRiderPrints(colours: RiderColours, raceNumber: number): GpRiderPrints {
+  return {
+    limb: riderPanelTexture(colours, false, true),
+    torso: riderPanelTexture(colours, true, true, raceNumber),
+    helmet: gpHelmetLivery(colours, raceNumber),
+  };
+}
+
+export function riderPanelTexture(
+  colours: RiderColours,
+  torso: boolean,
+  outwardReadable = false,
+  raceNumber?: number,
+) {
   const css = (hex: number) => `#${hex.toString(16).padStart(6, '0')}`;
   return canvasTexture(1024, 512, (c) => {
     const word = (...args: Parameters<typeof drawWordmark>) => {
@@ -79,8 +102,19 @@ export function riderPanelTexture(colours: RiderColours, torso: boolean, outward
       );
       c.strokeStyle = '#e4e6e0';
       if (torso) {
-        word(c, 'MOTOBOUND', x + 256, 142, 26, { weight: 0.2, slant: 0.14 });
-        word(c, 'WORKS RACING', x + 256, 178, 11, { weight: 0.14, tracking: 0.24 });
+        if (raceNumber !== undefined && x === 512) {
+          // The aero housing faces the chase and trailing riders. Give it
+          // the same race number as the nose, with a dark keyline that
+          // survives bright kit, overcast light and mip filtering.
+          const digits = String(raceNumber).padStart(2, '0');
+          c.strokeStyle = '#202428';
+          word(c, digits, x + 256, 145, 72, { weight: 0.38, width: 1.15, slant: 0.14 });
+          c.strokeStyle = '#f5f1df';
+          word(c, digits, x + 256, 145, 72, { weight: 0.22, width: 1.15, slant: 0.14 });
+        } else {
+          word(c, 'MOTOBOUND', x + 256, 142, 26, { weight: 0.2, slant: 0.14 });
+          word(c, 'WORKS RACING', x + 256, 178, 11, { weight: 0.14, tracking: 0.24 });
+        }
         // Title partner on a dark, rounded panel rather than a paper box.
         c.fillStyle = '#1c2125';
         c.beginPath();

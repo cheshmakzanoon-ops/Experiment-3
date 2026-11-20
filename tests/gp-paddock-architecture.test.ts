@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
+import { buildGpGarageEquipment } from '../src/rendering/venue-kit/gp-garage-equipment.ts';
 import { paddockMaterials } from '../src/rendering/paddock-detail.ts';
 import {
   buildGpPaddockArchitecture,
@@ -84,6 +85,76 @@ describe('GP layered pit architecture', () => {
     for (const material of used) material.dispose();
   });
 
+  it.each(venues)('%s grounds the equipment and keeps an open garage access aisle', (id) => {
+    const track = new Track('clear', false, undefined, CIRCUITS[id]);
+    const bays = gpPaddockPlan(track).filter((bay) => bay.index % 2 === 0);
+    const root = buildGpGarageEquipment(track)!;
+    expect(bays).toHaveLength(6);
+    expect(root.children.length).toBeLessThanOrEqual(5);
+    const part = (name: string) => root.getObjectByName(name) as T.InstancedMesh;
+    const spares = part('Rounded front and rear GP spares'),
+      rims = part('Forged spare wheel rims'),
+      rollers = part('Load-bearing trolley and stand rollers');
+    expect(rollers.count).toBe(6 * bays.length);
+    expect(spares.count).toBe(14);
+    expect(rims.count).toBe(spares.count);
+    const matrix = new T.Matrix4(),
+      position = new T.Vector3(),
+      q = new T.Quaternion(),
+      scale = new T.Vector3(),
+      centre = new T.Vector3(),
+      axis = new T.Vector3(),
+      ray = new T.Raycaster(),
+      halfWidths = new Set<number>();
+    let slot = 0;
+    for (const [i, bay] of bays.entries()) {
+      const site = new T.Vector3(bay.x, bay.y, bay.z);
+      const rotation = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), bay.yaw);
+      // Cast through the opening at caster, axle and handle height.
+      for (const height of [0.12, 0.58, 0.93]) {
+        ray.set(
+          new T.Vector3(-7, height, 0).applyQuaternion(rotation).add(site),
+          new T.Vector3(1, 0, 0).applyQuaternion(rotation),
+        );
+        ray.far = 11;
+        expect(ray.intersectObject(root, true)).toHaveLength(0);
+      }
+      for (let caster = 0; caster < 6; caster++) {
+        rollers.getMatrixAt(i * 6 + caster, matrix);
+        position.setFromMatrixPosition(matrix);
+        expect(position.y - 0.075 - bay.y).toBeCloseTo(0.05, 4);
+      }
+      for (let j = 0; j < (bay.index % 3 === 0 ? 3 : 2); j++, slot++) {
+        spares.getMatrixAt(slot, matrix);
+        matrix.decompose(position, q, scale);
+        centre.copy(position);
+        expect(position.y - bay.y).toBeCloseTo(0.595, 4);
+        halfWidths.add(Math.round(scale.x * 82.5));
+        axis.set(1, 0, 0).applyQuaternion(q);
+        // Each wheel is pierced by the trolley shaft. The side on a spare
+        // has a tyre and a forged rim, both registered on that same axle.
+        ray.set(position.clone().addScaledVector(axis, -0.2), axis);
+        ray.far = 0.4;
+        expect(ray.intersectObject(spares)).toHaveLength(0);
+        rims.getMatrixAt(slot, matrix);
+        matrix.decompose(position, q, scale);
+        expect(position.distanceTo(centre)).toBeLessThan(0.0001);
+        centre.sub(site).applyQuaternion(rotation.clone().invert());
+        expect(Math.abs(centre.z)).toBeGreaterThan(2);
+        expect(Math.abs(centre.z)).toBeLessThan(3.4);
+      }
+    }
+    expect(halfWidths).toEqual(new Set([60, 102]));
+    const materials = new Set<T.Material>();
+    for (const child of root.children as T.InstancedMesh[]) {
+      expect(child.boundingSphere?.radius).toBeGreaterThan(0);
+      expect(child.castShadow && child.receiveShadow).toBe(true);
+      materials.add(child.material as T.Material);
+      child.geometry.dispose();
+    }
+    for (const material of materials) material.dispose();
+  });
+
   it.each(venues)('%s has a closed roof with upward and downward faces', (id) => {
     const geometry = gpPaddockRoofGeometry(id, 9),
       material = new T.MeshBasicMaterial(),
@@ -123,6 +194,7 @@ describe('GP layered pit architecture', () => {
     (id) => {
       const track = new Track('clear', false, undefined, CIRCUITS[id]);
       expect(gpPaddockPlan(track)).toEqual([]);
+      expect(buildGpGarageEquipment(track)).toBeNull();
       expect(
         buildGpPaddockArchitecture(track, null as unknown as ReturnType<typeof paddockMaterials>),
       ).toBeNull();

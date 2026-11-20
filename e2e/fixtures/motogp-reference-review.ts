@@ -228,7 +228,7 @@ export function captureBikeSequence(
       };
     });
     return samples.map((sample) => {
-      const samplePose = { ...pose, ...sample.pose, brake: sample.frontBrake ?? pose.brake };
+      const samplePose = { ...pose, rainVisibility: sample.wet ? 1 : 0, ...sample.pose, brake: sample.frontBrake ?? pose.brake };
       bike.pose(samplePose);
       bike.root.rotation.z = -samplePose.chassisLean;
       bike.root.position.y = def.bike!.cgHeight * Math.cos(samplePose.chassisLean);

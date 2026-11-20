@@ -26,14 +26,20 @@ const bootFrame = new T.Quaternion().setFromEuler(new T.Euler(0.16, 0, Math.PI))
   bootActuation = new T.Quaternion(),
   bootAxis = new T.Vector3(1, 0, 0);
 
-/** +X spans the actual grip; the knuckles face up in the bike's sprung frame.
- * The axis already includes clip-on cant, steering-axis rake and live steer. */
-export function gpGripFrame(axis: T.Vector3, target: T.Quaternion) {
+/** Rider wrist travel on the right twist-grip, in radians. */
+export function gpThrottleAngle(input = 0) {
+  return (Number.isFinite(input) ? T.MathUtils.clamp(input, 0, 1) : 0) * -0.6;
+}
+
+const gripTwist = new T.Quaternion();
+/** +X spans the actual grip. The axis includes clip-on cant, rake and steer. */
+export function gpGripFrame(axis: T.Vector3, target: T.Quaternion, twist = 0) {
   x.copy(axis).normalize();
   z.set(-x.z, 0, x.x).normalize();
   y.crossVectors(z, x).normalize();
   basis.makeBasis(x, y, z);
-  return target.setFromRotationMatrix(basis);
+  target.setFromRotationMatrix(basis);
+  return twist ? target.multiply(gripTwist.setFromAxisAngle(bootAxis, twist)) : target;
 }
 
 /** Shared by the boot and rearset pedal so independent rear-brake input

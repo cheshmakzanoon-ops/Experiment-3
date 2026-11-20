@@ -43,9 +43,9 @@ const HOUSING_WIDTH = HOUSING.map(([, , width]) => width);
 /** Continuous torso with a shaped pelvis, shoulder slope and integrated aero
  * housing. A fixed sample budget replaces both old torso and hump meshes;
  * changing the profile's station count cannot silently inflate render cost. */
-export function gpTorsoGeometry(detail: 'high' | 'mid') {
-  const sides = detail === 'high' ? 28 : 16,
-    rows = detail === 'high' ? 30 : 15,
+export function gpTorsoGeometry(detail: 'high' | 'mid' | 'far') {
+  const sides = detail === 'high' ? 28 : detail === 'mid' ? 16 : 10,
+    rows = detail === 'high' ? 30 : detail === 'mid' ? 15 : 8,
     first = GP_TORSO_PROFILE[0][0],
     last = GP_TORSO_PROFILE[GP_TORSO_PROFILE.length - 1][0],
     positions: number[] = [],

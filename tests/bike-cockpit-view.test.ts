@@ -1,3 +1,4 @@
+import { H } from '../src/simulation/protocol.ts';
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
@@ -80,11 +81,12 @@ describe('GP cockpit real-camera contract', () => {
     cars[1].root.position.x = 4;
     const camera = new T.PerspectiveCamera(60, 16 / 9, 0.03, 1000);
     try {
-      shells.update(frame, frame, 1, cars, camera, 'high', 0);
       const heads: T.Object3D[] = [];
-      shells.root.traverse((o) => {
-        if (o.name === 'Rider head and helmet') heads.push(o);
-      });
+      shells.install = (root) =>
+        root.traverse((o) => {
+          if (o.name === 'Rider head and helmet') heads.push(o);
+        });
+      shells.update(frame, frame, 1, cars, camera, 'high', 0);
       expect(heads).toHaveLength(6);
       shells.setFirstPerson(0);
       expect(heads.slice(0, 3).every((h) => !h.visible)).toBe(true);
@@ -95,6 +97,76 @@ describe('GP cockpit real-camera contract', () => {
       shells.setFirstPerson(-1);
       expect(heads.every((h) => h.visible)).toBe(true);
       expect(frame).toEqual(sim.makeFrame());
+    } finally {
+      shells.disposeAll();
+    }
+  });
+  it('pools immutable field geometry, warms missing camera detail and keeps live rigs independent', async () => {
+    const sim = new Simulation({
+      ...DEFAULT_OPTIONS,
+      mode: 'practice',
+      opponents: 2,
+      vehicles: ['gpr1', 'gpr1', 'gpr2'],
+    });
+    const frame = sim.makeFrame(),
+      shells = new BikeShells();
+    const cars = Array.from({ length: 3 }, () => ({ root: new T.Group() }));
+    const camera = new T.PerspectiveCamera(60, 16 / 9, 0.03, 1000);
+    const built: T.Object3D[] = [];
+    shells.install = (root) => {
+      if (/\((high|mid|far)\)$/.test(root.name)) built.push(root);
+    };
+    try {
+      shells.update(frame, frame, 1, cars, camera, 'high', 0);
+      expect(built).toHaveLength(9);
+      const mounted = () => built.filter((root) => root.parent === shells.root).length;
+      expect(mounted()).toBe(3);
+      const mesh = (root: T.Object3D, name: string) => root.getObjectByName(name) as T.Mesh;
+      const flanks = [built[0], built[3], built[6]].map((root) =>
+        mesh(root, 'GP race shell / flank and nose'),
+      );
+      expect(flanks[0].geometry).toBe(flanks[1].geometry);
+      expect(flanks[0].geometry).not.toBe(flanks[2].geometry);
+      expect(flanks[0].material).not.toBe(flanks[1].material);
+      const helmets = [built[0], built[1], built[3]].map((root) => {
+        const material = mesh(root, 'GP elongated race helmet shell')?.material as
+          | T.MeshStandardMaterial
+          | undefined;
+        if (material?.map) return material.map;
+        let print: T.Texture | null = null;
+        root.traverse((o) => {
+          if (o instanceof T.Mesh)
+            for (const m of [o.material].flat()) if (m.name === 'Rider helmet shell') print = m.map;
+        });
+        return print;
+      });
+      expect(helmets[0]).toBeTruthy();
+      expect(helmets[0]).toBe(helmets[1]);
+      expect(helmets[0]).not.toBe(helmets[2]);
+      const fingers = [built[0], built[3]].map(
+        (root) => mesh(root, 'GP continuous brake-finger leather') as T.SkinnedMesh,
+      );
+      expect(fingers[0].skeleton).not.toBe(fingers[1].skeleton);
+      await expect(
+        shells.warmGpDetails(async () => {
+          expect(mounted()).toBe(7);
+          throw new Error('cancelled');
+        }),
+      ).rejects.toThrow('cancelled');
+      expect(mounted()).toBe(3);
+      cars[1].root.position.z = 160;
+      shells.update(frame, frame, 1, cars, camera, 'high', 0);
+      expect(shells.drawnRoot(1)).toBe(built[5]);
+      expect(mounted()).toBe(3);
+      const releases = vi.fn();
+      flanks[0].geometry.addEventListener('dispose', releases);
+      const reduced = frame.slice();
+      reduced[H.CARS] = 1;
+      shells.update(reduced, reduced, 1, cars, camera, 'high', 0);
+      expect(releases).not.toHaveBeenCalled();
+      shells.disposeAll();
+      expect(releases).toHaveBeenCalledOnce();
+      expect(shells.root.children).toHaveLength(0);
     } finally {
       shells.disposeAll();
     }

@@ -151,6 +151,7 @@ export function gpRacingBoot(
   const root = new T.Group();
   root.name = `GP ${side > 0 ? 'left' : 'right'} articulated racing boot`;
   const close = detail === 'high',
+    distant = contactPose && detail === 'far',
     sides = close ? 16 : detail === 'mid' ? 10 : 8;
   const add = (g: T.BufferGeometry, m: T.Material, name: string, parent = root) => {
     const mesh = new T.Mesh(g, m);
@@ -170,7 +171,7 @@ export function gpRacingBoot(
     loft(
       footProfile,
       'z',
-      (close ? 19 : 10) - Number(contactPose),
+      (close ? 19 : distant ? 6 : 10) - Number(contactPose),
       sides,
       contactPose ? GP_BOOT_ROUNDNESS : 1,
       contactPose,
@@ -184,7 +185,7 @@ export function gpRacingBoot(
   const cuffGeometry = loft(
     contactPose ? GP_CUFF : CUFF,
     'y',
-    close ? 14 : 8,
+    close ? 14 : distant ? 4 : 8,
     sides,
     contactPose ? 0.78 : 1,
   );
@@ -204,7 +205,7 @@ export function gpRacingBoot(
       ] as const,
   );
   add(
-    loft(sole, 'z', (close ? 15 : 8) - Number(contactPose), sides, 1, contactPose),
+    loft(sole, 'z', (close ? 15 : distant ? 5 : 8) - Number(contactPose), sides, 1, contactPose),
     materials.sole,
     'Thin shaped traction sole',
   );

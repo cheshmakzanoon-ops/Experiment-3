@@ -1,3 +1,4 @@
+import { gpFairingOutlet } from './gp-fairing-outlet.ts';
 import * as T from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -37,6 +38,11 @@ import {
  * Frame: BikeModel's sprung CG frame (+Z forward, road at y = -0.62 for the
  * GP prototypes, front axle at z = +0.70, steering head top near y = 0.31). */
 export type GpShellVariant = 'gpr1' | 'gpr2' | 'sport';
+
+/** Original racing number shared by the machine and its rider's kit. */
+export function gpRaceNumber(entrant: number) {
+  return (entrant % 98) + 2;
+}
 
 /** Front tyre clearance: inside the fork (|x| < 0.16) the skin must clear
  * the fully compressed (125 mm) tyre and fender; outside it, the side
@@ -725,34 +731,36 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
   const z = r2 ? 0.72 : 0.755;
   const loop: P3[] = r2
     ? [
-        [0.205, 0.105, z + 0.01],
+        [0.17, 0.105, z + 0.01],
         [0.25, 0.115, z],
         [0.292, 0.1, z - 0.01],
         [0.31, 0.06, z - 0.015],
         [0.3, 0.012, z - 0.02],
-        [0.262, -0.008, z - 0.02],
-        [0.218, -0.01, z - 0.015],
+        [0.262, 0.001, z - 0.026],
+        [0.188, 0.032, z - 0.05],
       ]
     : [
-        [0.195, 0.09, z + 0.02],
+        [0.173, 0.094, z - 0.042],
         [0.238, 0.098, z + 0.01],
         [0.278, 0.084, z],
         [0.298, 0.05, z - 0.005],
         [0.29, 0.012, z - 0.01],
-        [0.258, -0.004, z - 0.01],
-        [0.212, -0.006, z - 0.005],
+        [0.258, 0.001, z - 0.026],
+        [0.179, 0.029, z - 0.058],
       ];
-  const wing = sweptFoil(loop, r2 ? 0.15 : 0.135, 0.12, high ? 28 : 12, high ? 10 : 6);
+  const far = detail === 'far';
+  const wing = sweptFoil(loop, r2 ? 0.15 : 0.135, 0.12, high ? 28 : far ? 7 : 12, high ? 10 : far ? 4 : 6);
+  if (far) return pair(wing);
   // Inner slat: a short third element between the blades (REF 056, 060).
   const slat = sweptFoil(
     r2
       ? [
-          [0.215, 0.05, z - 0.0],
+          [0.182, 0.05, z - 0.012],
           [0.255, 0.052, z - 0.005],
           [0.288, 0.045, z - 0.01],
         ]
       : [
-          [0.2, 0.045, z + 0.01],
+          [0.174, 0.045, z - 0.042],
           [0.24, 0.047, z + 0.005],
           [0.276, 0.042, z],
         ],
@@ -991,7 +999,7 @@ function pen(
 /** One flank of an original race livery, in metres on the side view. */
 function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
   const scheme = liveryScheme(entrant);
-  const number = String((entrant % 98) + 2).padStart(2, '0');
+  const number = String(gpRaceNumber(entrant)).padStart(2, '0');
   const base = new T.Color(scheme.primary);
   const lum = 0.2126 * base.r + 0.7152 * base.g + 0.0722 * base.b;
   const ink = lum > 0.55 ? '#15191d' : '#f1f2ed';
@@ -1343,7 +1351,7 @@ export function gpReliefAtlasCount() {
 
 /** Front number decal art: number on a light oval bay. */
 function noseNumberTexture(entrant: number, accent: string) {
-  const number = String((entrant % 98) + 2).padStart(2, '0');
+  const number = String(gpRaceNumber(entrant)).padStart(2, '0');
   return canvasTexture(256, 256, (c) => {
     c.clearRect(0, 0, 256, 256);
     c.fillStyle = '#eceee8';
@@ -1558,25 +1566,27 @@ export function gpRaceBodywork(
       }),
     ),
   );
-  const body = mesh(bodyGeometry, paint, 'GP race shell / flank and nose');
+  const outlet = variant !== 'sport' && !far ? gpFairingOutlet(bodyGeometry, variant === 'gpr2', high) : undefined;
+  const body = mesh(outlet?.skin ?? bodyGeometry, paint, 'GP race shell / flank and nose');
   const tank = mesh(tankGeometry, paint, 'GP race shell / tank');
   const tail = mesh(tailGeometry, paint, 'GP race shell / tail');
+  if (variant !== 'sport') {
+    mesh(
+      painted([boxWings(variant, detail)]),
+      gpWingPaint(materials, entrant),
+      'GP race shell / box wings',
+    );
+  }
   if (!far) {
-    // The road-bike variant leaves out the prototypes' aero: box wings and
-    // ground-effect scoops.
     if (variant !== 'sport') {
       mesh(
-        painted([boxWings(variant, detail)]),
-        gpWingPaint(materials, entrant),
-        'GP race shell / box wings',
-      );
-      mesh(
-        painted([lowerScoops(variant, detail)]),
+        painted([lowerScoops(variant, detail), ...(outlet ? [outlet.blades] : [])]),
         materials.carbon,
         'GP race shell / ground-effect scoops',
       );
     }
-    mesh(intakeMouth(variant, detail), materials.dark, 'GP race shell / ram-air mouth', false);
+    const mouth = intakeMouth(variant, detail);
+    mesh(outlet ? painted([mouth, outlet.liner]) : mouth, materials.dark, 'GP race shell / ram-air mouth', false);
     mesh(
       shellPanelGeometry({ name: 'GP seat', net: seatNet(), rows, cols }),
       materials.seat,

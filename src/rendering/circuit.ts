@@ -1,3 +1,4 @@
+import { buildGpGarageEquipment } from './venue-kit/gp-garage-equipment.ts';
 import { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { AurelQuarryKit } from './aurel-quarry.ts';
 import type { AurelVegetationKit } from './aurel-vegetation.ts';
@@ -156,6 +157,7 @@ export class CircuitScene {
   readonly wetReflection = new WetRoadReflection();
   readonly roadMaterial: T.MeshStandardMaterial;
   private readonly motorcycleSurface = { value: 0 };
+  private gpGarageEquipment: T.Group | null = null;
   private readonly gpSurface = { value: 0 };
   private readonly tyreRubber: TyreMarkPresentation;
   private gridPaint?: GridPaintPresentation;
@@ -192,6 +194,15 @@ export class CircuitScene {
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
     this.venueKit = venueKitFor(track);
+    if (isGpCourse(track)) {
+      this.construction.add('GP garage stands and spare wheels', 1, () => {
+        this.gpGarageEquipment = buildGpGarageEquipment(track);
+        if (this.gpGarageEquipment) {
+          this.gpGarageEquipment.visible = this.grandPrixGrid.value !== 0;
+          this.group.add(this.gpGarageEquipment);
+        }
+      });
+    }
     this.group.add(this.props, this.crowd, this.vegetationGroup, this.surfaces);
     if (this.venueKit) this.group.add(this.venueKit.root);
     // A terrain venue's course is soil, not a paved ribbon with kerbs.
@@ -655,6 +666,7 @@ export class CircuitScene {
    * followed vehicle's road-material family. Remember selection before build. */
   setGrandPrixGrid(enabled: boolean) {
     this.grandPrixGrid.value = enabled ? 1 : 0;
+    if (this.gpGarageEquipment) this.gpGarageEquipment.visible = enabled;
     if (this.gridPaint?.setGrandPrix(enabled)) this.props.invalidateTransforms();
   }
   startingGridDiagnostics() {

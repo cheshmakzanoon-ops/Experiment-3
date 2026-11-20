@@ -197,7 +197,11 @@ describe('GP R5 anatomical boot and leather finish', () => {
       try {
         road.updateMatrixWorld(true);
         gp.updateMatrixWorld(true);
-        expect(inventory(gp)).toEqual(inventory(road));
+        const baseline = inventory(road);
+        expect(inventory(gp)).toEqual({
+          meshes: baseline.meshes,
+          triangles: detail === 'far' ? 240 : baseline.triangles,
+        });
         const size = new T.Box3().setFromObject(gp).getSize(new T.Vector3());
         expect(size.x).toBeLessThanOrEqual(GP_BOOT_ENVELOPE.width);
         expect(size.y).toBeLessThanOrEqual(GP_BOOT_ENVELOPE.height);

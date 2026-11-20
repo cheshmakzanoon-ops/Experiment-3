@@ -106,6 +106,68 @@ describe('GP race shell control-net surfaces', () => {
 
 describe('GP race shell R6 on the production models', () => {
   it.each(['gpr1', 'gpr2'] as const)(
+    '%s has recessed exit ducts on both flanks and attached aerofoils across LODs',
+    (id) => {
+      const m = new BikeMaterials(0);
+      try {
+        for (const detail of ['high', 'mid', 'far'] as const) {
+          const shell = gpRaceBodywork(m, detail, id, 0);
+          shell.root.updateMatrixWorld(true);
+          try {
+            const wing = shell.root.getObjectByName('GP race shell / box wings') as T.Mesh;
+            const p = wing.geometry.getAttribute('position'),
+              ray = new T.Raycaster();
+            const shoot = (side: number, y: number, z: number, object: T.Object3D) => {
+              ray.set(new T.Vector3(side, y, z), new T.Vector3(-side, 0, 0));
+              return ray.intersectObject(object)[0]?.point;
+            };
+            for (const side of [-1, 1]) {
+              let upper = false,
+                lower = false,
+                tip = 0;
+              for (let i = 0; i < p.count; i++) {
+                const x = p.getX(i) * side,
+                  y = p.getY(i),
+                  z = p.getZ(i);
+                if (x < 0) continue;
+                tip = Math.max(tip, x);
+                if (x > 0.24 || (upper && lower)) continue;
+                const wall = shoot(side, y, z, shell.body);
+                if (wall && side * wall.x - x > 0.002) {
+                  if (y > 0.075) upper = true;
+                  if (y < 0.036) lower = true;
+                }
+              }
+              expect(upper && lower, detail + ' aero return is fixed at both ends').toBe(true);
+              expect(tip).toBeGreaterThan(0.29);
+              if (detail === 'far') continue;
+              const liner = shell.root.getObjectByName('GP race shell / ram-air mouth')!;
+              const blades = shell.root.getObjectByName('GP race shell / ground-effect scoops')!;
+              const cut = (v: number) => {
+                const u = 0.5;
+                return [-0.066 + 0.013 * u + 0.171 * v, 0.226 + 0.136 * u + 0.052 * v] as const;
+              };
+              const [gy, gz] = cut(0.12),
+                [by, bz] = cut(1 / (id === 'gpr2' ? 4 : 5));
+              expect(shoot(side, gy, gz, shell.body)?.x ?? 0).toBeCloseTo(0, 4);
+              const back = shoot(side, gy, gz, liner)!;
+              expect(side * back.x).toBeGreaterThan(0.13);
+              expect(shoot(side, gy, gz, blades)).toBeUndefined();
+              const front = shoot(side, by, bz, blades)!;
+              expect((front.x - shoot(side, by, bz, liner)!.x) * side).toBeGreaterThan(0.017);
+            }
+          } finally {
+            shell.root.traverse((o) => {
+              if (o instanceof T.Mesh) o.geometry.dispose();
+            });
+          }
+        }
+      } finally {
+        m.dispose();
+      }
+    },
+  );
+  it.each(['gpr1', 'gpr2'] as const)(
     '%s: finite, owned geometry with livery UVs at every LOD and one entrant paint',
     (id) => {
       const materials = new BikeMaterials(3);

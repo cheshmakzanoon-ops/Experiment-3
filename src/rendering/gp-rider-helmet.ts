@@ -67,8 +67,8 @@ export function gpHelmetPoint(y: number, phi: number, offset = 0, out = new T.Ve
 /** Closed outer shell: per-column rows from the sloped edge to the crown pole
  * (no pinched seam) and a neck-roll cap. UV u wraps azimuth, v rises. */
 export function gpHelmetShell(detail: RiderDetail) {
-  const columns = detail === 'high' ? 56 : detail === 'mid' ? 32 : 8,
-    rows = detail === 'high' ? 26 : detail === 'mid' ? 14 : 4,
+  const columns = detail === 'high' ? 56 : detail === 'mid' ? 32 : 16,
+    rows = detail === 'high' ? 26 : detail === 'mid' ? 14 : 7,
     stride = columns + 1,
     positions: number[] = [],
     uv: number[] = [],
@@ -80,8 +80,10 @@ export function gpHelmetShell(detail: RiderDetail) {
         edge = gpHelmetEdge(phi),
         // Denser rows through the eye port and chin bar, sparser on the dome.
         t = row / rows,
-        y =
-          row === rows
+        eye = detail === 'far' ? gpVisorBounds(phi) : undefined,
+        y = eye
+          ? [edge, -0.082, eye[0], eye[1], 0.078, 0.108, 0.135, GP_HELMET_TOP][row]
+          : row === rows
             ? GP_HELMET_TOP
             : edge + (GP_HELMET_TOP - edge) * (t - 0.12 * Math.sin(t * Math.PI));
       gpHelmetPoint(y, phi, 0, p);

@@ -189,6 +189,52 @@ function closedSkinIndices(rows: number, cols: number) {
   return index;
 }
 
+/** Pigmented red lens cells with a domed rear face. The black bezel fits
+ * flush over the squared tail end. Both parts use the existing material
+ * batches and the lamp emits only through the actual optical surfaces. */
+export function gpRainLenses(r2: boolean, detail: RiderDetail) {
+  const count = r2 ? 6 : 7,
+    sides = detail === 'high' ? 10 : 6;
+  const position: number[] = [],
+    uv: number[] = [],
+    index: number[] = [];
+  for (let cell = 0; cell < count; cell++) {
+    const x =
+      (cell - (count - 1) / 2) * (r2 ? 0.0095 : 0.009) + (r2 ? Math.sign(cell - 2.5) * 0.002 : 0);
+    const y = r2 ? Math.abs(x) * 0.08 : 0;
+    const start = position.length / 3;
+    for (const [r, z] of [
+      [1, -0.004],
+      [0.88, -0.0056],
+      [0.55, -0.0065],
+    ]) {
+      for (let j = 0; j < sides; j++) {
+        const a = (j * 2 * Math.PI) / sides;
+        position.push(x + Math.cos(a) * r * 0.0042, y + Math.sin(a) * r * 0.0068, z);
+        uv.push(0.5 + 0.5 * Math.cos(a) * r, 0.5 + 0.5 * Math.sin(a) * r);
+      }
+    }
+    const cap = position.length / 3;
+    position.push(x, y, -0.0069);
+    uv.push(0.5, 0.5);
+    for (let j = 0; j < sides; j++) {
+      const n = (j + 1) % sides;
+      for (let ring = 0; ring < 2; ring++) {
+        const a = start + ring * sides + j,
+          b = start + ring * sides + n;
+        index.push(a, a + sides, b, b, a + sides, b + sides);
+      }
+      index.push(start + 2 * sides + j, cap, start + 2 * sides + n);
+    }
+  }
+  const geom = new T.BufferGeometry();
+  geom.name = 'GP domed rain-light lens array';
+  geom.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  geom.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geom.setIndex(index);
+  geom.computeVertexNormals();
+  return geom;
+}
 /** The swingarm carries a moulded carbon cover clear of the rear slick. The
  * section follows the rounded tyre shoulders. The leading edge wraps further
  * down the flanks and the trailing tongue tapers away above the wheel. */

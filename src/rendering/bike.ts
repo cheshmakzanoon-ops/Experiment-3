@@ -1,3 +1,8 @@
+import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
+import { gpGripGeometry, gpGripRubber, gpLeverGuard } from './gp-handlebar-controls.ts';
+import { gpThrottleAngle } from './gp-rider-contact.ts';
+import { frameLiquidRain } from '../simulation/weather.ts';
+import { ROAD_TYRE_HALF_WIDTH, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
 import {
   bindGpBareMetal,
   calibrateGpMaterials,
@@ -11,7 +16,7 @@ import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
-import { gpRaceBodywork, gpSwingarmSpoon } from './gp-race-bodywork.ts';
+import { gpRaceBodywork, gpRaceNumber, gpSwingarmSpoon } from './gp-race-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
@@ -26,7 +31,7 @@ import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
-import { GPRearSuspension, gpRearBody, gpRearHugger, gpRearSwingarm } from './gp-rear-chassis.ts';
+import { GPRearSuspension, gpRearBody, gpRearHugger, gpRainLenses, gpRearSwingarm } from './gp-rear-chassis.ts';
 import { GPRearsets } from './gp-rearsets.ts';
 import {
   gpFrontBrakeAngle,
@@ -73,7 +78,7 @@ import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
 import { detailDistance } from './view-detail.ts';
-import { Rider, type RiderDetail } from './rider.ts';
+import { Rider, type RiderColours, type RiderDetail } from './rider.ts';
 import { bikeSheetFor, SHELL_SCHEME } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
@@ -248,7 +253,7 @@ export function tyreGeometry(
   distant = false,
 ) {
   const points: T.Vector2[] = [];
-  const reach = Math.min(1.25, Math.asin(Math.min(0.98, halfWidth / crown)));
+  const reach = Math.asin(tyreShoulderSine(halfWidth, crown));
   const centre = radius - crown;
   // Bead (rim) on one side, sidewall bulge, tread arc, sidewall, bead.
   const wall = (t: number, sign: number) =>
@@ -474,6 +479,7 @@ export function numberTexture(number: number, paint: string, ink: string) {
 /** Materials of one entrant (paint per livery; mechanical finishes shared in spirit). */
 export class BikeMaterials {
   readonly list: T.Material[] = [];
+  private readonly prints = new Map<number, GpRiderPrints>();
   readonly paint: T.MeshPhysicalMaterial;
   readonly secondary: T.MeshPhysicalMaterial;
   readonly accent: T.MeshPhysicalMaterial;
@@ -697,7 +703,17 @@ export class BikeMaterials {
     tagWeatherSurface(this.seat, 'leather', 0.7);
     tagWeatherSurface(this.reservoir, 'paint', 0.7);
   }
+  riderPrints(colours: RiderColours, number: number) {
+    let prints = this.prints.get(number);
+    if (!prints) {
+      prints = gpRiderPrints(colours, number);
+      this.prints.set(number, prints);
+    }
+    return prints;
+  }
   dispose() {
+    for (const prints of this.prints.values()) for (const texture of Object.values(prints)) texture.dispose();
+    this.prints.clear();
     for (const m of this.list) {
       for (const value of Object.values(m)) if (value instanceof T.Texture) value.dispose();
       m.dispose();
@@ -795,6 +811,7 @@ export class BikeModel {
   private readonly sliderSparks?: GpSliderSparks;
   private readonly sparkOrigins: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly gpFrontBrakeLever?: T.Group;
+  private readonly gpThrottleSleeve?: T.Group;
   private readonly gpFrontHydraulics?: GPFrontHydraulics;
   private readonly gpBrakeTargets: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly cockpit?: BikeCockpit;
@@ -1109,10 +1126,11 @@ export class BikeModel {
       );
       bar.rotation.z = Math.PI / 2 - side * 0.18;
       bar.rotation.y = side * 0.22;
+      const gpControls = gpPrototype && detail !== 'far';
       const grip = add(
         this.steer,
-        new T.CylinderGeometry(0.017, 0.017, 0.12, 12),
-        m.dark,
+        gpControls ? gpGripGeometry(side, detail) : new T.CylinderGeometry(0.017, 0.017, 0.12, 12),
+        gpControls ? gpGripRubber(m) : m.dark,
         side * (0.3 + barX),
         -0.06 + barY,
         -0.05,
@@ -1124,6 +1142,20 @@ export class BikeModel {
       // Preserve the actual cylindrical grip axis before rigid batching.
       // Glove +X spans the knuckles; cylinder -Y points toward bike +X.
       this.gripAxisLocal[gripIndex].set(0, -1, 0).applyQuaternion(grip.quaternion);
+      if (gpControls && side < 0) {
+        const mount = new T.Group();
+        mount.position.copy(grip.position);
+        mount.quaternion.copy(grip.quaternion);
+        this.steer.add(mount);
+        const sleeve = new T.Group();
+        sleeve.name = 'GP right throttle sleeve';
+        mount.add(sleeve);
+        sleeve.add(grip);
+        grip.position.set(0, 0, 0);
+        grip.quaternion.identity();
+        this.gpThrottleSleeve = sleeve;
+        add(this.steer, gpLeverGuard(detail), m.carbon).name = 'GP fixed brake lever guard';
+      }
       if (detail === 'high') {
         const lever = add(
           this.steer,
@@ -1281,7 +1313,7 @@ export class BikeModel {
     if (gpPrototype) this.frontSpin.name = 'GP front wheel spin';
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, FORK_OFFSET);
-    wheel(this.frontSpin, frontR, 0.06, b.crownRadius, true);
+    wheel(this.frontSpin, frontR, ROAD_TYRE_HALF_WIDTH.front, b.crownRadius, true);
     if (gpPrototype && detail !== 'far')
       this.gpFrontHydraulics = new GPFrontHydraulics(
         this.steer,
@@ -1734,14 +1766,16 @@ export class BikeModel {
         { screen: sport ? look.screen : 1 },
       );
       this.sprung.add(moulding.root);
+      const r2 = definition.id === 'gpr2';
+      const lampY = r2 ? 0.318 : 0.33;
+      const nearRainLamp = gpPrototype && detail !== 'far';
+      if (nearRainLamp) {
+        add(this.sprung, new RoundedBoxGeometry(0.077, 0.024, 0.008, 1, 0.003), m.dark, 0, lampY, -0.956);
+      }
       const lamp = add(
         this.sprung,
-        new RoundedBoxGeometry(0.07, 0.022, 0.012, 2, 0.004),
-        m.lamp,
-        0,
-        definition.id === 'gpr2' ? 0.318 : 0.33,
-        -0.955,
-        false,
+        nearRainLamp ? gpRainLenses(r2, detail) : new RoundedBoxGeometry(0.07, 0.022, 0.012, 2, 0.004),
+        m.lamp, 0, lampY, nearRainLamp ? -0.9565 : -0.955, false,
       );
       lamp.name = 'GP tail rain light';
     } else if (look.tail === 'race') {
@@ -1957,19 +1991,18 @@ export class BikeModel {
     this.rearWheel.position.copy(this.rearAxle);
     this.rearWheel.add(this.rearSpin);
     this.root.add(this.rearWheel);
-    wheel(this.rearSpin, rearR, 0.1, Math.max(b.crownRadius, 0.11), false);
+    wheel(this.rearSpin, rearR, ROAD_TYRE_HALF_WIDTH.rear, Math.max(b.crownRadius, 0.11), false);
     // ---- Rider.
     const scheme = liveryScheme(id);
+    const colours = {
+      primary: new T.Color(scheme.primary).getHex(),
+      secondary: new T.Color(scheme.secondary).getHex(),
+      accent: new T.Color(scheme.accent).getHex(),
+    };
+    const raceNumber = gpPrototype ? gpRaceNumber(id) : 2;
     this.rider = new Rider(
-      {
-        primary: new T.Color(scheme.primary).getHex(),
-        secondary: new T.Color(scheme.secondary).getHex(),
-        accent: new T.Color(scheme.accent).getHex(),
-      },
-      detail,
-      'leathers',
-      2,
-      gpPrototype,
+      colours, detail, 'leathers', raceNumber, gpPrototype,
+      gpPrototype && detail !== 'far' ? m.riderPrints(colours, raceNumber) : undefined,
     );
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
@@ -2041,6 +2074,7 @@ export class BikeModel {
     this.sprung.position.y = road ? 0 : -(dr + ((df - dr) * b.cgToRear) / L);
     this.rider.ground.plane = road?.localGround;
     this.steer.rotation.y = v.steer;
+    if (this.gpThrottleSleeve) this.gpThrottleSleeve.rotation.y = -gpThrottleAngle(v.throttle);
     // Presented front-brake input only: rear pedal, wheel speed and elapsed
     // display time do not pull the hand lever. An absolute pose restores on seek.
     if (this.gpFrontBrakeLever) this.gpFrontBrakeLever.rotation.y = gpFrontBrakeAngle(v.brake);
@@ -2083,7 +2117,9 @@ export class BikeModel {
       this.m.disc.emissive.setHex(0xff4a10);
       this.m.disc.emissiveIntensity = T.MathUtils.clamp((v.discTemp - 450) / 350, 0, 1) * 1.6;
     }
-    this.m.lamp.emissiveIntensity = v.brake > 0.05 || v.rearBrake > 0.05 ? 3 : 0.2;
+    this.m.lamp.emissiveIntensity = this.rider.gp
+      ? 0.04 + 3.2 * T.MathUtils.smoothstep(v.rainVisibility ?? 0, 0, 1)
+      : v.brake > 0.05 || v.rearBrake > 0.05 ? 3 : 0.2;
     for (const ring of this.rings)
       (ring.material as T.MeshStandardMaterial).color.setHex(v.compoundColour);
     if (v.riding) {
@@ -2163,6 +2199,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   speed?: number;
   /** Presented simulation time (s): the knee-slider sparks are a function of it. */
   time?: number;
+  /** GP rear visibility lamp demand from recorded rain or standing water. */
+  rainVisibility?: number;
   rpm?: number;
   gear?: number;
   fork: number;
@@ -2265,7 +2303,7 @@ export class BikeShells {
   arenaGrid?: MxArenaGrid;
   private readonly roadContact = new RoadBikeContactPose();
   private readonly helmetUp = new T.Vector3();
-  private readonly dirtGeometry = new MxGeometryPool();
+  private readonly fieldGeometry = new MxGeometryPool();
   readonly root = new T.Group();
   /** Renderer hook: install weather/atmosphere/IBL on newly built bikes. */
   install: (root: T.Object3D) => void = () => undefined;
@@ -2309,7 +2347,7 @@ export class BikeShells {
     if (!def.bike) return 0;
     return chassisLean(sampleBikeField(a, b, o, B.LEAN, t), def.bike);
   }
-  private build(id: number, definition: VehicleDefinition): Entry {
+  private build(id: number, definition: VehicleDefinition, field: boolean): Entry {
     // The player's SS-600 and SBK-1000 wear their own team scheme (bike-sheet.ts
     // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
     const scheme = id === 0 ? (SHELL_SCHEME[definition.id] ?? id) : id;
@@ -2322,12 +2360,13 @@ export class BikeShells {
       : BIKE_DETAILS.map(
           (detail) => new BikeModel(definition, scheme, detail, materials, detail === 'high'),
         );
+    const gp = definition.classId === 'gp-bike';
     for (const level of levels) {
-      this.root.add(level.root);
+      if (gp && field) this.fieldGeometry.share(definition.id + '/' + level.detail, level.root);
+      if (!gp) this.root.add(level.root);
       level.root.visible = false;
     }
     // One spring-damped rider body per GP entrant, shared by its LODs.
-    const gp = definition.id === 'gpr1' || definition.id === 'gpr2';
     const riderBody = gp ? new GpRiderBody() : undefined;
     // Capture the opaque rest pose before a presentation hook can replace its
     // materials (the Time Trial ghost installs a translucent material). A cold
@@ -2343,7 +2382,7 @@ export class BikeShells {
     const detail = BIKE_DETAILS[level];
     const model = new DirtBikeModel(entry.definition, id, detail, entry.materials, entry.dirtMud!);
     entry.levels[level] = model;
-    if (shareGeometry) this.dirtGeometry.share(entry.definition.id + '/' + detail, model.root);
+    if (shareGeometry) this.fieldGeometry.share(entry.definition.id + '/' + detail, model.root);
     model.root.visible = false;
     this.install(model.root);
     return model;
@@ -2362,6 +2401,34 @@ export class BikeShells {
       }
     }
     return !cancelled();
+  }
+  /** Prepare each prototype/detail shader layout once. Every entrant keeps
+   * its private uniforms and material registrations. Inactive duplicates
+   * stay out of scene updates, shadow passes and compiler traversal. */
+  async warmGpDetails<T>(compile: () => Promise<T>): Promise<T> {
+    const active = new Set<string>(), parked = new Map<string, T.Object3D>();
+    for (const entry of this.entries.values()) {
+      if (!entry.riderBody) continue;
+      for (let i = 0; i < entry.levels.length; i++) {
+        const root = entry.levels[i]?.root;
+        if (!root) continue;
+        const key = entry.definition.id + '/' + i;
+        if (root.parent === this.root && root.visible) active.add(key);
+        else if (!parked.has(key)) parked.set(key, root);
+      }
+    }
+    const mounted: T.Object3D[] = [];
+    for (const [key, root] of parked) {
+      if (!active.has(key) && !root.parent) {
+        this.root.add(root);
+        mounted.push(root);
+      }
+    }
+    try {
+      return await compile();
+    } finally {
+      for (const root of mounted) if (!root.visible && root.parent === this.root) this.root.remove(root);
+    }
   }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high
    * model and hook every lit, opaque bike and rider material of the entrant. */
@@ -2383,7 +2450,7 @@ export class BikeShells {
       level.root.add(level.rider.root);
       this.uninstall(level.root);
       this.root.remove(level.root);
-      this.dirtGeometry.release(level.root);
+      this.fieldGeometry.release(level.root);
       level.dispose();
     }
     this.uninstall(entry.rig.root);
@@ -2428,7 +2495,7 @@ export class BikeShells {
   disposeAll() {
     for (const entry of this.entries.values()) this.dispose(entry);
     this.entries.clear();
-    this.dirtGeometry.clear();
+    this.fieldGeometry.clear();
   }
   update(
     a: Float32Array,
@@ -2465,7 +2532,7 @@ export class BikeShells {
       }
       if (!entry || entry.definition !== definition) {
         if (entry) this.dispose(entry);
-        entry = this.build(id, definition);
+        entry = this.build(id, definition, b[H.CARS] > 1);
         this.entries.set(id, entry);
       }
       const car = cars[id].root;
@@ -2495,6 +2562,11 @@ export class BikeShells {
         old.root.visible = false;
         // A separated rider can be parented to the world outside its LOD.
         old.rider.root.visible = false;
+        if (entry.riderBody) {
+          // A fallen rider can live in world space independently of its bike.
+          if (old.rider.root.parent === this.root) old.root.add(old.rider.root);
+          old.root.removeFromParent();
+        }
       }
       entry.level = level;
       model.root.visible = model.rider.root.visible = true;
@@ -2552,6 +2624,10 @@ export class BikeShells {
       rear = front + 2 * WHEEL_STRIDE;
     v.speed = sampleValue(a, b, o + F.SPEED, t);
     v.time = sampleValue(a, b, H.TIME, t);
+    v.rainVisibility = Math.max(
+      T.MathUtils.lerp(frameLiquidRain(a), frameLiquidRain(b), t) / 2,
+      sampleValue(a, b, H.WATER, t) / 0.35,
+    );
     v.rpm = sampleValue(a, b, o + F.RPM, t);
     v.gear = source[o + F.GEAR];
     v.fork = sampleBikeField(a, b, o, B.FORK, t);
