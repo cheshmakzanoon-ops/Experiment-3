@@ -64,7 +64,7 @@ export function begin(kind: 'clear' | 'rain', retain = false) {
   ui.showMode('photo');
   studio = new PhotoStudio(app, {
     change: (p) => renderer!.setPhoto(p, renderer!.cars.length),
-    preview: (l) => renderer!.cars[0]?.setLivery(l),
+    preview: (l) => renderer!.playerCar?.setLivery(l),
     save: async () => {},
     capture: () => {},
     close: () => studio!.close(),

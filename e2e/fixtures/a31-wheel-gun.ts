@@ -40,7 +40,7 @@ export async function surveyA31(samples: number[][], lighting: 'day' | 'sunset' 
   try {
     view.setQuality('medium', { ...graphicsPreset('medium'), resolutionScale: 1 });
     view.lighting = lighting;
-    const fits = measureWheelGunFits(view.cars[0]);
+    const fits = measureWheelGunFits(view.playerCar!);
     for (let i = 0; i < samples.length; i++) {
       const frame = new Float32Array(samples[i]),
         before = frame.slice(),
@@ -70,7 +70,7 @@ export async function surveyA31(samples: number[][], lighting: 'day' | 'sunset' 
           // steered, cambered wheel carrier is the pivot (the owner-supplied model's is
           // `PLAYER_WHEEL_n`). Either way it is the actual imported/authored node, not a
           // value derived from the placement code under test.
-          const carrier = view.cars[0].suppliedPlayer?.wheels[w] ?? view.cars[0].wheelPivots[w];
+          const carrier = view.playerCar!.suppliedPlayer?.wheels[w] ?? view.playerCar!.wheelPivots[w];
           carrier.updateWorldMatrix(true, false);
           const wanted = carrier.localToWorld(
             new T.Vector3((w % 2 ? 1 : -1) * fits[w].axial, 0, 0),
@@ -152,7 +152,7 @@ export async function surveyA31(samples: number[][], lighting: 'day' | 'sunset' 
       states,
       errors,
       fits,
-      playerKind: view.cars[0].suppliedPlayer ? ('supplied' as const) : ('authored' as const),
+      playerKind: view.playerCar!.suppliedPlayer ? ('supplied' as const) : ('authored' as const),
       before,
       after,
       rewindSame,

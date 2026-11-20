@@ -185,6 +185,7 @@ import {
 } from './gp-photographic-camera.ts';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
+import { RoadBikeHost } from './road-bike-host.ts';
 import { prepareFlankTexture } from './car-livery.ts';
 import { carLod } from './lod.ts';
 import { attachDrawLedger, type DrawLedger } from './draw-ledger.ts';
@@ -287,7 +288,20 @@ export class RacingRenderer {
   readonly scene = new T.Scene();
   readonly camera = new T.PerspectiveCamera(58, 1, 0.045, 7000);
   readonly circuit: CircuitScene;
-  readonly cars: FormulaCar[] = [];
+  readonly cars: (FormulaCar | RoadBikeHost)[] = [];
+  /** Slot zero also owns the showroom car and editable team livery. */
+  get playerCar() {
+    const player = this.cars[0];
+    return player instanceof RoadBikeHost ? undefined : player;
+  }
+  /** Formula-only tooling (wheel guns, pit jacks and detailed cockpit probes)
+   * asks explicitly for an assembled car at its selected slot. */
+  formulaCar(id: number) {
+    const car = this.cars[id];
+    if (!car || car instanceof RoadBikeHost) throw new Error('No Formula body in grid slot ' + id);
+    return car;
+  }
+
   private readonly pendingFormulaPitFits = new Set<number>();
   private readonly deferredFormulaArt = new Set<number>();
   readonly audioView = new AudioViewTracker();
@@ -959,11 +973,23 @@ export class RacingRenderer {
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
     const unassignedDirtSlot = !frame && isMotocrossVenue(this.circuit.track);
-    while (this.cars.length < n) {
-      const id = this.cars.length;
+    // Road rivals only need a coordinate frame. A replay can replace that
+    // entrant with a car, so promote the slot on the first actual car frame.
+    for (let id = 0; id < n; id++) {
+      const prior = this.cars[id];
+      if (prior && !(prior instanceof RoadBikeHost)) continue;
       const definition = frame
         ? vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]))
         : undefined;
+      if (prior && (!definition || (definition.dynamicsKind === 'bike' && !definition.bike?.offroad))) continue;
+      const roadRival = id > 0 && definition?.dynamicsKind === 'bike' && !definition.bike?.offroad;
+      if (roadRival) {
+        const host = new RoadBikeHost(id);
+        this.cars[id] = host;
+        this.scene.add(host.root);
+        this.reflectionMaterials[id] = [this.circuit.roadMaterial];
+        continue;
+      }
       const deferFormulaArt = unassignedDirtSlot || definition?.dynamicsKind === 'bike';
       const car = new FormulaCar(
         id,
@@ -973,12 +999,13 @@ export class RacingRenderer {
         this.rivalLevels ?? undefined,
         deferFormulaArt,
       );
-      this.cars.push(car);
+      if (prior) prior.root.removeFromParent();
+      this.cars[id] = car;
       this.pendingFormulaPitFits.add(car.id);
       this.scene.add(car.root);
       if (deferFormulaArt) this.deferredFormulaArt.add(car.id);
       else this.installFormulaArt(car);
-      this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
+      this.reflectionMaterials[id] = [...car.reflectivePaint, this.circuit.roadMaterial];
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
         this.mirrorSurfaces = car.mirrors;
@@ -988,7 +1015,7 @@ export class RacingRenderer {
     }
     this.cars.forEach((car, id) => {
       car.root.visible = id < n;
-      if (!car.root.visible || !this.pendingFormulaPitFits.has(id)) return;
+      if (car instanceof RoadBikeHost || !car.root.visible || !this.pendingFormulaPitFits.has(id)) return;
       // Keep the fit pending for a motorcycle host. If a replay or later
       // race puts a Formula car in this slot, measure its own wheels once.
       const definition = frame
@@ -1056,7 +1083,8 @@ export class RacingRenderer {
         throw new Error('Invalid warmup grid');
       for (let n = this.cars.length + 1; n <= total; n++) {
         if (cancelled()) return false;
-        progress(`Building original Formula car ${n} / ${total}…`);
+        const label = BikeShells.isBike(frame, n - 1) ? 'Preparing motorcycle' : 'Building original Formula car';
+        progress(`${label} ${n} / ${total}…`);
         this.setCars(n, frame);
         await yieldFrame();
       }
@@ -1072,10 +1100,15 @@ export class RacingRenderer {
       // them for the first time inside the chase draw put cold shader linking
       // and uploads on the first GPU fence instead of the compilation stage.
       // The same models, LOD policy, warmup views and completion gate remain.
-      if ((gpGrid || this.circuit.offroad) && total > 1) {
+      const roadField = this.cars.every((_, id) => {
+        if (id >= total) return true;
+        const vehicle = vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]));
+        return vehicle.dynamicsKind === 'bike' && !vehicle.bike?.offroad;
+      });
+      if ((roadField || this.circuit.offroad) && total > 1) {
         for (let id = 0; id < this.cars.length; id++) {
           if (id < total) {
-            progress(`Building ${gpGrid ? 'GP' : 'motocross'} grid ${id + 1} / ${total}…`);
+            progress(`Building ${this.circuit.offroad ? 'motocross' : 'GP'} grid ${id + 1} / ${total}…`);
             await yieldFrame();
             if (this.disposed || cancelled()) return false;
           }
@@ -1405,7 +1438,7 @@ export class RacingRenderer {
     // Catalogue bodies take the edit too (entrant 0, once it differs from the
     // default identity); the Formula car below keeps its own flank skins.
     this.vehicleBodies.setPlayerLivery(livery);
-    const car = this.cars[0];
+    const car = this.playerCar;
     if (!car) return;
     car.setLivery(livery);
     for (const material of car.reflectivePaint)
@@ -1572,7 +1605,7 @@ export class RacingRenderer {
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
     const roadBikeSubject = bikeFollow && !followedDefinition.bike?.offroad;
-    if (!bikeFollow) car.setLod(0, this.quality, true, !!this.photo);
+    if (!bikeFollow && !(car instanceof RoadBikeHost)) car.setLod(0, this.quality, true, !!this.photo);
     car.update(
       a,
       b,
@@ -1753,6 +1786,7 @@ export class RacingRenderer {
       // Read actual articulated world transforms after this snapshot's car update.
       // A close helmet photograph must orbit the helmet, not the chassis centre.
       if (followedBike) followedBike.photoAnchor(this.photo.focusSubject, this.gaze);
+      else if (car instanceof RoadBikeHost) this.gaze.copy(car.root.position);
       else photoSubject(car, this.photo.focusSubject, this.gaze);
       this.desired
         .set(offset[0], offset[1] - 0.15, offset[2])
@@ -2144,8 +2178,9 @@ export class RacingRenderer {
         .set(presented[base + F.X], presented[base + F.Y], presented[base + F.Z])
         .distanceTo(this.camera.position);
       const definition = vehicleAt(Math.round(presented[base + RACE_BASE + R.VEHICLE]));
-      if (definition.dynamicsKind !== 'bike')
-        this.cars[id].setLod(
+      const slot = this.cars[id];
+      if (definition.dynamicsKind !== 'bike' && !(slot instanceof RoadBikeHost))
+        slot.setLod(
           detailDistance(distance, this.camera.fov, this.camera.aspect),
           this.quality,
           false,
@@ -2586,7 +2621,7 @@ export class RacingRenderer {
    * never more than the main view's, and the main view's LOD is restored. */
   private showMirrorDetail(camera: T.PerspectiveCamera, height: number) {
     for (const car of this.cars) {
-      if (car.suppliedPlayer || !car.root.visible) continue;
+      if (car instanceof RoadBikeHost || car.suppliedPlayer || !car.root.visible) continue;
       const distance = feedDetailDistance(
         car.root.position.distanceTo(camera.position),
         camera.fov,
@@ -2623,7 +2658,7 @@ export class RacingRenderer {
     this.mirrorDetailShown.length = 0;
     this.vehicleBodies?.restoreFeedDetail();
   }
-  private refreshReflectionExclusions(subject: FormulaCar, roadBikeSubject = false) {
+  private refreshReflectionExclusions(subject: FormulaCar | RoadBikeHost, roadBikeSubject = false) {
     const smallDetail = [
       this.pitCrew.root,
       this.gridPreparation.root,
@@ -2664,6 +2699,7 @@ export class RacingRenderer {
     const car = this.cars[this.follow];
     const wheel = new T.Vector3(0, 0.01, -0.025);
     if (car.suppliedPlayer) car.suppliedPlayer.screenWorld(wheel);
+    else if (car instanceof RoadBikeHost) car.root.localToWorld(wheel);
     else car.steering.localToWorld(wheel);
     const distance = wheel.distanceTo(this.camera.position);
     const ray = new T.Raycaster(
@@ -2687,12 +2723,13 @@ export class RacingRenderer {
     return {
       screenVisible,
       wheelProjection: wheel.toArray(),
-      driver: car.driver.diagnostics(),
+      driver: car instanceof RoadBikeHost ? null : car.driver.diagnostics(),
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       rivalBodywork: this.rivalLevels?.map((asset) => asset.diagnostics()) ?? null,
       rivalCars: this.cars.map((car) => ({
         id: car.id,
-        level: car.lodLevel,
+        representation: car instanceof RoadBikeHost ? 'motorcycle-frame' : 'formula-body',
+        level: car instanceof RoadBikeHost ? this.bikeShells.detailLevel(car.id) : car.lodLevel,
         supplied: !!car.suppliedPlayer,
         a61: car.root.userData.a61 !== null && car.root.userData.a61 !== undefined,
       })),
@@ -2782,9 +2819,11 @@ export class RacingRenderer {
     target.programs = this.renderer.info.programs?.length ?? 0;
     target.nearCars = target.midCars = target.farCars = 0;
     for (const car of this.cars) {
-      if (!car.root.visible) continue;
-      if (car.lodLevel === 0) target.nearCars++;
-      else if (car.lodLevel === 1) target.midCars++;
+      const bikeLevel = this.bikeShells.detailLevel(car.id);
+      if (!car.root.visible && bikeLevel < 0) continue;
+      const level = bikeLevel >= 0 ? bikeLevel : car instanceof RoadBikeHost ? -1 : car.lodLevel;
+      if (level === 0) target.nearCars++;
+      else if (level === 1) target.midCars++;
       else target.farCars++;
     }
     target.rain = frame[H.RAIN];
@@ -2799,6 +2838,8 @@ export class RacingRenderer {
     return this.follow;
   }
   stats() {
+    const followedSlot = this.cars[this.follow];
+    const player = this.playerCar;
     const info = this.renderer.info.render;
     const sorted = Array.from(this.frameSamples.subarray(0, this.sampleCount)).sort(
       (a, b) => a - b,
@@ -2813,7 +2854,8 @@ export class RacingRenderer {
       rivalBodywork: this.rivalLevels?.map((asset) => asset.diagnostics()) ?? null,
       rivalCars: this.cars.map((car) => ({
         id: car.id,
-        level: car.lodLevel,
+        representation: car instanceof RoadBikeHost ? 'motorcycle-frame' : 'formula-body',
+        level: car instanceof RoadBikeHost ? this.bikeShells.detailLevel(car.id) : car.lodLevel,
         supplied: !!car.suppliedPlayer,
         a61: car.root.userData.a61 !== null && car.root.userData.a61 !== undefined,
       })),
@@ -2863,8 +2905,8 @@ export class RacingRenderer {
         time: this.presented.value[H.TIME],
         wheelRadians:
           this.cars[this.follow].suppliedPlayer?.driverPose().wheelRadians ??
-          this.cars[this.follow].steering.rotation.z,
-        arms: this.cars[this.follow].driver.diagnostics(),
+          (followedSlot instanceof RoadBikeHost ? 0 : followedSlot.steering.rotation.z),
+        arms: followedSlot instanceof RoadBikeHost ? null : followedSlot.driver.diagnostics(),
         suppliedRig: this.cars[this.follow].suppliedPlayer?.driverPose() ?? null,
       },
       photo: this.photo ? { ...this.photo } : null,
@@ -2897,12 +2939,12 @@ export class RacingRenderer {
         ...this.circuit.environmentDiagnostics(),
         tyreEquipment: this.tyreEquipment?.diagnostics() ?? null,
       },
-      playerPaint: this.cars[0]
+      playerPaint: player
         ? {
-            primary: `#${this.cars[0].paint.color.getHexString()}`,
-            accent: `#${this.cars[0].accent.color.getHexString()}`,
-            lookdev: this.cars[0].suppliedLookdev,
-            flankSizes: this.cars[0].reflectivePaint
+            primary: `#${player.paint.color.getHexString()}`,
+            accent: `#${player.accent.color.getHexString()}`,
+            lookdev: player.suppliedLookdev,
+            flankSizes: player.reflectivePaint
               .filter((m) => m.map && m.userData.liverySide !== undefined)
               .map((m) => {
                 const image = m.map!.image as HTMLCanvasElement;
@@ -2922,7 +2964,7 @@ export class RacingRenderer {
       renderWidth: this.renderWidth,
       renderHeight: this.renderHeight,
       construction: { ...this.circuit.construction.statistics },
-      carLods: this.cars.map((car) => car.lodLevel),
+      carLods: this.cars.map((car) => car instanceof RoadBikeHost ? this.bikeShells.detailLevel(car.id) : car.lodLevel),
       camera: this.renderedMode,
       requestedCamera: this.mode,
       presentedCamera: this.renderedMode,

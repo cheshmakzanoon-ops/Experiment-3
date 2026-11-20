@@ -210,10 +210,10 @@ export async function nativePhotoAndLodGPU() {
         mode,
         eyeError: eye.distanceTo(r.camera.position),
         fovError: Math.abs(fov - r.camera.fov),
-        helmetVisible: r.cars[0].helmet.visible,
+        helmetVisible: r.playerCar!.helmet.visible,
       });
     }
-    const car = r.cars[0],
+    const car = r.playerCar!,
       o = carBase(0);
     const posed = frame.slice();
     for (let i = 0; i < 4; i++) {

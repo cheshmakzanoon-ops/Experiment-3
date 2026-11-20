@@ -130,6 +130,7 @@ function fixture(id: 'vellamar' | 'aurel' | 'alpine-pass' | 'valley-ridge-mx' = 
     scene,
     camera,
     renderer: backend,
+    bikeShells: { warmFieldDetails: (compile: () => Promise<void>) => compile() },
     textures: new TextureBudget(),
     preset: 'medium' as QualityPreset,
     graphics: graphicsPreset('medium'),

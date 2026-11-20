@@ -57,7 +57,7 @@ export async function surveyA32(samples: number[][], lighting: 'day' | 'sunset' 
   try {
     view.setQuality('medium', { ...graphicsPreset('medium'), resolutionScale: 1 });
     view.lighting = lighting;
-    const fits = measurePitJackFits(view.cars[0]);
+    const fits = measurePitJackFits(view.playerCar!);
     const camera = (frame: Float32Array, shot: 'pair' | 'front' | 'rear') => {
       const o = carBase(0);
       car.position.set(frame[o + F.X], frame[o + F.Y], frame[o + F.Z]);

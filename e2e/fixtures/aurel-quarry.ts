@@ -86,7 +86,7 @@ export async function surveyAurelQuarry(lighting: 'day' | 'sunset' | 'night') {
       const d = new T.Vector3(frame[base + F.X], frame[base + F.Y], frame[base + F.Z]).distanceTo(
         view.camera.position,
       );
-      view.cars[id].setLod(
+      view.formulaCar(id).setLod(
         followed ? 0 : detailDistance(d, view.camera.fov, view.camera.aspect),
         'medium',
         followed,

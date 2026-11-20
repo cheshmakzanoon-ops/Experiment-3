@@ -1109,7 +1109,7 @@ export class Interface {
       e.querySelector('b')!.textContent = String(rank + 1);
       (e.querySelector('i') as HTMLElement).style.background =
         id === 0
-          ? `#${renderer.cars[0].paint.color.getHexString()}`
+          ? `#${renderer.playerCar?.paint.color.getHexString() ?? LIVERIES[0].toString(16).padStart(6,'0')}`
           : `#${LIVERIES[id].toString(16).padStart(6, '0')}`;
       const name = id === 0 ? this.playerName : DRIVERS[id];
       const label = e.querySelector('span')!;

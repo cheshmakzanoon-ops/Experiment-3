@@ -2372,6 +2372,11 @@ export class BikeShells {
         if (!root.visible && root.parent === this.root) this.root.remove(root);
     }
   }
+  /** Selected motorcycle representation, or -1 when this slot has no visible motorcycle. */
+  detailLevel(id: number) {
+    const entry = this.entries.get(id);
+    return entry?.levels[entry.level]?.root.visible ? entry.level : -1;
+  }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high
    * model and hook every lit, opaque bike and rider material of the entrant. */
   private occlude(key: string, levels: BikeModel[], materials: BikeMaterials) {

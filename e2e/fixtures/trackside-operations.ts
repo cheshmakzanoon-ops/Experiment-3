@@ -105,7 +105,7 @@ export async function surveyTracksideOperations(lighting: 'day' | 'sunset' | 'ni
       const distance = new T.Vector3(f[base + F.X], f[base + F.Y], f[base + F.Z]).distanceTo(
         view.camera.position,
       );
-      view.cars[id].setLod(
+      view.formulaCar(id).setLod(
         followed ? 0 : detailDistance(distance, view.camera.fov, view.camera.aspect),
         'medium',
         followed,

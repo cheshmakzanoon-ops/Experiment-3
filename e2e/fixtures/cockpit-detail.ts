@@ -33,7 +33,7 @@ export async function captureCockpitArticulation() {
   renderer.setQuality('high', { ...graphicsPreset('high'), resolutionScale: 1 });
   renderer.changeCamera('cockpit');
   renderer.setCars(1);
-  const car = renderer.cars[0],
+  const car = renderer.playerCar!,
     base = carBase(0);
   const captures = [];
   // Track disposal once per unique texture, including shared suit/glove maps.
@@ -81,7 +81,7 @@ export async function captureCockpitArticulation() {
             return matrix.toArray();
           }),
         })),
-        joints: visual.driver,
+        joints: visual.driver!,
         screenVisible: visual.screenVisible,
         mirrors: visual.mirrors,
         image: canvas.toDataURL('image/png'),

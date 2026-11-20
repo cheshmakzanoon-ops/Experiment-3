@@ -54,10 +54,10 @@ export async function raceViewContinuity() {
         2,
       );
       view.changeCamera('chase');
-      const previous = view.cars.map((c) => c.lodLevel),
+      const previous = view.cars.map((_,i) => view.formulaCar(i).lodLevel),
         oldCamera = view.camera.position.clone();
       view.draw(a, b, alpha, 1 / 60, false, true);
-      const levels = view.cars.map((c) => c.lodLevel);
+      const levels = view.cars.map((_,i) => view.formulaCar(i).lodLevel);
       const expected = view.cars.map((c, i) =>
         carLod(
           detailDistance(
@@ -82,7 +82,8 @@ export async function raceViewContinuity() {
       staleDecisionDifferences += levels.filter((l, i) => l !== stale[i]).length;
       // Read the posed active wheels, not just the visibility flags. A late LOD
       // swap after update() can otherwise display an unposed representation.
-      const wheels = view.cars.map((c) => {
+      const wheels = view.cars.map((_, id) => {
+        const c = view.formulaCar(id);
         const active =
           c.suppliedPlayer?.wheels ??
           (c.lodLevel ? visibleReducedWheelPivots(c.root) : c.wheelPivots);

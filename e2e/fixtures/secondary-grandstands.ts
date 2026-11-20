@@ -128,7 +128,7 @@ export async function surveySecondaryStands(
       const d = new T.Vector3(frame[b + F.X], frame[b + F.Y], frame[b + F.Z]).distanceTo(
         view.camera.position,
       );
-      view.cars[id].setLod(
+      view.formulaCar(id).setLod(
         followed ? 0 : detailDistance(d, view.camera.fov, view.camera.aspect),
         'medium',
         followed,

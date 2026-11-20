@@ -54,7 +54,7 @@ export async function cockpitFramingSurvey(
   // of the original APX-01), and the owner-supplied cockpit, with its own eye / screen / wheel
   // sockets, only in an owner build. The framing criteria (wheel projection, near-plane
   // clearance, field of view, road sightlines) are measured on whichever car is the player's.
-  const player = renderer.cars[0].suppliedPlayer;
+  const player = renderer.playerCar!.suppliedPlayer;
   const sourceEye = player ? player.eye.toArray() : null;
   const o = carBase(0);
   const rows: CockpitSurveyRow[] = [];
@@ -77,7 +77,7 @@ export async function cockpitFramingSurvey(
       reader.onload = () => resolve(String(reader.result));
       reader.readAsDataURL(image);
     });
-    const car = renderer.cars[0],
+    const car = renderer.playerCar!,
       camera = renderer.camera;
     const visibleHit = (hit: T.Intersection) => {
       for (let n: T.Object3D | null = hit.object; n; n = n.parent) if (!n.visible) return false;
