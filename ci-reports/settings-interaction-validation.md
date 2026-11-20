@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44804247109
-- commit: `8c89f2548b` · Reuse the completed motocross venue reflection across the held starting grid
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44807835368
+- commit: `345d49daf3` · Prioritize visible motocross frames over stationary reflection refreshes
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T19:39:56Z · updated: 2026-11-20T19:59:14Z
+- started: 2026-11-20T20:03:19Z · updated: 2026-11-20T20:28:17Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
 | settings | success | 4 |  |
-| qa | failure | 13 | Review-tool specs of the settings and menu regression, on the QA build |
+| qa | failure | 14 | Review-tool specs of the settings and menu regression, on the QA build |
