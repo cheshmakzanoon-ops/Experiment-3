@@ -404,10 +404,13 @@ export class Track {
    * across or beneath a bridge keeps the road it is actually on. Without
    * stacked roads every candidate is in-layer and the result is unchanged. */
   nearest(x: number, z: number, out: TrackPoint, y?: number): number {
+    // Presentation views can inherit a ribbon while substituting a venue
+    // identity. They share its points and index without owning private terrain.
+    const offroad = Track.offroadOf(this);
     const coarse = this.hash.get(`${Math.floor(x / 32)},${Math.floor(z / 32)}`);
     const candidates =
       coarse && this.laneIndex
-        ? this.laneIndex.candidates(x, z, coarse, this.#offroad ? undefined : y, ROUTE_LAYER_GAP)
+        ? this.laneIndex.candidates(x, z, coarse, offroad ? undefined : y, ROUTE_LAYER_GAP)
         : coarse;
     let best = Infinity,
       bestS = 0,
@@ -415,7 +418,7 @@ export class Track {
       otherS = 0;
     // A terrain venue has no stacked roads: a bike high over a jump is
     // still on the road below it.
-    const layered = y !== undefined && Number.isFinite(y) && !this.#offroad;
+    const layered = y !== undefined && Number.isFinite(y) && !offroad;
     const scan = (i: number) => {
       const a = this.points[i],
         b = this.points[i + 1],

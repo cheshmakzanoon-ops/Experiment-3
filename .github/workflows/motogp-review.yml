@@ -208,6 +208,7 @@ jobs:
           tests/gp-radiator.test.ts tests/gp-rearsets.test.ts tests/gp-rider-motion.test.ts
           tests/contact.test.ts tests/road-contact-ownership.test.ts
           tests/motocross-lane-index.test.ts tests/tire-footprint.test.ts tests/tyre-model.test.ts
+          tests/gp-grandstand-architecture.test.ts
           --reporter=default --reporter=json
           --outputFile=${{ runner.temp }}/motogp-road-contact-tests.json
       - name: Preserve complete test results
