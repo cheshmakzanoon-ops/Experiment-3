@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44785361132
-- commit: `91bb459252` · Plant each motocross boot on its own terrain triangle and separate held gate shadow rendering
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44789716055
+- commit: `8a68c52c9d` · Bound hidden GP chase shading on the native MSAA target and preserve the full cockpit and race views
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T17:39:20Z · updated: 2026-11-20T18:00:06Z
+- started: 2026-11-20T18:07:05Z · updated: 2026-11-20T18:13:10Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | success | 4 |  |
-| qa | failure | 13 | Review-tool specs of the settings and menu regression, on the QA build |
+| settings | failure | 6 | Original menu regression and transition ownership, without forced clicks or retries |
+| qa | skipped | 0 |  |
