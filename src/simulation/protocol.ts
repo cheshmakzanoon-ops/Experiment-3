@@ -158,7 +158,7 @@ export const B = {
   CRASHES: 16,
   /** Traction/wheelie-control intervention 0..1. */
   INTERVENTION: 17,
-  /** Separated rider's heading / tumble (rad). */
+  /** Separated rider's heading and tumble, or upright MX stride phase (rad). */
   RIDER_HEADING: 18,
   RIDER_TUMBLE: 19,
 } as const;
@@ -171,7 +171,7 @@ export const O = {
   AIRBORNE: 0,
   /** Seconds of the current (or last) flight. */
   AIR_TIME: 1,
-  /** Rider standing on the pegs, 0 seated .. 1 standing. */
+  /** Rider standing on the pegs, or rising to their feet after an MX fall, 0..1. */
   STANDING: 2,
   /** Foot dab: -1 right foot .. +1 left foot down, 0 both on the pegs. */
   DAB: 3,

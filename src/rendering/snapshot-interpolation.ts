@@ -124,6 +124,7 @@ export function sampleOffroadField(
     field >= O.JOKERS
   )
     return snapshotSource(a, b, alpha)[p + field];
+  if (field === O.STANDING) return sampleValue(a, b, p + field, riderAlpha(a, b, car, alpha));
   const t =
     field === O.AIR_TIME &&
     alpha < 1 &&

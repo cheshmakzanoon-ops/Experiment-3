@@ -10,6 +10,8 @@ import { Rider, RIDER, type RiderPose } from '../src/rendering/rider.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { addMotocrossGarment } from '../src/rendering/offroad/motocross-gear.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
+import { MxRecoveryPose } from '../src/rendering/offroad/motocross-recovery.ts';
+import { motocrossRecoveryStep } from '../src/rendering/offroad/motocross-rider-motion.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 beforeAll(() => {
@@ -47,6 +49,60 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('braces on the rider’s own berm and reproduces the same stride through a replay seek', () => {
+    const rider = new Rider(colours, 'mid', 'motocross');
+    const recovery = new MxRecoveryPose();
+    const ground = new T.Plane(new T.Vector3(-0.18, 1, 0.12).normalize(), -2);
+    const point = new T.Vector3(-6, 0, 12);
+    const surface = { planeAtWorld: (_p: T.Vector3, dst: T.Plane) => { dst.copy(ground); return true; } };
+    const level = -(ground.normal.x * point.x + ground.normal.z * point.z + ground.constant) / ground.normal.y;
+    const torso = rider.root.getObjectByName('Rider torso')!;
+    const place = (rise: number, angle = 1.1, time = 8) => {
+      point.y = level + 0.14 + 0.81 * rise;
+      recovery.place(rider, point, 0.52, 'separated', 2.4, rise, angle, time, surface);
+      rider.root.updateMatrixWorld(true);
+    };
+    try {
+      place(0);
+      expect(new T.Vector3(0, 1, 0).applyQuaternion(rider.root.quaternion).angleTo(ground.normal)).toBeLessThan(1e-6);
+      const previous = torso.getWorldQuaternion(new T.Quaternion());
+      for (let i = 1; i <= 100; i++) {
+        place(i / 100);
+        const pose = torso.getWorldQuaternion(new T.Quaternion());
+        expect(pose.angleTo(previous)).toBeLessThan(0.07);
+        previous.copy(pose);
+      }
+      place(1, 0.3);
+      const held = joints(rider);
+      place(0.25, 1.1);
+      place(1, 0.3, 400);
+      expect(joints(rider)).toEqual(held);
+      // A highside above the crest remains a tumble even with an old frame's
+      // preceding standing-on-the-pegs value. The height of the bike is irrelevant.
+      point.y = level + 2.7;
+      recovery.place(rider, point, 0.52, 'highside', 0.25, 1, 1.3, 5, surface);
+      expect(torso.position.y).toBe(0);
+      expect(rider.root.position.toArray()).toEqual(point.toArray());
+    } finally {
+      rider.dispose();
+    }
+  });
+
+  it('plants each recovery boot for a measured interval of travel and clears the soil during swing', () => {
+    const p = { y: 0, z: 0 }, q = { y: 0, z: 0 };
+    for (const right of [false, true]) {
+      const shift = right ? Math.PI : 0;
+      motocrossRecoveryStep(0.4 + shift, right, p);
+      motocrossRecoveryStep(0.95 + shift, right, q);
+      expect(p.y).toBe(0);
+      expect(q.y).toBe(0);
+      expect(q.z - p.z).toBeCloseTo(-0.55 * 1.8 / (2 * Math.PI), 10);
+      motocrossRecoveryStep(4.3 + shift, right, q);
+      expect(q.y).toBeGreaterThan(0.13);
+      motocrossRecoveryStep(4.3 + shift - 2 * Math.PI, right, p);
+      expect(p.z).toBeCloseTo(q.z, 12);
+    }
+  });
   it('crosses neutral lean continuously and folds the elbows behind the shoulders when rising', () => {
     const definition = VEHICLES.mx450,
       materials = new BikeMaterials(0);

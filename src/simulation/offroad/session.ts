@@ -554,7 +554,8 @@ export function writeOffroadBlock(
   if (car instanceof DirtBikeVehicle) {
     out[base + O.AIRBORNE] = Number(car.airborne);
     out[base + O.AIR_TIME] = car.airTime;
-    out[base + O.STANDING] = car.standing;
+    out[base + O.STANDING] = car.definition.tireFamily === 'knobby' && !car.riding
+      ? car.mxRecoveryStanding : car.standing;
     out[base + O.DAB] = car.dab;
     out[base + O.BOTTOM] = car.bottom;
     out[base + O.LANDING_PITCH] = car.lastLanding?.pitchError ?? 0;

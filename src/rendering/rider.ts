@@ -67,6 +67,7 @@ import {
   motocrossSoleContact,
 } from './offroad/motocross-rider-contact.ts';
 import {
+  motocrossRecoveryStep,
   sampleMotocrossRiderMotion,
   type MotocrossRiderMotion,
   type MotocrossRiderMotionInput,
@@ -500,6 +501,8 @@ export class Rider {
   private riding = false;
   private readonly materials: T.Material[] = [];
   private readonly q = new T.Quaternion();
+  private readonly recoveryBoot = new T.Quaternion();
+  private readonly recoveryTilt = new T.Quaternion();
   private readonly euler = new T.Euler();
   private readonly v = [0, 1, 2, 3, 4, 5].map(() => new T.Vector3());
   constructor(
@@ -1792,32 +1795,38 @@ export class Rider {
     return gpContactJoint(contact, frame, GP_BOOT_PEDAL, GP_BOOT_ANKLE, ankle);
   }
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
-  separated(phase: number, tumble: number, time: number) {
+  separated(phase: number, tumble: number, time: number, mxRise?: number, floor?: T.Plane) {
     this.riding = false;
     this.brakeFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;
-    const lying = phase === 0;
-    pelvis.set(0, lying ? 0.0 : 0.95, 0);
+    const rise = mxRise ?? (phase === 0 ? 0 : 1);
+    const bracing = mxRise === undefined ? 0 : Math.sin(Math.PI * rise);
+    const running = mxRise !== undefined && phase === 1 ? T.MathUtils.smoothstep(rise, 0.82, 1) : 0;
+    const bob = running * (0.028 + 0.012 * Math.cos(tumble * 2));
+    pelvis.set(0, 0.95 * rise - bob, 0);
     this.torso.position.copy(pelvis);
-    // Lying: torso along the slide direction, rolled by the tumble.
-    this.euler.set(lying ? Math.PI / 2 - 0.1 : 0.12, 0, lying ? tumble : 0, 'ZYX');
+    this.euler.set(Math.PI / 2 - 0.1, 0, tumble, 'ZYX');
     this.torso.quaternion.setFromEuler(this.euler);
+    this.euler.set(0.12, 0, 0, 'ZYX');
+    this.torso.quaternion.slerp(this.q.setFromEuler(this.euler), rise);
     this.gpSpine?.reset();
     this.motocrossSpine?.reset();
-    this.head.rotation.set(lying ? -0.6 : -0.1, 0, 0);
+    this.head.rotation.set(-0.6 + 0.5 * rise, 0, 0);
     // The GP neck articulates while riding; recovery restores its rest length.
     if (this.gp && this.kit !== 'motocross')
       this.head.position.copy(GP_NECK_BASE).addScaledVector(Y, GP_NECK_LENGTH);
     this.headShadow.position.copy(this.head.position);
     this.headShadow.quaternion.copy(this.head.quaternion);
-    const stride = phase === 1 ? Math.sin(time * 9) * 0.45 : 0;
+    const stride = phase !== 1 ? 0 :
+      mxRise === undefined ? Math.sin(time * 9) * 0.45 : Math.sin(tumble) * 0.45 * running;
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
       a.set(side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0)
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
       // Hands: spread when sliding, swinging when jogging, on the bars at the bike.
-      c.set(side * 0.38, lying ? 0.0 : -0.25, lying ? 0.35 : 0.15 + side * stride * 0.4);
+      c.set(side * (0.38 - 0.07 * bracing), -0.25 * rise - 0.18 * bracing,
+        T.MathUtils.lerp(0.35, 0.15 + side * stride * 0.4, rise));
       if (phase === 2) c.set(side * 0.25, -0.05, 0.45);
       c.applyQuaternion(this.torso.quaternion).add(a);
       pole.copy(a).add(b.set(side * 0.4, -0.4, -0.2));
@@ -1825,9 +1834,23 @@ export class Rider {
       a.set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
-      c.set(side * 0.16, -0.86, side * stride * 0.6);
-      if (lying) c.set(side * 0.22, -0.82, -0.08);
+      c.set(side * T.MathUtils.lerp(0.22, 0.16, rise), -0.82 - 0.04 * rise + 0.16 * bracing,
+        T.MathUtils.lerp(-0.08, side * stride * 0.6, rise));
       c.applyQuaternion(this.torso.quaternion).add(a);
+      if (mxRise !== undefined && rise > 0) {
+        // Resolve the foot against the ground under the rider, including on
+        // a sloping landing several metres away from the fallen motorcycle.
+        b.set(side * 0.11, 0, 0);
+        if (phase === 1) motocrossRecoveryStep(tumble, i === 1, b);
+        b.y *= running;
+        b.z *= running;
+        if (floor && floor.normal.y > 0.1)
+          b.y -= (floor.normal.x * b.x + floor.normal.z * b.z + floor.constant) / floor.normal.y;
+        motocrossBootFrame(this.q);
+        if (floor) this.q.premultiply(this.recoveryBoot.setFromUnitVectors(Y, floor.normal));
+        gpContactJoint(b, this.q, MX_BOOT_PEG, MX_BOOT_ANKLE, pole);
+        c.lerp(pole, rise);
+      }
       pole.copy(a).add(b.set(side * 0.1, 0, 0.6).applyQuaternion(this.torso.quaternion));
       twoBone(this.thighs[i], this.shins[i], a, c, pole, joint);
       this.feet[i].rotation.set(-1.4, 0, 0);
@@ -1837,6 +1860,11 @@ export class Rider {
         this.hands[i].position.set(0, RIDER.forearm + 0.02, 0);
         this.hands[i].rotation.set(0.2, 0, 0);
         motocrossBootFrame(this.q).premultiply(this.torso.quaternion);
+        if (mxRise !== undefined && rise > 0) {
+          motocrossBootFrame(this.recoveryBoot);
+          if (floor) this.recoveryBoot.premultiply(this.recoveryTilt.setFromUnitVectors(Y, floor.normal));
+          this.q.slerp(this.recoveryBoot, rise);
+        }
         gpAttachAtJoint(
           this.feet[i],
           this.shins[i].group.quaternion,

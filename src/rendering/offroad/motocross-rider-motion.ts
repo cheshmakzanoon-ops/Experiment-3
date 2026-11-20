@@ -1,4 +1,5 @@
 import { clamp, smooth } from '../../core/math.ts';
+import { MX_RECOVERY } from '../../simulation/offroad/rider-recovery.ts';
 
 /** Presentation inputs already carried by the motorcycle snapshot. Pitch is
  * the sprung frame's render-space X angle: positive looks down the landing.
@@ -69,4 +70,23 @@ export function sampleMotocrossRiderMotion(
     out.gazePitch += ready * (0.018 + 0.025 * carriage);
   }
   return out;
+}
+
+
+/** Fore-aft contact in rider metres. During stance the relative foot travels
+ * back exactly as far as the pelvis moves ahead. The return swing has
+ * matching endpoint velocities and zero lift speed at heel strike/toe-off. */
+export function motocrossRecoveryStep(angle: number, right: boolean, out: { z: number; y: number }) {
+  const cycles = angle / (2 * Math.PI) + (right ? 0.5 : 0);
+  const u = cycles - Math.floor(cycles);
+  const stance = 0.36, length = MX_RECOVERY.strideLength;
+  if (u < stance) {
+    out.z = (stance / 2 - u) * length;
+    out.y = 0;
+    return;
+  }
+  const t = (u - stance) / (1 - stance);
+  const smooth = t * t * (3 - 2 * t);
+  out.z = length * (stance * (smooth - 0.5) - (1 - stance) * (2 * t * t * t - 3 * t * t + t));
+  out.y = 0.14 * Math.sin(t * Math.PI) ** 2;
 }

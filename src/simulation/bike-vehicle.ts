@@ -33,6 +33,8 @@ import { Vehicle, engineTorque } from './vehicle.ts';
 import { CROSSWIND, crosswindForce, windLoadFactor } from './weather.ts';
 import { FORMULA_APX01, type VehicleDefinition } from './vehicles.ts';
 
+import { MX_RECOVERY } from './offroad/rider-recovery.ts';
+
 /** Rider aids from the session assist setting: 'sport' (the ABS/TC setting
  * for cars) enables traction control, wheelie and stoppie control, combined
  * brakes and cornering ABS; 'raw' removes them. On GP prototypes the linked
@@ -104,6 +106,12 @@ export class BikeVehicle extends Vehicle {
   riderHeading = 0;
   riderTumble = 0;
   protected readonly riderVelocity = new Vec3();
+  private mxRiseTime = -1;
+  get mxRecoveryStanding() {
+    if (this.dynamics.state === 'remount') return 1;
+    const t = clamp(this.mxRiseTime / MX_RECOVERY.riseSeconds, 0, 1);
+    return t * t * (3 - 2 * t);
+  }
   protected incident: string | null = null;
   protected contactCrash = false;
   protected aiSteps = 0;
@@ -745,12 +753,14 @@ export class BikeVehicle extends Vehicle {
     );
     this.riderHeading = h;
     this.riderTumble = 0;
+    this.mxRiseTime = -1;
     this.remount.active = false;
   }
   protected riderReady() {
     const d = this.dynamics;
     if (d.state === 'separated') {
       if (d.stateClock > BIKE_RECOVERY.maxJog + 2) return true;
+      if (this.definition.tireFamily === 'knobby' && this.mxRiseTime < MX_RECOVERY.riseSeconds) return false;
       const dx = this.rider.x - this.body.position.x,
         dz = this.rider.z - this.body.position.z;
       return dx * dx + dz * dz < 1.2 * 1.2;
@@ -803,8 +813,39 @@ export class BikeVehicle extends Vehicle {
       r.active = false;
     }
   }
+  private stepMxRiderOnFoot(dt: number, track: Track) {
+    const r = this.rider;
+    this.mxRiseTime = Math.min(MX_RECOVERY.riseSeconds, this.mxRiseTime + dt);
+    const upright = this.mxRecoveryStanding;
+    const dx = this.body.position.x - r.x, dz = this.body.position.z - r.z;
+    const distance = Math.hypot(dx, dz);
+    // Hands and knees support the first part of the rise. Foot travel starts
+    // as the pelvis clears the crouch. Only a new fall can restart gravity.
+    const stride = clamp((upright - 0.62) / 0.38, 0, 1);
+    const step = Math.min(distance, BIKE_RECOVERY.jogSpeed * stride * dt);
+    if (distance > 1e-6) {
+      r.x += dx / distance * step;
+      r.z += dz / distance * step;
+      const turn = mod(Math.atan2(dx, dz) - this.riderHeading + Math.PI, TAU) - Math.PI;
+      this.riderHeading += clamp(turn, -4 * dt, 4 * dt);
+    }
+    track.sample(r.x, r.z, this.riderSurface, r.y);
+    r.y = this.riderSurface.height + lerp(MX_RECOVERY.slideHeight, MX_RECOVERY.uprightHeight, upright);
+    this.riderVelocity.set(0, 0, 0);
+    // Once upright, the same recorded angle advances one gait cycle per
+    // stride. It holds when the rider stops, including in a paused replay.
+    this.riderTumble = upright === 1
+      ? this.riderTumble + step * TAU / MX_RECOVERY.strideLength
+      : approach(this.riderTumble, Math.round(this.riderTumble / TAU) * TAU, dt * 8);
+  }
+
   protected updateRider(dt: number, track: Track) {
     const d = this.dynamics;
+    if (d.state !== 'separated') this.mxRiseTime = -1;
+    if (this.mxRiseTime >= 0) {
+      this.stepMxRiderOnFoot(dt, track);
+      return;
+    }
     if (d.state === 'riding') {
       this.rider.copy(this.body.position);
       this.riderVelocity.set(0, 0, 0);
@@ -858,7 +899,12 @@ export class BikeVehicle extends Vehicle {
     }
     this.riderTumble += horizontal * dt * 1.4;
     // Once rider and bike are at rest, the rider jogs back to the bike.
-    if (d.state === 'separated' && horizontal < 0.3 && r.y <= lying + 0.01 && d.stateClock > 1.2) {
+    if (d.state === 'separated' && horizontal < 0.3 && r.y <= lying + 0.01 && d.stateClock > MX_RECOVERY.restSeconds) {
+      if (this.definition.tireFamily === 'knobby') {
+        this.mxRiseTime = 0;
+        this.stepMxRiderOnFoot(dt, track);
+        return;
+      }
       const dx = this.body.position.x - r.x,
         dz = this.body.position.z - r.z,
         distance = Math.hypot(dx, dz);

@@ -18,6 +18,7 @@ import * as T from 'three';
 import { MxArenaBikeLight } from './offroad/mx-arena-bike-light.ts';
 import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
+import { MxRecoveryPose } from './offroad/motocross-recovery.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import {
@@ -2288,6 +2289,7 @@ export class BikeShells {
   motocrossGround?: MxDabSurface;
   arenaGrid?: MxArenaGrid;
   private readonly roadContact = new RoadBikeContactPose();
+  private readonly mxRecoveryPose = new MxRecoveryPose();
   private readonly helmetUp = new T.Vector3();
   private readonly fieldGeometry = new MxGeometryPool();
   readonly root = new T.Group();
@@ -2722,16 +2724,28 @@ export class BikeShells {
       sampleBikeField(a, b, o, B.RIDER_Y, t),
       sampleBikeField(a, b, o, B.RIDER_Z, t),
     );
+    const heading = sampleBikeField(a, b, o, B.RIDER_HEADING, t);
+    const tumble = sampleBikeField(a, b, o, B.RIDER_TUMBLE, t);
+    if (model.definition.tireFamily === 'knobby') {
+      this.mxRecoveryPose.place(
+        rider,
+        this.position,
+        heading,
+        state,
+        sampleBikeField(a, b, o, B.STATE_CLOCK, t),
+        v.standing ?? 0,
+        tumble,
+        v.time,
+        this.motocrossGround,
+      );
+      return;
+    }
     const ground = model.root.position.y - 0.09;
     const phase = state === 'remount' ? 2 : this.position.y - ground > 0.5 ? 1 : 0;
     rider.root.position.copy(this.position);
     if (phase !== 0) rider.root.position.y -= 0.95;
-    rider.root.rotation.set(0, sampleBikeField(a, b, o, B.RIDER_HEADING, t), 0);
-    rider.separated(
-      phase,
-      sampleBikeField(a, b, o, B.RIDER_TUMBLE, t),
-      sampleValue(a, b, H.TIME, t),
-    );
+    rider.root.rotation.set(0, heading, 0);
+    rider.separated(phase, tumble, v.time);
   }
 
   /** Onboard camera for a followed bike in world space. GP prototypes and
