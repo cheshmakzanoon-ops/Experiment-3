@@ -288,6 +288,7 @@ export class RacingRenderer {
   readonly circuit: CircuitScene;
   readonly cars: FormulaCar[] = [];
   private readonly pendingFormulaPitFits = new Set<number>();
+  private readonly deferredFormulaArt = new Set<number>();
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
@@ -794,17 +795,19 @@ export class RacingRenderer {
         renderer.tyreEquipment = await loadTyreEquipment(cancelled);
         installTyreEquipment(renderer.tyreEquipment, track);
         renderer.circuit.group.add(renderer.tyreEquipment.root);
+        // Dirt motos have a gate and mechanics area. Only the pit-service
+        // venues need Formula wheel-gun and jack assets on the crew.
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
+        renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A32 front and rear jacks' });
+        renderer.pitCrew.installPitJacks(await loadPitJacks(cancelled));
+        renderer.textures.register(renderer.pitCrew.root);
+        if (renderer.circuit.heroGarage)
+          renderer.wheelGunStorage = new WheelGunStorage(
+            renderer.pitCrew.wheelGuns!.prototype,
+            renderer.circuit.heroGarage.root,
+          );
       }
-      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
-      renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
-      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A32 front and rear jacks' });
-      renderer.pitCrew.installPitJacks(await loadPitJacks(cancelled));
-      renderer.textures.register(renderer.pitCrew.root);
-      if (renderer.circuit.heroGarage)
-        renderer.wheelGunStorage = new WheelGunStorage(
-          renderer.pitCrew.wheelGuns!.prototype,
-          renderer.circuit.heroGarage.root,
-        );
       // Photographic trees, shrubs and grass for HIGH/ULTRA.
       progress({
         completed: 0,
@@ -941,7 +944,19 @@ export class RacingRenderer {
       this.textures.register(this.safetyCar.root);
     }
   }
+  private installFormulaArt(car: FormulaCar) {
+    reflectInWetRoad(car.root);
+    this.textures.register(car.root);
+    this.weatherPresentation.install(car.root);
+    this.atmosphere.install(car.root);
+    installSpecularIBL(car.root);
+    // Build the merged, depth-only shadow geometry after material installation.
+    this.shadowProxies.add(...car.shadowFrames());
+  }
   setCars(n: number, frame?: Float32Array) {
+    // The unlabelled first slot on a dirt circuit is created during venue
+    // construction. The next real snapshot determines which body it needs.
+    const unassignedDirtSlot = !frame && isMotocrossVenue(this.circuit.track);
     while (this.cars.length < n) {
       const car = new FormulaCar(
         this.cars.length,
@@ -953,13 +968,11 @@ export class RacingRenderer {
       this.cars.push(car);
       this.pendingFormulaPitFits.add(car.id);
       this.scene.add(car.root);
-      reflectInWetRoad(car.root);
-      this.textures.register(car.root);
-      this.weatherPresentation.install(car.root);
-      this.atmosphere.install(car.root);
-      installSpecularIBL(car.root);
-      // After the material installs above: the casters are depth-only.
-      this.shadowProxies.add(...car.shadowFrames());
+      const definition = frame
+        ? vehicleAt(Math.round(frame[carBase(car.id) + RACE_BASE + R.VEHICLE]))
+        : undefined;
+      if (unassignedDirtSlot || definition?.bike?.offroad) this.deferredFormulaArt.add(car.id);
+      else this.installFormulaArt(car);
       this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
@@ -971,14 +984,17 @@ export class RacingRenderer {
     this.cars.forEach((car, id) => {
       car.root.visible = id < n;
       if (!car.root.visible || !this.pendingFormulaPitFits.has(id)) return;
-      // GP prototypes own their stands and axles. Scanning the four hidden
-      // Formula wheels and jack points is required only if this slot later
-      // represents a car. Complete it before that car's first service pose.
-      if (
-        frame &&
-        vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE])).classId === 'gp-bike'
-      )
-        return;
+      // Keep the fit pending for a motorcycle host. If a replay or later
+      // race puts a Formula car in this slot, measure its own wheels once.
+      const definition = frame
+        ? vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]))
+        : undefined;
+      if (unassignedDirtSlot || definition?.bike?.offroad) return;
+      if (this.deferredFormulaArt.has(id)) {
+        this.installFormulaArt(car);
+        this.deferredFormulaArt.delete(id);
+      }
+      if (definition?.classId === 'gp-bike') return;
       this.pitCrew.setWheelGunFits(id, measureWheelGunFits(car));
       if (this.pitCrew.pitJacks) this.pitCrew.setPitJackFits(id, measurePitJackFits(car));
       this.pendingFormulaPitFits.delete(id);
@@ -1552,7 +1568,8 @@ export class RacingRenderer {
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
     const gpSubject = bikeFollow && followedDefinition.classId === 'gp-bike';
-    if (!gpSubject) car.setLod(0, this.quality, true, !!this.photo);
+    if (!gpSubject && !followedDefinition.bike?.offroad)
+      car.setLod(0, this.quality, true, !!this.photo);
     car.update(
       a,
       b,
@@ -2123,7 +2140,8 @@ export class RacingRenderer {
       const distance = this.temporary
         .set(presented[base + F.X], presented[base + F.Y], presented[base + F.Z])
         .distanceTo(this.camera.position);
-      if (vehicleAt(Math.round(presented[base + RACE_BASE + R.VEHICLE])).classId !== 'gp-bike')
+      const definition = vehicleAt(Math.round(presented[base + RACE_BASE + R.VEHICLE]));
+      if (!definition.bike?.offroad && definition.classId !== 'gp-bike')
         this.cars[id].setLod(
           detailDistance(distance, this.camera.fov, this.camera.aspect),
           this.quality,

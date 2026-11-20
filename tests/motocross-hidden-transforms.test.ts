@@ -1,3 +1,6 @@
+import { FormulaCar } from '../src/rendering/car.ts';
+import { CAR_STRIDE, F, H, HEADER, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
+import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import * as T from 'three';
 import { expect, it, vi } from 'vitest';
 import { MxPresentationRoot } from '../src/rendering/offroad/mx-presentation-root.ts';
@@ -44,3 +47,23 @@ it('retains a hidden slot anchor and fully poses a switched-on LOD in its first 
   scene.updateMatrixWorld(true);
   expect(visit).toHaveBeenCalledTimes(2);
 });
+
+it.each(['mx250', 'mx450', 'sm450'])(
+  '%s supplies the actor transform without posing the hidden four-wheel rig',
+  (machine) => {
+    const root = new MxPresentationRoot();
+    const host = { root, slotRoot: root } as unknown as FormulaCar;
+    const frame = new Float32Array(HEADER + CAR_STRIDE),
+      offset = carBase(0);
+    frame[H.CARS] = 1;
+    frame[offset + RACE_BASE + R.VEHICLE] = vehicleIndex(machine);
+    frame[offset + F.X] = 13;
+    frame[offset + F.Y] = 2;
+    frame[offset + F.Z] = -8;
+    frame[offset + F.QW] = 1;
+    FormulaCar.prototype.update.call(host, frame, frame, offset, 1, 1 / 120, 0, false);
+    expect(root.suspendWhenHidden).toBe(true);
+    expect(root.position.toArray()).toEqual([13, 2, -8]);
+    expect(root.quaternion.toArray()).toEqual([0, 0, 0, 1]);
+  },
+);

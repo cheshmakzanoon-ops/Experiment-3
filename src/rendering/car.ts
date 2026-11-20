@@ -735,8 +735,8 @@ export class FormulaCar {
     const source = snapshotSource(a, b, t);
     // The race motorcycles pose their own limbs, wheels, dashboard and
     // suspension. Their hidden Formula host supplies the interpolated anchor.
-    const vehicleClass = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId;
-    this.slotRoot.suspendWhenHidden = vehicleClass === 'motocross' || vehicleClass === 'gp-bike';
+    const definition = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE]));
+    this.slotRoot.suspendWhenHidden = !!definition.bike?.offroad || definition.classId === 'gp-bike';
     if (this.slotRoot.suspendWhenHidden) return;
     time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {

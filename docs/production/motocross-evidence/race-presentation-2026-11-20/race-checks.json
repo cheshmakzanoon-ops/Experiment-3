@@ -551,5 +551,39 @@
         "standing": 1
       }
     ]
+  },
+  "formulaHostSetup": {
+    "description": "The actual race renderer allocates eight motocross slots with the shipped Formula body and driver assets available. Dirt entrants leave the four-wheel materials, shadow casters, wheel fits and jack fits deferred. Changing the same eight slots to Formula cars installs the art once. No GPU frame timing is inferred.",
+    "measurements": {
+      "riders": 8,
+      "originalAssets": [
+        "a61-rival-near",
+        "a61-rival-mid",
+        "a61-rival-far",
+        "apx01-shell",
+        "apx01-driver"
+      ],
+      "dirt": {
+        "shadowCasters": 0,
+        "shadowBufferBytes": 0,
+        "textureRegistrations": 0,
+        "wheelFits": 0,
+        "jackFits": 0
+      },
+      "fitted": {
+        "shadowCasters": 264,
+        "shadowBufferBytes": 3267612,
+        "textureRegistrations": 8,
+        "wheelFits": 8,
+        "jackFits": 8
+      },
+      "repeated": {
+        "shadowCasters": 264,
+        "shadowBufferBytes": 3267612,
+        "textureRegistrations": 8,
+        "wheelFits": 8,
+        "jackFits": 8
+      }
+    }
   }
 }
