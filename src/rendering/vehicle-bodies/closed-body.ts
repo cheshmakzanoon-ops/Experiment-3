@@ -306,6 +306,16 @@ export class ClosedBodyModel {
     }
   }
 
+  private readonly assembledRings = new Map<Detail, Ring[]>();
+  bodyRings(detail: Detail) {
+    let rings = this.assembledRings.get(detail);
+    if (!rings) {
+      rings = this.stations(detail).map((z) => fitRoadDeck(this, this.ring(z, detail), detail));
+      this.assembledRings.set(detail, rings);
+    }
+    return rings;
+  }
+
   /** Sampled ring at z for a detail level. */
   ring(z: number, detail: Detail): Ring {
     const counts = SEGMENTS[detail],
@@ -722,9 +732,7 @@ export function buildClosedBody(
   const { f, s } = model;
   const detailedFestival = detail < 2 && festivalDetailFor(cabin?.def, s);
   const parts = new Parts();
-  const rings = model
-    .stations(detail)
-    .map((z) => fitRoadDeck(model, model.ring(z, detail), detail));
+  const rings = model.bodyRings(detail);
   const openCockpit = s.style === 'roadster' || !!s.open;
   const deck = model.deckSample(detail),
     zLidFront = f.z(s.cabin[0]),
@@ -1314,6 +1322,7 @@ export function buildClosedBody(
     const opening: CabinOpening = {
       rear: cell.rear,
       front: cell.front,
+      doorFront: s.bonnetPress ? zWs - 0.018 : undefined,
       floor: cell.floor,
       edge: (z) => model.cabinEdge(Math.min(z, zWs - 0.005)),
     };

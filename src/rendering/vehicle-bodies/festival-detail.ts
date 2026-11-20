@@ -1,3 +1,4 @@
+import { deckInsertHeight } from './road-greenhouse.ts';
 import { roadSplitterStation } from './road-underbody.ts';
 import { windscreenBow } from './road-greenhouse.ts';
 import { addFestivalFaceLamps, festivalFaceLamps } from './festival-face-lamps.ts';
@@ -863,7 +864,7 @@ function addExhausts(parts: Parts, model: ClosedBodyModel, detail: Detail) {
  * the body together if the forward edge reaches its deformation region. */
 function bonnetSurface(
   geometry: T.BufferGeometry,
-  model: ClosedBodyModel,
+  height: (x: number, z: number) => number,
   pocket: FestivalLampPocket,
 ) {
   const position = geometry.getAttribute('position'),
@@ -871,7 +872,6 @@ function bonnetSurface(
     x0 = pocket.base.elements[12],
     z0 = pocket.base.elements[14],
     n = new T.Vector3();
-  const height = (x: number, z: number) => model.surfaceY(z, Math.abs(x));
   for (let i = 0; i < position.count; i++) {
     const x = x0 + position.getX(i),
       z = z0 + position.getZ(i),
@@ -932,9 +932,17 @@ function addBonnetPocket(
   mats: CarMaterials,
   detail: Detail,
 ) {
+  const height = deckInsertHeight(
+    model,
+    detail,
+    pocket.base.elements[12],
+    pocket.base.elements[14],
+    pocket.width * 0.56 + 0.006,
+    pocket.depth * 0.56 + 0.006,
+  );
   const rim = bonnetRim(pocket, detail);
-  parts.add(bonnetSurface(bonnetPocketBand(rim, false), model, pocket), mats.paint);
-  parts.add(bonnetSurface(bonnetPocketBand(rim, true), model, pocket), darkOptics);
+  parts.add(bonnetSurface(bonnetPocketBand(rim, false), height, pocket), mats.paint);
+  parts.add(bonnetSurface(bonnetPocketBand(rim, true), height, pocket), darkOptics);
   const positions = [0, -0.036, 0],
     indices: number[] = [];
   const rows = detail === 0 ? 4 : 3;
@@ -953,14 +961,14 @@ function addBonnetPocket(
   floor.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   floor.setIndex(indices);
   floor.computeVertexNormals();
-  parts.add(bonnetSurface(floor, model, pocket), darkOptics);
+  parts.add(bonnetSurface(floor, height, pocket), darkOptics);
   const count = detail === 0 ? 6 : 4;
   for (let k = 0; k < count; k++) {
     const z = ((k + 0.5) / count - 0.5) * pocket.depth * 0.77;
     const blade = aerofoil(0.025, 0.18, 0.0006, pocket.width * 0.75, 4, detail === 0 ? 7 : 5)
       .rotateX(-0.25)
       .translate(0, -0.012, z + 0.012);
-    parts.add(bonnetSurface(blade, model, pocket), sharedMaterials.carbonSatin());
+    parts.add(bonnetSurface(blade, height, pocket), sharedMaterials.carbonSatin());
   }
 }
 

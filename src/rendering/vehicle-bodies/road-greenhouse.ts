@@ -25,6 +25,13 @@ function rearBow(form: RoadWindowForm) {
   return form === 'cab' ? 0.012 : form === 'fastback' || form === 'canopy' ? 0.105 : 0.052;
 }
 
+// Stamping the base of the screen forward also carries the cowl with it.
+// A steeply falling bonnet can be 18 cm lower at the moved station. The
+// pressing follows only a shallow draw there, avoiding a scoop across the seal.
+function sweptDeckHeight(nominal: number, actual: number) {
+  return nominal + 0.025 * Math.tanh((actual - nominal) / 0.08);
+}
+
 /** Match the painted scuttle and parcel shelf to the swept glass feet. The
  * outer edge stays at its existing wheel-arch station. The surface query
  * supplies the height of the stamping at the moved point. */
@@ -43,7 +50,8 @@ export function fitRoadDeck(model: ClosedBodyModel, ring: Ring, detail: Detail):
     j < deck ? z : z + shift * Math.max(0, 1 - (x / sill) ** 2),
   );
   const half = ring.half.map(
-    (pt, j): Pt => (depths[j] === z ? pt : [pt[0], model.surfaceY(depths[j], pt[0])]),
+    (pt, j): Pt =>
+      depths[j] === z ? pt : [pt[0], sweptDeckHeight(pt[1], model.surfaceY(depths[j], pt[0]))],
   );
   return { z, depths, half };
 }
@@ -154,10 +162,94 @@ export function roadWindowRings(
         quarter * quarterRun * (1 - sideHeight) -
         post * (coupe ? 0.105 : 0.06) * sideHeight;
       const seat = 1 - smooth((y - base) / 0.14);
-      const deck = model.surfaceY(actualZ, x);
+      const deck = sweptDeckHeight(model.surfaceY(actualZ - plane, x), model.surfaceY(actualZ, x));
       half.push([x, y + (deck + 0.002 - base) * seat]);
       depths.push(actualZ);
     }
     return { z, half: inset ? insetProfile(half, inset) : half, depths };
   });
+}
+
+/** Fit a bonded bonnet insert to the exact triangles of its own distance
+ * level, including both mirror diagonals and the swept scuttle pressing. */
+export function deckInsertHeight(
+  model: ClosedBodyModel,
+  detail: Detail,
+  x0: number,
+  z0: number,
+  width: number,
+  depth: number,
+) {
+  const rings = model.bodyRings(detail),
+    deck = model.deckSample(detail);
+  const faces: {
+    ax: number;
+    az: number;
+    ay: number;
+    ux: number;
+    uz: number;
+    uy: number;
+    vx: number;
+    vz: number;
+    vy: number;
+    inv: number;
+  }[] = [];
+  const point = (r: Ring, j: number) =>
+    [Math.sign(x0) * r.half[j][0], r.half[j][1], r.depths?.[j] ?? r.z] as const;
+  type Point = ReturnType<typeof point>;
+  const face = (a: Point, b: Point, c: Point) => {
+    if (
+      Math.max(a[0], b[0], c[0]) < x0 - width ||
+      Math.min(a[0], b[0], c[0]) > x0 + width ||
+      Math.max(a[2], b[2], c[2]) < z0 - depth ||
+      Math.min(a[2], b[2], c[2]) > z0 + depth
+    )
+      return;
+    const ux = b[0] - a[0],
+      uz = b[2] - a[2],
+      vx = c[0] - a[0],
+      vz = c[2] - a[2];
+    const determinant = ux * vz - uz * vx;
+    if (Math.abs(determinant) > 1e-10)
+      faces.push({
+        ax: a[0],
+        ay: a[1],
+        az: a[2],
+        ux,
+        uz,
+        uy: b[1] - a[1],
+        vx,
+        vz,
+        vy: c[1] - a[1],
+        inv: 1 / determinant,
+      });
+  };
+  for (let i = 1; i < rings.length; i++) {
+    const p = rings[i - 1],
+      q = rings[i];
+    if (q.z + 0.16 < z0 - depth || p.z - 0.11 > z0 + depth) continue;
+    for (let j = deck; j < p.half.length - 1; j++) {
+      const a = point(p, j),
+        b = point(p, j + 1),
+        c = point(q, j),
+        d = point(q, j + 1);
+      if (x0 > 0) {
+        face(a, c, b);
+        face(c, d, b);
+      } else {
+        face(b, d, a);
+        face(d, c, a);
+      }
+    }
+  }
+  return (x: number, z: number) => {
+    for (const f of faces) {
+      const dx = x - f.ax,
+        dz = z - f.az;
+      const u = (dx * f.vz - dz * f.vx) * f.inv,
+        v = (f.ux * dz - f.uz * dx) * f.inv;
+      if (u >= -1e-7 && v >= -1e-7 && u + v <= 1 + 1e-7) return f.ay + u * f.uy + v * f.vy;
+    }
+    return model.surfaceY(z, Math.abs(x));
+  };
 }

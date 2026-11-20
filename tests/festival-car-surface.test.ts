@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { bodySheetFor, type ClosedSheet } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { ClosedBodyModel, Greenhouse } from '../src/rendering/vehicle-bodies/closed-body.ts';
+import { loftRings } from '../src/rendering/vehicle-bodies/loft.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
 import {
   roadWindowMaterial,
@@ -48,11 +49,17 @@ describe('Festival car surface construction', () => {
         solids.push(node);
     });
     const ray = new T.Raycaster(undefined, new T.Vector3(0, -1, 0));
-    for (const x of [-0.45, -0.2, 0, 0.2, 0.45]) {
+    for (const x of [-0.745, -0.45, -0.2, 0, 0.2, 0.45, 0.745]) {
       ray.ray.origin.set(x, model.f.y(model.s.roof + 0.5), z);
       const hit = ray.intersectObjects(solids, false)[0];
       expect(hit?.object.name, `front of scuttle at x = ${x}`).toBe('Body (lofted)');
     }
+    // The lower centre of the swept glass carries the scuttle forward.
+    // The underlying bonnet drops 18 cm over this distance on the SC-7.
+    const house = new Greenhouse(model);
+    const foot = roadWindowRings(house, model.s.windowForm!, 0, 0).at(-1)!;
+    expect(foot.depths!.at(-1)! - house.zWs).toBeGreaterThan(0.15);
+    expect(Math.abs(foot.half.at(-1)![1] - model.surfaceY(house.zWs, 0))).toBeLessThan(0.03);
     body.root.traverse((node) => {
       if (node instanceof T.Mesh) node.geometry.dispose();
     });
@@ -183,13 +190,22 @@ describe('Festival car surface construction', () => {
     for (const detail of [0, 1] as const) {
       const root = body.lods[detail].group,
         skin = root.getObjectByName('Body (lofted)') as T.Mesh;
+      // Probe the stamped production skin before its holes were cut. The
+      // analytical design section does not include the windscreen draw.
+      const uncut = new T.Mesh(loftRings(model.bodyRings(detail)), new T.MeshBasicMaterial());
+      warpFestivalNose(uncut.geometry, model, detail);
       root.updateMatrixWorld(true);
       for (const pocket of festivalBonnetPockets(model)) {
         const probe = (u: number, v: number) => {
           const x = pocket.base.elements[12] + u,
             z = pocket.base.elements[14] + v,
             y = model.surfaceY(z, Math.abs(x));
-          return new T.Raycaster(new T.Vector3(x, y + 0.08, z), new T.Vector3(0, -1, 0), 0, 0.14);
+          const ray = new T.Raycaster(new T.Vector3(x, y + 0.16, z), new T.Vector3(0, -1, 0));
+          const reference = ray.intersectObject(uncut)[0];
+          expect(reference, 'uncut bonnet covers the measurement').toBeDefined();
+          ray.ray.origin.y = reference.point.y + 0.08;
+          ray.far = 0.14;
+          return ray;
         };
         for (const u of [-0.25, 0, 0.25])
           for (const v of [-0.3, 0, 0.3]) {
@@ -219,6 +235,8 @@ describe('Festival car surface construction', () => {
           }
         }
       }
+      uncut.geometry.dispose();
+      uncut.material.dispose();
     }
     const geometries = new Set<T.BufferGeometry>();
     body.root.traverse((node) => {

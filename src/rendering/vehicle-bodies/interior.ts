@@ -49,6 +49,8 @@ export interface BuiltCabin {
 /** Cockpit cell of a body: the open floor between `rear` and `front`, and
  * the inner wall at a station (x > 0 and the wall's top y). */
 export interface CabinOpening {
+  /** A closed door card meets the A-post before the footwell reaches the bulkhead. */
+  doorFront?: number;
   rear: number;
   front: number;
   floor: number;
@@ -401,7 +403,7 @@ export function buildClosedCabin(input: {
   shell.add(slab(-half, half, op.floor - 0.03, op.floor, op.rear, op.front), interior);
   for (const side of [-1, 1] as const)
     shell.add(
-      wallStrip(op, side, op.rear - 0.01, op.front, 10),
+      wallStrip(op, side, op.rear - 0.01, op.doorFront ?? op.front, 10),
       layout.race ? interior : sharedMaterials.leather(),
     );
   const [, rearTop] = op.edge(op.rear + 0.01);
