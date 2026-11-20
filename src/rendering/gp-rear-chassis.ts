@@ -372,77 +372,92 @@ export class GPRearSuspension {
   readonly root = new T.Group();
   readonly upperEye = new T.Group();
   readonly lowerEye = new T.Group();
-  readonly upperMount = new T.Vector3(0, 0.095, -0.18);
+  readonly upperMount: T.Vector3;
   readonly lowerMount: T.Vector3;
   private readonly spring = new T.Group();
   private readonly a = new T.Vector3();
   private readonly b = new T.Vector3();
   private readonly direction = new T.Vector3();
 
-  constructor(arm: number, detail: Exclude<RiderDetail, 'far'>, materials: Materials) {
+  constructor(
+    arm: number,
+    detail: Exclude<RiderDetail, 'far'>,
+    materials: Materials,
+    layout: 'prototype' | 'road-mono' | 'road-twin' = 'prototype',
+  ) {
     if (!Number.isFinite(arm) || arm < 0.3 || arm > 1.1)
       throw new RangeError('Invalid GP damper arm length');
-    this.root.name = 'GP attached rear damper';
-    this.upperEye.name = 'GP rear shock upper eye';
-    this.lowerEye.name = 'GP rear shock lower eye';
-    this.spring.name = 'GP rear shock compression spring';
-    this.lowerMount = new T.Vector3(0, -0.02, -arm * 0.12);
+    const twin = layout === 'road-twin';
+    const prefix = layout === 'prototype' ? 'GP' : twin ? 'Twin' : 'Road';
+    this.root.name = prefix + ' attached rear damper';
+    this.upperEye.name = prefix + ' rear shock upper eye';
+    this.lowerEye.name = prefix + ' rear shock lower eye';
+    this.spring.name = prefix + ' rear shock compression spring';
+    this.upperMount = twin ? new T.Vector3(0, 0.162, -0.48) : new T.Vector3(0, 0.095, -0.18);
+    this.lowerMount = twin
+      ? new T.Vector3(0, 0.012, -arm * 0.84)
+      : new T.Vector3(0, -0.02, -arm * 0.12);
     this.root.add(this.upperEye, this.lowerEye, this.spring);
     const segments = detail === 'high' ? 16 : 10;
-    for (const [group, sign] of [
-      [this.upperEye, -1],
-      [this.lowerEye, 1],
-    ] as const) {
-      const eye = add(
-        group,
-        new T.TorusGeometry(0.013, 0.0045, 5, segments),
-        materials.aluminium,
-        'Bushed shock eyelet',
-      );
-      eye.rotation.y = Math.PI / 2;
-      const seat = add(
-        group,
-        new T.CylinderGeometry(0.031, 0.031, 0.008, segments),
-        materials.aluminium,
-        'Spring retaining collar',
-      );
-      seat.position.y = sign * 0.027;
-    }
-    const barrel = add(
-      this.upperEye,
-      new T.CylinderGeometry(0.019, 0.021, 0.12, segments),
-      materials.dark,
-      'Anodised telescopic damper barrel',
-    );
-    barrel.position.y = -0.088;
-    const shaft = add(
-      this.lowerEye,
-      new T.CylinderGeometry(0.008, 0.008, 0.16, segments),
-      materials.steel,
-      'Sliding polished damper shaft',
-    );
-    shaft.position.y = 0.098;
-    const points: T.Vector3[] = [],
-      steps = detail === 'high' ? 84 : 42;
+    const steps = detail === 'high' ? 84 : 42;
+    const points: T.Vector3[] = [];
     for (let i = 0; i <= steps; i++) {
       const t = i / steps,
-        angle = t * Math.PI * 14;
+        angle = t * Math.PI * (twin ? 17 : 14);
       points.push(new T.Vector3(Math.cos(angle) * 0.026, t * 0.2 - 0.1, Math.sin(angle) * 0.026));
     }
-    add(
-      this.spring,
-      new T.TubeGeometry(
-        new T.CatmullRomCurve3(points),
-        steps,
-        0.0035,
-        detail === 'high' ? 5 : 4,
-        false,
-      ),
-      // Not the compound-paint material: that is recoloured every frame to
-      // the tyre compound (white on mediums), which made a toy white coil.
-      materials.forkUpper,
-      'Compact wound shock spring',
+    const wire = new T.TubeGeometry(
+      new T.CatmullRomCurve3(points),
+      steps,
+      0.0035,
+      detail === 'high' ? 5 : 4,
+      false,
     );
+    for (const x of twin ? [-0.153, 0.153] : [0]) {
+      for (const [group, sign] of [
+        [this.upperEye, -1],
+        [this.lowerEye, 1],
+      ] as const) {
+        const eye = add(
+          group,
+          new T.TorusGeometry(0.013, 0.0045, 5, segments),
+          materials.aluminium,
+          'Bushed shock eyelet',
+        );
+        eye.rotation.y = Math.PI / 2;
+        eye.position.x = x;
+        const seat = add(
+          group,
+          new T.CylinderGeometry(0.031, 0.031, 0.008, segments),
+          materials.aluminium,
+          'Spring retaining collar',
+        );
+        seat.position.set(x, sign * 0.027, 0);
+      }
+      const barrelLength = twin ? 0.225 : 0.12,
+        shaftLength = twin ? 0.33 : 0.16;
+      const barrel = add(
+        this.upperEye,
+        new T.CylinderGeometry(0.019, 0.021, barrelLength, segments),
+        materials.dark,
+        'Anodised telescopic damper barrel',
+      );
+      barrel.position.set(x, -(0.028 + barrelLength * 0.5), 0);
+      const shaft = add(
+        this.lowerEye,
+        new T.CylinderGeometry(0.008, 0.008, shaftLength, segments),
+        materials.steel,
+        'Sliding polished damper shaft',
+      );
+      shaft.position.set(x, 0.018 + shaftLength * 0.5, 0);
+      add(
+        this.spring,
+        x < 0 ? wire.clone() : wire,
+        twin ? materials.steel : materials.forkUpper,
+        'Compact wound shock spring',
+      ).position.x = x;
+    }
+    if (twin) batchBikeRigidMeshes(this.spring);
     batchBikeRigidMeshes(this.upperEye);
     batchBikeRigidMeshes(this.lowerEye);
   }

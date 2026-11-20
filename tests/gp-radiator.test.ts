@@ -164,7 +164,7 @@ describe('GP recessed radiator and fin resolution', () => {
     }
   });
 
-  it.each(['gpr1', 'gpr2', 'sbk1000', 'ss600'])(
+  it.each(['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750'])(
     '%s preserves the complete-model gate and exposes the GP core through the fork opening',
     (id) => {
       const definition = VEHICLES[id],
@@ -175,7 +175,7 @@ describe('GP recessed radiator and fin resolution', () => {
         const core = model.root.getObjectByName('Curved radiator core and formed tanks') as
           | T.Mesh
           | undefined;
-        if (id !== 'gpr1' && id !== 'gpr2') {
+        if (id === 'cr750') {
           expect(core).toBeUndefined();
           return;
         }

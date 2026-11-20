@@ -9,7 +9,6 @@ import {
   calibrateGpMaterials,
   setGpMetalAnisotropy,
   gpFrontFender,
-  gpSilencer,
 } from './gp-appearance.ts';
 import * as T from 'three';
 import { MxArenaBikeLight } from './offroad/mx-arena-bike-light.ts';
@@ -37,7 +36,7 @@ import { motorcycleWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './g
 import { GpRiderBody } from './gp-rider-dynamics.ts';
 import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
-import { gpRadiator } from './gp-radiator.ts';
+import { addRoadPowertrain } from './road-bike-powertrain.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { GPRearSuspension, gpRearBody, gpRearHugger, gpRainLenses, gpRearSwingarm } from './gp-rear-chassis.ts';
 import { GPRearsets } from './gp-rearsets.ts';
@@ -780,7 +779,7 @@ export function add(
  * compatible rigid surfaces into its existing material/shadow batches. Select
  * finishes explicitly: the rotated silencer carbon keeps its object-space
  * weave frame, while the identity-frame cooling vanes can retain theirs here. */
-function addGpRigidFinish(parent: T.Group, assembly: T.Group, finishes: readonly T.Material[]) {
+export function addGpRigidFinish(parent: T.Group, assembly: T.Group, finishes: readonly T.Material[]) {
   parent.add(assembly);
   if (
     !assembly.visible ||
@@ -831,7 +830,6 @@ export class BikeModel {
   private readonly rearWheel = new T.Group();
   private readonly rearSpin = new T.Group();
   private readonly swingarm = new T.Group();
-  private readonly spring = new T.Group();
   private readonly pivot: T.Vector3;
   private armLength = 1;
   private readonly rearAxle: T.Vector3;
@@ -843,7 +841,7 @@ export class BikeModel {
   private readonly matrix = new T.Matrix4();
   private readonly rings: T.Mesh[] = [];
   private readonly gpChain?: GPChainDrive;
-  private readonly gpRearSuspension?: GPRearSuspension;
+  private readonly rearDamper?: GPRearSuspension;
   private readonly gpRearsets?: GPRearsets;
   /** GP prototypes, near detail: the knee sliders' sparks at full lean (gp-slider-sparks.ts). */
   private readonly sliderSparks?: GpSliderSparks;
@@ -1363,114 +1361,7 @@ export class BikeModel {
       head.y - 0.06,
       head.z - 0.02,
     ).rotation.x = -RAKE;
-    // Engine (mostly behind the fairing): crankcase, V cylinder bank, clutch
-    // cover and the radiator seen between the front wheel and the fairing.
-    if (detail !== 'far') {
-      add(this.sprung, new T.BoxGeometry(0.27, 0.22, 0.38), m.dark, 0, -0.27, 0.06);
-      const bank = add(this.sprung, new T.BoxGeometry(0.25, 0.18, 0.15), m.steel, 0, -0.1, 0.22);
-      bank.rotation.x = -0.6;
-      add(
-        this.sprung,
-        new T.CylinderGeometry(0.09, 0.09, 0.03, sides),
-        m.aluminium,
-        -0.14,
-        -0.26,
-        0.02,
-      ).rotation.z = Math.PI / 2;
-      if (gpPrototype) {
-        const radiator = gpRadiator(detail, m);
-        radiator.position.set(0, -0.1, 0.37);
-        radiator.rotation.x = -0.25;
-        this.sprung.add(radiator);
-      } else
-        add(this.sprung, new T.BoxGeometry(0.36, 0.26, 0.04), m.dark, 0, -0.1, 0.37).rotation.x =
-          -0.25;
-    }
-    // Exhaust: headers under the engine to a high titanium silencer.
-    if (look.exhaust === 'expansion') {
-      // Three two-stroke expansion chambers: two exit low on the right, one
-      // on the left, each a swelling cone with a thin tail pipe.
-      for (const [x, side] of [
-        [0.07, 1],
-        [0.0, 1],
-        [-0.07, -1],
-      ] as const) {
-        const chamber = add(
-          this.sprung,
-          new T.CylinderGeometry(0.025, 0.06, 0.42, sides / 2),
-          m.steel,
-          x + side * 0.06,
-          -0.36,
-          0.0,
-        );
-        chamber.rotation.x = Math.PI / 2 + 0.1;
-        const tail = add(
-          this.sprung,
-          new T.CylinderGeometry(0.018, 0.022, 0.38, 10),
-          m.titanium,
-          side * 0.15,
-          -0.24,
-          -0.42,
-        );
-        tail.rotation.x = Math.PI / 2 - 0.3;
-      }
-    } else {
-      const pipe: [number, number, number][] = [
-        [0.06, -0.14, 0.33],
-        [0.08, -0.36, 0.27],
-        [0.09, -0.43, 0.04],
-        [-0.08, -0.42, -0.2],
-        [-0.14, -0.3, -0.42],
-        [-0.16, -0.14, -0.6],
-      ];
-      add(
-        this.sprung,
-        exhaustGeometry(
-          pipe,
-          0.03,
-          detail === 'high' ? 40 : 14,
-          detail === 'far' ? 5 : 10,
-          gpPrototype ? 'gp-oxide' : 'classic',
-        ),
-        m.titanium,
-      );
-      if (gpPrototype && detail !== 'far' && look.exhaust === 'side-high') {
-        const silencer = gpSilencer(detail, m);
-        silencer.position.set(-0.165, -0.08, -0.74);
-        silencer.rotation.x = Math.PI / 2 - 0.35;
-        addGpRigidFinish(this.sprung, silencer, [m.titanium, m.dark]);
-      } else if (look.exhaust === 'side-high') {
-        const can = add(
-          this.sprung,
-          new T.CylinderGeometry(0.05, 0.057, 0.3, sides / 2),
-          m.titanium,
-          -0.165,
-          -0.08,
-          -0.74,
-        );
-        can.rotation.x = Math.PI / 2 - 0.35;
-        add(
-          this.sprung,
-          new T.CylinderGeometry(0.058, 0.058, 0.04, sides / 2),
-          m.carbon,
-          -0.165,
-          -0.03,
-          -0.88,
-        ).rotation.x = Math.PI / 2 - 0.35;
-      } else if (look.exhaust === 'stubby')
-        // Short low can just behind the footpeg.
-        add(
-          this.sprung,
-          new T.CylinderGeometry(0.065, 0.07, 0.24, sides / 2),
-          m.titanium,
-          -0.17,
-          -0.2,
-          -0.48,
-        ).rotation.x = Math.PI / 2 - 0.2;
-      else
-        // Under-belly silencer box, exits ahead of the rear tyre.
-        add(this.sprung, new T.BoxGeometry(0.2, 0.1, 0.3), m.titanium, 0, -0.42, -0.08);
-    }
+    addRoadPowertrain(this.sprung, definition.id, look, detail, m);
     // ---- Bodywork, all lofted along +Z from measured side and plan profiles
     // (CG frame: ground at y = -cgHeight, front axle near z = +0.70).
     const section = (
@@ -1539,11 +1430,6 @@ export class BikeModel {
         plate.rotation.x = -1.2;
       }
     }
-    // Naked roadster: radiator and engine on show, a round lamp on the fork
-    // and a small flyscreen.
-    if (naked && detail !== 'far')
-      add(this.sprung, new T.BoxGeometry(0.34, 0.26, 0.05), m.dark, 0, -0.06, 0.36).rotation.x =
-        -0.2;
     if (look.headlamp === 'round') {
       add(
         this.steer,
@@ -1879,23 +1765,6 @@ export class BikeModel {
       }
     }
     // The GP damper below joins real hardpoints on the sprung frame and arm.
-    // Other motorcycles retain the original spring and its recorded scaling.
-    if (detail !== 'far' && !gp) {
-      const coil: [number, number, number][] = [];
-      for (let k = 0; k <= 64; k++) {
-        const t = k / 64;
-        coil.push([
-          Math.cos(t * Math.PI * 14) * 0.032,
-          -0.09 + t * 0.18,
-          Math.sin(t * Math.PI * 14) * 0.032,
-        ]);
-      }
-      add(this.spring, tube(coil, 0.006, 128, 6), m.band);
-      add(this.spring, new T.CylinderGeometry(0.012, 0.012, 0.2, 8), m.steel);
-      this.spring.position.set(0, -0.06, -0.24);
-      this.spring.rotation.x = 0.35;
-      this.sprung.add(this.spring);
-    }
     // ---- Swingarm (root frame: it pivots to keep the rear tyre on the road).
     this.pivot = new T.Vector3(...ROAD_SWINGARM_PIVOT);
     this.rearAxle = new T.Vector3(0, rearR - h, -b.cgToRear);
@@ -1905,8 +1774,8 @@ export class BikeModel {
       this.swingarm.name = rearStructure.name;
       this.swingarm.add(...rearStructure.children);
       if (detail !== 'far') {
-        this.gpRearSuspension = new GPRearSuspension(arm, detail, m);
-        this.root.add(this.gpRearSuspension.root);
+        this.rearDamper = new GPRearSuspension(arm, detail, m);
+        this.root.add(this.rearDamper.root);
         add(this.swingarm, gpSwingarmSpoon(arm, detail), m.carbon).name = 'GP swingarm aero spoon';
       }
     } else {
@@ -1976,19 +1845,21 @@ export class BikeModel {
         );
       }
     }
-    if (look.shocks === 'twin' && detail !== 'far')
-      // Twin shocks from the swingarm ends up to the subframe.
-      for (const side of [1, -1]) {
-        const shock = add(
-          this.swingarm,
-          new T.CylinderGeometry(0.022, 0.022, 0.32, 10),
-          m.band,
-          side * 0.13,
-          0.15,
-          -arm * 0.9,
-        );
-        shock.rotation.x = -0.35;
+    if (!gp && detail !== 'far') {
+      const twin = look.shocks === 'twin';
+      const damper = (this.rearDamper = new GPRearSuspension(arm, detail, m, twin ? 'road-twin' : 'road-mono'));
+      this.root.add(damper.root);
+      for (const x of twin ? [-0.153, 0.153] : [0]) {
+        for (const [parent, mount] of [[this.sprung, damper.upperMount], [this.swingarm, damper.lowerMount]] as const) {
+          const pin = add(parent, new T.CylinderGeometry(0.008, 0.008, twin ? 0.052 : 0.07, 8), m.steel, x, mount.y, mount.z);
+          pin.rotation.z = Math.PI / 2;
+        }
+        if (twin) {
+          const side = Math.sign(x);
+          add(this.sprung, tube([[x, damper.upperMount.y, damper.upperMount.z], [side * 0.126, 0.131, -0.353], [side * 0.119, -0.084, -0.157]], 0.014, 12, 8), m.steel);
+        }
       }
+    }
     if (gp) {
       add(
         this.swingarm,
@@ -2066,7 +1937,6 @@ export class BikeModel {
       this.frontSpin,
       this.rearSpin,
       this.swingarm,
-      this.spring,
     ])
       batchBikeRigidMeshes(group);
     void L;
@@ -2166,7 +2036,6 @@ export class BikeModel {
       v.steer,
       this.frontSpin.position,
     ).z += FORK_OFFSET;
-    this.spring.scale.y = T.MathUtils.clamp(1 - (v.shock - this.sag.shock) * 3, 0.6, 1.2);
     // Swingarm from the (moving) pivot to the rear axle on the road.
     this.sprung.updateMatrix();
     const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
@@ -2176,9 +2045,9 @@ export class BikeModel {
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = road ? 1 : Math.hypot(dy, dz) / this.armLength;
     this.rearWheel.position.z -= v.rearWheelOut ?? 0;
-    if (this.gpRearSuspension) {
+    if (this.rearDamper) {
       this.swingarm.updateMatrix();
-      this.gpRearSuspension.update(this.sprung.matrix, this.swingarm.matrix);
+      this.rearDamper.update(this.sprung.matrix, this.swingarm.matrix);
     }
     if (this.definition.id === 'gpr1' || this.definition.id === 'gpr2') {
       // Carbon-carbon rotors dark at moderate temperatures; only extreme heat

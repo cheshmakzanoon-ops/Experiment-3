@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
+import { GPRearSuspension } from '../src/rendering/gp-rear-chassis.ts';
 import { bikeEntrantScheme } from '../src/rendering/bike-sheet.ts';
 import { motorcycleWheel } from '../src/rendering/gp-forged-wheel.ts';
 import { gpFrontBrakeAngle } from '../src/rendering/gp-front-brake.ts';
@@ -40,6 +41,40 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('road motorcycles in the GP selector', () => {
+  it.each(['road-mono', 'road-twin'] as const)(
+    '%s shock eyes follow their separate chassis and arm mounts',
+    (layout) => {
+      const m = new BikeMaterials(0);
+      const shock = new GPRearSuspension(0.54, 'high', m, layout);
+      const xs = layout === 'road-twin' ? [-0.153, 0.153] : [0];
+      const sprung = new T.Matrix4().makeRotationX(-0.065).setPosition(0, -0.028, 0.012);
+      const lengths: number[] = [];
+      try {
+        for (const angle of [-0.35, -0.12, 0.08, -0.35]) {
+          const arm = new T.Matrix4().makeRotationX(angle).setPosition(0, -0.13, -0.2);
+          shock.update(sprung, arm);
+          for (const x of xs) {
+            const upper = shock.upperEye.localToWorld(new T.Vector3(x, 0, 0));
+            const lower = shock.lowerEye.localToWorld(new T.Vector3(x, 0, 0));
+            const a = shock.upperMount.clone(),
+              b = shock.lowerMount.clone();
+            a.x = b.x = x;
+            expect(upper.distanceTo(a.applyMatrix4(sprung))).toBeLessThan(1e-9);
+            expect(lower.distanceTo(b.applyMatrix4(arm))).toBeLessThan(1e-9);
+            if (x === xs[0]) lengths.push(upper.distanceTo(lower));
+          }
+        }
+        expect(lengths[0]).toBe(lengths.at(-1));
+        expect(Math.abs(lengths[0] - lengths[2])).toBeGreaterThan(0.015);
+      } finally {
+        shock.root.traverse((o) => {
+          if (o instanceof T.Mesh) o.geometry.dispose();
+        });
+        m.dispose();
+      }
+    },
+  );
+
   it('keeps printed dial artwork alive while a second instrument cluster is using it', () => {
     const trim = new T.MeshStandardMaterial(),
       a = new RoadBikeInstruments(true, 10000, trim, trim),
