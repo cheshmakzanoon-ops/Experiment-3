@@ -632,5 +632,134 @@
     },
     "forwardHipDifferenceM": 0.018524554351545458,
     "maximumSoleToPegM": 0.0014386063941369681
+  },
+  "threeBikeComparison": {
+    "sourcePixels": [
+      1280,
+      800
+    ],
+    "cropPixels": [
+      444,
+      135,
+      892,
+      723
+    ],
+    "detail": "high",
+    "frames": [
+      {
+        "model": "mx250",
+        "triangles": 138958,
+        "calls": 88,
+        "glError": 0
+      },
+      {
+        "model": "mx450",
+        "triangles": 135858,
+        "calls": 88,
+        "glError": 0
+      },
+      {
+        "model": "sm450",
+        "triangles": 122306,
+        "calls": 88,
+        "glError": 0
+      }
+    ]
+  },
+  "eightRiderGate": [
+    {
+      "circuit": "valley-ridge-mx",
+      "vehicle": "mx450",
+      "riders": 8,
+      "forwardChestDegrees": [
+        7.898,
+        10.771,
+        5.085,
+        10.598,
+        8.154,
+        6.245,
+        11.504,
+        5.657
+      ],
+      "maxExtraComponentAfterLaunch": 0,
+      "maxComponentDifferenceOnSeek": 0
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "vehicle": "mx250",
+      "riders": 8,
+      "forwardChestDegrees": [
+        7.898,
+        10.771,
+        5.085,
+        10.598,
+        8.154,
+        6.245,
+        11.504,
+        5.657
+      ],
+      "maxExtraComponentAfterLaunch": 0,
+      "maxComponentDifferenceOnSeek": 0
+    }
+  ],
+  "solverFrameTime": {
+    "node": "v24.22.3",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "tickHz": 120,
+    "warmedTicks": 1200,
+    "result": [
+      {
+        "circuit": "valley-ridge-mx",
+        "machine": "mx450",
+        "riders": 8,
+        "measuredTicks": 3600,
+        "publishHz": 30,
+        "medianMs": 0.912,
+        "p95Ms": 2.72,
+        "p99Ms": 7.031,
+        "maxMs": 61.619,
+        "fractionOver8ms": 0.0075,
+        "wallMs": 4739.5,
+        "furthestTravelM": 364.3,
+        "peakSpeedMps": 21.97,
+        "terrainHash": "72e670cf"
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "machine": "mx250",
+        "riders": 8,
+        "measuredTicks": 3600,
+        "publishHz": 30,
+        "medianMs": 0.966,
+        "p95Ms": 4.995,
+        "p99Ms": 13.208,
+        "maxMs": 154.813,
+        "fractionOver8ms": 0.0178,
+        "wallMs": 5828.8,
+        "furthestTravelM": 227.8,
+        "peakSpeedMps": 20.47,
+        "terrainHash": "6f783314"
+      }
+    ]
+  },
+  "promotedFlankPixels": {
+    "productSource": "06b281f15a3664c4db6b7dcf16e941b99673a284",
+    "method": "Chromium Canvas 2D original RGBA pixels. Compare default paint, then a superseding custom paint, race number, sponsor and two decals, for both sides.",
+    "measurements": [
+      {
+        "side": -1,
+        "size": 1048576,
+        "defaultDiff": 0,
+        "customDiff": 0,
+        "editChanged": 1003331
+      },
+      {
+        "side": 1,
+        "size": 1048576,
+        "defaultDiff": 0,
+        "customDiff": 0,
+        "editChanged": 1003333
+      }
+    ]
   }
 }

@@ -2,6 +2,12 @@
 
 Chromium captured these images from the game's Three.js geometry on WebGL2 using SwiftShader. The images below use WebP for download size. Pixel comparisons in the tests use the original framebuffer.
 
+## The three motorcycles
+
+From left to right, the MX250 shows its two-stroke expansion chamber, the MX450 its four-stroke header, and the SM450 its road tyres and larger front brake. These equal-size crops use the same rider, camera, lighting and High detail level. Each complete 1280 × 800 frame used 88 draw calls.
+
+![MX250, MX450 and SM450 in the same front three-quarter view](three-machines-high.webp)
+
 ## MX250 under the Arena Nord roof
 
 The eight-by-five lamp grid lights the jersey, shell plastics and metalwork according to each rider's position. The model test moves one MX250 under two lamp banks, then restores its outdoor lighting and compares the full image with the original. The inspection scene uses a plain backdrop so the material response is visible.
@@ -16,7 +22,7 @@ On the MX450, the filmed goggle lens follows the helmet's curvature. Its two tea
 
 The MX450 and SM450 ran on Valley Ridge and the MX250 ran in Arena Nord. Each 40-second run reached full throttle, full braking and a standing posture. Across 720 sampled high-detail poses, 45 were in flight. The largest sole-to-peg gap was 1.48 mm across 1,406 planted-boot observations. The skinned wrists, ankles and calves stayed attached, including during touchdown. Seeking backwards to 129 recorded poses restored every element of the four hand and boot transforms exactly. [Motion measurements](race-checks.json)
 
-At an assigned gate each rider sets their hips forward and elbows up. Carriage and breathing vary by race number and follow the recorded simulation clock. The start posture blends out over the first 0.85 s after the gate drops. In these matched High captures the left rider is set for the start and the right has released the brace. The MX450’s hips move 18.5 mm while the hands remain on the bars. The change affected 32,678 pixels at 1280 × 800. Rewinding restored the first frame exactly. Both poses used 88 draws.
+At an assigned gate each rider sets their hips forward and elbows up. Carriage and breathing vary by race number and follow the recorded simulation clock. The start posture blends out over the first 0.85 s after the gate drops. In these matched High captures the left rider is set for the start and the right has released the brace. Across the eight starting positions on each course, the riders pitched their chests forward by 5.1° to 11.5°. All eight returned to their normal poses one second after launch. The MX450’s hips move 18.5 mm while the hands remain on the bars. The change affected 32,678 pixels at 1280 × 800. Rewinding restored the first frame exactly. Both poses used 88 draws.
 
 ![Side-by-side MX450 riding poses showing the hips, elbow and helmet before and after release](mx450-start-posture.webp)
 
@@ -61,11 +67,13 @@ Both eight-rider venues also ran for 24 seconds at 120 physics steps per second.
 * In a mixed MX250/MX450 field, camera cuts left eight motorcycles visible and fourteen other levels ready for reuse. Detaching the inactive levels reduced the meshes reachable by a scene traversal from 1,815 to 856. During shader preparation, one representative of each missing machine and detail level temporarily raised that count to 1,130, then restored it to 856. A separated rider also follows camera cuts and returns to the original seat on replay.
 * Stadium collisions and wheel probes used to test several neighbouring rhythm lanes for every contact. A four-metre spatial index reduced the candidates from 2,996,789 to 164,797 across 4,482 recorded Arena Nord queries. Alternating batches of 128 queries took 2.592 ms and 0.256 ms at the median. On Valley Ridge the corresponding times were 1.774 ms and 0.244 ms. Both eight-rider simulations produced identical bytes in all 1,200 snapshots and identical final terrain hashes over 40 seconds.
 * Dirt grids leave the hidden Formula models’ material registrations and merged shadow geometry unbuilt. With the shipped bodies loaded, eight dirt slots needed zero Formula shadow casters. Switching the same slots to Formula cars created 264 casters with 3,267,612 bytes of buffers. The next frame reused all of them. Motocross venues also skip the Formula wheel guns and jacks.
-* Eight dirt slots previously painted sixteen 1024 × 1024 Formula flank skins, representing 64 MiB of RGBA pixels. They now paint zero. Switching the same slots to Formula cars creates all sixteen once. Each side receives its latest saved livery, including edits made while racing a bike.
+* Eight dirt slots previously painted sixteen 1024 × 1024 Formula flank skins, representing 64 MiB of RGBA pixels. They now paint zero. Switching the same slots to Formula cars creates all sixteen once. A Chromium comparison covered all 1,048,576 pixels on each side for both the team paint and a custom number, two decals and sponsor. All four comparisons matched the immediately painted car.
 * The 720 Hz tyre integrator reuses each wheel's force record within a simulation tick. A comparison of 16,384 inputs produced identical numerical results for the previous and revised integrators, including braking, mixed grip, unloaded wheels and different timesteps.
 * The tyre renderer submits only unexpired quads. The index buffer spans a circular wrap in one draw, and a replay seek restores the visible range.
 
 Whole-step timings varied with host load. In a paired run, Arena Nord’s 95th percentile fell from 7.870 to 2.533 ms, while Valley Ridge’s rose from 6.052 to 7.921 ms. Some individual steps on both courses exceeded the 8.333 ms simulation budget. These are CPU timings and functional tests on software WebGL2. A sustained target-hardware frame-time measurement is still needed for a competitive performance claim.
+
+A subsequent eight-rider run measured 3,600 complete 120 Hz simulation steps per venue after 1,200 warm-up steps. Valley Ridge took 0.912 ms at the median and 2.720 ms at the 95th percentile. Arena Nord took 0.966 ms and 4.995 ms respectively. The 99th percentiles were 7.031 ms and 13.208 ms. The simulation exceeded its 8.333 ms budget on 0.75% and 1.78% of the measured steps.
 
 ## Reproduce
 
