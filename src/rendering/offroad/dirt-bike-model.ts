@@ -46,6 +46,7 @@ import {
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
 import { addMotocrossHandguards } from './motocross-handguard.ts';
+import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
 import {
   addMotocrossControlMounts,
@@ -1051,6 +1052,12 @@ export class DirtBikeModel {
       silencer,
     ])
       batchBikeRigidMeshes(group);
+    if (!supermoto) {
+      applyMxAssemblyOcclusion(`${definition.id}/frame/${detail}`, this.sprung,
+        [this.rider.root, this.steerMount, this.footControls?.brake], 0.016, 0.19);
+      applyMxAssemblyOcclusion(`${definition.id}/bars/${detail}`, this.steer,
+        [this.forkLower, this.throttleTube, this.frontBrakeLever, this.brakeHose?.root], 0.008, 0.09);
+    }
     installMudOn(this.root, this.mud);
   }
   pose(v: BikePoseValues) {

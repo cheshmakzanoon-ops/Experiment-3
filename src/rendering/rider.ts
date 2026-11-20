@@ -10,6 +10,7 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { tagMudExposure } from './offroad/mud.ts';
 import { installMxGoggleFilm } from './offroad/motocross-goggle-film.ts';
+import { applyMxAssemblyOcclusion } from './offroad/mx-assembly-occlusion.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
@@ -1349,6 +1350,7 @@ export class Rider {
       ...this.shins.map((b) => b.group),
     ])
       batchBikeRigidMeshes(group);
+    if (mx) applyMxAssemblyOcclusion(`motocross/helmet/${detail}`, this.head, [], 0.004, 0.052);
   }
   helmetCentre(out: T.Vector3) {
     return this.head.localToWorld(this.gp ? out.fromArray(GP_HELMET_CENTRE) : out.set(0, 0.15, 0.02));
