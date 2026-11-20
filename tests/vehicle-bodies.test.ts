@@ -153,6 +153,54 @@ describe('WP30 procedural vehicle bodies', () => {
       expect(box.max.x - box.min.x, def.id).toBeLessThan(def.halfExtents[0] * 2 + 0.45);
     }
   });
+  it('updates only the correctly sized shadow tyres when their physical pose changes', () => {
+    const definition = VEHICLES.eh3;
+    const sheet = bodySheetFor(definition)!;
+    const bodies = new VehicleBodies();
+    const frame = new Float32Array(HEADER + CAR_STRIDE);
+    frame[H.CARS] = 1;
+    const o = carBase(0);
+    frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex('eh3');
+    const hosts = [{ root: new T.Group(), lodLevel: 0 }];
+    const update = () => bodies.update(frame, frame, 1, hosts);
+    update();
+    const mesh = bodies.shadowSubstitutes()[0].coarse as T.Mesh;
+    const p = mesh.geometry.getAttribute('position') as T.BufferAttribute;
+    const [{ start, count }] = p.updateRanges;
+    expect(start).toBeGreaterThan(count);
+    expect(start + count).toBe(p.array.length);
+    const perTyre = count / 4;
+    const initial = Float32Array.from(p.array);
+    for (let wheel = 0; wheel < 4; wheel++) {
+      const xs = [];
+      for (let i = start + wheel * perTyre; i < start + (wheel + 1) * perTyre; i += 3)
+        xs.push(initial[i]);
+      expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(
+        sheet.wheels.width[wheel < 2 ? 0 : 1],
+        5,
+      );
+    }
+    p.clearUpdateRanges();
+    const firstVersion = p.version;
+    frame[o + WHEEL_BASE + W.ROTATION] = 1.5;
+    update();
+    expect(p.version).toBe(firstVersion);
+    expect(p.updateRanges).toHaveLength(0);
+    frame[o + WHEEL_BASE + W.LENGTH] = 0.18;
+    update();
+    expect(p.version).toBe(firstVersion + 1);
+    frame[o + WHEEL_BASE + 2 * WHEEL_STRIDE + W.CAMBER] = 0.05;
+    update(); // A culled pass can leave the preceding range pending.
+    expect(p.updateRanges).toEqual([{ start, count }]);
+    expect(p.array.slice(0, start)).toEqual(initial.slice(0, start));
+    expect(p.array.slice(start, start + perTyre)).not.toEqual(
+      initial.slice(start, start + perTyre),
+    );
+    expect(p.array.slice(start + perTyre, start + 2 * perTyre)).toEqual(
+      initial.slice(start + perTyre, start + 2 * perTyre),
+    );
+    bodies.clear();
+  });
   it('follows the snapshot: definition, wheel travel, steer, phase, lamps and damage', () => {
     const bodies = new VehicleBodies();
     const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);

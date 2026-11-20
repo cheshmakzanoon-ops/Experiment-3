@@ -469,6 +469,7 @@ export class WheelAssembly {
   readonly pose: { value: T.Vector4 };
   readonly disc: T.MeshStandardMaterial | null;
   readonly radius: number;
+  readonly halfWidth: number;
   readonly contact: RecordedTire;
   constructor(
     radius: number,
@@ -483,6 +484,7 @@ export class WheelAssembly {
   ) {
     this.radius = radius;
     const half = sheet.width[front ? 0 : 1] / 2;
+    this.halfWidth = half;
     // Preserve specialist wire/beadlock/kart and all non-Festival wheel paths.
     const festival =
       festivalDetail &&

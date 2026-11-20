@@ -87,6 +87,10 @@ const LOD_NAMES = ['near', 'mid', 'far'];
 interface ShadowWheel {
   first: number;
   local: Float32Array;
+  hub: number;
+  steer: number;
+  camber: number;
+  radiusScale: number;
 }
 const shadowWheels = new WeakMap<T.Mesh, ShadowWheel[]>();
 /** Where the colourway layers sit on a closed body (car-frame metres). */
@@ -235,7 +239,7 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
     parts.push(g);
   });
   for (const w of wheels) {
-    const g = new T.CylinderGeometry(w.radius, w.radius, 0.26, 12).rotateZ(Math.PI / 2);
+    const g = new T.CylinderGeometry(w.radius, w.radius, 2 * w.halfWidth, 12).rotateZ(Math.PI / 2);
     g.translate(w.pivot.position.x, w.pivot.position.y, w.pivot.position.z);
     parts.push(g);
   }
@@ -260,7 +264,7 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
         local[vertex * 3 + 1] -= wheel.pivot.position.y;
         local[vertex * 3 + 2] -= wheel.pivot.position.z;
       }
-      moving.push({ first, local });
+      moving.push({ first, local, hub: NaN, steer: NaN, camber: NaN, radiusScale: NaN });
     }
     first += position.count;
   });
@@ -281,6 +285,7 @@ export class VehicleBodies {
   private readonly contactPose = wheelContactPose();
   private readonly shadowPoint = new T.Vector3();
   private readonly shadowRotation = new T.Euler();
+  private readonly shadowOrientation = new T.Quaternion();
   readonly root = new T.Group();
   private readonly bodies = new Map<number, Built>();
   /** Called once per newly built body (renderer material installers). */
@@ -381,27 +386,41 @@ export class VehicleBodies {
       const positions = body.definition.wheelPositions;
       // Keep the cheap merged shadow's wheels on the same physical hubs.
       // A bounded round-cylinder envelope is sufficient at shadow-map detail.
-      const proxyPosition = body.proxy.geometry.getAttribute('position');
-      shadowWheels.get(body.proxy)?.forEach(({ first, local }, i) => {
+      const proxyPosition = body.proxy.geometry.getAttribute('position') as T.BufferAttribute;
+      const shadow = shadowWheels.get(body.proxy)!;
+      let shadowMoved = false;
+      shadow.forEach((pose, i) => {
+        const { first, local } = pose;
         const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
         const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
-        const radius =
+        const wheel = body.wheels[2][i];
+        const radiusScale =
           contactCylinderRadius(
             contact,
-            wheelValue(a, b, o, p, W.RADIUS, t) || body.wheels[2][i].radius,
-            body.wheels[2][i].contact.bead,
-            0.13,
-          ) / body.wheels[2][i].radius;
+            wheelValue(a, b, o, p, W.RADIUS, t) || wheel.radius,
+            wheel.contact.bead,
+            wheel.halfWidth,
+          ) / wheel.radius;
         const hub = positions[i][1] - contactHubLength(contact, a, b, p, t);
-        this.shadowRotation.set(
-          0,
-          lerp(a[p + W.STEER], b[p + W.STEER], t),
-          -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t),
-        );
+        const steer = lerp(a[p + W.STEER], b[p + W.STEER], t);
+        const camber = -lerp(a[p + W.CAMBER], b[p + W.CAMBER], t);
+        if (
+          hub === pose.hub &&
+          steer === pose.steer &&
+          camber === pose.camber &&
+          radiusScale === pose.radiusScale
+        )
+          return;
+        pose.hub = hub;
+        pose.steer = steer;
+        pose.camber = camber;
+        pose.radiusScale = radiusScale;
+        shadowMoved = true;
+        this.shadowOrientation.setFromEuler(this.shadowRotation.set(0, steer, camber));
         for (let v = 0; v < local.length / 3; v++) {
           this.shadowPoint
-            .set(local[v * 3], local[v * 3 + 1] * radius, local[v * 3 + 2] * radius)
-            .applyEuler(this.shadowRotation);
+            .set(local[v * 3], local[v * 3 + 1] * radiusScale, local[v * 3 + 2] * radiusScale)
+            .applyQuaternion(this.shadowOrientation);
           proxyPosition.setXYZ(
             first + v,
             this.shadowPoint.x + positions[i][0],
@@ -410,7 +429,14 @@ export class VehicleBodies {
           );
         }
       });
-      proxyPosition.needsUpdate = true;
+      if (shadowMoved) {
+        // All four cylinders are contiguous after the static shell. Keep one
+        // pending range if an off-screen shadow skips several upload frames.
+        const start = shadow[0].first * proxyPosition.itemSize;
+        if (!proxyPosition.updateRanges.length)
+          proxyPosition.addUpdateRange(start, proxyPosition.array.length - start);
+        proxyPosition.needsUpdate = true;
+      }
       // The main view's LOD, and the coarser one a rear-view feed shows.
       for (const shown of body.feedLevel !== null && body.feedLevel !== level
         ? [level, body.feedLevel]
