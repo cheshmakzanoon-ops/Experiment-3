@@ -700,7 +700,7 @@ export function motocrossRadiatorShroud(side: number, detail: RiderDetail) {
  * cooling holes, unlike a solid disc painted with black dots. Axis is X. */
 export function motocrossRotor(radius: number, detail: RiderDetail, sprocket = false) {
   const shape = new T.Shape(),
-    count = detail === 'high' ? 120 : 64;
+    count = detail === 'high' ? 120 : detail === 'mid' ? 64 : 32;
   for (let i = 0; i <= count; i++) {
     const a = (i / count) * Math.PI * 2;
     const r = radius * (sprocket ? 0.97 + 0.03 * Math.cos(a * 40) : 0.97 + 0.03 * Math.cos(a * 10));
@@ -708,20 +708,36 @@ export function motocrossRotor(radius: number, detail: RiderDetail, sprocket = f
     else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
   }
   const centre = new T.Path();
-  centre.absarc(0, 0, radius * 0.44, 0, Math.PI * 2, true);
+  centre.absarc(0, 0, radius * (detail === 'far' ? 0.22 : 0.44), 0, Math.PI * 2, true);
   shape.holes.push(centre);
-  const holes = detail === 'high' ? 12 : 8;
+  const holes = detail === 'high' ? 12 : detail === 'mid' ? 8 : 5;
   for (let k = 0; k < holes; k++) {
     const a = (k / holes) * Math.PI * 2,
       hole = new T.Path();
-    hole.absarc(
-      Math.cos(a) * radius * 0.73,
-      Math.sin(a) * radius * 0.73,
-      radius * (sprocket ? 0.12 : 0.085),
-      0,
-      Math.PI * 2,
-      true,
-    );
+    if (detail === 'far') {
+      // Five openings leave a visible carrier between the hub and brake track.
+      // The large, simple cutouts remain legible across the racing field.
+      for (const [index, [angle, reach]] of [
+        [a - 0.34, 0.76],
+        [a + 0.34, 0.76],
+        [a + 0.18, 0.39],
+        [a - 0.1, 0.39],
+      ].entries()) {
+        const x = Math.cos(angle) * radius * reach,
+          y = Math.sin(angle) * radius * reach;
+        if (index === 0) hole.moveTo(x, y);
+        else hole.lineTo(x, y);
+      }
+      hole.closePath();
+    } else
+      hole.absarc(
+        Math.cos(a) * radius * 0.73,
+        Math.sin(a) * radius * 0.73,
+        radius * (sprocket ? 0.12 : 0.085),
+        0,
+        Math.PI * 2,
+        true,
+      );
     shape.holes.push(hole);
   }
   const g = new T.ExtrudeGeometry(shape, {

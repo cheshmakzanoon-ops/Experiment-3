@@ -46,6 +46,7 @@ function owner(...materials: T.Material[]) {
       'textures',
       'pitCrew',
       'gridPerformance',
+      'gridPreparation',
       'reflection',
       'shadowProxies',
       'farShadow',
@@ -64,6 +65,7 @@ function owner(...materials: T.Material[]) {
     ].map((key) => [key, inert()]),
   );
   Object.assign(renderer, owners, {
+    bikeShells: { disposeAll: vi.fn() },
     circuit: {
       disposePlanting() {},
       secondaryStands: inert(),

@@ -1,8 +1,12 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, staticSag } from '../src/rendering/bike.ts';
+import { motocrossRotor } from '../src/rendering/offroad/motocross-detail.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
-import { MotocrossChainDrive } from '../src/rendering/offroad/motocross-chain-drive.ts';
+import {
+  distantMotocrossChain,
+  MotocrossChainDrive,
+} from '../src/rendering/offroad/motocross-chain-drive.ts';
 import { installMudOn, mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
@@ -335,4 +339,54 @@ describe('MX chain geometry, snapshot motion and ownership', () => {
         }
       },
     );
+});
+
+it('keeps the distant chain on the same sprockets and opens windows through the rotor carrier', () => {
+  const arm = 0.64,
+    chain = distantMotocrossChain(arm),
+    rotor = motocrossRotor(0.131, 'far');
+  const material = new T.MeshBasicMaterial({ side: T.DoubleSide }),
+    disc = new T.Mesh(rotor, material);
+  try {
+    const points = chain.getAttribute('position'),
+      centre = new T.Vector3();
+    expect(chain.index!.count / 3).toBeLessThan(200);
+    for (let i = 0; i < points.count; i += 4) {
+      centre.set(0, 0, 0);
+      for (let k = 0; k < 4; k++) centre.add(new T.Vector3().fromBufferAttribute(points, i + k));
+      centre.divideScalar(4);
+      expect(centre.x).toBeCloseTo(0.095, 6);
+      expect(
+        Math.min(
+          Math.abs(Math.hypot(centre.y, centre.z + arm) - 0.112),
+          Math.abs(Math.hypot(centre.y, centre.z) - 0.036),
+        ),
+      ).toBeLessThan(1e-6);
+    }
+    for (let k = 0; k < 4; k++)
+      expect(
+        new T.Vector3()
+          .fromBufferAttribute(points, k)
+          .distanceTo(new T.Vector3().fromBufferAttribute(points, points.count - 4 + k)),
+      ).toBeLessThan(1e-7);
+    const ray = new T.Raycaster(),
+      radial = (fraction: number, a: number) => {
+        ray.set(
+          new T.Vector3(0.3, Math.sin(a) * fraction * 0.131, -Math.cos(a) * fraction * 0.131),
+          new T.Vector3(-1, 0, 0),
+        );
+        return ray.intersectObject(disc).length > 0;
+      };
+    expect(radial(0, 0)).toBe(false);
+    for (let sector = 0; sector < 5; sector++) {
+      const a = (sector * 2 * Math.PI) / 5;
+      expect(radial(0.59, a)).toBe(false);
+      expect(radial(0.59, a + Math.PI / 5)).toBe(true);
+      expect(radial(0.89, a)).toBe(true);
+    }
+  } finally {
+    chain.dispose();
+    rotor.dispose();
+    material.dispose();
+  }
 });

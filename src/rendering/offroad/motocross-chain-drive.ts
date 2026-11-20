@@ -10,6 +10,56 @@ const FRONT_RADIUS = 0.036;
 const REAR_TEETH = 40;
 const X = 0.095;
 
+/** At racing distance the alternating side plates fit inside a pixel. Retain
+ * their continuous upper and return runs on the same two sprocket tangents. */
+export function distantMotocrossChain(arm: number) {
+  const loop = new ChainLoop(arm, REAR_RADIUS, FRONT_RADIUS, X);
+  const s = loop.straightLength,
+    end = s + loop.rearArcLength;
+  const stations = [0, s];
+  for (let i = 1; i <= 12; i++) stations.push(s + (loop.rearArcLength * i) / 12);
+  stations.push(end + s);
+  for (let i = 1; i <= 8; i++) stations.push(end + s + ((loop.length - end - s) * i) / 8);
+  const points = stations.map((at) => loop.sample(at, new T.Vector3()));
+  // Use the exact wrap vertices. Uniform arc-length resampling would spend
+  // most rings on the two straight runs and cut inside the small sprocket.
+  const position: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  const tangent = new T.Vector3();
+  for (let i = 0; i < points.length; i++) {
+    const prev = points[i === 0 ? points.length - 2 : i - 1];
+    const next = points[i === points.length - 1 ? 1 : i + 1];
+    tangent.subVectors(next, prev).normalize();
+    const p = points[i];
+    for (const [width, depth] of [
+      [-1, -1],
+      [1, -1],
+      [1, 1],
+      [-1, 1],
+    ]) {
+      position.push(
+        p.x + width * 0.009,
+        p.y + depth * 0.004 * tangent.z,
+        p.z - depth * 0.004 * tangent.y,
+      );
+      uv.push(stations[i] / loop.length, (width + 1) * 0.5);
+    }
+    if (!i) continue;
+    for (let k = 0; k < 4; k++) {
+      const a = (i - 1) * 4 + k,
+        b = (i - 1) * 4 + ((k + 1) % 4);
+      indices.push(a, b, a + 4, b, b + 4, a + 4);
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 /** Original MX drivetrain, informed by reference 005/010/012/027/031. Two
  * instanced draws retain 96 rollers and 192 paired plates at both near LODs.
  * Wheel phase comes only from the supplied snapshot, including replay seeks.

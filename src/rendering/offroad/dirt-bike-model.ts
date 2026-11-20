@@ -17,7 +17,7 @@ import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
-import { MotocrossChainDrive } from './motocross-chain-drive.ts';
+import { MotocrossChainDrive, distantMotocrossChain } from './motocross-chain-drive.ts';
 import { addMotocrossRadiators } from './motocross-radiators.ts';
 import { motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
 import { installMotocrossMetalFinish } from './motocross-metal-finish.ts';
@@ -336,28 +336,27 @@ export class DirtBikeModel {
         // merge with the hub and rim into their existing distant draw.
         add(spin, motocrossWheelSpokes(rim, detail), rimMaterial);
       } else add(spin, motocrossWheelHub(detail), rimMaterial);
-      if (detail !== 'far') {
+      if (detail !== 'far')
         add(spin, motocrossWheelSpokes(rim, detail), this.m.steel, 0, 0, 0, false);
-        add(
-          spin,
-          motocrossRotor(front ? 0.131 : 0.117, detail),
-          front ? this.frontRotor : this.rearRotor,
-          front ? 0.056 : -0.06,
-        );
-        if (!front) add(spin, motocrossRotor(0.115, detail, true), chainMaterial, 0.095);
-        if (detail === 'high')
-          for (let k = 0; k < 6; k++) {
-            const a = (k / 6) * Math.PI * 2;
-            add(
-              spin,
-              new T.CylinderGeometry(0.004, 0.004, 0.006, 6),
-              this.m.aluminium,
-              front ? 0.06 : -0.064,
-              Math.cos(a) * 0.061,
-              Math.sin(a) * 0.061,
-            ).rotation.z = Math.PI / 2;
-          }
-      }
+      add(
+        spin,
+        motocrossRotor(front ? 0.131 : 0.117, detail),
+        front ? this.frontRotor : this.rearRotor,
+        front ? 0.056 : -0.06,
+      );
+      if (!front) add(spin, motocrossRotor(0.115, detail, true), chainMaterial, 0.095);
+      if (detail === 'high')
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * Math.PI * 2;
+          add(
+            spin,
+            new T.CylinderGeometry(0.004, 0.004, 0.006, 6),
+            this.m.aluminium,
+            front ? 0.06 : -0.064,
+            Math.cos(a) * 0.061,
+            Math.sin(a) * 0.061,
+          ).rotation.z = Math.PI / 2;
+        }
     };
     // ---- Steering: a long fork on a 27 degree head.
     const front = new T.Vector3(0, frontR - h, b.cgToFront);
@@ -638,29 +637,21 @@ export class DirtBikeModel {
         0.34,
         OFFSET,
       );
-      add(
-        this.forkLower,
-        detail === 'far' ? new T.BoxGeometry(0.05, 0.1, 0.07) : motocrossAxleLug(detail),
-        castMaterial,
-        side * 0.095,
-        detail === 'far' ? 0.01 : 0,
-        OFFSET,
-      );
+      add(this.forkLower, motocrossAxleLug(detail), castMaterial, side * 0.095, 0, OFFSET);
       // Plastic fork guards over the stanchions.
       const guard = motocrossForkGuard(detail);
       const outerCount = guard.getAttribute('position').count / 2;
       mapMxKitPanel(guard, 'guard', (i) => i < outerCount);
       add(this.forkLower, guard, shroudMaterial, side * 0.095, 0, OFFSET);
     }
-    if (detail !== 'far')
-      add(
-        this.forkLower,
-        new T.CylinderGeometry(0.0095, 0.0095, 0.245, 12),
-        this.m.steel,
-        0,
-        0,
-        OFFSET,
-      ).rotation.z = Math.PI / 2;
+    add(
+      this.forkLower,
+      new T.CylinderGeometry(0.0095, 0.0095, 0.245, detail === 'far' ? 8 : 12),
+      this.m.steel,
+      0,
+      0,
+      OFFSET,
+    ).rotation.z = Math.PI / 2;
     const frontBanjo =
       detail !== 'far'
         ? addMotocrossBrakeCaliper(this.forkLower, true, detail, this.m, OFFSET)
@@ -964,17 +955,20 @@ export class DirtBikeModel {
       add(this.swingarm, motocrossSwingarmRail(arm, side, detail), brushedAlloy);
     add(this.swingarm, new T.CylinderGeometry(0.018, 0.018, 0.26, 10), this.m.steel).rotation.z =
       Math.PI / 2;
-    if (detail !== 'far') {
-      // The hub and the open adjustment slots share one actual rear spindle;
-      // removing the old solid arm ends must not leave a floating rear wheel.
-      add(
-        this.swingarm,
-        new T.CylinderGeometry(0.0095, 0.0095, 0.252, 12),
-        this.m.steel,
-        0,
-        0,
-        -arm,
-      ).rotation.z = Math.PI / 2;
+    // The hub and the open adjustment slots share one actual rear spindle;
+    // removing the old solid arm ends must not leave a floating rear wheel.
+    add(
+      this.swingarm,
+      new T.CylinderGeometry(0.0095, 0.0095, 0.252, detail === 'far' ? 8 : 12),
+      this.m.steel,
+      0,
+      0,
+      -arm,
+    ).rotation.z = Math.PI / 2;
+    if (detail === 'far') {
+      add(this.swingarm, distantMotocrossChain(arm), chainMaterial).name =
+        'Motocross distant chain runs';
+    } else {
       for (const side of [-1, 1]) {
         add(
           this.swingarm,
