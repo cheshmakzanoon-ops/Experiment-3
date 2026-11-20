@@ -198,7 +198,7 @@ export class StartGate {
     bow.add(new T.LineCurve3(v(-half + r, h), v(half - r, h)));
     bow.add(new T.QuadraticBezierCurve3(v(half - r, h), v(half, h), v(half, h - r)));
     bow.add(new T.LineCurve3(v(half, h - r), v(half, 0)));
-    const tubes = [new T.TubeGeometry(bow, 48, 0.0175, 8, false)];
+    const tubes: T.BufferGeometry[] = [new T.TubeGeometry(bow, 48, 0.0175, 8, false)];
     for (const side of [-1, 1])
       tubes.push(crossTube(0.085, 0.026).translate(side * (half - 0.025), 0, 0));
     this.hinge.name = 'MX synchronised gate leaves';
@@ -216,7 +216,7 @@ export class StartGate {
       this.hinge.add(leaves);
     }
     const span = (lateral.length + 1) * gate.spacing;
-    const hardware = [crossTube(span, 0.014).translate(0, 0.028, 0.06)];
+    const hardware: T.BufferGeometry[] = [crossTube(span, 0.014).translate(0, 0.028, 0.06)];
     const anchorParts = [new T.BoxGeometry(span, 0.036, 0.12).translate(0, 0.005, 0.06)];
     for (const x of lateral)
       for (const side of [-1, 1]) {

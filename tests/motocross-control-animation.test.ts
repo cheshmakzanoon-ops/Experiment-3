@@ -238,3 +238,59 @@ it.each(['high', 'mid'] as const)(
     }
   },
 );
+
+it.each(['high', 'mid'] as const)(
+  'keeps both %s brake fingertips on the moving MX lever',
+  (detail) => {
+    const definition = VEHICLES.mx450,
+      materials = new BikeMaterials(0);
+    const model = new DirtBikeModel(definition, 0, detail, materials, mudUniforms());
+    const fingers = model.root.getObjectByName(
+      'Motocross continuous brake-finger leather',
+    ) as T.SkinnedMesh;
+    const sag = staticSag(definition);
+    const pose: BikePoseValues = {
+      fork: sag.fork,
+      shock: sag.shock,
+      steer: 0,
+      frontRotation: 0,
+      rearRotation: 0,
+      chassisLean: 0,
+      riderOffset: 0,
+      tuck: 0,
+      brake: 0,
+      rearBrake: 0,
+      discTemp: 0,
+      compoundColour: 0xffffff,
+      riding: true,
+    };
+    const positions = fingers.geometry.getAttribute('position') as T.BufferAttribute,
+      version = positions.version;
+    try {
+      for (const onboard of [false, true]) {
+        model.rider.setFirstPerson(onboard, true);
+        for (const steer of [-0.35, 0, 0.35])
+          for (const brake of [0.12, 0.5, 1]) {
+            model.pose({ ...pose, steer, brake, standing: 0.8, speed: 16 });
+            model.root.updateMatrixWorld(true);
+            for (let finger = 0; finger < 2; finger++) {
+              const tip = fingers.skeleton.bones[finger * 5 + 4].localToWorld(
+                new T.Vector3(0, 0, finger === 0 ? 0.018 : 0.019),
+              );
+              const target = model.rider.root.localToWorld(
+                model.rider.brakeFingerTargets![finger].clone(),
+              );
+              expect(
+                tip.distanceTo(target),
+                [onboard, steer, brake, finger].join(' '),
+              ).toBeLessThan(0.0025);
+            }
+          }
+      }
+      expect(positions.version).toBe(version);
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  },
+);

@@ -455,7 +455,7 @@ export class DirtBikeModel {
       ).rotation.z = Math.PI / 2;
       this.gripLocal[side > 0 ? 0 : 1].set(side * 0.36, barY, barZ);
       controlSight(`Motocross ${side > 0 ? 'left' : 'right'} grip`, side * 0.36, barY, barZ);
-      if (detail === 'high') {
+      if (detail !== 'far') {
         // The inboard end is the pivot, not the centre of the blade. Keep the
         // terminal ball and blade in this same articulation boundary so they
         // remain joined when the recorded front brake pulls the lever in.
@@ -472,7 +472,7 @@ export class DirtBikeModel {
         }
         const lever = add(
           leverParent,
-          new RoundedBoxGeometry(0.14, 0.008, 0.016, 2, 0.004),
+          new RoundedBoxGeometry(0.14, 0.008, 0.016, detail === 'high' ? 2 : 1, 0.004),
           this.m.aluminium,
           side < 0 ? side * 0.07 : side * 0.3,
           side < 0 ? 0 : barY - 0.01,
@@ -978,6 +978,7 @@ export class DirtBikeModel {
     wheel(this.rearSpin, rearR, rearRim, supermoto ? 0.085 : 0.06, false);
     // ---- Off-road rider.
     this.rider = new Rider(colours, detail, 'motocross', (id % 98) + 2);
+    if (detail !== 'far') this.rider.brakeFingerTargets = [new T.Vector3(), new T.Vector3()];
     this.rider.seat.set(0, 0.2, -0.24);
     this.rider.pegs[0].fromArray(MX_PEG);
     this.rider.pegs[1].set(-MX_PEG[0], MX_PEG[1], MX_PEG[2]);
@@ -1062,6 +1063,17 @@ export class DirtBikeModel {
       for (let i = 0; i < 2; i++) {
         this.rider.grips[i].copy(this.gripLocal[i]).applyMatrix4(this.matrix);
         this.rider.gripAxes[i].set(1, 0, 0).transformDirection(this.matrix);
+      }
+      const fingers = this.rider.brakeFingerTargets;
+      if (fingers) {
+        this.frontBrakeLever.updateMatrix();
+        // Each fingertip rests on the rider-facing side of the blade.
+        for (let i = 0; i < 2; i++) {
+          fingers[i]
+            .set(-0.106 - i * 0.016, 0.004, -0.006)
+            .applyMatrix4(this.frontBrakeLever.matrix)
+            .applyMatrix4(this.matrix);
+        }
       }
       // Read the authoritative rendered chassis frame once for gaze.
       // Suspension travel separately drives the rider's compression response.

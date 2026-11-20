@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { GpBrakeFingers } from '../gp-brake-fingers.ts';
+import { MX_GLOVE_GRIP } from './motocross-rider-contact.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { sampleProfile } from '../profile-sampling.ts';
 import type { RiderDetail } from '../rider.ts';
@@ -474,7 +476,8 @@ export function addMotocrossGlove(
   patch.setIndex(indices);
   patch.computeVertexNormals();
   part(hand, patch, textile, 'Motocross flexible textile glove back');
-  for (let finger = 0; finger < 4; finger++) {
+  const brakeHand = side < 0;
+  for (let finger = brakeHand ? 2 : 0; finger < 4; finger++) {
     const x = side * (-0.024 + finger * 0.016),
       reach = [0.031, 0.04, 0.036, 0.027][finger],
       radius = finger === 3 ? 0.0061 : 0.007;
@@ -537,4 +540,5 @@ export function addMotocrossGlove(
   cuff.rotation.x = Math.PI / 2;
   cuff.position.set(0, 0.0, -0.012);
   (cuff.material as T.Material).side = T.DoubleSide;
+  if (brakeHand) return new GpBrakeFingers(hand, palm, MX_GLOVE_GRIP, 'Motocross');
 }

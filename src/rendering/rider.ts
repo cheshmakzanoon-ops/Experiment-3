@@ -471,7 +471,7 @@ export class Rider {
   readonly kneeDown: [number, number] = [0, 0];
   private readonly gpPlantEuler = new T.Euler();
   private readonly motocrossSpine?: MotocrossRiderSpine;
-  private readonly gpBrakeFingers?: GpBrakeFingers;
+  private readonly brakeFingers?: GpBrakeFingers;
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
     quaternion: new T.Quaternion(),
@@ -1250,8 +1250,10 @@ export class Rider {
       const hand = new T.Group();
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
       else if (gp) hand.name = `GP ${i === 0 ? 'left' : 'right'} hand`;
-      if (mx) addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
-      else if (gp && detail !== 'far') {
+      if (mx) {
+        const fingers = addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
+        if (fingers) this.brakeFingers = fingers;
+      } else if (gp && detail !== 'far') {
         const fingers = addGpRacingGlove(
           hand,
           detail,
@@ -1259,7 +1261,7 @@ export class Rider {
           { leather: glove, panel, armour },
           detail === 'high' && i === 1,
         );
-        if (fingers) this.gpBrakeFingers = fingers;
+        if (fingers) this.brakeFingers = fingers;
       } else
         part(
           hand,
@@ -1527,6 +1529,8 @@ export class Rider {
           this.q,
           MX_GLOVE_WRIST,
         );
+        if (i === 1)
+          this.brakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
       } else {
         twoBone(this.upperArms[i], this.forearms[i], shoulder, this.grips[i], pole, joint);
         this.hands[i].rotation.set(0.2, 0, 0);
@@ -1661,7 +1665,7 @@ export class Rider {
         GP_GLOVE_WRIST,
       );
       if (i === 1)
-        this.gpBrakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
+        this.brakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
       hip
         .set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
@@ -1729,7 +1733,7 @@ export class Rider {
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
   separated(phase: number, tumble: number, time: number) {
     this.riding = false;
-    this.gpBrakeFingers?.update(0);
+    this.brakeFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;
     const lying = phase === 0;
     pelvis.set(0, lying ? 0.0 : 0.95, 0);
@@ -1842,7 +1846,7 @@ export class Rider {
     return slot;
   }
   dispose() {
-    this.gpBrakeFingers?.dispose();
+    this.brakeFingers?.dispose();
     this.gpSpine?.dispose();
     this.motocrossSpine?.dispose();
     for (const garment of this.motocrossGarments) garment.skeleton.dispose();
