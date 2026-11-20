@@ -28,7 +28,7 @@ import {
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
 import { townFootways, footwayHeight } from '../../simulation/open-world/town-footways.ts';
-import { addTownFootway, pavingMaterial } from './festival-footway.ts';
+import { addTownFootway, footwayStations, pavingMaterial } from './festival-footway.ts';
 import { festivalBridgePier, festivalBridgeSection } from './festival-bridges.ts';
 import { buildFestivalGuardrails } from './festival-guardrails.ts';
 import { buildFestivalCircuitCues } from './festival-circuit-cues.ts';
@@ -489,29 +489,11 @@ export class RoadMeshes {
         // Carry the supported shoulder through bridge spans to the parapet face.
         const bridge =
           (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0;
-        if (spec.shoulder > 0.2) {
+        if (spec.shoulder > 0.2 && e.roadClass !== 'town') {
           const shoulderLayer =
-            e.roadClass === 'town'
-              ? 'paving'
-              : e.roadClass === 'highway' || e.roadClass === 'runway'
-                ? layer
-                : 'verge';
+            e.roadClass === 'highway' || e.roadClass === 'runway' ? layer : 'verge';
           const vb = builder(mx, mz, shoulderLayer);
           for (const side of [-1, 1]) {
-            if (shoulderLayer === 'paving') {
-              addTownFootway(
-                vb,
-                e,
-                p,
-                q,
-                side,
-                height(p, side * hw),
-                height(q, side * hw),
-                footways.strength(e, i, 0, side),
-                footways.strength(e, i, 1, side),
-              );
-              continue;
-            }
             const edge = (pt: TrackPoint, v: number) => {
               const profile =
                 shoulderLayer === layer && spec.surface === 'asphalt'
@@ -579,7 +561,29 @@ export class RoadMeshes {
         }
       }
       this.markings(e, builder, frame);
-      if (e.roadClass === 'town') this.townLamps(e, lamps);
+      if (e.roadClass === 'town') {
+        for (const side of [-1, 1]) {
+          const stations = footwayStations(net, e, side, CHUNK);
+          for (let k = 1; k < stations.length; k++) {
+            const start = stations[k - 1],
+              end = stations[k];
+            net.pointOnSegment(start, 0, p);
+            net.pointOnSegment(end - 1, 1, q);
+            addTownFootway(
+              builder((p.x + q.x) * 0.5, (p.z + q.z) * 0.5, 'paving'),
+              e,
+              p,
+              q,
+              side,
+              height(p, side * hw),
+              height(q, side * hw),
+              footways.strength(e, start, 0, side),
+              footways.strength(e, end - 1, 1, side),
+            );
+          }
+        }
+        this.townLamps(e, lamps);
+      }
       this.piers(e, builder);
     }
     const guardrails = buildFestivalGuardrails(

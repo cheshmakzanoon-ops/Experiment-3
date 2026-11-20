@@ -13,6 +13,7 @@ import {
   TRAFFIC_VISUAL_PROFILES,
   trafficMorphGeometry,
   trafficWheelGeometry,
+  distantTrafficWheelGeometry,
 } from './traffic-car-geometry.ts';
 
 /** Most ambient cars drawn at once (the simulation caps the field lower). */
@@ -70,6 +71,8 @@ export class TrafficCars {
   readonly bodies: T.InstancedMesh;
   readonly lamps: T.InstancedMesh;
   readonly wheels: T.InstancedMesh;
+  private readonly nearWheel = trafficWheelGeometry();
+  private readonly farWheel = distantTrafficWheelGeometry();
   private readonly bodyBatches: readonly T.InstancedMesh[];
   private readonly batches: readonly T.InstancedMesh[];
   private readonly morph: T.Mesh;
@@ -137,7 +140,7 @@ export class TrafficCars {
     this.lamps = new T.InstancedMesh(geometry.lamps, trafficLampMaterial(), TRAFFIC_CAPACITY);
     this.lamps.name = 'Ambient traffic lamps (instanced)';
     this.wheels = new T.InstancedMesh(
-      trafficWheelGeometry(),
+      this.nearWheel,
       new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.64, metalness: 0.16 }),
       TRAFFIC_CAPACITY * 4,
     );
@@ -169,6 +172,8 @@ export class TrafficCars {
     alpha: number,
     night: number,
     time: number,
+    camera?: T.PerspectiveCamera,
+    viewportHeight = 720,
   ) {
     const n = blockCount(b);
     if (!n || !b) {
@@ -176,6 +181,17 @@ export class TrafficCars {
       this.count = 0;
       return;
     }
+    // Keep the five instanced passes. A single close vehicle promotes the
+    // complete wheel batch, including its reflections and offscreen shadows.
+    // Bound depth at the corners of the frustum; zoom and render resolution
+    // determine the threshold in actual tyre pixels.
+    const px = this.wheels.geometry === this.nearWheel ? 9 : 12;
+    const proj = camera?.projectionMatrix.elements;
+    const radiusDistance =
+      proj && viewportHeight > 0
+        ? (viewportHeight * proj[5] * 0.5 * Math.hypot(1, 1 / proj[0], 1 / proj[5])) / px
+        : 0;
+    let close = !camera || !radiusDistance;
     const blend = Number.isFinite(alpha) ? T.MathUtils.clamp(alpha, 0, 1) : 1;
     const previousCount = blockCount(a),
       oldStride = frameStride(a),
@@ -287,6 +303,10 @@ export class TrafficCars {
       this.lamps.setColorAt(k, this.colour.setRGB(head, tail, hazard ? 3 : 0.12));
       const wheelDef = profile.vehicle,
         radius = wheelDef.spec.wheelRadius;
+      if (!close && camera) {
+        const reach = radius * this.scale.y * radiusDistance + def.halfExtents[2] + 0.8;
+        close = this.position.distanceToSquared(camera.position) <= reach * reach;
+      }
       const phase = T.MathUtils.euclideanModulo(distance / (radius * this.scale.y), Math.PI * 2);
       this.rollQuaternion.setFromAxisAngle(X_AXIS, phase);
       for (let wheel = 0; wheel < 4; wheel++) {
@@ -321,6 +341,7 @@ export class TrafficCars {
       mesh.count = n;
       mesh.morphTexture!.needsUpdate = true;
     }
+    this.wheels.geometry = close ? this.nearWheel : this.farWheel;
     this.wheels.count = n * 4;
     for (const mesh of this.batches) mesh.instanceMatrix.needsUpdate = true;
     this.bodies.instanceColor!.needsUpdate = true;
@@ -353,11 +374,13 @@ export class TrafficCars {
   dispose() {
     this.root.removeFromParent();
     for (const mesh of this.batches) {
-      mesh.geometry.dispose();
+      if (mesh !== this.wheels) mesh.geometry.dispose();
       (mesh.material as T.Material).dispose();
       // InstancedMesh.dispose also releases its owned morphTexture.
       mesh.dispose();
     }
+    this.nearWheel.dispose();
+    this.farWheel.dispose();
     this.root.clear();
     this.index.clear();
   }

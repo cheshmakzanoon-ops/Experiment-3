@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { Vec3 } from '../src/core/math.ts';
-import { addTownFootway } from '../src/rendering/open-world/festival-footway.ts';
+import { addTownFootway, footwayStations } from '../src/rendering/open-world/festival-footway.ts';
 import { FestivalRenderer } from '../src/rendering/open-world/festival-renderer.ts';
 import { OpenWorldTrack, WORLD_SURFACE } from '../src/simulation/open-world/open-world-track.ts';
 import { footwayHeight, townFootways } from '../src/simulation/open-world/town-footways.ts';
@@ -116,6 +116,47 @@ describe('Port Ilse footway and tyre construction', () => {
         expect(crest).toBeLessThan(0.093);
         if (steering === Math.PI / 2) expect(advanced).toBe(true);
       }
+  });
+
+  it('holds every rendered kerb station within 2 mm of the full street section while removing redundant spans', () => {
+    let source = 0,
+      cooked = 0;
+    for (const e of net.edges.filter((e) => e.roadClass === 'town'))
+      for (const side of [-1, 1]) {
+        const retained = footwayStations(net, e, side, 512);
+        expect(retained[0]).toBe(e.first);
+        expect(retained.at(-1)).toBe(e.last);
+        const section = (i: number, d: number) => {
+          const j = Math.min(i, e.last - 1),
+            t = i - j,
+            p = net.pointOnSegment(j, t, trackPoint()),
+            l = side * (e.spec.halfWidth + d);
+          return new T.Vector3(
+            p.x + p.nx * l,
+            net.surfaceHeight(p, l, e.spec.halfWidth, e.spec.crown) +
+              footwayHeight(d, paving.strength(e, j, t, side)),
+            p.z + p.nz * l,
+          );
+        };
+        for (let k = 1; k < retained.length; k++) {
+          const a = retained[k - 1],
+            b = retained[k];
+          source += b - a;
+          cooked++;
+          for (const d of [0.07, 0.31, 0.45, 1.56, 2.4]) {
+            const begin = section(a, d),
+              end = section(b, d);
+            for (let i = a + 1; i < b; i++) {
+              const t = (net.s[i] - net.s[a]) / (net.s[b] - net.s[a]);
+              const ref = section(i, d),
+                actual = begin.clone().lerp(end, t);
+              expect(Math.abs(actual.y - ref.y)).toBeLessThan(0.00201);
+              expect(Math.hypot(actual.x - ref.x, actual.z - ref.z)).toBeLessThan(0.00201);
+            }
+          }
+        }
+      }
+    expect(cooked / source).toBeLessThan(0.4);
   });
 
   it('opens the crossing through a joining street and meets unchanged terrain at the return', () => {

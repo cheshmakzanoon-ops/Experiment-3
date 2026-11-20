@@ -437,6 +437,68 @@ export function trafficBodyGeometry({
   return { paint: merge(paint), glazing: merge(glazing), trim: merge(trim), lamps: optics };
 }
 
+/** Distant alloy and tyre. Fifteen facets preserve the five-spoke phase and
+ * limit silhouette deviation to 0.27 px at a 12 px projected radius. */
+export function distantTrafficWheelGeometry() {
+  const parts: Parts = [],
+    segments = 15;
+  const rotate = (r: number, x: number, i: number): Point => {
+    const angle = (i * Math.PI * 2) / segments;
+    return [x, Math.cos(angle) * r, Math.sin(angle) * r];
+  };
+  const tyre = [
+    [0.7, -0.5],
+    [0.89, -0.5],
+    [1, -0.27],
+    [1, 0.27],
+    [0.89, 0.5],
+    [0.7, 0.5],
+  ];
+  add(
+    parts,
+    new T.LatheGeometry(
+      tyre.map(([r, x]) => new T.Vector2(r, x)),
+      segments,
+    ).rotateZ(Math.PI / 2),
+    0x15181b,
+  );
+  for (const side of [-1, 1]) {
+    const outward: Point = [side, 0, 0],
+      x = side * 0.465;
+    for (let i = 0; i < segments; i++) {
+      face(
+        parts,
+        [rotate(0.64, x, i), rotate(0.72, x, i), rotate(0.72, x, i + 1), rotate(0.64, x, i + 1)],
+        outward,
+        0x909ba3,
+      );
+      face(parts, [[x, 0, 0], rotate(0.64, x, i), rotate(0.64, x, i + 1)], outward, 0x272d30);
+    }
+    for (let i = 0; i < 5; i++) {
+      const a = (i * 2 * Math.PI) / 5,
+        points: Point[] = [];
+      for (const [r, angle] of [
+        [0.12, a - 0.42],
+        [0.68, a - 0.085],
+        [0.68, a + 0.085],
+        [0.12, a + 0.42],
+      ])
+        points.push([side * 0.472, r * Math.cos(angle), r * Math.sin(angle)]);
+      face(parts, points, outward, 0x9aa7af);
+    }
+    const hub = Array.from(
+      { length: 10 },
+      (_, i): Point => [
+        side * 0.476,
+        0.17 * Math.cos((i * Math.PI) / 5),
+        0.17 * Math.sin((i * Math.PI) / 5),
+      ],
+    );
+    face(parts, hub, outward, 0x9aa7af);
+  }
+  return merge(parts);
+}
+
 /** Shared circular wheel, unit radius and unit section width, axle along X.
  * Both faces are authored so right wheels do not need a mirror that reverses
  * rolling. The instance scales X by width and Y/Z equally by tyre radius. */

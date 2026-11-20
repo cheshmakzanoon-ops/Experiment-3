@@ -66,6 +66,33 @@ const matrixAt = (mesh: T.InstancedMesh, index: number) => {
 };
 
 describe('festival traffic visual geometry', () => {
+  it('reduces the wheel batch only while every tyre is small on screen, including after photo zoom and seek', () => {
+    const cars = new TrafficCars(),
+      camera = new T.PerspectiveCamera(55, 16 / 9, 0.1, 5000);
+    const pose = block([{ id: 1, machine: VEHICLES.rh3, x: 0, z: 0, distance: 5 }]);
+    const near = cars.wheels.geometry;
+    const render = (z: number, zoom = 1) => {
+      camera.position.set(0, 3, z);
+      camera.zoom = zoom;
+      camera.updateProjectionMatrix();
+      cars.update(null, pose, 1, 0, 1, camera, 720);
+      return cars.wheels.geometry;
+    };
+    expect(render(4)).toBe(near);
+    const matrices = cars.wheels.instanceMatrix.array.slice(0, 64);
+    const far = render(150);
+    expect(far).not.toBe(near);
+    expect(far.getAttribute('position').count).toBeLessThan(
+      near.getAttribute('position').count * 0.32,
+    );
+    expect(cars.wheels.instanceMatrix.array.slice(0, 64)).toEqual(matrices);
+    expect(render(150, 8)).toBe(near);
+    expect(render(150)).toBe(far);
+    expect(render(3)).toBe(near);
+    expect(cars.root.children).toHaveLength(5);
+    cars.dispose();
+  });
+
   it('keeps five bounded batches and the previous per-car triangle budget while adding independent wheels', () => {
     const cars = new TrafficCars(),
       meshes = batches(cars),

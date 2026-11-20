@@ -1,8 +1,83 @@
 import * as T from 'three';
-import type { RoadEdge } from '../../simulation/open-world/road-network.ts';
-import { FOOTWAY_OFFSETS, footwayVertex } from '../../simulation/open-world/town-footways.ts';
-import type { TrackPoint } from '../../simulation/track.ts';
+import type { RoadEdge, RoadNetwork } from '../../simulation/open-world/road-network.ts';
+import {
+  FOOTWAY_OFFSETS,
+  footwayVertex,
+  townFootways,
+} from '../../simulation/open-world/town-footways.ts';
+import { trackPoint, type TrackPoint } from '../../simulation/track.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
+
+/** Retain every joint or bend that moves a section by over 2 mm. The plan
+ * varies linearly between its inner and outer edges. In elevation, every
+ * stone band is the same base height plus a constant times kerb admission.
+ * Bounding both quantities therefore bounds every point across the section. */
+export function footwayStations(net: RoadNetwork, edge: RoadEdge, side: number, chunkSize: number) {
+  const p = trackPoint(),
+    profile = townFootways(net),
+    count = edge.last - edge.first + 1;
+  const width = edge.spec.halfWidth;
+  const channels = 6,
+    values = new Float64Array(count * channels);
+  const stations = [edge.first];
+  for (let j = 0; j < count; j++) {
+    const row = edge.first + j,
+      i = Math.min(row, edge.last - 1),
+      t = row - i;
+    net.pointOnSegment(i, t, p);
+    const at = j * channels;
+    values[at] = p.x + p.nx * side * width;
+    values[at + 1] = p.z + p.nz * side * width;
+    values[at + 2] = p.x + p.nx * side * (width + edge.spec.shoulder);
+    values[at + 3] = p.z + p.nz * side * (width + edge.spec.shoulder);
+    values[at + 4] = net.surfaceHeight(p, side * width, width, edge.spec.crown);
+    // 0.2 m bounds the maximum rise of the kerb above the dropped shoulder.
+    values[at + 5] = 0.2 * profile.strength(edge, i, t, side);
+  }
+  const simplify = (a: number, b: number) => {
+    let selected = 0,
+      largest = 0.002;
+    const span = net.s[edge.first + b] - net.s[edge.first + a];
+    for (let j = a + 1; j < b; j++) {
+      const t = (net.s[edge.first + j] - net.s[edge.first + a]) / span;
+      const error = (k: number) =>
+        values[j * channels + k] -
+        (values[a * channels + k] + t * (values[b * channels + k] - values[a * channels + k]));
+      const distance = Math.max(
+        Math.hypot(error(0), error(1)),
+        Math.hypot(error(2), error(3)),
+        Math.abs(error(4)) + Math.abs(error(5)),
+      );
+      if (distance > largest) {
+        largest = distance;
+        selected = j;
+      }
+    }
+    if (selected) {
+      simplify(a, selected);
+      simplify(selected, b);
+    } else stations.push(edge.first + b);
+  };
+  let start = 0,
+    cellX = 0,
+    cellZ = 0;
+  for (let j = 0; j < count - 1; j++) {
+    const i = edge.first + j,
+      x = Math.floor((net.x[i] + net.x[i + 1]) / (2 * chunkSize)),
+      z = Math.floor((net.z[i] + net.z[i + 1]) / (2 * chunkSize));
+    if (
+      j > start &&
+      (x !== cellX || z !== cellZ || net.s[i + 1] - net.s[edge.first + start] > 48)
+    ) {
+      simplify(start, j);
+      start = j;
+    }
+    cellX = x;
+    cellZ = z;
+  }
+  simplify(start, count - 1);
+  return stations;
+}
 
 interface PavingBatch {
   vertex(
