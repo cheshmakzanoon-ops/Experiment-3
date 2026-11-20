@@ -37,6 +37,9 @@ export function captureBikeSequence(
         | 'fork'
         | 'shock'
         | 'frontRotation'
+        | 'frontOmega'
+        | 'rearOmega'
+        | 'rearRotation'
         | 'rearBrake'
         | 'speed'
         | 'rpm'
@@ -150,6 +153,12 @@ export function captureBikeSequence(
     );
     camera.lookAt(0, view === 'rider-rear' ? 1.03 : 1, view === 'rider-rear' ? -0.15 : -0.08);
     camera.fov = 32;
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'wheel-exposure') {
+    camera.position.set(1.15, 0.48, -def.bike!.cgToRear - 0.38);
+    camera.lookAt(0, def.bike!.rearWheelRadius, -def.bike!.cgToRear);
+    camera.fov = 37;
     camera.updateProjectionMatrix();
   }
   if (view === 'front-brake') {

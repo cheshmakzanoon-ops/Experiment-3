@@ -90,6 +90,9 @@ export function motorcycleWheel(
     close ? 32 : distant ? 10 : 20,
   );
 
+  // The axle and rim stay opaque even when the shutter resolves several
+  // spoke positions within one image. The spokes begin after these two turnings.
+  const fixedVertices = pieces.reduce((n, g) => n + g.getAttribute('position').count, 0);
   // Each ring is a chamfered rectangular forging. The crown and gradual
   // dish follow the wheel's width, without turning the spokes into tubes.
   type Station = readonly [number, number, number, number, number];
@@ -238,6 +241,15 @@ export function motorcycleWheel(
   const geometry = mergeGeometries(pieces, false);
   pieces.forEach((g) => g.dispose());
   if (!geometry) throw new Error('Could not merge GP forged wheel');
+  if (!distant) {
+    const count = geometry.getAttribute('position').count,
+      part = new Float32Array(count * 2);
+    for (let i = 0; i < count; i++) {
+      part[2 * i] = i >= fixedVertices ? 1 : 0;
+      part[2 * i + 1] = halfWidth;
+    }
+    geometry.setAttribute('roadSpoke', new T.BufferAttribute(part, 2));
+  }
   geometry.name =
     design === 'prototype'
       ? 'GP hollow forged split-spoke wheel'

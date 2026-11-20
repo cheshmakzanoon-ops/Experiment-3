@@ -3,6 +3,7 @@ import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
 import { gpGripGeometry, gpLeverGuard } from './gp-handlebar-controls.ts';
 import { gpThrottleAngle } from './gp-rider-contact.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
+import { RoadWheelExposure } from './road-wheel-exposure.ts';
 import { ClassicRearBrake, classicDrum } from './road-bike-drum.ts';
 import { installRoadsterLamp, installSportHeadlights, roundRoadLamp } from './road-bike-optics.ts';
 import { roadTyreSection, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
@@ -517,6 +518,7 @@ export function numberTexture(number: number, paint: string, ink: string) {
 /** Materials of one entrant (paint per livery; mechanical finishes shared in spirit). */
 export class BikeMaterials {
   readonly list: T.Material[] = [];
+  readonly wheelExposure = new RoadWheelExposure();
   private readonly prints = new Map<string, GpRiderPrints>();
   private headlight?: T.MeshStandardMaterial;
   readonly paint: T.MeshPhysicalMaterial;
@@ -760,6 +762,7 @@ export class BikeMaterials {
     return prints;
   }
   dispose() {
+    this.wheelExposure.dispose();
     for (const prints of this.prints.values()) for (const texture of Object.values(prints)) texture.dispose();
     this.prints.clear();
     for (const m of this.list) {
@@ -938,7 +941,17 @@ export class BikeModel {
           : naked
             ? 'roadster'
             : definition.classId === 'supersport' ? 'supersport' : 'superbike';
-      add(spin, motorcycleWheel(rim, halfWidth, detail, design), classic ? m.steel : m.wheel);
+      const forging = motorcycleWheel(rim, halfWidth, detail, design);
+      const wheelMetal = classic ? m.steel : m.wheel;
+      add(spin, forging, wheelMetal);
+      const exposure = m.wheelExposure.layer(forging, wheelMetal, design, rim, halfWidth,
+        (tyreSection.frontHalfWidth + tyreSection.rearHalfWidth) / 2, front, detail);
+      if (exposure) {
+        // This GPU-only exposure surface has its own optical frame and raycast.
+        const layer = new T.Group();
+        layer.add(exposure);
+        spin.add(layer);
+      }
       if (!distant) add(spin, gpWheelMachinedLip(rim, halfWidth, detail), m.aluminium);
       if (front) {
         // GP carbon bands have a correctly scaled open carrier and floating
@@ -1962,6 +1975,7 @@ export class BikeModel {
         )
       : undefined;
     this.m.tyreFinish.update(v, true, road?.treadContact);
+    this.m.wheelExposure.update(v.frontOmega, v.rearOmega);
     // Legacy frames derive visual heave/pitch. A live road body already owns
     // both; applying this local spring transform again doubles the motion.
     const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
