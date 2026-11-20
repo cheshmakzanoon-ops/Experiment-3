@@ -87,6 +87,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.renderer?.presentationPurpose).toBe('circuit');
     expect(initialized.renderer?.construction.tasks).toBeGreaterThan(0);
     expect(initialized.renderer?.preparation?.status).toBe('complete');
+    expect(initialized.renderer?.trackInfrastructure.marshalPosts).toBeGreaterThan(0);
     expect(initialized.options.circuit).toBe(circuit);
     expect(initialized.frame?.[H.CARS]).toBe(8);
     expect(initialized.frame?.[H.TICK]).toBe(0);

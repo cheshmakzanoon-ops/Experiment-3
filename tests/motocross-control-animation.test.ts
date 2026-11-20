@@ -7,6 +7,7 @@ import {
   type BikePoseValues,
 } from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
+import { MxGeometryPool } from '../src/rendering/offroad/mx-geometry-pool.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 import { H, F, R, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
@@ -430,5 +431,109 @@ it('sizes distant number graphics and sleeves for the model selected by the came
     }
   } finally {
     materials.dispose();
+  }
+});
+
+it('prepares camera cuts during loading, shares rigid vertex data and keeps suspension per rider', async () => {
+  const shells = new BikeShells(),
+    camera = new T.PerspectiveCamera(60, 16 / 9);
+  const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+  frame[H.CARS] = 2;
+  const cars = [0, 1].map((id) => {
+    const o = carBase(id);
+    frame[o + F.QW] = 1;
+    frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
+    return { root: new T.Object3D() };
+  });
+  const present = () => shells.update(frame, frame, 1, cars, camera, 'high', 0);
+  const attached = () =>
+    shells.root.children.filter((node) => /\((high|mid|far)\)$/.test(node.name));
+  const attributes = (root: T.Object3D) => {
+    const result: T.BufferAttribute[] = [];
+    root.traverse((node) => {
+      if (node instanceof T.Mesh) result.push(node.geometry.getAttribute('position'));
+    });
+    return result;
+  };
+  try {
+    const installs = vi.fn(),
+      uninstalls = vi.fn();
+    shells.install = installs;
+    shells.uninstall = uninstalls;
+    shells.update(frame, frame, 1, cars, camera, 'high', 0, 1);
+    expect(shells.drawnRoot(0)).toBeNull();
+    expect(shells.drawnRoot(1)).toBeTruthy();
+    present();
+    const first = attributes(shells.drawnRoot(0)!),
+      second = attributes(shells.drawnRoot(1)!);
+    expect(
+      first.filter((a, i) => a.array === second[i].array && a !== second[i]).length,
+    ).toBeGreaterThan(20);
+    expect(first.filter((a) => a.usage === T.DynamicDrawUsage).length).toBeGreaterThan(0);
+    expect(
+      first.every((a, i) => a.usage !== T.DynamicDrawUsage || a.array !== second[i].array),
+    ).toBe(true);
+    let yields = 0;
+    const yieldFrame = async () => {
+      yields++;
+    };
+    expect(await shells.prepareDirtField(() => yields === 2, yieldFrame)).toBe(false);
+    expect(yields).toBe(2);
+    expect(attached()).toHaveLength(2);
+    expect(await shells.prepareDirtField(() => false, yieldFrame)).toBe(true);
+    expect(yields).toBe(5);
+    expect(attached().every((root) => root.visible)).toBe(true);
+    expect(attached()).toHaveLength(2);
+    // Two service stands and six rider models, including the four detached levels.
+    expect(installs).toHaveBeenCalledTimes(8);
+    const building = vi.spyOn(T.BufferGeometry.prototype, 'setAttribute');
+    try {
+      for (const distance of [65, 250, 0]) {
+        cars[1].root.position.z = distance;
+        present();
+      }
+      expect(building).not.toHaveBeenCalled();
+      expect(installs).toHaveBeenCalledTimes(8);
+      expect(attached()).toHaveLength(4);
+      expect(attached().filter((node) => node.visible)).toHaveLength(2);
+    } finally {
+      building.mockRestore();
+    }
+    shells.disposeAll();
+    expect(uninstalls).toHaveBeenCalledTimes(8);
+  } finally {
+    shells.disposeAll();
+  }
+  expect(shells.root.children).toHaveLength(0);
+});
+
+it('only shares byte-identical immutable mesh attributes across matching designs', () => {
+  const pool = new MxGeometryPool();
+  const mesh = (x: number) => {
+    const g = new T.BufferGeometry();
+    g.setAttribute('position', new T.Float32BufferAttribute([x, 0, 0], 3));
+    g.setAttribute('uv', new T.Float32BufferAttribute([1, 0], 2));
+    g.setAttribute('variant', new T.InstancedBufferAttribute(new Float32Array([1]), 1));
+    return new T.Mesh(g, new T.MeshBasicMaterial());
+  };
+  const first = mesh(0),
+    other = mesh(-0),
+    separate = mesh(0);
+  try {
+    pool.share('mx450/mid', first);
+    pool.share('mx450/mid', other);
+    pool.share('mx250/mid', separate);
+    const array = (m: T.Mesh, name: string) => m.geometry.getAttribute(name).array;
+    expect(array(first, 'uv') === array(other, 'uv')).toBe(true);
+    expect(array(first, 'position') === array(other, 'position')).toBe(false);
+    expect(Object.is(array(other, 'position')[0], -0)).toBe(true);
+    expect(array(first, 'variant') === array(other, 'variant')).toBe(false);
+    expect(array(first, 'uv') === array(separate, 'uv')).toBe(false);
+  } finally {
+    for (const m of [first, other, separate]) {
+      m.geometry.dispose();
+      m.material.dispose();
+    }
+    pool.clear();
   }
 });

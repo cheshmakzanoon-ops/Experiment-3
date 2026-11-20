@@ -1032,7 +1032,33 @@ export class RacingRenderer {
         await yieldFrame();
         if (cancelled()) return false;
       }
-      this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
+      if (this.circuit.offroad && total > 1) {
+        for (let id = 0; id < this.cars.length; id++) {
+          if (id < total) {
+            progress(`Building motocross grid ${id + 1} / ${total}…`);
+            await yieldFrame();
+            if (this.disposed || cancelled()) return false;
+          }
+          this.bikeShells.update(
+            frame,
+            frame,
+            1,
+            this.cars,
+            this.camera,
+            this.quality,
+            this.follow,
+            id,
+          );
+        }
+        progress('Preparing motocross rider detail for race cameras…');
+        const ready = await this.bikeShells.prepareDirtField(
+          () => this.disposed || cancelled(),
+          yieldFrame,
+        );
+        if (!ready) return false;
+      } else {
+        this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
+      }
       // Formula hosts supply each motorcycle's pose, but their hidden bodies
       // never render. Three's compiler traverses invisible subtrees, so exclude
       // those hosts for MX and mixed fields too, independently of GP grid rules.
@@ -2828,7 +2854,7 @@ export class RacingRenderer {
       startingGrid: this.circuit.startingGridDiagnostics(),
       trackInfrastructure: {
         drains: this.circuit.trackInfrastructure.drains.length,
-        marshalPosts: this.circuit.trackInfrastructure.marshalPosts.length,
+        marshalPosts: this.circuit.staff.posts.length,
         utilities: this.circuit.trackInfrastructure.utilities.length,
         cameras: this.circuit.trackInfrastructure.cameras.length,
       },

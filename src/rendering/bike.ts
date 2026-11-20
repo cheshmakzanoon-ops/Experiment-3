@@ -73,6 +73,7 @@ import { bikeSheetFor, SHELL_SCHEME } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
 import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
+import { MxGeometryPool } from './offroad/mx-geometry-pool.ts';
 import { mudUniforms, type MudUniforms } from './offroad/mud.ts';
 import {
   BikeServicePose,
@@ -2235,6 +2236,7 @@ export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, ta
  * corrected distance like the cars. */
 export class BikeShells {
   private readonly roadContact = new RoadBikeContactPose();
+  private readonly dirtGeometry = new MxGeometryPool();
   readonly root = new T.Group();
   /** Renderer hook: install weather/atmosphere/IBL on newly built bikes. */
   install: (root: T.Object3D) => void = () => undefined;
@@ -2283,9 +2285,8 @@ export class BikeShells {
     // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
     const scheme = id === 0 ? (SHELL_SCHEME[definition.id] ?? id) : id;
     const materials = new BikeMaterials(scheme);
-    // Build MX detail as it becomes visible. A ten-rider gate previously
-    // allocated thirty complete rigs, including every hidden glove, jersey
-    // and plastic atlas. Revisited levels stay resident for smooth cuts.
+    // Attach only drawn MX detail to the scene. Race preparation can build
+    // the other levels before the worker releases the starting gate.
     const dirtMud = isDirtBike(definition) ? mudUniforms() : undefined;
     const levels = dirtMud
       ? []
@@ -2308,6 +2309,30 @@ export class BikeShells {
     this.root.add(rig.root);
     this.install(rig.root);
     return { definition, materials, levels, dirtMud, level: -1, rig, riderBody, occlusion };
+  }
+  private buildDirtLevel(entry: Entry, id: number, level: number) {
+    const detail = BIKE_DETAILS[level];
+    const model = new DirtBikeModel(entry.definition, id, detail, entry.materials, entry.dirtMud!);
+    this.dirtGeometry.share(entry.definition.id + '/' + detail, model.root);
+    model.root.visible = false;
+    this.install(model.root);
+    entry.levels[level] = model;
+    return model;
+  }
+  /** Construct the other race-camera levels while the worker is paused.
+   * Prepare weather, material and texture registrations here too. Detached
+   * levels stay outside Three's shader traversal until a camera selects them. */
+  async prepareDirtField(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
+    for (const [id, entry] of this.entries) {
+      if (!entry.dirtMud) continue;
+      for (let level = 0; level < BIKE_DETAILS.length; level++) {
+        if (entry.levels[level]) continue;
+        await yieldFrame();
+        if (cancelled() || this.entries.get(id) !== entry) return false;
+        this.buildDirtLevel(entry, id, level);
+      }
+    }
+    return !cancelled();
   }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high
    * model and hook every lit, opaque bike and rider material of the entrant. */
@@ -2373,6 +2398,7 @@ export class BikeShells {
   disposeAll() {
     for (const entry of this.entries.values()) this.dispose(entry);
     this.entries.clear();
+    this.dirtGeometry.clear();
   }
   update(
     a: Float32Array,
@@ -2382,8 +2408,11 @@ export class BikeShells {
     camera: T.PerspectiveCamera,
     quality: 'low' | 'medium' | 'high',
     follow: number,
+    // During race loading each entrant gets its own repaint opportunity.
+    entrant?: number,
   ) {
-    for (let id = 0; id < cars.length; id++) {
+    const end = entrant === undefined ? cars.length : entrant + 1;
+    for (let id = entrant ?? 0; id < end; id++) {
       let entry = this.entries.get(id);
       if (id >= b[H.CARS]) {
         if (entry) {
@@ -2429,19 +2458,8 @@ export class BikeShells {
       if (previous === 0 && level === 1 && distance < 36) level = 0;
       if (previous === 1 && level === 2 && distance < 106) level = 1;
       if (previous === 2 && level === 1 && distance > 94) level = 2;
-      let model = entry.levels[level];
-      if (!model) {
-        model = new DirtBikeModel(
-          definition,
-          id,
-          BIKE_DETAILS[level],
-          entry.materials,
-          entry.dirtMud!,
-        );
-        this.root.add(model.root);
-        this.install(model.root);
-        entry.levels[level] = model;
-      }
+      const model = entry.levels[level] ?? this.buildDirtLevel(entry, id, level);
+      if (!model.root.parent) this.root.add(model.root);
       const old = entry.levels[previous];
       if (old && old !== model) {
         old.root.visible = false;
