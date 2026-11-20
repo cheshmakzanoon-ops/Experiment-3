@@ -484,13 +484,14 @@ export class BikeAIDriver extends AIDriver {
       width = this.steeringLineWidth;
     return width === 1 ? offset : offset * width;
   }
-  protected steeringLineCurvature(track: Track, s: number) {
+  protected steeringLineCurvature(track: Track, s: number, roadCurvature?: number) {
     const curvature = racingLineFor(track).curvatureAt(s),
       width = this.steeringLineWidth;
     // Preserve the shared speed envelope's existing width blend. This does
     // not introduce a new moving geometry stencil or change the dry solver.
     return width < 1
-      ? curvature * width + track.at(s, this.steeringLinePoint).curvature * (1 - width)
+      ? curvature * width +
+          (roadCurvature ?? track.at(s, this.steeringLinePoint).curvature) * (1 - width)
       : curvature;
   }
   /** A GP straight can require far more than the shared 240 m brake preview.
@@ -552,9 +553,11 @@ export class BikeAIDriver extends AIDriver {
     const leverResponseDistance = bikePreviewDistance(d.speed, 1 / (2 * GP_AI_HANDS.brakeApply));
     for (let i = 0; i < count; i++) {
       const station = c.s + leverResponseDistance + i * ENVELOPE_STEP,
-        k = this.steeringLineCurvature(track, station),
-        curvature = k / Math.max(0.5, 1 - k * tactical),
+        // The wet-line blend and the braking gradient use this same station.
+        // One ribbon sample supplies both throughout the 120 Hz approach plan.
         point = track.at(station, this.approachPoint),
+        k = this.steeringLineCurvature(track, station, point.curvature),
+        curvature = k / Math.max(0.5, 1 - k * tactical),
         offset = this.steeringLineOffset(track, station) + tactical,
         slope =
           (this.steeringLineOffset(track, station + 3) -

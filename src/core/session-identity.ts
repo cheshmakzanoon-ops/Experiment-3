@@ -80,8 +80,10 @@ import {
  * corrections. A v26 race or ghost cannot certify this corrected simulation;
  * prior records remain in their original physics category;
  * v28: road motorcycle AI tracks the planner's narrowed wet racing line,
- * changing wet race trajectories while retaining the dry full-width path. */
-export const SIMULATION_VERSION = 28;
+ * changing wet race trajectories while retaining the dry full-width path.
+ * v29: GP slip follows the steered tyre crowns, suspension sweeps the axle
+ * arms through yaw, and GP braking and lane recovery share contact grip. */
+export const SIMULATION_VERSION = 29;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
