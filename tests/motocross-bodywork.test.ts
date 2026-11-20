@@ -126,6 +126,17 @@ describe('motocross neck brace', () => {
         if (y > 0.53 && Math.abs(p.getX(i)) > 0.03)
           inner = Math.min(inner, Math.hypot(p.getX(i), p.getZ(i) - 0.029));
       }
+      // The moulded rim was wound inward: the outside disappeared when
+      // back-face culling was active. Check its two shoulder extremities.
+      const normal = brace.getAttribute('normal');
+      for (const side of [-1, 1]) {
+        let tip = 0;
+        for (let i = 1; i < p.count; i++)
+          if (p.getX(i) * side > p.getX(tip) * side) tip = i;
+        expect(normal.getX(tip) * side).toBeGreaterThan(0.7);
+        expect(p.getY(tip)).toBeLessThan(0.52);
+      }
+      expect(brace.getAttribute('color').count).toBe(p.count);
       expect(inner).toBeGreaterThan(0.056);
     } finally {
       brace.dispose();

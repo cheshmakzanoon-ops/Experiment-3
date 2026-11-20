@@ -1,5 +1,4 @@
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js';
 import { canvasTexture } from '../geometry.ts';
 import type { RiderColours, RiderDetail } from '../rider.ts';
@@ -425,7 +424,7 @@ export const MX_PRINT_SCALE: Readonly<Record<RiderDetail, number>> = {
 /** Original race graphics authored for MOTObound. */
 export function motocrossGraphics(
   colours: RiderColours,
-  kind: 'number' | 'jersey' | 'sleeve' | 'helmet',
+  kind: 'number' | 'jersey' | 'sleeve' | 'pants' | 'helmet',
   number = 2,
   scale = 1,
 ) {
@@ -528,6 +527,118 @@ export function motocrossGraphics(
       c.fillStyle = accent;
       c.fillRect(166, 273, 180, 6);
       c.fillRect(674, 425, 188, 6);
+    } else if (kind === 'pants') {
+      // The garment runs from the boot cuff at the top of the atlas to the
+      // hip at the bottom. The heat shield is on the inboard face (-X in the
+      // left leg), while the outboard thigh carries the printed team panel.
+      c.fillStyle = '#373b3c';
+      c.fillRect(0, 0, 512, 512);
+      polygon(
+        [
+          [0, 0],
+          [512, 0],
+          [512, 109],
+          [377, 158],
+          [218, 162],
+          [72, 118],
+          [0, 103],
+        ],
+        '#272c2f',
+      );
+      for (const x of [0, 512]) {
+        const draw = (points: number[][], colour: string) =>
+          polygon(
+            points.map(([u, v]) => [x + u, v]),
+            colour,
+          );
+        draw(
+          [
+            [-115, 509],
+            [-107, 366],
+            [-77, 247],
+            [-52, 196],
+            [8, 206],
+            [84, 285],
+            [123, 488],
+            [118, 512],
+          ],
+          secondary,
+        );
+        draw(
+          [
+            [-96, 512],
+            [-88, 397],
+            [-46, 308],
+            [-38, 349],
+            [22, 421],
+            [75, 512],
+          ],
+          primary,
+        );
+        draw(
+          [
+            [-95, 365],
+            [-74, 299],
+            [-46, 252],
+            [-13, 239],
+            [31, 264],
+            [-18, 260],
+            [-55, 306],
+          ],
+          accent,
+        );
+        draw(
+          [
+            [-79, 307],
+            [-56, 250],
+            [-29, 225],
+            [5, 228],
+            [-31, 242],
+          ],
+          '#d5d3c7',
+        );
+      }
+      // Sewn leather protects the face of the knee that grips the shroud.
+      // Sparse twin-needle seams and the pleated kneecap survive mipmapping.
+      const shield = [
+        [192, 184],
+        [240, 164],
+        [291, 176],
+        [323, 220],
+        [311, 296],
+        [273, 339],
+        [213, 324],
+        [181, 272],
+      ];
+      polygon(shield, '#25292a');
+      c.lineJoin = 'round';
+      c.strokeStyle = '#696b63';
+      c.lineWidth = 2;
+      c.setLineDash([3, 3]);
+      c.stroke();
+      c.setLineDash([]);
+      for (let i = 0; i < 6; i++) {
+        const y = 166 + i * 9;
+        c.strokeStyle = i % 2 ? '#545855' : '#60635d';
+        c.lineWidth = 3;
+        c.beginPath();
+        c.moveTo(65, y - 10);
+        c.quadraticCurveTo(123, y + 12, 167, y - 3);
+        c.stroke();
+      }
+      polygon(
+        [
+          [0, 485],
+          [96, 474],
+          [199, 464],
+          [292, 466],
+          [403, 473],
+          [512, 485],
+          [512, 512],
+          [0, 512],
+        ],
+        '#2c3032',
+      );
     } else if (kind === 'helmet') {
       // The shell unwraps with the eye port at U=.25 and the back at U=.75.
       // Reflect each side around the port, repeating its outline across the seam.
@@ -908,52 +1019,91 @@ export function motocrossTread(
   axle: 'front' | 'rear' = 'rear',
   distant = false,
 ) {
-  const parts: T.BufferGeometry[] = [];
-  for (let k = 0; k < count; k++) {
-    const a = (k / count) * Math.PI * 2;
-    const rows =
-      k % 2 === 0 ? [0, -0.9, 0.9] : distant ? [-0.43, 0.43] : [-0.43, 0.43, -0.94, 0.94];
-    for (const row of rows) {
-      const shoulder = Math.abs(row) > 0.8;
-      // The narrow front has longitudinal steering blocks and clear channels.
-      // The rear exposes broader transverse driving faces with open shoulders.
-      // References 005/009/014 supply the visual distinction, not tyre tuning.
-      const front = axle === 'front';
+  // Every block in a row has the same manufactured shape. Form and normal
+  // that shape once, then rotate it directly into the wheel's final buffers.
+  // The tyre is one mesh at every level, including its angular distant lugs.
+  const rows = (offsets: number[]) =>
+    offsets.map((offset) => {
+      const shoulder = Math.abs(offset) > 0.8,
+        front = axle === 'front';
       const width = halfWidth * (shoulder ? 0.5 : front ? 0.46 : 0.74);
       const length = shoulder ? 0.026 : front ? 0.037 : 0.025;
-      // The distant camera still sees the gaps along the tyre silhouette.
-      // Angular blocks read there without the close range crown chamfers.
       const g = distant
         ? new T.BoxGeometry(width, height, length)
         : motocrossLug(width, height, length);
-      const p = g.getAttribute('position');
-      // Offset the leading/trailing edges into a shallow chevron. The existing
-      // closed chamfered topology is retained, without extra triangles.
-      for (let i = 0; i < p.count; i++)
-        p.setZ(
-          i,
-          p.getZ(i) + p.getX(i) * (shoulder ? Math.sign(row) * 0.26 : front ? 0.18 : -0.12),
-        );
-      g.rotateZ(shoulder ? -Math.sign(row) * 0.46 : row * 0.12);
+      const position = g.getAttribute('position');
+      const chevron = shoulder ? Math.sign(offset) * 0.26 : front ? 0.18 : -0.12;
+      for (let i = 0; i < position.count; i++)
+        position.setZ(i, position.getZ(i) + position.getX(i) * chevron);
+      g.rotateZ(shoulder ? -Math.sign(offset) * 0.46 : offset * 0.12);
       g.translate(
-        row * halfWidth * 0.84,
+        offset * halfWidth * 0.84,
         radius - height * 0.52 - (shoulder ? height * 0.27 : 0),
         0,
       );
-      // A rectangular lug's tangential corners otherwise exceed the tyre
-      // envelope slightly. Keep every vertex within the physical radius.
-      for (let i = 0; i < p.count; i++) {
-        const radial = Math.hypot(p.getY(i), p.getZ(i));
-        if (radial > radius)
-          p.setXYZ(i, p.getX(i), (p.getY(i) * radius) / radial, (p.getZ(i) * radius) / radial);
+      for (let i = 0; i < position.count; i++) {
+        const r = Math.hypot(position.getY(i), position.getZ(i));
+        if (r > radius)
+          position.setXYZ(
+            i,
+            position.getX(i),
+            (position.getY(i) * radius) / r,
+            (position.getZ(i) * radius) / r,
+          );
       }
       g.computeVertexNormals();
-      g.rotateX(a + (shoulder ? (Math.PI / count) * 0.28 : 0));
-      parts.push(g);
+      return {
+        geometry: g,
+        position,
+        normal: g.getAttribute('normal'),
+        uv: g.getAttribute('uv'),
+        phase: shoulder ? (Math.PI / count) * 0.28 : 0,
+      };
+    });
+  const even = rows([0, -0.9, 0.9]);
+  const odd = rows(distant ? [-0.43, 0.43] : [-0.43, 0.43, -0.94, 0.94]);
+  const rings = Math.max(0, Math.ceil(count));
+  const blocks = Math.ceil(rings / 2) * even.length + Math.floor(rings / 2) * odd.length;
+  const vertices = blocks * even[0].position.count;
+  const position = new Float32Array(vertices * 3),
+    normal = new Float32Array(vertices * 3),
+    uv = new Float32Array(vertices * 2);
+  const indices = distant
+    ? new (vertices > 65535 ? Uint32Array : Uint16Array)(blocks * even[0].geometry.index!.count)
+    : null;
+  let cursor = 0,
+    indexCursor = 0;
+  for (let k = 0; k < rings; k++) {
+    const angle = (k / count) * Math.PI * 2;
+    for (const row of k % 2 === 0 ? even : odd) {
+      const cos = Math.cos(angle + row.phase),
+        sin = Math.sin(angle + row.phase);
+      uv.set(row.uv.array, cursor * 2);
+      if (indices) {
+        const local = row.geometry.index!;
+        for (let i = 0; i < local.count; i++) indices[indexCursor++] = cursor + local.getX(i);
+      }
+      for (let i = 0; i < row.position.count; i++, cursor++) {
+        const at = cursor * 3,
+          y = row.position.getY(i),
+          z = row.position.getZ(i);
+        position[at] = row.position.getX(i);
+        position[at + 1] = cos * y - sin * z;
+        position[at + 2] = sin * y + cos * z;
+        const ny = row.normal.getY(i),
+          nz = row.normal.getZ(i);
+        normal[at] = row.normal.getX(i);
+        normal[at + 1] = cos * ny - sin * nz;
+        normal[at + 2] = sin * ny + cos * nz;
+      }
     }
   }
-  const result = mergeGeometries(parts, false)!;
-  for (const g of parts) g.dispose();
+  for (const row of [...even, ...odd]) row.geometry.dispose();
+  const result = new T.BufferGeometry();
+  result.setAttribute('position', new T.BufferAttribute(position, 3));
+  result.setAttribute('normal', new T.BufferAttribute(normal, 3));
+  result.setAttribute('uv', new T.BufferAttribute(uv, 2));
+  if (indices) result.setIndex(new T.BufferAttribute(indices, 1));
   return result;
 }
 
@@ -1000,6 +1150,5 @@ function motocrossLug(width: number, height: number, length: number) {
   indexed.setIndex(indices);
   const geometry = indexed.toNonIndexed();
   indexed.dispose();
-  geometry.computeVertexNormals();
   return geometry;
 }

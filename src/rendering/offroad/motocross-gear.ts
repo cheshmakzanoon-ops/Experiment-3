@@ -360,6 +360,7 @@ export function addMotocrossGarment(
   detail: RiderDetail,
   material: T.Material,
   shoulder?: T.Bone,
+  mirrorPant = false,
 ) {
   const bones = [new T.Bone(), new T.Bone()];
   proximal.add(bones[0]);
@@ -384,6 +385,12 @@ export function addMotocrossGarment(
     distal,
     elbow,
   );
+  if (kind === 'pants' && mirrorPant) {
+    // Reflect around the forward meridian. RepeatWrapping keeps the inside
+    // heat shield continuous through the seam on the opposite knee.
+    const uv = mesh.geometry.getAttribute('uv');
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 1.5 - uv.getX(i));
+  }
   mesh.name = `Motocross continuous ${kind}`;
   mesh.bind(skeleton, new T.Matrix4());
   // An envelope of the entire local riding/recovery rig avoids stale automatic
@@ -395,80 +402,146 @@ export function addMotocrossGarment(
   return mesh;
 }
 
-// Neck-centred assembly uses the same 150 mm shell offset as the road rig, but
-// an MX shell has its own projected chin, lower cheek rail and taller eye port.
-// Columns are [height, half-width, forward extent, rearward extent], in metres.
-/** Neck brace in torso coordinates (pelvis origin, spine +Y, chest +Z): a
- * flattened ring that rests on the shoulders under the helmet rim, lower at
- * the sternum than at the nape, with the sternum pad and the thoracic strut
- * that carry a helmet load into the chest and back. One closed, indexed
- * moulding; the spine binding makes it follow the upper chest. */
+// Torso coordinates use the pelvis as origin, +Y along the spine and +Z forward.
 export function motocrossNeckBrace(detail: RiderDetail) {
-  const around = detail === 'high' ? 40 : detail === 'mid' ? 24 : 12,
-    section = detail === 'high' ? 10 : detail === 'mid' ? 8 : 6,
-    positions: number[] = [],
-    indices: number[] = [];
-  for (let i = 0; i <= around; i++) {
-    const a = (i / around) * Math.PI * 2,
-      front = Math.sin(a),
-      // Wider over the collar bones, deeper table behind the helmet.
-      // Seated on the trapezius and collar bones: low and wide, its rim
-      // a finger's width under the helmet's lower edge.
-      cx = Math.cos(a) * 0.118,
-      cz = 0.024 + front * (front > 0 ? 0.104 : 0.094),
-      cy = 0.534 - front * 0.014,
-      radial = 0.028 + 0.008 * Math.max(0, -front),
-      tall = 0.0145;
-    for (let j = 0; j <= section; j++) {
-      const b = (j / section) * Math.PI * 2,
-        out = Math.sign(Math.cos(b)) * Math.abs(Math.cos(b)) ** 0.7 * radial,
-        up = Math.sign(Math.sin(b)) * Math.abs(Math.sin(b)) ** 0.7 * tall;
-      positions.push(cx * (1 + out / 0.118), cy + up, 0.024 + (cz - 0.024) * (1 + out / 0.1));
-      if (i < around && j < section) {
-        const p = i * (section + 1) + j,
-          q = p + section + 1;
-        indices.push(p, q, p + 1, p + 1, q, q + 1);
-      }
+  const around = detail === 'high' ? 40 : detail === 'mid' ? 24 : 12;
+  const position: number[] = [],
+    color: number[] = [],
+    index: number[] = [];
+  const graphite = new T.Color(0x33383a),
+    rubber = new T.Color(0x202325),
+    edge = new T.Color(0x555b59),
+    fastener = new T.Color(0x969d98);
+  const vertex = (x: number, y: number, z: number, tone: T.Color) => {
+    position.push(x, y, z);
+    color.push(tone.r, tone.g, tone.b);
+    return position.length / 3 - 1;
+  };
+  // From the outside up over the helmet shelf and back underneath the foam.
+  // The broad rear stop rises toward the helmet. Side pads sit down over the
+  // trapezius, so the yoke follows the actual sloping shoulder of the jersey.
+  const section = [
+    [1, 0, graphite],
+    [0.93, 0.65, edge],
+    [0.65, 1, graphite],
+    [-0.72, 0.79, graphite],
+    [-1, 0.26, rubber],
+    [-0.88, -0.56, rubber],
+    [-0.54, -1, rubber],
+    [0.6, -0.86, rubber],
+    [0.99, -0.46, graphite],
+  ] as const;
+  for (let i = 0; i < around; i++) {
+    const angle = (i * Math.PI * 2) / around,
+      x = Math.cos(angle),
+      z = Math.sin(angle);
+    const rear = Math.max(0, -z),
+      nose = Math.max(0, z);
+    const width = 0.022 + rear * rear * 0.009;
+    const y = 0.505 + 0.028 * rear ** 2 + 0.004 * nose ** 2;
+    const depth = z > 0 ? 0.084 : 0.09;
+    for (const [out, up, tone] of section) {
+      const thickness =
+        up > 0 ? 0.01 + 0.006 * rear : 0.011 + 0.022 * rear ** 2 + 0.008 * nose ** 2;
+      vertex(
+        x * (0.113 + out * width),
+        y + up * thickness,
+        0.024 + z * (depth + out * width),
+        tone,
+      );
     }
   }
-  const ring = new T.BufferGeometry();
-  ring.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
-  ring.setIndex(indices);
-  ring.computeVertexNormals();
-  const strut = (width: number, y0: number, z0: number, y1: number, z1: number) => {
-    const length = Math.hypot(y1 - y0, z1 - z0),
-      g: T.BufferGeometry =
-        detail === 'high'
-          ? new RoundedBoxGeometry(width, length, 0.016, 2, 0.006)
-          : new T.BoxGeometry(width, length, 0.016);
-    g.rotateX(Math.atan2(z1 - z0, y1 - y0));
-    g.translate(0, (y0 + y1) / 2, (z0 + z1) / 2);
-    return g.index ? g.toNonIndexed() : g;
+  for (let i = 0; i < around; i++)
+    for (let j = 0; j < section.length; j++) {
+      const next = (i + 1) % around,
+        up = (j + 1) % section.length;
+      const p = i * section.length + j,
+        q = next * section.length + j;
+      index.push(
+        p,
+        i * section.length + up,
+        q,
+        i * section.length + up,
+        next * section.length + up,
+        q,
+      );
+    }
+
+  // Tapered, slightly crowned load pads follow the breastbone and the back
+  // protector. A pair of shorter overmoulded tabs closes each side of the yoke.
+  type PadSection = readonly [number, number, number, number, T.Color];
+  const pad = (x: number, side: number, sections: PadSection[]) => {
+    const first = position.length / 3,
+      sides = detail === 'high' ? 10 : detail === 'mid' ? 6 : 5;
+    if (detail === 'far') sections = [sections[0], sections[2], sections[sections.length - 1]];
+    const face = (a: number, b: number, c: number) =>
+      side > 0 ? index.push(a, b, c) : index.push(a, c, b);
+    for (const [y, z, halfWidth, thick, tone] of sections) {
+      for (let j = 0; j < sides; j++) {
+        const angle = (j / sides) * Math.PI * 2,
+          u = Math.cos(angle),
+          v = Math.sin(angle);
+        vertex(
+          x + Math.sign(u) * Math.abs(u) ** 0.67 * halfWidth,
+          y,
+          z + side * Math.sign(v) * Math.abs(v) ** 0.54 * thick,
+          tone,
+        );
+      }
+    }
+    for (let i = 1; i < sections.length; i++)
+      for (let j = 0; j < sides; j++) {
+        const a = first + (i - 1) * sides + j,
+          b = first + (i - 1) * sides + ((j + 1) % sides);
+        face(a, a + sides, b);
+        face(a + sides, b + sides, b);
+      }
+    for (const end of [0, sections.length - 1]) {
+      const [y, z, , , tone] = sections[end],
+        centre = vertex(x, y, z, tone);
+      for (let j = 0; j < sides; j++) {
+        const a = first + end * sides + j,
+          b = first + end * sides + ((j + 1) % sides);
+        if (end === 0) face(centre, a, b);
+        else face(centre, b, a);
+      }
+    }
   };
-  // Broad, flat chest and back pads lying on the jersey, not posts.
-  const sternum = strut(0.074, 0.522, 0.13, 0.44, 0.15),
-    thoracic = strut(0.062, 0.546, -0.083, 0.41, -0.118),
-    flat = ring.toNonIndexed(),
-    merged = new T.BufferGeometry(),
-    all = [flat, sternum, thoracic],
-    count = all.reduce((n, g) => n + g.getAttribute('position').count, 0),
-    position = new Float32Array(count * 3),
-    normal = new Float32Array(count * 3);
-  let offset = 0;
-  for (const g of all) {
-    position.set(g.getAttribute('position').array, offset * 3);
-    normal.set(g.getAttribute('normal').array, offset * 3);
-    offset += g.getAttribute('position').count;
-    g.dispose();
-  }
-  ring.dispose();
-  merged.setAttribute('position', new T.BufferAttribute(position, 3));
-  merged.setAttribute('normal', new T.BufferAttribute(normal, 3));
-  merged.computeBoundingBox();
-  merged.computeBoundingSphere();
-  return merged;
+  pad(0, 1, [
+    [0.432, 0.143, 0.028, 0.005, rubber],
+    [0.441, 0.142, 0.048, 0.009, graphite],
+    [0.462, 0.135, 0.045, 0.009, graphite],
+    [0.499, 0.115, 0.024, 0.008, rubber],
+    [0.512, 0.11, 0.035, 0.008, graphite],
+  ]);
+  pad(0, -1, [
+    [0.405, -0.094, 0.028, 0.005, rubber],
+    [0.419, -0.094, 0.048, 0.01, graphite],
+    [0.451, -0.084, 0.043, 0.009, graphite],
+    [0.504, -0.069, 0.023, 0.008, rubber],
+    [0.533, -0.074, 0.047, 0.009, graphite],
+  ]);
+  if (detail !== 'far')
+    for (const side of [-1, 1]) {
+      pad(side * 0.109, 1, [
+        [0.493, 0.045, 0.011, 0.004, rubber],
+        [0.5, 0.048, 0.016, 0.006, graphite],
+        [0.506, 0.05, 0.014, 0.006, fastener],
+        [0.514, 0.049, 0.013, 0.005, graphite],
+      ]);
+    }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  geometry.setAttribute('color', new T.Float32BufferAttribute(color, 3));
+  geometry.setIndex(index);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
+// Neck-centred helmet assembly uses the same 150 mm shell offset as the road rig.
+// Columns are [height, half-width, forward extent, rearward extent], in metres.
 const MX_HELMET_PROFILE = [
   [-0.15, 0.046, 0.168, 0.056],
   [-0.127, 0.066, 0.232, 0.072],
@@ -764,18 +837,11 @@ export function addMotocrossHelmet(
   ).name = 'Motocross recessed eye-port liner';
   part(head, motocrossEyePortReturn(detail), trim, 0, 0.15, 0.02).name =
     'Motocross eye-port shell return';
-  if (detail === 'far') {
-    // Preserve the two defining off-road helmet features at distance without
-    // retaining the close curved gasket, vents and fasteners.
-    part(head, new T.BoxGeometry(0.198, 0.067, 0.024), trim, 0, 0.167, 0.186);
-    part(head, new T.PlaneGeometry(0.17, 0.046), lens, 0, 0.171, 0.199);
-    return;
-  }
   const positions: number[] = [],
     uv: number[] = [],
     indices: number[] = [],
-    columns = detail === 'high' ? 24 : 12,
-    rows = 5;
+    columns = detail === 'high' ? 24 : detail === 'mid' ? 14 : 8,
+    rows = detail === 'far' ? 2 : 5;
   for (let j = 0; j <= rows; j++)
     for (let i = 0; i <= columns; i++) {
       const p = gogglePoint(i / columns, j / rows);
@@ -795,12 +861,38 @@ export function addMotocrossHelmet(
   part(head, lensGeometry, lens).name = 'Motocross curved goggle lens';
   const outline: T.Vector3[] = [];
   for (const edge of [1, 0])
-    for (let i = 0; i <= 24; i++) outline.push(gogglePoint(edge ? i / 24 : 1 - i / 24, edge));
+    for (let i = 0; i <= columns; i++)
+      outline.push(gogglePoint(edge ? i / columns : 1 - i / columns, edge));
+  const rimSegments = detail === 'high' ? 60 : detail === 'mid' ? 42 : 22;
   part(
     head,
-    new T.TubeGeometry(new T.CatmullRomCurve3(outline, true), 60, 0.008, 6, true),
+    new T.TubeGeometry(
+      new T.CatmullRomCurve3(outline, true),
+      rimSegments,
+      0.008,
+      detail === 'far' ? 4 : 6,
+      true,
+    ),
     trim,
   ).name = 'Motocross goggle foam gasket';
+  const strap = part(
+    head,
+    motocrossHelmetPatch(
+      0.002,
+      0.034,
+      Math.PI - 0.11,
+      Math.PI * 2 + 0.11,
+      0.006,
+      detail === 'far' ? 1 : 2,
+      detail === 'far' ? 12 : 32,
+    ),
+    strapMaterial,
+    0,
+    0.15,
+    0.02,
+  );
+  strap.name = 'Motocross woven goggle strap';
+  if (detail === 'far') return;
   const rim = part(
     head,
     new T.TubeGeometry(
@@ -808,7 +900,7 @@ export function addMotocrossHelmet(
         outline.map((p) => p.clone().add(new T.Vector3(0, 0, 0.003))),
         true,
       ),
-      60,
+      rimSegments,
       0.0034,
       5,
       true,
@@ -816,15 +908,28 @@ export function addMotocrossHelmet(
     accent,
   );
   rim.name = 'Motocross goggle frame';
-  const strap = part(
-    head,
-    motocrossHelmetPatch(0.002, 0.034, Math.PI - 0.11, Math.PI * 2 + 0.11, 0.006, 2, 32),
-    strapMaterial,
-    0,
-    0.15,
-    0.02,
-  );
-  strap.name = 'Motocross woven goggle strap';
+  if (detail === 'high') {
+    // Tear-off film locates on two small posts that follow the lens normal
+    // as it wraps around each temple. The film uses the existing optical coat.
+    for (const u of [0.12, 0.88]) {
+      const p = gogglePoint(u, 0.51);
+      const normal = gogglePoint(u + 0.001, 0.51)
+        .sub(p)
+        .cross(gogglePoint(u, 0.511).sub(p))
+        .normalize();
+      p.addScaledVector(normal, 0.0024);
+      const peg = part(
+        head,
+        new T.CylinderGeometry(0.0046, 0.0027, 0.0045, 8),
+        trim,
+        p.x,
+        p.y,
+        p.z,
+      );
+      peg.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), normal);
+      peg.name = 'Motocross goggle tear-off post';
+    }
+  }
   const vent = part(
     head,
     motocrossHelmetPatch(-0.13, -0.076, 1.05, Math.PI - 1.05, 0.002),

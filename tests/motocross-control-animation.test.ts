@@ -459,7 +459,7 @@ it('loads only the requested motocross rig, reuses it across camera cuts and rel
   }
 });
 
-it('sizes distant number graphics and sleeves for the model selected by the camera', () => {
+it('sizes race graphics by distance and puts each knee heat shield on the inboard face', () => {
   const materials = new BikeMaterials(0);
   try {
     for (const [detail, size] of [
@@ -480,6 +480,16 @@ it('sizes distant number graphics and sleeves for the model selected by the came
         });
         expect(maps.get('Motocross original number graphics 2')).toBe(size);
         expect(maps.get('Motocross original sleeve graphics 2')).toBe(size);
+        expect(maps.get('Motocross original pants graphics 2')).toBe(size / 2);
+        const left = bike.root.getObjectByName('Motocross continuous left pants') as T.SkinnedMesh;
+        const right = bike.root.getObjectByName('Motocross continuous right pants') as T.SkinnedMesh;
+        expect(left.material).toBe(right.material);
+        expect((left.material as T.MeshStandardMaterial).map?.wrapS).toBe(T.RepeatWrapping);
+        const a = left.geometry.getAttribute('uv'), b = right.geometry.getAttribute('uv');
+        for (let i = 0; i < a.count; i += 7) {
+          expect(a.getX(i) + b.getX(i)).toBeCloseTo(1.5, 5);
+          expect(a.getY(i)).toBeCloseTo(b.getY(i), 5);
+        }
       } finally {
         bike.dispose();
       }

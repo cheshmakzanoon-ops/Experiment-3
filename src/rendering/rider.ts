@@ -658,7 +658,7 @@ export class Rider {
           name: 'Motocross flexible glove textile',
         })
       : null;
-    // Polished alloy buckles and a moulded neck brace in the kit colour.
+    // Hard alloy buckles and a graphite load yoke over a softer foam lining.
     const mxBuckle = mx
       ? new T.MeshStandardMaterial({
           color: 0xc9cdd1,
@@ -669,10 +669,10 @@ export class Rider {
       : null;
     const mxBrace = mx
       ? new T.MeshPhysicalMaterial({
-          color: colours.primary,
-          roughness: 0.42,
-          clearcoat: 0.45,
-          clearcoatRoughness: 0.25,
+          vertexColors: true,
+          roughness: 0.62,
+          clearcoat: 0.17,
+          clearcoatRoughness: 0.47,
           name: 'Motocross moulded neck brace',
         })
       : null;
@@ -747,7 +747,8 @@ export class Rider {
       }
       installMotocrossFabricFinish(torsoLeather, 'jersey');
       installMotocrossFabricFinish(leather, 'limb');
-      leather.map = panel.map = sleeve;
+      leather.map = sleeve;
+      installMotocrossFabricFinish(panel, 'limb');
       Object.assign(mxGloveBack!, weave);
       mxGloveBack!.normalScale.set(0.18, 0.18);
       Object.assign(glove, bikeSurfaceMaps('seat'));
@@ -762,6 +763,9 @@ export class Rider {
       const printScale = MX_PRINT_SCALE[detail];
       torsoLeather.color.setHex(0xffffff);
       torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber, printScale);
+      panel.color.setHex(0xffffff);
+      panel.map = motocrossGraphics(colours, 'pants', raceNumber, printScale * 0.5);
+      panel.map.wrapS = T.RepeatWrapping;
       helmet.color.setHex(0xffffff);
       helmet.map = motocrossGraphics(colours, 'helmet', raceNumber, printScale);
       if (detail === 'far') {
@@ -834,21 +838,25 @@ export class Rider {
     torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
     this.motocrossSpine?.bind(torsoMesh);
     if (mx) {
-      part(this.torso, motocrossGarmentGeometry('seat', detail), leather).name =
+      part(this.torso, motocrossGarmentGeometry('seat', detail), flex).name =
         'Motocross separate trouser waist';
-      // An athlete's neck under the helmet: thick enough that the helmet
-      // does not sit on a stalk; the brace hides its base.
-      // Rib-knit neck roll in the jersey colour: the collar runs up under the
-      // brace and helmet rim instead of showing a bare dark column.
+      // The wicking liner flares into the clavicles and narrows below the
+      // jaw. The darker knit is visible between the shell and the stiff yoke.
       const neckRoll = new T.MeshStandardMaterial({
-        color: colours.primary,
-        roughness: 0.88,
+        color: new T.Color(0x303539).lerp(new T.Color(colours.primary), 0.09),
+        roughness: 0.9,
         name: 'Motocross jersey neck roll',
+        normalMap: torsoLeather.normalMap,
+        roughnessMap: torsoLeather.roughnessMap,
+        normalScale: new T.Vector2(0.13, 0.13),
       });
-      if (detail !== 'far') Object.assign(neckRoll, motocrossFabricMaps());
       this.materials.push(neckRoll);
-      // Tall enough to run up inside the helmet's lower rim at any gaze.
-      const neck = part(this.torso, new T.CylinderGeometry(0.049, 0.057, 0.092, sides), neckRoll);
+      const neck = part(this.torso, bodyLoft([
+        [-0.053, -0.002, 0.066, 0.051, 0.053],
+        [-0.033, -0.001, 0.058, 0.048, 0.051],
+        [0.003, 0.002, 0.048, 0.043, 0.050],
+        [0.050, 0.006, 0.051, 0.046, 0.048],
+      ], detail === 'high' ? 16 : detail === 'mid' ? 12 : 8, 1), neckRoll);
       neck.name = 'Motocross neck liner above textile collar';
       neck.position.set(0, 0.565, 0.029);
       this.motocrossSpine!.bind(neck);
@@ -1097,8 +1105,9 @@ export class Rider {
               lower.length,
               kind,
               detail,
-              leather,
+              kind === 'pants' ? panel : leather,
               shoulder,
+              i === 1,
             );
             garment.name = `Motocross continuous ${label} ${kind}`;
             this.motocrossGarments.push(garment);
