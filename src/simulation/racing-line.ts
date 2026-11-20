@@ -1,6 +1,16 @@
 import { clamp, mod } from '../core/math.ts';
 import { trackPoint, type Track } from './track.ts';
 
+/** Preserve the lap wrap's second rounding, including the last representable
+ * station at the seam. Most AI samples are already inside this lap. */
+export function lapStation(station: number, length: number): number {
+  if (station >= 0 && station < length) {
+    const rounded = station + length - length;
+    return rounded < length ? rounded : rounded % length;
+  }
+  return mod(station, length);
+}
+
 /** Racing line solver settings. */
 export const RACING_LINE = Object.freeze({
   /** Metres between line samples. */
@@ -106,10 +116,12 @@ export class RacingLine {
     if (key) solved.set(key, { offsets: this.offsets, curvature: this.curvature });
   }
   private interpolate(values: Float32Array, s: number) {
-    const u = mod(s, this.track.length) / this.step;
-    const i = Math.floor(u) % this.count,
-      f = u - Math.floor(u);
-    return values[i] + (values[(i + 1) % this.count] - values[i]) * f;
+    const u = lapStation(s, this.track.length) / this.step;
+    const floor = Math.floor(u),
+      i = floor === this.count ? 0 : floor,
+      f = u - floor;
+    const next = i + 1 === this.count ? 0 : i + 1;
+    return values[i] + (values[next] - values[i]) * f;
   }
   /** Lateral offset of the line at distance `s`. */
   offsetAt(s: number) {

@@ -1,4 +1,4 @@
-import { racingLineFor } from './racing-line.ts';
+import { lapStation, racingLineFor } from './racing-line.ts';
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { surfaceDrainageRate } from './surface-drainage.ts';
 import { surfaceMaterial } from './surface-material.ts';
@@ -26,7 +26,8 @@ import { SURFACE_THERMAL, type SurfaceWeather } from './surface-thermal.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
-import { MotocrossLaneIndex } from './offroad/motocross-lane-index.ts';
+import { TrackLaneIndex } from './track-lane-index.ts';
+import { isGpCourse } from './gp-corner-shape.ts';
 export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -91,6 +92,16 @@ export const trackPoint = (): TrackPoint => ({
   bank: 0,
   gradient: 0,
 });
+/** A fixed ribbon point has a fixed nearest station on the same road deck.
+ * Weather and surface classification are still evaluated on each sample. */
+export class RoadSurfaceProjection {
+  owner?: Track;
+  x = NaN;
+  z = NaN;
+  y: number | undefined;
+  lateral = 0;
+  readonly point = trackPoint();
+}
 export const surfaceSample = (): SurfaceSample => ({
   s: 0,
   width: 8,
@@ -131,7 +142,9 @@ export class Track {
   readonly substrateTemperature = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly drainage = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly hash = new Map<string, number[]>();
-  private readonly motocrossLanes: MotocrossLaneIndex | null;
+  /** Start segment for each equal-distance bin of the authored ribbon. */
+  private readonly stationIntervals: Uint32Array;
+  private readonly laneIndex: TrackLaneIndex | null;
   readonly length: number;
   /** Venue pit lane/grid data (WP10). */
   readonly pit: PitLaneDefinition;
@@ -152,14 +165,16 @@ export class Track {
   static offroadOf(track: Track): OffroadSurface | null {
     return #offroad in track ? track.#offroad : null;
   }
-  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+  /** The suspension's predicted stroke reads only the height. On the paved
+   * ribbon that query can skip classifying material and weather at the hit. */
+  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample, heightOnly = false) {
     if (this.#offroad) return this.#offroad.cast(origin, down, maximum, out);
     // Long laps keep the standard ~0.9 m row spacing of the contact ribbon.
     this.contactMesh ??= new TrackContactMesh(
       this,
       this.circuit.samples ? Math.max(8192, Math.ceil(this.length / 0.9)) : undefined,
     );
-    return this.contactMesh.cast(origin, down, maximum, out);
+    return this.contactMesh.cast(origin, down, maximum, out, heightOnly);
   }
   /** Tire-support query in wheel-centre distance. Custom analytic cast
    * overrides and deformable terrain retain their authoritative geometry;
@@ -213,8 +228,9 @@ export class Track {
   ) {
     const DESIGN = circuit.design;
     const kind = circuit.offroad?.kind;
-    this.motocrossLanes =
-      kind === 'motocross' || kind === 'supercross' ? new MotocrossLaneIndex(this.points) : null;
+    if (kind === 'motocross' || kind === 'supercross')
+      this.laneIndex = new TrackLaneIndex(this.points);
+    else this.laneIndex = isGpCourse(this) ? new TrackLaneIndex(this.points, 2048) : null;
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
@@ -295,6 +311,13 @@ export class Track {
       }
     }
     Object.assign(this.points[count], this.points[0], { s: this.length });
+    this.stationIntervals = new Uint32Array(count);
+    let segment = 0;
+    for (let bin = 0; bin < count; bin++) {
+      const station = (bin * this.length) / count;
+      while (segment + 1 < count && this.points[segment + 1].s <= station) segment++;
+      this.stationIntervals[bin] = segment;
+    }
     const drainagePoint = trackPoint();
     for (let row = 0; row < CELL_ROWS; row++) {
       const s = ((row + 0.5) / CELL_ROWS) * this.length;
@@ -335,30 +358,32 @@ export class Track {
       // The dust storm has been blowing before the lights: the open tarmac
       // already carries most of its settled film (less on the rubbered line).
       if (this.dust > 0 && !this.sheltered[row])
-        this.marbles[i] =
-          0.8 * dustSettlingTarget(this.dust, this.visibility, this.rubber[i]);
+        this.marbles[i] = 0.8 * dustSettlingTarget(this.dust, this.visibility, this.rubber[i]);
       // Settled snow: worn thin on the rubbered racing line, where earlier
       // traffic scoured and compacted it into dark, polished wheel tracks
       // (the glaze share reads the same rubber), a full white cover beside it.
       if (start.frozenMm && !this.sheltered[row])
-        this.frozen[i] =
-          start.frozenMm - 1.15 * clamp(this.rubber[i] / FROST.polishRubber, 0, 1);
+        this.frozen[i] = start.frozenMm - 1.15 * clamp(this.rubber[i] / FROST.polishRubber, 0, 1);
     }
     this.#offroad = circuit.offroad?.createSurface(this) ?? null;
   }
-  at(s: number, out: TrackPoint): TrackPoint {
-    s = mod(s, this.length);
-    let lo = 0,
-      hi = this.points.length - 1;
-    while (hi - lo > 1) {
-      const mid = (lo + hi) >> 1;
-      if (this.points[mid].s <= s) lo = mid;
-      else hi = mid;
-    }
+  /** Brake profiles need only gradient and curvature. Both forms use the same
+   * exact authored segment and interpolation, including at the lap seam. */
+  at(s: number, out: TrackPoint, profileOnly = false): TrackPoint {
+    s = lapStation(s, this.length);
+    const last = this.points.length - 1;
+    const bin = Math.min(last - 1, Math.floor((s / this.length) * last));
+    let lo = this.stationIntervals[bin] ?? 0;
+    // Resolve the exact bracket, including the floating boundary of a bin.
+    while (lo > 0 && this.points[lo].s > s) lo--;
+    while (lo + 1 < last && this.points[lo + 1].s <= s) lo++;
     const a = this.points[lo],
-      b = this.points[hi],
+      b = this.points[lo + 1],
       t = (s - a.s) / (b.s - a.s || 1);
     out.s = s;
+    out.gradient = lerp(a.gradient, b.gradient, t);
+    out.curvature = lerp(a.curvature, b.curvature, t);
+    if (profileOnly) return out;
     out.x = lerp(a.x, b.x, t);
     out.y = lerp(a.y, b.y, t);
     out.z = lerp(a.z, b.z, t);
@@ -371,8 +396,6 @@ export class Track {
     out.nz = -out.tx;
     out.width = lerp(a.width, b.width, t);
     out.bank = lerp(a.bank, b.bank, t);
-    out.gradient = lerp(a.gradient, b.gradient, t);
-    out.curvature = lerp(a.curvature, b.curvature, t);
     return out;
   }
   /** Nearest centreline station. With a height `y` (WP11 / F05) a segment
@@ -383,7 +406,9 @@ export class Track {
   nearest(x: number, z: number, out: TrackPoint, y?: number): number {
     const coarse = this.hash.get(`${Math.floor(x / 32)},${Math.floor(z / 32)}`);
     const candidates =
-      coarse && this.motocrossLanes ? this.motocrossLanes.candidates(x, z, coarse) : coarse;
+      coarse && this.laneIndex
+        ? this.laneIndex.candidates(x, z, coarse, this.#offroad ? undefined : y, ROUTE_LAYER_GAP)
+        : coarse;
     let best = Infinity,
       bestS = 0,
       other = Infinity,
@@ -497,11 +522,32 @@ export class Track {
     const offset = this.pitOffset(s);
     return this.isPitSection(s) && Math.abs(offset) > 3 && Math.abs(l - offset) < 3.6;
   }
-  sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
+  sample(
+    x: number,
+    z: number,
+    out: SurfaceSample,
+    y?: number,
+    projection?: RoadSurfaceProjection,
+  ): SurfaceSample {
     out.paintCoverage = undefined;
-    const p = this.queryPoint,
-      l = this.nearest(x, z, p, y),
-      a = Math.abs(l),
+    const p = projection?.point ?? this.queryPoint;
+    let l: number;
+    if (projection) {
+      if (
+        projection.owner !== this ||
+        projection.x !== x ||
+        projection.z !== z ||
+        projection.y !== y
+      ) {
+        projection.lateral = this.nearest(x, z, p, y);
+        projection.owner = this;
+        projection.x = x;
+        projection.z = z;
+        projection.y = y;
+      }
+      l = projection.lateral;
+    } else l = this.nearest(x, z, p, y);
+    const a = Math.abs(l),
       pit = this.inPitLane(p.s, l);
     let surface: number = SURFACE.ASPHALT,
       grip = 1,
@@ -692,7 +738,7 @@ export class Track {
   }
   meanWater() {
     let total = 0;
-    for (const w of this.water) total += w;
+    for (let i = 0; i < this.water.length; i++) total += this.water[i];
     return total / this.water.length;
   }
   /** Mean snow / ice cover over the road cells (mm water equivalent). */

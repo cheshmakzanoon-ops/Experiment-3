@@ -3,6 +3,7 @@ import { Vec3 } from '../src/core/math.ts';
 import { TriangleBVH, rayHit } from '../src/simulation/bvh.ts';
 import { circuitDefinition } from '../src/simulation/circuits.ts';
 import { TrackContactMesh } from '../src/simulation/contact.ts';
+import { TrackLaneIndex } from '../src/simulation/track-lane-index.ts';
 import { FIGURE_EIGHT_OVERPASS } from '../src/simulation/test-venues.ts';
 import { TireFootprint } from '../src/simulation/tire-footprint.ts';
 import { SURFACE, Track, surfaceSample, trackPoint } from '../src/simulation/track.ts';
@@ -229,4 +230,24 @@ describe('real stacked road contact remains geometric', () => {
     expect(mesh.cast(new Vec3(0, 10, 0), DOWN, 12, surface)).toBeCloseTo(1, 2);
     expect(surface.height).toBeGreaterThan(8.9);
   });
+});
+
+it('narrows GP centreline searches only when a nearby segment is on the queried road layer', () => {
+  const p = [
+    { x: 0, y: 0, z: 0 },
+    { x: 4, y: 0, z: 0 },
+    { x: 20, y: 8, z: 0 },
+    { x: 24, y: 8, z: 0 },
+  ].map((v) => ({ ...trackPoint(), ...v }));
+  const coarse = [0, 2];
+  const index = new TrackLaneIndex(p, 2);
+  expect(index.candidates(1, 0, coarse, 0, 4)).toEqual([0]);
+  expect(index.candidates(1, 0, coarse, 7.8, 4)).toBe(coarse);
+  expect(index.candidates(1, 0, coarse, 4, 4)).toBe(coarse);
+  expect(index.candidates(23, 0, coarse, 8, 4)).toEqual([2]);
+  expect(index.candidates(23, 0, coarse, 0, 4)).toBe(coarse);
+  p[1].y = 6;
+  expect(index.candidates(1, 0, coarse, 0, 4)).toBe(coarse);
+  for (const x of [-40, 44, 84]) index.candidates(x, 0, coarse);
+  expect(index.candidates(1, 0, coarse, 7.8, 4)).toBe(coarse);
 });

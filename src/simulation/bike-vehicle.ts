@@ -561,16 +561,18 @@ export class BikeVehicle extends Vehicle {
         nextX + nextSh * s.cgToFront,
         nextZ + nextCh * s.cgToFront,
         this.nextFrontSurface,
+        true,
       );
       this.roadSurface(
         track,
         nextX - nextSh * s.cgToRear,
         nextZ - nextCh * s.cgToRear,
         this.nextRearSurface,
+        true,
       );
     } else {
-      this.roadSurface(track, frontX + vx * dt, frontZ + vz * dt, this.nextFrontSurface);
-      this.roadSurface(track, rearX + vx * dt, rearZ + vz * dt, this.nextRearSurface);
+      this.roadSurface(track, frontX + vx * dt, frontZ + vz * dt, this.nextFrontSurface, true);
+      this.roadSurface(track, rearX + vx * dt, rearZ + vz * dt, this.nextRearSurface, true);
     }
     const roll = chassisLean(d.lean, s),
       rideHeight = s.crownRadius + (s.cgHeight - s.crownRadius) * Math.cos(roll),
@@ -664,9 +666,9 @@ export class BikeVehicle extends Vehicle {
    * A short vertical cast around the current road layer cannot latch onto
    * an overhead bridge. Beyond the finite ribbon, retain the venue's
    * analytic surface and its existing layer hint. */
-  private roadSurface(track: Track, x: number, z: number, out: SurfaceSample) {
+  private roadSurface(track: Track, x: number, z: number, out: SurfaceSample, heightOnly = false) {
     this.roadRayOrigin.set(x, this.groundY + 1, z);
-    if (!Number.isFinite(track.cast(this.roadRayOrigin, this.roadRayDown, 2, out)))
+    if (!Number.isFinite(track.cast(this.roadRayOrigin, this.roadRayDown, 2, out, heightOnly)))
       track.sample(x, z, out, this.groundY);
   }
   /** Strong or gusting wind (weather.ts CROSSWIND; zero in the mild-breeze

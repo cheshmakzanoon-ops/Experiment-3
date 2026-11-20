@@ -15,11 +15,21 @@ on:
       - 'src/rendering/road-wheel-exposure.ts'
       - 'src/rendering/far-shadow.ts'
       - 'src/rendering/mirrors.ts'
+      - 'src/rendering/reflections.ts'
+      - 'src/rendering/circuit.ts'
       - 'src/rendering/venue-kit/gp-*'
       - 'src/rendering/venue-kit/barriers.ts'
       - 'src/rendering/venue-kit/structures.ts'
       - 'src/simulation/bike*'
+      - 'src/simulation/ai.ts'
       - 'src/simulation/gp-*'
+      - 'src/simulation/motogp-physics.ts'
+      - 'src/simulation/tyre-force.ts'
+      - 'src/simulation/bvh.ts'
+      - 'src/simulation/contact.ts'
+      - 'src/simulation/track.ts'
+      - 'src/simulation/racing-line.ts'
+      - 'src/simulation/track-lane-index.ts'
       - 'src/storage/replay-pages.ts'
       - 'src/core/session-identity.ts'
       - 'src/rendering/live-frame-clock.ts'
@@ -47,6 +57,14 @@ on:
       - 'e2e/gpu-context-reuse.spec.ts'
       - 'e2e/fixtures/webgl-renderer-reuse.ts'
       - 'tests/gp-*'
+      - 'tests/motogp-physics.test.ts'
+      - 'tests/road-rider-approach.test.ts'
+      - 'tests/contact.test.ts'
+      - 'tests/road-contact-ownership.test.ts'
+      - 'tests/motocross-lane-index.test.ts'
+      - 'tests/tyre-model.test.ts'
+      - 'scripts/gp-contact-replay.ts'
+      - 'tests/tire-footprint.test.ts'
       - 'tests/road-bike-host.test.ts'
       - 'tests/road-motorcycle-art.test.ts'
       - 'tests/road-wheel-exposure.test.ts'
@@ -122,6 +140,13 @@ jobs:
           src/rendering/bike.ts src/rendering/gp-rider-glove.ts src/rendering/rider.ts
           src/rendering/venue-kit/gp-course-bridge.ts src/rendering/venue-kit/structures.ts
           src/rendering/venue-kit/gp-race-control.ts
+          src/simulation/ai.ts src/simulation/bike-ai.ts src/simulation/bike-vehicle.ts
+          src/simulation/bvh.ts src/simulation/contact.ts src/simulation/track.ts
+          src/simulation/track-lane-index.ts src/simulation/offroad/motocross-lane-index.ts
+          src/simulation/racing-line.ts
+          src/simulation/motogp-physics.ts src/simulation/tyre-force.ts
+          tests/contact.test.ts tests/road-contact-ownership.test.ts tests/motogp-physics.test.ts
+          scripts/gp-contact-replay.ts
           src/ui/proximity.ts src/ui/gp-riding-cues.ts
           src/ui/gp-corner-practice.ts src/ui/bike-hud.ts
           tests/gp-brake-rotor.test.ts tests/gp-radial-caliper.test.ts
@@ -174,12 +199,25 @@ jobs:
           tests/startup.test.ts tests/frontend-retail.test.ts
           --reporter=default --reporter=json
           --outputFile=${{ runner.temp }}/motogp-unit-tests.json
+      - name: Road contact races, braking approach and motorcycle hardware
+        run: >-
+          node --experimental-transform-types scripts/source-stability.ts --
+          npm test --
+          tests/gp-tyre-contact.test.ts tests/motogp-physics.test.ts
+          tests/road-rider-approach.test.ts tests/gp-grounding.test.ts
+          tests/gp-radiator.test.ts tests/gp-rearsets.test.ts tests/gp-rider-motion.test.ts
+          tests/contact.test.ts tests/road-contact-ownership.test.ts
+          tests/motocross-lane-index.test.ts tests/tire-footprint.test.ts tests/tyre-model.test.ts
+          --reporter=default --reporter=json
+          --outputFile=${{ runner.temp }}/motogp-road-contact-tests.json
       - name: Preserve complete test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: motogp-unit-tests
-          path: ${{ runner.temp }}/motogp-unit-tests.json
+          path: |
+            ${{ runner.temp }}/motogp-unit-tests.json
+            ${{ runner.temp }}/motogp-road-contact-tests.json
           retention-days: 7
           if-no-files-found: error
   browser:

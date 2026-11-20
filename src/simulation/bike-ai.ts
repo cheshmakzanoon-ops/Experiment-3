@@ -179,7 +179,7 @@ export class BikeAIDriver extends AIDriver {
       recovery = Math.abs(this.steeringCorrection);
     for (let i = 0; i < count; i++) {
       const s = c.s + preview + i * ENVELOPE_STEP,
-        point = track.at(s, this.roadPoint),
+        point = track.at(s, this.roadPoint, true),
         k = this.steeringLineCurvature(track, s, point.curvature),
         curvature = k / Math.max(0.5, 1 - k * tactical),
         offset = this.steeringLineOffset(track, s) + tactical,
@@ -506,7 +506,7 @@ export class BikeAIDriver extends AIDriver {
     // not introduce a new moving geometry stencil or change the dry solver.
     return width < 1
       ? curvature * width +
-          (roadCurvature ?? track.at(s, this.steeringLinePoint).curvature) * (1 - width)
+          (roadCurvature ?? track.at(s, this.steeringLinePoint, true).curvature) * (1 - width)
       : curvature;
   }
   /** A GP straight can require far more than the shared 240 m brake preview.
@@ -570,7 +570,7 @@ export class BikeAIDriver extends AIDriver {
       const station = c.s + leverResponseDistance + i * ENVELOPE_STEP,
         // The wet-line blend and the braking gradient use this same station.
         // One ribbon sample supplies both throughout the 120 Hz approach plan.
-        point = track.at(station, this.approachPoint),
+        point = track.at(station, this.approachPoint, true),
         k = this.steeringLineCurvature(track, station, point.curvature),
         curvature = k / Math.max(0.5, 1 - k * tactical),
         offset = this.steeringLineOffset(track, station) + tactical,
@@ -593,8 +593,8 @@ export class BikeAIDriver extends AIDriver {
         // interval; a sharp saddle can fit between two 12 m stations.
         const roadK = Math.max(
           Math.abs(point.curvature),
-          Math.abs(track.at(station + ENVELOPE_STEP / 2, this.approachPoint).curvature),
-          Math.abs(track.at(station - ENVELOPE_STEP / 2, this.approachPoint).curvature),
+          Math.abs(track.at(station + ENVELOPE_STEP / 2, this.approachPoint, true).curvature),
+          Math.abs(track.at(station - ENVELOPE_STEP / 2, this.approachPoint, true).curvature),
         );
         const descent = clamp(
           (-this.approachGradients[i] - BIKE_AI.downhillEntryGrade) / BIKE_AI.downhillGradeBlend,

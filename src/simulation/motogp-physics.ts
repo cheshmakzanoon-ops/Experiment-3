@@ -2,6 +2,7 @@ import { clamp, Vec3, type Quat } from '../core/math.ts';
 import { motorcycleWheelSlipPower } from './motorcycle-thermal.ts';
 import {
   FORMULA_SLICK,
+  FixedLongitudinalSlip,
   camberShift,
   combinedForces,
   prepareSlip,
@@ -272,6 +273,7 @@ export class MotoGPChassis {
   /** Independent inverse scratch: trial steering must not rewrite the
    * actual contact's slip/force/thermal reporting state. */
   private readonly inverseFront = slipState();
+  private readonly inverseLongitudinal = new FixedLongitudinalSlip();
   private readonly previewRear = slipState();
   private readonly inverseForces = new Float64Array(17);
 
@@ -438,6 +440,7 @@ export class MotoGPChassis {
     if (!(load > 1 && mu > 0 && speed >= 2.5)) return null;
     const state = this.inverseFront;
     prepareSlip(MOTOGP_SLICK, load, Math.max(0.05, mu) * gpCamberFriction(lean), 1, 1, 1, state);
+    this.inverseLongitudinal.prepare(state, this.longitudinalSlip(state, longitudinal));
     const limit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2)),
       geometric = Math.atan2(
         this.lateralSpeed + this.geometry.frontArm * this.yawRate,
@@ -449,7 +452,11 @@ export class MotoGPChassis {
       step = (2 * radius) / (this.inverseForces.length - 1),
       at = (steer: number) => {
         state.alpha = neutral - steer;
-        const lateral = this.preparedSideForce(state, longitudinal, limit);
+        const lateral = clamp(
+          this.inverseLongitudinal.lateralForce(state, this.force),
+          -limit,
+          limit,
+        );
         return lateral * Math.cos(steer) + longitudinal * Math.sin(steer);
       };
     // Projection and combined slip can move the peak within the pure-slip
@@ -546,11 +553,13 @@ export class MotoGPChassis {
     longitudinal: number,
     limit: number,
   ) {
-    // Longitudinal force demand spends part of the same tyre friction budget.
-    const ratio = clamp(longitudinal / Math.max(1, state.dx), -1, 1);
-    const kappa = Math.sign(ratio) * Math.min(0.95, Math.abs(ratio)) * state.kappaRef;
-    combinedForces(state, kappa, this.force);
+    combinedForces(state, this.longitudinalSlip(state, longitudinal), this.force);
     return clamp(this.force.fy, -limit, limit);
+  }
+
+  private longitudinalSlip(state: ReturnType<typeof slipState>, longitudinal: number) {
+    const ratio = clamp(longitudinal / Math.max(1, state.dx), -1, 1);
+    return Math.sign(ratio) * Math.min(0.95, Math.abs(ratio)) * state.kappaRef;
   }
 
   private stepWheels(q: MotoGPContactStep) {

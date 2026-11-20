@@ -397,12 +397,12 @@ export class AIDriver {
       const s = c.s + i * ENVELOPE_STEP;
       let curvature: number;
       if (corridor) {
-        track.at(s, this.sample);
+        track.at(s, this.sample, true);
         curvature = this.sample.curvature / (1 - this.sample.curvature * this.offset);
       } else {
         // A narrowed line blends the line's curvature with the centreline's.
         let k = line.curvatureAt(s);
-        if (width < 1) k = k * width + track.at(s, this.sample).curvature * (1 - width);
+        if (width < 1) k = k * width + track.at(s, this.sample, true).curvature * (1 - width);
         curvature = k / (1 - k * this.tactical);
       }
       this.curvatures[i] = Math.abs(curvature);

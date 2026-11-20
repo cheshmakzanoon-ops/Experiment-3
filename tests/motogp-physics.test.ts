@@ -10,6 +10,7 @@ import {
   tyreRollingRadius,
 } from '../src/simulation/bike-tyre-profile.ts';
 import {
+  MOTOGP_SLICK,
   MotoGPChassis,
   GP_RAKE,
   GpSteeringPlane,
@@ -18,6 +19,33 @@ import {
   gpGroundSteer,
 } from '../src/simulation/motogp-physics.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import {
+  FixedLongitudinalSlip,
+  combinedForces,
+  prepareSlip,
+  slipState,
+} from '../src/simulation/tyre-force.ts';
+
+it('reuses the exact combined-slip terms through a complete steering search and subsequent load changes', () => {
+  const state = slipState(),
+    fixed = new FixedLongitudinalSlip();
+  const plant = { fx: 0, fy: 0 },
+    inverse = { fx: 0, fy: 0 };
+  for (const load of [80, 1200, 2100, 460]) {
+    prepareSlip(MOTOGP_SLICK, load, 1.3, 0.9, 1, 1, state);
+    for (const longitudinal of [-0.94, -0.35, -0, 0, 0.015, 0.78, 0.94]) {
+      const kappa = longitudinal * state.kappaRef;
+      fixed.prepare(state, kappa);
+      for (let i = -18; i <= 18; i++) {
+        state.alpha = (i / 16) * state.alphaRef;
+        combinedForces(state, kappa, plant);
+        expect(fixed.lateralForce(state, inverse)).toBe(plant.fy);
+        expect(inverse.fx).toBe(plant.fx);
+        expect(inverse.fy).toBe(plant.fy);
+      }
+    }
+  }
+});
 
 it('tracks the wheel-plane intersection and inverts the bar angle across bank, pitch and countersteer', () => {
   const plane = new GpSteeringPlane(),

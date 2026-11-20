@@ -1,6 +1,6 @@
 import { clamp, TAU, Vec3 } from '../core/math.ts';
-import { TriangleBVH, rayHit } from './bvh.ts';
-import type { Track, SurfaceSample } from './track.ts';
+import { TriangleBVH, VerticalRayColumn, rayHit } from './bvh.ts';
+import { RoadSurfaceProjection, type Track, type SurfaceSample } from './track.ts';
 import { TireFootprint } from './tire-footprint.ts';
 
 /** One authored height law feeds the contact mesh and rendered kerbs. */
@@ -27,6 +27,17 @@ export class TrackContactMesh {
   readonly normals: Float64Array;
   readonly indices: Uint32Array;
   private hit = rayHit();
+  private readonly obliqueHit = this.hit;
+  private readonly verticalProbes = new WeakMap<
+    SurfaceSample,
+    {
+      origin: Vec3;
+      maximum: number;
+      column: VerticalRayColumn;
+      surfacePoint: RoadSurfaceProjection;
+      hit: ReturnType<typeof rayHit>;
+    }
+  >();
   private readonly tireHit = rayHit();
   private readonly ownershipPoint;
   readonly tireFootprint: TireFootprint;
@@ -107,9 +118,43 @@ export class TrackContactMesh {
     // tolerance only admits floating-point seam error, never a height blend.
     return (x - p.x) ** 2 + (z - p.z) ** 2 >= protectedWidth * protectedWidth;
   };
-  cast(origin: Vec3, down: Vec3, maximum: number, surface: SurfaceSample) {
-    if (!this.bvh.raycast(origin, down, maximum, this.hit)) return Infinity;
-    this.track.sample(this.hit.point.x, this.hit.point.z, surface, this.hit.point.y);
+  cast(origin: Vec3, down: Vec3, maximum: number, surface: SurfaceSample, heightOnly = false) {
+    let projection: RoadSurfaceProjection | undefined;
+    if (down.x === 0 && down.y === -1 && down.z === 0) {
+      let probe = this.verticalProbes.get(surface);
+      if (!probe) {
+        probe = {
+          origin: new Vec3(),
+          maximum: NaN,
+          column: new VerticalRayColumn(),
+          surfacePoint: new RoadSurfaceProjection(),
+          hit: rayHit(),
+        };
+        this.verticalProbes.set(surface, probe);
+      }
+      this.hit = probe.hit;
+      projection = probe.surfacePoint;
+      if (
+        origin.x === probe.origin.x &&
+        origin.y === probe.origin.y &&
+        origin.z === probe.origin.z &&
+        maximum === probe.maximum
+      ) {
+        this.bvh.trianglesTested = 0;
+      } else {
+        this.bvh.raycastVertical(origin, maximum, this.hit, probe.column);
+        probe.origin.copy(origin);
+        probe.maximum = maximum;
+      }
+      if (this.hit.triangle === -1) return Infinity;
+    } else {
+      this.hit = this.obliqueHit;
+      if (!this.bvh.raycast(origin, down, maximum, this.hit)) return Infinity;
+    }
+    // The road geometry is static. Weather, temperature and rubber evolve
+    // even while the motorcycle rests on exactly the same triangle.
+    if (!heightOnly)
+      this.track.sample(this.hit.point.x, this.hit.point.z, surface, this.hit.point.y, projection);
     surface.height = this.hit.point.y;
     surface.normal.copy(this.hit.normal);
     return this.hit.distance;
