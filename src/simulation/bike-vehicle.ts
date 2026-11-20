@@ -1,5 +1,5 @@
 import { roadTyreSection, tyreShoulderSine, tyreRollingRadius } from './bike-tyre-profile.ts';
-import { GpSteeringPlane } from './motogp-physics.ts';
+import { GpSteeringPlane, fixedWheelGroundAngle } from './motogp-physics.ts';
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
 import { OrientationKinematics } from './pose-kinematics.ts';
@@ -133,7 +133,7 @@ export class BikeVehicle extends Vehicle {
   private roadSuspensionLive = false;
   private roadRideHeight = 0;
   private roadRollVelocity = 0;
-  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0, frontRadius: 0, rearRadius: 0, steeringPlane: new GpSteeringPlane() };
+  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0, frontRadius: 0, rearRadius: 0, rearGroundAngle: 0, steeringPlane: new GpSteeringPlane() };
   private readonly frontShoulder: number;
   private readonly rearShoulder: number;
   private readonly rearCrown: number;
@@ -645,6 +645,7 @@ export class BikeVehicle extends Vehicle {
       );
       this.offset.set(1, 0, 0);
       this.body.orientation.rotate(this.offset, this.scratch);
+      this.roadLoads.rearGroundAngle = fixedWheelGroundAngle(this.scratch, this.contacts[2].normal, sh, ch);
       this.roadLoads.rearRadius = tyreRollingRadius(
         s.rearWheelRadius,
         this.rearCrown,

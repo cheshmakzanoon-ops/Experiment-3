@@ -166,7 +166,7 @@ export class BikeAIDriver extends AIDriver {
       tactical = c.aiOffset - this.steeringLineOffset(track, c.s + near),
       wetness = clamp(Math.max(c.contacts[0].water, c.contacts[2].water) / 0.8, 0, 1),
       grip =
-        clamp(d.grip, 0.1, 1) *
+        clamp(Math.min(d.grip, d.frontGrip ?? d.grip, d.rearGrip ?? d.grip), 0.1, 1) *
         (1 - 0.15 * wetness) *
         clamp(1 - (0.25 * Math.max(0, Math.abs(tactical) - 1.5)) / 6, 0.8, 1),
       aero = env.downforceReference / d.mass,
@@ -175,15 +175,22 @@ export class BikeAIDriver extends AIDriver {
         env.brakingBase * grip * env.brakingMargin,
         track.length,
       ),
-      preview = bikePreviewDistance(d.speed);
+      preview = bikePreviewDistance(d.speed),
+      recovery = Math.abs(this.steeringCorrection);
     for (let i = 0; i < count; i++) {
       const s = c.s + preview + i * ENVELOPE_STEP,
-        k = this.steeringLineCurvature(track, s),
-        curvature = k / Math.max(0.5, 1 - k * tactical);
+        point = track.at(s, this.roadPoint),
+        k = this.steeringLineCurvature(track, s, point.curvature),
+        curvature = k / Math.max(0.5, 1 - k * tactical),
+        offset = this.steeringLineOffset(track, s) + tactical,
+        slope = (this.steeringLineOffset(track, s + 3) - this.steeringLineOffset(track, s - 3)) / 6,
+        metric = motorcyclePathMetric(point.curvature, offset, slope);
       this.roadCurvatures[i] = Math.abs(curvature);
-      this.roadCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env) * this.skill;
-      this.roadGradients[i] = track.at(s, this.roadPoint).gradient;
+      this.roadCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env, recovery) * this.skill;
+      this.roadGradients[i] = point.gradient / metric;
+      this.approachMetrics[i] = metric;
     }
+    this.measureApproachDistances(count);
     const planned = motorcycleApproachProfile(
       this.roadCurvatures,
       this.roadCorners,
@@ -197,6 +204,8 @@ export class BikeAIDriver extends AIDriver {
       d.mass,
       1,
       (p.riderOffsetMax * 0.25) / p.cgHeight,
+      this.approachDistances,
+      recovery,
     );
     if (planned < c.aiTarget) {
       c.aiTarget = planned;
@@ -210,7 +219,7 @@ export class BikeAIDriver extends AIDriver {
         grade = (G * gradient) / Math.sqrt(1 + gradient * gradient),
         required = Math.max(
           0,
-          (d.speed * d.speed - this.roadProfile[1] ** 2) / (2 * ENVELOPE_STEP) - grade,
+          (d.speed * d.speed - this.roadProfile[1] ** 2) / (2 * this.approachDistances[0]) - grade,
         ),
         fullLever = (p.frontBrake * 0.78 + p.rearBrake * 0.3) / d.mass;
       command.brake = Math.max(command.brake, clamp(required / fullLever, 0, 1));
@@ -221,6 +230,12 @@ export class BikeAIDriver extends AIDriver {
   /** Held back by a slower class's traffic and by nothing else: the traffic cap is under
    * both the rider's own free speed and what its approach plan lets it carry, and the
    * plan itself does not ask for braking. */
+  /** Both motorcycle classes integrate braking along the actual offset line. */
+  private measureApproachDistances(count: number) {
+    for (let i = 0; i < count - 1; i++)
+      this.approachDistances[i] =
+        0.5 * (this.approachMetrics[i] + this.approachMetrics[i + 1]) * ENVELOPE_STEP;
+  }
   private heldByTraffic() {
     return (
       this.planner.slower &&
@@ -592,9 +607,7 @@ export class BikeAIDriver extends AIDriver {
         this.approachCorners[i] = Math.min(this.approachCorners[i], steady / speedReserve);
       }
     }
-    for (let i = 0; i < count - 1; i++)
-      this.approachDistances[i] =
-        0.5 * (this.approachMetrics[i] + this.approachMetrics[i + 1]) * ENVELOPE_STEP;
+    this.measureApproachDistances(count);
     const planned = motorcycleApproachProfile(
       this.approachCurvatures,
       this.approachCorners,

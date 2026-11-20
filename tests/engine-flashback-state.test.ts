@@ -56,7 +56,7 @@ function capture(sim: Simulation) {
           rearCompression: bike.roadSuspension.rearCompression,
           frontGap: bike.roadSuspension.frontGap,
           rearGap: bike.roadSuspension.rearGap,
-          contactLoads: bike.dynamics.contactLoads ? { ...bike.dynamics.contactLoads } : null,
+          contactLoads: bike.dynamics.contactLoads ? structuredClone(bike.dynamics.contactLoads) : null,
           lean: bike.dynamics.lean,
           leanRate: bike.dynamics.leanRate,
         }

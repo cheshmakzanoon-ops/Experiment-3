@@ -256,7 +256,7 @@ export class Bike {
   /** Optional unilateral loads from the road adapter's heave/pitch solver.
    * Undefined keeps the standalone research and MX load-transfer model.
    * These contacts already contain dynamic transfer; do not add it twice. */
-  contactLoads?: { front: number; rear: number; rearLiftForce?: number; frontRadius?: number; rearRadius?: number; steeringPlane?: GpSteeringPlane };
+  contactLoads?: { front: number; rear: number; rearLiftForce?: number; frontRadius?: number; rearRadius?: number; steeringPlane?: GpSteeringPlane; rearGroundAngle?: number };
   slope = 0;
   dragScale = 1;
   riderReady = true;
@@ -539,6 +539,7 @@ export class Bike {
             this.speed,
             this.driveForce - this.rearBrakeForce,
             dt,
+            this.contactLoads.rearGroundAngle,
           )
         : gp.rearFy,
       yawError = gp.yawRate - lateral / v,
@@ -1041,6 +1042,7 @@ export class Bike {
       rearBrakeExcess: a.abs ? 0 : Math.max(0, brakeR - this.rearBrakeForce),
       inertialContacts: !!contacts,
       steeringPlane: contacts?.steeringPlane,
+      rearGroundAngle: contacts?.rearGroundAngle,
       frontRadius: contacts?.frontRadius,
       rearRadius: contacts?.rearRadius,
     });

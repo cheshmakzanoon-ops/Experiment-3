@@ -83,8 +83,10 @@ import {
  * changing wet race trajectories while retaining the dry full-width path.
  * v29: GP slip follows the steered tyre crowns, suspension sweeps the axle
  * arms through yaw, and GP braking and lane recovery share contact grip.
- * v30: GP steering follows the raked wheel on its measured road plane. */
-export const SIMULATION_VERSION = 30;
+ * v30: GP steering follows the raked wheel on its measured road plane.
+ * v31: rear GP tyre forces and heating use the rear contact's rolling plane.
+ * Support-class road riders reserve tyre capacity and brake along their actual lane. */
+export const SIMULATION_VERSION = 31;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

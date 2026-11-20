@@ -13,6 +13,7 @@ import {
   MotoGPChassis,
   GP_RAKE,
   GpSteeringPlane,
+  fixedWheelGroundAngle,
   gpBarSteer,
   gpGroundSteer,
 } from '../src/simulation/motogp-physics.ts';
@@ -49,6 +50,8 @@ it('tracks the wheel-plane intersection and inverts the bar angle across bank, p
               rolling.z * ch + rolling.x * sh,
             );
             expect(gpGroundSteer(delta, roll, plane)).toBeCloseTo(expected, 12);
+            if (delta === 0)
+              expect(fixedWheelGroundAngle(rotated, n, sh, ch)).toBeCloseTo(expected, 12);
             expect(gpBarSteer(expected, roll, plane)).toBeCloseTo(delta, 12);
             expect(plane.axleNormal(delta)).toBeCloseTo(rotated.dot(n), 12);
           }
@@ -82,6 +85,66 @@ const contact = Object.freeze({
   frontBrakeExcess: 0,
   rearDriveExcess: 0,
   rearBrakeExcess: 0,
+});
+
+it('carries both wheels along the same oblique rolling direction without inventing scrub, yaw or heat', () => {
+  for (const angle of [-0.08, 0.11]) {
+    const gp = new MotoGPChassis(geometry),
+      speed = 30;
+    gp.reset(speed);
+    gp.lateralSpeed = speed * Math.tan(angle);
+    const rolling = speed / Math.cos(angle);
+    gp.frontOmega = rolling / geometry.frontRadius;
+    gp.rearOmega = rolling / geometry.rearRadius;
+    gp.step({
+      ...contact,
+      speed,
+      steer: gpBarSteer(angle, 0),
+      rearGroundAngle: angle,
+      inertialContacts: true,
+    });
+    expect(gp.frontSlipAngle).toBeCloseTo(0, 12);
+    expect(gp.rearSlipAngle).toBeCloseTo(0, 12);
+    expect(gp.yawRate).toBeCloseTo(0, 12);
+    expect(gp.rearSlip).toBeCloseTo(0, 12);
+    expect(gp.rearSlidingPower).toBeCloseTo(0, 9);
+    gp.step({
+      ...contact,
+      speed: 1.7,
+      steer: gpBarSteer(angle, 0),
+      rearGroundAngle: angle,
+      inertialContacts: true,
+    });
+    expect(gp.yawRate).toBeCloseTo(0, 12);
+  }
+});
+
+it('previews and applies a sloping rear contact in the same chassis axes under drive and braking', () => {
+  for (const angle of [-0.06, 0.09])
+    for (const rearFx of [-440, 550]) {
+      const gp = new MotoGPChassis(geometry);
+      gp.reset(contact.speed);
+      gp.lateralSpeed = 0.7;
+      gp.yawRate = 0.23;
+      const q = {
+        ...contact,
+        lean: 0.32,
+        rearFx,
+        frontLoad: 0,
+        frontContact: 0,
+        rearGroundAngle: angle,
+        inertialContacts: true,
+      };
+      const expected = gp.rearForceFor(q.rearLoad, q.rearMu, q.lean, q.speed, rearFx, q.dt, angle);
+      gp.step(q);
+      const lateral = gp.rearFy * Math.cos(angle) + rearFx * Math.sin(angle);
+      expect(lateral).toBeCloseTo(expected, 9);
+      expect(gp.lateralAcceleration * q.mass).toBeCloseTo(lateral, 9);
+      expect(gp.longitudinalCorrection * q.mass).toBeCloseTo(
+        rearFx * (Math.cos(angle) - 1) - gp.rearFy * Math.sin(angle),
+        9,
+      );
+    }
 });
 
 describe('MotoGP-only single-track tyre/yaw dynamics', () => {

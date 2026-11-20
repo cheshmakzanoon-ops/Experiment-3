@@ -51,6 +51,8 @@ export interface MotoGPContactStep {
   inertialContacts?: boolean;
   /** Front wheel plane measured against the current road normal. */
   steeringPlane?: GpSteeringPlane;
+  /** Horizontal rolling direction of the unsteered rear wheel on its own road plane. */
+  rearGroundAngle?: number;
   /** Rolling radii at the road support points, including camber and bank. */
   frontRadius?: number;
   rearRadius?: number;
@@ -101,6 +103,20 @@ export function gpSpinPerSpeed(geometry: MotoGPGeometry) {
 
 const RAKE_SIN = Math.sin(GP_RAKE),
   RAKE_COS = Math.cos(GP_RAKE);
+
+/** Horizontal heading of an unsteered wheel relative to chassis yaw. Its axle
+ * and the surface normal determine a tangent even when its frame pitches. */
+export function fixedWheelGroundAngle(
+  axle: Vec3,
+  normal: Vec3,
+  sinHeading: number,
+  cosHeading: number,
+) {
+  const x = axle.y * normal.z - axle.z * normal.y;
+  const z = axle.x * normal.y - axle.y * normal.x;
+  const forward = z * cosHeading + x * sinHeading;
+  return forward > 0.08 ? Math.atan2(x * cosHeading - z * sinHeading, forward) : 0;
+}
 
 /** The tyre rolls along the intersection of its wheel plane and the road.
  * In yaw coordinates the horizontal direction is A cos(delta) + B sin(delta).
@@ -296,11 +312,14 @@ export class MotoGPChassis {
     this.lastSpeed = v;
     const contact = clamp(q.frontContact, 0, 1);
     const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean, q.steeringPlane));
+    const rearAngle = q.rearGroundAngle ?? 0;
     if ((contact <= 1e-6 && !q.inertialContacts) || v < 2.5) {
       // No fictitious front road steering while raised. Below walking speed
       // retain the geometric pit-box steering model instead of freezing turn.
       this.yawRate =
-        contact > 1e-6 && v < 2.5 ? (v * Math.tan(steer) * contact) / (g.frontArm + g.rearArm) : 0;
+        contact > 1e-6 && v < 2.5
+          ? (v * (Math.tan(steer) - Math.tan(rearAngle)) * contact) / (g.frontArm + g.rearArm)
+          : 0;
       this.lateralSpeed = 0;
       this.frontFy = this.rearFy = this.lateralAcceleration = 0;
       this.frontSlipAngle = this.rearSlipAngle = this.frontLoadUsed = this.frontMuUsed = 0;
@@ -343,7 +362,7 @@ export class MotoGPChassis {
       q.rearLoad,
       q.rearMu,
       q.lean,
-      0,
+      rearAngle,
       this.lateralSpeed - g.rearArm * this.yawRate,
       v,
       q.rearFx,
@@ -365,15 +384,22 @@ export class MotoGPChassis {
     this.frontFy = clamp(oldFront + (frontFy - oldFront) * mix, -this.frontLimit, this.frontLimit);
     this.rearFy = clamp(oldRear + (rearFy - oldRear) * mix, -this.rearLimit, this.rearLimit);
     const frontSide = this.frontFy * Math.cos(steer) + q.frontFx * Math.sin(steer);
-    const lateral = frontSide + this.rearFy;
-    const yawMoment = g.frontArm * frontSide - g.rearArm * this.rearFy;
+    const rearSin = Math.sin(rearAngle),
+      rearCos = Math.cos(rearAngle);
+    const rearSide = this.rearFy * rearCos + q.rearFx * rearSin;
+    const lateral = frontSide + rearSide;
+    const yawMoment = g.frontArm * frontSide - g.rearArm * rearSide;
     this.lateralAcceleration = lateral / Math.max(1, q.mass);
     this.yawRate += (yawMoment / g.yawInertia) * dt;
     if (q.inertialContacts) {
-      // Resolve the steered front force once. q.speed already contains
-      // q.frontFx, so add only the projection difference and tyre scrub.
+      // Both longitudinal tyre forces are already in q.speed. Add only
+      // the projection difference and scrub from the two wheel frames.
       this.longitudinalCorrection =
-        (q.frontFx * (Math.cos(steer) - 1) - this.frontFy * Math.sin(steer)) / Math.max(1, q.mass);
+        (q.frontFx * (Math.cos(steer) - 1) -
+          this.frontFy * Math.sin(steer) +
+          q.rearFx * (rearCos - 1) -
+          this.rearFy * rearSin) /
+        Math.max(1, q.mass);
       const forward = v + this.longitudinalCorrection * dt,
         side = this.lateralSpeed + this.lateralAcceleration * dt;
       // A yawing body rotates BOTH velocity components. Advancing only
@@ -471,6 +497,7 @@ export class MotoGPChassis {
     speed: number,
     longitudinal: number,
     dt: number,
+    groundAngle = 0,
   ) {
     if (!(load > 1 && mu > 0)) return 0;
     const state = this.previewRear,
@@ -478,6 +505,7 @@ export class MotoGPChassis {
     prepareSlip(MOTOGP_SLICK, load, friction, 1, 1, 1, state);
     state.alpha =
       Math.atan2(this.lateralSpeed - this.geometry.rearArm * this.yawRate, Math.max(1, speed)) -
+      groundAngle -
       camberShift(MOTOGP_SLICK, load, state, lean, speed);
     const limit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2)),
       raw = this.preparedSideForce(state, longitudinal, limit),
@@ -488,7 +516,8 @@ export class MotoGPChassis {
       this.rearElasticStiffness > 0 && state.corneringStiffness !== this.rearElasticStiffness
         ? (this.rearFy * state.corneringStiffness) / this.rearElasticStiffness
         : this.rearFy;
-    return clamp(oldRear + (raw - oldRear) * mix, -limit, limit);
+    const force = clamp(oldRear + (raw - oldRear) * mix, -limit, limit);
+    return force * Math.cos(groundAngle) + longitudinal * Math.sin(groundAngle);
   }
 
   private sideForce(
@@ -535,14 +564,20 @@ export class MotoGPChassis {
       sn = Math.sin(this.groundSteer);
     const frontAlong = forward * cs + frontSide * sn;
     const frontAcross = frontSide * cs - forward * sn;
+    const rearAngle = q.rearGroundAngle ?? 0;
+    const rearSin = Math.sin(rearAngle),
+      rearCos = Math.cos(rearAngle);
+    const rearSide = this.lateralSpeed - g.rearArm * this.yawRate;
+    const rearAlong = forward * rearCos + rearSide * rearSin;
+    const rearAcross = rearSide * rearCos - forward * rearSin;
     const frontScale = Math.max(2, Math.abs(frontAlong)),
-      rearScale = Math.max(2, forward);
+      rearScale = Math.max(2, Math.abs(rearAlong));
     const frontPeak = Math.max(1, q.frontLoad * q.frontMu);
     const rearPeak = Math.max(1, q.rearLoad * q.rearMu);
     const targetFrontSlip = clamp(q.frontFx / frontPeak, -0.98, 0.98) * 0.065;
     const targetRearSlip = clamp(q.rearFx / rearPeak, -0.98, 0.98) * 0.065;
     const targetFront = (frontAlong + targetFrontSlip * frontScale) / frontRadius;
-    const targetRear = (forward + targetRearSlip * rearScale) / rearRadius;
+    const targetRear = (rearAlong + targetRearSlip * rearScale) / rearRadius;
     const frontTau = clamp(
       (g.frontWheelInertia * Math.max(frontScale, 4)) / (4000 * frontRadius ** 2),
       0.012,
@@ -571,7 +606,7 @@ export class MotoGPChassis {
     const frontRim = this.frontOmega * frontRadius,
       rearRim = this.rearOmega * rearRadius;
     this.frontSlip = clamp((frontRim - frontAlong) / frontScale, -1, 6);
-    this.rearSlip = clamp((rearRim - forward) / rearScale, -1, 6);
+    this.rearSlip = clamp((rearRim - rearAlong) / rearScale, -1, 6);
     // Force, rim velocity and slip work must all refer to the same patch.
     this.frontSlidingPower =
       q.frontLoad * q.frontContact > 1e-6
@@ -579,13 +614,7 @@ export class MotoGPChassis {
         : 0;
     this.rearSlidingPower =
       q.rearLoad > 1e-6
-        ? motorcycleWheelSlipPower(
-            q.rearFx,
-            this.rearFy,
-            forward,
-            this.lateralSpeed - g.rearArm * this.yawRate,
-            rearRim,
-          )
+        ? motorcycleWheelSlipPower(q.rearFx, this.rearFy, rearAlong, rearAcross, rearRim)
         : 0;
   }
 }
