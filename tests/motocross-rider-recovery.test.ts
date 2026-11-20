@@ -30,11 +30,18 @@ describe('motocross crash recovery on dirt', () => {
     bike.dynamics.state = 'separated';
     bike.dynamics.stateClock = 1.21;
     bike.rider.set(at.x, soil.height + MX_RECOVERY.slideHeight, at.z);
+    // Recover from a fall facing directly away from the motorcycle.
+    bike.riderHeading = Math.atan2(
+      bike.rider.x - bike.body.position.x,
+      bike.rider.z - bike.body.position.z,
+    );
     let previous: number = MX_RECOVERY.slideHeight;
     let travel = 0,
       previousPhase = 0;
     for (let i = 0; i < 440; i++) {
       const { x, z } = bike.rider;
+      const previousHeading = bike.riderHeading;
+      const previousDistance = Math.hypot(x - bike.body.position.x, z - bike.body.position.z);
       bike.advanceBody(1 / 120, track);
       track.sample(bike.rider.x, bike.rider.z, soil, bike.rider.y);
       const height = bike.rider.y - soil.height,
@@ -49,6 +56,16 @@ describe('motocross crash recovery on dirt', () => {
       expect(height - previous).toBeGreaterThanOrEqual(-1e-8);
       expect(height - previous).toBeLessThan(0.015);
       expect(step).toBeLessThanOrEqual(4 / 120 + 1e-8);
+      expect(Math.abs(bike.riderHeading - previousHeading)).toBeLessThanOrEqual(4 / 120 + 1e-8);
+      const dx = bike.rider.x - x,
+        dz = bike.rider.z - z;
+      const forwardX = Math.sin(bike.riderHeading),
+        forwardZ = Math.cos(bike.riderHeading);
+      expect(dx * forwardZ - dz * forwardX).toBeCloseTo(0, 10);
+      expect(dx * forwardX + dz * forwardZ).toBeGreaterThanOrEqual(-1e-10);
+      expect(
+        Math.hypot(bike.rider.x - bike.body.position.x, bike.rider.z - bike.body.position.z),
+      ).toBeLessThanOrEqual(previousDistance + 1e-8);
       if (i > 90) {
         expect(
           ((bike.riderTumble - previousPhase) * MX_RECOVERY.strideLength) / (Math.PI * 2),

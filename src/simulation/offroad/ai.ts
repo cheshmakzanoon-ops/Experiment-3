@@ -103,6 +103,8 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private readonly lineHere = trackPoint();
   private readonly lineAfter = trackPoint();
   private lineTrack: Track | null = null;
+  private rhythmRunups: Array<{ start: number; whoops: number; length: number }> = [];
+  private followingWhoops = false;
   private featureLines: Array<{ from: number; to: number; lateral: number }> = [];
   readonly decisions = { clears: 0, rolls: 0, aborts: 0, pushes: 0 };
   constructor(
@@ -121,11 +123,38 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.rutBias = approach(this.rutBias, this.biasTarget, dt * 1.2);
     super.update(dt, track, cars, race);
     this.governJump(track);
+    this.alignRhythmRunup(track, race);
     this.climbFace();
     this.headingGuard(track);
     this.gateLaunch(track, race);
     this.turnContactReserve(track, race);
     this.unstick(dt, track, race);
+  }
+  /** A triple fed directly by a whoop train needs a settled heading before its
+   * lip. Plan the return to the held lane over the remaining run, so alternating
+   * light contacts and the exit of the last roller cannot provoke a late swerve. */
+  private alignRhythmRunup(track: Track, race: RaceDirector) {
+    const c = this.rider;
+    if (this.rhythmRunups.length === 0) return;
+    const run = this.rhythmRunups.find((r) => mod(c.s - r.start, track.length) <= r.length);
+    const flag = race.control.flags[c.id];
+    if (
+      !run || !c.riding || c.input.reverse || c.inPit ||
+      flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW || race.control.neutralised > 0
+    ) {
+      this.followingWhoops = false;
+      return;
+    }
+    // A rider placed on the run-up or recovering after contact has no settled
+    // approach from the rollers. Keep the normal abort/heading controller.
+    if (mod(c.s - run.start, track.length) <= run.whoops) this.followingWhoops = true;
+    if (!this.followingWhoops || c.airborne || this.decision !== 'RACING LINE') return;
+    const d = c.dynamics,
+      p = track.at(c.s, squarePoint);
+    const heading = mod(Math.atan2(p.tx, p.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
+    const lane = this.steeringLineOffset(track, c.s);
+    const correction = Math.atan2(lane - c.lateral, Math.max(13, 1.65 * c.speed));
+    c.input.steer = clamp((heading + correction) * 2.4 - d.lean * 0.9 - d.leanRate * 0.16, -0.5, 0.5);
   }
   /** Full-lap cornering reserve: retain the existing calibrated line and
    * jump target; trim only corner drive that has unweighted the steering
@@ -317,6 +346,20 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     if (!course) return base;
     if (this.lineTrack !== track) {
       this.lineTrack = track;
+      this.rhythmRunups = [];
+      this.followingWhoops = false;
+      for (const jump of course.jumps) {
+        if (jump.kind !== 'triple') continue;
+        for (const rough of course.rough) {
+          if (rough.kind !== 'whoops' ||
+            mod(jump.start - rough.to, track.length) > JUMP_LINE_LEAD + JUMP_LINE_BLEND) continue;
+          this.rhythmRunups.push({
+            start: rough.from,
+            whoops: mod(rough.to - rough.from, track.length),
+            length: mod(jump.start - rough.from, track.length),
+          });
+        }
+      }
       const sections = [
         ...course.rough.map((r) => ({ from: r.from - JUMP_LINE_LEAD, to: r.to + 2 })),
         ...course.jumps.map((j) => ({ from: j.start - JUMP_LINE_LEAD, to: j.end + 2 })),

@@ -817,24 +817,29 @@ export class BikeVehicle extends Vehicle {
     const r = this.rider;
     this.mxRiseTime = Math.min(MX_RECOVERY.riseSeconds, this.mxRiseTime + dt);
     const upright = this.mxRecoveryStanding;
-    const dx = this.body.position.x - r.x, dz = this.body.position.z - r.z;
+    const dx = this.body.position.x - r.x,
+      dz = this.body.position.z - r.z;
     const distance = Math.hypot(dx, dz);
-    // Hands and knees support the first part of the rise. Foot travel starts
-    // as the pelvis clears the crouch. Only a new fall can restart gravity.
+    // Turn during the rise. A rider who fell facing away from the bike
+    // steps along their own boot heading as they come around to face it.
     const stride = clamp((upright - 0.62) / 0.38, 0, 1);
-    const step = Math.min(distance, BIKE_RECOVERY.jogSpeed * stride * dt);
+    let step = 0;
     if (distance > 1e-6) {
-      r.x += dx / distance * step;
-      r.z += dz / distance * step;
       const turn = mod(Math.atan2(dx, dz) - this.riderHeading + Math.PI, TAU) - Math.PI;
       this.riderHeading += clamp(turn, -4 * dt, 4 * dt);
+      const forwardX = Math.sin(this.riderHeading),
+        forwardZ = Math.cos(this.riderHeading);
+      const alignment = clamp((dx * forwardX + dz * forwardZ) / distance, 0, 1);
+      step = Math.min(distance, BIKE_RECOVERY.jogSpeed * stride * dt) * alignment ** 4;
+      r.x += forwardX * step;
+      r.z += forwardZ * step;
     }
     track.sample(r.x, r.z, this.riderSurface, r.y);
     r.y = this.riderSurface.height + lerp(MX_RECOVERY.slideHeight, MX_RECOVERY.uprightHeight, upright);
     this.riderVelocity.set(0, 0, 0);
-    // Once upright, the same recorded angle advances one gait cycle per
-    // stride. It holds when the rider stops, including in a paused replay.
-    this.riderTumble = upright === 1
+    // Each recorded gait cycle covers one stride. A stopped rider or held
+    // replay has no foot travel. The original tumble settles during the rise.
+    this.riderTumble = upright > 0.82
       ? this.riderTumble + step * TAU / MX_RECOVERY.strideLength
       : approach(this.riderTumble, Math.round(this.riderTumble / TAU) * TAU, dt * 8);
   }

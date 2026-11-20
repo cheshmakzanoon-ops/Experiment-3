@@ -51,6 +51,37 @@ function wetBeachedRider() {
 
 describe('motocross committed jump handoff', () => {
   it.each(['mx250', 'mx450'] as const)(
+    'rides the Valley Ridge whoops and following triple on the %s from a normal race start',
+    (vehicle) => {
+      const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', weather: 'clear',
+        circuit: 'valley-ridge-mx', ruleset: 'motocross-moto', laps: 2,
+        opponents: 0, vehicles: [vehicle], seed: 61007 });
+      sim.autoPlayer = true;
+      const bike = sim.cars[0] as DirtBikeVehicle, ai = sim.ai[0] as DirtBikeAIDriver;
+      const course = offroadCourse(sim.track.circuit)!;
+      const triple = course.jumps.find((j) => j.name === 'SKY TRIPLE')!;
+      const rollers = course.rough.find((r) => r.to < triple.start && triple.start - r.to < 25)!;
+      let entered = false, cleared = false, initialFalls = 0, initialPushes = 0, slowest = Infinity;
+      for (let tick = 0; tick < 120 * 100; tick++) {
+        sim.step(1 / 120);
+        if (!entered && bike.s >= rollers.from && bike.s < rollers.from + 2) {
+          entered = true;
+          initialFalls = bike.dynamics.crashes;
+          initialPushes = ai.decisions.pushes;
+        }
+        if (!entered) continue;
+        if (bike.s > triple.takeoff && bike.s < triple.end) slowest = Math.min(slowest, bike.speed);
+        if (bike.s > triple.end + 2) { cleared = true; break; }
+      }
+      expect(entered && cleared).toBe(true);
+      expect(bike.dynamics.crashes).toBe(initialFalls);
+      expect(ai.decisions.pushes).toBe(initialPushes);
+      expect(slowest).toBeGreaterThan(4);
+    },
+    40000,
+  );
+
+  it.each(['mx250', 'mx450'] as const)(
     'allows a real %s clear to settle without treating touchdown as a beached gap rider',
     (vehicle) => {
       const { sim, bike, jump } = tripleApproach(vehicle);

@@ -14,6 +14,14 @@ export interface ProfileKnot {
 /** A surveyed jump: where the lip is, the face angle a rider leaves on, and
  * the landing zone on the far face (the career landing licence reads the
  * same `takeoff`/`landing`/`landingLength`/`landingPitch` fields). */
+/** A surveyed repeated feature. Extra authored rough-ground stretches can
+ * omit the profile kind because they have no specifically shaped whoops. */
+export interface RoughSurvey {
+  from: number;
+  to: number;
+  kind?: 'whoops' | 'rollers';
+}
+
 export interface JumpSurvey {
   name: string;
   kind: JumpKind;
@@ -127,7 +135,7 @@ export class ProfileBuilder {
   readonly knots: ProfileKnot[] = [];
   readonly jumps: JumpSurvey[] = [];
   /** Spans that are rough enough to stand on the pegs (whoops, chop). */
-  readonly rough: { from: number; to: number }[] = [];
+  readonly rough: RoughSurvey[] = [];
   private last = -Infinity;
   private push(s: number, h: number, r: number) {
     if (!(s > this.last + 1e-6)) throw new Error(`Profile features overlap at ${s.toFixed(1)} m`);
@@ -231,7 +239,7 @@ export class ProfileBuilder {
     }
     const end = o.at + o.count * o.spacing;
     this.push(end, 0, o.spacing * 0.25);
-    this.rough.push({ from: o.at, to: end });
+    this.rough.push({ from: o.at, to: end, kind: 'rollers' });
     return end;
   }
   /** Whoops: a row of close, steep bumps (skimmed at speed, standing). */
@@ -243,7 +251,7 @@ export class ProfileBuilder {
     }
     const end = o.at + o.count * o.spacing;
     this.push(end, 0, o.spacing * 0.18);
-    this.rough.push({ from: o.at, to: end });
+    this.rough.push({ from: o.at, to: end, kind: 'whoops' });
     return end;
   }
   build() {

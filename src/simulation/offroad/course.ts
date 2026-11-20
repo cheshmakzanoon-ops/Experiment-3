@@ -1,7 +1,7 @@
 import { clamp, mod, smooth } from '../../core/math.ts';
 import { MATERIAL } from '../surface-material.ts';
 import type { Track, TrackPoint } from '../track.ts';
-import { LongitudinalProfile, type JumpSurvey } from './profile.ts';
+import { LongitudinalProfile, type JumpSurvey, type RoughSurvey } from './profile.ts';
 import type { OffroadKind } from './types.ts';
 import { brakingBumpSample, sampleBrakingBumps, type BrakingBumpSpec } from './braking-bumps.ts';
 
@@ -96,7 +96,7 @@ export interface OffroadCourseSpec {
   moisture: number;
   berms: readonly BermSpec[];
   /** Stand-up roughness spans (whoops, chop) beyond the profile's own. */
-  rough?: readonly { from: number; to: number }[];
+  rough?: readonly RoughSurvey[];
   /** Small-scale chop amplitude in rough spans (m). */
   chop?: number;
   /** Physical, line-specific corner-entry ridges with a smooth alternate line. */
@@ -124,14 +124,14 @@ export class OffroadCourse {
   readonly kind: OffroadKind;
   readonly profile: LongitudinalProfile;
   readonly jumps: readonly JumpSurvey[];
-  readonly rough: readonly { from: number; to: number }[];
+  readonly rough: readonly RoughSurvey[];
   private readonly scratch = { h: 0, dh: 0 };
   private readonly brakingScratch = brakingBumpSample();
   constructor(
     readonly spec: OffroadCourseSpec,
     profile: LongitudinalProfile,
     jumps: readonly JumpSurvey[],
-    rough: readonly { from: number; to: number }[],
+    rough: readonly RoughSurvey[],
     readonly length: number,
   ) {
     this.kind = spec.kind;
