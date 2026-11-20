@@ -73,7 +73,7 @@ import { bikeSheetFor, SHELL_SCHEME } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
 import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
-import { mudUniforms } from './offroad/mud.ts';
+import { mudUniforms, type MudUniforms } from './offroad/mud.ts';
 import {
   BikeServicePose,
   BikeServiceRig,
@@ -2150,6 +2150,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   brake: number;
   rearBrake: number;
   discTemp: number;
+  /** Independently recorded rear rotor temperature for MX steel brakes (°C). */
+  rearDiscTemp?: number;
   compoundColour: number;
   riding: boolean;
   /** Off-road (WP41, snapshot O block): standing 0..1, foot dab -1..1, body
@@ -2170,10 +2172,14 @@ export interface BikePoseValues extends GpTyreAppearance {
   rearWheelOut?: number;
   frontWheelDrop?: number;
 }
+const BIKE_DETAILS = ['high', 'mid', 'far'] as const;
+type PresentedBike = BikeModel | DirtBikeModel;
+
 interface Entry {
   definition: VehicleDefinition;
   materials: BikeMaterials;
-  levels: (BikeModel | DirtBikeModel)[];
+  levels: (PresentedBike | undefined)[];
+  dirtMud?: MudUniforms;
   level: number;
   /** Paddock stands and carried wheels, shown only during a pit service. */
   rig: BikeServiceRig;
@@ -2275,13 +2281,15 @@ export class BikeShells {
     // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
     const scheme = id === 0 ? (SHELL_SCHEME[definition.id] ?? id) : id;
     const materials = new BikeMaterials(scheme);
-    // Off-road machines (WP41) have their own model; one mud coat per entrant.
-    const mud = mudUniforms();
-    const levels = (['high', 'mid', 'far'] as const).map((detail) =>
-      isDirtBike(definition)
-        ? new DirtBikeModel(definition, id, detail, materials, mud)
-        : new BikeModel(definition, scheme, detail, materials, detail === 'high'),
-    );
+    // Build MX detail as it becomes visible. A ten-rider gate previously
+    // allocated thirty complete rigs, including every hidden glove, jersey
+    // and plastic atlas. Revisited levels stay resident for smooth cuts.
+    const dirtMud = isDirtBike(definition) ? mudUniforms() : undefined;
+    const levels = dirtMud
+      ? []
+      : BIKE_DETAILS.map(
+          (detail) => new BikeModel(definition, scheme, detail, materials, detail === 'high'),
+        );
     for (const level of levels) {
       this.root.add(level.root);
       level.root.visible = false;
@@ -2292,14 +2300,12 @@ export class BikeShells {
     // Capture the opaque rest pose before a presentation hook can replace its
     // materials (the Time Trial ghost installs a translucent material). A cold
     // cache must bake the same volume regardless of which entrant builds first.
-    const occlusion = gp
-      ? this.occlude(definition.id, levels as BikeModel[], materials)
-      : undefined;
+    const occlusion = gp ? this.occlude(definition.id, levels, materials) : undefined;
     for (const level of levels) this.install(level.root);
     const rig = new BikeServiceRig(bikeServiceGeometry(definition));
     this.root.add(rig.root);
     this.install(rig.root);
-    return { definition, materials, levels, level: -1, rig, riderBody, occlusion };
+    return { definition, materials, levels, dirtMud, level: -1, rig, riderBody, occlusion };
   }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high
    * model and hook every lit, opaque bike and rider material of the entrant. */
@@ -2315,6 +2321,7 @@ export class BikeShells {
   }
   private dispose(entry: Entry) {
     for (const level of entry.levels) {
+      if (!level) continue;
       this.root.remove(level.root);
       if (level.rider.root.parent) level.rider.root.parent.remove(level.rider.root);
       level.dispose();
@@ -2329,7 +2336,7 @@ export class BikeShells {
   setFirstPerson(follow: number) {
     for (const [id, entry] of this.entries)
       for (const model of entry.levels)
-        model.rider.setFirstPerson(id === follow, !!entry.definition.bike?.offroad);
+        model?.rider.setFirstPerson(id === follow, !!entry.definition.bike?.offroad);
   }
   /** The service rig of entrant `id` (diagnostics and tests), if it is a bike. */
   serviceRig(id: number) {
@@ -2338,7 +2345,7 @@ export class BikeShells {
   /** The model of entrant `id` that is drawn now (its visible level of detail): a bike is not the
    * `FormulaCar` that holds its slot, so anything that measures what is on screen asks here. */
   drawnRoot(id: number): T.Object3D | null {
-    return this.entries.get(id)?.levels.find((level) => level.root.visible)?.root ?? null;
+    return this.entries.get(id)?.levels.find((level) => level?.root.visible)?.root ?? null;
   }
   /** Shared service pose of a stopped bike from the discrete snapshot fields
    * the crew presentation reads (phase, service clock, stand lift); null when
@@ -2416,14 +2423,27 @@ export class BikeShells {
       if (previous === 0 && level === 1 && distance < 36) level = 0;
       if (previous === 1 && level === 2 && distance < 106) level = 1;
       if (previous === 2 && level === 1 && distance > 94) level = 2;
-      entry.level = level;
-      for (let i = 0; i < entry.levels.length; i++) {
-        const model = entry.levels[i];
-        model.root.visible = i === level;
-        // A separated rider is parented to the world, outside its LOD root.
-        model.rider.root.visible = i === level;
+      let model = entry.levels[level];
+      if (!model) {
+        model = new DirtBikeModel(
+          definition,
+          id,
+          BIKE_DETAILS[level],
+          entry.materials,
+          entry.dirtMud!,
+        );
+        this.root.add(model.root);
+        this.install(model.root);
+        entry.levels[level] = model;
       }
-      const model = entry.levels[level];
+      const old = entry.levels[previous];
+      if (old && old !== model) {
+        old.root.visible = false;
+        // A separated rider can be parented to the world outside its LOD.
+        old.rider.root.visible = false;
+      }
+      entry.level = level;
+      model.root.visible = model.rider.root.visible = true;
       model.root.position.copy(car.position);
       model.root.quaternion.copy(car.quaternion);
       // On the stands the whole machine (and its seated rider) rises by the
@@ -2481,6 +2501,7 @@ export class BikeShells {
     v.brake = sampleValue(a, b, o + F.BRAKE, t);
     v.rearBrake = sampleBikeField(a, b, o, B.REAR_BRAKE, t);
     v.discTemp = wheelValue(a, b, o, front, W.DISC_TEMP, t);
+    v.rearDiscTemp = wheelValue(a, b, o, rear, W.DISC_TEMP, t);
     v.compound = Math.round(source[o + F.COMPOUND]);
     v.frontWear = wheelValue(a, b, o, front, W.WEAR, t);
     v.rearWear = wheelValue(a, b, o, rear, W.WEAR, t);
@@ -2554,7 +2575,7 @@ export class BikeShells {
   /** Bikes currently drawn (diagnostics). */
   get count() {
     let n = 0;
-    for (const entry of this.entries.values()) if (entry.levels.some((l) => l.root.visible)) n++;
+    for (const entry of this.entries.values()) if (entry.levels.some((l) => l?.root.visible)) n++;
     return n;
   }
 }

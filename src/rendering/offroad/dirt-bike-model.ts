@@ -62,6 +62,12 @@ import {
   installMotocrossPlasticFinish,
 } from './motocross-detail.ts';
 
+function mxRotorEmission(temperature: number | undefined) {
+  if (!Number.isFinite(temperature)) return 0;
+  const t = T.MathUtils.clamp((temperature! - 530) / 370, 0, 1);
+  return 0.55 * t * t * (3 - 2 * t);
+}
+
 /** Off-road motorcycle geometry (m): a 27 degree rake, a long fork with
  * ~300 mm of travel between the axle and the lower clamp, and the rider's
  * contact points for a standing-friendly riding position. */
@@ -90,6 +96,8 @@ export class DirtBikeModel {
   private readonly steer = new T.Group();
   /** Real right-hand lever pivot. The clutch remains unactuated: the current
    * presented bike-pose contract has no clutch channel. */
+  private readonly frontRotor: T.MeshPhysicalMaterial;
+  private readonly rearRotor: T.MeshPhysicalMaterial;
   private readonly frontBrakeLever = new T.Group();
   private readonly forkLower = new T.Group();
   private readonly frontSpin = new T.Group();
@@ -172,14 +180,18 @@ export class DirtBikeModel {
       clearcoatRoughness: 0.22,
       name: 'Motocross anodised rim and hub',
     });
-    const rotorMaterial = new T.MeshPhysicalMaterial({
+    this.frontRotor = new T.MeshPhysicalMaterial({
       color: 0xa3a7a8,
       metalness: 0.88,
       roughness: 0.35,
       clearcoat: 0.15,
       clearcoatRoughness: 0.28,
       name: 'Motocross stainless wave rotor',
+      emissive: 0xb64017,
+      emissiveIntensity: 0,
     });
+    this.rearRotor = this.frontRotor.clone();
+    this.rearRotor.name = 'Motocross rear stainless wave rotor';
     const chainMaterial = new T.MeshStandardMaterial({
       color: 0x938165,
       metalness: 0.78,
@@ -232,7 +244,8 @@ export class DirtBikeModel {
     this.plastics.push(
       shroudMaterial,
       rimMaterial,
-      rotorMaterial,
+      this.frontRotor,
+      this.rearRotor,
       chainMaterial,
       tyreMaterial,
       castMaterial,
@@ -326,7 +339,7 @@ export class DirtBikeModel {
         add(
           spin,
           motocrossRotor(front ? 0.131 : 0.117, detail),
-          rotorMaterial,
+          front ? this.frontRotor : this.rearRotor,
           front ? 0.056 : -0.06,
         );
         if (!front) add(spin, motocrossRotor(0.115, detail, true), chainMaterial, 0.095);
@@ -540,6 +553,70 @@ export class DirtBikeModel {
     // Race numbers are printed on the front. The cockpit sees the unprinted
     // moulding, not a mirrored duplicate of the graphics through the plate.
     mapUnprintedPlateBack(plate.geometry);
+    if (detail !== 'far') {
+      // Moulded ribs bridge the flexible number board to its rubber fork
+      // straps. The cockpit sees this hardware from behind the board.
+      const faceY = plate.position.y,
+        back = plate.position.z - 0.011;
+      for (const side of [-1, 1]) {
+        const rib = add(
+          this.steer,
+          new T.BoxGeometry(0.008, 0.124, 0.009),
+          board,
+          side * 0.086,
+          faceY + 0.065,
+          back,
+        );
+        // A narrow blank area of the existing board atlas carries bare resin.
+        const uv = rib.geometry.getAttribute('uv');
+        for (let i = 0; i < uv.count; i++)
+          uv.setXY(i, 0.012 + 0.006 * uv.getX(i), 0.42 + 0.09 * uv.getY(i));
+        rib.rotation.z = side * -0.12;
+        add(
+          this.steer,
+          new T.BoxGeometry(0.032, 0.018, 0.027),
+          this.m.dark,
+          side * 0.092,
+          faceY + 0.059,
+          back - 0.009,
+        );
+        const pad = add(
+          this.steer,
+          new T.CylinderGeometry(0.008, 0.008, 0.004, 10),
+          this.m.aluminium,
+          side * 0.092,
+          faceY + 0.059,
+          back - 0.025,
+        );
+        pad.rotation.x = Math.PI / 2;
+        const bolt = add(
+          this.steer,
+          new T.CylinderGeometry(0.0047, 0.0047, 0.003, 6),
+          this.m.steel,
+          side * 0.092,
+          faceY + 0.059,
+          back - 0.028,
+        );
+        bolt.rotation.x = Math.PI / 2;
+        // A raised inner hand stop and a closed replaceable bar end.
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.027, 0.025, 0.005, 14),
+          this.m.dark,
+          side * 0.302,
+          barY,
+          barZ,
+        ).rotation.z = Math.PI / 2;
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.016, 0.017, 0.006, 12),
+          this.m.dark,
+          side * 0.421,
+          barY,
+          barZ,
+        ).rotation.z = Math.PI / 2;
+      }
+    }
     // High front fender on the lower clamp: the wheel rises into the gap.
     const kitFender = (front: boolean) => {
       const geometry = motocrossFender(front, detail);
@@ -1052,7 +1129,10 @@ export class DirtBikeModel {
       this.rearBrake.rotation.x = this.swingarm.rotation.x;
     }
     this.chain?.update(v.rearRotation, this.swingarm.scale.z);
-    this.m.disc.emissiveIntensity = 0;
+    // Steel stays dark at ordinary riding temperatures. The two rotors
+    // use their own recorded heat, including brake dragging and cooldown.
+    this.frontRotor.emissiveIntensity = mxRotorEmission(v.discTemp);
+    this.rearRotor.emissiveIntensity = mxRotorEmission(v.rearDiscTemp);
     this.mud.offroadMud.value = T.MathUtils.clamp(v.mud ?? 0, 0, 1);
     this.mud.offroadMudWet.value = T.MathUtils.clamp((v.mudWet ?? 0) * 1.6, 0, 1);
     this.tyreFinish?.update(v);

@@ -260,6 +260,14 @@ const COLOUR = /* glsl */ `{
     1.0 + edgeBand * ( 0.16 + 0.08 * broad ), mxSoilIndoor );
   diffuseColor.rgb *= edgeTone;
   diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 0.95, 0.88, 0.8 ), edgeBand * ( 1.0 - mxSoilIndoor ) );
+  // On the outdoor shoulder, broken sod and dry blades meet the pushed
+  // loam in patches. The broad clumps read from the chase camera; the
+  // smaller flecks disappear as soon as their screen footprint is too big.
+  float verge = (1.0 - mxSoilIndoor) * (1.0 - onSoil)
+    * smoothstep(0.78, 1.06, edgeAcross);
+  float sod = smoothstep(0.30, 0.77, broad * 0.72 + broken * 0.28);
+  vec3 vergeTint = mix(vec3(0.76, 0.87, 0.79), vec3(1.17, 1.03, 0.85), sod);
+  diffuseColor.rgb *= mix(vec3(1.0), vergeTint, verge * 0.85);
   // Stadium: the watered line (where the passes pack it) is darker and
   // tacky; chalked lane lines mark the inside of each lane edge.
   float tacky = mxSoilIndoor * onSoil * clamp( passes.z * 1.2 + mxPreparedGroove * 0.6, 0.0, 1.0 );

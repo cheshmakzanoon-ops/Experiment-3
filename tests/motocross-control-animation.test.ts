@@ -1,9 +1,15 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { BikeMaterials, staticSag, type BikePoseValues } from '../src/rendering/bike.ts';
+import {
+  BikeMaterials,
+  BikeShells,
+  staticSag,
+  type BikePoseValues,
+} from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
-import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
+import { H, F, R, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -294,3 +300,94 @@ it.each(['high', 'mid'] as const)(
     }
   },
 );
+
+it('shows heat only on the independently recorded hot steel rotor and cools on replay', () => {
+  const definition = VEHICLES.mx250,
+    materials = new BikeMaterials(0);
+  const bike = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+  const sag = staticSag(definition);
+  const pose: BikePoseValues = {
+    ...sag,
+    steer: 0,
+    frontRotation: 0,
+    rearRotation: 0,
+    chassisLean: 0,
+    riderOffset: 0,
+    tuck: 0,
+    brake: 0,
+    rearBrake: 0,
+    discTemp: 20,
+    compoundColour: 0xffffff,
+    riding: true,
+  };
+  const surfaces = new Map<string, T.MeshPhysicalMaterial>();
+  bike.root.traverse((object) => {
+    if (object instanceof T.Mesh)
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        if (material instanceof T.MeshPhysicalMaterial) surfaces.set(material.name, material);
+      }
+  });
+  const front = surfaces.get('Motocross stainless wave rotor')!,
+    rear = surfaces.get('Motocross rear stainless wave rotor')!;
+  try {
+    for (const [frontC, rearC] of [
+      [720, 39],
+      [52, 805],
+      [475, 510],
+      [720, 39],
+    ]) {
+      bike.pose({ ...pose, discTemp: frontC, rearDiscTemp: rearC });
+      expect(front.emissiveIntensity > 0).toBe(frontC > 530);
+      expect(rear.emissiveIntensity > 0).toBe(rearC > 530);
+    }
+    bike.pose({ ...pose, discTemp: NaN });
+    expect(front.emissiveIntensity + rear.emissiveIntensity).toBe(0);
+  } finally {
+    bike.dispose();
+    materials.dispose();
+  }
+});
+
+it('loads only the requested motocross rig, reuses it across camera cuts and releases dormant levels', () => {
+  const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+  frame[H.CARS] = 2;
+  const cars = [0, 1].map((i) => {
+    const o = carBase(i);
+    frame[o + F.QW] = 1;
+    frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(i === 0 ? 'mx450' : 'mx250');
+    return { root: new T.Object3D() };
+  });
+  cars[1].root.position.z = 220;
+  const shells = new BikeShells(),
+    camera = new T.PerspectiveCamera(60, 16 / 9),
+    installed: T.Object3D[] = [];
+  shells.install = (root) => {
+    if (/\((high|mid|far)\)$/.test(root.name)) installed.push(root);
+  };
+  const present = () => shells.update(frame, frame, 1, cars, camera, 'medium', 0);
+  try {
+    present();
+    expect(shells.count).toBe(2);
+    expect(installed.map((m) => m.name.split(' ').at(-1))).toEqual(['(high)', '(far)']);
+    const remote = shells.drawnRoot(1);
+    cars[1].root.position.z = 55;
+    present();
+    expect(shells.drawnRoot(1)!.name.endsWith('(mid)')).toBe(true);
+    cars[1].root.position.z = 5;
+    present();
+    expect(shells.drawnRoot(1)!.name.endsWith('(high)')).toBe(true);
+    shells.setFirstPerson(1);
+    cars[1].root.position.z = 220;
+    present();
+    shells.setFirstPerson(-1);
+    expect(installed.length).toBe(4);
+    expect(shells.drawnRoot(1)).toBe(remote);
+    expect(installed.filter((root) => root.visible)).toHaveLength(2);
+    frame[H.CARS] = 1;
+    present();
+    expect(installed.filter((m) => m.parent === shells.root)).toHaveLength(1);
+    expect(shells.drawnRoot(1)).toBe(null);
+  } finally {
+    shells.disposeAll();
+  }
+});

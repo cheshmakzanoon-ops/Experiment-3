@@ -93,6 +93,11 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
         polygon(accent, [60, 176, 98, 190, 104, 300, 88, 264, 84, 207]);
         c.restore();
       }
+      // Carry the shoulder pinstripes around the nose; the rider sees this
+      // upper end of the atlas beyond the number plate from the cockpit.
+      polygon(dark, [15, 8, 57, 12, 128, 63, 199, 12, 241, 8, 160, 81, 128, 107, 97, 81]);
+      polygon(paper, [41, 13, 62, 15, 128, 67, 194, 15, 215, 13, 128, 81]);
+      polygon(accent, [67, 25, 93, 41, 128, 68, 163, 41, 189, 25, 128, 76]);
       c.fillStyle = paper;
       c.font = 'italic 900 27px "Saira Variable", sans-serif';
       c.textAlign = 'center';
