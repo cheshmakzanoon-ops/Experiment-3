@@ -116,11 +116,14 @@ export class TrafficCars {
     this.bodies.castShadow = this.bodies.receiveShadow = true;
     const glazing = new T.InstancedMesh(
       geometry.glazing,
-      new T.MeshStandardMaterial({
-        color: 0x172b36,
+      new T.MeshPhysicalMaterial({
+        color: 0x293b42,
         vertexColors: true,
-        roughness: 0.16,
-        metalness: 0.32,
+        roughness: 0.13,
+        metalness: 0.04,
+        clearcoat: 1,
+        clearcoatRoughness: 0.065,
+        ior: 1.52,
       }),
       TRAFFIC_CAPACITY,
     );
@@ -363,6 +366,10 @@ export class TrafficCars {
       morphTargets: TRAFFIC_VISUAL_PROFILES.length - 1,
       vertices,
       wheelVertices: this.wheels.geometry.getAttribute('position').count,
+      trianglesPerCar:
+        (this.bodyBatches.reduce((sum, mesh) => sum + mesh.geometry.index!.count, 0) +
+          this.wheels.geometry.getAttribute('position').count * 4) /
+        3,
       // Three's native position + normal targets use two RGBA32F texels per
       // vertex; instance weights use one R32F texel per profile and instance.
       morphPayloadBytes:

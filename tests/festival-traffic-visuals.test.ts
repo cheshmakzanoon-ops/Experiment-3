@@ -101,11 +101,7 @@ describe('festival traffic visual geometry', () => {
     expect(diagnostics.profiles).toBe(10);
     expect(diagnostics.morphTargets).toBe(9);
     expect(diagnostics.morphPayloadBytes).toBeLessThan(1_800_000);
-    const triangles =
-      (Object.values(diagnostics.vertices).reduce((sum, n) => sum + n, 0) +
-        diagnostics.wheelVertices * 4) /
-      3;
-    expect(triangles).toBeLessThan(6000);
+    expect(diagnostics.trianglesPerCar).toBeLessThan(6000);
     for (const mesh of meshes) {
       expect(mesh.frustumCulled).toBe(false);
       for (const attr of [
@@ -130,6 +126,81 @@ describe('festival traffic visual geometry', () => {
     expect(cars.wheels.castShadow).toBe(true);
     expect((cars.bodies.material as T.MeshPhysicalMaterial).clearcoat).toBeGreaterThan(0);
     cars.dispose();
+  });
+
+  it('preserves every visible corner across all ten compressed traffic morphs and the curved lamp circuits', () => {
+    const cars = new TrafficCars();
+    try {
+      for (const [i, profile] of TRAFFIC_VISUAL_PROFILES.entries()) {
+        const source = trafficBodyGeometry(profile);
+        for (const [batch, key] of ['paint', 'glazing', 'trim', 'lamps'].entries()) {
+          const part = source[key as keyof typeof source],
+            g = bodyBatches(cars)[batch].geometry;
+          const order = g.index!;
+          expect(order.count).toBe(part.getAttribute('position').count);
+          for (const name of ['position', 'normal'] as const) {
+            const actual = i ? g.morphAttributes[name]![i - 1] : g.getAttribute(name);
+            const expected = part.getAttribute(name);
+            let max = 0;
+            for (let j = 0; j < order.count; j++) {
+              const k = order.getX(j);
+              max = Math.max(
+                max,
+                Math.abs(expected.getX(j) - actual.getX(k)),
+                Math.abs(expected.getY(j) - actual.getY(k)),
+                Math.abs(expected.getZ(j) - actual.getZ(k)),
+              );
+            }
+            expect(max, profile.vehicle.id + ' ' + key + ' ' + name).toBe(0);
+          }
+          part.dispose();
+        }
+      }
+      expect(cars.diagnostics.morphPayloadBytes).toBeLessThan(1_050_000);
+    } finally {
+      cars.dispose();
+    }
+  });
+
+  it('seats the stop lenses and bumper insert in front of every pressed tail panel', () => {
+    const material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+    try {
+      for (const profile of TRAFFIC_VISUAL_PROFILES) {
+        const g = trafficBodyGeometry(profile),
+          s = profile.sheet,
+          v = profile.vehicle;
+        const paint = new T.Mesh(g.paint, material),
+          trim = new T.Mesh(g.trim, material),
+          lamps = new T.Mesh(g.lamps, material);
+        const half = s.width / 2,
+          wide = s.lamps.rear === 'bar' || s.lamps.rear === 'strip';
+        const width = wide ? half * 0.61 : 0.32,
+          lit = width * (wide ? 0.286 : 0.205);
+        const centre = half * 0.78 - width * 0.48;
+        const tail = v.wheelPositions[2][2] - s.overhang[1];
+        const ray = new T.Raycaster();
+        const first = (x: number, y: number) => {
+          ray.set(new T.Vector3(x, y - v.halfExtents[1], tail - 0.5), new T.Vector3(0, 0, 1));
+          return ray.intersectObjects([paint, trim, lamps], false)[0]?.object;
+        };
+        for (const side of [-1, 1]) {
+          for (const unit of [-1, 0, 1])
+            for (const within of [-0.31, 0, 0.31])
+              expect(
+                first(side * centre + unit * width * 0.295 + lit * within, s.tail - 0.105),
+                v.id + ' stop lens',
+              ).toBe(lamps);
+          for (const station of [0.15, 0.42, 0.7])
+            expect(
+              first(station * half * side, s.floor + (s.tail - s.floor) * 0.25),
+              v.id + ' bumper',
+            ).toBe(trim);
+        }
+        for (const part of Object.values(g)) part.dispose();
+      }
+    } finally {
+      material.dispose();
+    }
   });
 
   it('uses the existing original sheets for distinct cabins, a pickup bed and registry-aligned open wheel arches', () => {
