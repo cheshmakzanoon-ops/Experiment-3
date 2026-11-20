@@ -5,6 +5,11 @@ import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { LANDING_RULES } from '../src/simulation/offroad/riding-feedback.ts';
 import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
 
+// Every player-facing transition already attaches its full-resolution image.
+// Keep actions, DOM snapshots and errors on failure without running a second
+// continuous Chromium screencast while the game submits its gate frames.
+test.use({ trace: { mode: 'retain-on-failure', screenshots: false, snapshots: true } });
+
 /** Normal production app and worker. Every change uses visible controls or
  * player key bindings; apexDiagnostics is observed without modifying state. */
 test('real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch', async ({
@@ -99,6 +104,36 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
         `${circuit}: initialized rider ${rider} uses the selected machine`,
       ).toBe(vehicleIndex(machine));
     await expect(page.locator('#raceBriefing')).toContainText('RIDERS');
+    await expect
+      .poll(
+        async () => {
+          const held = await diag();
+          const queue = held.renderer?.gpuFrameQueue;
+          return (
+            held.state === 'paused' &&
+            held.presentation?.renderedState === 'paused' &&
+            held.frame?.[H.TICK] === 0 &&
+            !!queue &&
+            queue.completed > 0 &&
+            queue.completed === queue.submitted &&
+            !queue.pending
+          );
+        },
+        { timeout: 60000, message: `${circuit}: the held gate has finished its GPU work` },
+      )
+      .toBe(true);
+    const gateFrame = await page.evaluate(async () => {
+      const before = window.apexDiagnostics().presentation?.frames;
+      const start = performance.now();
+      // Observe across several normal 15 Hz paused-world paint opportunities.
+      await new Promise<void>((resolve) => {
+        const check = (now: number) =>
+          now - start >= 220 ? resolve() : requestAnimationFrame(check);
+        requestAnimationFrame(check);
+      });
+      return { before, after: window.apexDiagnostics().presentation?.frames };
+    });
+    expect(gateFrame.after).toBe(gateFrame.before);
     await page.getByRole('button', { name: 'GO TO THE GATE', exact: true }).click();
     await expect.poll(async () => (await diag()).state).toBe('driving');
     await expect(page.locator('.mx-ride-hud')).toBeVisible();

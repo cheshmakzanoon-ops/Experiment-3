@@ -1568,6 +1568,18 @@ export class GameApp {
       this.fail(error);
       return;
     }
+    // A motocross briefing holds the worker at the start gate. Poll its real
+    // GPU fence above, then leave the completed chase image with the compositor
+    // until the rider starts, the viewport changes or the briefing closes.
+    if (
+      this.state === 'paused' &&
+      this.gridBriefingOpen &&
+      this.ui.modal.open &&
+      this.renderer.circuit.offroad &&
+      this.renderedState === this.state &&
+      !this.viewportRedrawPending
+    )
+      return;
     // Menus and paused telemetry do not need a continuously saturated GPU.
     // Input and worker clocks above remain independent of this presentation cap.
     const idle =
@@ -2077,6 +2089,7 @@ export class GameApp {
   private openRaceBriefing() {
     if (this.state !== 'paused' || !this.current || this.current[H.TICK] !== 0) return;
     this.gridBriefingOpen = true;
+    if (this.renderer?.circuit.offroad) this.renderedState = null;
     this.ui.modalContent(raceBriefing(this.options, this.current));
     const preference = this.ui.get('raceDayQuickStart') as HTMLInputElement;
     preference.checked = this.settings.quickStart;
@@ -3344,6 +3357,7 @@ export class GameApp {
       engineering: this.renderer?.engineering ?? null,
       presentation: this.renderer
         ? {
+            renderedState: this.renderedState,
             time: this.renderer.presented.value[H.TIME] ?? 0,
             // The player's car in the frame being DRAWN (a replay draws a recorded frame, not
             // `frame` below): the store screenshot director picks a lean or a jump from it.
