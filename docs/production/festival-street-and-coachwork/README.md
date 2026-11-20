@@ -67,6 +67,12 @@ node --experimental-transform-types scripts/vehicle-calibration.ts \
 
 On this host, a separate timing sample measured 3,600 six-car physics steps after 240 warm-up steps. The rainy RH-3 hill climb took 1.52 ms at the median and 3.90 ms at the 95th percentile. The dry SC-7 street race took 1.92 ms and 9.58 ms respectively. In the street race, 268 steps exceeded the 8.33 ms simulation interval. These measurements cover the simulation worker and exclude the renderer. The recorded checks include 99th-percentile and maximum step times for both samples.
 
+## Saltmarsh photo mode
+
+These captures follow two drives in the packaged game. Each started the RH-3 practice event from its card, accelerated, braked and opened photo mode through the pause menu. Previously, when physics advanced after the last displayed frame, both orbit controls could circle a point behind the car. The revised camera carries its eye and pivot forward with the final car pose. After braking from 24.52 km/h to 0.75 km/h, two right-orbit inputs swept 45° around the car while holding a radius of 5.93 m. Simulation time stayed fixed at 5.608 s. Returning to the circuit, resetting the lap and exiting the Festival also passed.
+
+![The RH-3 before and after two right-orbit inputs, on the previous and revised cameras](saltmarsh-photo-orbit.jpg)
+
 ## Visible geometry
 
 These fixed-camera comparisons use the EH-3, clear daylight, the Low preset and a 960 × 540 CSS viewport. The game renders a 720 × 405 WebGL2 buffer at this preset. The original checkout (5359d2c) and the finished car, street and traffic geometry (71225b1) use the same camera positions. Counts cover the complete frame, including the player car. All three cameras completed with a clean WebGL error state. The recorded checks also retain the intermediate street and terrain captures.
