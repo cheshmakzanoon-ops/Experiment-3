@@ -85,6 +85,7 @@ export function motocrossTyreShear(
   mu: number,
   groundSpeed: number,
   out: MxContactForce = { ...EMPTY_FORCE },
+  longitudinalStiffness = Infinity,
 ): MxContactForce {
   if (load <= 0 || mu <= 0) {
     out.fx = out.fy = out.slip = out.use = out.slipPower = 0;
@@ -95,7 +96,12 @@ export function motocrossTyreShear(
   const sy = slipAngle / 0.15;
   const magnitude = Math.hypot(sx, sy);
   const gain = magnitude > 1e-8 ? Math.tanh(magnitude) / magnitude : 1;
-  const fx = peak * sx * gain;
+  // A finite step can exchange only the impulse needed to close the
+  // rolling-speed mismatch. On a loaded landing the unconstrained brush
+  // can cross rolling equality and accelerate the wheel away on each step.
+  const limit = Number.isFinite(longitudinalStiffness)
+    ? Math.abs(longitudinalSlip) * longitudinalStiffness : Infinity;
+  const fx = clamp(peak * sx * gain, -limit, limit);
   const fy = peak * sy * gain;
   out.fx = fx;
   out.fy = fy;
@@ -158,6 +164,16 @@ export function stepMotocrossGround(
     rearShare = p.rearLoad / totalLoad,
     frontPeak = p.frontLoad * p.frontMu,
     rearPeak = p.rearLoad * p.rearMu,
+    // The wheel and chassis receive the same impulse. When both tyres act
+    // together, their shared chassis velocity couples their rolling errors.
+    // Include the off-diagonal mobility in each bound; a lone loaded tyre
+    // uses its exact effective mass. A steered front also acts through yaw.
+    chassisMobility = (frontPeak > 0 && rearPeak > 0 ? 1 + (hasLean ? 1 : cs) : 1) / p.mass,
+    frontMobility = chassisMobility + p.frontRadius ** 2 / p.frontInertia +
+      (hasLean ? 0 : (p.frontArm * sn) ** 2 / iz),
+    rearMobility = chassisMobility + p.rearRadius ** 2 / p.rearInertia,
+    frontStiffness = 1 / (h * frontMobility),
+    rearStiffness = 1 / (h * rearMobility),
     rearFrictionShare = p.rearBrakeTorque > 0
       ? clamp(1 - (p.rearEngineBrakeTorque ?? 0) / p.rearBrakeTorque, 0, 1) : 0;
   for (let i = 0; i < n; i++) {
@@ -176,6 +192,7 @@ export function stepMotocrossGround(
       p.frontMu,
       frontForward,
       front,
+      frontStiffness,
     );
     motocrossTyreShear(
       rearOmega * p.rearRadius - speed,
@@ -184,6 +201,7 @@ export function stepMotocrossGround(
       p.rearMu,
       speed,
       rear,
+      rearStiffness,
     );
     const slipFSide = hasLean ? front.fy : front.fy * cs + front.fx * sn,
       slipFForward = hasLean ? front.fx : front.fx * cs - front.fy * sn,

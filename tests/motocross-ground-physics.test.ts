@@ -86,6 +86,33 @@ describe('independent motocross wheel/soil/yaw dynamics', () => {
     const after = p.mass * result.speed ** 2 + p.rearInertia * result.rearOmega ** 2;
     expect(after).toBeLessThan(before);
   });
+  it('settles a heavily loaded free wheel without reversing slip or gaining energy', () => {
+    for (const front of [true, false]) {
+      for (const load of [3000, 9000, 16000]) {
+        for (const mismatch of [-0.5, 0.5]) {
+          const p = { ...params(), frontMu: 1.12, rearMu: 1.12,
+            frontLoad: front ? load : 0, rearLoad: front ? 0 : load };
+          const radius = front ? p.frontRadius : p.rearRadius;
+          const inertia = front ? p.frontInertia : p.rearInertia;
+          const wheel = front ? 'frontOmega' : 'rearOmega';
+          let s = { ...state(), speed: 4, frontOmega: 4 / p.frontRadius, rearOmega: 4 / p.rearRadius };
+          s[wheel] += mismatch;
+          const momentum = p.mass * s.speed + inertia * s[wheel] / radius;
+          const energy = (v: MxGroundState) => (p.mass * v.speed ** 2 + inertia * v[wheel] ** 2) / 2;
+          for (let i = 0; i < 16; i++) {
+            const next = stepMotocrossGround(s, p, 1 / 720);
+            const slip = next[wheel] * radius - next.speed;
+            expect(slip * Math.sign(mismatch)).toBeGreaterThanOrEqual(-1e-11);
+            expect(Math.abs(slip)).toBeLessThanOrEqual(Math.abs(s[wheel] * radius - s.speed) + 1e-11);
+            expect(energy(next)).toBeLessThanOrEqual(energy(s) + 1e-9);
+            expect(p.mass * next.speed + inertia * next[wheel] / radius).toBeCloseTo(momentum, 9);
+            s = next;
+          }
+          expect(s[wheel] * radius).toBeCloseTo(s.speed, 7);
+        }
+      }
+    }
+  });
   it('publishes exactly the substep impulses exchanged by chassis and rear wheel', () => {
     const initial = { ...state(), rearOmega: state().rearOmega + 30 };
     const p = params();

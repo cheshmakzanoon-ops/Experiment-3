@@ -103,6 +103,14 @@ the latter reconstructed from slip angle. Wheel wear/energy channels use
 this slip work for motocross rather than force times road speed. A perfectly
 rolling, nonsliding contact therefore carries negligible slip heating.
 
+At a hard touchdown the brush can request enough impulse to reverse the
+wheel's slip within one 720 Hz contact step. The solver limits longitudinal
+force to the impulse needed to reach rolling equality in that step. For a
+single aligned tyre the inverse effective mass is `R²/I + 1/m`. With both
+tyres loaded the bound includes their shared chassis response. A steered
+front contact also includes its moment arm about the yaw axis. The limited
+force is used for the rotor, chassis, friction budget and soil-work signal.
+
 Each externally requested step is divided into
 `ceil(dt*720)` semi-implicit force and rotor substeps. Returned soil
 forces are *impulse averaged* across these same substeps, rather than
