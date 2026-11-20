@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44516038688
-- commit: `2d67572a9a` · Prepare native reflection blur and scene shader metadata before drawing
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44646348313
+- commit: `f80309fce0` · Use official HTTPS Ubuntu mirrors for browser CI dependencies
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-19T11:34:29Z · updated: 2026-11-19T12:14:07Z
+- started: 2026-11-20T00:30:04Z · updated: 2026-11-20T00:36:02Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | success | 11 |  |
-| qa | failure | 23 | Review-tool specs of the settings and menu regression, on the QA build |
+| settings | failure | 5 | Original menu regression and transition ownership, without forced clicks or retries |
+| qa | skipped | 0 |  |
