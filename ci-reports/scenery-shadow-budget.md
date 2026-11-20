@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44678469272
-- commit: `1a5fb406a2` · Share rigid motocross meshes on the GPU and verify rider lifetime and display cadence
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44688336517
+- commit: `1193f83099` · Capture the displayed Mesa race viewport without resubmitting frames
 - event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T05:03:31Z · updated: 2026-11-20T05:15:15Z
+- started: 2026-11-20T06:30:55Z · updated: 2026-11-20T06:40:57Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 8 |  |
+| browser (night) | success | 5 |  |
+| browser (day) | success | 9 |  |
 | browser (sunset) | success | 7 |  |
-| browser (night) | success | 11 |  |
