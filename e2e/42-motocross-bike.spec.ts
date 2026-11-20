@@ -120,7 +120,7 @@ const test = base.extend<{ review: Review }>({
 // Contracts keep the configured 300 s per-case budget and every original
 // sample/assertion. A slow earlier model cannot consume the onboard, mud or
 // drivetrain contract's entire deadline before that contract begins.
-for (const id of ['mx450', 'mx250'])
+for (const id of ['mx450', 'mx250', 'sm450'])
   test(`Motocross ${id}: production high/mid/far geometry and LOD budgets`, async ({ review }) => {
     const { capture, attach } = review;
     const triangles: number[] = [];
@@ -199,26 +199,27 @@ test('Motocross MX450: reversible mud on the same production instance', async ({
   expect(sequence[0].hash).toBe(sequence[3].hash);
 });
 
-test('Motocross MX450: recorded tyre wear and wetness rewind without resource churn', async ({
-  review,
-}) => {
-  const { capture, attach } = review;
-  const wornWet = { rearWear: 0.72, rearWater: 0.8, rearRotation: 0.2 };
-  const sequence = await capture({
-    id: 'mx450',
-    detail: 'high',
-    view: 'rear-tyre',
-    samples: [{ rearRotation: 0.2 }, wornWet, wornWet, { rearRotation: 0.2 }],
+for (const id of ['mx450', 'sm450'])
+  test(`${id}: recorded tyre wear and wetness rewind without resource churn`, async ({
+    review,
+  }) => {
+    const { capture, attach } = review;
+    const wornWet = { rearWear: 0.72, rearWater: 0.8, rearRotation: 0.2 };
+    const sequence = await capture({
+      id,
+      detail: 'high',
+      view: 'rear-tyre',
+      samples: [{ rearRotation: 0.2 }, wornWet, wornWet, { rearRotation: 0.2 }],
+    });
+    for (const [i, result] of sequence.entries()) {
+      await attach(`${id}-recorded-tyre-surface-${i}`, result);
+      expect(result.instance).toBe(sequence[0].instance);
+      expect(result.resources).toEqual(sequence[0].resources);
+    }
+    expect(sequence[0].hash).not.toBe(sequence[1].hash);
+    expect(sequence[1].hash).toBe(sequence[2].hash);
+    expect(sequence[0].hash).toBe(sequence[3].hash);
   });
-  for (const [i, result] of sequence.entries()) {
-    await attach(`recorded-tyre-surface-${i}`, result);
-    expect(result.instance).toBe(sequence[0].instance);
-    expect(result.resources).toEqual(sequence[0].resources);
-  }
-  expect(sequence[0].hash).not.toBe(sequence[1].hash);
-  expect(sequence[1].hash).toBe(sequence[2].hash);
-  expect(sequence[0].hash).toBe(sequence[3].hash);
-});
 
 test('Motocross MX250: articulated chest and corner gaze retain contact through a reversible lean change', async ({
   review,

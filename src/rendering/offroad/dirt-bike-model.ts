@@ -268,16 +268,17 @@ export class DirtBikeModel {
     const frontR = b.frontWheelRadius,
       rearR = b.rearWheelRadius,
       frontRim = supermoto ? 0.2159 : 0.2667,
-      rearRim = supermoto ? 0.2159 : 0.2286;
-    if (!supermoto)
-      this.tyreFinish = installMotocrossTyreFinish(
-        tyreMaterial,
-        frontR,
-        frontRim,
-        rearR,
-        rearRim,
-        this.mud,
-      );
+      rearRim = supermoto ? 0.2159 : 0.2286,
+      frontDiscRadius = supermoto ? 0.16 : 0.131;
+    this.tyreFinish = installMotocrossTyreFinish(
+      tyreMaterial,
+      frontR,
+      frontRim,
+      rearR,
+      rearRim,
+      this.mud,
+      supermoto ? 'road' : 'knobby',
+    );
     const wheel = (
       spin: T.Group,
       radius: number,
@@ -296,7 +297,7 @@ export class DirtBikeModel {
         rim + 0.012,
         wheelSides,
       );
-      add(spin, supermoto ? carcass : bindMotocrossTyre(carcass, front), tyreMaterial);
+      add(spin, bindMotocrossTyre(carcass, front), tyreMaterial);
       if (knob > 0)
         add(
           spin,
@@ -340,7 +341,7 @@ export class DirtBikeModel {
         add(spin, motocrossWheelSpokes(rim, detail), this.m.steel, 0, 0, 0, false);
       add(
         spin,
-        motocrossRotor(front ? 0.131 : 0.117, detail),
+        motocrossRotor(front ? frontDiscRadius : 0.117, detail, false, front ? 0.131 : 0.117),
         front ? this.frontRotor : this.rearRotor,
         front ? 0.056 : -0.06,
       );
@@ -654,7 +655,7 @@ export class DirtBikeModel {
     ).rotation.z = Math.PI / 2;
     const frontBanjo =
       detail !== 'far'
-        ? addMotocrossBrakeCaliper(this.forkLower, true, detail, this.m, OFFSET)
+        ? addMotocrossBrakeCaliper(this.forkLower, true, detail, this.m, OFFSET, frontDiscRadius)
         : undefined;
     if (detail === 'far')
       add(
@@ -663,7 +664,7 @@ export class DirtBikeModel {
         this.m.caliper,
         0.055,
         0.0,
-        OFFSET - 0.12,
+        OFFSET - (frontDiscRadius - 0.011),
       );
     this.forkLower.add(this.frontSpin);
     this.frontSpin.name = 'Motocross front spinning wheel';

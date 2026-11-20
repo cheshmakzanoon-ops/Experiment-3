@@ -175,9 +175,9 @@ export function addMotocrossBrakeCaliper(
   detail: 'high' | 'mid',
   materials: BikeMaterials,
   rotorOffset: number,
+  radius = front ? 0.131 : 0.117,
 ) {
-  const radius = front ? 0.131 : 0.117,
-    side = front ? 1 : -1,
+  const side = front ? 1 : -1,
     x = front ? 0.056 : -0.06,
     angle = front ? Math.PI - 0.2 : -0.7,
     half = front ? 0.052 : 0.039,

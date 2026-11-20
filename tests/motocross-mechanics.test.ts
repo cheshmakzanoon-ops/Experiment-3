@@ -8,6 +8,7 @@ import {
   MotocrossRearShock,
 } from '../src/rendering/offroad/motocross-mechanics.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
+import { motocrossRotor } from '../src/rendering/offroad/motocross-detail.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 beforeAll(() => {
@@ -202,16 +203,44 @@ describe('motocross two-anchor suspension and brake geometry', () => {
     },
   );
 
-  for (const front of [true, false])
+  it.each(['high', 'mid', 'far'] as const)(
+    '%s front disc fits the same carrier on both wheel sets',
+    (detail) => {
+      for (const radius of [0.131, 0.16]) {
+        const rotor = motocrossRotor(radius, detail, false, 0.131);
+        try {
+          const position = rotor.getAttribute('position');
+          let inner = Infinity,
+            outer = 0;
+          for (let i = 0; i < position.count; i++) {
+            const reach = Math.hypot(position.getY(i), position.getZ(i));
+            inner = Math.min(inner, reach);
+            outer = Math.max(outer, reach);
+          }
+          expect(inner).toBeCloseTo(0.131 * (detail === 'far' ? 0.22 : 0.44), 6);
+          expect(outer).toBeCloseTo(radius, 6);
+        } finally {
+          rotor.dispose();
+        }
+      }
+    },
+  );
+
+  for (const [front, radius] of [
+    [true, 0.131],
+    [true, 0.16],
+    [false, 0.117],
+  ] as const)
     it.each(['high', 'mid'] as const)(
-      `${front ? 'front' : 'rear'} %s caliper has a real empty rotor throat and separate jaws`,
+      `${front ? 'front' : 'rear'} ${
+        radius * 2000
+      } mm %s caliper has a real empty rotor throat and separate jaws`,
       (detail) => {
         const materials = new BikeMaterials(0),
           root = new T.Group(),
           offset = front ? 0.022 : 0,
-          radius = front ? 0.131 : 0.117,
           axisX = front ? 0.056 : -0.06;
-        const banjo = addMotocrossBrakeCaliper(root, front, detail, materials, offset);
+        const banjo = addMotocrossBrakeCaliper(root, front, detail, materials, offset, radius);
         root.updateMatrixWorld(true);
         try {
           const ray = new T.Raycaster(),

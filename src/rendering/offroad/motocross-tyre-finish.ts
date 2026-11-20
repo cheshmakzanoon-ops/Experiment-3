@@ -53,7 +53,11 @@ const SAMPLE = /* glsl */ `
   float axle = step(.5, vMxTyreBind.w);
   vec2 condition = mix(mxTyreFront, mxTyreRear, axle);
   vec2 dimensions = mix(mxTyreDimensions.xy, mxTyreDimensions.zw, axle);
+#ifdef MX_SUPERMOTO_TYRE
+  float halfWidth = mix(.060, .085, axle);
+#else
   float halfWidth = mix(.042, .06, axle);
+#endif
   float radial = length(p.yz), across = abs(p.x) / halfWidth;
   float crown = (1. - smoothstep(.7, 1.12, across)) *
     smoothstep(dimensions.x - .035, dimensions.x - .009, radial);
@@ -83,6 +87,22 @@ const SAMPLE = /* glsl */ `
     mix(1., .6, water);
   mxTyreRoughness = clamp(mix(.77, .92 - wear * .14, crown) +
     .035 * streak * scuff - .24 * water, .46, .96);
+#ifdef MX_SUPERMOTO_TYRE
+  // Staggered channels sweep outwards from the uncut centre strip. Keep
+  // integer repeats at the angular seam and fade sub-pixel rubber relief.
+  float repeats = mix(20., 24., axle);
+  float phase = angle * (repeats / 6.2831853) + across * (.24 + .40 * across) +
+    .5 * step(0., p.x);
+  float pitch = dimensions.x * (6.2831853 / repeats);
+  float distanceToSlot = abs(fract(phase + .5) - .5) * pitch;
+  float antialias = clamp(pixel * .7, .00025, .003);
+  float channel = (1. - smoothstep(.0022 - antialias, .0022 + antialias, distanceToSlot)) *
+    smoothstep(.10, .24, across) * (1. - smoothstep(.85, .99, across)) *
+    smoothstep(dimensions.x - halfWidth * .7, dimensions.x - halfWidth * .48, radial) * detail;
+  mxTyreHeight -= .0018 * channel * (1. - .58 * wear);
+  diffuseColor.rgb *= 1. - .24 * channel;
+  mxTyreRoughness = mix(mxTyreRoughness, .83 - .24 * water, channel);
+#else
   // Packed tread: clay fills the block roots between the knobs from the
   // carcass up, while knob tops scrub clean on the ground. The fill level
   // rises with this entrant's coat (wet clay packs higher than dry crumbs),
@@ -109,6 +129,7 @@ const SAMPLE = /* glsl */ `
     mxTyreHeight += packed * ((.0004 + .00035 * lumps) * detail +
       .00012 * crumbs * fine * (1. - wetClay));
   }
+#endif
 }
 `;
 const NORMAL = /* glsl */ `
@@ -133,6 +154,7 @@ export function installMotocrossTyreFinish(
   rearRadius: number,
   rearRim: number,
   mud?: MudUniforms,
+  tread: 'knobby' | 'road' = 'knobby',
 ): MotocrossTyreFinish {
   const existing = finishes.get(material);
   if (existing) return existing;
@@ -147,31 +169,41 @@ export function installMotocrossTyreFinish(
     },
   };
   finishes.set(material, finish);
-  chainShaderHook(material, 'motocross-tyre-finish-v1', (shader) => {
-    shader.uniforms.mxTyreFront = front;
-    shader.uniforms.mxTyreRear = rear;
-    shader.uniforms.mxTyreDimensions = {
-      value: new T.Vector4(frontRadius, frontRim, rearRadius, rearRim),
-    };
-    // The same uniform objects as the mud layer: one coat state per entrant.
-    shader.uniforms.mxTyreMudCoat = mud?.offroadMud ?? { value: 0 };
-    shader.uniforms.mxTyreMudWet = mud?.offroadMudWet ?? { value: 0 };
-    injectDeclarations(
-      shader,
-      'common',
-      'attribute vec4 mxTyreBind; varying vec4 vMxTyreBind;',
-      'vertex',
-    );
-    injectAfter(shader, 'begin_vertex', 'vMxTyreBind = mxTyreBind;', 'vertex');
-    injectDeclarations(shader, 'common', DECLARATIONS, 'fragment');
-    injectBefore(shader, 'color_fragment', SAMPLE, 'fragment');
-    injectDeclarations(
-      shader,
-      'roughnessmap_fragment',
-      'roughnessFactor = mxTyreRoughness;',
-      'fragment',
-    );
-    injectDeclarations(shader, 'normal_fragment_maps', NORMAL, 'fragment');
-  });
+  const road = tread === 'road';
+  chainShaderHook(
+    material,
+    road ? 'supermoto-tyre-finish-v1' : 'motocross-tyre-finish-v1',
+    (shader) => {
+      shader.uniforms.mxTyreFront = front;
+      shader.uniforms.mxTyreRear = rear;
+      shader.uniforms.mxTyreDimensions = {
+        value: new T.Vector4(frontRadius, frontRim, rearRadius, rearRim),
+      };
+      // The same uniform objects as the mud layer: one coat state per entrant.
+      shader.uniforms.mxTyreMudCoat = mud?.offroadMud ?? { value: 0 };
+      shader.uniforms.mxTyreMudWet = mud?.offroadMudWet ?? { value: 0 };
+      injectDeclarations(
+        shader,
+        'common',
+        'attribute vec4 mxTyreBind; varying vec4 vMxTyreBind;',
+        'vertex',
+      );
+      injectAfter(shader, 'begin_vertex', 'vMxTyreBind = mxTyreBind;', 'vertex');
+      injectDeclarations(
+        shader,
+        'common',
+        (road ? '#define MX_SUPERMOTO_TYRE\n' : '') + DECLARATIONS,
+        'fragment',
+      );
+      injectBefore(shader, 'color_fragment', SAMPLE, 'fragment');
+      injectDeclarations(
+        shader,
+        'roughnessmap_fragment',
+        'roughnessFactor = mxTyreRoughness;',
+        'fragment',
+      );
+      injectDeclarations(shader, 'normal_fragment_maps', NORMAL, 'fragment');
+    },
+  );
   return finish;
 }

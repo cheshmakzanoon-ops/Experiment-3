@@ -840,7 +840,12 @@ export function motocrossRadiatorShroud(side: number, detail: RiderDetail) {
 
 /** True open wave rotor: the ground and spokes remain visible through the
  * cooling holes, unlike a solid disc painted with black dots. Axis is X. */
-export function motocrossRotor(radius: number, detail: RiderDetail, sprocket = false) {
+export function motocrossRotor(
+  radius: number,
+  detail: RiderDetail,
+  sprocket = false,
+  carrierRadius = radius,
+) {
   const shape = new T.Shape(),
     count = detail === 'high' ? 120 : detail === 'mid' ? 64 : 32;
   for (let i = 0; i <= count; i++) {
@@ -850,7 +855,7 @@ export function motocrossRotor(radius: number, detail: RiderDetail, sprocket = f
     else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
   }
   const centre = new T.Path();
-  centre.absarc(0, 0, radius * (detail === 'far' ? 0.22 : 0.44), 0, Math.PI * 2, true);
+  centre.absarc(0, 0, carrierRadius * (detail === 'far' ? 0.22 : 0.44), 0, Math.PI * 2, true);
   shape.holes.push(centre);
   const holes = detail === 'high' ? 12 : detail === 'mid' ? 8 : 5;
   for (let k = 0; k < holes; k++) {
