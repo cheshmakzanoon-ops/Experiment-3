@@ -2,6 +2,46 @@
 
 Valley Ridge and Arena Nord use the same articulated MX250 and MX450 models in racing, onboard views and replay. The SM450 supermoto shares the motocross frame and rider controls and uses its own road wheels.
 
+## MX250 and MX450 race refinement
+
+The image below shows the full Valley Ridge grid on High at 800 × 500. The player entered through the paddock and released the start using the normal race controls. High, Low and the studio inspection frames in this section were rendered by Chromium WebGL2 with SwiftShader.
+
+![MX450 on the inside of the eight-rider starting grid at Valley Ridge on High](valley-ridge-mx450-high-grid.webp)
+
+The MX450 cockpit and tail below are photographed from the same cameras on main at `e5a863d` and `0903d39`. The handguards have open vents, mounts and throttle clearance. The front number board curves around the cables and the bar pad has an open bore. The tail panels turn in around the silencer and its retaining bands. In the closest detail level the MX250 and MX450 contain 139,930 and 136,830 triangles respectively, including the rider.
+
+![Matched before and after shots of the MX450 cockpit, gloves, tail number panel and silencer](mx450-controls-and-tail.webp)
+
+The four frames below come from eight-rider races entered through the production paddock on Low at an 800 × 500 viewport. The upper row shows the start at Valley Ridge and Arena Nord. The lower row shows the player’s view while riding. Both bikes use the same formed parts in chase, cockpit and replay. An axle that locks immediately returns to sharp crossed spokes while its rolling partner keeps its own shutter exposure.
+
+![Outdoor and stadium starting grids above the two on-track cockpit views](mx-race-field-and-cockpit.webp)
+
+| Measurement | Earlier main | Updated main |
+| --- | ---: | ---: |
+| Smallest distance between the tail panel and exhaust across both classes and all three detail levels | 62.9 mm overlap | 17.6 mm clearance |
+| Left-to-right knee displacement across neutral lean, sampled at ±0.00001 rad | 33 mm | Under 0.001 mm |
+| Largest single-tick rise of the rider’s pelvis during the measured get-up | 81 cm | 1.41 cm |
+| 95th-percentile gap under Arena Nord pads, widest gap on each of 482 pads | 10.49 cm | 0.54 cm |
+| Worst gap under a Valley Ridge pad, across 736 pads | 2.67 cm | 0.28 cm |
+| Near-detail stadium spectators submitted at the starting gate | 581 | 225 |
+| Marshal restarts over eight solo Valley Ridge AI laps, four per class | 7 | 0 |
+
+The pad survey samples the hems between the corners as well as the corners themselves. Each venue still draws the pads in two batches. The stadium test covered 18 trackside, gate and telephoto views. Every spectator within those camera frames retained the same seat, model and clothing.
+
+The Arena Nord pad photographed below had the largest original gap. Both frames use its actual placement, the same surveyed ground, material, camera and lighting. The visible gap under this pad fell from 17.30 cm to 0.95 cm.
+
+![The same Arena Nord pad before and after, showing the underside and the contact shadow on the slope](arena-pad-contact.webp)
+
+The recovery sequence below starts with the separated MX450 rider resting on a Valley Ridge slope. The 120 Hz simulation supplies the pelvis, heading, rise and distance travelled. The inspection camera follows 39 samples over 1.58 seconds at 24 fps on the surveyed surface. The rider rises over 0.72 seconds, the arms swing against the planted foot, and the boot tilts through its free swing before it lands. Rewinding to a recorded pose reproduces the same image.
+
+![MX450 rider bracing on Valley Ridge dirt, rising and running back towards the motorcycle](mx450-slope-recovery.webp)
+
+A loaded wheel with a small speed error used to cross rolling speed back and forth on every physics substep. The tyre now caps the corrective impulse using the effective mass at each contact. The tests cover front and rear braking, steered contacts, lateral sliding and high landing loads. They check for extra kinetic energy as well as reversals.
+
+The 120 Hz four-lap probe completed all 32 laps across the outdoor and stadium venues, both bike classes and both physics paths. On the dedicated AI path the Valley Ridge MX450 and MX250 completed all eight laps without a stall or fall. Their lap-time spreads were 2.03 and 1.87 seconds. Driving the player’s solver with the same controls still produced one outdoor MX250 lowside. Arena Nord recorded two assisted restarts across its 16 laps. The separate full-field race suite passed all ten events, including both Valley Ridge motos, the six-lap Arena Nord main and changeable weather.
+
+## Earlier track and rider captures
+
 ![Valley Ridge’s eight-rider field holding at the starting gate in the production game](starting-grid.webp)
 
 These High screenshots come from production races entered through the paddock at `1a5fb40`. The player accelerated and shifted weight in both directions before enabling the race AI. The outdoor run covered 282 m and recorded 1.10 s of flight. The stadium run covered 187 m and recorded 0.79 s. Both sessions paused and returned to the paddock after the chase and onboard captures.
