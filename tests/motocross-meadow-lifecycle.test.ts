@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { inStandFootprint } from '../src/rendering/grandstand.ts';
 import { BuildQueue } from '../src/rendering/build-queue.ts';
 import { MxMeadow, type MxMeadowTransition } from '../src/rendering/offroad/mx-meadow.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
@@ -81,12 +82,22 @@ describe('cooperative MX meadow ownership', () => {
   it('prepares the exact fresh High placement on upgrade, yielding before bounded work', async () => {
     const fresh = planted();
     const expected = fingerprint(fresh.root);
-    // Frozen before cooperative field preparation: every matrix/colour byte
-    // and the nine draw partitions retain the authored placement exactly.
+    // The relocated start terrace excludes a different patch of grass.
+    // Freeze every matrix and colour in the nine corrected draw partitions.
     expect(expected).toEqual({
-      hash: 2074184440,
-      counts: [2042, 2368, 2160, 2607, 2017, 3271, 3220, 2322, 966],
+      hash: 2895080201,
+      counts: [1996, 2383, 2104, 2603, 1989, 3232, 3197, 2382, 679],
     });
+    const track = rigTrack('valley-ridge-mx'),
+      matrix = new T.Matrix4();
+    let insideStand = 0;
+    for (const mesh of meshes(fresh)) {
+      for (let instance = 0; instance < mesh.count; instance++) {
+        mesh.getMatrixAt(instance, matrix);
+        if (inStandFootprint(track, matrix.elements[12], matrix.elements[14], 2.99)) insideStand++;
+      }
+    }
+    expect(insideStand).toBe(0);
     fresh.dispose();
     setMxQuality('medium');
     const meadow = new MxMeadow(rigTrack('valley-ridge-mx'));
