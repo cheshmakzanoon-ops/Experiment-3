@@ -1,0 +1,61 @@
+{
+  "purpose": "Same-runtime unchanged isolated Poggio clear control",
+  "baselineSha": "54a09a088acc008b23bb2a576ad998da164e3128",
+  "worktreeHead": "2caa1c3450ad9e811d0f413cec7e9f2fbbdba925",
+  "worktreeChangesFromBaseline": [
+    "src/rendering/weather-presentation.ts",
+    "tests/weather-zero-work.test.ts"
+  ],
+  "simulationTree": "9daebdee03486217bf2b930b7ea940d10287daee",
+  "baselineSimulationTree": "9daebdee03486217bf2b930b7ea940d10287daee",
+  "testBlob": "9a27ddb37733234200d43a1530489248455be701",
+  "baselineTestBlob": "9a27ddb37733234200d43a1530489248455be701",
+  "nodeVersion": "v24.22.3",
+  "dependencies": "/workspace/scratch/d611aefdb08c/Experiment-3/node_modules",
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "npx",
+    "--no-install",
+    "vitest",
+    "run",
+    "tests/gp-tyre-contact.test.ts",
+    "-t",
+    "classifies all eight GP riders at.*poggio-alto.*clear",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/workspace/scratch/4aee65f72636/wet-path-scale-evidence/baseline-clear/tests.json"
+  ],
+  "originalAssertionsAndDeadline": true,
+  "startedAtUtc": "2026-11-20T00:32:27.232663+00:00",
+  "exitCode": 1,
+  "finishedAtUtc": "2026-11-20T00:33:14.088145+00:00",
+  "workingTreeCleanAfter": true,
+  "simulationUnchangedAfter": true,
+  "result": {
+    "title": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash",
+    "status": "failed",
+    "durationMs": 42063.16220200001,
+    "failedTests": 1,
+    "passedTests": 0,
+    "pendingTests": 21,
+    "expectedMaxImpact": 0,
+    "observedMaxImpact": 0.9833333333333334,
+    "failureLocation": "tests/gp-tyre-contact.test.ts:294:22"
+  },
+  "interpretation": "The unchanged same-runtime baseline reproduces the original isolated Poggio-clear failure observed on the wet candidate. This does not establish a new regression caused by the wet patch, does not prove complete trajectory identity, and does not make the local acceptance case pass.",
+  "artifacts": [
+    {
+      "path": "tests.json",
+      "bytes": 7933,
+      "sha256": "0f11ecaae37051249edb4e68a2f5ca28e46fed0e7e2b190d609ad69748960e79"
+    },
+    {
+      "path": "vitest.log",
+      "bytes": 4148,
+      "sha256": "75a5567db1db09ffe9d8f9c5b8072c9cfa95703e654ff878db71f392d3bb0f82"
+    }
+  ]
+}

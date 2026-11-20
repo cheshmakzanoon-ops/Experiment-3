@@ -1,0 +1,52 @@
+{
+  "createdAt": "2026-11-20T00:43:47.536695+00:00",
+  "purpose": "Exactly one unchanged isolated Poggio Alto clear case per source on the verified hosted Node 22 version; no broader local suite.",
+  "results": [
+    {
+      "source": "baseline",
+      "commit": "2caa1c3450ad9e811d0f413cec7e9f2fbbdba925",
+      "simulationTree": "9daebdee03486217bf2b930b7ea940d10287daee",
+      "runtime": "v22.23.4",
+      "status": "passed",
+      "testDurationMs": 39702.759864,
+      "processDurationSeconds": 43.14269987499574,
+      "exitCode": 0,
+      "sourceStable": true,
+      "worktreeClean": true,
+      "originalTestUnchanged": true,
+      "originalTestSHA256": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+      "sourceReceipt": "baseline/source.json",
+      "runReceipt": "baseline/receipt.json"
+    },
+    {
+      "source": "candidate",
+      "commit": "756f587e29f25e5f1ea0023ac2660759f027799d",
+      "simulationTree": "50ac6526b5049b5dbcfd170d2cd78c8dddbd5338",
+      "runtime": "v22.23.4",
+      "status": "passed",
+      "testDurationMs": 41450.247493,
+      "processDurationSeconds": 44.53926204999152,
+      "exitCode": 0,
+      "sourceStable": true,
+      "worktreeClean": true,
+      "originalTestUnchanged": true,
+      "originalTestSHA256": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+      "sourceReceipt": "candidate/source.json",
+      "runReceipt": "candidate/receipt.json"
+    }
+  ],
+  "earlierNode24Control": {
+    "runtime": "v24.22.3",
+    "baselineCommit": "2caa1c3450ad9e811d0f413cec7e9f2fbbdba925",
+    "candidateCommit": "756f587e29f25e5f1ea0023ac2660759f027799d",
+    "baselineResult": "failed",
+    "candidateResult": "failed",
+    "bothObservedImpact": 0.9833333333333334,
+    "expectedImpact": 0,
+    "baselineReceipt": "../baseline-clear/receipt.json",
+    "candidateReceipt": "../original-poggio-clear.json"
+  },
+  "interpretation": "Both unchanged source selections fail the isolated clear case with the same impact under Node 24.22.3, and both pass the same original case under Node 22.23.4. The local dry failure is associated with runtime version and is not established as a wet-path patch regression. These narrow controls do not replace hosted paired full-race acceptance or prove bit-identical complete trajectories.",
+  "nodeArchiveSHA256": "1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce",
+  "nodeBinarySHA256": "94efd062ed066c1a0b332e18249859c905e920eeada5df55d24c99b919629a90"
+}

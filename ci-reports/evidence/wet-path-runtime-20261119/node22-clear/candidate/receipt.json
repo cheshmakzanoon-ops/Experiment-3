@@ -1,0 +1,53 @@
+{
+  "label": "candidate",
+  "source": "source.json",
+  "sourceSHA256": "10f3e0832d838d694844c4df7d7818ce4a724a48d6541c8e492979a8dd4cb6b9",
+  "command": [
+    "/workspace/scratch/4aee65f72636/runtime/node-v22.23.4-linux-x64/bin/node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "/workspace/scratch/4aee65f72636/runtime/node-v22.23.4-linux-x64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "tests/gp-tyre-contact.test.ts",
+    "-t",
+    "classifies all eight GP riders at.*poggio-alto.*clear",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile.json=/workspace/scratch/4aee65f72636/wet-path-scale-evidence/node22-clear/candidate/tests.json"
+  ],
+  "startedAt": "2026-11-20T00:42:31.101433+00:00",
+  "finishedAt": "2026-11-20T00:43:15.640587+00:00",
+  "durationSeconds": 44.53926204999152,
+  "exitCode": 0,
+  "sourceStable": true,
+  "statusAfter": "",
+  "commitAfter": "756f587e29f25e5f1ea0023ac2660759f027799d",
+  "originalAssertionsAndDeadlineUnchanged": true,
+  "log": "vitest.log",
+  "logSHA256": "b54bae37a6de095153c21915bd209c9fd9eadb9dd0e36b4433ed0bcdbf0d1a07",
+  "testCounts": {
+    "success": true,
+    "numTotalTests": 22,
+    "numPassedTests": 1,
+    "numFailedTests": 0,
+    "numPendingTests": 21,
+    "numTodoTests": 0
+  },
+  "executedCases": [
+    {
+      "ancestorTitles": [
+        "GP contact grip in production races"
+      ],
+      "fullName": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash",
+      "status": "passed",
+      "title": "classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash",
+      "duration": 41450.247493,
+      "failureMessages": [],
+      "meta": {}
+    }
+  ],
+  "testReport": "tests.json",
+  "testReportSHA256": "f2c63d027a4080a4d920c532e3af44c5b9b211d52de97e14c0367c08a3e9fa04"
+}

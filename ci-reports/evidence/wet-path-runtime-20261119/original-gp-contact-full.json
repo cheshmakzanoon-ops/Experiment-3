@@ -1,0 +1,36 @@
+{
+  "name": "original-gp-contact-full",
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "npx",
+    "--no-install",
+    "vitest",
+    "run",
+    "tests/gp-tyre-contact.test.ts",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/workspace/scratch/4aee65f72636/wet-path-scale-evidence/original-gp-contact-full.tests.json"
+  ],
+  "cwd": "/workspace/scratch/4aee65f72636/wet-path-scale",
+  "candidate": "756f587e29f25e5f1ea0023ac2660759f027799d",
+  "startedAt": "2026-11-20T00:25:25.697702+00:00",
+  "durationSeconds": 190.48299705098907,
+  "exitCode": 1,
+  "sourceStable": true,
+  "gitStatusAfter": "",
+  "log": "original-gp-contact-full.log",
+  "logSHA256": "3645e3ca8f80ceab442b388a532a368dadd4e1358190254197ffc8e4b200e66e",
+  "testResults": {
+    "success": false,
+    "numTotalTests": 22,
+    "numPassedTests": 21,
+    "numFailedTests": 1,
+    "numPendingTests": 0,
+    "numTodoTests": 0
+  },
+  "testReport": "original-gp-contact-full.tests.json",
+  "testReportSHA256": "e5d0240c900362b9fdab10b6dce1330b9f66ceaa4e993df8e7a7b2e106a3deec"
+}

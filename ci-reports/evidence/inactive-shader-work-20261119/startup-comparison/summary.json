@@ -1,0 +1,129 @@
+{
+  "run_id": 44642706691,
+  "run_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44642706691",
+  "baseline_sha": "54a09a088acc008b23bb2a576ad998da164e3128",
+  "candidate_sha": "669a44de6d542abb5010bcc880b08c0b00efe444",
+  "jobs": [
+    {
+      "source": "baseline",
+      "journey": "high",
+      "id": 135978222142,
+      "sha": "54a09a088acc008b23bb2a576ad998da164e3128",
+      "passed": 0,
+      "failed": 1,
+      "reported_case_duration": "2.6m",
+      "suite_duration": null,
+      "status": "completed",
+      "conclusion": "failure",
+      "original_case_count": 1,
+      "log_file": "baseline-high-135978222142.log",
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "setup_hit_job_cap": false
+    },
+    {
+      "source": "baseline",
+      "journey": "low",
+      "id": 135978222245,
+      "sha": "54a09a088acc008b23bb2a576ad998da164e3128",
+      "passed": 4,
+      "failed": 0,
+      "reported_case_duration": null,
+      "suite_duration": "2.7m",
+      "status": "completed",
+      "conclusion": "success",
+      "original_case_count": 4,
+      "log_file": "baseline-low-135978222245.log",
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "setup_hit_job_cap": false
+    },
+    {
+      "source": "candidate",
+      "journey": "low",
+      "id": 135978222317,
+      "sha": "669a44de6d542abb5010bcc880b08c0b00efe444",
+      "passed": 4,
+      "failed": 0,
+      "reported_case_duration": null,
+      "suite_duration": "2.2m",
+      "status": "completed",
+      "conclusion": "success",
+      "original_case_count": 4,
+      "log_file": "candidate-low-135978222317.log",
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "setup_hit_job_cap": false
+    },
+    {
+      "source": "candidate",
+      "journey": "high",
+      "id": 135978222325,
+      "sha": "669a44de6d542abb5010bcc880b08c0b00efe444",
+      "passed": 0,
+      "failed": 1,
+      "reported_case_duration": "2.6m",
+      "suite_duration": null,
+      "status": "completed",
+      "conclusion": "failure",
+      "original_case_count": 1,
+      "log_file": "candidate-high-135978222325.log",
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "setup_hit_job_cap": false
+    }
+  ],
+  "high_failure": {
+    "both_sources": true,
+    "step": "Original High application case and deadlines",
+    "case": "High production scene presents an active GP chassis and two completed photo views",
+    "location": "e2e/graphics-high-journey.spec.ts:698:5",
+    "original_timeout_ms": 90000,
+    "assertion": "await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');",
+    "expected": "paused",
+    "received": "loading",
+    "error": "Timeout 90000ms exceeded while waiting on the predicate"
+  },
+  "low_timings": {
+    "classification": "single-run whole-test duration, not a benchmark",
+    "reported_by": "Playwright final decoded job logs",
+    "cases": [
+      {
+        "location": "e2e/30-menu-access.spec.ts:12:1",
+        "description": "Menu mouse and keyboard access",
+        "baseline": "25.6s",
+        "candidate": "25.2s"
+      },
+      {
+        "location": "e2e/30-menu-access.spec.ts:136:1",
+        "description": "640x400 settings persistence and normal paused grid",
+        "baseline": "1.4m",
+        "candidate": "1.2m"
+      },
+      {
+        "location": "e2e/settings-transition.spec.ts:8:3",
+        "description": "640x400 first covered frame and quality persistence",
+        "baseline": "20.1s",
+        "candidate": "15.9s"
+      },
+      {
+        "location": "e2e/settings-transition.spec.ts:8:3",
+        "description": "1280x720 first covered frame and quality persistence",
+        "baseline": "21.1s",
+        "candidate": "16.0s"
+      }
+    ],
+    "suite": {
+      "baseline": "2.7m",
+      "candidate": "2.2m"
+    },
+    "interpretation": "Both Low sources passed all four original cases. Candidate durations were lower in this single pair, but the logs do not isolate preparation time or establish a repeated performance improvement."
+  },
+  "setup": {
+    "overall_job_timeout_minutes": 20,
+    "any_job_hit_cap": false,
+    "candidate_high_delay": "Chromium/system dependency setup was substantially delayed, then completed. The job reached and failed the application readiness assertion."
+  },
+  "conclusion": "Candidate preserves the passing Low cases but does not resolve High startup. All four logs show the same observed Mesa llvmpipe backend and the expected checkout source SHA.",
+  "large_artifacts_downloaded": false
+}

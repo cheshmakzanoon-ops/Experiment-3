@@ -1,0 +1,495 @@
+{
+  "backend": "mesa",
+  "receipt": {
+    "backend": "mesa",
+    "artifactId": 14587748209,
+    "runId": 44642706691,
+    "headSha": "669a44de6d542abb5010bcc880b08c0b00efe444",
+    "bytes": 309783,
+    "sha256": "b964f867c5662de29a91939f95953646602f2c7a33c783758d7a2cfbfdb1a133",
+    "matchesGitHubDigest": true,
+    "jsonFiles": [
+      "mesa/browser-backend.json",
+      "mesa/browser-progress.json",
+      "mesa/attachments/rainFogGPU.json",
+      "mesa/attachments/quadrature.json",
+      "mesa/attachments/weatherWorkProof.json",
+      "mesa/attachments/fogWorkProof.json"
+    ],
+    "attachments": [
+      {
+        "name": "rain-template-corner-control.png",
+        "reportEntry": "7fecd7b58601293bdfee.json",
+        "testTitle": "race surface and atmosphere: rainFogGPU preserves production resources and negative controls",
+        "status": "passed",
+        "target": "mesa/attachments/rain-template-corner-control.png"
+      },
+      {
+        "name": "rain-drop-centre-haze.png",
+        "reportEntry": "7fecd7b58601293bdfee.json",
+        "testTitle": "race surface and atmosphere: rainFogGPU preserves production resources and negative controls",
+        "status": "passed",
+        "target": "mesa/attachments/rain-drop-centre-haze.png"
+      },
+      {
+        "name": "rainFogGPU.json",
+        "reportEntry": "7fecd7b58601293bdfee.json",
+        "testTitle": "race surface and atmosphere: rainFogGPU preserves production resources and negative controls",
+        "status": "passed",
+        "target": "mesa/attachments/rainFogGPU.json"
+      },
+      {
+        "name": "quadrature.json",
+        "reportEntry": "1ca46625af3d670f74b4.json",
+        "testTitle": "vector fog quadrature preserves the scalar density model on low, high and long rays",
+        "status": "passed",
+        "target": "mesa/attachments/quadrature.json"
+      },
+      {
+        "name": "low.png",
+        "reportEntry": "1ca46625af3d670f74b4.json",
+        "testTitle": "vector fog quadrature preserves the scalar density model on low, high and long rays",
+        "status": "passed",
+        "target": "mesa/attachments/low.png"
+      },
+      {
+        "name": "high.png",
+        "reportEntry": "1ca46625af3d670f74b4.json",
+        "testTitle": "vector fog quadrature preserves the scalar density model on low, high and long rays",
+        "status": "passed",
+        "target": "mesa/attachments/high.png"
+      },
+      {
+        "name": "long.png",
+        "reportEntry": "1ca46625af3d670f74b4.json",
+        "testTitle": "vector fog quadrature preserves the scalar density model on low, high and long rays",
+        "status": "passed",
+        "target": "mesa/attachments/long.png"
+      },
+      {
+        "name": "weatherWorkProof.json",
+        "reportEntry": "361dc8203062c7fa68d8.json",
+        "testTitle": "inactive shader work: weatherWorkProof preserves native pixels and active effects",
+        "status": "passed",
+        "target": "mesa/attachments/weatherWorkProof.json"
+      },
+      {
+        "name": "weatherWorkProof.png",
+        "reportEntry": "361dc8203062c7fa68d8.json",
+        "testTitle": "inactive shader work: weatherWorkProof preserves native pixels and active effects",
+        "status": "passed",
+        "target": "mesa/attachments/weatherWorkProof.png"
+      },
+      {
+        "name": "fogWorkProof.json",
+        "reportEntry": "361dc8203062c7fa68d8.json",
+        "testTitle": "inactive shader work: fogWorkProof preserves native pixels and active effects",
+        "status": "passed",
+        "target": "mesa/attachments/fogWorkProof.json"
+      },
+      {
+        "name": "fogWorkProof.png",
+        "reportEntry": "361dc8203062c7fa68d8.json",
+        "testTitle": "inactive shader work: fogWorkProof preserves native pixels and active effects",
+        "status": "passed",
+        "target": "mesa/attachments/fogWorkProof.png"
+      }
+    ]
+  },
+  "sources": {
+    "fogWorkProof": [
+      "mesa/attachments/fogWorkProof.json"
+    ],
+    "quadrature": [
+      "mesa/attachments/quadrature.json"
+    ],
+    "rainFogGPU": [
+      "mesa/attachments/rainFogGPU.json"
+    ],
+    "weatherWorkProof": [
+      "mesa/attachments/weatherWorkProof.json"
+    ],
+    "browserBackend": [
+      "mesa/browser-backend.json"
+    ],
+    "browserProgress": [
+      "mesa/browser-progress.json"
+    ]
+  },
+  "fogWorkProof": {
+    "disabled": {
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "changedChannels": 0
+    },
+    "held": {
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "changedChannels": 0
+    },
+    "restored": {
+      "maxChannelDelta": 0,
+      "meanChannelDelta": 0,
+      "changedChannels": 0
+    },
+    "fog": {
+      "maxChannelDelta": 74,
+      "meanChannelDelta": 10.857793172200521,
+      "changedChannels": 89825
+    },
+    "aerial": {
+      "maxChannelDelta": 114,
+      "meanChannelDelta": 16.254185994466145,
+      "changedChannels": 89872
+    },
+    "cloud": {
+      "maxChannelDelta": 71,
+      "meanChannelDelta": 17.907145182291668,
+      "changedChannels": 88643
+    },
+    "grounding": {
+      "maxChannelDelta": 27,
+      "meanChannelDelta": 0.2793426513671875,
+      "changedChannels": 5927
+    },
+    "enabledUniforms": [
+      "isOrthographic",
+      "modelMatrix",
+      "modelViewMatrix",
+      "projectionMatrix",
+      "viewMatrix",
+      "normalMatrix",
+      "cameraPosition",
+      "apexPointLightWork",
+      "directionalLights",
+      "hemisphereLights",
+      "diffuse",
+      "emissive",
+      "roughness",
+      "metalness",
+      "opacity",
+      "apexCloudShadow",
+      "apexCloudShadowSun",
+      "apexCloudShadowOffset",
+      "studioCarCount",
+      "studioCarPose",
+      "studioGpFront",
+      "studioGpRear",
+      "studioGpShape",
+      "fogColor",
+      "studioSunDir",
+      "apexAerialSunGlow",
+      "apexAerialFalloff",
+      "apexAerialExtinction",
+      "apexLocalSigma",
+      "apexLocalTailError",
+      "apexFogVolumes",
+      "apexFogHeights",
+      "ambientLightColor",
+      "apexCloudField"
+    ],
+    "disabledUniforms": [
+      "isOrthographic",
+      "modelMatrix",
+      "modelViewMatrix",
+      "projectionMatrix",
+      "viewMatrix",
+      "normalMatrix",
+      "cameraPosition",
+      "apexPointLightWork",
+      "directionalLights",
+      "hemisphereLights",
+      "diffuse",
+      "emissive",
+      "roughness",
+      "metalness",
+      "opacity",
+      "apexCloudShadow",
+      "apexCloudShadowSun",
+      "apexCloudShadowOffset",
+      "studioCarCount",
+      "studioCarPose",
+      "studioGpFront",
+      "studioGpRear",
+      "studioGpShape",
+      "fogColor",
+      "studioSunDir",
+      "apexAerialSunGlow",
+      "apexAerialFalloff",
+      "apexAerialExtinction",
+      "ambientLightColor",
+      "apexCloudField"
+    ],
+    "programs": 2,
+    "reusedPrograms": 2,
+    "countsEqual": true,
+    "glError": 0
+  },
+  "quadrature": {
+    "rows": [
+      {
+        "mode": "low",
+        "comparison": {
+          "maxChannelDelta": 0,
+          "changedChannels": 0,
+          "meanChannelDelta": 0
+        },
+        "held": {
+          "maxChannelDelta": 0,
+          "changedChannels": 0,
+          "meanChannelDelta": 0
+        },
+        "negative": {
+          "maxChannelDelta": 62,
+          "changedChannels": 353280,
+          "meanChannelDelta": 11.502124786376953
+        },
+        "calls": 1
+      },
+      {
+        "mode": "high",
+        "comparison": {
+          "maxChannelDelta": 0,
+          "changedChannels": 0,
+          "meanChannelDelta": 0
+        },
+        "held": {
+          "maxChannelDelta": 0,
+          "changedChannels": 0,
+          "meanChannelDelta": 0
+        },
+        "negative": {
+          "maxChannelDelta": 28,
+          "changedChannels": 98562,
+          "meanChannelDelta": 1.1324869791666667
+        },
+        "calls": 1
+      },
+      {
+        "mode": "long",
+        "comparison": {
+          "maxChannelDelta": 0,
+          "changedChannels": 0,
+          "meanChannelDelta": 0
+        },
+        "held": {
+          "maxChannelDelta": 0,
+          "changedChannels": 0,
+          "meanChannelDelta": 0
+        },
+        "negative": {
+          "maxChannelDelta": 63,
+          "changedChannels": 6485,
+          "meanChannelDelta": 0.1752166748046875
+        },
+        "calls": 1
+      }
+    ],
+    "glError": 0,
+    "scope": "Scalar versus vectorized production fog quadrature; component validation, not race FPS"
+  },
+  "rainFogGPU": {
+    "scope": "Production rain shader at an actual district; exaggerated controlled fog, not a race",
+    "before": {
+      "geometries": 2,
+      "textures": 0,
+      "programs": 2
+    },
+    "after": {
+      "geometries": 2,
+      "textures": 0,
+      "programs": 2
+    },
+    "sourceUnchanged": true,
+    "comparisons": {
+      "coordinate": {
+        "maxChannelDelta": 57,
+        "changedChannels": 29983,
+        "meanChannelDelta": 1.0777231852213542
+      },
+      "held": {
+        "maxChannelDelta": 0,
+        "changedChannels": 0,
+        "meanChannelDelta": 0
+      },
+      "reference": {
+        "maxChannelDelta": 0,
+        "changedChannels": 0,
+        "meanChannelDelta": 0
+      },
+      "restored": {
+        "maxChannelDelta": 0,
+        "changedChannels": 0,
+        "meanChannelDelta": 0
+      },
+      "rewound": {
+        "maxChannelDelta": 0,
+        "changedChannels": 0,
+        "meanChannelDelta": 0
+      }
+    },
+    "counts": [
+      {
+        "calls": 1,
+        "triangles": 240
+      },
+      {
+        "calls": 1,
+        "triangles": 240
+      }
+    ],
+    "glError": 0
+  },
+  "weatherWorkProof": {
+    "rows": 20,
+    "glError": 0,
+    "maxChannelDelta": 0,
+    "maxMeanChannelDelta": 0,
+    "dryMaxChannelDelta": 0,
+    "heldMaxChannelDelta": 0,
+    "restoredMaxChannelDelta": 0,
+    "allCountsEqual": true,
+    "effects": [
+      {
+        "role": "stone",
+        "mode": "wet",
+        "maxChannelDelta": 15,
+        "meanChannelDelta": 5.034403483072917,
+        "changedChannels": 89694
+      },
+      {
+        "role": "stone",
+        "mode": "snow",
+        "maxChannelDelta": 106,
+        "meanChannelDelta": 30.665049235026043,
+        "changedChannels": 86361
+      },
+      {
+        "role": "stone",
+        "mode": "mixed",
+        "maxChannelDelta": 105,
+        "meanChannelDelta": 29.861607869466145,
+        "changedChannels": 89544
+      },
+      {
+        "role": "paint",
+        "mode": "wet",
+        "maxChannelDelta": 61,
+        "meanChannelDelta": 3.3931732177734375,
+        "changedChannels": 89386
+      },
+      {
+        "role": "paint",
+        "mode": "snow",
+        "maxChannelDelta": 28,
+        "meanChannelDelta": 7.106028238932292,
+        "changedChannels": 86005
+      },
+      {
+        "role": "paint",
+        "mode": "mixed",
+        "maxChannelDelta": 39,
+        "meanChannelDelta": 5.1353607177734375,
+        "changedChannels": 88803
+      },
+      {
+        "role": "fabric",
+        "mode": "wet",
+        "maxChannelDelta": 8,
+        "meanChannelDelta": 2.581446329752604,
+        "changedChannels": 89365
+      },
+      {
+        "role": "fabric",
+        "mode": "snow",
+        "maxChannelDelta": 75,
+        "meanChannelDelta": 20.569198608398438,
+        "changedChannels": 86290
+      },
+      {
+        "role": "fabric",
+        "mode": "mixed",
+        "maxChannelDelta": 74,
+        "meanChannelDelta": 19.76238505045573,
+        "changedChannels": 88833
+      },
+      {
+        "role": "leather",
+        "mode": "wet",
+        "maxChannelDelta": 19,
+        "meanChannelDelta": 2.195002237955729,
+        "changedChannels": 88645
+      },
+      {
+        "role": "leather",
+        "mode": "snow",
+        "maxChannelDelta": 0,
+        "meanChannelDelta": 0,
+        "changedChannels": 0
+      },
+      {
+        "role": "leather",
+        "mode": "mixed",
+        "maxChannelDelta": 12,
+        "meanChannelDelta": 1.6776784261067708,
+        "changedChannels": 88040
+      }
+    ]
+  },
+  "browserBackend": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "browserProgress": {
+    "version": 1,
+    "event": "passed",
+    "timestamp": "2026-11-20T00:16:24.514Z",
+    "active": [],
+    "completed": [
+      {
+        "id": "7fecd7b58601293bdfee-37e6ab66829af5b964a9",
+        "title": " >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: rainFogGPU preserves production resources and negative controls",
+        "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/37-race-surface-atmosphere.spec.ts",
+        "status": "passed",
+        "durationMs": 2665,
+        "errors": []
+      },
+      {
+        "id": "1ca46625af3d670f74b4-0e1fe490b5c3fec61ab5",
+        "title": " >  > 38-fog-quadrature.spec.ts > vector fog quadrature preserves the scalar density model on low, high and long rays",
+        "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/38-fog-quadrature.spec.ts",
+        "status": "passed",
+        "durationMs": 9213,
+        "errors": []
+      },
+      {
+        "id": "361dc8203062c7fa68d8-b3c96254cf49ab93865b",
+        "title": " >  > shader-work-proof.spec.ts > inactive shader work: weatherWorkProof preserves native pixels and active effects",
+        "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/shader-work-proof.spec.ts",
+        "status": "passed",
+        "durationMs": 1209,
+        "errors": []
+      },
+      {
+        "id": "361dc8203062c7fa68d8-c77f4c0e16d4ada84354",
+        "title": " >  > shader-work-proof.spec.ts > inactive shader work: fogWorkProof preserves native pixels and active effects",
+        "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/shader-work-proof.spec.ts",
+        "status": "passed",
+        "durationMs": 1010,
+        "errors": []
+      }
+    ],
+    "errors": []
+  }
+}
