@@ -59,6 +59,7 @@ import {
 } from './wheel-contact.ts';
 import { sampleChassisPose, sampleValue, snapshotSource } from './snapshot-interpolation.ts';
 import * as T from 'three';
+import { MxPresentationRoot } from './offroad/mx-presentation-root.ts';
 import { DriverRig } from './driver.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
 import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
@@ -76,7 +77,7 @@ const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLA
 const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
   private readonly contactPose = wheelContactPose();
-  readonly root = new T.Group();
+  readonly root = new MxPresentationRoot();
   readonly suppliedPlayer: SuppliedPlayer | null;
   readonly mirrors: T.Mesh[] = [];
   readonly staticBody = new T.Group();
@@ -733,7 +734,9 @@ export class FormulaCar {
     const source = snapshotSource(a, b, t);
     // On dirt bikes the Formula slot supplies only this interpolated chassis
     // transform. The active bike solves its own arms, wheels and suspension.
-    if (vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId === 'motocross') return;
+    this.root.suspendWhenHidden =
+      vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId === 'motocross';
+    if (this.root.suspendWhenHidden) return;
     time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {
       if (this.displayClock.due(time, source[o + F.GEAR])) {

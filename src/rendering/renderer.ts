@@ -1502,7 +1502,6 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = presented[o + F.SPEED];
     const bikeFollow = !!this.bikeShells && BikeShells.isBike(presented, this.follow);
-    if (bikeFollow) this.bikeViewUp.set(0, 1, 0).applyQuaternion(car.root.quaternion);
     const followedDefinition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])),
       motocrossFollow =
         bikeFollow &&
@@ -1547,6 +1546,7 @@ export class RacingRenderer {
     }
     // Per-vehicle cabin (cars loose ends 1): a catalogue machine's own eye,
     // onboard mount and lenses; the Formula car keeps its supplied cockpit.
+    if (bikeFollow) this.bikeViewUp.set(0, 1, 0).applyQuaternion(car.root.quaternion);
     const cabin = (this.cabin = bikeFollow ? null : cabinFor(followedDefinition));
     // A returned dirt paddock retains its race renderer. Stage the selected
     // motorcycle exactly as on cold entry while the circuit stays available.
