@@ -84,8 +84,12 @@ export function motocrossTyreShear(
   load: number,
   mu: number,
   groundSpeed: number,
+  out: MxContactForce = { ...EMPTY_FORCE },
 ): MxContactForce {
-  if (load <= 0 || mu <= 0) return { ...EMPTY_FORCE };
+  if (load <= 0 || mu <= 0) {
+    out.fx = out.fy = out.slip = out.use = out.slipPower = 0;
+    return out;
+  }
   const peak = load * mu;
   const sx = longitudinalSlip / Math.max(0.9, 0.075 * Math.abs(groundSpeed));
   const sy = slipAngle / 0.15;
@@ -93,13 +97,14 @@ export function motocrossTyreShear(
   const gain = magnitude > 1e-8 ? Math.tanh(magnitude) / magnitude : 1;
   const fx = peak * sx * gain;
   const fy = peak * sy * gain;
-  return {
-    fx,
-    fy,
-    slip: longitudinalSlip / Math.max(3, Math.abs(groundSpeed)),
-    use: Math.hypot(fx, fy) / peak,
-    slipPower: Math.max(0, fx * longitudinalSlip + fy * Math.tan(slipAngle) * Math.max(1, Math.abs(groundSpeed))),
-  };
+  out.fx = fx;
+  out.fy = fy;
+  out.slip = longitudinalSlip / Math.max(3, Math.abs(groundSpeed));
+  out.use = Math.hypot(fx, fy) / peak;
+  out.slipPower = Math.max(0,
+    fx * longitudinalSlip + fy * Math.tan(slipAngle) * Math.max(1, Math.abs(groundSpeed)),
+  );
+  return out;
 }
 
 /** Semi-implicit, internally substepped wheel + yaw integration.
@@ -131,8 +136,9 @@ export function stepMotocrossGround(
     dx = 0,
     dz = 0,
     endLateralAcceleration = 0;
-  let front: MxContactForce = { ...EMPTY_FORCE };
-  let rear: MxContactForce = { ...EMPTY_FORCE };
+  // Each public result owns both patches. Reuse those same records for the
+  // six 720 Hz contact solves within a normal 120 Hz worker tick.
+  const front = { ...EMPTY_FORCE }, rear = { ...EMPTY_FORCE };
   // Return forces averaged over the same microsteps that advanced momentum:
   // F̄ = (Σ F_k Δt_k)/Δt. Sampling only the final brush state makes the
   // chassis' finite impulse disagree with suspension, replay and tyre heat.
@@ -145,7 +151,15 @@ export function stepMotocrossGround(
     hasLean = p.lean !== undefined,
     lean = p.lean ?? 0,
     wheelbase = Math.max(0.5, p.frontArm + p.rearArm),
-    totalLoad = Math.max(1, p.frontLoad + p.rearLoad);
+    totalLoad = Math.max(1, p.frontLoad + p.rearLoad),
+    curvature = Math.tan(steer) / wheelbase,
+    bankProjection = Math.cos(lean),
+    frontShare = p.frontLoad / totalLoad,
+    rearShare = p.rearLoad / totalLoad,
+    frontPeak = p.frontLoad * p.frontMu,
+    rearPeak = p.rearLoad * p.rearMu,
+    rearFrictionShare = p.rearBrakeTorque > 0
+      ? clamp(1 - (p.rearEngineBrakeTorque ?? 0) / p.rearBrakeTorque, 0, 1) : 0;
   for (let i = 0; i < n; i++) {
     // Tyre-frame velocity includes yaw sweep at each contact patch.
     // When coupled to a leaned chassis (hasLean), the kinematic bar angle
@@ -155,19 +169,21 @@ export function stepMotocrossGround(
       rearSide = lateralSpeed - p.rearArm * yawRate,
       frontForward = hasLean ? speed : speed * cs + frontSide * sn,
       frontAcross = hasLean ? frontSide : frontSide * cs - speed * sn;
-    front = motocrossTyreShear(
+    motocrossTyreShear(
       frontOmega * p.frontRadius - frontForward,
       Math.atan2(-frontAcross, Math.max(1, Math.abs(frontForward))),
       p.frontLoad,
       p.frontMu,
       frontForward,
+      front,
     );
-    rear = motocrossTyreShear(
+    motocrossTyreShear(
       rearOmega * p.rearRadius - speed,
       Math.atan2(-rearSide, Math.max(1, speed)),
       p.rearLoad,
       p.rearMu,
       speed,
+      rear,
     );
     const slipFSide = hasLean ? front.fy : front.fy * cs + front.fx * sn,
       slipFForward = hasLean ? front.fx : front.fx * cs - front.fy * sn,
@@ -178,21 +194,17 @@ export function stepMotocrossGround(
       // Leaned motorcycle cone rolling: camber + bar steering demand lateral
       // force along the curved path, bounded by each tyre's remaining
       // combined friction circle √(max(0, (N·μ)² − Fx²)).
-      const coreLat = speed * speed * (Math.tan(steer) / wheelbase) * Math.cos(lean);
+      const coreLat = speed * speed * curvature * bankProjection;
       const demandedFy = p.mass * coreLat;
-      const fShare = p.frontLoad / totalLoad,
-        rShare = p.rearLoad / totalLoad;
-      const fPeak = p.frontLoad * p.frontMu,
-        rPeak = p.rearLoad * p.rearMu;
-      const fMaxFy = Math.sqrt(Math.max(0, fPeak * fPeak - front.fx * front.fx)),
-        rMaxFy = Math.sqrt(Math.max(0, rPeak * rPeak - rear.fx * rear.fx));
-      const fTotalFy = clamp(front.fy + demandedFy * fShare, -fMaxFy, fMaxFy);
-      const rTotalFy = clamp(rear.fy + demandedFy * rShare, -rMaxFy, rMaxFy);
+      const fMaxFy = Math.sqrt(Math.max(0, frontPeak * frontPeak - front.fx * front.fx)),
+        rMaxFy = Math.sqrt(Math.max(0, rearPeak * rearPeak - rear.fx * rear.fx));
+      const fTotalFy = clamp(front.fy + demandedFy * frontShare, -fMaxFy, fMaxFy);
+      const rTotalFy = clamp(rear.fy + demandedFy * rearShare, -rMaxFy, rMaxFy);
       camberNetSide = (fTotalFy - front.fy) + (rTotalFy - rear.fy);
       front.fy = fTotalFy;
       rear.fy = rTotalFy;
-      front.use = fPeak > 0 ? Math.hypot(front.fx, front.fy) / fPeak : 0;
-      rear.use = rPeak > 0 ? Math.hypot(rear.fx, rear.fy) / rPeak : 0;
+      front.use = frontPeak > 0 ? Math.hypot(front.fx, front.fy) / frontPeak : 0;
+      rear.use = rearPeak > 0 ? Math.hypot(rear.fx, rear.fy) / rearPeak : 0;
     }
     ffx += front.fx * h;
     ffy += front.fy * h;
@@ -220,8 +232,6 @@ export function stepMotocrossGround(
     frontBrakeWork += motorcycleRotorBrakeWork(
       frontOmega, (-fBrake - front.fx * p.frontRadius) / p.frontInertia, fBrake, h,
     );
-    const rearFrictionShare = p.rearBrakeTorque > 0
-      ? clamp(1 - (p.rearEngineBrakeTorque ?? 0) / p.rearBrakeTorque, 0, 1) : 0;
     rearBrakeWork += motorcycleRotorBrakeWork(
       rearOmega, (drive - rBrake - rear.fx * p.rearRadius) / p.rearInertia,
       rBrake * rearFrictionShare, h,
@@ -243,6 +253,14 @@ export function stepMotocrossGround(
     dx += (Math.sin(heading) * speed + Math.cos(heading) * lateralSpeed) * h;
     dz += (Math.cos(heading) * speed - Math.sin(heading) * lateralSpeed) * h;
   }
+  front.fx = ffx / dt;
+  front.fy = ffy / dt;
+  front.slipPower = fPower / dt;
+  front.use = fUse / dt;
+  rear.fx = rfx / dt;
+  rear.fy = rfy / dt;
+  rear.slipPower = rPower / dt;
+  rear.use = rUse / dt;
   return {
     speed, lateralSpeed, yawRate, heading, frontOmega, rearOmega,
     dx, dz,
@@ -253,19 +271,6 @@ export function stepMotocrossGround(
     endLateralAcceleration,
     frontBrakePower: frontBrakeWork / dt,
     rearBrakePower: rearBrakeWork / dt,
-    front: {
-      ...front,
-      fx: ffx / dt,
-      fy: ffy / dt,
-      slipPower: fPower / dt,
-      use: fUse / dt,
-    },
-    rear: {
-      ...rear,
-      fx: rfx / dt,
-      fy: rfy / dt,
-      slipPower: rPower / dt,
-      use: rUse / dt,
-    },
+    front, rear,
   };
 }

@@ -20,6 +20,18 @@ const params = (): MxGroundParameters => ({
   drag: 0, slope: 0, tractionControl: false, abs: false,
 });
 describe('independent motocross wheel/soil/yaw dynamics', () => {
+  it('owns the integrated patches and clears every reused shear channel when a wheel unloads', () => {
+    const first = stepMotocrossGround({ ...state(), lateralSpeed: 1.6 }, params(), 1 / 120);
+    const original = { ...first.front };
+    const second = stepMotocrossGround(first, params(), 1 / 120);
+    expect(first.front).not.toBe(second.front);
+    expect(second.front).not.toBe(second.rear);
+    expect(first.front).toEqual(original);
+    const out = motocrossTyreShear(3.2, 0.32, 850, 0.7, 18);
+    expect(out.slipPower).toBeGreaterThan(0);
+    expect(motocrossTyreShear(3.2, 0.32, 0, 0.7, 18, out)).toBe(out);
+    expect(out).toEqual({ fx: 0, fy: 0, use: 0, slip: 0, slipPower: 0 });
+  });
   it('keeps a settled rolling bike exactly coasting without invented contact work', () => {
     const result = stepMotocrossGround(state(), params(), 1 / 120);
     expect(result.speed).toBeCloseTo(16, 9);
