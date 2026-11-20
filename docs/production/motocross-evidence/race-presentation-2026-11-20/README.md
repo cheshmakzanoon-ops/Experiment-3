@@ -18,6 +18,10 @@ Each row shows the same camera and soil before and after a grounded wheel passes
 
 ![Valley Ridge and Arena Nord soil before and after a tyre passes](soil-passage.webp)
 
+The SM450 uses road tyres with 20 swept channels on the front and 24 on the rear. Their impression follows the recorded axle rotation, bar angle and terrain normal. The Valley Ridge run recorded 301 segments. With wheel path, load and rotation held constant, increasing the slip alone changed 26,148 pixels. The original and marked images each restored exactly on replay.
+
+![SM450 swept tyre impressions at Valley Ridge, before and after the same passage](sm450-road-tyre.webp)
+
 In a separate CPU benchmark an eight-bike Valley Ridge simulation produced 1,080 snapshots at 30 Hz and 9,833 imprint segments. At the 84 measured terrain updates, the median time to place the visible tread on the deformed surface went from 2.03 to 0.545 ms and the 95th percentile went from 3.313 to 0.910 ms. These timings cover the imprint update alone.
 
 ## Trackside equipment
@@ -46,6 +50,7 @@ Both eight-rider venues also ran for 24 seconds at 120 physics steps per second.
 
 * In a CPU benchmark of eight ordinary Formula hosts with eight active motocross models, all 1,600 hidden Formula descendants were skipped. Across 400 samples the median field matrix update took 0.67 ms with the change and 1.30 ms before it. The active bike geometry and root transforms were the same.
 * After close, medium and wide camera cuts, the eight riders retained 22 loaded bike models. Skipping the 1,995 descendants of the fourteen inactive models reduced the median matrix update from 1.189 to 0.504 ms in a separate 400-sample run. The 95th percentile fell from 2.745 to 1.690 ms. The camera-cut test also checks that each returning model immediately restores its current world transform.
+* In a mixed MX250/MX450 field, camera cuts left eight motorcycles visible and fourteen other levels ready for reuse. Detaching the inactive levels reduced the meshes reachable by a scene traversal from 1,815 to 856. During shader preparation, one representative of each missing machine and detail level temporarily raised that count to 1,130, then restored it to 856. A separated rider also follows camera cuts and returns to the original seat on replay.
 * The 720 Hz tyre integrator reuses each wheel's force record within a simulation tick. A comparison of 16,384 inputs produced identical numerical results for the previous and revised integrators, including braking, mixed grip, unloaded wheels and different timesteps.
 * The tyre renderer submits only unexpired quads. The index buffer spans a circular wrap in one draw, and a replay seek restores the visible range.
 

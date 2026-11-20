@@ -247,7 +247,7 @@
     ]
   },
   "tyrePassage": {
-    "productionCommit": "7abcfc53309589991a1c08614a768e953379f93c",
+    "productionCommit": "915b8aac6b8168dbb241f92fc3fc35a5029b04fb",
     "frames": [
       "before",
       "passage",
@@ -261,6 +261,9 @@
         "time": 10.808333396911621,
         "segments": 300,
         "changed": 21829,
+        "byteExactRewind": true,
+        "byteExactRestore": true,
+        "saturatedSlipControl": null,
         "width": 800,
         "height": 500,
         "calls": [
@@ -286,6 +289,9 @@
         "time": 11.175000190734863,
         "segments": 301,
         "changed": 24451,
+        "byteExactRewind": true,
+        "byteExactRestore": true,
+        "saturatedSlipControl": null,
         "width": 800,
         "height": 500,
         "calls": [
@@ -304,7 +310,73 @@
           0,
           0
         ]
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "machine": "sm450",
+        "time": 10.675000190734863,
+        "segments": 301,
+        "changed": 29906,
+        "byteExactRewind": true,
+        "byteExactRestore": true,
+        "saturatedSlipControl": {
+          "changed": 26148,
+          "segments": 301,
+          "calls": 5,
+          "error": 0
+        },
+        "width": 800,
+        "height": 500,
+        "calls": [
+          4,
+          5
+        ],
+        "hashes": [
+          3793998032,
+          1251814846,
+          3793998032,
+          1251814846
+        ],
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
       }
     ]
+  },
+  "cameraDetail": {
+    "productionCommit": "304967daea73bed620b2068df8de6b254c53b86e",
+    "machines": [
+      "mx250",
+      "mx450"
+    ],
+    "method": "Eight attached vehicle slots and their retained bike levels after repeated close, medium and wide camera cuts. Counts cover the motorcycle scene group, including the service rigs.",
+    "measurements": {
+      "visible": 8,
+      "residentBefore": 22,
+      "detached": 14,
+      "previousScene": {
+        "nodes": 3610,
+        "meshes": 1815,
+        "materials": 633
+      },
+      "raceScene": {
+        "nodes": 1601,
+        "meshes": 856,
+        "materials": 304
+      },
+      "compiler": {
+        "nodes": 2175,
+        "meshes": 1130,
+        "materials": 398
+      },
+      "afterCompilation": {
+        "nodes": 1601,
+        "meshes": 856,
+        "materials": 304
+      }
+    }
   }
 }
