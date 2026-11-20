@@ -2500,6 +2500,11 @@ export class BikeShells {
       model = entry?.levels[entry.level];
     return entry?.probePaint && model instanceof BikeModel && model.root.visible ? model : null;
   }
+  motocrossPresentation(id: number) {
+    const entry = this.entries.get(id);
+    const model = entry?.levels[entry.level];
+    return model instanceof DirtBikeModel && model.root.visible ? model : undefined;
+  }
   gpProbePaint(id: number) {
     return this.entries.get(id)?.probePaint;
   }

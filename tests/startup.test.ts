@@ -540,6 +540,21 @@ it.each([false, true])(
     expect(between).toEqual(enabled ? ['shadow-fence', 'gpu-ready', 'chase'] : ['chase']);
   },
 );
+it('retires the MX venue depth pass before submitting the real chase and cockpit', async () => {
+  const { calls, sample, target, typed } = fixture('mx250');
+  Object.assign(target.circuit, { offroad: {} });
+  Object.assign(target.bikeShells, { prepareDirtField: vi.fn(async () => true) });
+  for (let i = 0; i < sample[H.CARS]; i++)
+    sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex('mx250');
+  target.warmShadowCasters.mockImplementation(() => {
+    calls.push('shadow-casters');
+    return true;
+  });
+  await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, async () => {}, false);
+  expect(calls.slice(calls.indexOf('shadow-casters') + 1, calls.indexOf('draw'))).toEqual([
+    'shadow-fence', 'gpu-ready', 'chase',
+  ]);
+});
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();
   let cancelled = false;

@@ -9,7 +9,10 @@ import { vehicleIndex } from '../src/simulation/vehicles.ts';
 
 afterEach(() => vi.unstubAllGlobals());
 
-it('allocates only seven empty frames for an eight-bike field and assembles a replacement car exactly once', () => {
+it.each([
+  ['gp and road', ['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750', 'gpr1', 'gpr2']],
+  ['motocross', ['mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250']],
+] as const)('allocates seven empty %s frames and assembles a replacement car exactly once', (_group, roster) => {
   const context = new Proxy(
     {
       measureText: () => ({ width: 40 }),
@@ -37,7 +40,6 @@ it('allocates only seven empty frames for an eight-bike field and assembles a re
   const renderer = target as unknown as RacingRenderer;
   const frame = new Float32Array(HEADER + 8 * CAR_STRIDE);
   frame[H.CARS] = 8;
-  const roster = ['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750', 'gpr1', 'gpr2'];
   roster.forEach((model, id) => {
     frame[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex(model);
   });

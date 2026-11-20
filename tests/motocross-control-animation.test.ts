@@ -502,10 +502,27 @@ it('loads only the requested motocross rig, reuses it across camera cuts and rel
     present();
     expect(shells.count).toBe(2);
     expect(installed.map((m) => m.name.split(' ').at(-1))).toEqual(['(high)', '(far)']);
+    const checkProbe = (id: number) => {
+      const shown = shells.motocrossPresentation(id)!;
+      expect(shown.root).toBe(shells.drawnRoot(id));
+      const attached = new Set<T.Material>();
+      shown.root.traverse((node) => {
+        if (node instanceof T.Mesh) {
+          for (const material of Array.isArray(node.material) ? node.material : [node.material])
+            attached.add(material);
+        }
+      });
+      expect(shown.probeSurfaces.length).toBe(4);
+      expect(shown.probeSurfaces.every((material) => attached.has(material))).toBe(true);
+      return shown.probeSurfaces;
+    };
+    const heroPaint = checkProbe(0), distantPaint = checkProbe(1);
+    expect(distantPaint.some((material) => heroPaint.includes(material))).toBe(false);
     const remote = shells.drawnRoot(1);
     cars[1].root.position.z = 55;
     present();
     expect(shells.drawnRoot(1)!.name.endsWith('(mid)')).toBe(true);
+    expect(checkProbe(1)).not.toBe(distantPaint);
     cars[1].root.position.z = 5;
     present();
     expect(shells.drawnRoot(1)!.name.endsWith('(high)')).toBe(true);
@@ -523,6 +540,7 @@ it('loads only the requested motocross rig, reuses it across camera cuts and rel
     present();
     expect(installed.filter((m) => m.parent === shells.root)).toHaveLength(1);
     expect(shells.drawnRoot(1)).toBe(null);
+    expect(shells.motocrossPresentation(1)).toBeUndefined();
     expect(removed).toHaveLength(3);
     expect(detached.parent).toBe(null);
   } finally {

@@ -8,8 +8,8 @@ export class RoadBikeHost {
   readonly suppliedPlayer = null;
   readonly mirrors: T.Mesh[] = [];
   readonly reflectivePaint: T.Material[] = [];
-  constructor(readonly id: number) {
-    this.root.name = 'Road motorcycle ' + (id + 1) + ' presentation frame';
+  constructor(readonly id: number, discipline: 'Road' | 'Motocross' = 'Road') {
+    this.root.name = discipline + ' motorcycle ' + (id + 1) + ' presentation frame';
   }
   update(a: Float32Array, b: Float32Array, o: number, t: number) {
     sampleChassisPose(a, b, o, t, this.root.position, this.root.quaternion);

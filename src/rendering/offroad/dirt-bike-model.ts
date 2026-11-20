@@ -104,6 +104,7 @@ export class DirtBikeModel {
   readonly root: T.Group = new MxPresentationRoot(true);
   readonly sprung = new T.Group();
   readonly rider: Rider;
+  readonly probeSurfaces: readonly T.MeshStandardMaterial[];
   /** Sight points on the authored control geometry, following steering. */
   readonly onboardControls = new T.Group();
   private readonly steerMount = new T.Group();
@@ -263,6 +264,9 @@ export class DirtBikeModel {
       castMaterial,
       magnesiumMaterial,
     );
+    // These finishes are actually visible on the ridden machine. A local
+    // venue capture travels with this entrant through follow and replay cuts.
+    this.probeSurfaces = [shroudMaterial, rimMaterial, brushedAlloy, m.forkUpper];
     // Engine cases are partly sheltered by the shrouds and frame. Use the
     // existing recorded-weather response with an authored exposure, while
     // deposited mud continues to come from this entrant's own coat state.

@@ -973,7 +973,7 @@ export class RacingRenderer {
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
     const unassignedDirtSlot = !frame && isMotocrossVenue(this.circuit.track);
-    // Road rivals only need a coordinate frame. A replay can replace that
+    // Motorcycle rivals supply all their own geometry. A replay can replace that
     // entrant with a car, so promote the slot on the first actual car frame.
     for (let id = 0; id < n; id++) {
       const prior = this.cars[id];
@@ -981,10 +981,11 @@ export class RacingRenderer {
       const definition = frame
         ? vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]))
         : undefined;
-      if (prior && (!definition || (definition.dynamicsKind === 'bike' && !definition.bike?.offroad))) continue;
-      const roadRival = id > 0 && definition?.dynamicsKind === 'bike' && !definition.bike?.offroad;
-      if (roadRival) {
-        const host = new RoadBikeHost(id);
+      const motorcycleFrame = definition?.dynamicsKind === 'bike' &&
+        (!definition.bike?.offroad || definition.classId === 'motocross');
+      if (prior && (!definition || motorcycleFrame)) continue;
+      if (id > 0 && motorcycleFrame) {
+        const host = new RoadBikeHost(id, definition.classId === 'motocross' ? 'Motocross' : 'Road');
         this.cars[id] = host;
         this.scene.add(host.root);
         this.reflectionMaterials[id] = [this.circuit.roadMaterial];
@@ -1194,7 +1195,7 @@ export class RacingRenderer {
       await yieldFrame();
       if (cancelled()) return false;
       const shadowPass = this.warmShadowCasters(roadField);
-      if (roadField && shadowPass) {
+      if ((roadField || this.circuit.offroad) && shadowPass) {
         // The whole-circuit map exists only to link depth variants. Let its
         // submission retire before the first real shadows and reflections.
         this.gpuFrames.submittedFrame();
@@ -2212,7 +2213,7 @@ export class RacingRenderer {
     // road mirrors. The showroom host can still carry Formula glass underneath.
     const bodyMirrors = this.vehicleBodies?.mirrorsFor(this.follow) ?? null;
     const bikeMirrors = followedBike?.rearViews;
-    const surfaces = roadBikeSubject
+    const surfaces = roadBikeSubject || motocrossFollow
       ? (bikeMirrors?.length === 2 ? bikeMirrors : this.noMirrorSurfaces)
       : (bodyMirrors?.surfaces ?? car.mirrors);
     if (surfaces !== this.mirrorSurfaces) {
@@ -2383,12 +2384,18 @@ export class RacingRenderer {
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
       const wetReflection = wheelWater > 0.04 || frameLiquidRain(b) > 0.01;
-      this.refreshReflectionExclusions(car, !!followedBike);
+      const mxModel = motocrossFollow ? this.bikeShells.motocrossPresentation(this.follow) : undefined;
+      if (mxModel) {
+        this.bikeProbeMaterials.length = 0;
+        this.bikeProbeMaterials.push(...mxModel.probeSurfaces, this.circuit.roadMaterial);
+        reflectionMaterials = this.bikeProbeMaterials;
+      }
+      this.refreshReflectionExclusions(car, !!followedBike || !!mxModel);
       this.drawLedger.mark('probe');
       this.reflection.updateProbe(
         this.renderer,
         this.scene,
-        followedBike?.root ?? car.root,
+        mxModel?.root ?? followedBike?.root ?? car.root,
         reflectionMaterials,
         this.graphics.reflections === 'local' && !menu && !studio,
         wetReflection ? 0.55 : 1.5,
@@ -2677,7 +2684,7 @@ export class RacingRenderer {
     this.mirrorDetailShown.length = 0;
     this.vehicleBodies?.restoreFeedDetail();
   }
-  private refreshReflectionExclusions(subject: FormulaCar | RoadBikeHost, roadBikeSubject = false) {
+  private refreshReflectionExclusions(subject: FormulaCar | RoadBikeHost, motorcycleSubject = false) {
     const smallDetail = [
       this.pitCrew.root,
       this.gridPreparation.root,
@@ -2702,7 +2709,9 @@ export class RacingRenderer {
     // Mirrors keep rival cars and spray; the probe (paint/wet-road reflection
     // at 128 px) keeps static scenery only. The subject car is hidden by the probe itself.
     probe.push(this.effects.group);
-    if (roadBikeSubject) probe.push(this.bikeShells.root);
+    if (motorcycleSubject) probe.push(this.bikeShells.root);
+    const arena = this.circuit.offroad?.stadium;
+    if (arena) probe.push(arena.crowd, arena.nearCrowd);
     for (const other of this.cars) if (other !== subject) probe.push(other.root);
     if (this.ghost) {
       probe.push(this.ghost.root);
