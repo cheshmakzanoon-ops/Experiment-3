@@ -28,6 +28,7 @@ on:
       - 'e2e/fixtures/gp-grounding.ts'
       - 'e2e/graphics-high-journey.spec.ts'
       - '.github/workflows/graphics-engine-validation.yml'
+      - 'scripts/ci-ubuntu-https.py'
 permissions:
   contents: read
 concurrency:
@@ -51,6 +52,8 @@ jobs:
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: Production geometry, grounding, occlusion, temporal depth and resource lifetime
@@ -82,6 +85,8 @@ jobs:
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: Existing complete application driving and replay journey
@@ -113,6 +118,8 @@ jobs:
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: High preset through the full application with completed GPU submissions

@@ -258,6 +258,8 @@ jobs:
           test "$DOWNLOAD_SUCCEEDED" = true
           test -s dist/index.html
           test -d dist/assets
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
       - run: npx playwright install --with-deps chromium
       - name: Install Mesa software graphics and virtual display
         run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
@@ -346,6 +348,8 @@ jobs:
           test "$DOWNLOAD_SUCCEEDED" = true
           test -s dist/index.html
           test -d dist/assets
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
       - name: Wet presentation and original-player-car screenshots and GPU measurements
@@ -391,6 +395,8 @@ jobs:
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
       - name: QA build (owner model and review tooling, not for release)
         run: npm run build:qa
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
       - run: npx playwright install --with-deps chromium
       - name: Owner-only and review-tool specs, plus the owner half of the dual-mode specs
         run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=${{ matrix.shard }}/${{ strategy.job-total }}
