@@ -78,6 +78,21 @@ export function motocrossDriftSteer(
 ): number {
   return clamp(steer - 0.8 * Math.atan2(slide, Math.max(3, speed)), -0.6, 0.6);
 }
+/** On a committed clear the last ground contact sets the direction of flight.
+ * Ease from the held lane to the existing square-to-lip command over 1.2 s
+ * of travel, bounded by the available jump run-up. Rolling riders keep steering. */
+export function motocrossJumpApproachSteer(
+  laneSteer: number,
+  lipSteer: number,
+  distanceToFace: number,
+  speed: number,
+  committed: boolean,
+) {
+  if (!committed) return laneSteer;
+  const laneWeight = smooth(distanceToFace / clamp(1.2 * speed, 8, JUMP_LINE_LEAD));
+  return (1 - laneWeight) * lipSteer + laneWeight * laneSteer;
+}
+
 /** Seconds after the gate drop the field launches flat out. */
 const LAUNCH_SECONDS = 1.6;
 /** Grade (sine of the ground slope) and speed (m/s) below which a rider
@@ -154,7 +169,13 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     const heading = mod(Math.atan2(p.tx, p.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
     const lane = this.steeringLineOffset(track, c.s);
     const correction = Math.atan2(lane - c.lateral, Math.max(13, 1.65 * c.speed));
-    c.input.steer = clamp((heading + correction) * 2.4 - d.lean * 0.9 - d.leanRate * 0.16, -0.5, 0.5);
+    const laneSteer = clamp(
+      (heading + correction) * 2.4 - d.lean * 0.9 - d.leanRate * 0.16, -0.5, 0.5,
+    );
+    c.input.steer = motocrossJumpApproachSteer(
+      laneSteer, c.input.steer, run.length - mod(c.s - run.start, track.length),
+      c.speed, this.plan?.clear === true && this.plan.locked,
+    );
   }
   /** Full-lap cornering reserve: retain the existing calibrated line and
    * jump target; trim only corner drive that has unweighted the steering

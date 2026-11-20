@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mod } from '../src/core/math.ts';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
-import { DirtBikeAIDriver, jumpHoldSpeed } from '../src/simulation/offroad/ai.ts';
+import { DirtBikeAIDriver, jumpHoldSpeed, motocrossJumpApproachSteer } from '../src/simulation/offroad/ai.ts';
 import { MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -50,6 +50,17 @@ function wetBeachedRider() {
 }
 
 describe('motocross committed jump handoff', () => {
+  it.each([-1, 1])('finishes a committed lane change before the lip from side %s', (side) => {
+    const lane = side * 0.44, lip = -side * 0.18;
+    for (const [speed, distance] of [[5, 8], [10, 12], [24, 18]]) {
+      expect(motocrossJumpApproachSteer(lane, lip, distance + 1, speed, true)).toBe(lane);
+      expect(motocrossJumpApproachSteer(lane, lip, distance * 0.5, speed, true))
+        .toBeCloseTo((lane + lip) * 0.5, 12);
+      expect(motocrossJumpApproachSteer(lane, lip, 0, speed, true)).toBe(lip);
+      expect(motocrossJumpApproachSteer(lane, lip, 0, speed, false)).toBe(lane);
+    }
+  });
+
   it.each(['mx250', 'mx450'] as const)(
     'rides the Valley Ridge whoops and following triple on the %s from a normal race start',
     (vehicle) => {
