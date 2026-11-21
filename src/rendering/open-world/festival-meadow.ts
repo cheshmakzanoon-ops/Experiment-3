@@ -1,3 +1,4 @@
+import { fieldAt } from '../../simulation/open-world/farm-fields.ts';
 import * as T from 'three';
 import { hash01 } from '../../simulation/open-world/noise.ts';
 import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
@@ -32,6 +33,7 @@ export function festivalMeadowPlan(
     q = trackPoint(),
     cells = new Map<string, Float32Array>(),
     out: GrassClump[] = [];
+  const normal = { x: 0, y: 1, z: 0 };
   const ground = (x: number, z: number) => {
     const x0 = Math.floor(x / TILE_STEP) * TILE_STEP,
       z0 = Math.floor(z / TILE_STEP) * TILE_STEP,
@@ -41,7 +43,7 @@ export function festivalMeadowPlan(
       heights = world.carver.build(x0, z0, TILE_STEP, 1).heights;
       cells.set(key, heights);
     }
-    return gridHeight(heights, 2, (x - x0) / TILE_STEP, (z - z0) / TILE_STEP, TILE_STEP);
+    return gridHeight(heights, 2, (x - x0) / TILE_STEP, (z - z0) / TILE_STEP, TILE_STEP, normal);
   };
   for (const edge of roads) {
     if (edge.roadClass === 'town' || edge.roadClass === 'runway') continue;
@@ -90,7 +92,10 @@ export function festivalMeadowPlan(
           )
             continue;
           const y = ground(x, z);
-          if (y < field.region.seaLevel + 1.1) continue;
+          // Fresh cut rock cannot carry an upright grass tuft. Root slope
+          // comes from the carved triangle the player actually drives on.
+          if (y < field.region.seaLevel + 1.1 || normal.y < 0.81 ||
+            (world.region.id === 'solvane' && fieldAt(x, z))) continue;
           out.push({
             x,
             y: y - 0.045,

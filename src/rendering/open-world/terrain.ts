@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
+import { gridHeight, TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
 import type {
   FromTileWorker,
   TileMeshData,
@@ -520,13 +520,23 @@ export class TerrainStreamer {
   }
   /** Ready for GPU preparation only once exact ground under `at` is visible.
    * A received but hidden child must not skip its first real shader warm-up. */
+  private exactTile(x: number, z: number) {
+    const ix = Math.floor((x - ORIGIN) / TILE_SIZE), iz = Math.floor((z - ORIGIN) / TILE_SIZE);
+    const tile = this.tiles.get(key(0, ix, iz));
+    const mesh = tile?.mesh;
+    return mesh?.visible && (mesh.morphTargetInfluences?.[0] ?? 0) === 0 ? tile : undefined;
+  }
   readyAround(x: number, z: number) {
-    const top = this.tiles.get(key(TERRAIN_LEVELS, 0, 0));
-    if (!top?.mesh) return false;
-    const ix = Math.floor((x - ORIGIN) / TILE_SIZE),
-      iz = Math.floor((z - ORIGIN) / TILE_SIZE);
-    const mesh = this.tiles.get(key(0, ix, iz))?.mesh;
-    return !!mesh?.visible && (mesh.morphTargetInfluences?.[0] ?? 0) === 0;
+    return !!this.tiles.get(key(TERRAIN_LEVELS, 0, 0))?.mesh && !!this.exactTile(x, z);
+  }
+  /** Live finest-grid height for crop roots. Coarser or morphing terrain
+   * cannot safely expose short vegetation, especially on hillside parcels. */
+  exactHeight(x: number, z: number) {
+    const tile = this.exactTile(x, z);
+    if (!tile?.data) return null;
+    const divisions = res(0), step = TILE_SIZE / divisions;
+    return gridHeight(tile.data.heights, divisions + 1, (x - ORIGIN - tile.ix * TILE_SIZE) / step,
+      (z - ORIGIN - tile.iz * TILE_SIZE) / step, step);
   }
   dispose() {
     if (this.disposed) return;

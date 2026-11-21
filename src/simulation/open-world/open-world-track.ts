@@ -1,3 +1,4 @@
+import { fieldAt, tramlineCoverage } from './farm-fields.ts';
 import { runwayRubber, RUNWAY_RUBBER } from './airfield-layout.ts';
 import { clamp, Vec3 } from '../../core/math.ts';
 import { rayHit } from '../bvh.ts';
@@ -593,7 +594,7 @@ export class OpenWorldTrack {
     if (!onRoad && !resolved) lateral = this.nearest(x, z, p, y);
     out.height = height;
     out.normal.set(-gx, 1, -gz).normalize();
-    let surface: WorldSurface, edge: number;
+    let surface: WorldSurface, edge: number, tramline = 0;
     if (onRoad && owner >= 0) {
       const i = c.segment[owner],
         roadLateral = this.candLateral[owner];
@@ -618,7 +619,12 @@ export class OpenWorldTrack {
       n.y = out.normal.y;
       n.z = out.normal.z;
       const slope = Math.sqrt(Math.max(0, 1 - n.y * n.y)) / Math.max(0.05, n.y);
-      surface = BIOME_SURFACE[this.field.biome(x, z, height, slope)];
+      const plot = this.field.region.id === 'solvane' ? fieldAt(x, z) : null;
+      if (plot) {
+        surface = WORLD_SURFACE.FARMLAND;
+        const dx = x - plot.x, dz = z - plot.z;
+        tramline = tramlineCoverage(dx * plot.dx + dz * plot.dz, dz * plot.dx - dx * plot.dz, plot);
+      } else surface = BIOME_SURFACE[this.field.biome(x, z, height, slope)];
       // Water stands above sea level and in the river channel.
       const valley = this.field.valleyAt(x, z);
       const level = valley.channel
@@ -646,6 +652,13 @@ export class OpenWorldTrack {
     out.grip = physics.grip * (onRoad && paved ? spec.grip : 1);
     out.resistance = physics.resistance;
     out.water = Math.min(3, this.wetness * physics.water);
+    if (tramline > 0 && surface === WORLD_SURFACE.FARMLAND) {
+      // Firm wheelways roll more freely when dry. Their shallow depressions
+      // retain water, reducing the dry grip advantage as the soil saturates.
+      out.resistance -= 0.012 * tramline;
+      out.water = Math.min(3, out.water * (1 + 0.22 * tramline));
+      out.grip += 0.035 * tramline * (1 - 1.6 * Math.min(1, out.water / 2));
+    }
     out.frozen =
       this.#frozen > 0 && surface !== WORLD_SURFACE.SNOW && surface !== WORLD_SURFACE.WATER
         ? this.#frozen

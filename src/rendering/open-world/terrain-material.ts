@@ -1,3 +1,4 @@
+import { FIELD_LAYER_GLSL } from './farm-material.ts';
 import * as T from 'three';
 import { SCAN_COMMON_GLSL } from '../ground/ground-glsl.ts';
 import {
@@ -110,6 +111,7 @@ export interface TerrainUniforms {
   /** Still-water datum for the beach swash zone; far below the world (off)
    * until the festival renderer sets the region's sea level. */
   owSeaLevel: { value: number };
+  owCultivated: { value: number };
 }
 /** View-dependent sward response (High and ULTRA). A meadow is not a
  * Lambertian plane: looking toward a low sun, light forward-scatters through
@@ -154,6 +156,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
     owSnowTint: { value: 1 },
     owGrassDetail: { value: 0 },
     owSeaLevel: { value: -1e4 },
+    owCultivated: { value: 0 },
   };
   const G = TERRAIN_GRASS_SCATTER,
     g4 = (v: number) => v.toFixed(4);
@@ -202,6 +205,7 @@ varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;
 ${OW_NOISE_GLSL}
+${FIELD_LAYER_GLSL}
 float owRoughness;
 float owBedRelief;
 vec2 owBump;
@@ -285,6 +289,8 @@ ${SCAN_COMMON_GLSL}`,
   float verge = smoothstep(0.25, 1.0, vShade.x) * (1.0 - snow);
   vec3 col = grass;
   col = mix(col, soilC, soil);
+  vec4 cropBed = owFieldLayer(p, dFdx(p), dFdy(p), meso, micro);
+  col = mix(col, cropBed.rgb, cropBed.a);
   col = mix(col, sandC, sand);
   col = mix(col, rockC, rock);
   col = mix(col, vec3(0.19, 0.17, 0.14) * (0.85 + 0.3 * micro), verge * 0.6);
@@ -398,7 +404,7 @@ normal = normalize(normal + 1.1 * (owRockView-normal*dot(normal,owRockView)));
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v8-bedded-outcrops';
+  material.customProgramCacheKey = () => 'festival-terrain-v9-cultivated-parcels';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

@@ -1,3 +1,5 @@
+import { CropFields } from './crop-fields.ts';
+import { FARM_FIELDS } from '../../simulation/open-world/farm-fields.ts';
 import * as T from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
@@ -140,6 +142,7 @@ export class FestivalRenderer {
   readonly practicalLights: FestivalPracticalLights;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
+  readonly crops: CropFields;
   readonly atmosphere: FestivalAtmosphere;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
@@ -281,6 +284,8 @@ export class FestivalRenderer {
     this.sun.shadow.normalBias = 0.02;
     this.sun.shadow.camera.updateProjectionMatrix();
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
+    this.terrain.material.userData.ow.owCultivated.value = Number(world.region.id === 'solvane');
+    this.crops = new CropFields((x, z) => this.terrain.exactHeight(x, z), world.region.id === 'solvane' ? FARM_FIELDS : []);
     this.roads = new RoadMeshes(world.network, world.field);
     this.streetLights = new StreetLightPools(this.roads.lampSockets);
     scene.add(this.streetLights.root);
@@ -312,6 +317,7 @@ export class FestivalRenderer {
       this.roads.root,
       this.buildings.root,
       this.dressing.root,
+      this.crops.root,
       this.vegetation.root,
       this.water.root,
       this.markers.root,
@@ -330,6 +336,7 @@ export class FestivalRenderer {
     for (const root of [this.roads.root, this.buildings.root, this.water.root])
       this.atmosphere.install(root);
     this.atmosphere.watch(this.dressing.root);
+    this.atmosphere.installMaterial(this.crops.material);
     this.atmosphere.watch(this.vegetation.root);
     this.composer = new EffectComposer(renderer);
     this.imagePipeline = new FestivalFramePipeline(
@@ -823,6 +830,7 @@ export class FestivalRenderer {
     this.camera.updateMatrixWorld();
     // --- World streaming and dressing -------------------------------------
     this.terrain.update(this.camera, time);
+    this.crops.update(this.camera, this.preset, this.reducedMotion ? 0 : time, subject?.position ?? null);
     this.buildings.update(this.camera, this.preset, this.renderer.domElement.height);
     if (this.terrain.treesChanged) {
       this.terrain.treesChanged = false;
@@ -1110,6 +1118,7 @@ export class FestivalRenderer {
     this.practicalLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
+    this.crops.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();
