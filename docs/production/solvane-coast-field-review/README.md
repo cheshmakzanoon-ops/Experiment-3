@@ -34,6 +34,10 @@ The builds are `6a37db8` and `a2cab68`. Both frames use the SC-7 chase camera on
 
 ![Same-camera comparison of the SC-7 in rain on Varda Pass](varda-pass.jpg)
 
+On the final quay build the SC-7 arrived at the same speed zone in rain. This full 1280 × 720 Medium chase view includes the HUD, right-hand timing board, guardrail reflectors and the descent into the lower forest. The production renderer submitted 426 draw calls and 2,309,812 triangles. The session recorded zero page errors and failed asset requests.
+
+![SC-7 at the crest of Varda Pass in rain at sunset](varda-pass-720.jpg)
+
 ## The ten road cars
 
 The RH-3 hatch gained recessed rear glass, an overhanging visor and a roof brake lamp. Raised lower bumpers and reshaped rockers carry the side contour around the rear of each car. The modern noses have recessed intake liners, cooling fins and brake ducts. The SC-7 now has a painted join between its bonnet insert and windscreen. The classic cars retain their distinct chrome bumpers.
