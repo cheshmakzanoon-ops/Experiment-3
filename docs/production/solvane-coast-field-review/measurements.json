@@ -731,5 +731,86 @@
         450
       ]
     }
+  },
+  "terrainMaterialBuffers": {
+    "beforeCommit": "ce7f0e94d9ab313270b3669e56e79e1e2e694a4b",
+    "updatedCommit": "997080f1b5a2e6d485f7cb76775feb20aa1cac0d",
+    "method": "Actual Low terrain streamer with production tile data. Counts include resident mesh material attributes at both morph endpoints. The world sample hashes cover vertex positions and triangle indices. Separate 800 x 450 terrain-only WebGL frames use identical cameras, sunlight and fog. Image differences are absolute sRGB 8-bit channel code values.",
+    "locations": [
+      {
+        "site": "Varda Pass",
+        "residentTiles": 109,
+        "residentVertices": 433377,
+        "residentIndices": 2674176,
+        "positionHashBeforeAndAfter": 414425713,
+        "indexHashBeforeAndAfter": 3872826953,
+        "previousMaskBytes": 27697056,
+        "updatedMaskBytes": 10386396,
+        "imageDraws": 33,
+        "imageTriangles": 284160,
+        "width": 800,
+        "height": 450,
+        "meanAbsoluteChannelDifference": 0.009152777777777777,
+        "maxChannelDifference": 2,
+        "pixelsAboveOneCodeValue": 8,
+        "pixelsChanged": 9067,
+        "identicalPixelsPct": 97.48138888888889
+      },
+      {
+        "site": "Ashvale",
+        "residentTiles": 110,
+        "residentVertices": 437862,
+        "residentIndices": 2701824,
+        "positionHashBeforeAndAfter": 4035082072,
+        "indexHashBeforeAndAfter": 4098302453,
+        "previousMaskBytes": 27984096,
+        "updatedMaskBytes": 10494036,
+        "imageDraws": 25,
+        "imageTriangles": 210432,
+        "width": 800,
+        "height": 450,
+        "meanAbsoluteChannelDifference": 0.0016601851851851851,
+        "maxChannelDifference": 1,
+        "pixelsAboveOneCodeValue": 0,
+        "pixelsChanged": 1761,
+        "identicalPixelsPct": 99.51083333333334
+      }
+    ]
+  },
+  "drivingCadence": {
+    "method": "Same recorded tick-indexed steering, brakes and throttle in seeded, wet four-car Valley Sprint. Full vehicle snapshots sampled every simulation second at three clock update rates.",
+    "source": "997080f1b5a2e6d485f7cb76775feb20aa1cac0d",
+    "runs": [
+      {
+        "clockHz": 30,
+        "ticks": 13200,
+        "snapshots": 110,
+        "droppedSeconds": 0,
+        "time": 82.10000000001396,
+        "position": 4,
+        "entrants": 4,
+        "digest": "8e09964e701015ff10012b6749d818d8eeb059232c935a7ae00c120613eb5e73"
+      },
+      {
+        "clockHz": 60,
+        "ticks": 13200,
+        "snapshots": 110,
+        "droppedSeconds": 0,
+        "time": 82.10000000001396,
+        "position": 4,
+        "entrants": 4,
+        "digest": "8e09964e701015ff10012b6749d818d8eeb059232c935a7ae00c120613eb5e73"
+      },
+      {
+        "clockHz": 144,
+        "ticks": 13200,
+        "snapshots": 110,
+        "droppedSeconds": 0,
+        "time": 82.10000000001396,
+        "position": 4,
+        "entrants": 4,
+        "digest": "8e09964e701015ff10012b6749d818d8eeb059232c935a7ae00c120613eb5e73"
+      }
+    ]
   }
 }

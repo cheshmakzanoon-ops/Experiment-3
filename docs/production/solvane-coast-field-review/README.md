@@ -1,6 +1,6 @@
 # Solvane Coast Festival field review
 
-The starting build for these comparisons was `6a37db8950ea1f20d7a90ff4915cb79f4629c510`. The 100 supplied driving photographs guided the proportions of the road cars, the visibility of the route at speed, the harbour streets and the layering of the landscape. All the geometry, liveries and scenery shown here belong to the original Solvane setting.
+The starting build for these comparisons was `6a37db8950ea1f20d7a90ff4915cb79f4629c510`. The 100 supplied reference images guided the proportions of the road cars, the visibility of the route at speed, the harbour streets and the layering of the landscape. All the geometry, liveries and scenery shown here belong to the original Solvane setting.
 
 ## Through the harbour
 
@@ -36,6 +36,8 @@ The Ashvale river now carries ripples in the direction of the channel. Its surfa
 
 The landmark images use production meshes in an isolated daylight or night setup. The river uses the production terrain height field and water mesh with a neutral bank material. The Port Ilse streets and the session images below are full gameplay captures.
 
+Terrain material buffers now use 62.5% fewer bytes for the rock, soil, sand, snow and land-cover weights. The Low terrain streamer used 27,697,056 bytes for these attributes at Varda Pass before the change and 10,386,396 after. Ashvale went from 27,984,096 to 10,494,036 bytes. Both locations produced identical vertex positions and triangle indices. In matched, 800 × 450 terrain-only frames, 8 of 360,000 Varda pixels differed by more than one 8-bit colour step. The largest difference was two steps. Every Ashvale pixel stayed within one step. These figures measure the terrain attributes and their image effect. Total GPU memory and frame times require a separate measurement.
+
 ## Driving
 
 | Assisted run | Cars and conditions | Outcome |
@@ -47,6 +49,8 @@ The landmark images use production meshes in an isolated daylight or night setup
 The 26 races recorded zero player or rival resets and zero seconds off course. Valley Sprint used seed 41271, the six-entrant races used seed 73021 and the speed and drift diagnostics used seed 713225. Some six-car runs recorded light contact. In separate drift diagnostics, the RM-8 scored 26 points on the dry hairpin. Some assisted attempts returned zero points and the SC-7 left the hairpin zone under aggressive slide control. The original wet quarry run missed the gate because the RM-8 struggled to start uphill on loose ground. The revised run-up crossed the same gate in 27.5 seconds. Both automated driving styles subsequently timed out on the wet quarry climb, with 15 reset presses apiece. Drift control and wet uphill recovery remain open items.
 
 Tyre response at the edge of rural asphalt uses the share of the steered tread on pavement, paint and gravel. This affects wet grip, rolling resistance and the tyre’s response to loose ground. Each wheel leaves a continuous skid ribbon at its own tread width and contact height, including on banked roads and elevated decks.
+
+A wet four-car Valley Sprint replay fed the same recorded SC-7 controls to the production 120 Hz stepper, with clock updates arriving at 30, 60 and 144 Hz. Each run finished in 82.10 seconds. All 110 once-per-second snapshots matched byte for byte across the three runs, including the rivals. Render throughput was outside the scope of this clock test.
 
 ![Production session showing the map, photo mode, an active race and the result](festival-session.jpg)
 
