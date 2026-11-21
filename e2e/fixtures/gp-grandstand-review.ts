@@ -40,7 +40,8 @@ function geometryBudget(root: T.Object3D, staticOnly = false) {
  * Each scene is recentered for a consistent architectural view. This bounded
  * fixture verifies WebGL materials, held/weather/reset frames and resources;
  * it is not a full-venue gameplay capture or device frame-rate benchmark. */
-export async function captureGpGrandstands() {
+const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+export async function captureGpGrandstands(ids: readonly (typeof venues)[number][] = venues) {
   const width = 1000,
     height = 650,
     renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -85,10 +86,12 @@ export async function captureGpGrandstands() {
   }[] = [];
   function read(name: string) {
     const gl = renderer.getContext();
-    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    const w = gl.drawingBufferWidth,
+      h = gl.drawingBufferHeight;
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     let hash = 2166136261,
       coloured = 0;
-    for (let i = 0; i < pixels.length; i += 4) {
+    for (let i = 0; i < w * h * 4; i += 4) {
       if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 3) coloured++;
       for (let c = 0; c < 3; c++) hash = Math.imul(hash ^ pixels[i + c], 16777619);
     }
@@ -103,7 +106,7 @@ export async function captureGpGrandstands() {
     };
   }
   try {
-    for (const id of ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const) {
+    for (const id of ids) {
       const track = new Track('clear', false, undefined, CIRCUITS[id]),
         site =
           venuePlan(track).grandstands.find((s) => s.s === 40) ?? venuePlan(track).grandstands[0],
@@ -194,12 +197,18 @@ export async function captureGpGrandstands() {
       pass[carBase(0) + F.SPEED] = 45;
       pass[carBase(0) + F.X] = -site.side * 15;
       pass[carBase(0) + F.Z] = 17;
+      // Keep the established shadow field fixed to isolate the shader's
+      // visible head turn. The roof and seating checks still run at 1000×650.
+      renderer.setSize(width / 2, height / 2, false);
+      renderer.shadowMap.autoUpdate = false;
       const gaze = [false, true, true].map((enabled) => {
         for (const cluster of clusters)
           cluster.update(12, camera.position, 0, pass, camera.fov, camera.aspect, enabled);
         renderer.render(scene, camera);
         return read('gp spectator gaze').hash;
       });
+      renderer.setSize(width, height, false);
+      renderer.shadowMap.autoUpdate = true;
       // Measure the unchanged generic builder with the same physical track,
       // camera, seat/crowd population, LOD selection and lighting. Aggregate
       // triangle counts are dominated by the existing crowd, so a guessed

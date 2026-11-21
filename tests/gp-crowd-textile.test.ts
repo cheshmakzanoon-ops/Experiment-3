@@ -27,6 +27,19 @@ describe('GP grandstand attention', () => {
       };
       const before = read(stand);
       expect(before).toBeGreaterThan(0.3);
+      const visibleAt = (metres: number, height: number, fov = 58, gp = true) => {
+        camera.set(0, 0, metres);
+        stand.update(12, camera, 0, frame, fov, 16 / 9, gp, height);
+        return stand.levels.flatMap((mesh, i) => mesh.visible ? [i] : []);
+      };
+      expect(visibleAt(160, 1080)).toEqual([1]);
+      expect(visibleAt(160, 540)).toEqual([2]);
+      expect(visibleAt(160, 540, 16)).toEqual([1]);
+      expect(visibleAt(72, 2160)).toEqual([0]);
+      expect(visibleAt(72, 1080)).toEqual([1]);
+      expect(visibleAt(12, 540)).toEqual([0]);
+      expect(visibleAt(160, 540, 58, false)).toEqual([1]);
+      camera.set(0, 2, 16);
       expect(read(right)).toBe(0);
       for (let i = 0; i < 2; i++) frame[carBase(i) + F.X] *= -1;
       expect(read(right)).toBeCloseTo(-before);

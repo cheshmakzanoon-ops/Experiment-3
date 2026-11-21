@@ -591,6 +591,7 @@ export class CrowdCluster {
     fov = 58,
     aspect = 16 / 9,
     gpGrid = false,
+    renderHeight = 1080,
   ) {
     if (
       !Number.isFinite(time) ||
@@ -601,7 +602,13 @@ export class CrowdCluster {
     this.root.updateWorldMatrix(true, false);
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
     const distance = this.centre.distanceTo(camera);
-    const visualDistance = detailDistance(distance, fov, aspect);
+    const lensDistance = detailDistance(distance, fov, aspect);
+    // A face occupying four pixels at 540p spans sixteen pixels at 2160p.
+    // Scale the GP stands' existing handoff bands to the colour target. The
+    // actual metre distance below still governs reactions to passing traffic.
+    const visualDistance = this.gpYaw && gpGrid && Number.isFinite(renderHeight) && renderHeight > 0
+      ? lensDistance * clamp(1080 / renderHeight, 0.5, 2)
+      : lensDistance;
     // Traffic relevance stays in world metres. Only mesh selection follows
     // magnification, so zooming cannot invent a distant crowd reaction.
     crowdResponse(frame, this.centre, this.uniforms.crowdReaction.value).multiplyScalar(

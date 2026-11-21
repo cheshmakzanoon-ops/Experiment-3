@@ -2518,6 +2518,7 @@ export class RacingRenderer {
           this.camera.fov,
           this.camera.aspect,
           gpGrid,
+          this.scenePass.target.height,
         );
     this.effectPlayback.update(presented, !menu, !replay);
     this.effects.setSignalLights(presented, !studio);
