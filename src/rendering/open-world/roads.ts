@@ -1,3 +1,4 @@
+import { StreetIronwork } from './street-ironwork.ts';
 import { paintStations } from './paint-tessellation.ts';
 import { AirfieldLights } from './airfield-lights.ts';
 import * as T from 'three';
@@ -366,6 +367,7 @@ function installScannedVerge(material: T.MeshStandardMaterial) {
 export class RoadMeshes {
   readonly root = new T.Group();
   readonly airfieldLights: AirfieldLights;
+  readonly ironwork: StreetIronwork;
   readonly lampSockets: StreetLightSocket[] = [];
   readonly materials: Record<Layer, T.Material>;
   readonly lampMaterial: T.MeshStandardMaterial;
@@ -395,6 +397,8 @@ export class RoadMeshes {
     circuitChevrons: 0,
     circuitCueChunks: 0,
     airfieldLamps: 0,
+    inspectionCovers: 0,
+    gullyGrates: 0,
   };
   constructor(
     readonly network: RoadNetwork,
@@ -466,7 +470,8 @@ export class RoadMeshes {
       post: new T.MeshStandardMaterial({ vertexColors: true, metalness: 0.52, roughness: 0.48 }),
     };
     this.airfieldLights = new AirfieldLights(network, festivalMarkings(network));
-    this.root.add(this.airfieldLights.root);
+    this.ironwork = new StreetIronwork(network);
+    this.root.add(this.airfieldLights.root, this.ironwork.root);
     this.build();
   }
   private layerOf(e: RoadEdge): Layer {
@@ -668,6 +673,8 @@ export class RoadMeshes {
       group.name = `Roads ${key}`;
       for (const [layer, b] of chunk) {
         const g = b.geometry();
+        // Float32 attributes own their storage now. Drop the source arrays as each cell uploads.
+        chunk.delete(layer);
         if (!g) continue;
         triangles.n += b.indices.length / 3;
         const mesh = new T.Mesh(g, this.materials[layer]);
@@ -687,7 +694,8 @@ export class RoadMeshes {
     this.root.add(cues.root);
     this.stats = {
       chunks: chunks.size,
-      triangles: triangles.n + guardrails.stats.triangles + grids.triangles + cues.stats.triangles,
+      triangles: triangles.n + guardrails.stats.triangles + grids.triangles + cues.stats.triangles +
+        2 * (this.ironwork.count.cover + this.ironwork.count.gully),
       lamps: lamps.length,
       posts: guardrails.stats.posts,
       barrierRuns: guardrails.stats.runs,
@@ -698,6 +706,8 @@ export class RoadMeshes {
       circuitChevrons: cues.stats.chevrons,
       circuitCueChunks: cues.stats.chunks,
       airfieldLamps: this.airfieldLights.count,
+      inspectionCovers: this.ironwork.count.cover,
+      gullyGrates: this.ironwork.count.gully,
     };
   }
   /** Permanent track paint, independent of event-marker visibility. Resolve
@@ -954,13 +964,16 @@ export class RoadMeshes {
   /** Night: street lamps glow (bloom carries them). */
   setNight(night: number, eye?: T.Vector3) {
     this.airfieldLights.setNight(night, eye);
+    if (eye) this.ironwork.update(eye);
     this.lampMaterial.emissiveIntensity = 0.05 + night * 9;
     this.reflectorMaterial.emissiveIntensity = 0.02 + night * 0.72;
   }
   setWet(wet: number) {
     this.pavingWet.value = T.MathUtils.clamp(wet, 0, 1);
+    this.ironwork.setWet(wet);
   }
   dispose() {
+    this.ironwork.dispose();
     const geometries = new Set<T.BufferGeometry>();
     this.root.traverse((o) => {
       if (o instanceof T.InstancedMesh) o.dispose();

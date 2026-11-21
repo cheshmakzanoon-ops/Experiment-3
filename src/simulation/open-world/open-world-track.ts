@@ -1,3 +1,4 @@
+import { ironGrip, streetIronwork, type StreetIronworkLayout } from './street-ironwork.ts';
 import { fieldAt, tramlineCoverage } from './farm-fields.ts';
 import { runwayRubber, RUNWAY_RUBBER } from './airfield-layout.ts';
 import { clamp, Vec3 } from '../../core/math.ts';
@@ -57,6 +58,7 @@ export const WORLD_SURFACE = Object.freeze({
   SNOW: 10,
   WATER: 11,
   AIRFIELD: 12,
+  IRON: 13,
 } as const);
 export type WorldSurface = (typeof WORLD_SURFACE)[keyof typeof WORLD_SURFACE];
 export const WORLD_SURFACE_NAMES: readonly string[] = Object.freeze([
@@ -73,6 +75,7 @@ export const WORLD_SURFACE_NAMES: readonly string[] = Object.freeze([
   'snow',
   'water',
   'airfield grass',
+  'cast iron',
 ]);
 /** Physics properties per world surface: material id, grip, rolling
  * resistance and how much standing water it holds relative to a road. A
@@ -93,6 +96,7 @@ export const SURFACE_PHYSICS: Readonly<
   [WORLD_SURFACE.ROCK]: { code: SURFACE.ASPHALT, grip: 0.74, resistance: 0.022, water: 0.6 },
   [WORLD_SURFACE.SNOW]: { code: MATERIAL.SNOW, grip: 0.36, resistance: 0.07, water: 0.4 },
   [WORLD_SURFACE.WATER]: { code: MATERIAL.MUD, grip: 0.3, resistance: 0.4, water: 3 },
+  [WORLD_SURFACE.IRON]: { code: SURFACE.ASPHALT, grip: 0.89, resistance: 0.015, water: 1 },
   [WORLD_SURFACE.AIRFIELD]: { code: SURFACE.GRASS, grip: 0.58, resistance: 0.07, water: 0.7 },
 });
 const gravelRoad = surfaceMaterial(MATERIAL.GRAVEL_ROAD);
@@ -202,6 +206,7 @@ export class OpenWorldTrack {
   private lastSegment = 0;
   private lastLayer = true;
   private readonly point = trackPoint();
+  private readonly ironwork: StreetIronworkLayout;
   private readonly markings: FestivalMarkings;
   private readonly footways: TownFootways;
   private readonly footwayContact: FootwayContact;
@@ -238,6 +243,7 @@ export class OpenWorldTrack {
   ) {
     this.network = world.network;
     this.markings = festivalMarkings(this.network);
+    this.ironwork = streetIronwork(this.network);
     this.footways = townFootways(this.network);
     this.footwayContact = new FootwayContact(this.network);
     this.field = world.field;
@@ -351,6 +357,7 @@ export class OpenWorldTrack {
         ? WORLD_SURFACE.SHOULDER
         : WORLD_SURFACE.ASPHALT;
     if (spec.surface === 'dirt') return WORLD_SURFACE.DIRT_ROAD;
+    if (e.roadClass === 'town' && this.ironwork.coverage(edge, station - e.offset, lateral) > 0) return WORLD_SURFACE.IRON;
     return spec.markings !== 'none' && this.markings.isPaint(edge, segment, station, lateral, x, z)
       ? WORLD_SURFACE.MARKING
       : WORLD_SURFACE.ASPHALT;
@@ -652,6 +659,7 @@ export class OpenWorldTrack {
     out.grip = physics.grip * (onRoad && paved ? spec.grip : 1);
     out.resistance = physics.resistance;
     out.water = Math.min(3, this.wetness * physics.water);
+    if (surface === WORLD_SURFACE.IRON) out.grip = ironGrip(out.water) * spec.grip;
     if (tramline > 0 && surface === WORLD_SURFACE.FARMLAND) {
       // Firm wheelways roll more freely when dry. Their shallow depressions
       // retain water, reducing the dry grip advantage as the soil saturates.
@@ -666,6 +674,7 @@ export class OpenWorldTrack {
     if (out.frozen > 0) out.resistance += FROST.rolling * frozenCover(out.frozen);
     // A light general rubber coat on public asphalt; no racing line.
     out.rubber = physics.code === SURFACE.ASPHALT || physics.code === SURFACE.PAINT ? 0.08 : 0;
+    if (surface === WORLD_SURFACE.IRON) out.rubber = 0;
     const strip = road.roadClass === 'runway' && this.markings.airfield[road.index]?.strip;
     if (strip && surface === WORLD_SURFACE.ASPHALT) {
       const station = out.s - road.offset;
@@ -759,6 +768,7 @@ export class OpenWorldTrack {
       edge.roadClass !== 'circuit' &&
       edge.spec.markings !== 'none' &&
       (q.surface === WORLD_SURFACE.ASPHALT ||
+        q.surface === WORLD_SURFACE.IRON ||
         q.surface === WORLD_SURFACE.MARKING ||
         (q.surface === WORLD_SURFACE.SHOULDER &&
           Math.abs(out.lateral) - edge.spec.halfWidth < halfWidth))
@@ -787,6 +797,8 @@ export class OpenWorldTrack {
         1 - dirt,
         this.markings.roadPaintCoverage(edge.index, out.s, out.lateral, ds, dl),
       );
+      const iron = edge.roadClass === 'town'
+        ? this.ironwork.coverage(edge.index, out.s - edge.offset, out.lateral, ds, dl) : 0;
       if (dirt > 0) {
         const pavement = SURFACE_PHYSICS[WORLD_SURFACE.ASPHALT],
           stripe = SURFACE_PHYSICS[WORLD_SURFACE.MARKING],
@@ -809,6 +821,12 @@ export class OpenWorldTrack {
         const asphalt = SURFACE_PHYSICS[WORLD_SURFACE.ASPHALT].grip,
           paint = SURFACE_PHYSICS[WORLD_SURFACE.MARKING].grip;
         out.grip = (asphalt + (paint - asphalt) * fraction) * edge.spec.grip;
+      }
+      if (iron > 0 || q.surface === WORLD_SURFACE.IRON) {
+        const asphalt = SURFACE_PHYSICS[WORLD_SURFACE.ASPHALT].grip;
+        const marking = SURFACE_PHYSICS[WORLD_SURFACE.MARKING].grip;
+        out.grip = (asphalt + fraction * (marking - asphalt) + iron * (ironGrip(out.water) - asphalt)) * edge.spec.grip;
+        out.rubber = 0.08 * (1 - iron);
       }
     }
     return wheelLength;
