@@ -22,7 +22,6 @@ import {
   installGpTitaniumOxideGloss,
   setGpMetalAnisotropy,
 } from '../src/rendering/gp-appearance.ts';
-import { gpLiveryMaterial } from '../src/rendering/gp-race-bodywork.ts';
 import { gpRainLenses } from '../src/rendering/gp-rear-chassis.ts';
 import { gpReservoirBody, gpReservoirCap } from '../src/rendering/gp-brake-reservoir.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';

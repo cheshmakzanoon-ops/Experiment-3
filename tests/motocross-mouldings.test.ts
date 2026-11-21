@@ -77,7 +77,7 @@ describe('motocross formed bodywork', () => {
     try {
       prepareMxFenderFlex(mesh, front);
       const p = mesh.getAttribute('position'), normal = mesh.getAttribute('normal');
-      const [delta] = mesh.morphAttributes.position, [dn] = mesh.morphAttributes.normal;
+      const delta = mesh.morphAttributes.position![0], dn = mesh.morphAttributes.normal![0];
       const n = new T.Vector3(), d = new T.Vector3();
       let pinned = 0, maxBend = 0, normalChange = 0;
       for (let i = 0; i < p.count; i++) {
