@@ -1428,14 +1428,20 @@ function drawFender(c: CanvasRenderingContext2D, entrant: number, variant: GpShe
   const colour = layer === 'colour', finish = layer === 'finish';
   c.save();
   c.translate(x, y);
-  c.fillStyle = colour ? '#232729' : finish ? FINISH.satin : RELIEF_VALUE(128);
+  c.fillStyle = colour ? '#232729' : finish ? FINISH.satin : RELIEF_VALUE(GP_PANEL_RELIEF.flat);
   c.fillRect(-5, -5, length + 10, width + 21);
+  // Dye and pinstripes sit below the common clear coat. The real moulding
+  // supplies curvature; its reinforcement mask carries no normal-map ridge.
+  if (layer === 'relief') {
+    c.restore();
+    return;
+  }
   // Author both shoulders in a single half-width coordinate frame.
   for (const sign of [-1, 1]) {
     c.save();
     c.translate(0, width * 0.5);
     c.scale(length, sign * width * 0.5);
-    c.fillStyle = colour ? scheme.primary : finish ? FINISH.gloss : RELIEF_VALUE(130);
+    c.fillStyle = colour ? scheme.primary : FINISH.gloss;
     c.beginPath();
     c.moveTo(-0.015, -0.04); c.lineTo(1.01, -0.04); c.lineTo(1.01, 0.22);
     if (variant === 'gpr2') {
@@ -1455,7 +1461,7 @@ function drawFender(c: CanvasRenderingContext2D, entrant: number, variant: GpShe
       c.bezierCurveTo(0.42, 0.97, 0.23, 0.62, -0.01, 0.59);
     }
     c.closePath();
-    c.fillStyle = colour ? scheme.accent : finish ? FINISH.gloss : RELIEF_VALUE(132);
+    c.fillStyle = colour ? scheme.accent : FINISH.gloss;
     c.fill();
     c.restore();
   }

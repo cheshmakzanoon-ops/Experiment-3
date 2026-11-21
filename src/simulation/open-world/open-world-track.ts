@@ -165,6 +165,7 @@ export class OpenWorldTrack {
   readonly sheltered = new Uint8Array(0);
   readonly hash = new Map<string, number[]>();
   readonly pit = STANDARD_PIT;
+  readonly gpEdges = null;
   readonly circuit: CircuitDefinition;
   readonly weather: WeatherTimeline;
   readonly flat = false;

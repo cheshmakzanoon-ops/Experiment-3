@@ -297,7 +297,7 @@ export function installGpSuitFinish(
   perforated: boolean,
   cut: GpSuitCut = 'plain',
 ) {
-  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v3`;
+  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v4`;
   chainShaderHook(material, key, (shader) => {
     const coordinates =
       cut === 'plain'

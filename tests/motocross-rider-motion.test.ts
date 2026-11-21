@@ -61,6 +61,7 @@ describe('motocross suspension-driven rider motion', () => {
         }
         const g = skin.geometry, p = g.getAttribute('position');
         const offsets = g.morphAttributes.position, normals = g.morphAttributes.normal;
+        if (!offsets || !normals) throw new Error('Missing boot morph targets');
         expect(offsets).toHaveLength(2);
         let peak = 0, normalTilt = 0, loose = 0;
         for (let i = 0; i < p.count; i++) {

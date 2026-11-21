@@ -55,7 +55,11 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
   // side, carrying `gravelCover` (0 off the physical trap), so the trap ends
   // in scattered drifts (ground/gp-ground.ts) rather than a 4 m staircase.
   const scattered = (kind: number) => gp && kind === SURFACE.GRAVEL;
-  const verge = (side: 1 | -1, kind: number, material: T.Material, lift: number) => ({
+  const verge = (
+    side: 1 | -1,
+    kind: number,
+    lift: number,
+  ): Parameters<RibbonHost['ribbon']>[1] => ({
     step: 4,
     columns: 2,
     offset: (s: number, t: number) => {
@@ -119,7 +123,7 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
               middle = side * (inner + Math.max(0, outer - inner) / 2);
             present = outer > inner + 0.2 && track.runoffSurface(p, middle) === kind;
           }
-          if (present) host.ribbon(material, { start, end, ...verge(side, kind, material, lift) });
+          if (present) host.ribbon(material, { start, end, ...verge(side, kind, lift) });
         }
     });
     host.construction.add('Venue kit terrain skirts', 2, () => {

@@ -1904,6 +1904,7 @@ export class BikeModel {
     }
     this.root.add(this.swingarm);
     this.rearWheel.position.copy(this.rearAxle);
+    if (gpPrototype) this.rearSpin.name = 'GP rear wheel spin';
     this.rearWheel.add(this.rearSpin);
     this.root.add(this.rearWheel);
     wheel(this.rearSpin, rearR, tyreSection.rearHalfWidth, tyreSection.rearCrown, false);

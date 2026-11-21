@@ -30,8 +30,8 @@ describe('swept GP brake tracks', () => {
       for (const detail of ['far', 'mid', 'high'] as const) {
         const model = new BikeModel(spec, 0, detail, m, true);
         for (const [spin, rear] of [
-          [model.frontSpin, false],
-          [model.rearSpin, true],
+          [model.root.getObjectByName('GP front wheel spin')!, false],
+          [model.root.getObjectByName('GP rear wheel spin')!, true],
         ] as const) {
           let vertices = 0;
           spin.traverse((o) => {
