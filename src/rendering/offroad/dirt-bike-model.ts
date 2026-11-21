@@ -55,6 +55,7 @@ import {
   motocrossGrip,
   motocrossLeverBlade,
 } from './motocross-handlebar.ts';
+import { motocrossTravelYaw } from './motocross-rider-motion.ts';
 import { motocrossThrottleAngle } from './motocross-rider-contact.ts';
 import { mapMxKitPanel, mxKitTexture } from './motocross-graphics-kit.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
@@ -1191,6 +1192,7 @@ export class DirtBikeModel {
         startBrace: v.startBrace,
         time: v.time,
         chassisPitch,
+        travelYaw: motocrossTravelYaw(this.scratch.x, this.scratch.z, v.velocityX, v.velocityZ),
         compression: (forkStroke + rearStroke) / 2,
         compressionBias: forkStroke - rearStroke,
       });

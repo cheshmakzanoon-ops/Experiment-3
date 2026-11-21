@@ -11,6 +11,8 @@ export interface MotocrossRiderMotionInput {
   /** Differential wheel stroke. Positive is a fork-first landing. */
   compressionBias?: number;
   chassisPitch?: number;
+  /** Horizontal path direction relative to the actual steered chassis (radians). */
+  travelYaw?: number;
   /** One at the assigned start slot, fading out through the launch. */
   startBrace?: number;
   /** Interpolated simulation seconds. Pausing or seeking holds this phase. */
@@ -26,6 +28,19 @@ export interface MotocrossRiderMotion {
 }
 
 const finite = (value: number | undefined) => (Number.isFinite(value) ? value! : 0);
+
+/** While a whip rotates the wheels across the flight path, the rider keeps
+ * sight of the downslope. Resolve the velocity against the projected bike
+ * nose. A stopped, reversing or nearly vertical bike has no useful heading. */
+export function motocrossTravelYaw(forwardX: number, forwardZ: number, vx = 0, vz = 0) {
+  const speed = Math.hypot(vx, vz), nose = Math.hypot(forwardX, forwardZ);
+  if (!(speed > 2 && nose > 0.12)) return 0;
+  const along = forwardX * vx + forwardZ * vz;
+  const forwardShare = along / (speed * nose);
+  if (forwardShare <= 0.15) return 0;
+  const across = forwardZ * vx - forwardX * vz;
+  return clamp(Math.atan2(across, along), -0.65, 0.65) * smooth(2, 8, speed) * smooth(0.15, 0.72, forwardShare);
+}
 
 /** Re-evaluated from the presented sample, with no frame clock or spring
  * history. A held/replayed pose therefore has identical joints at every LOD.

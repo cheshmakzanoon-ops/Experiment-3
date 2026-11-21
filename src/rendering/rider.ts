@@ -1511,7 +1511,8 @@ export class Rider {
     } else if (this.roadClass === 'classic-bike') {
       pitch = T.MathUtils.lerp(0.79, 1.04, attack) + 0.26 * tuck - 0.22 * braking;
     } else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
-    const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
+    const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3 +
+      (mx ? (pose.travelYaw ?? 0) * (0.22 + standing * 0.21) : 0);
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);

@@ -134,6 +134,39 @@ describe('motocross player air control', () => {
     }
   });
 
+  it.each([MX_250, MX_450])('$id carries the ignition cut and fuel state across a takeoff', (definition) => {
+    const { bike, track } = launch('raw', false, definition);
+    bike.autoShift = false;
+    // Give the next higher gear ample headroom below its limiter. The wheel
+    // starts each step with real momentum; the cut can only remove drive.
+    bike.gear = 2;
+    bike.shiftClock = 0;
+    bike.input.shift = 1;
+    bike.input.throttle = 1;
+    bike.rearSpin = 24;
+    const radius = definition.bike!.rearWheelRadius;
+    bike.step(DT, track);
+    expect(bike.airborne).toBe(true);
+    expect(bike.gear).toBe(3);
+    expect(bike.shiftClock).toBeGreaterThan(0);
+    expect(bike.rearSpin * radius).toBeLessThan(24 * radius);
+    while (bike.shiftClock > DT) {
+      const before = bike.rearSpin;
+      bike.step(DT, track);
+      expect(bike.rearSpin).toBeLessThanOrEqual(before);
+    }
+    const beforePower = bike.rearSpin;
+    bike.step(DT, track);
+    expect(bike.shiftClock).toBe(0);
+    expect(bike.rearSpin).toBeGreaterThan(beforePower);
+    const beforeEmpty = bike.rearSpin;
+    bike.fuel = 0;
+    bike.step(DT, track);
+    expect(bike.airborne).toBe(true);
+    expect(bike.rearSpin).toBeLessThan(beforeEmpty);
+    expect(bike.rearSpin).toBeGreaterThan(0);
+  });
+
   it('keeps the existing AI flight solution independent of the unused front pedal', () => {
     const normal = launch('sport', true),
       brake = launch('sport', true);

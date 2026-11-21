@@ -208,6 +208,30 @@ describe('motocross articulated torso and corner gaze', () => {
       return Math.atan2(forward.x, forward.z);
     };
     try {
+      // Nose left of the actual landing direction. The torso takes up part of
+      // the yaw and the helmet sights the landing, at any viewing cadence.
+      pose.chassisLean = 0;
+      pose.steer = 0;
+      pose.standing = 1;
+      pose.velocityX = 0;
+      pose.velocityZ = 19;
+      model.root.rotation.y = 0.52;
+      const whipGaze = yaw(19);
+      const chest = model.rider.root.getObjectByName('Motocross upper chest')!;
+      const torsoForward = new T.Vector3(0, 0, 1).applyQuaternion(chest.getWorldQuaternion(new T.Quaternion()));
+      const chestYaw = Math.atan2(torsoForward.x, torsoForward.z);
+      expect(whipGaze).toBeGreaterThan(0);
+      expect(whipGaze).toBeLessThan(0.15);
+      expect(chestYaw).toBeGreaterThan(whipGaze);
+      expect(chestYaw).toBeLessThan(0.45);
+      model.root.rotation.y = -0.52;
+      expect(yaw(19)).toBeCloseTo(-whipGaze, 7);
+      model.root.rotation.y = 0.52;
+      expect(yaw(19)).toBe(whipGaze);
+      model.root.rotation.y = 0;
+      pose.velocityZ = 0;
+      pose.chassisLean = 0.6;
+      pose.steer = -0.16;
       const slow = yaw(0),
         fast = yaw(20);
       expect(slow).toBeLessThan(-0.1);

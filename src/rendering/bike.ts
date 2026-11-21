@@ -2172,6 +2172,9 @@ export interface BikePoseValues extends GpTyreAppearance {
   standing?: number;
   dab?: number;
   body?: number;
+  /** World horizontal motion of a motocross entrant, including tyre sideslip. */
+  velocityX?: number;
+  velocityZ?: number;
   /** Prepared dirt start posture. The race clock releases the rider from it. */
   startBrace?: number;
   mud?: number;
@@ -2697,6 +2700,10 @@ export class BikeShells {
     v.riding = state === 'riding';
     v.standing = sampleOffroadField(a, b, o, O.STANDING, t);
     v.dab = sampleOffroadField(a, b, o, O.DAB, t);
+    if (model instanceof DirtBikeModel) {
+      v.velocityX = sampleValue(a, b, o + F.VX, t);
+      v.velocityZ = sampleValue(a, b, o + F.VZ, t);
+    }
     v.body = sampleOffroadField(a, b, o, O.BODY, t);
     // Practice, a studio pose and older recordings have no assigned gate slot.
     // The race clock stays at zero through the countdown and while paused.

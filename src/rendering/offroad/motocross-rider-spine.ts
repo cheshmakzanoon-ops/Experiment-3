@@ -129,7 +129,9 @@ export function motocrossHeadFrame(
   const speed = Number.isFinite(pose.speed) ? Math.max(0, pose.speed!) : 15,
     travelling = smooth(2, 10, speed),
     lean = clamp(finite(pose.lean), -1.3, 1.3),
-    yaw = clamp(lean * 0.5 * travelling + finite(pose.steer) * 0.85 * (1 - travelling), -0.6, 0.6);
+    corner = clamp(lean * 0.5 * travelling + finite(pose.steer) * 0.85 * (1 - travelling), -0.6, 0.6),
+    path = clamp(finite(pose.travelYaw), -0.65, 0.65),
+    yaw = clamp(corner * (1 - 0.72 * smooth(0.04, 0.34, Math.abs(path))) + path * 0.86, -0.72, 0.72);
   gaze.set(0.3 + clamp(finite(pose.tuck), 0, 1) * 0.12 + gazePitch, yaw, lean * 0.84, 'YXZ');
   target.copy(chest).invert().multiply(gazeFrame.setFromEuler(gaze));
   return target;

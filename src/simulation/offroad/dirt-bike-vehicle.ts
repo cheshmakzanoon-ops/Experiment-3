@@ -766,8 +766,12 @@ export class DirtBikeVehicle extends BikeVehicle {
     // Integrate only the drive impulse available before the limiter cuts.
     // A full-step torque pulse used to overshoot the selected gear's limit.
     // Existing overspeed momentum is retained and coasts/brakes naturally.
+    // The same ignition interruption that disconnects ground drive also
+    // removes the airborne wheel's pitch impulse. Coasting angular momentum
+    // and both brake reactions remain available throughout the shift.
+    const powered = this.fuel > 0 && this.shiftClock <= 0 && !this.retired;
     const spinDrive =
-      this.rearSpin < limit
+      powered && this.rearSpin < limit
         ? Math.min(pedal * a.spinUp, (limit - this.rearSpin) / dt + spinResistance)
         : 0;
     this.rearSpin = Math.max(0, this.rearSpin + (spinDrive - spinResistance) * dt);
