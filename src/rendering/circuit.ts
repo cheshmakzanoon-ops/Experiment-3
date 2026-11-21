@@ -1,3 +1,5 @@
+import { TERRAIN_SIZE, terrainSegments, terrainSurface } from './terrain-surface.ts';
+import { GpClassification } from './venue-kit/gp-classification.ts';
 import { GpPitBoards } from './venue-kit/gp-pit-boards.ts';
 import { buildGpGarageEquipment } from './venue-kit/gp-garage-equipment.ts';
 import { SecondaryGrandstands } from './secondary-grandstands.ts';
@@ -159,6 +161,7 @@ export class CircuitScene {
   readonly roadMaterial: T.MeshStandardMaterial;
   private readonly motorcycleSurface = { value: 0 };
   gpPitBoards: GpPitBoards | null = null;
+  gpClassification: GpClassification | null = null;
   private gpGarageEquipment: T.Group | null = null;
   private readonly gpSurface = { value: 0 };
   private readonly tyreRubber: TyreMarkPresentation;
@@ -199,7 +202,8 @@ export class CircuitScene {
     if (isGpCourse(track)) {
       this.construction.add('GP pit wall team boards', 1, () => {
         this.gpPitBoards = new GpPitBoards(track);
-        this.group.add(this.gpPitBoards.root);
+        this.gpClassification = new GpClassification(track, this.gpPitBoards.glyphs);
+        this.group.add(this.gpPitBoards.root, this.gpClassification.root);
       });
       this.construction.add('GP garage stands and spare wheels', 1, () => {
         this.gpGarageEquipment = buildGpGarageEquipment(track);
@@ -419,15 +423,16 @@ export class CircuitScene {
       // 34 m cells resolve the ridged range's crests at horizon distance; the
       // coastal venue's embankments and cuttings need 21 m cells near the road.
       // Aurel 160 -> 320 segments (17 m cells): the canopy carpet's ridgelines (D17).
-      const segments = model.kind === 'coast' ? 256 : 320;
-      const terrain = new T.PlaneGeometry(5500, 5500, segments, segments);
+      const gpGround = isGpCourse(track) ? terrainSurface(model) : undefined;
+      const segments = terrainSegments(model);
+      const terrain = new T.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, segments, segments);
       terrain.rotateX(-Math.PI / 2);
       const pos = terrain.getAttribute('position'),
         terrainUV = terrain.getAttribute('uv');
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
           z = pos.getZ(i);
-        pos.setY(i, model.height(x, z));
+        pos.setY(i, gpGround ? gpGround.vertex(i % (segments + 1), Math.floor(i / (segments + 1))) : model.height(x, z));
         // Match the apron's metre-scaled original grass and world-space finish,
         // instead of a flat beige horizon with a hard material boundary.
         terrainUV.setXY(i, x / 5, z / 5);

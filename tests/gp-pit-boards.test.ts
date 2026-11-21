@@ -1,3 +1,5 @@
+import { GpClassification } from '../src/rendering/venue-kit/gp-classification.ts';
+import { gpRaceControlSite } from '../src/rendering/venue-kit/gp-race-control.ts';
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { GpPitBoards } from '../src/rendering/venue-kit/gp-pit-boards.ts';
@@ -21,8 +23,8 @@ function snapshot() {
 }
 function digits(uv: T.BufferAttribute) {
   return Array.from(
-    { length: 9 },
-    (_, i) => '0123456789PL#'[Math.floor(uv.getX(4 * i) * 4) + 4 * Math.floor(uv.getY(4 * i) * 4)],
+    { length: uv.count / 4 },
+    (_, i) => '0123456789PL#   '[Math.floor(uv.getX(4 * i) * 4) + 4 * Math.floor(uv.getY(4 * i) * 4)],
   ).join('');
 }
 
@@ -113,4 +115,51 @@ describe('physical race-number pit boards', () => {
     kit.update(f);
     expect(kit.root.visible).toBe(false);
   });
+});
+
+describe('the control building classification display', () => {
+  it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const)(
+    '%s faces arriving riders inside the tower plinth and displays snapshot order', (id) => {
+      const track = new Track('clear', false, undefined, CIRCUITS[id]), frame = snapshot();
+      const boards = new GpPitBoards(track), screen = new GpClassification(track, boards.glyphs);
+      const face = screen.root.getObjectByName('Recorded top five and leader lap') as T.Mesh;
+      const uv = face.geometry.getAttribute('uv') as T.BufferAttribute;
+      const site = gpRaceControlSite(track)!;
+      screen.root.updateMatrixWorld(true);
+      const p = track.at(site.s, trackPoint());
+      expect(new T.Vector3(0, 0, 1).transformDirection(face.matrixWorld)
+        .dot(new T.Vector3(-p.tx, 0, -p.tz))).toBeGreaterThan(0.9);
+      const plinth = new T.Box3(), relative = new T.Matrix4().copy(screen.root.matrixWorld).invert();
+      screen.root.traverse(o => {
+        if (!(o instanceof T.Mesh)) return;
+        const a = o.geometry.getAttribute('position');
+        for (let i = 0; i < a.count; i++) plinth.expandByPoint(
+          new T.Vector3().fromBufferAttribute(a, i).applyMatrix4(o.matrixWorld).applyMatrix4(relative));
+      });
+      expect(Math.max(Math.abs(plinth.min.z), Math.abs(plinth.max.z))).toBeLessThan(6.8);
+      expect(plinth.min.y).toBeCloseTo(0.0875, 3);
+      const meshes: T.Mesh[] = [];
+      screen.root.traverse(o => {if (o instanceof T.Mesh) meshes.push(o);});
+      expect(meshes).toHaveLength(3);
+      const before = frame.slice();
+      screen.update(frame);
+      expect(screen.root.visible).toBe(true);
+      expect(digits(uv)).toBe('L 31032  3074  5  ');
+      const version = uv.version;
+      screen.update(frame);
+      expect(uv.version).toBe(version);
+      expect(frame).toEqual(before);
+      const finished = frame.slice();
+      finished[carBase(0) + F.RANK] = 1;
+      finished[carBase(0) + F.FINISH] = 120;
+      finished[carBase(0) + F.LAPS] = 3;
+      finished[carBase(1) + F.RETIRED] = 1;
+      screen.update(finished);
+      expect(digits(uv)).toBe('L 31072  3  4  5  ');
+      screen.update(before);
+      expect(digits(uv)).toBe('L 31032  3074  5  ');
+      before[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
+      screen.update(before);
+      expect(screen.root.visible).toBe(false);
+    });
 });

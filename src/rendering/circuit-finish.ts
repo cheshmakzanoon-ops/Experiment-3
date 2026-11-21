@@ -229,7 +229,7 @@ export const FENCE = Object.freeze({
   nearOpacity: 0.55,
   farOpacity: 0.12,
 });
-export function catchFenceMaterial() {
+export function catchFenceMaterial(tensionRopes = false) {
   // D25: galvanised wire (#8d9396, m 0.85, r 0.45).
   const material = new T.MeshStandardMaterial({
     color: FENCE.color,
@@ -252,6 +252,9 @@ export function catchFenceMaterial() {
         '#include <common>',
         `#include <common>
         varying vec2 vFenceMetres;
+        ${tensionRopes ? `float fenceCable(float delta, float pixels) {
+          return clamp((min(delta+pixels*.5,.006)-max(delta-pixels*.5,-.006))/pixels,0.0,1.0);
+        }` : ''}
         float wireIntegral(float x) {
           float f=fract(x);
           return floor(x)*.032+min(f,.016)+max(0.0,f-.984);
@@ -267,12 +270,15 @@ export function catchFenceMaterial() {
         `#include <map_fragment>
         vec2 diamond=vec2(vFenceMetres.x+vFenceMetres.y,vFenceMetres.x-vFenceMetres.y)/.09;
         vec2 wire=vec2(wireCoverage(diamond.x),wireCoverage(diamond.y));
-        diffuseColor.a*=1.0-(1.0-wire.x)*(1.0-wire.y);
+        ${tensionRopes ? `float h=vFenceMetres.y, w=max(fwidth(h),.0001);
+        float cable=min(1.0,fenceCable(h+2.56,w)+fenceCable(h+1.29,w)+fenceCable(h+.045,w)+fenceCable(h-.64,w));
+        diffuseColor.a*=1.0-(1.0-wire.x)*(1.0-wire.y)*(1.0-cable);` :
+          'diffuseColor.a*=1.0-(1.0-wire.x)*(1.0-wire.y);'}
         // D25: a coverage-preserving opacity ceiling by distance, so distant
         // fencing reads as a light veil, never a grey wall or moire band.
         diffuseColor.a=min(diffuseColor.a,clamp(1.0-length(vViewPosition)/${FENCE.fadeMetres.toFixed(1)},${FENCE.farOpacity.toFixed(2)},${FENCE.nearOpacity.toFixed(2)}));`,
       );
   };
-  material.customProgramCacheKey = () => 'apex-filtered-catch-fence-v1-d25-veil';
+  material.customProgramCacheKey = () => tensionRopes ? 'gp-supported-catch-fence-v1' : 'apex-filtered-catch-fence-v1-d25-veil';
   return material;
 }

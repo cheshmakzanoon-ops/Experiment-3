@@ -1,3 +1,4 @@
+import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import * as T from 'three';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -9,7 +10,7 @@ import {
 } from '../landscape.ts';
 import { plantingClearance, treeSeed, type PlantingExclusion } from '../aurel-vegetation-plan.ts';
 import { serviceSitePlan, type ServiceSite } from '../venue-service-plan.ts';
-import { terrainFor } from '../terrain.ts';
+import { plantingTerrain } from '../terrain.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { installFoliageShading, installFoliageWind } from './foliage-shading.ts';
 import { beltTreeStream, installBeltTrees } from './belt-trees.ts';
@@ -102,7 +103,7 @@ export function forestBeltPlan(
   seed = 0x6a09,
 ): BeltTree[] {
   const clear = plantingClearance(track, services, extraExclusion),
-    ground = terrainFor(track),
+    ground = plantingTerrain(track),
     anchor = trackPoint(),
     nearest = trackPoint(),
     trees: BeltTree[] = [];
@@ -249,10 +250,16 @@ export function buildForestBelts(
 ) {
   const trees = forestBeltPlan(track, services, extraExclusion);
   if (!trees.length) return 0;
-  const broadleaf = trees.filter((t) => !t.conifer),
-    conifers = trees.filter((t) => t.conifer);
-  if (broadleaf.length) buildBuckets(broadleaf, group, broadleafKit(), FOREST_BELTS.bucket);
-  if (conifers.length) buildBuckets(conifers, group, coniferKit(), FOREST_BELTS.coniferBucket);
+  if (isGpCourse(track)) {
+    // Both species select their own painted atlas quadrant from the width
+    // to height ratio. Needled branch gaps survive against a bright valley
+    // and firs share the same culled batch and depth pass as the leaf crowns.
+    buildBuckets(trees, group, broadleafKit(), FOREST_BELTS.bucket);
+  } else {
+    const broadleaf = trees.filter((t) => !t.conifer), conifers = trees.filter((t) => t.conifer);
+    if (broadleaf.length) buildBuckets(broadleaf, group, broadleafKit(), FOREST_BELTS.bucket);
+    if (conifers.length) buildBuckets(conifers, group, coniferKit(), FOREST_BELTS.coniferBucket);
+  }
   group.userData.forestBeltTrees = trees.length;
   return trees.length;
 }

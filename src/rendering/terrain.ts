@@ -1,3 +1,5 @@
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
+import { terrainSurface } from './terrain-surface.ts';
 import type { Track } from '../simulation/track.ts';
 import { terrainHeight, valueNoise, ridgedNoise } from './terrain-profile.ts';
 import { TrackDistanceField } from './track-field.ts';
@@ -78,4 +80,11 @@ export function terrainFor(track: Track): Terrain {
   }
   cache.set(track, terrain);
   return terrain;
+}
+
+/** Ground under groves well outside the verge. GP tracks use the submitted
+ * triangles, including the steep coastal cuts. */
+export function plantingTerrain(track: Track): Pick<Terrain, 'height'> {
+  const terrain = terrainFor(track);
+  return isGpCourse(track) ? terrainSurface(terrain) : terrain;
 }

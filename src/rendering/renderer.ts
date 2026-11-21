@@ -1679,6 +1679,7 @@ export class RacingRenderer {
     const gpGrid = gpGridForFrame(presented);
     this.circuit.setGrandPrixGrid(gpGrid);
     this.circuit.gpPitBoards?.update(presented);
+    this.circuit.gpClassification?.update(presented);
     if (this.tyreEquipment && isGpCourse(this.circuit.track))
       this.tyreEquipment.root.visible = !gpGrid;
     // W1: a followed GP prototype gets the GP chase rig, lens and shutter.

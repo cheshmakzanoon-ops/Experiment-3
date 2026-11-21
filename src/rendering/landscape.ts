@@ -1,6 +1,8 @@
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
+import { cataloguePlantingGround } from './venue-kit/planting-ground.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { landmarkSitePlan, inLandmarkFootprint } from './venue-landmark.ts';
-import { terrainFor } from './terrain.ts';
+import { plantingTerrain, terrainFor } from './terrain.ts';
 import { AUREL_VENUE, venuePlan, type PlantingZoneSpec } from './venue-plan.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
@@ -54,6 +56,7 @@ export function vegetationPlan(
   const occupied = new Map<string, TreePlacement[]>();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
+  const gpGround = isGpCourse(track) ? cataloguePlantingGround(track) : undefined;
   const ground = terrainFor(track),
     zones = venuePlan(track).plantingZones;
   for (let attempt = 0; attempt < 1800 && result.length < 650; attempt++) {
@@ -88,11 +91,11 @@ export function vegetationPlan(
     )
       blocked = true;
     if (blocked) continue;
-    const y =
+    const y = gpGround ? gpGround(nearest.s, l, x, z) :
       Math.abs(l) <= nearest.width + 38
         ? nearest.y + nearest.bank * clamp(l, -12, 12) + grassApronOffset(track, nearest.s, l)
         : ground.height(x, z);
-    if (ground.seaLevel !== null && ground.height(x, z) < ground.seaLevel + 0.6) continue;
+    if (ground.seaLevel !== null && (gpGround ? y : ground.height(x, z)) < ground.seaLevel + 0.6) continue;
     const height = 6 + random.next() * 7;
     const tree = {
       x,
@@ -134,10 +137,10 @@ export function grovePlan(
     nearest = trackPoint();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
-  const terrain = terrainFor(track);
+  const terrain = terrainFor(track), planted = plantingTerrain(track);
   const blocked = (x: number, z: number, margin: number) => {
     // Nothing grows below the waterline on a coastal venue.
-    if (terrain.seaLevel !== null && terrain.height(x, z) < terrain.seaLevel + 0.6) return true;
+    if (terrain.seaLevel !== null && planted.height(x, z) < terrain.seaLevel + 0.6) return true;
     const l = track.nearest(x, z, nearest);
     if (Math.abs(l) < track.boundary(nearest.s, l < 0 ? -1 : 1) + 60) return true;
     return (
@@ -188,7 +191,7 @@ export function grovePlan(
       const height = conifer ? 10 + random.next() * 8 : 7 + random.next() * 8;
       place(groves, {
         x,
-        y: terrain.height(x, z),
+        y: planted.height(x, z),
         z,
         height,
         width: height * (conifer ? 0.34 + random.next() * 0.1 : 0.8 + random.next() * 0.26),
@@ -209,7 +212,7 @@ export function grovePlan(
       const height = 9 + random.next() * 9;
       place(treeline, {
         x,
-        y: terrain.height(x, z),
+        y: planted.height(x, z),
         z,
         height,
         width: height * (0.55 + random.next() * 0.45),

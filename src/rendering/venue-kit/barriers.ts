@@ -1,6 +1,7 @@
+import { gpFencePostGeometry } from './gp-fence-post.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mod } from '../../core/math.ts';
+import { clamp, mod } from '../../core/math.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import type { BarrierKind } from '../../simulation/circuit-catalogue/venue-data.ts';
@@ -77,7 +78,8 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
   const track = kit.track,
     m = kit.materials,
     p = trackPoint(),
-    L = track.length;
+    L = track.length,
+    gp = isGpCourse(track);
   const solids = new Map<T.Material, T.BufferGeometry[]>();
   const push = (material: T.Material, g: T.BufferGeometry) => {
     const list = solids.get(material);
@@ -149,23 +151,30 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
       // Catch fence over concrete, tyre and SAFER walls at speed and by stands.
       if (kind === 'concrete' || kind === 'safer' || kind === 'tyre') {
         const lean = kind === 'safer' ? 0.25 : 0.23;
-        fence.push(
-          sweep(
-            track,
-            c0,
-            c1,
-            side,
-            [
-              [lean, kind === 'safer' ? 1.22 : 0.96],
-              [lean, 4],
-              [lean - 0.45, 4.5],
-            ],
-            { step: 4 },
-          ),
-        );
-        for (let s = c0; s < c1; s += 4) {
-          const pos = venuePoint(track, s, side * (track.boundary(s, side) + lean), 2.6, p);
-          fencePosts.push(mat.compose(pos, q.identity(), new T.Vector3(1, 1, 1)).clone());
+        const base = kind === 'safer' ? 1.22 : 0.96;
+        const fabric = sweep(track, c0, c1, side, [[lean, base], [lean, 4], [lean - 0.45, 4.5]], { step: 4 });
+        if (gp) {
+          // Locate all tension ropes in metres from the elbow, including the
+          // inclined top return, irrespective of the concrete base height.
+          const uv = fabric.getAttribute('uv');
+          for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) - (4 - base));
+        }
+        fence.push(fabric);
+        const bays = Math.ceil((c1 - c0) / 4);
+        for (let i = 0; i < bays; i++) {
+          // The wire itself uses evenly spaced rows. A four-metre stride on
+          // a shorter end panel would put a post inside the chord of a bend.
+          const s = gp ? c0 + (i / bays) * (c1 - c0) : c0 + i * 4;
+          const lateral = side * (track.boundary(s, side) + lean);
+          const pos = venuePoint(track, s, lateral, gp ? 0 : 2.6, p);
+          if (gp) q.setFromAxisAngle(up, Math.atan2(side * p.nz, -side * p.nx));
+          else q.identity();
+          mat.compose(pos, q, unitScale);
+          if (gp) {
+            const tip = clamp(lateral - side * 0.45, -12, 12);
+            mat.elements[1] += (p.bank * (tip - clamp(lateral, -12, 12))) / 0.45;
+          }
+          fencePosts.push(mat.clone());
         }
       }
     }
@@ -189,7 +198,8 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
       }),
       false,
     )!;
-    const mesh = kitMesh(g, fenceMaterial(), 'Venue kit catch fence', false);
+    for (const piece of fence) piece.dispose();
+    const mesh = kitMesh(g, fenceMaterial(gp), 'Venue kit catch fence', false);
     mesh.receiveShadow = false;
     group.add(mesh);
   }
@@ -215,16 +225,17 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
   instanced(tyreGeometry(), m.tyre, tyres, 'Tyre wall');
   // GP venues: galvanised catch-fence posts (REF_044/045), not painted dark.
   instanced(
-    fencePostGeometry(),
-    isGpCourse(track) ? m.steel : m.darkSteel,
+    gp ? (gpPost ??= gpFencePostGeometry()) : fencePostGeometry(),
+    gp ? m.steel : m.darkSteel,
     fencePosts,
     'Catch-fence posts',
   );
   if (detail.children.length) kit.detail(detail, 520);
 }
-let fenceShared: T.Material | null = null;
-function fenceMaterial() {
-  return (fenceShared ??= catchFenceMaterial());
+const unitScale = new T.Vector3(1, 1, 1);
+let fenceShared: T.Material | null = null, gpFence: T.Material | null = null, gpPost: T.BufferGeometry | null = null;
+function fenceMaterial(gp: boolean) {
+  return gp ? (gpFence ??= catchFenceMaterial(true)) : (fenceShared ??= catchFenceMaterial());
 }
 let posts: T.BufferGeometry | null = null,
   tyre: T.BufferGeometry | null = null,

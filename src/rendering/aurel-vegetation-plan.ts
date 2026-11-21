@@ -1,6 +1,6 @@
 import { Track, trackPoint } from '../simulation/track.ts';
 import { vegetationPlan, grovePlan, plantingCharacter, type TreePlacement } from './landscape.ts';
-import { terrainFor } from './terrain.ts';
+import { plantingTerrain, terrainFor } from './terrain.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
@@ -55,7 +55,7 @@ export function plantingClearance(
   const nearest = trackPoint(),
     districts = districtPlan(track, services),
     landmark = landmarkSitePlan(track, services, districts),
-    ground = terrainFor(track);
+    ground = terrainFor(track), planted = plantingTerrain(track);
   return (tree: AuthoredTree) => {
     const l = track.nearest(tree.x, tree.z, nearest),
       radius = crownRadius(tree),
@@ -64,7 +64,7 @@ export function plantingClearance(
     if (Math.abs(l) < track.boundary(nearest.s, l < 0 ? -1 : 1) + corridor + radius) return false;
     if (l > 0 && (nearest.s < 335 || nearest.s > track.length - 50) && l < 65 + radius)
       return false;
-    if (ground.seaLevel !== null && ground.height(tree.x, tree.z) < ground.seaLevel + 0.6)
+    if (ground.seaLevel !== null && planted.height(tree.x, tree.z) < ground.seaLevel + 0.6)
       return false;
     return !(
       inStandFootprint(track, tree.x, tree.z, margin) ||

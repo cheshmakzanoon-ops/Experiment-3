@@ -111,7 +111,7 @@ function printedFace(side: number, material: T.Material) {
   return { mesh, uv };
 }
 
-function writeCard(uv: T.BufferAttribute, cell: number, code: number) {
+export function writeGpBoardGlyph(uv: T.BufferAttribute, cell: number, code: number) {
   const u = (code % 4) / 4,
     v = (code >> 2) / 4;
   // A half-texel inset keeps the next character out of the filtered card edges.
@@ -208,15 +208,15 @@ class PitBoard {
       const displayed = (number * 100 + pos) * 100 + lap;
       if (displayed !== this.displayed) {
         this.displayed = displayed;
-        writeCard(this.cards, 0, 12);
-        writeCard(this.cards, 3, 10);
-        writeCard(this.cards, 6, 11);
-        writeCard(this.cards, 1, Math.floor(number / 10));
-        writeCard(this.cards, 2, number % 10);
-        writeCard(this.cards, 4, Math.floor(pos / 10));
-        writeCard(this.cards, 5, pos % 10);
-        writeCard(this.cards, 7, Math.floor(lap / 10));
-        writeCard(this.cards, 8, lap % 10);
+        writeGpBoardGlyph(this.cards, 0, 12);
+        writeGpBoardGlyph(this.cards, 3, 10);
+        writeGpBoardGlyph(this.cards, 6, 11);
+        writeGpBoardGlyph(this.cards, 1, Math.floor(number / 10));
+        writeGpBoardGlyph(this.cards, 2, number % 10);
+        writeGpBoardGlyph(this.cards, 4, Math.floor(pos / 10));
+        writeGpBoardGlyph(this.cards, 5, pos % 10);
+        writeGpBoardGlyph(this.cards, 7, Math.floor(lap / 10));
+        writeGpBoardGlyph(this.cards, 8, lap % 10);
         this.cards.needsUpdate = true;
       }
     }
@@ -231,11 +231,12 @@ class PitBoard {
 export class GpPitBoards {
   readonly root = new T.Group();
   readonly boards: PitBoard[];
+  readonly glyphs = cardAtlas();
   constructor(readonly track: Track) {
     const steel = new T.MeshStandardMaterial({ color: 0x71828a, roughness: 0.35, metalness: 0.74 });
     const tray = new T.MeshStandardMaterial({ color: 0x20262a, roughness: 0.71, metalness: 0.19 });
     const print = new T.MeshStandardMaterial({
-      map: cardAtlas(),
+      map: this.glyphs,
       vertexColors: true,
       roughness: 0.85,
       metalness: 0.02,

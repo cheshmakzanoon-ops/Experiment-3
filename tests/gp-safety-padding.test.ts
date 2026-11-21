@@ -19,7 +19,7 @@ import { WeatherPresentation, weatherSurface } from '../src/rendering/weather-pr
  * retains the actual chunk builder, detail registry and other-section guard. */
 function context(track: Track) {
   const materials = Object.fromEntries(
-    ['concrete', 'saferFoam', 'steel', 'tyreBand', 'tyre', 'rock', 'darkSteel'].map((name) => {
+    ['gpWall', 'concrete', 'saferFoam', 'steel', 'tyreBand', 'tyre', 'rock', 'darkSteel'].map((name) => {
       const material = new T.MeshStandardMaterial();
       material.name = name;
       return [name, material];
@@ -189,6 +189,42 @@ describe('GP covered safety barriers', () => {
     expect(kit.overOtherSection(distant.x, distant.z, mid, 1)).toBe(true);
   });
 
+  it.each(courseIds)('%s seats the elbow and top return against the wire on its fenced boundaries', (id) => {
+    const circuit = track(id), kit = context(circuit);
+    const stations = new Map<number, number>();
+    for (const span of kit.meta.dressing.barriers) {
+      if (!['safer', 'concrete', 'tyre'].includes(span.kind) || stations.has(span.side)) continue;
+      for (let s = span.from + 1; s + 9 < span.to; s += 8) {
+        if (span.side === circuit.pit.side && circuit.isPitSection(s + 4) && Math.abs(circuit.pitOffset(s + 4)) > 3) continue;
+        stations.set(span.side, s);
+        break;
+      }
+    }
+    expect(stations.size).toBeGreaterThan(0);
+    for (const middle of stations.values()) {
+      const local = context(circuit);
+      buildBarrierChunk(local, middle, middle + 7.8);
+      const list = meshes(local.root);
+      const fabric = list.find((m) => m.name === 'Venue kit catch fence')!;
+      const supports = list.find((m) => m.name === 'Catch-fence posts') as T.InstancedMesh;
+      const wire = fabric.geometry.getAttribute('position');
+      const matrix = new T.Matrix4(), point = new T.Vector3(), contact = new T.Vector3();
+      for (let i = 0; i < supports.count; i++) {
+        supports.getMatrixAt(i, matrix);
+        // The channel touches the mesh both at the elbow and at its raked lip.
+        for (const [x, y] of [[0, 4], [0.45, 4.5]]) {
+          contact.set(x, y, 0).applyMatrix4(matrix);
+          let distance = Infinity;
+          for (let j = 0; j < wire.count; j++)
+            distance = Math.min(distance, point.fromBufferAttribute(wire, j).distanceTo(contact));
+          expect(distance).toBeLessThan(0.001);
+        }
+      }
+      expect(supports.count).toBeGreaterThan(0);
+      expect(supports.geometry.index!.count / 3).toBeLessThan(60);
+    }
+  });
+
   it('replaces only the four GP venues’ tyre dressings and retains concrete and catch fence', () => {
     const gp = track('poggio-alto'),
       gpKit = context(gp),
@@ -210,15 +246,11 @@ describe('GP covered safety barriers', () => {
     expect(original.some((m) => m.name === 'Tyre wall')).toBe(true);
     expect(original.some((m) => m.name.startsWith('tyreBand'))).toBe(true);
     expect(gpSafetyPaddingPlan(roadKit, span.from, span.to, span.side)).toEqual([]);
-    for (const name of ['Venue kit catch fence', 'Catch-fence posts']) {
-      const a = revised.find((m) => m.name.startsWith(name))!,
-        b = original.find((m) => m.name.startsWith(name))!;
-      expect(a).toBeDefined();
-      expect(b).toBeDefined();
-      expect(Array.from(a.geometry.getAttribute('position').array)).toEqual(
-        Array.from(b.geometry.getAttribute('position').array),
-      );
-    }
+    const wire = 'Venue kit catch fence';
+    expect(Array.from(revised.find((m) => m.name === wire)!.geometry.getAttribute('position').array))
+      .toEqual(Array.from(original.find((m) => m.name === wire)!.geometry.getAttribute('position').array));
+    expect((original.find((m) => m.name === 'Catch-fence posts') as T.InstancedMesh).geometry)
+      .toBeInstanceOf(T.CylinderGeometry);
     const backing = revised.find((m) => m.name.startsWith('concrete'))!,
       oldBacking = original.find((m) => m.name.startsWith('concrete'))!,
       point = trackPoint();
