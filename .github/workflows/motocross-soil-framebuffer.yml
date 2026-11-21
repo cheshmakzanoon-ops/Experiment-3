@@ -45,6 +45,22 @@ jobs:
         run: |
           set -euo pipefail
           node --experimental-transform-types scripts/source-stability.ts -- xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/49-motocross-worked-soil.spec.ts --config playwright.motocross.config.ts 2>&1 | tee "$RUNNER_TEMP/mx-soil.log"
+      - name: Verify the full-resolution images are in the downloadable report
+        run: |
+          node --input-type=module <<'JS'
+          import { readdirSync, readFileSync } from 'node:fs';
+          import { join } from 'node:path';
+
+          const directory = 'playwright-report/motocross/data';
+          const images = readdirSync(directory).filter(name => name.endsWith('.png'));
+          const fullSize = images.filter(name => {
+            const image = readFileSync(join(directory, name));
+            return image.length >= 24 && image.toString('ascii', 12, 16) === 'IHDR'
+              && image.readUInt32BE(16) === 1120 && image.readUInt32BE(20) === 700;
+          });
+          if (fullSize.length < 18) throw new Error(`Expected 18 full-size soil images, found ${fullSize.length}`);
+          console.log(`Verified ${fullSize.length} full-size soil images in the HTML report`);
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -56,3 +72,4 @@ jobs:
             browser-backend.json
             dist/BUILD_IDENTITY.json
           retention-days: 14
+          if-no-files-found: error
