@@ -281,7 +281,7 @@ export class FestivalRenderer {
     scene.add(this.practicalLights.root);
     this.water = new Water(world.field);
     this.atmosphere = new FestivalAtmosphere(world.field.region.seaLevel);
-    this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
+    this.markers = new EventMarkers(events, this.heightAt);
     this.reflection.probeExclusions.push(this.markers.root);
     scene.add(
       this.terrain.root,
@@ -781,9 +781,7 @@ export class FestivalRenderer {
       this.vegetation.sync(this.terrain.treeTiles);
     }
     this.vegetation.update(this.camera, this.preset);
-    this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) =>
-      this.groundHeight(x, z),
-    );
+    this.markers.update(time, this.discovered, this.activeEvent, this.gate, this.heightAt, this.camera.position);
     this.markers.root.visible = !this.photo;
     if (discontinuity) this.guidance.reset();
     this.guidance.update(
@@ -848,7 +846,15 @@ export class FestivalRenderer {
       );
     // Fog, dust and thunderstorm (weather-atmosphere.ts); clear air is a no-op.
     const air = weatherAtmosphere(presented, this.weatherAir);
-    adjustDaylight(daylight, air, mode === 'night');
+    adjustDaylight(daylight, air, mode === 'night', mode === 'sunset');
+    if (mode === 'sunset') {
+      // After the sun disappears behind a wet cloud deck, diffuse skylight
+      // is still incident across the valley. Lift the shadow side of cars and
+      // banks independently of the visible sky and the headlamp highlights.
+      const deck = T.MathUtils.smoothstep(daylight.cover, 0.36, 0.94);
+      daylight.fill += 0.48 * deck;
+      daylight.exposure *= 1 + 0.19 * deck;
+    }
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
     tintLights(this.sun, this.hemisphere, air);
     this.sun.intensity = daylight.sun;

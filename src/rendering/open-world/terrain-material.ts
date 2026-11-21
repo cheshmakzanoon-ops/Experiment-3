@@ -24,9 +24,7 @@ const FESTIVAL_SCAN_GLSL = /* glsl */ `
 #ifdef APEX_SCAN
   vec2 scanDx = dFdx(vOwWorld.xz), scanDy = dFdy(vOwWorld.xz);
   vec3 scanWorldN = normalize((vec4(vNormal, 0.0) * viewMatrix).xyz);
-  vec3 scanContour = normalize(vec3(-scanWorldN.z, 0.0, scanWorldN.x) + vec3(1e-4, 0.0, 0.0));
-  vec2 scanFace = vec2(dot(vOwWorld, scanContour), vOwWorld.y);
-  vec2 scanFaceDx = dFdx(scanFace), scanFaceDy = dFdy(scanFace);
+  vec3 worldDx = dFdx(vOwWorld), worldDy = dFdy(vOwWorld);
   ApexScanSample sGrass = ${scanLayerCall('meadow', 'p', 'scanDx', 'scanDy', 1.5)};
   vec3 scanGrass = mix(vec3(dot(sGrass.ratio, ${SCAN_LUMA})), sGrass.ratio, 0.55);
   vec3 scanMacro = ${scanMacroCall('meadow', 'p', 0.08)};
@@ -36,9 +34,34 @@ const FESTIVAL_SCAN_GLSL = /* glsl */ `
   owScanRough = sGrass.rough;
   ApexScanSample sLayer;
   if (rock > 0.004) {
-    sLayer = ${scanLayerCall('rock', 'scanFace', 'scanFaceDx', 'scanFaceDy', 1.5, false)};
-    rockC *= sLayer.ratio;
-    owScanN = apexScanMixNormal(owScanN, sLayer.n, rock);
+    // Fixed metre projections keep the scan anchored across a curved face.
+    vec3 w = max(vec3(0.0), pow(abs(scanWorldN), vec3(4.0)) - 0.018);
+    w /= max(0.0001,w.x+w.y+w.z);
+    vec3 rockRatio = vec3(0.0), slopes = vec3(0.0);
+    if (w.y > 0.) {
+      sLayer = ${scanLayerCall('rock','p','scanDx','scanDy',1.5,false)};
+      rockRatio += w.y*sLayer.ratio;
+      slopes += w.y*vec3(sLayer.n.x,0.,-sLayer.n.y)/max(0.35,sLayer.n.z);
+    }
+    if (w.x > 0.) {
+      float axis = sign(scanWorldN.x);
+      vec2 plane = vec2(axis*vOwWorld.z,vOwWorld.y);
+      vec2 dx = vec2(axis*worldDx.z,worldDx.y), dy = vec2(axis*worldDy.z,worldDy.y);
+      sLayer = ${scanLayerCall('rock','plane','dx','dy',1.5,false)};
+      rockRatio += w.x*sLayer.ratio;
+      slopes += w.x*vec3(0.,-sLayer.n.y,axis*sLayer.n.x)/max(0.35,sLayer.n.z);
+    }
+    if (w.z > 0.) {
+      float axis = -sign(scanWorldN.z);
+      vec2 plane = vec2(axis*vOwWorld.x,vOwWorld.y);
+      vec2 dx = vec2(axis*worldDx.x,worldDx.y), dy = vec2(axis*worldDy.x,worldDy.y);
+      sLayer = ${scanLayerCall('rock','plane','dx','dy',1.5,false)};
+      rockRatio += w.z*sLayer.ratio;
+      slopes += w.z*vec3(axis*sLayer.n.x,-sLayer.n.y,0.)/max(0.35,sLayer.n.z);
+    }
+    rockC *= rockRatio;
+    owRockSlope = slopes * rock * (1.0-snow);
+    owScanN = apexScanMixNormal(owScanN,vec3(0.,0.,1.),rock);
   }
   if (soil > 0.004) {
     sLayer = ${scanLayerCall('forest', 'p', 'scanDx', 'scanDy', 1.5, false)};
@@ -180,10 +203,12 @@ varying vec4 vShade;
 varying vec3 vOwWorld;
 ${OW_NOISE_GLSL}
 float owRoughness;
+float owBedRelief;
 vec2 owBump;
 #ifdef APEX_SCAN
 ${scanUniformDeclarations(FESTIVAL_SCAN_LAYERS)}
 vec3 owScanN = vec3(0.0, 0.0, 1.0);
+vec3 owRockSlope = vec3(0.0);
 float owScanRough = 1.0;
 #endif
 ${SCAN_COMMON_GLSL}`,
@@ -227,8 +252,24 @@ ${SCAN_COMMON_GLSL}`,
   }
   // Short airfield and park turf, worn paving in towns.
   grass = mix(grass, mix(vec3(0.17, 0.165, 0.15), vec3(0.11, 0.15, 0.06), smoothstep(0.4, 0.7, meso)), town * 0.8);
-  vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
-  rockC *= 0.85 + 0.3 * micro;
+  // Tilted bedding continues through adjoining cuts and over tile boundaries.
+  // Use absolute world coordinates, so changing the camera or a surface
+  // normal cannot rotate the rock texture across a crest.
+  float bedCoord = vOwWorld.y * 0.26 + dot(p, vec2(0.032, -0.019)) + 1.7 * macro + 0.24 * meso;
+  float bedFilter = 1.0 - smoothstep(0.08, 0.48, fwidth(bedCoord));
+  float bedDistance = abs(fract(bedCoord) - 0.5);
+  float lamina = (1.0 - smoothstep(0.017, 0.092, bedDistance)) * bedFilter;
+  float face = 0.5 + 0.5 * cos(6.283185 * (bedCoord + 0.16));
+  face = mix(0.5, face, bedFilter);
+  float fractureCoord = dot(p, vec2(0.081, 0.119)) - vOwWorld.y * 0.052 + 1.4 * meso;
+  float fracture = (1.0 - smoothstep(0.012, 0.065, abs(fract(fractureCoord) - 0.5)))
+    * (1.0 - smoothstep(0.055, 0.35, fwidth(fractureCoord)));
+  vec3 shale = mix(vec3(0.118,0.137,0.151), vec3(0.232,0.242,0.234), macro);
+  vec3 sandstone = mix(vec3(0.202,0.164,0.127), vec3(0.335,0.29,0.212), meso);
+  vec3 rockC = mix(shale, sandstone, smoothstep(0.32,0.76,macro + 0.13 * (face-0.5)));
+  rockC *= (0.88 + 0.24 * face) * (0.92 + 0.16 * micro) * (1.0 - 0.26 * fracture);
+  rockC = mix(rockC, vec3(0.33,0.317,0.27), lamina * 0.56);
+  owBedRelief = rock * (0.052 * face + 0.028 * lamina - 0.035 * fracture) * (1.0 - snow);
   // Farm presence is interpolated tile data, not a row coordinate. Repeating
   // that scalar with fract() would turn each terrain triangle into hard
   // green/gold contour bands. Crop variation stays continuous in world space.
@@ -343,13 +384,21 @@ if (owGrassDetail > 0.5 && owGrass > 0.001) {
       .replace(
         '#include <normal_fragment_maps>',
         `#include <normal_fragment_maps>
+// Surface gradient of the bedding displacement, also defined on vertical faces.
+vec3 owDx = dFdx(-vViewPosition), owDy = dFdy(-vViewPosition);
+vec3 owAcross = cross(owDy, normal), owAlong = cross(normal, owDx);
+float owDet = dot(owDx, owAcross);
+vec3 owReliefGradient = sign(owDet) * (dFdx(owBedRelief) * owAcross + dFdy(owBedRelief) * owAlong);
+normal = normalize(max(abs(owDet), 1e-6) * normal - owReliefGradient);
 normal = normalize(normal + (viewMatrix * vec4(-owBump.x, 0.0, -owBump.y, 0.0)).xyz);
 #ifdef APEX_SCAN
 normal = apexScanPerturb(normal, owScanN, 1.1);
+vec3 owRockView = mat3(viewMatrix) * owRockSlope;
+normal = normalize(normal + 1.1 * (owRockView-normal*dot(normal,owRockView)));
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v7-town-paving';
+  material.customProgramCacheKey = () => 'festival-terrain-v8-bedded-outcrops';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

@@ -57,7 +57,7 @@ interface TileTrees {
  * shared foliage-card crowns and atlas (the same crowns as the circuit
  * planting), porous conifer branches and leaf-card shrubs; full trees with
  * shadows on the finest tiles, cheap three-card impostor crowns on the next
- * level, nothing beyond (the terrain's forest tint carries the far woods).
+ * level, and a thinned crown layer out to the next kilometre-scale tile ring.
  * Instances come from the deterministic placement the physics colliders use.
  */
 export class Vegetation {
@@ -135,7 +135,7 @@ export class Vegetation {
       }
     for (const [key, entry] of near)
       if (!this.tiles.has(key)) {
-        if (this.photo) {
+        if (this.photo && entry.level < 2) {
           const forest = this.buildPhoto(entry.data);
           this.tiles.set(key, { group: forest.root, forest });
         } else this.tiles.set(key, { group: this.build(entry.data, entry.level), forest: null });
@@ -229,13 +229,13 @@ export class Vegetation {
       indices: number[],
       geometry: T.BufferGeometry,
       material: T.Material,
-      kind: number,
       shadows: boolean,
     ) => {
       if (!indices.length) return;
       const mesh = new T.InstancedMesh(geometry, material, indices.length);
       let maximumHeight = 0;
       indices.forEach((i, k) => {
+        const kind = trees[i + 3] === TREE_SPECIES.STREET ? TREE_SPECIES.BROADLEAF : trees[i + 3];
         const h = trees[i + 2],
           tint = trees[i + 5],
           // The atlas derives species from width/height. The former .62
@@ -280,14 +280,15 @@ export class Vegetation {
     };
     const [broadleaf, conifer, shrubs] = buckets;
     if (near) {
-      add(broadleaf, this.geometry.leaf, this.foliage, TREE_SPECIES.BROADLEAF, true);
-      add(broadleaf, this.geometry.trunk, this.bark, TREE_SPECIES.BROADLEAF, true);
-      add(conifer, this.geometry.leaf, this.foliage, TREE_SPECIES.CONIFER, true);
-      add(conifer, this.geometry.coniferTrunk, this.bark, TREE_SPECIES.CONIFER, true);
-      add(shrubs, this.geometry.shrub, this.foliage, TREE_SPECIES.SHRUB, false);
+      add(broadleaf, this.geometry.leaf, this.foliage, true);
+      add(broadleaf, this.geometry.trunk, this.bark, true);
+      add(conifer, this.geometry.leaf, this.foliage, true);
+      add(conifer, this.geometry.coniferTrunk, this.bark, true);
+      add(shrubs, this.geometry.shrub, this.foliage, false);
     } else {
-      add(broadleaf, this.geometry.distant, this.foliage, TREE_SPECIES.BROADLEAF, false);
-      add(conifer, this.geometry.distant, this.foliage, TREE_SPECIES.CONIFER, false);
+      // Width selects the species in the foliage atlas. Both crown types
+      // share the same six triangles and submit one instanced draw per tile.
+      add(broadleaf.concat(conifer), this.geometry.distant, this.foliage, false);
     }
     group.userData.instances = broadleaf.length + conifer.length + (near ? shrubs.length : 0);
     group.name = `Vegetation L${level}`;

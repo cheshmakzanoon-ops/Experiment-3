@@ -33,7 +33,7 @@ export interface TileRequest {
   z0: number;
   size: number;
   res: number;
-  /** Trees for LOD0/LOD1 tiles (render density 0..1; 0 = none). */
+  /** Tree density for the near, intermediate and distant canopy tiles (0..1). */
   trees: number;
   /** Keep every tree with a trunk collider whatever `trees` is (the
    * finest level, where the car can reach them): physics collides with

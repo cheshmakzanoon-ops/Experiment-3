@@ -288,7 +288,7 @@ export class TerrainStreamer {
       z0: ORIGIN + t.iz * size,
       size,
       res: res(t.level),
-      trees: t.level <= 1 ? this.budget.trees : 0,
+      trees: t.level <= 1 ? this.budget.trees : t.level === 2 ? 0.25 * this.budget.trees : 0,
       // The finest level carries every collider tree (density thins the
       // shrubs and the far level only).
       colliders: t.level === 0,
@@ -369,7 +369,7 @@ export class TerrainStreamer {
       protectedTiles.add(t);
     };
     const trees = (t: Tile) => {
-      if (t.level <= 1 && t.data?.trees.length) treeOwners.add(t);
+      if (t.level <= 2 && t.data?.trees.length) treeOwners.add(t);
     };
     const show = (t: Tile, coarse = 0, includeTrees = true) => {
       keep(t);
@@ -411,8 +411,8 @@ export class TerrainStreamer {
         for (const child of kids) show(child, 1 - t.refinement, false);
         // Do not anchor new trees to the final child height while its ground
         // is still morphing. Near-camera transitions settle before this branch.
-        if (t.level === 1) trees(t);
-        else if (!refine && t.level === 2) for (const child of kids) trees(child);
+        if (t.level <= 2) trees(t);
+        else if (!refine && t.level === 3) for (const child of kids) trees(child);
       } else {
         show(t);
         if (refine) wanted.push({ parent: t, children: kids });

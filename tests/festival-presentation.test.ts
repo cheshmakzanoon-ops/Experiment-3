@@ -73,7 +73,7 @@ describe('festival contact presentation', () => {
         for (let w = 1; w < 4; w++) f[carBase(0) + WHEEL_BASE + w * WHEEL_STRIDE + W.LOAD] = 0;
         trail.update(f, (x, z) => x * 0.12 + z * 0.035);
       }
-      expect(trail.segments).toBe(30);
+      expect(trail.segments).toBe(37);
       const position = trail.root.geometry.getAttribute('position') as T.BufferAttribute;
       const result = Array.from(position.array.slice(0, trail.segments * 12));
       expect(result[4] - result[1]).toBeCloseTo(0.12 * (result[3] - result[0]), 5);

@@ -2,6 +2,7 @@ import * as T from 'three';
 import type { FestivalEvent } from '../../simulation/open-world/festival-events.ts';
 import type { FestivalEventKind } from '../../simulation/open-world/region-data.ts';
 import { pathPoint } from '../../simulation/open-world/route-path.ts';
+import { FestivalStartBoards, startBoardSite } from './festival-start-board.ts';
 
 export const EVENT_COLOURS: Readonly<Record<FestivalEventKind, number>> = Object.freeze({
   'road-race': 0xff6a2a,
@@ -36,7 +37,7 @@ void main() {
   float near = nearFade.y > 0.0 ? smoothstep(nearFade.x, nearFade.y, vDepth) : 1.0;
   gl_FragColor = vec4(colour * strength * pulse * fade * near * 0.72, 1.0);
 }`;
-/** Light column (fades within `near` metres of the camera) or ground ring. */
+/** Distant navigation light, attenuated as the driver reaches the marker. */
 function beamMaterial(colour: number, near: readonly [number, number] = [0, 0]) {
   return new T.ShaderMaterial({
     uniforms: {
@@ -58,13 +59,14 @@ interface Marker {
   event: FestivalEvent;
   root: T.Group;
   beam: T.ShaderMaterial;
-  ring: T.ShaderMaterial;
+  board: T.Mesh | null;
+  column: T.Mesh;
 }
 /** Columns fade between these camera distances (m). */
-const COLUMN_FADE: readonly [number, number] = [14, 48];
+const COLUMN_FADE: readonly [number, number] = [42, 100];
 /**
- * World markers: a light column and ground ring at every event start
- * (coloured by format, dim until discovered), the speed-trap cameras, and
+ * World markers: printed timing boards at each start, a distant navigation
+ * light in the event colour, speed-trap cameras, and
  * during an event the next checkpoint as a column on the route.
  */
 export class EventMarkers {
@@ -77,7 +79,7 @@ export class EventMarkers {
     12,
     0,
   );
-  private readonly ring = new T.RingGeometry(4.1, 4.55, 48).rotateX(-Math.PI / 2);
+  private readonly signs = new FestivalStartBoards(EVENT_COLOURS);
   private readonly cameraMaterial = new T.MeshStandardMaterial({
     color: 0x2b2f33,
     roughness: 0.5,
@@ -85,27 +87,38 @@ export class EventMarkers {
   });
   private readonly poleGeometry = new T.CylinderGeometry(0.12, 0.14, 6, 8).translate(0, 3, 0);
   private readonly cameraGeometry = new T.BoxGeometry(0.5, 0.4, 0.8).translate(0, 6.1, 0);
-  constructor(events: readonly FestivalEvent[], groundHeight: (x: number, z: number) => number) {
+  constructor(
+    events: readonly FestivalEvent[],
+    groundHeight: (x: number, z: number, layer?: number) => number,
+  ) {
     this.root.name = 'Festival event markers';
     const camera = this.cameraMaterial,
       pole = this.poleGeometry,
       box = this.cameraGeometry;
     const p = pathPoint();
+    const occupied: { x: number; z: number }[] = [];
     for (const event of events) {
       const colour = EVENT_COLOURS[event.spec.kind];
       const root = new T.Group();
       root.name = `Marker ${event.spec.id}`;
-      const beam = beamMaterial(colour, COLUMN_FADE),
-        ringMaterial = beamMaterial(colour);
+      const beam = beamMaterial(colour, COLUMN_FADE);
       const column = new T.Mesh(this.geometry, beam);
-      column.frustumCulled = false;
-      const ring = new T.Mesh(this.ring, ringMaterial);
-      ring.position.y = 0.25;
-      root.add(column, ring);
-      const m = event.marker;
-      root.position.set(m.x, groundHeight(m.x, m.z), m.z);
+      column.scale.set(0.32, 0.65, 0.32);
+      root.add(column);
+      const site = startBoardSite(event, occupied),
+        m = site ?? event.marker;
+      root.position.set(m.x, groundHeight(m.x, m.z, m.y), m.z);
+      let board: T.Mesh | null = null;
+      if (site) {
+        occupied.push(site);
+        board = new T.Mesh(this.signs.geometry(event.spec.kind), this.signs.material);
+        board.name = 'Roadside timing board';
+        board.rotation.y = site.heading;
+        board.castShadow = board.receiveShadow = true;
+        root.add(board);
+      }
       this.root.add(root);
-      this.markers.push({ event, root, beam, ring: ringMaterial });
+      this.markers.push({ event, root, beam, board, column });
       if (event.spec.kind === 'speed-trap') {
         // The camera at the trap line, on the right-hand verge.
         event.path.at(event.path.finishDistance, p);
@@ -124,7 +137,6 @@ export class EventMarkers {
     this.gate = new T.Mesh(this.geometry, this.gateMaterial);
     this.gate.scale.set(0.6, 0.45, 0.6);
     this.gate.visible = false;
-    this.gate.frustumCulled = false;
     this.root.add(this.gate);
   }
   update(
@@ -132,15 +144,18 @@ export class EventMarkers {
     discovered: ReadonlySet<string>,
     active: string | null,
     gate: { x: number; z: number } | null,
-    groundHeight: (x: number, z: number) => number,
+    groundHeight: (x: number, z: number, layer?: number) => number,
+    eye: T.Vector3,
   ) {
     for (const m of this.markers) {
       const known = discovered.has(m.event.spec.id);
-      m.root.visible = !active;
-      for (const material of [m.beam, m.ring]) {
-        material.uniforms.time.value = time;
-        material.uniforms.strength.value = known ? 1 : 0.3;
-      }
+      const distance = eye.distanceToSquared(m.root.position);
+      m.root.visible = distance < (active ? 290 ** 2 : 1200 ** 2);
+      if (!m.root.visible) continue;
+      m.column.visible = !active && distance > COLUMN_FADE[0] ** 2;
+      if (m.board) m.board.visible = distance < 290 ** 2;
+      m.beam.uniforms.time.value = time;
+      m.beam.uniforms.strength.value = known ? 0.72 : 0.24;
     }
     this.gateMaterial.uniforms.time.value = time;
     this.gate.visible = !!gate;
@@ -148,10 +163,9 @@ export class EventMarkers {
   }
   dispose() {
     this.geometry.dispose();
-    this.ring.dispose();
+    this.signs.dispose();
     for (const m of this.markers) {
       m.beam.dispose();
-      m.ring.dispose();
     }
     this.gateMaterial.dispose();
     this.cameraMaterial.dispose();

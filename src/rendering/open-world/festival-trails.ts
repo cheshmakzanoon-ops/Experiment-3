@@ -21,7 +21,7 @@ import { festivalContactLocal } from './festival-contacts.ts';
 
 // Emit in world metres. The residual distance crosses render frames so a
 // 144 Hz corner and a 30 Hz corner use the same rubber and buffer budget.
-const STRIDE = 0.8;
+const STRIDE = 0.64;
 const markLift = 0.016;
 type GroundHeight = (x: number, z: number, y?: number) => number;
 

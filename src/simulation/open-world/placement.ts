@@ -301,6 +301,7 @@ export function treesForTile(
   /** Thin only trees without a trunk collider (shrubs): every tree the
    * physics collides with stays, whatever the render density. */
   keepColliders = false,
+  canopyOnly = false,
 ): Float32Array {
   const field = world.field,
     region = world.region,
@@ -319,8 +320,11 @@ export function treesForTile(
         r1 = (h >>> 16) / 65536;
       const x = x0 + (i + 0.15 + 0.7 * r0) * cell,
         z = z0 + (j + 0.15 + 0.7 * r1) * cell;
-      const forest = field.forestDensity(x, z),
-        pick = hash01(Math.floor(x * 7), Math.floor(z * 7), seed + 1);
+      const pick = hash01(Math.floor(x * 7), Math.floor(z * 7), seed + 1);
+      // No forest exceeds 0.62 occupancy. Reject impossible seeds before
+      // evaluating the biome, particularly on kilometre-wide canopy tiles.
+      if (pick > 0.62 * (keepColliders ? 1 : density)) continue;
+      const forest = field.forestDensity(x, z);
       // Forest stands: about one tree per 8 m cell at full density; open
       // ground: rare field trees and shrubs.
       const chance = forest > 0.25 ? forest * 0.62 : 0.022;
@@ -347,6 +351,7 @@ export function treesForTile(
       const r2 = hash2(Math.floor(x * 3), Math.floor(z * 3), seed + 2);
       const conifer = height > 260 || (forest > 0.25 && (r2 & 7) < 2 && height > 120);
       const shrub = forest <= 0.25 && (r2 & 3) !== 0;
+      if (canopyOnly && shrub) continue;
       const species = shrub ? TREE_SPECIES.SHRUB : conifer ? TREE_SPECIES.CONIFER : TREE_SPECIES.BROADLEAF;
       const size =
         species === TREE_SPECIES.SHRUB

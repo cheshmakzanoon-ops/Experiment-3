@@ -297,10 +297,11 @@ describe('festival carved-ground presentation queries', () => {
         trails.update(frame, groundHeight);
         expect(trails.segments).toBe(4);
         const positions = trails.root.geometry.getAttribute('position');
-        // The new end of wheel zero's ribbon, averaged across its width.
-        const x = (positions.getX(2) + positions.getX(3)) / 2;
-        const z = (positions.getZ(2) + positions.getZ(3)) / 2;
-        expect(positions.getY(2)).toBeCloseTo(track.groundHeight(x, z, layer + 0.5) + 0.028, 4);
+        // Each edge is independently planted on this road layer's crossfall.
+        for (const edge of [2, 3]) {
+          const x = positions.getX(edge), z = positions.getZ(edge);
+          expect(positions.getY(edge)).toBeCloseTo(track.groundHeight(x, z, layer + 0.5) + 0.016, 4);
+        }
       } finally {
         trails.dispose();
       }
