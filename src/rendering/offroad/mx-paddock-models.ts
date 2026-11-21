@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mxVanPrint } from './mx-van-print.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
@@ -6,23 +7,40 @@ import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shad
  * colour. Glass, rubber, reflectors and alloy keep their own optical finish. */
 export function mxTeamVanMaterial() {
   const material = new T.MeshStandardMaterial({ name: 'MX team vans', vertexColors: true });
-  chainShaderHook(material, 'mx-service-van-finish-v1', (s) => {
+  const print = mxVanPrint();
+  material.addEventListener('dispose', () => print.dispose());
+  chainShaderHook(material, 'mx-service-van-finish-v2', (s) => {
+    s.uniforms.mxVanPrint = { value: print };
     injectDeclarations(
       s,
       'common',
-      'attribute vec3 mxFinish; varying vec2 vMxVanFinish;',
+      `attribute vec3 mxFinish;
+       attribute float mxVanCrew;
+       varying vec3 vMxVanFinish;
+       varying vec3 vMxVanPrint;`,
       'vertex',
     );
-    injectDeclarations(s, 'common', 'varying vec2 vMxVanFinish;', 'fragment');
+    injectDeclarations(s, 'common', 'uniform sampler2D mxVanPrint; varying vec3 vMxVanFinish; varying vec3 vMxVanPrint;', 'fragment');
     injectAfter(
       s,
       'color_vertex',
-      `vMxVanFinish = mxFinish.yz;
+      `vMxVanFinish = vec3(mxFinish.yz, mxFinish.x * smoothstep(.78,.95,abs(normal.x)));
+      vMxVanPrint = vec3(.5 - sign(position.x) * (position.z + 1.04) / 2.96,
+                         (position.y - .98) / 1.24, mxVanCrew);
       #ifdef USE_INSTANCING_COLOR
         vColor.rgb = color.rgb * mix(vec3(1.0), instanceColor.rgb, mxFinish.x);
       #endif`,
       'vertex',
     );
+    injectAfter(s, 'color_fragment', `{
+      vec2 uv = vMxVanPrint.xy;
+      vec2 page = vec2(uv.x, (3.0 - vMxVanPrint.z + uv.y) * .25);
+      vec2 dx = dFdx(page), dy = dFdy(page);
+      if (vMxVanFinish.z > .0 && all(greaterThan(uv,vec2(0.))) && all(lessThan(uv,vec2(1.)))) {
+        vec4 print = textureGrad(mxVanPrint, page, dx, dy);
+        diffuseColor.rgb = mix(diffuseColor.rgb, print.rgb, print.a * vMxVanFinish.z);
+      }
+    }`, 'fragment');
     injectAfter(s, 'roughnessmap_fragment', 'roughnessFactor = vMxVanFinish.x;', 'fragment');
     injectAfter(s, 'metalnessmap_fragment', 'metalnessFactor = vMxVanFinish.y;', 'fragment');
   });
@@ -43,7 +61,7 @@ type Point = readonly [number, number, number];
 /** Baked one time per outdoor venue. True wheel wells break up the side
  * silhouette. The glazing follows the rake and each rim is recessed inside
  * a curved rubber shoulder. Coordinates are metres, nose along +Z. */
-export function mxTeamVanGeometry() {
+export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
   const parts: T.BufferGeometry[] = [];
   const put = (source: T.BufferGeometry, finish: Surface, x = 0, y = 0, z = 0) => {
     source.translate(x, y, z);
@@ -238,6 +256,7 @@ export function mxTeamVanGeometry() {
   }
   const mesh = mergeGeometries(parts, false)!;
   for (const g of parts) g.dispose();
+  mesh.setAttribute('mxVanCrew', new T.InstancedBufferAttribute(new Float32Array(crews), 1));
   mesh.name = 'Formed high-roof MX service van';
   mesh.computeBoundingBox();
   mesh.computeBoundingSphere();

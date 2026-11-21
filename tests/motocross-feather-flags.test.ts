@@ -65,6 +65,17 @@ describe('motocross event feather flags', () => {
           expect(Number.isFinite(p.y)).toBe(true);
         }
       }
+      const fleet = dressing.root.getObjectByName('MX team vans') as T.InstancedMesh;
+      const crews = fleet.geometry.getAttribute('mxVanCrew') as T.InstancedBufferAttribute;
+      expect(crews.isInstancedBufferAttribute).toBe(true);
+      expect(crews.count).toBe(fleet.count);
+      const service = dressing.trackside.plan.sites.map((site, index) => ({ site, index })).filter(({site}) => site.type === 'service');
+      for (let i = 0; i < fleet.count; i++) {
+        fleet.getMatrixAt(i, m);
+        p.setFromMatrixPosition(m);
+        const nearest = service.reduce((a, b) => Math.hypot(a.site.x - p.x, a.site.z - p.z) < Math.hypot(b.site.x - p.x, b.site.z - p.z) ? a : b);
+        expect(crews.getX(i)).toBe(nearest.index % 4);
+      }
       for (const site of dressing.trackside.plan.sites) {
         const vans = dressing.root.getObjectByName('MX team vans') as T.InstancedMesh;
         for (let i = 0; i < vans.count; i++) {

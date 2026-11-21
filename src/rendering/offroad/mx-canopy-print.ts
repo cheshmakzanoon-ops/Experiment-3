@@ -2,7 +2,7 @@ import * as T from 'three';
 
 /** Original event issue flysheets. Each 256-pixel strip contains a triangular
  * roof print, a low valance print and a white swatch for unprinted fabric. */
-const CREWS = [
+export const MX_PADDOCK_CREWS = [
   ['#233e56', '#416780', '#d99548', 'RIDGE WORKS'],
   ['#823b32', '#af5744', '#e1c798', 'NORTHLINE'],
   ['#254943', '#437467', '#c1cd74', 'PINE RACING'],
@@ -18,7 +18,7 @@ export function mxCanopyPrint() {
   }
   const canvas = document.createElement('canvas');
   canvas.width = WIDTH;
-  canvas.height = ROW * CREWS.length;
+  canvas.height = ROW * MX_PADDOCK_CREWS.length;
   const c = canvas.getContext('2d')!;
   const polygon = (ink: string, points: number[][]) => {
     c.fillStyle = ink;
@@ -29,7 +29,7 @@ export function mxCanopyPrint() {
   };
   c.fillStyle = '#ffffff';
   c.fillRect(0, 0, canvas.width, canvas.height);
-  for (const [i, [base, light, accent, name]] of CREWS.entries()) {
+  for (const [i, [base, light, accent, name]] of MX_PADDOCK_CREWS.entries()) {
     c.save();
     c.translate(0, i * ROW);
     c.fillStyle = base;
@@ -111,7 +111,7 @@ export function fitMxCanopyFabric(
   const uv = g.getAttribute('uv'),
     pos = g.getAttribute('position');
   const cloth = placement ? new Float32Array(uv.count * 3) : null;
-  const row = ((cluster % CREWS.length) + CREWS.length) % CREWS.length;
+  const row = ((cluster % MX_PADDOCK_CREWS.length) + MX_PADDOCK_CREWS.length) % MX_PADDOCK_CREWS.length;
   const axis = new T.Vector3();
   const world = new T.Vector3();
   for (let i = 0; i < uv.count; i++) {

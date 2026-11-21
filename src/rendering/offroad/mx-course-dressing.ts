@@ -504,6 +504,7 @@ export class MxCourseDressing {
       bales: T.Matrix4[] = [],
       vans: T.Matrix4[] = [],
       vanColours: T.Color[] = [],
+      vanCrews: number[] = [],
       sites = this.trackside.plan.sites,
       landmarks = planMxCourseSites(track).landmarks,
       random = new Random(52811);
@@ -536,7 +537,7 @@ export class MxCourseDressing {
     }
     // Vans: behind each service canopy, away from the course.
     const near = trackPoint();
-    for (const site of sites) {
+    for (const [index, site] of sites.entries()) {
       if (site.type !== 'service') continue;
       const lateral = track.nearest(site.x, site.z, near),
         out = Math.sign(lateral) || 1;
@@ -548,6 +549,7 @@ export class MxCourseDressing {
         if (!free(x, z, 2.6) || inStandFootprint(track, x, z, 3)) continue;
         const yaw = Math.atan2(near.tx, near.tz) + (along > 0 ? 0 : Math.PI);
         vans.push(mxFootprintMatrix(track, x, z, yaw, 1.792, 3.36, -0.012));
+        vanCrews.push(index % 4);
         vanColours.push(
           new T.Color([0xe9ebe8, 0x2b3a46, 0xc9ccc7, 0x5d1f22, 0x1f2224][vans.length % 5]),
         );
@@ -557,7 +559,7 @@ export class MxCourseDressing {
       const { geometry, material } = mxStrawBale();
       this.instances('MX round straw bales', geometry, material, bales);
     }
-    const van = mxTeamVanGeometry();
+    const van = mxTeamVanGeometry(vanCrews);
     const paint = mxTeamVanMaterial();
     this.instances('MX team vans', van, paint, vans, vanColours);
     const mesh = this.root.getObjectByName('MX team vans');
