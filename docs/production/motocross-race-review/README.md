@@ -10,6 +10,10 @@ The 100 supplied references informed the side profile, rear-tyre shoulder, airbo
 
 The MX250 and MX450 now have crowned tread blocks, rim locks and valves. The swingarm has a slotted lower chain guide with room for the moving links. The fork stanchions enter open dust wipers, and the top caps sit above the steering clamps. The rear flap bends under wheelspin and suspension load. The rider’s jersey moves between its fixed harness straps, and the rider loads the bars and pegs as the bike brakes, accelerates or lands. The shoulder yoke has an open release below its stamped latch. The complete High models, including their riders, use 139,972 triangles for the MX250 and 138,332 for the MX450.
 
+The three High-detail poses below come from one Valley Ridge MX450 jump. The inspection camera follows the bike at a fixed side offset. The rider, suspension, wheel speeds and pitch come from the same race samples. The inspection floor reproduces the surveyed course profile beneath each pose.
+
+![One MX450 jump on the surveyed Valley Ridge terrain at takeoff, in flight and after touchdown](mx450-jump-and-touchdown.webp)
+
 ![Matched views of the Arena Nord press gallery, a Valley Ridge service canopy and the team van lamps](mx-press-rooms-and-paddock.webp)
 
 The Arena Nord press rooms have glazing, desks and recessed warm and cool interiors. Valley Ridge’s service canopies and vans carry matching team prints. The canopy hems move with the recorded wind. The service vans have parked wipers and headlamp lenses fitted to the bevelled front panels. All eight vans draw together in one instanced batch. Steel crowd barriers follow the spectator areas and rest on the local slope.
@@ -22,12 +26,13 @@ A slipping rear tyre throws soil according to its travel relative to the track. 
 | Vertex data copied while preparing the rigid meshes for the two MX designs across High, Mid and Far | 20,062,570 bytes before, 2,178,792 after, measured before the fork revision |
 | Standing start over 60 m | MX450 4.53 s, MX250 4.50 s |
 | Surveyed jump calibrations | All 20 runs within their expected bands |
+| Recorded jump playback across 30, 60, 120, 144 and 240 Hz | 6,080 comparisons of rider and bike joint transforms on both machines at both venues, maximum difference zero |
 
 Seven seeded motorcycle races classified every entrant. The six motocross and supercross races included mixed 250/450 fields and both dry and changeable weather. The seventh used the shared chassis in supermoto trim. Across 232 rider-laps and 64 entries, the simulations recorded 22 falls. The longest stop was 13.02 seconds, within the existing 20-second limit. The six-lap Arena Nord event classified all ten riders.
 
-The Valley Ridge run used the eight-rider MX450 event, with rider weight input and an observed jump and touchdown. At Arena Nord the player opened the eight-rider MX250 gate, accelerated, switched to the cockpit and paused with that view still presented. Both went through the normal paddock on Low. The original captures measure 960 × 600 outdoors and 800 × 500 indoors.
+The player entered each eight-rider event through the normal paddock, released the gate, accelerated, switched from chase to cockpit and paused with that view still presented. All four photographs below come from the production game on Low at 800 × 500. A separate outdoor run also recorded rider-weight input, a jump and its touchdown.
 
-![Actual race screens from Valley Ridge and Arena Nord, including the eight-rider gates and the chase and cockpit views](mx-native-gate-chase-and-cockpit.webp)
+![Actual Valley Ridge and Arena Nord race screens showing both eight-rider start gates and both cockpits](mx-native-gates-and-cockpits.webp)
 
 [Race results, geometry counts and WebGL measurements](suspension-and-clay-verification.json)
 

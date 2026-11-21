@@ -284,6 +284,129 @@
           "presentedFrames": 10
         }
       }
+    },
+    "valley-ridge-mx": {
+      "machine": "mx450",
+      "quality": "low",
+      "viewport": [
+        800,
+        500
+      ],
+      "renderer": "SwiftShader WebGL2",
+      "productionBuildFingerprint": "afc49739b4dfdd8b1eaf74ceba4aa85942d4242c9e8213ee97374db2d72578d8",
+      "observations": {
+        "held": {
+          "state": "paused",
+          "camera": "chase",
+          "starters": 8,
+          "workerTimeSeconds": 0,
+          "playerSpeedMetersPerSecond": 0,
+          "presentedFrames": 3
+        },
+        "gate": {
+          "state": "driving",
+          "camera": "chase",
+          "starters": 8,
+          "workerTimeSeconds": 1.5,
+          "playerSpeedMetersPerSecond": 0,
+          "presentedFrames": 5
+        },
+        "chase": {
+          "state": "driving",
+          "camera": "chase",
+          "starters": 8,
+          "workerTimeSeconds": 11.783,
+          "playerSpeedMetersPerSecond": 3.838,
+          "presentedFrames": 6
+        },
+        "cockpit": {
+          "state": "driving",
+          "camera": "cockpit",
+          "starters": 8,
+          "workerTimeSeconds": 44.975,
+          "playerSpeedMetersPerSecond": 0,
+          "presentedFrames": 8
+        },
+        "pause": {
+          "state": "paused",
+          "camera": "cockpit",
+          "starters": 8,
+          "workerTimeSeconds": 45.008,
+          "playerSpeedMetersPerSecond": 0,
+          "presentedFrames": 8
+        }
+      }
     }
+  },
+  "productionBundle": {
+    "commit": "d61f2c54321ebb0908ced05389a845fc96539a6d",
+    "fingerprint": "afc49739b4dfdd8b1eaf74ceba4aa85942d4242c9e8213ee97374db2d72578d8",
+    "variant": "product",
+    "releaseAssetCheck": "passed"
+  },
+  "jumpReplay": {
+    "displayHz": [
+      30,
+      60,
+      120,
+      144,
+      240
+    ],
+    "machines": [
+      "mx450",
+      "mx250"
+    ],
+    "venues": [
+      "valley-ridge-mx",
+      "arena-nord-sx"
+    ],
+    "jointTransformComparisons": 6080,
+    "largestMatrixElementDifference": 0,
+    "benchmark": "scripts/bench/motocross-field.ts --cadence"
+  },
+  "picturedJump": {
+    "circuit": "valley-ridge-mx",
+    "machine": "mx450",
+    "seed": 61007,
+    "renderer": "SwiftShader WebGL2",
+    "quality": "high",
+    "samples": [
+      {
+        "phase": "takeoff",
+        "seconds": 21.625,
+        "stationMeters": 191.174,
+        "speedMetersPerSecond": 11.065,
+        "chassisPitchRadians": -0.6216,
+        "forkOffsetFromStaticSagMeters": 0.0355,
+        "shockOffsetFromStaticSagMeters": 0.0682,
+        "dirtSupportG": 1.68,
+        "meshTriangles": 138332,
+        "webglError": 0
+      },
+      {
+        "phase": "flight",
+        "seconds": 22.325,
+        "stationMeters": 198.184,
+        "speedMetersPerSecond": 9.958,
+        "chassisPitchRadians": -0.1814,
+        "forkOffsetFromStaticSagMeters": -0.0816,
+        "shockOffsetFromStaticSagMeters": -0.0807,
+        "dirtSupportG": 0,
+        "meshTriangles": 138332,
+        "webglError": 0
+      },
+      {
+        "phase": "landing",
+        "seconds": 23.092,
+        "stationMeters": 205.863,
+        "speedMetersPerSecond": 11.792,
+        "chassisPitchRadians": 0.2975,
+        "forkOffsetFromStaticSagMeters": 0.0007,
+        "shockOffsetFromStaticSagMeters": 0.0637,
+        "dirtSupportG": 1.527,
+        "meshTriangles": 138332,
+        "webglError": 0
+      }
+    ]
   }
 }
