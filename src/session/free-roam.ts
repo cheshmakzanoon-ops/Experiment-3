@@ -591,17 +591,27 @@ export class FestivalSession {
     const fx = 2 * (qx * qz + qw * qy),
       fz = 1 - 2 * (qx * qx + qy * qy);
     const spec = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])).spec;
-    if (this.status)
-      this.hud?.update(
+    const heading = minimapHeading(fx, fz);
+    if (this.status && this.hud) {
+      this.hud.update(
         this.status,
         presented[o + F.X],
         presented[o + F.Z],
-        minimapHeading(fx, fz),
+        heading,
         Math.round(presented[o + F.GEAR]),
         (presented[o + F.RPM] - spec.idleRPM) / Math.max(1, spec.limiterRPM - spec.idleRPM),
         renderer.guidance.cue,
         renderer.driftCue,
       );
+      const pane = renderer.mode === 'cockpit' && !renderer.photo
+        ? renderer.cars.bodies.cabinOf(0)?.navigationPane ?? null : null;
+      if (pane) {
+        const road = this.status.road;
+        const route = this.status.event?.id ?? this.status.card?.id ?? '';
+        renderer.cars.navigation.update(pane, this.hud.minimap, road, presented[H.TIME],
+          presented[o + F.X], presented[o + F.Z], heading, route, this.status.discovered.length, renderer.night);
+      } else renderer.cars.navigation.detach();
+    }
     this.controls?.syncInput();
     this.host.audio?.update(
       presented,

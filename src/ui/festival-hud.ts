@@ -67,7 +67,7 @@ const splitDelta = (value: number) =>
 export class FestivalHud {
   readonly root: HTMLElement;
   private readonly mapImage: HTMLCanvasElement;
-  private readonly minimap: HTMLCanvasElement;
+  readonly minimap: HTMLCanvasElement;
   private readonly nodes = new Map<string, HTMLElement>();
   private lastCard = '';
   /** Rendered result run: every status message is a new

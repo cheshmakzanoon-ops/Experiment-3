@@ -2,6 +2,7 @@ import * as T from 'three';
 import { ShadowProxies } from '../shadow-proxies.ts';
 import { F, H, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
+import { CabinNavigation } from './cabin-navigation.ts';
 import { FestivalHeadlamps } from './festival-headlamps.ts';
 import { bodySheetFor } from '../vehicle-bodies/body-sheet.ts';
 import { FormulaCar } from '../car.ts';
@@ -46,6 +47,7 @@ function ownFormulaResources(car: FormulaCar) {
  */
 export class FestivalCars {
   readonly root = new T.Group();
+  readonly navigation = new CabinNavigation();
   /** Non-Formula bodies (the circuit renderer's library). */
   readonly bodies = new VehicleBodies();
   /** Snapshot-driven finish on the followed road car; its clones are local. */
@@ -230,6 +232,7 @@ export class FestivalCars {
   /** Clear all entrants; repeated garage swaps reuse bounded Formula entries,
    * while a session exit releases every resource owned by those entries. */
   clear() {
+    this.navigation.detach();
     this.finish.clear();
     this.bodies.clear();
     for (const release of this.releaseFormula.values()) release();
@@ -244,6 +247,7 @@ export class FestivalCars {
   }
   dispose() {
     this.clear();
+    this.navigation.dispose();
     this.lights.dispose();
   }
 }

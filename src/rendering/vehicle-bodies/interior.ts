@@ -46,6 +46,7 @@ export interface BuiltCabin {
   mirrors: T.Mesh[];
   /** Festival cab with a flat interior mirror in addition to the two wing mirrors. */
   cockpitMirrors?: readonly T.Mesh[];
+  navigationPane?: T.Mesh;
   display: CabinDisplay | null;
   /** Driver arms posed from the steering rotation (null: none built). */
   arms: DriverArms | null;
@@ -606,6 +607,7 @@ export function buildClosedCabin(input: {
   input.lod.group.add(steering);
   const arms = new DriverArms(anchors, steering, mats, input.def.classId === 'road');
   input.lod.group.add(arms.group);
+  let navigationPane: T.Mesh | undefined;
   // Centre furniture.
   const consoleTop = layout.seat[1] + 0.05;
   if (layout.race) {
@@ -653,7 +655,7 @@ export function buildClosedCabin(input: {
         placed(-seatX + 0.05, op.floor + 0.06, layout.seat[2] + 0.12),
       );
   } else {
-    // Centre console, gear lever and a dark infotainment screen.
+    // Centre console and gear lever sit below the angled centre stack.
     const cz0 = layout.seat[2] - 0.25,
       cz1 = dash.rear;
     detailParts.add(slab(-0.09, 0.09, op.floor, consoleTop, cz0, cz1), plastic);
@@ -671,11 +673,35 @@ export function buildClosedCabin(input: {
       sharedMaterials.leather(),
       placed(0, consoleTop + 0.14, layout.seat[2] + 0.28),
     );
-    detailParts.add(
-      roundedBox(0.2, 0.12, 0.012, 0.006, 1),
-      sharedMaterials.visor(),
-      placed(0, dash.top - 0.1, dash.rear - 0.006, 0.2),
+    const stackY = dash.top - 0.112, stackZ = dash.rear - 0.015;
+    const stack = placed(0, stackY, stackZ, 0.22);
+    const fitting = (x: number, y: number, z: number) => new T.Matrix4().multiplyMatrices(
+      stack, new T.Matrix4().makeTranslation(x, y, z),
     );
+    detailParts.add(roundedBox(0.26, 0.155, 0.022, 0.012, 2), plastic, stack);
+    detailParts.add(roundedBox(0.242, 0.134, 0.004, 0.008, 2), sharedMaterials.visor(), fitting(0, 0, -0.0125));
+    if (input.def.classId === 'road' || input.def.classId === 'street') {
+      navigationPane = new T.Mesh(new T.PlaneGeometry(0.226, 0.1271).rotateY(Math.PI), trim);
+      navigationPane.name = 'In-dash navigation glass';
+      navigationPane.applyMatrix4(fitting(0, 0, -0.0155));
+      navigationPane.visible = false;
+      detail.add(navigationPane);
+    }
+    // Recessed climate registers: black plenum, stepped slats, satin
+    // adjusters and a thumbwheel at either side of the centre console.
+    for (const side of [-1, 1]) {
+      const x = 0.073 * side;
+      detailParts.add(roundedBox(0.129, 0.029, 0.016, 0.005, 2), trim, fitting(x, -0.096, 0.001));
+      for (let r = -1; r <= 1; r++) {
+        detailParts.add(new T.BoxGeometry(0.114, 0.002, 0.008), plastic, fitting(x, -0.096 + r * 0.007, -0.009));
+      }
+      detailParts.add(new T.BoxGeometry(0.014, 0.003, 0.004), sharedMaterials.chrome(), fitting(x - side * 0.014, -0.096, -0.013));
+      detailParts.add(new T.CylinderGeometry(0.017, 0.017, 0.012, 16).rotateX(Math.PI / 2),
+        sharedMaterials.chrome(), fitting(x, -0.14, -0.003));
+      detailParts.add(new T.CylinderGeometry(0.0145, 0.0145, 0.007, 16).rotateX(Math.PI / 2),
+        trim, fitting(x, -0.14, -0.012));
+      detailParts.add(new T.BoxGeometry(0.002, 0.006, 0.002), sharedMaterials.chrome(), fitting(x, -0.131, -0.016));
+    }
     // Door armrests and pulls.
     for (const side of [-1, 1]) {
       const z = layout.seat[2] + 0.12,
@@ -764,6 +790,7 @@ export function buildClosedCabin(input: {
     steering: steering.children[0] as T.Group,
     mirrors,
     cockpitMirrors,
+    navigationPane,
     display,
     glass: [] as T.Mesh[],
     layout,
