@@ -155,3 +155,5 @@ Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery source
 An earlier local Mesa race closed at 62% progress. Two early High attempts closed during loading, and an additional High capture after fast travel exceeded its compositor deadline. The matched default-arrival High captures completed. The hosted High-preset matrix also produced a 1280 × 720 chase view on `47a15eca` with zero page or asset errors. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
 
 [Hosted 720p camera and coastal captures](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44867008037) · [Quay-build driving and optics workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44872329454) · [Hosted optics and driving at 336fb587](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760) · [Per-car, per-event, mesh and validation measurements](measurements.json)
+
+[Harbour crossings, car mirrors, working fields and Kestrel runway in the updated driving build](coastal-driving-update.md)
