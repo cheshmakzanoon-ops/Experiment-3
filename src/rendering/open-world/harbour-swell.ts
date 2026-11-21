@@ -20,6 +20,16 @@ export function harbourWaveHeight(x: number, z: number, time: number) {
   return height;
 }
 
+/** Horizontal orbital displacement from the same two wave trains as the waterline. */
+export function harbourOrbitalDisplacement(x: number,z: number,time: number,out: {x:number;z:number}) {
+  out.x = out.z = 0;
+  for(const wave of trains){
+    const phase=wave.kx*(x-centreX)+wave.kz*(z-centreZ)-wave.omega*time+wave.phase;
+    const amplitude=wave.amplitude*Math.cos(phase)/Math.hypot(wave.kx,wave.kz);
+    out.x+=amplitude*wave.kx; out.z+=amplitude*wave.kz;
+  }
+}
+
 export interface HullAttitude {
   heave: number;
   pitch: number;

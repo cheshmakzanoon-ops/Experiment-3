@@ -102,17 +102,16 @@ describe('Blender source to Festival runtime contract', () => {
     expect(boats).toHaveLength(3);
     try {
       for (const boat of boats) {
-        const { x, z } = boat.position;
-        const yaw = boat.rotation.y,
-          c = Math.cos(yaw),
-          s = Math.sin(yaw);
+        const shore = boat.position.clone();
         const view = (time: number, distance: number) => {
-          camera.position.set(x, world.region.seaLevel + 2, z + distance);
+          camera.position.set(shore.x, world.region.seaLevel + 2, shore.z + distance);
           camera.updateMatrixWorld();
           kit.update(time, 0, camera, 'high');
         };
         for (const time of [12.5, 43, 12.5]) {
           view(time, 5);
+          const { x,z } = boat.position;
+          const yaw=boat.rotation.y,c=Math.cos(yaw),s=Math.sin(yaw);
           const bow = harbourWaveHeight(x + 3.24 * s, z + 3.24 * c, time),
             stern = harbourWaveHeight(x - 3.24 * s, z - 3.24 * c, time);
           const port = harbourWaveHeight(x + 1.32 * c, z - 1.32 * s, time),

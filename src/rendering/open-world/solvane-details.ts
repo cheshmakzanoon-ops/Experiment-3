@@ -2,7 +2,7 @@ import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from '../../../public/models/solvane/detail-kit.manifest.json' with { type: 'json' };
 import { downloadAuthoredAsset } from '../authored-download.ts';
-import { sampleLaunchAttitude } from './harbour-swell.ts';
+import { LaunchMooring, MooringHardware } from './launch-moorings.ts';
 import { assetUrl } from '../assets/third-party.ts';
 import { installSpecularIBL } from '../studio/ibl-energy.ts';
 import type { QualityPreset } from '../options.ts';
@@ -89,15 +89,14 @@ export class SolvaneDetails {
     root: T.Group;
     near: T.Object3D;
     far: T.Object3D;
-    y: number;
-    yaw: number;
+    mooring: LaunchMooring;
   }[] = [];
   private readonly flap: T.Object3D;
   private readonly main: T.Object3D;
   private readonly support: T.Object3D;
   private readonly farWing: T.Object3D;
   private readonly eye = new T.Vector3();
-  private readonly launchPose = { heave: 0, pitch: 0, roll: 0 };
+  private readonly mooringHardware = new MooringHardware();
   private readonly frustum = new T.Frustum();
   private readonly projection = new T.Matrix4();
   private readonly sphere = new T.Sphere(new T.Vector3(), 4.3);
@@ -258,6 +257,7 @@ export class SolvaneDetails {
   private planBoats(world: OpenWorld) {
     for (let i = 0; i < 3; i++) {
       const x = 670 + i * 69;
+      const yaw = Math.PI - 0.28 + i * 0.31;
       let z = -2720;
       while (z > -3300 && world.field.height(x, z) > world.region.seaLevel - 1.25) z -= 8;
       if (world.field.height(x, z) > world.region.seaLevel - 1.25) continue;
@@ -265,14 +265,15 @@ export class SolvaneDetails {
         near = this.clone('launch_near'),
         far = this.clone('launch_far');
       root.name = `Port Ilse working launch ${i + 1}`;
-      const y = world.region.seaLevel - 0.03,
-        yaw = -0.28 + i * 0.31;
+      const y = world.region.seaLevel - 0.03;
       root.position.set(x, y, z);
       root.rotation.set(0, yaw, 0, 'YXZ');
       near.visible = false;
       root.add(near, far);
       this.root.add(root);
-      this.boats.push({ root, near, far, y, yaw });
+      const mooring = new LaunchMooring(root, yaw, world.region.seaLevel, this.mooringHardware);
+      this.root.add(mooring.root);
+      this.boats.push({ root, near, far, mooring });
     }
     this.stats.boats = this.boats.length;
   }
@@ -326,14 +327,12 @@ export class SolvaneDetails {
     for (const boat of this.boats) {
       const d = boat.root.position.distanceTo(this.eye);
       boat.root.visible = d < (low ? 400 : 1100);
-      if (!boat.root.visible) continue;
+      if (!boat.root.visible) { boat.mooring.root.visible = false; continue; }
       const nearDistance = medium ? 100 : 170;
       boat.near.visible = !low && d < nearDistance * (boat.near.visible ? 1.1 : 1);
       boat.far.visible = !boat.near.visible;
       const p = boat.root.position;
-      sampleLaunchAttitude(p.x, p.z, boat.yaw, time, this.launchPose);
-      p.y = boat.y + this.launchPose.heave;
-      boat.root.rotation.set(this.launchPose.pitch, boat.yaw, this.launchPose.roll, 'YXZ');
+      boat.mooring.update(time, d, low);
     }
     const wet = Number.isFinite(dampness) ? T.MathUtils.clamp(dampness, 0, 1) : 0;
     // Recorded global wetness cue, not an off-road puddle simulation. Always
@@ -371,6 +370,8 @@ export class SolvaneDetails {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    for (const boat of this.boats) boat.mooring.dispose();
+    this.mooringHardware.dispose();
     for (const batch of this.batches.values()) for (const mesh of batch.meshes) mesh.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>();
