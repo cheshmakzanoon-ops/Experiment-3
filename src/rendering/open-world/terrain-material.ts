@@ -334,6 +334,15 @@ ${SCAN_COMMON_GLSL}`,
   // coloured turf brown and let beach sand show between footways and doors.
   float urban = smoothstep(0.50,0.64,vShade.w) * smoothstep(-0.5,0.2,owAbove) * (1.0-snow);
   vec2 footprint = max(fwidth(p),vec2(0.0001));
+  // The town field runs over a steep harbour bank. Streets use plan coordinates,
+  // but the exposed face has horizontal masonry courses measured from sea level.
+  vec3 quayNormal = cross(dFdx(vOwWorld), dFdy(vOwWorld));
+  float quayIncline = 1.0 - abs(quayNormal.y) * inversesqrt(max(dot(quayNormal, quayNormal), 1.0e-16));
+  float quay = smoothstep(0.035,0.20,quayIncline) * smoothstep(0.42,0.62,vShade.w)
+    * (1.0-smoothstep(5.0,7.5,owAbove)) * (1.0-snow);
+  vec2 wallMetres = vec2(p.x*0.989 + p.y*0.148, owAbove);
+  vec2 wallFootprint = max(fwidth(wallMetres), vec2(0.0001));
+  urban *= 1.0-quay;
   if(urban>0.001) {
     // Staggered granite setts near the road, larger concrete yard slabs
     // farther back. Filter both the mortar line and individual stone relief.
@@ -360,6 +369,38 @@ ${SCAN_COMMON_GLSL}`,
     owGrass*=1.0-urban;
 #ifdef APEX_SCAN
     owScanN=normalize(mix(owScanN,vec3(0,0,1),urban));
+#endif
+  }
+  if (quay>0.001) {
+    // Course endpoints vary independently along each row. Filter in metres
+    // before fading to the blockwork mean when the camera can no longer resolve it.
+    float courseHeight = 0.42;
+    float v = (wallMetres.y + 0.019*(owNoise(vec2(wallMetres.x*0.34,1.7))-0.5))/courseHeight;
+    float row = floor(v);
+    float width = mix(0.79,1.24,owHash(vec2(row,16.4)));
+    float u = wallMetres.x/width + owHash(vec2(row,81.2));
+    vec2 local = fract(vec2(u,v));
+    vec2 edge = min(local,1.0-local)*vec2(width,courseHeight);
+    vec2 face = smoothstep(vec2(0.004),vec2(0.014)+wallFootprint,edge);
+    float resolve = 1.0-smoothstep(0.12,0.65,max(wallFootprint.x/width,wallFootprint.y/courseHeight));
+    float block = owHash(vec2(floor(u),row));
+    float tooth = (owNoise(wallMetres*21.0)-0.5)*(1.0-smoothstep(0.012,0.06,max(wallFootprint.x,wallFootprint.y)));
+    vec3 stone = mix(vec3(0.133,0.150,0.149),vec3(0.255,0.239,0.203),0.32+0.40*meso);
+    float dressed = face.x*face.y;
+    vec3 surface = mix(vec3(0.111,0.117,0.107),stone*(0.81+0.38*block+0.12*tooth),dressed);
+    surface = mix(stone,surface,resolve);
+    float tideHeight = 0.72+0.21*owNoise(vec2(wallMetres.x*0.43,2.1));
+    float tide = 1.0-smoothstep(tideHeight-0.26,tideHeight+0.24,owAbove);
+    float damp = max(tide,owWet*0.77);
+    surface *= mix(vec3(1.0),vec3(0.48,0.57,0.47),tide)*(1.0-0.14*owWet);
+    diffuseColor.rgb = mix(diffuseColor.rgb,surface,quay);
+    owRoughness = mix(owRoughness,mix(0.88,0.39,damp),quay);
+    owBedRelief = mix(owBedRelief,(0.021*dressed+0.003*tooth)*resolve,quay);
+    owBump *= 1.0-quay;
+    owGrass *= 1.0-quay;
+#ifdef APEX_SCAN
+    owScanN = normalize(mix(owScanN,vec3(0,0,1),quay));
+    owRockSlope *= 1.0-quay;
 #endif
   }
 }`,
@@ -404,7 +445,7 @@ normal = normalize(normal + 1.1 * (owRockView-normal*dot(normal,owRockView)));
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v9-cultivated-parcels';
+  material.customProgramCacheKey = () => 'festival-terrain-v10-tidal-blockwork';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }
