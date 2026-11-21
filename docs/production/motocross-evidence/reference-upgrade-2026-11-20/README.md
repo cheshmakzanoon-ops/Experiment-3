@@ -4,6 +4,14 @@ Choose **DIRT** in the paddock, select **OUTDOOR MX** or **STADIUM SX**, choose 
 
 ![Valley Ridge with the MX450 selected in the playable paddock](paddock.webp)
 
+## From the race cameras
+
+The top row follows an MX450 over the jumps at Valley Ridge. The bottom row follows an MX250 through the Arena Nord field. The left column is the chase camera and the right is the helmet camera. All four frames come from regular eight-rider races entered through the paddock. Each frame keeps the native 600 × 375 image from the Low preset in an 800 × 500 browser viewport.
+
+![Chase and helmet views of eight-rider races outdoors at Valley Ridge and indoors at Arena Nord](race-cameras.webp)
+
+With automatic riding off, keyboard throttle took the outdoor bike to 29.78 km/h and the stadium bike to 30.13 km/h. Automatic riding took over for the pictures. Both sessions returned to the paddock from the pause menu. An earlier Arena Nord cold start on Mesa llvmpipe reached material compilation and timed out after ten minutes. [Build, graphics adapter and race-clock readings](player-race-cameras.json)
+
 ## Bikes and riders
 
 From left to right, the MX250 has a two-stroke exhaust, the MX450 has a formed four-stroke silencer, and the SM450 wears the smaller paved-course wheels. Look through the silencer hanger and the rear helmet vents, or follow the seat pleats along the top of the bike. These close-ups use the high-detail production models in a fixed review camera.

@@ -1,0 +1,82 @@
+{
+  "productBuild": {
+    "version": 1,
+    "commit": "585f2685750125e0b0dca8671862fda440c90e15",
+    "fingerprint": "5d5376f09ebed32d1ac56a889f47c43bd18674e38f67a70b336e6da385094c21",
+    "variant": "product",
+    "edition": "full"
+  },
+  "graphics": {
+    "preset": "Low",
+    "viewportPixels": [
+      800,
+      500
+    ],
+    "worldCanvasPixels": [
+      600,
+      375
+    ],
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "controls": "Paddock entry, eight-rider briefing, released start gate, keyboard W with automatic riding off, G for assisted riding, C to helmet camera, Escape to pause, return to paddock. Repeated in that order for each venue in the same browser.",
+  "captures": "Each capture is the live 3D canvas from a painted browser animation frame. The HTML overlay is excluded. Timestamps are elapsed simulation seconds.",
+  "races": [
+    {
+      "circuit": "valley-ridge-mx",
+      "motorcycle": "mx450",
+      "riders": 8,
+      "gateReleased": true,
+      "keyboardThrottle": {
+        "automaticRiding": false,
+        "speedMps": 8.2715,
+        "speedKmh": 29.78,
+        "raceSeconds": 7.4167
+      },
+      "rendererPreparationSeconds": 33.16,
+      "cameraFrames": [
+        {
+          "camera": "chase",
+          "raceSeconds": 27.1917
+        },
+        {
+          "camera": "cockpit",
+          "raceSeconds": 45.3583
+        }
+      ],
+      "finalCamera": "cockpit",
+      "returnedToPaddock": true
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "motorcycle": "mx250",
+      "riders": 8,
+      "gateReleased": true,
+      "keyboardThrottle": {
+        "automaticRiding": false,
+        "speedMps": 8.3701,
+        "speedKmh": 30.13,
+        "raceSeconds": 8.0583
+      },
+      "rendererPreparationSeconds": 44.17,
+      "cameraFrames": [
+        {
+          "camera": "chase",
+          "raceSeconds": 29.5917
+        },
+        {
+          "camera": "cockpit",
+          "raceSeconds": 37.925
+        }
+      ],
+      "finalCamera": "cockpit",
+      "returnedToPaddock": true
+    }
+  ],
+  "uncaughtPageErrors": [],
+  "otherBackend": {
+    "renderer": "Mesa llvmpipe (LLVM 19.1.7, 256 bits)",
+    "venue": "arena-nord-sx",
+    "preset": "Low",
+    "result": "An earlier cold-start run reached circuit and vehicle material compilation but did not reach the eight-rider briefing within 600 seconds."
+  }
+}
