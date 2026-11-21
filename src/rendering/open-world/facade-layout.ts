@@ -49,10 +49,11 @@ export function facadeLayout(
     !Number.isFinite(s.floors)
   )
     return null;
-  const floors = Math.min(16, Math.max(1, Math.floor(s.floors)));
+  const farm = s.kind === 'farm';
+  const floors = farm ? 1 : Math.min(16, Math.max(1, Math.floor(s.floors)));
   const floorH = (s.height - 0.6) / floors;
   if (floorH < 2.2) return null;
-  const bays = frontageBays(length,s.kind==='house');
+  const bays = farm ? Math.max(1, Math.floor(length / 5.2)) : frontageBays(length, s.kind === 'house');
   const span = length / bays;
   const openings: FacadeOpening[] = [],
     wall: FacadeLayout['wall'] = [];
@@ -72,7 +73,7 @@ export function facadeLayout(
       const shuttered =
         !shop &&
         span >= 2.7 &&
-        (s.kind === 'house' || s.kind === 'farm' || s.kind === 'shop') &&
+        (s.kind === 'house' || s.kind === 'shop') &&
         room < 0.4;
       // The authored open shutters extend to +/-0.94 opening widths. Narrow
       // that opening to fit its complete assembly between the bay boundaries;
@@ -87,8 +88,8 @@ export function facadeLayout(
       // Foundations are recessed by placement.ts. The shop threshold remains
       // above the stone plinth, not below the ground like the old shader grid.
       const entrance = shop && streetFront && bay === entranceBay(bays) && width >= 1.5;
-      const v0 = row0 + (entrance ? 0.515 : shop ? 0.66 : floorH * 0.3);
-      const v1 = row0 + floorH * (shop ? 0.86 : 0.84);
+      const v0 = row0 + (farm ? floorH * 0.58 : entrance ? 0.515 : shop ? 0.66 : floorH * 0.3);
+      const v1 = farm ? v0 + Math.min(0.95, 0.23 * floorH) : row0 + floorH * (shop ? 0.86 : 0.84);
       const kind = shop ? 'shop' : shuttered ? 'shuttered' : 'casement';
       openings.push({ u0, u1, v0, v1, cell0, cell1, row0, row1, kind, room, entrance });
     }

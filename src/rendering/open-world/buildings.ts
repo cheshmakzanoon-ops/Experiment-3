@@ -12,6 +12,7 @@ import {
 } from './facade-layout.ts';
 import { FACADE_ATLAS_GLSL, FacadeAtlas } from './facade-atlas.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
+import { addFarmGable } from './farm-gable.ts';
 import { HeadlandLantern } from './headland-lantern.ts';
 import type { QualityPreset } from '../options.ts';
 import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
@@ -248,6 +249,19 @@ vec2 owPaneTilt;`,
       owLamp = mix(owLamp,roomColor*tint,interiorVisibility);
       owLit = mix(owLit,(1.65+roomLamp*0.8)*occupied*owGlass,interiorVisibility);
     }
+  } else if (kind > 2.5 && kind < 3.5 && (physicalWall || abs(facade.z + 7.0) < 0.1)) {
+    // Vertical board joints remain in wall metres on the gable and on distant facade cards.
+    float plank = (q.x + 0.14 * style) / 0.21;
+    float phase = fract(plank);
+    float seam = min(phase, 1.0-phase) * 0.21;
+    float aa = max(footprint.x, 0.001);
+    float resolved = 1.0 - smoothstep(0.045, 0.16, aa);
+    float joint = (1.0 - smoothstep(0.004, 0.004+aa, seam)) * resolved;
+    float grain = owNoise(vec2(q.x*17.0, q.y*0.57) + style);
+    float variation = owHash(vec2(floor(plank), style*47.0)) - 0.5;
+    diffuseColor.rgb *= 0.96 + resolved*(variation*0.135 + (grain-0.5)*0.08 - joint*0.30);
+    owWallRelief = 0.0015*resolved*(grain-0.5) - 0.004*joint;
+    owWallRoughness = 0.82 + 0.07*(1.0-grain);
   } else if (physicalWall) {
     // Metre-scaled surface detail. Derivative fades remove sub-pixel grit
     // and mortar instead of adding sparkling high-frequency noise at speed.
@@ -280,6 +294,17 @@ vec2 owPaneTilt;`,
     // Physical cornices, pilasters, sills and roof equipment carry their
     // own vertex colour and must not inherit the facade's window grid.
     diffuseColor.rgb *= 0.92 + 0.1 * owNoise(q * 2.5 + style);
+  } else if (roof && kind > 2.5 && kind < 3.5) {
+    float spacing = 0.52;
+    float sheet = q.x / spacing;
+    float foldDistance = min(fract(sheet), 1.0-fract(sheet))*spacing;
+    float aa = max(footprint.x, 0.001);
+    float resolved = 1.0-smoothstep(0.08, 0.34, aa);
+    float fold = (1.0-smoothstep(0.014, 0.014+aa, foldDistance))*resolved;
+    float patina = owNoise(q*vec2(0.76,0.23)+style*13.0);
+    diffuseColor.rgb *= 0.91 + 0.12*patina + 0.08*fold;
+    owWallRelief = 0.018*fold;
+    owWallRoughness = 0.53 + 0.16*patina;
   } else if (roof) {
     vec2 tile = vec2(q.x * 2.0, q.y * 3.3);
     tile.x += mod(floor(tile.y), 2.0) * 0.5;
@@ -456,7 +481,7 @@ if (owGlass > 0.001) {
 }`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v12-shop-entrances';
+  material.customProgramCacheKey = () => 'festival-facades-v13-working-farms';
   return material;
 }
 
@@ -591,12 +616,19 @@ export class Buildings {
       [s.x + c * x - n * z, y, s.z + n * x + c * z] as const;
     const pick = (list: number[], salt: number) => list[(s.style >>> salt) % list.length];
     const metal = s.kind === 'hangar' || s.kind === 'warehouse';
-    const wall = metal
-      ? pick(METAL, 3)
-      : s.kind === 'block'
-        ? pick([0x9a9690, 0xb9b2a3, 0x8c4f3a, 0xcfc8b8], 5)
-        : pick(WALLS, 7);
-    const roof = metal ? 0x5d6266 : pick(ROOFS, 11);
+    const farm = s.kind === 'farm';
+    const wall = farm
+      ? pick([0x925246, 0x7a4a3e, 0x60716b, 0x818075], 7)
+      : metal
+        ? pick(METAL, 3)
+        : s.kind === 'block'
+          ? pick([0x9a9690, 0xb9b2a3, 0x8c4f3a, 0xcfc8b8], 5)
+          : pick(WALLS, 7);
+    const roof = farm
+      ? pick([0x686f6a, 0x645e53, 0x706260], 4)
+      : metal
+        ? 0x5d6266
+        : pick(ROOFS, 11);
     const facade = [style, kind, s.floors, s.height] as const;
     const roofFacade = [style, kind, -1, s.height] as const;
     const detailFacade = [style, kind, -2, s.height] as const;
@@ -913,6 +945,10 @@ export class Buildings {
       streetSide = (this.nearestRoad.x - s.x) * -n + (this.nearestRoad.z - s.z) * c >= 0 ? 2 : 0;
     }
     for (const [sideIndex, [x0, z0, x1, z1, nx, nz]] of sides.entries()) {
+      if (farm && nx !== 0) {
+        addFarmGable(m, s, nx, local, box, wall, style);
+        continue;
+      }
       const len = Math.hypot(x1 - x0, z1 - z0);
       const a = local(x0, base, z0),
         b = local(x1, base, z1),
@@ -1202,6 +1238,16 @@ export class Buildings {
             0.06,
             0x424b4d,
           );
+      } else if (farm) {
+        const ridge = top + hz * 0.55;
+        const length = Math.min(4.4, hx * 0.42);
+        for (const end of [-1, 1]) {
+          const x = end * hx * 0.47;
+          box(x, ridge + 0.12, 0, length, 0.55, 0.73, 0x464e4c);
+          for (const height of [0.16, 0.30])
+            box(x, ridge + height, 0, length + 0.06, 0.056, 0.81, 0x778078);
+          box(x, ridge + 0.44, 0, length + 0.31, 0.12, 1.06, 0x727873);
+        }
       } else if (pitched && s.kind !== 'chapel') {
         const chimneyY = top + hz * 0.43;
         box(hx * 0.53, chimneyY, hz * 0.2, 0.85, 2.4, 0.9, 0x81664f);
