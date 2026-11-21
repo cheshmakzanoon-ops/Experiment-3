@@ -532,6 +532,33 @@ it('restarts a partially captured gate if the lighting changes at the held insta
   }
 });
 
+it('keeps the completed gate sky if a temporary lighting change is withdrawn during preparation', () => {
+  const reflection = new ReflectionSystem(), { gl, faces } = slicedFixture();
+  const scene = new T.Scene(), bike = new T.Group(), finish = new T.MeshStandardMaterial();
+  const first = new T.Texture(), second = new T.Texture();
+  const face = () => reflection.updateProbe(gl, scene, bike, [finish], true, 1.5, undefined, false, true);
+  try {
+    reflection.beginFrame(0, false);
+    scene.environment = first;
+    for (let i = 0; i < 6; i++) face();
+    const published = finish.envMap;
+    scene.environment = second;
+    face();
+    expect(reflection.gridCapturePending).toBe(true);
+    scene.environment = first;
+    face();
+    expect(reflection.gridCapturePending).toBe(false);
+    expect(finish.envMap).toBe(published);
+    expect(reflection.probeUpdates).toBe(1);
+    expect(faces.map(f => f.face)).toEqual([0, 1, 2, 3, 4, 5, 0]);
+  } finally {
+    reflection.dispose();
+    finish.dispose();
+    first.dispose();
+    second.dispose();
+  }
+});
+
 it('spreads a periodic refresh over frames from one eye and publishes it only when complete', () => {
   const reflection = new ReflectionSystem(),
     { gl, faces } = slicedFixture();

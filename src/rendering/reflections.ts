@@ -396,8 +396,13 @@ export class ReflectionSystem {
     const sameRequest =
       this.requestEpoch === this.attemptedEpoch && car === this.attemptedCar &&
       environmentIdentity === this.attemptedEnvironment;
-    const nextGridFace =
-      prepareGridFace && sameRequest && this.gridCapturePending && this.clock === this.attemptedClock;
+    // Discard an unfinished back buffer if the old sky returns, or the held
+    // snapshot is replaced. A previously completed matching map remains valid.
+    if (this.gridCapturePending && (!sameRequest || this.clock !== this.attemptedClock)) {
+      this.pendingFace = -1;
+      this.immediateRetryPending = false;
+    }
+    const nextGridFace = prepareGridFace && this.gridCapturePending;
     if (
       sameRequest && !nextGridFace &&
       (this.clock === this.attemptedClock ||
