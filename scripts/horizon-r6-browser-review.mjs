@@ -285,13 +285,7 @@ try {
       true,
       'Night review must retain the production detail kit',
     );
-    const rendererName = await withinPhase('renderer identity', () =>
-      page.evaluate(() => {
-        const gl = document.querySelector('#world').getContext('webgl2');
-        const extension = gl.getExtension('WEBGL_debug_renderer_info');
-        return gl.getParameter(extension ? extension.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
-      }),
-    );
+    const rendererName = initial.rendererName;
     requireBrowserBackend(backend.name, rendererName);
     const nightCameras = [
       {

@@ -16,6 +16,10 @@ The chase views use the EH-3, High preset, 960 × 540 viewport, default spawn an
 
 [Full-size original High capture](harbour-high.jpg) · [Full-size updated High capture](harbour-quay-high.jpg) · [70-metre waterfront warehouse](east-quay-warehouse.jpg)
 
+The EH-3 accelerated from the default start under keyboard control. The chase view below shows 93 km/h on the HUD. At the corresponding speed sample the car had travelled 30.24 m. The final presented view was 138.21 m from the start.
+
+![High-preset chase view of the EH-3 at 93 km/h on Harbour Front](harbour-eh3-driving.jpg)
+
 The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The full-size frames and pixel comparisons are in the hosted run.
 
 ![Port Ilse storefront and festoon lighting on wet streets at night](port-ilse-night.jpg)
@@ -110,9 +114,13 @@ From the paddock, choose **Festival** and **Enter Festival**. The packaged game 
 
 The quay build passed TypeScript, Vite, lint, content validation and the bundle check. Its initial JavaScript was 3.67 MB gzipped against a 4 MB budget. The High harbour frame submitted 677 draw calls and 1,676,329 triangles at 960 × 540. The image and full driving checks both recorded zero page errors and zero failed asset requests. The assisted Harbour Opening Run finished in 105.37 seconds with zero off-route time. Retry started a distinct run, and exit released the Festival scene.
 
+Tyre smoke, quarry dust and water spray each passed three measured image comparisons on the quay build. The effect pools reached 85 smoke particles, 210 dust particles and 397 spray particles. Repeating each control frame produced identical pixels.
+
 On the same quay build all 26 assisted races and six quarry-zone runs completed without resets or off-route time. All eight speed challenges scored. The wet four-car replay also matched all 13,200 physics snapshots from the earlier builds at each of the four presentation cadences.
 
 The four-panel gameplay plate comes from `336fb587`. On that build, keyboard input moved the car 32.49 m on SwiftShader and 57.44 m on hosted Mesa. Its hosted run passed an additional 153 focused tests. A separate local SwiftShader night run timed out on the storefront capture. The paired Medium night plate above comes from the completed hosted run.
+
+A hosted run of the earlier reflection build finished the driving checks but exceeded the night-load deadline while identifying its software renderer. The review now reads the WebGL renderer name from the Festival's own context before the first draw. The night checks still require the requested backend and both full lighting comparisons.
 
 Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
 

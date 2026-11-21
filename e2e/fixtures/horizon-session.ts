@@ -30,6 +30,12 @@ const gl = new T.WebGLRenderer({
   powerPreference: 'high-performance',
   preserveDrawingBuffer: params.get('capture') === '1',
 });
+// Query this context before any Festival geometry or shader work is queued.
+const context = gl.getContext();
+const rendererInfo = context.getExtension('WEBGL_debug_renderer_info');
+const rendererName = String(
+  context.getParameter(rendererInfo ? rendererInfo.UNMASKED_RENDERER_WEBGL : context.RENDERER),
+);
 gl.toneMapping = T.ACESFilmicToneMapping;
 gl.outputColorSpace = T.SRGBColorSpace;
 gl.shadowMap.type = T.PCFSoftShadowMap;
@@ -53,6 +59,7 @@ const state = () => {
     current: Float32Array | null;
   } | null;
   return {
+    rendererName,
     sourceIdentity: {
       fingerprint:
         typeof __APEX_SOURCE_FINGERPRINT__ === 'string' ? __APEX_SOURCE_FINGERPRINT__ : null,
