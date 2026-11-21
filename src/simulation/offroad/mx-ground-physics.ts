@@ -1,6 +1,11 @@
 import { clamp } from '../../core/math.ts';
 import { motorcycleRotorBrakeWork } from '../motorcycle-thermal.ts';
 
+/** Same chassis and rider in the tyre solver and at either suspension stop. */
+export function motocrossYawInertia(mass: number, frontArm: number, rearArm: number) {
+  return Math.max(12, 0.42 * mass * (frontArm ** 2 + rearArm ** 2));
+}
+
 /** SI-unit, planar, two-contact motocross model. The separate sprung heave /
  * pitch suspension supplies its *current* axle loads; a free tyre has no
  * lateral or longitudinal force. None of this is used by road/GP bikes.
@@ -134,7 +139,7 @@ export function stepMotocrossGround(
   const h = dt / n;
   // Yaw inertia estimate for sprung rider + bike; the road/GP core never
   // reads this parameter. Wheelbase geometry gives the scale in kg m².
-  const iz = Math.max(12, 0.42 * p.mass * (p.frontArm ** 2 + p.rearArm ** 2));
+  const iz = motocrossYawInertia(p.mass, p.frontArm, p.rearArm);
   const initialSpeed = Math.max(0, state.speed);
   let speed = initialSpeed,
     lateralSpeed = state.lateralSpeed,

@@ -16,7 +16,7 @@ import { LANDING_RULES } from './riding-feedback.ts';
 import { hardStopImpulse, landingNormalSpeed } from './contact-impulse.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
-import { stepMotocrossGround } from './mx-ground-physics.ts';
+import { motocrossYawInertia, stepMotocrossGround } from './mx-ground-physics.ts';
 import { RiderWeight } from './rider-weight.ts';
 import { factoryBikeSag, risingRateSag } from './suspension-geometry.ts';
 import { motorcycleContactSlipPower, motorcycleRotorBrakeWork } from '../motorcycle-thermal.ts';
@@ -1170,16 +1170,25 @@ export class DirtBikeVehicle extends BikeVehicle {
       return this.playerMotocross
         ? -(n.x * headingCos - n.z * headingSin) / Math.max(0.1, n.y) : 0;
     };
-    // A deep-overlap recovery removes only closing normal velocity. Exchange
-    // forward, heave and pitch momentum together instead of injecting heave
-    // while leaving the approach speed unchanged. Ordinary travel is untouched.
+    // The two patches sweep in opposite directions when the bike yaws. Their
+    // terrain gradients are measured in world space, even during a whip when
+    // the chassis heading differs from the direction of centre-of-mass travel.
+    const chassisHeading = d.heading + this.airYaw;
+    const yawSin = this.airYaw === 0 ? headingSin : Math.sin(chassisHeading);
+    const yawCos = this.airYaw === 0 ? headingCos : Math.cos(chassisHeading);
+    const yawArm = (i: number, reach: number) => {
+      const n = this.contacts[i].normal;
+      return -(n.x * yawCos - n.z * yawSin) * reach / Math.max(0.1, n.y);
+    };
+    let yawRate = this.airborne ? this.airYawRate : this.playerMotocross ? this.mxYawRate : 0;
     if (this.projectedContact) {
-      for (const [compression, travel, i, lever] of [
-        [cF, spec.forkTravel, 0, fa * cos + HF * sin],
-        [cR, spec.shockTravel, 2, -ra * cos + HR * sin],
+      const iz = motocrossYawInertia(m, fa, ra);
+      for (const [compression, travel, i, lever, reach] of [
+        [cF, spec.forkTravel, 0, fa * cos + HF * sin, fa],
+        [cR, spec.shockTravel, 2, -ra * cos + HR * sin, -ra],
       ]) {
         if (compression < travel) continue;
-        const grade = slope(i), across = crossSlope(i);
+        const grade = slope(i), across = crossSlope(i), arm = this.playerMotocross ? yawArm(i, reach) : 0;
         const impulse = hardStopImpulse(
           vh,
           this.vy,
@@ -1190,34 +1199,27 @@ export class DirtBikeVehicle extends BikeVehicle {
           a.pitchInertia,
           this.slide,
           across,
+          this.playerMotocross ? { arm, rate: yawRate, inertia: iz } : undefined,
         );
         this.slide -= (across * impulse) / m;
         vh -= (grade * impulse) / m;
         this.vy += impulse / m;
         this.pitchRate += (lever * impulse) / a.pitchInertia;
+        yawRate -= arm * impulse / iz;
       }
+      if (this.airborne) this.airYawRate = yawRate;
+      else if (this.playerMotocross) this.mxYawRate = yawRate;
       if (this.airborne) this.flightSpeed = Math.max(0, vh);
       else d.speed = Math.max(0, vh / Math.cos(this.roadPitch));
     }
     const vF = this.vy + (fa * cos + HF * sin) * this.pitchRate,
       vR = this.vy + (-ra * cos + HR * sin) * this.pitchRate;
-    // A whipped chassis sweeps its contact patches across the ground while
-    // its centre keeps flying straight. Include that rotational sweep when
-    // the two ends first compress on a berm or an uneven landing.
-    const yawSweep = (i: number, reach: number) => {
-      if (!this.airborne || this.airYawRate === 0) return 0;
-      const n = this.contacts[i].normal,
-        h = d.heading + this.airYaw;
-      return (
-        -((n.x * Math.cos(h) - n.z * Math.sin(h)) / Math.max(0.1, n.y)) * reach * this.airYawRate
-      );
-    };
     // Suspension stroke is the rate at which the tyre closes on the local
     // height field. A bike sliding diagonally up a berm compresses its
     // dampers even when its forward path and CG height are level. Use the
     // velocities after any hard-stop impulse for this compliant force.
-    const rateF = slope(0) * vh + crossSlope(0) * this.slide + yawSweep(0, fa) - vF,
-      rateR = slope(2) * vh + crossSlope(2) * this.slide + yawSweep(2, -ra) - vR;
+    const rateF = slope(0) * vh + crossSlope(0) * this.slide + yawArm(0, fa) * yawRate - vF,
+      rateR = slope(2) * vh + crossSlope(2) * this.slide + yawArm(2, -ra) * yawRate - vR;
     // A standing rider's legs soak part of every hit.
     const damping = 1 + 0.5 * this.standing;
     const end = (c: number, rate: number, front: boolean) => {
