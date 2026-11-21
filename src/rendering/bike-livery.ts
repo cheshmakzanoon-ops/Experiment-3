@@ -1,4 +1,6 @@
 import type * as T from 'three';
+import { gpLimbPrint, gpTorsoPrint } from './gp-rider-prints.ts';
+import { liveryScheme } from './car-livery.ts';
 import { gpHelmetLivery } from './gp-rider-helmet.ts';
 import { canvasTexture } from './geometry.ts';
 import { drawWordmark } from './studio/brand-atlas.ts';
@@ -19,11 +21,19 @@ export function gpRiderPrints(
   colours: RiderColours,
   raceNumber: number,
   prototype = true,
+  entrant = Math.max(0, raceNumber - 2),
 ): GpRiderPrints {
+  if (prototype) {
+    const team = liveryScheme(entrant);
+    return {
+      limb: gpLimbPrint(colours, team), torso: gpTorsoPrint(colours, raceNumber, team),
+      helmet: gpHelmetLivery(colours, raceNumber, team.title),
+    };
+  }
   return {
     limb: riderPanelTexture(colours, false, true),
     torso: riderPanelTexture(colours, true, true, raceNumber),
-    helmet: prototype ? gpHelmetLivery(colours, raceNumber) : helmetLiveryTexture(colours),
+    helmet: helmetLiveryTexture(colours),
   };
 }
 

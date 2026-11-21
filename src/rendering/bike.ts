@@ -560,8 +560,8 @@ export class BikeMaterials {
   /** GP bike-space occlusion uniforms shared by this entrant's bike and rider
    * materials (gp-occlusion.ts); inert until a GP entrant binds a volume. */
   readonly occlusion = gpOcclusionUniforms();
-  constructor(id: number) {
-    const scheme = liveryScheme(id);
+  constructor(private readonly entrant: number) {
+    const scheme = liveryScheme(entrant);
     const add = <M extends T.Material>(m: M) => (this.list.push(m), m);
     this.paint = add(
       new T.MeshPhysicalMaterial({
@@ -726,7 +726,7 @@ export class BikeMaterials {
     this.band = add(new T.MeshStandardMaterial({ color: 0xf5c400, roughness: 0.6 }));
     this.plate = add(
       new T.MeshPhysicalMaterial({
-        map: numberTexture((id % 98) + 2, scheme.primary, scheme.accent),
+        map: numberTexture((entrant % 98) + 2, scheme.primary, scheme.accent),
         transparent: true,
         depthWrite: false,
         polygonOffset: true,
@@ -781,7 +781,7 @@ export class BikeMaterials {
     const key = (prototype ? 'gp' : 'road') + number;
     let prints = this.prints.get(key);
     if (!prints) {
-      prints = gpRiderPrints(colours, number, prototype);
+      prints = gpRiderPrints(colours, number, prototype, this.entrant);
       this.prints.set(key, prints);
     }
     return prints;

@@ -297,7 +297,7 @@ export function installGpSuitFinish(
   perforated: boolean,
   cut: GpSuitCut = 'plain',
 ) {
-  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v2`;
+  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v3`;
   chainShaderHook(material, key, (shader) => {
     const coordinates =
       cut === 'plain'
@@ -320,6 +320,14 @@ ${cut !== 'plain' ? 'vGpSuitUv = uv;' : ''}
 ${cut === 'limb' ? '#ifdef USE_SKINNING\nvGpSuitCut = gpSuitCut;\n#else\nvGpSuitCut = vec2(0.);\n#endif' : ''}`,
       'vertex',
     );
+    if (cut === 'limb') {
+      // Only redirect the colour atlas. Physical hide, roughness, joint relief
+      // and stitching continue to use the full wrap in local bind coordinates.
+      injectAfter(shader, 'uv_vertex', `
+#if defined(USE_MAP) && defined(USE_SKINNING)
+  vMapUv.x = (gpSuitCut.x > 1.5 ? .5 : 0.) + (2. + 508. * vMapUv.x) / 1024.;
+#endif`, 'vertex');
+    }
     injectDeclarations(
       shader,
       'common',

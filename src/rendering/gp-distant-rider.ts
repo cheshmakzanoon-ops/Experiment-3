@@ -9,6 +9,7 @@ export function paintDistantGpRider(
   source: T.BufferGeometry,
   colours: RiderColours,
   helmet: boolean,
+  prototype = true,
 ) {
   const geometry = source.toNonIndexed();
   source.dispose();
@@ -33,11 +34,17 @@ export function paintDistantGpRider(
       if (phi > GP_VISOR_PHI[0] && phi < GP_VISOR_PHI[1] && h > eye[0] && h < eye[1])
         colour = visor;
       else if (h < -0.09) colour = rim;
-      else if (forward < 0.6 && h > 0.018 - 0.045 * forward && h < 0.108) colour = pale;
+      else if (forward < .6 && h > .010 - .042 * forward && h < .108) {
+        const inlay = .065 + .026 * Math.max(0, forward);
+        if (Math.abs(h - inlay) > .010) colour = pale;
+      }
     } else {
       const flank = Math.abs(Math.cos(phi));
-      if (y < 0.11 || flank > 0.955) colour = dark;
-      else if (y > 0.435 && y < 0.506 && flank < 0.92) colour = pale;
+      if (!prototype) {
+        if (y < .11 || flank > .955) colour = dark;
+        else if (y > .435 && y < .506 && flank < .92) colour = pale;
+      } else if (y < .115 - flank * .055 || flank > .95) colour = dark;
+      else if (y > .29 && flank > .52 && flank < .90 && y > .57 - flank * .25) colour = pale;
     }
     for (let j = i; j < i + 3; j++) colour.toArray(paint, j * 3);
   }

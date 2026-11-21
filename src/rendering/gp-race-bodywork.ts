@@ -1383,25 +1383,20 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
   ];
   for (const [value, at, width, colour] of tags)
     p.text(value, at, 0.017, width, colour, { weight: 0.17, tracking: 0.08 });
-  // Tail: a compact number bay at the squared rear, as on the real tails.
-  p.poly(
-    [
-      [-0.82, 0.39],
-      [-0.952, 0.396],
-      [-0.955, 0.29],
-      [-0.825, 0.285],
-    ],
-    '#eceee8',
-  );
-  p.line(
-    [
-      [-0.82, 0.39],
-      [-0.825, 0.285],
-    ],
-    0.007,
-    accent,
-  );
-  p.text(number, [-0.888, 0.34], 0.064, 0.11, '#16191d', numberStyle);
+  if (variant === 'sport') {
+    p.poly([[-.82,.39],[-.952,.396],[-.955,.29],[-.825,.285]], '#eceee8');
+    p.line([[-.82,.39],[-.825,.285]], .007, accent);
+    p.text(number, [-.888,.34], .064, .11, '#16191d', numberStyle);
+  } else {
+    // The number sits on the unbroken outer flank; a tapered flash follows
+    // the mould's shoulder and stays clear of the lamp opening.
+    const level = (y: number) => r2 ? .262 + (y - .262) * .78 : y;
+    p.poly([[-.67,level(.362)],[-.82,level(.390)],[-.932,level(.374)],
+      [-.848,level(.375)]], accent);
+    const spot: ZY = [-.838, level(.348)];
+    p.text(number, spot, r2 ? .035 : .043, .082, '#191923', { ...numberStyle, weight: .40 });
+    p.text(number, spot, r2 ? .035 : .043, .082, '#eeeee6', numberStyle);
+  }
   p.line(
     [
       [-0.2, 0.13],

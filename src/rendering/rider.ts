@@ -5,7 +5,7 @@ import * as T from 'three';
 import { MotocrossDab, type MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { tagWeatherSurface } from './weather-presentation.ts';
-import { helmetLiveryTexture, riderPanelTexture, type GpRiderPrints } from './bike-livery.ts';
+import { gpRiderPrints, helmetLiveryTexture, riderPanelTexture, type GpRiderPrints } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { installSsrMask } from './ultra/ssr-mask.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
@@ -22,7 +22,6 @@ import type { VehicleClass } from '../simulation/vehicles.ts';
 import {
   GP_HELMET_CENTRE,
   addGpHelmetDetails,
-  gpHelmetLivery,
   gpHelmetShell,
 } from './gp-rider-helmet.ts';
 import { GpRiderSpine } from './gp-rider-spine.ts';
@@ -807,11 +806,12 @@ export class Rider {
       }
     }
     if (!mx && detail !== 'far') {
-      leather.map = sharedPrints?.limb ?? riderPanelTexture(colours, false, gpSuit);
+      const prints = sharedPrints ?? (gpSuit ? gpRiderPrints(colours, raceNumber) : undefined);
+      leather.map = prints?.limb ?? riderPanelTexture(colours, false);
       leather.color.setHex(0xffffff);
-      torsoLeather.map = sharedPrints?.torso ?? riderPanelTexture(colours, true, gpSuit, gpSuit ? raceNumber : undefined);
+      torsoLeather.map = prints?.torso ?? riderPanelTexture(colours, true);
       torsoLeather.color.setHex(0xffffff);
-      helmet.map = sharedPrints?.helmet ?? (gp ? gpHelmetLivery(colours, raceNumber) : helmetLiveryTexture(colours));
+      helmet.map = prints?.helmet ?? helmetLiveryTexture(colours);
       helmet.color.setHex(0xffffff);
     }
     if (distantRoad) {
@@ -879,7 +879,7 @@ export class Rider {
     const torsoMount = distantGp ? this.gpSpine!.lumbar : this.torso;
     const torsoMesh = part(
       torsoMount,
-      distantRoad ? paintDistantGpRider(torsoGeometry, colours, false) : torsoGeometry,
+      distantRoad ? paintDistantGpRider(torsoGeometry, colours, false, distantGp) : torsoGeometry,
       torsoLeather,
     );
     torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
@@ -925,7 +925,7 @@ export class Rider {
       // vertex-colour batch. At racing distance it needs no separate finish.
       part(
         this.torso,
-        distantRoad ? paintDistantGpRider(hump, colours, false) : hump,
+        distantRoad ? paintDistantGpRider(hump, colours, false, false) : hump,
         distantRoad ? torsoLeather : panel,
       ).name = 'Rider aero hump';
     }

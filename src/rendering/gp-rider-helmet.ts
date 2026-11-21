@@ -407,7 +407,7 @@ export function addGpHelmetDetails(
  * the chin, 0.5 left, 0.75 nape; v rises). A light swept blade with a dark
  * keyline and pinstripe, a halftone fade, brow strip, chin-bar maker mark and
  * race numbers; every mark is fictional. */
-export function gpHelmetLivery(colours: RiderColours, raceNumber: number) {
+export function gpHelmetLivery(colours: RiderColours, raceNumber: number, title = 'VANTA') {
   const css = (hex: number) => `#${hex.toString(16).padStart(6, '0')}`;
   const W = 1024,
     H = 512,
@@ -467,22 +467,25 @@ export function gpHelmetLivery(colours: RiderColours, raceNumber: number) {
         blade(0);
         c.fillStyle = '#eceeed';
         c.fill();
-        // Halftone fade in the primary over the blade's trailing half.
-        c.save();
-        blade(0);
-        c.clip();
+        // A tapered lacquer inlay flows across the side, opening the pearl
+        // blade into two sweeps. The paint stays legible after mip filtering
+        // on a moving opponent and closes continuously across the rear seam.
+        c.beginPath();
+        c.moveTo(u(.14), py(.078));
+        c.bezierCurveTo(u(.24), py(.119), u(.35), py(.085), u(.50), py(.067));
+        c.lineTo(u(.50), py(.047));
+        c.bezierCurveTo(u(.38), py(.043), u(.32), py(.061), u(.25), py(.064));
+        c.bezierCurveTo(u(.20), py(.070), u(.19), py(.084), u(.14), py(.078));
+        c.closePath();
         c.fillStyle = css(colours.primary);
-        for (let i = 0; i < 46; i++)
-          for (let j = 0; j < 22; j++) {
-            const fx = 0.2 + i * 0.0068 + (j % 2) * 0.0034,
-              fy = -0.06 + j * 0.0085,
-              r = 3.2 * T.MathUtils.smoothstep(fx, 0.24, 0.5);
-            if (r < 0.35) continue;
-            c.beginPath();
-            c.arc(u(fx), py(fy), r, 0, Math.PI * 2);
-            c.fill();
-          }
-        c.restore();
+        c.fill();
+        c.beginPath();
+        c.moveTo(u(.22), py(.054));
+        c.bezierCurveTo(u(.30), py(.054), u(.34), py(.029), u(.43), py(.022));
+        c.bezierCurveTo(u(.35), py(.030), u(.28), py(.054), u(.22), py(.050));
+        c.closePath();
+        c.fillStyle = css(colours.secondary);
+        c.fill();
         // Accent pinstripe just inside the upper edge.
         c.strokeStyle = css(colours.accent);
         c.lineWidth = 3;
@@ -515,7 +518,7 @@ export function gpHelmetLivery(colours: RiderColours, raceNumber: number) {
     c.fillStyle = '#121519';
     c.fillRect(px(0.135), py(0.084), px(0.23), py(0.058) - py(0.084));
     c.strokeStyle = '#eef0ef';
-    drawWordmark(c, 'MERIDIAN OIL', px(0.25), (py(0.084) + py(0.058)) / 2, 13, {
+    drawWordmark(c, title, px(0.25), (py(0.084) + py(0.058)) / 2, 13, {
       weight: 0.18,
       slant: 0.1,
     });
