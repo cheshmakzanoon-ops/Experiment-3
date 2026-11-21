@@ -24,7 +24,7 @@ On a second run the same car arrived in High at 1280 × 720. Applying the brake 
 
 [Full-size 1280 × 720 quay arrival](harbour-quay-720.jpg) · [Chase view after braking](harbour-eh3-braking-720.jpg)
 
-The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The full-size frames and pixel comparisons are in the hosted run.
+The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The quay build changed 51,786 pixels by at least two colour levels at the storefront and 230,214 under the festoon. Repeating each lights-off frame gave identical pixels. The full-size frames are in the quay-build workflow.
 
 ![Port Ilse storefront and festoon lighting on wet streets at night](port-ilse-night.jpg)
 
@@ -116,7 +116,7 @@ From the paddock, choose **Festival** and **Enter Festival**. The packaged game 
 
 | Build on `main` | Local regression results | Browser coverage |
 | --- | --- | --- |
-| `89fe9739` · quay buildings | 680 passed across 84 files | High chase, keyboard acceleration and braking at Harbour Front. All 12 Low driving checks on SwiftShader. |
+| `89fe9739` · quay buildings | 680 passed across 84 files | High chase, throttle and brakes at Harbour Front. All 12 Low driving checks passed on SwiftShader and hosted Mesa. Both Medium night scenes passed on hosted Mesa. |
 | `726babfc` · reflection continuity | 678 passed across 83 files | High harbour chase and HUD on Mesa. All 12 Low driving checks on SwiftShader. |
 | `336fb587` · wet quarry and scoring | 637 passed across 81 files | All 12 Low driving checks on SwiftShader and hosted Mesa. Smoke, dust, water and both Medium night scenes passed on hosted Mesa. |
 
@@ -126,9 +126,11 @@ Tyre smoke, quarry dust and water spray each passed three measured image compari
 
 On the same quay build all 26 assisted races and six quarry-zone runs completed without resets or off-route time. All eight speed challenges scored. The wet four-car replay also matched all 13,200 physics snapshots from the earlier builds at each of the four presentation cadences.
 
-The four-panel gameplay plate comes from `336fb587`. On that build, keyboard input moved the car 32.49 m on SwiftShader and 57.44 m on hosted Mesa. Its hosted run passed an additional 153 focused tests. A separate local SwiftShader night run timed out on the storefront capture. The paired Medium night plate above comes from the completed hosted run.
+The four-panel gameplay plate comes from `336fb587`. On that build, keyboard input moved the car 32.49 m on SwiftShader and 57.44 m on hosted Mesa. Its hosted run passed an additional 153 focused tests. A separate local SwiftShader night run timed out on the storefront capture. The paired Medium night plate above comes from the later quay build, `89fe9739`.
 
-The quay build also passed 188 focused checks across 23 files on the hosted runner. One local Mesa attempt on this build lost its renderer during storefront readback and ended at its deadline.
+The quay build passed 188 focused checks across 23 files on the hosted runner. The hosted keyboard drive covered 57.06 m, with braking from 65.07 to 0.93 km/h. The 12-step journey, tyre smoke, dust, spray and both rainy-night lighting comparisons all passed. One local Mesa attempt on the same build lost its renderer during storefront readback.
+
+The keyboard journey also passed all 12 checks using the browser matrix's corrected identity manifest. It carried the production fingerprint and 1,848 individual source and asset hashes. Keyboard input moved the car 66.74 m and braking reduced speed from 66.26 to below 0.01 km/h. The three-car race finished in 105.37 seconds with zero off-route time, page errors or missing assets.
 
 A hosted run of the earlier reflection build finished the driving checks but exceeded the night-load deadline while identifying its software renderer. The review now reads the WebGL renderer name from the Festival's own context before the first draw. The night checks still require the requested backend and both full lighting comparisons.
 
