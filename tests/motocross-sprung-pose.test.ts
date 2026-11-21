@@ -87,6 +87,61 @@ const flatTrack = {
   boundaryAt: () => 8,
 } as unknown as Track;
 
+it('keeps unused service stands out of a motocross grid and reconstructs recorded wheel service', () => {
+  const sim = new Simulation({
+    ...DEFAULT_OPTIONS,
+    mode: 'race',
+    circuit: 'arena-nord-sx',
+    ruleset: 'motocross-moto',
+    opponents: 7,
+    vehicles: Array(8).fill('mx250'),
+  });
+  const frame = sim.makeFrame(),
+    shells = new BikeShells();
+  const hosts = Array.from({ length: 8 }, () => ({ root: new T.Object3D() }));
+  const camera = new T.PerspectiveCamera(58, 16 / 9);
+  camera.position.set(800, 3, 400);
+  const show = (f: Float32Array) => shells.update(f, f, 1, hosts, camera, 'low', -1);
+  try {
+    shells.prefitDirtService = false;
+    show(frame);
+    for (let id = 0; id < hosts.length; id++) {
+      expect(shells.drawnRoot(id)?.visible).toBe(true);
+      expect(shells.serviceRig(id)).toBeNull();
+    }
+    const service = frame.slice(),
+      rider = carBase(3);
+    service[rider + F.IN_PIT] = 1;
+    service[rider + F.PIT_PHASE] = 3;
+    service[rider + F.PIT_CLOCK] = 3;
+    service[rider + F.JACK_HEIGHT] = 0.12;
+    show(service);
+    const restored = shells.serviceRig(3)!;
+    expect(restored.root.visible).toBe(true);
+    expect(shells.serviceRig(0)).toBeNull();
+    show(frame);
+    expect(restored.root.visible).toBe(false);
+    show(service);
+    expect(shells.serviceRig(3)).toBe(restored);
+    shells.prefitDirtService = true;
+    show(frame);
+    let meshes = 0;
+    const geometries = new Set<T.BufferGeometry>(),
+      materials = new Set<T.Material>();
+    for (let id = 0; id < hosts.length; id++) {
+      shells.serviceRig(id)!.root.traverse((object) => {
+        if (!(object instanceof T.Mesh)) return;
+        meshes++;
+        geometries.add(object.geometry);
+        materials.add(object.material);
+      });
+    }
+    expect([meshes, geometries.size, materials.size]).toEqual([160, 48, 24]);
+  } finally {
+    shells.disposeAll();
+  }
+});
+
 describe('motocross authoritative sprung-chassis presentation', () => {
   it.each(['mx250', 'mx450'])(
     '%s GPU inspection offsets prescribe supported chassis heave and pitch',

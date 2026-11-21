@@ -1088,6 +1088,7 @@ export class RacingRenderer {
       const total = frame[H.CARS];
       if (!Number.isInteger(total) || total < 1 || total > 12)
         throw new Error('Invalid warmup grid');
+      this.bikeShells.prefitDirtService = pitService || !this.circuit.offroad;
       for (let n = this.cars.length + 1; n <= total; n++) {
         if (cancelled()) return false;
         const label = BikeShells.isBike(frame, n - 1) ? 'Preparing motorcycle' : 'Building original Formula car';

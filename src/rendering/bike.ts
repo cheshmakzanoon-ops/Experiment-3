@@ -2225,7 +2225,7 @@ interface Entry {
   /** Local reflection recipients shared by all of this prototype’s detail levels. */
   probePaint?: T.MeshStandardMaterial[];
   /** Paddock stands and carried wheels, shown only during a pit service. */
-  rig: BikeServiceRig;
+  rig?: BikeServiceRig;
   /** GP prototypes: the rider's spring-damped mass (gp-rider-dynamics). */
   riderBody?: GpRiderBody;
   /** GP prototypes: key of the shared bike-space occlusion volume. */
@@ -2317,6 +2317,8 @@ export function bikeOnboardFov(
 export class BikeShells {
   motocrossGround?: MxDabSurface;
   arenaGrid?: MxArenaGrid;
+  /** A motocross moto has no wheel service. Road and inspection sessions prefit their stands. */
+  prefitDirtService = true;
   private readonly roadContact = new RoadBikeContactPose();
   private readonly mxRecoveryPose = new MxRecoveryPose();
   private readonly helmetUp = new T.Vector3();
@@ -2392,9 +2394,6 @@ export class BikeShells {
       ? this.occlude(definition.id, levels, materials, () => levels[0].occlusionGrid())
       : undefined;
     for (const level of levels) this.install(level.root);
-    const rig = new BikeServiceRig(bikeServiceGeometry(definition));
-    this.root.add(rig.root);
-    this.install(rig.root);
     let probePaint: T.MeshStandardMaterial[] | undefined;
     if (gp) {
       probePaint = [
@@ -2413,7 +2412,6 @@ export class BikeShells {
       levels,
       dirtMud,
       level: -1,
-      rig,
       riderBody,
       occlusion,
       pendingOcclusion,
@@ -2512,9 +2510,11 @@ export class BikeShells {
       this.fieldGeometry.release(level.root);
       level.dispose();
     }
-    this.uninstall(entry.rig.root);
-    this.root.remove(entry.rig.root);
-    entry.rig.dispose();
+    if (entry.rig) {
+      this.uninstall(entry.rig.root);
+      this.root.remove(entry.rig.root);
+      entry.rig.dispose();
+    }
     entry.materials.dispose();
     if (entry.occlusion) releaseGpOcclusion(entry.occlusion);
   }
@@ -2626,7 +2626,14 @@ export class BikeShells {
       car.visible = false;
       // Discrete service fields as the presented frame carries them.
       const service = this.servicePose(source, id, definition);
-      entry.rig.update(service, this.serviceTask, car.position, car.quaternion);
+      // Real service snapshots always supply their props, including a replay
+      // opened on a renderer that was previously hosting a gate-start moto.
+      if (!entry.rig && (!entry.dirtMud || this.prefitDirtService || service)) {
+        entry.rig = new BikeServiceRig(bikeServiceGeometry(definition));
+        this.root.add(entry.rig.root);
+        this.install(entry.rig.root);
+      }
+      entry.rig?.update(service, this.serviceTask, car.position, car.quaternion);
       this.values.rearWheelOut = service ? service.hubs[1].z - service.mounted[1].z : 0;
       this.values.frontWheelDrop = service ? service.hubs[0].y - service.mounted[0].y : 0;
       // LOD by lens-corrected distance; the followed bike is always near.
