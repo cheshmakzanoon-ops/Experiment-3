@@ -179,6 +179,25 @@ export function motocrossForkGuard(detail: RiderDetail) {
   return geometry;
 }
 
+/** Inverted off-road fork. The sliding 48 mm leg enters a hollow wiper at
+ * the flared foot of the anodised casting. The top cap remains on the crown. */
+export function motocrossForkOuter(detail: RiderDetail) {
+  const segments = detail === 'high' ? 18 : detail === 'mid' ? 12 : 8;
+  // The bore clears the round stanchion even at the middle of a polygon edge.
+  const bore = 0.0242 / Math.cos(Math.PI / segments);
+  const turn = (profile: ReadonlyArray<readonly [number, number]>) =>
+    new T.LatheGeometry(profile.map(([r, y]) => new T.Vector2(r, y)), segments);
+  const tube = turn([
+    [bore, -0.36], [bore, -0.38], [0.031, -0.38],
+    [0.032, -0.374], [0.032, -0.35], [0.028, -0.319],
+    [0.0275, -0.204], [0.03, -0.069], [0.03, 0.216], [0.0285, 0.22],
+  ]);
+  const wiper = turn([
+    [bore, -0.378], [bore, -0.387], [0.028, -0.386], [0.0306, -0.38],
+  ]);
+  return { tube, wiper };
+}
+
 /** One continuous cast triple clamp surrounds both fork tubes and the stem.
  * Open bores preserve the real fork interfaces in underside/onboard views. */
 export function motocrossTripleClamp(detail: RiderDetail, thickness: number, offset: number) {

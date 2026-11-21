@@ -11,6 +11,7 @@ import {
 import {
   motocrossFender,
   motocrossForkGuard,
+  motocrossForkOuter,
   motocrossTripleClamp,
 } from '../src/rendering/offroad/motocross-detail.ts';
 
@@ -249,6 +250,29 @@ describe('motocross formed bodywork', () => {
         }
       },
     );
+
+  it.each(['high', 'mid'] as const)('%s wiper and outer fork have a continuous 48 mm sliding bore', (detail) => {
+    const { tube, wiper } = motocrossForkOuter(detail);
+    const views = [inspect(tube), inspect(wiper)];
+    try {
+      const up = new T.Vector3(0, 1, 0);
+      for (let i = 0; i < 32; i++) {
+        const phase = i * 2 * Math.PI / 32;
+        const at = new T.Vector3(0.024 * Math.cos(phase), -0.41, 0.024 * Math.sin(phase));
+        for (const view of views) expect(view.cast(at, up)).toHaveLength(0);
+      }
+      // The mouth remains visible around the inner leg and fits inside the
+      // sliding plastic guard at bottom-out.
+      const across = new T.Vector3(-1, 0, 0);
+      const seal = views[1].cast(new T.Vector3(0.05, -0.383, 0), across)[0];
+      const foot = views[0].cast(new T.Vector3(0.05, -0.368, 0), across)[0];
+      expect(seal.point.x).toBeGreaterThan(0.027);
+      expect(foot.point.x).toBeGreaterThan(seal.point.x);
+      expect(foot.point.x).toBeLessThan(0.033);
+    } finally {
+      views.forEach(view => view.dispose());
+    }
+  });
 
   it.each(['high', 'mid'] as const)(
     '%s fork guard is a closed 3 mm C-section with a real open rear and clearance around the fork tube',

@@ -82,6 +82,7 @@ import {
   motocrossTread,
   motocrossFender,
   motocrossForkGuard,
+  motocrossForkOuter,
   motocrossTripleClamp,
   mouldedPanel,
   installMotocrossPlasticFinish,
@@ -428,18 +429,26 @@ export class DirtBikeModel {
       this.onboardControls.add(point);
     };
     // Outer fork tubes (anodised) through the clamps.
-    for (const side of [1, -1])
-      add(
-        this.steer,
-        // Keep the lower endpoint at -0.38 m while the MX tube now passes
-        // through the upper collar. The old 0.5 m tube ended 8 cm below it;
-        // the former solid rectangular clamp hid that missing attachment.
-        new T.CylinderGeometry(0.03, 0.03, 0.6, sides / 2),
-        this.m.forkUpper,
-        side * 0.095,
-        -0.08,
-        OFFSET,
-      );
+    for (const side of [1, -1]) {
+      const x = side * 0.095;
+      if (supermoto || detail === 'far') {
+        add(this.steer, new T.CylinderGeometry(0.03, 0.03, 0.6, sides / 2),
+          this.m.forkUpper, x, -0.08, OFFSET);
+        continue;
+      }
+      const { tube, wiper } = motocrossForkOuter(detail);
+      add(this.steer, tube, this.m.forkUpper, x, 0, OFFSET);
+      add(this.steer, wiper, this.m.dark, x, 0, OFFSET);
+      // A threaded cap closes each outer tube above its clamp. The hex head
+      // and adjuster are visible between the bars from the rider's eye.
+      add(this.steer, new T.CylinderGeometry(0.028, 0.029, 0.004, 12),
+        this.m.aluminium, x, 0.22, OFFSET);
+      add(this.steer, new T.CylinderGeometry(0.018, 0.019, 0.005, 6),
+        this.m.aluminium, x, 0.224, OFFSET);
+      if (detail === 'high')
+        add(this.steer, new T.CylinderGeometry(0.006, 0.0075, 0.003, 8),
+          this.m.steel, x, 0.227, OFFSET);
+    }
     if (detail === 'far') {
       add(this.steer, new T.BoxGeometry(0.24, 0.035, 0.08), this.m.aluminium, 0, 0, OFFSET * 0.5);
       add(
@@ -772,7 +781,7 @@ export class DirtBikeModel {
           lightFrame ? 0.014 : 0.018,
           // Smooth bends and round sections up close: the brushed alloy's
           // streaked highlight otherwise shows every facet of the cradle.
-          detail === 'high' ? 56 : 12,
+          detail === 'high' ? (supermoto ? 56 : 37) : 12,
           detail === 'high' ? 12 : 8,
         ),
         lightFrame ? primary : brushedAlloy,
