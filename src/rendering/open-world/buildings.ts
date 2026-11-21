@@ -295,7 +295,8 @@ vec2 owPaneTilt;`,
     // Physical cornices, pilasters, sills and roof equipment carry their
     // own vertex colour and must not inherit the facade's window grid.
     diffuseColor.rgb *= 0.92 + 0.1 * owNoise(q * 2.5 + style);
-  } else if (roof && kind > 2.5 && kind < 3.5) {
+  } else if (roof && ((kind > 2.5 && kind < 3.5) || abs(kind - 9.0) < 0.5)) {
+    // The long seams on barns and quay sheds follow the fall of each roof face.
     float spacing = 0.52;
     float sheet = q.x / spacing;
     float foldDistance = min(fract(sheet), 1.0-fract(sheet))*spacing;
@@ -337,7 +338,7 @@ vec2 owPaneTilt;`,
     diffuseColor.rgb *= mix(vec3(1.0), vec3(0.47, 0.074, 0.047), stripe);
     diffuseColor.rgb *= (0.91 + 0.1 * grain) * (1.0 - 0.16 * toe) * (1.0 - 0.085 * max(mortar.x, mortar.y) * close);
     owWallRoughness = 0.88 + 0.07 * grain;
-  } else if (kind > 9.5) {
+  } else if (kind > 8.5) {
     // Broad vertical sheets, raised fastener laps and dirt under the eaves.
     float ribPhase = q.x * 6.2832 / 0.185;
     float ridgeResolve = 1.0 - smoothstep(0.85, 3.0, fwidth(ribPhase));
@@ -482,7 +483,7 @@ if (owGlass > 0.001) {
 }`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v13-working-farms';
+  material.customProgramCacheKey = () => 'festival-facades-v14-quay-metal';
   return material;
 }
 
