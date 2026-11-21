@@ -2,7 +2,7 @@ import { openWorld } from '../src/simulation/open-world/world.ts';
 import { OpenWorldTrack } from '../src/simulation/open-world/open-world-track.ts';
 import { surfaceSample } from '../src/simulation/track.ts';
 import * as T from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TrafficCars, TRAFFIC_CAPACITY } from '../src/rendering/traffic-cars.ts';
 import {
   TRAFFIC_VISUAL_PROFILES,
@@ -91,6 +91,40 @@ describe('festival traffic visual geometry', () => {
     expect(render(3)).toBe(near);
     expect(cars.root.children).toHaveLength(5);
     cars.dispose();
+  });
+
+  it('keeps a nearby car detailed without promoting the other 23 sets of wheels', () => {
+    const cars = new TrafficCars(), cam = new T.PerspectiveCamera(55, 16 / 9, 0.1, 5000);
+    cam.position.set(0, 1, 0);
+    const poses = Array.from({ length: 24 }, (_, i) => ({
+      id: i + 1, machine: machines[i % 2], x: i === 13 ? 0 : i * 1.6, z: i === 13 ? 3 : 140 + i,
+      distance: i * 0.73, yaw: i * 0.05,
+    }));
+    const snapshots = block(poses);
+    cars.update(null, snapshots, 1, 0.5, 0);
+    const detailed = cars.diagnostics.wheelTriangles;
+    const expected = Array.from({ length: 96 }, (_, i) => matrixAt(cars.wheels, i));
+    cars.update(null, snapshots, 1, 0.5, 0, cam, 720);
+    const far = cars.root.getObjectByName('Ambient traffic distant wheels (instanced)') as T.InstancedMesh;
+    expect(cars.diagnostics.batches).toBe(6);
+    expect(cars.wheels.count).toBe(4);
+    expect(far.count).toBe(92);
+    expect(cars.diagnostics.wheelTriangles / detailed).toBeLessThan(0.35);
+    for (let i = 0; i < 4; i++) expect(matrixAt(cars.wheels, i).elements).toEqual(expected[52 + i].elements);
+    for (let i = 0; i < 92; i++) expect(matrixAt(far, i).elements).toEqual(expected[i < 52 ? i : i + 4].elements);
+    const reordered = block([...poses].reverse());
+    cars.update(null, reordered, 1, 0.5, 0, cam, 720);
+    expect(cars.wheels.count).toBe(4);
+    for (let i = 0; i < 4; i++) expect(matrixAt(cars.wheels, i).elements).toEqual(expected[52 + i].elements);
+    cam.position.set(2000, 400, 2000);
+    cars.update(null, reordered, 1, 0.5, 0, cam, 720);
+    expect(cars.wheels.count).toBe(96);
+    expect(far.parent).toBeNull();
+    expect(cars.diagnostics.batches).toBe(5);
+    const released = vi.fn();
+    far.addEventListener('dispose', released);
+    cars.dispose();
+    expect(released).toHaveBeenCalledTimes(1);
   });
 
   it('keeps five bounded batches and the previous per-car triangle budget while adding independent wheels', () => {

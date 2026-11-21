@@ -64,8 +64,8 @@ function blockCount(block: Float32Array | null) {
   return Math.min(TRAFFIC_CAPACITY, count);
 }
 
-/** Five bounded batches: four native morph-instanced body materials plus one
- * independently posed wheel batch. Morph profiles have fixed topology and
+/** Four native morph-instanced body materials and one wheel draw per occupied
+ * level of detail. Mixed near/far fields add at most one wheel draw. Morph profiles have fixed topology and
  * are capped by an explicit palette rather than growing with the registry. */
 export class TrafficCars {
   readonly root = new T.Group();
@@ -75,6 +75,10 @@ export class TrafficCars {
   private readonly signalSide = new T.InstancedBufferAttribute(new Float32Array(TRAFFIC_CAPACITY), 1).setUsage(T.DynamicDrawUsage);
   private readonly nearWheel = trafficWheelGeometry();
   private readonly farWheel = distantTrafficWheelGeometry();
+  private readonly farWheels: T.InstancedMesh;
+  private readonly nearMask = new Uint8Array(TRAFFIC_CAPACITY);
+  private previousNear = new Set<number>();
+  private nearNow = new Set<number>();
   private readonly bodyBatches: readonly T.InstancedMesh[];
   private readonly batches: readonly T.InstancedMesh[];
   private readonly morph: T.Mesh;
@@ -152,6 +156,12 @@ export class TrafficCars {
     );
     this.wheels.name = 'Ambient traffic wheels (instanced)';
     this.wheels.castShadow = this.wheels.receiveShadow = true;
+    this.farWheels = new T.InstancedMesh(this.farWheel, this.wheels.material, TRAFFIC_CAPACITY * 4);
+    this.farWheels.name = 'Ambient traffic distant wheels (instanced)';
+    this.farWheels.castShadow = this.farWheels.receiveShadow = true;
+    this.farWheels.frustumCulled = false;
+    this.farWheels.count = 0;
+    this.farWheels.instanceMatrix.setUsage(T.DynamicDrawUsage);
     this.bodyBatches = [this.bodies, glazing, fixtures, this.lamps];
     this.batches = [...this.bodyBatches, this.wheels];
     this.morph = new T.Mesh(geometry.paint, this.bodies.material);
@@ -184,20 +194,19 @@ export class TrafficCars {
     const n = blockCount(b);
     if (!n || !b) {
       for (const mesh of this.batches) mesh.count = 0;
+      this.farWheels.count = 0;
+      this.farWheels.removeFromParent();
+      this.previousNear.clear();
       this.count = 0;
       return;
     }
-    // Keep the five instanced passes. A single close vehicle promotes the
-    // complete wheel batch, including its reflections and offscreen shadows.
-    // Bound depth at the corners of the frustum; zoom and render resolution
-    // determine the threshold in actual tyre pixels.
-    const px = this.wheels.geometry === this.nearWheel ? 9 : 12;
+    // Use tyre size in projected pixels, including photo zoom. Keep hysteresis
+    // by vehicle ID, so field reordering cannot change a wheel's geometry.
     const proj = camera?.projectionMatrix.elements;
-    const radiusDistance =
-      proj && viewportHeight > 0
-        ? (viewportHeight * proj[5] * 0.5 * Math.hypot(1, 1 / proj[0], 1 / proj[5])) / px
-        : 0;
-    let close = !camera || !radiusDistance;
+    const pixels = proj && viewportHeight > 0
+      ? viewportHeight * proj[5] * 0.5 * Math.hypot(1, 1 / proj[0], 1 / proj[5]) : 0;
+    let nearCount = 0;
+    this.nearNow.clear();
     const blend = Number.isFinite(alpha) ? T.MathUtils.clamp(alpha, 0, 1) : 1;
     const previousCount = blockCount(a),
       oldStride = frameStride(a),
@@ -316,9 +325,13 @@ export class TrafficCars {
       this.lamps.setColorAt(k, this.colour.setRGB(head, tail, flash ? 3 : 0.12));
       const wheelDef = profile.vehicle,
         radius = wheelDef.spec.wheelRadius;
-      if (!close && camera) {
-        const reach = radius * this.scale.y * radiusDistance + def.halfExtents[2] + 0.8;
-        close = this.position.distanceToSquared(camera.position) <= reach * reach;
+      const threshold = this.previousNear.has(id) ? 9 : 12;
+      const reach = radius * this.scale.y * pixels / threshold + def.halfExtents[2] + 0.8;
+      const near = !camera || !pixels || this.position.distanceToSquared(camera.position) <= reach * reach;
+      this.nearMask[k] = Number(near);
+      if (near) {
+        this.nearNow.add(id);
+        nearCount++;
       }
       const phase = T.MathUtils.euclideanModulo(distance / (radius * this.scale.y), Math.PI * 2);
       this.rollQuaternion.setFromAxisAngle(X_AXIS, phase);
@@ -354,8 +367,36 @@ export class TrafficCars {
       mesh.count = n;
       mesh.morphTexture!.needsUpdate = true;
     }
-    this.wheels.geometry = close ? this.nearWheel : this.farWheel;
-    this.wheels.count = n * 4;
+    const previous = this.previousNear;
+    this.previousNear = this.nearNow;
+    this.nearNow = previous;
+    this.wheels.geometry = nearCount ? this.nearWheel : this.farWheel;
+    if (nearCount > 0 && nearCount < n) {
+      // All four authoritative transforms are already in snapshot order.
+      // Compact the near entries forward in place and copy the distant ones
+      // to their lighter batch. The read cursor always stays ahead of writes.
+      const main = this.wheels.instanceMatrix.array as Float32Array;
+      const distant = this.farWheels.instanceMatrix.array as Float32Array;
+      let nearRow = 0, farRow = 0;
+      for (let k = 0; k < n; k++) {
+        const start = k * 64;
+        if (this.nearMask[k]) {
+          if (nearRow !== k) main.copyWithin(nearRow * 64, start, start + 64);
+          nearRow++;
+        } else {
+          distant.set(main.subarray(start, start + 64), farRow * 64);
+          farRow++;
+        }
+      }
+      this.wheels.count = nearCount * 4;
+      this.farWheels.count = (n - nearCount) * 4;
+      this.farWheels.instanceMatrix.needsUpdate = true;
+      if (!this.farWheels.parent) this.root.add(this.farWheels);
+    } else {
+      this.wheels.count = n * 4;
+      this.farWheels.count = 0;
+      this.farWheels.removeFromParent();
+    }
     for (const mesh of this.batches) mesh.instanceMatrix.needsUpdate = true;
     this.bodies.instanceColor!.needsUpdate = true;
     this.lamps.instanceColor!.needsUpdate = true;
@@ -372,7 +413,9 @@ export class TrafficCars {
     );
     const bodyVertices = Object.values(vertices).reduce((a, b) => a + b, 0);
     return {
-      batches: this.batches.length,
+      batches: this.batches.length + Number(this.farWheels.count > 0),
+      wheelTriangles: (this.wheels.count * this.wheels.geometry.getAttribute('position').count +
+        this.farWheels.count * this.farWheel.getAttribute('position').count) / 3,
       profiles: TRAFFIC_VISUAL_PROFILES.length,
       morphTargets: TRAFFIC_VISUAL_PROFILES.length - 1,
       vertices,
@@ -397,6 +440,10 @@ export class TrafficCars {
       // InstancedMesh.dispose also releases its owned morphTexture.
       mesh.dispose();
     }
+    this.farWheels.removeFromParent();
+    this.farWheels.dispose();
+    this.previousNear.clear();
+    this.nearNow.clear();
     this.nearWheel.dispose();
     this.farWheel.dispose();
     this.root.clear();
