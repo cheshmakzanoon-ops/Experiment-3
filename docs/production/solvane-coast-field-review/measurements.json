@@ -1444,6 +1444,45 @@
           "triangles": 1470018
         }
       ]
+    },
+    "earlierHostedHigh": {
+      "commit": "47a15eca849d9bd7403cad48131010b3fa3f207a",
+      "sourceFingerprint": "ac22f17f811f998045090df70d90d8b0588bf29c8643f3655ad4ff5aa70b79ff",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44867008037",
+      "artifact": "solvane-committed-high-drive",
+      "browser": "140.0.7339.186",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "quality": "high",
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": "chase",
+      "worldPosition": [
+        554.2098708684733,
+        6.827051062884328,
+        -2597.966743848751
+      ],
+      "submittedDrawCalls": 1970,
+      "submittedTriangles": 6759031,
+      "imageSha256": "4db1337c9c147ebda5abaf6d474fae07c6b08e0ef18cd04f4645eb65265ff208",
+      "pageErrors": [],
+      "failedAssets": []
+    },
+    "hostedCoastalLaunch": {
+      "commit": "47a15eca849d9bd7403cad48131010b3fa3f207a",
+      "lighting": "sunset",
+      "weather": "clear",
+      "quality": "medium",
+      "viewport": [
+        1280,
+        720
+      ],
+      "artifact": "solvane-committed-coastal-launch",
+      "originalPngSha256": "c8237bcf23ef57f0ad6a5f25fd3e47e7db1abcfdb99aa742983d236e36dc103f",
+      "galleryImageSha256": "3cbb1d4dddaa839017f5d682518d26d5ac7893d86a177478944b759b9d7bcceb",
+      "pageErrors": [],
+      "failedAssets": []
     }
   },
   "delayedReflectionFrames": {
@@ -2269,7 +2308,62 @@
         "movingImage": "harbour-eh3-driving.jpg",
         "movingImageSha256": "f8ab5191f3dc8cf7027a071357444feeb38c87393c2bd69537b8326119463689",
         "pageErrors": [],
-        "failedAssets": []
+        "failedAssets": [],
+        "separateBrakeRun": {
+          "viewport": [
+            1280,
+            720
+          ],
+          "renderer": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL ES 3.2)",
+          "speedSamples": [
+            {
+              "stage": "brake applied",
+              "time": 181.00833333333304,
+              "speedKmh": 94.87971652573952
+            },
+            {
+              "stage": "70 percent",
+              "time": 181.84166666666562,
+              "speedKmh": 62.090662681294674
+            },
+            {
+              "stage": "30 percent",
+              "time": 182.6749999999982,
+              "speedKmh": 25.607099296755898
+            },
+            {
+              "stage": "stopped",
+              "time": 183.41666666666418,
+              "speedKmh": 0.4265081992916447
+            }
+          ],
+          "simulatedSeconds": 2.408333333331143,
+          "distanceBetweenBrakeSamplesM": 30.204882611574046,
+          "pageErrors": [],
+          "failedAssets": [],
+          "arrivalImage": "harbour-quay-720.jpg",
+          "arrivalSha256": "3e15d2f91ae5e1d7abc45771c11980f8dd7f6557e439f8056fac1aacebdd40ec",
+          "lastPresentedImage": "harbour-eh3-braking-720.jpg",
+          "lastPresentedSha256": "06a87e6b80af40b15c8ea3be11570472a3b67fd5d25a22cf52dd2075f4910008"
+        }
+      },
+      "localMesaNightAttempt": {
+        "passed": false,
+        "lastPhase": "night:storefront",
+        "timeouts": [
+          {
+            "phase": "night:storefront",
+            "operation": "night:storefront:draw and readback",
+            "milliseconds": 866622.83993
+          }
+        ],
+        "error": [],
+        "failureStateError": "page.evaluate: Target crashed"
+      },
+      "hostedPreflight": {
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44872329454",
+        "testsPassed": 188,
+        "testFiles": 23
       }
     }
   }

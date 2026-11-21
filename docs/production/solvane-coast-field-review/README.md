@@ -20,6 +20,10 @@ The EH-3 accelerated from the default start under keyboard control. The chase vi
 
 ![High-preset chase view of the EH-3 at 93 km/h on Harbour Front](harbour-eh3-driving.jpg)
 
+On a second run the same car arrived in High at 1280 × 720. Applying the brake at 94.88 km/h produced consecutive samples of 62.09, 25.61 and 0.43 km/h over 2.41 simulated seconds. The two endpoint positions were 30.20 m apart. The live worker and keyboard remained active between samples.
+
+[Full-size 1280 × 720 quay arrival](harbour-quay-720.jpg) · [Chase view after braking](harbour-eh3-braking-720.jpg)
+
 The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The full-size frames and pixel comparisons are in the hosted run.
 
 ![Port Ilse storefront and festoon lighting on wet streets at night](port-ilse-night.jpg)
@@ -47,6 +51,10 @@ Port Ilse has a stone lighthouse shaft, keeper’s gallery and rotating, paired 
 The Ashvale river now carries ripples in the direction of the channel. Its surface normal follows the downhill grade, its flow slows near the banks and the current eases into the flat tidal reach. The river comparison uses the same valley segment, lighting and camera. Replaying the same time produced the same image bytes.
 
 ![Fixed component views of the farms, headland lantern and river material](headland-and-valley.jpg)
+
+The fixed sunset camera looks across the Port Ilse quay at the harbour launch and open coastal water. This 1280 × 720 Medium capture is from the hosted review on `47a15eca`.
+
+![The harbour launch in the coastal water at sunset](coastal-launch.jpg)
 
 [Watch the harbour pennant and rotating lighthouse optic in motion (8 seconds)](harbour-motion.mp4)
 
@@ -108,7 +116,7 @@ From the paddock, choose **Festival** and **Enter Festival**. The packaged game 
 
 | Build on `main` | Local regression results | Browser coverage |
 | --- | --- | --- |
-| `89fe9739` · quay buildings | 680 passed across 84 files | High harbour chase and HUD on Mesa. All 12 Low driving checks on SwiftShader. |
+| `89fe9739` · quay buildings | 680 passed across 84 files | High chase, keyboard acceleration and braking at Harbour Front. All 12 Low driving checks on SwiftShader. |
 | `726babfc` · reflection continuity | 678 passed across 83 files | High harbour chase and HUD on Mesa. All 12 Low driving checks on SwiftShader. |
 | `336fb587` · wet quarry and scoring | 637 passed across 81 files | All 12 Low driving checks on SwiftShader and hosted Mesa. Smoke, dust, water and both Medium night scenes passed on hosted Mesa. |
 
@@ -120,10 +128,12 @@ On the same quay build all 26 assisted races and six quarry-zone runs completed 
 
 The four-panel gameplay plate comes from `336fb587`. On that build, keyboard input moved the car 32.49 m on SwiftShader and 57.44 m on hosted Mesa. Its hosted run passed an additional 153 focused tests. A separate local SwiftShader night run timed out on the storefront capture. The paired Medium night plate above comes from the completed hosted run.
 
+The quay build also passed 188 focused checks across 23 files on the hosted runner. One local Mesa attempt on this build lost its renderer during storefront readback and ended at its deadline.
+
 A hosted run of the earlier reflection build finished the driving checks but exceeded the night-load deadline while identifying its software renderer. The review now reads the WebGL renderer name from the Festival's own context before the first draw. The night checks still require the requested backend and both full lighting comparisons.
 
 Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
 
-An earlier local Mesa race closed at 62% progress. Two early High attempts closed during loading, and an additional High capture after fast travel exceeded its compositor deadline. The two default-arrival High captures above completed. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
+An earlier local Mesa race closed at 62% progress. Two early High attempts closed during loading, and an additional High capture after fast travel exceeded its compositor deadline. The matched default-arrival High captures completed. The hosted High-preset matrix also produced a 1280 × 720 chase view on `47a15eca` with zero page or asset errors. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
 
-[Quay-build driving and optics workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44872329454) · [Hosted optics and driving at 336fb587](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760) · [Per-car, per-event, mesh and validation measurements](measurements.json)
+[Hosted 720p camera and coastal captures](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44867008037) · [Quay-build driving and optics workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44872329454) · [Hosted optics and driving at 336fb587](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760) · [Per-car, per-event, mesh and validation measurements](measurements.json)
