@@ -25,6 +25,15 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   const errors: string[] = [];
   const requestErrors: string[] = [];
   const pitAssets = new Set<string>();
+  const showroomCarParts = new Set<string>();
+  const repeatedCarParts: string[] = [];
+  let entering = false;
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (!/\/(?:apx01-(?:shell|driver)|a61-rival-(?:near|mid|far))\.glb(?:-[^/]+)?\.gz$/.test(path)) return;
+    if (!entering) showroomCarParts.add(path);
+    else if (showroomCarParts.has(path)) repeatedCarParts.push(path);
+  });
   let pageCrashed = false;
   page.on('crash', () => { pageCrashed = true; });
   page.on('pageerror', (error) => errors.push(error.message));
@@ -175,11 +184,16 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   await expect.poll(async () => (await diag()).menuPreview?.machine).toBe('gpr1');
   await capture('01-gp-poggio-practice-menu');
 
+  entering = true;
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
   await finishRaceEntry(page);
   await expect(page.locator('#hud')).toHaveAttribute('data-bike', 'true');
   await expect(page.locator('#gpMachine')).toContainText('GP-R1');
   const entered = await diag();
+  expect(showroomCarParts.size).toBeGreaterThan(0);
+  expect(repeatedCarParts).toEqual([]);
+  expect(entered.renderer?.authoredBodywork?.loaded).toBe(true);
+  expect(entered.renderer?.authoredDriver?.loaded).toBe(true);
   expect(pitAssets.has('aurel-wheel-gun.glb')).toBe(true);
   expect(pitAssets.has('aurel-a32-pit-jacks.glb')).toBe(false);
   expect(entered.renderer?.pitPersonnel.wheelGuns).toBeTruthy();

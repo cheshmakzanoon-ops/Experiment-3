@@ -25,15 +25,21 @@ The scuffs follow the cheek and foil surfaces through model-detail changes. The 
 
 The onboard camera uses the posed helmet's counter-roll and exit glance. Braking, lean and wheel contact also drive the visible rider. Camera cuts and backward seeks reset the motion history. Cockpit tests project the dashboard and ray-check nine sightlines at four aspect ratios. During flight the last wheel’s clearance and the chassis velocity determine the pose on a seek. Liquid precipitation advances on the presented clock, allowing wet pavement after rain stops and frozen droplets when the replay pauses.
 
-The studio views use the production bike and rider in controlled lighting. The two practice sessions below use the normal game menu, simulation worker and interactive renderer on the Low preset at Poggio Alto. The dry session exercises the rear brake, cockpit, pause, backward replay seek and return to driving.
+The studio views use the production bike and rider in controlled lighting. The dry and wet captures below use the normal game menu, simulation worker and interactive renderer on the Low preset at Poggio Alto. A separate dry run of the same browser route exercised the rear brake, switched to the cockpit, paused, sought backward in the replay and resumed driving.
 
 ![Poggio Alto in practice, chase view followed by cockpit view](practice.webp)
 
 The dry chase frame shows 157 km/h on the approach to Prima. The cockpit frame shows 100 km/h at corner entry. The same session loaded the pit crew’s axle gun and skipped the 5,793,632-byte car-jack model. Motorcycle service uses a front and rear paddock stand, with one gun operator per axle. Selecting a car field on the same circuit prepares its full equipment.
 
+GP entry carries the showroom’s decoded APX-01 shell, driver and three rival detail levels into the circuit. The five compressed exports total 3,131,210 bytes. Car previews can still use those parts when the rider returns to the menus.
+
 Four GP-R1 riders run on wet tyres in the second session. The chase camera records a rider ahead in spray at 51 km/h. The cockpit view shows the real instrument display and race HUD at 126 km/h. Both tyres reported water contact and all four bikes were upright in the chase sample.
 
 ![Four-rider wet practice at Poggio Alto, chase view and onboard at speed](wet-practice.webp)
+
+![Single-rider wet practice, looking down the Poggio straight through the windscreen at 202 km/h](wet-cockpit.webp)
+
+The single-rider wet practice shows 202 km/h on both dashboard and HUD. On pause, the physics worker and displayed frame agreed at 15.940775 s. Further frames held that time, and the recorded history advanced from 150 to 180 samples after resuming. Both wheel contacts measured water in the chase and cockpit views.
 
 ## Circuits
 

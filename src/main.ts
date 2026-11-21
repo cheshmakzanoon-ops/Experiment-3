@@ -61,7 +61,7 @@ import { meetingFromEvent } from './ui/offroad-meeting.ts';
 import { MeetingFlow } from './ui/meeting-flow.ts';
 import { B, BIKE_BASE, F, H, O, OFFROAD_BASE, R, RACE_BASE, carBase } from './simulation/protocol.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
-import { RacingRenderer } from './rendering/renderer.ts';
+import { RacingRenderer, type CarTemplateTransfer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
 import { ghostPose } from './core/ghost-lap.ts';
 import { dialogCloseOutcome } from './core/dialog-close.ts';
@@ -610,7 +610,12 @@ export class GameApp {
     this.menuPresentationActive = false;
   }
   /** Build (or rebuild for another circuit) the complete presentation. */
-  private async buildRenderer(canvas: HTMLCanvasElement, showroomOnly = false, gpGrid = false) {
+  private async buildRenderer(
+    canvas: HTMLCanvasElement,
+    showroomOnly = false,
+    gpGrid = false,
+    carTemplates?: CarTemplateTransfer,
+  ) {
     this.resetMenuPresentation();
     this.canvas = canvas;
     this.renderer = await RacingRenderer.create(
@@ -618,7 +623,7 @@ export class GameApp {
       this.track,
       (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
       () => this.disposed || this.errorStopped,
-      { quality: this.settings.quality, graphics: this.settings.graphics, gpGrid },
+      { quality: this.settings.quality, graphics: this.settings.graphics, gpGrid, carTemplates },
       showroomOnly,
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
@@ -669,10 +674,16 @@ export class GameApp {
     if (this.track.circuit.id === id && this.renderer?.canPrepareGrid(gpGrid)) return true;
     this.ui.loading(`Building ${circuitDefinition(id).name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    this.renderer?.dispose();
-    this.renderer = null;
-    this.track = new Track('clear', false, undefined, circuitDefinition(id));
-    return this.buildRenderer(this.canvas, false, gpGrid);
+    const carTemplates = gpGrid ? this.renderer?.releaseCarTemplates() : undefined;
+    try {
+      this.renderer?.dispose();
+      this.renderer = null;
+      this.track = new Track('clear', false, undefined, circuitDefinition(id));
+      return await this.buildRenderer(this.canvas, false, gpGrid, carTemplates);
+    } finally {
+      // Before the new renderer takes ownership, cancellation or failure still releases every template.
+      carTemplates?.dispose();
+    }
   }
   /** Reduced motion removes camera vibration and motion blur (§21.5). */
   private applyMotion(renderer: RacingRenderer, settings: Settings) {

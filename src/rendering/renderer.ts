@@ -284,6 +284,32 @@ export const PROBE_FACES_PER_FRAME = 1;
 export type { Quality } from './options.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
 const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLAYER__ === true;
+
+/** The original car and its driver give every instance private geometry. Their decoded
+ * templates can move from the showroom to a GP circuit, including its later car previews. */
+export class CarTemplateTransfer {
+  constructor(
+    private assets: {
+      shells: HeroShells | null;
+      rivals: RivalLevels | null;
+      driver: DriverAsset | null;
+    } | null,
+  ) {}
+
+  take() {
+    const assets = this.assets;
+    this.assets = null;
+    return assets;
+  }
+
+  dispose() {
+    const assets = this.take();
+    assets?.shells?.dispose();
+    assets?.rivals?.forEach((level) => level.dispose());
+    assets?.driver?.dispose();
+  }
+}
+
 export class RacingRenderer {
   readonly renderer: T.WebGLRenderer;
   readonly scene = new T.Scene();
@@ -683,6 +709,17 @@ export class RacingRenderer {
   canPrepareGrid(gpGrid: boolean) {
     return !this.showroomOnly && (!this.gpPitStandsOnly || gpGrid);
   }
+  releaseCarTemplates() {
+    const transfer = new CarTemplateTransfer({
+      shells: this.heroShells,
+      rivals: this.rivalLevels,
+      driver: this.driverAsset,
+    });
+    this.heroShells = null;
+    this.rivalLevels = null;
+    this.driverAsset = null;
+    return transfer;
+  }
   /** The factory owns partial resources until the complete scene is ready.
    * Cancellation disposes the partial scene; a failed job is never hidden. */
   static async create(
@@ -690,7 +727,12 @@ export class RacingRenderer {
     track: Track,
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
-    initial?: { quality: QualityPreset; graphics?: GraphicsOptions; gpGrid?: boolean },
+    initial?: {
+      quality: QualityPreset;
+      graphics?: GraphicsOptions;
+      gpGrid?: boolean;
+      carTemplates?: CarTemplateTransfer;
+    },
     showroomOnly = false,
   ): Promise<RacingRenderer | null> {
     // The showroom builds the pit and grid crew; a circuit also reads crowd,
@@ -745,12 +787,19 @@ export class RacingRenderer {
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed ground' });
       if (!showroomOnly) await scannedGround.ready(20000);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
-      renderer.heroShells = await loadHeroShells(cancelled);
+      const retained = initial?.carTemplates?.take();
+      // Adopt all three before awaiting any missing export so a failed preparation releases them together.
+      if (retained) {
+        renderer.heroShells = retained.shells;
+        renderer.rivalLevels = retained.rivals;
+        renderer.driverAsset = retained.driver;
+      }
+      renderer.heroShells ??= await loadHeroShells(cancelled);
       // Rival bodywork dresses opponents (FormulaCar id > 0) and, in a product
       // build, the player's own APX-01. Only an owner build's showroom (which
       // shows the supplied player car alone) skips the three decoded exports.
-      if (!showroomOnly || !OWNER_BUILD) renderer.rivalLevels = await loadRivalLevels(cancelled);
-      renderer.driverAsset = await loadDriverAsset(cancelled);
+      if (!showroomOnly || !OWNER_BUILD) renderer.rivalLevels ??= await loadRivalLevels(cancelled);
+      renderer.driverAsset ??= await loadDriverAsset(cancelled);
       // G15: the owner-supplied real-brand player model is only fetched by an
       // owner build (MOTOBOUND_SUPPLIED_PLAYER=1). Product builds drive the
       // original APX-01 (hero shells + driver asset loaded above).
@@ -3274,9 +3323,7 @@ export class RacingRenderer {
 
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
       this.circuit.tyreBlankets.dispose();
-    this.heroShells?.dispose();
-    this.rivalLevels?.forEach((asset) => asset.dispose());
-    this.driverAsset?.dispose();
+    this.releaseCarTemplates().dispose();
     this.suppliedPlayerAsset?.dispose();
     this.tyreEquipment?.dispose();
     if (this.circuit.heroGarage && !this.circuit.heroGarage.root.parent)

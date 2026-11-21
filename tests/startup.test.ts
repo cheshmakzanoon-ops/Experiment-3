@@ -756,6 +756,35 @@ it('reuses motorcycle stands for another GP field and requires car jacks for a l
   expect(canPrepare(true)).toBe(false);
   expect(canPrepare(false)).toBe(false);
 });
+it.each([false, true])('gives decoded showroom parts one owner across GP entry (cancelled %s)', (cancelled) => {
+  const source = Object.create(RacingRenderer.prototype) as RacingRenderer;
+  const next = Object.create(RacingRenderer.prototype) as RacingRenderer;
+  const parts = Array.from({ length: 5 }, () => ({ dispose: vi.fn() }));
+  Object.assign(source, {
+    heroShells: parts[0],
+    rivalLevels: parts.slice(1, 4),
+    driverAsset: parts[4],
+  });
+  const transfer = source.releaseCarTemplates();
+  source.releaseCarTemplates().dispose();
+  if (!cancelled) {
+    const assets = transfer.take()!;
+    expect(assets.shells).toBe(parts[0]);
+    expect(assets.rivals).toEqual(parts.slice(1, 4));
+    expect(assets.driver).toBe(parts[4]);
+    Object.assign(next, {
+      heroShells: assets.shells,
+      rivalLevels: assets.rivals,
+      driverAsset: assets.driver,
+    });
+    transfer.dispose();
+    for (const part of parts) expect(part.dispose).not.toHaveBeenCalled();
+    next.releaseCarTemplates().dispose();
+  }
+  transfer.dispose();
+  expect(transfer.take()).toBeNull();
+  for (const part of parts) expect(part.dispose).toHaveBeenCalledOnce();
+});
 it('requires the complete selected circuit before a showroom can prepare driving', async () => {
   const { target, typed, sample } = fixture('mx450');
   Object.assign(target, { showroomOnly: true });
