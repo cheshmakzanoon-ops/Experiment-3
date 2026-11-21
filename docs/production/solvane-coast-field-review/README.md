@@ -10,7 +10,7 @@ The two columns use the same cameras. Street trees have matching trunk collision
 
 ## The wet mountain approach
 
-Both frames use the SC-7 chase camera on arrival at the Varda Pass speed zone, 800 × 450 in Low, with the same rain and sunset presets. The replacement for the bright start ring is visible on the right shoulder. Distant tree crowns now follow the near forest. The improved slope lighting keeps the road and hillside distinguishable.
+The builds are `6a37db8` and `a2cab68`. Both frames use the SC-7 chase camera on arrival at the Varda Pass speed zone, 800 × 450 in Low, with the same rain and sunset presets. The replacement for the bright start ring is visible on the right shoulder. Distant tree crowns now follow the near forest. The improved slope lighting keeps the road and hillside distinguishable.
 
 ![Same-camera comparison of the SC-7 in rain on Varda Pass](varda-pass.jpg)
 
@@ -44,7 +44,7 @@ The landmark images use production meshes in an isolated daylight or night setup
 | Port Ilse Loop and Coast-to-Summit | RH-3, SC-7 and RP-6, rain, six entrants | All six finished |
 | Coast speed trap and Varda speed zone | RH-3 and SC-7, clear and rain, with traffic | All eight produced valid scores |
 
-The 26 races recorded zero player or rival resets and zero seconds off course. Some six-car runs recorded light contact. In separate drift diagnostics, the RM-8 scored 26 points on the dry hairpin. Some assisted attempts returned zero points, the SC-7 left the hairpin zone under aggressive slide control, and the wet RM-8 quarry run missed its start gate within the test window. Drift performance across cars and conditions remains an open item.
+The 26 races recorded zero player or rival resets and zero seconds off course. Valley Sprint used seed 41271, the six-entrant races used seed 73021 and the speed and drift diagnostics used seed 713225. Some six-car runs recorded light contact. In separate drift diagnostics, the RM-8 scored 26 points on the dry hairpin. Some assisted attempts returned zero points and the SC-7 left the hairpin zone under aggressive slide control. The original wet quarry run missed the gate because the RM-8 struggled to start uphill on loose ground. The revised run-up crossed the same gate in 27.5 seconds. Both automated driving styles subsequently timed out on the wet quarry climb, with 15 reset presses apiece. Drift control and wet uphill recovery remain open items.
 
 Tyre response at the edge of rural asphalt uses the share of the steered tread on pavement, paint and gravel. This affects wet grip, rolling resistance and the tyre’s response to loose ground. Each wheel leaves a continuous skid ribbon at its own tread width and contact height, including on banked roads and elevated decks.
 
