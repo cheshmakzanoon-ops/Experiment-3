@@ -75,6 +75,7 @@ import {
   type MotocrossRiderMotion,
   type MotocrossRiderMotionInput,
 } from './offroad/motocross-rider-motion.ts';
+import { prepareMxJerseyAirflow, poseMxJerseyAirflow } from './offroad/mx-jersey-airflow.ts';
 import { MotocrossRiderSpine, motocrossHeadFrame } from './offroad/motocross-rider-spine.ts';
 import {
   addMotocrossBoot,
@@ -494,6 +495,7 @@ export class Rider {
   readonly kneeDown: [number, number] = [0, 0];
   private readonly gpPlantEuler = new T.Euler();
   private readonly motocrossSpine?: MotocrossRiderSpine;
+  private readonly jerseyAirflow?: number[];
   private readonly brakeFingers?: GpBrakeFingers;
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
@@ -884,7 +886,8 @@ export class Rider {
       torsoLeather,
     );
     torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
-    this.motocrossSpine?.bind(torsoMesh);
+    const mxTorso = this.motocrossSpine?.bind(torsoMesh);
+    if (mxTorso && detail !== 'far') this.jerseyAirflow = prepareMxJerseyAirflow(mxTorso);
     if (mx) {
       part(this.torso, motocrossGarmentGeometry('seat', detail), flex).name =
         'Motocross separate trouser waist';
@@ -1554,6 +1557,7 @@ export class Rider {
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
     this.motocrossSpine?.ride(pose, pelvis, pitch, yaw, -into);
+    if (this.jerseyAirflow) poseMxJerseyAirflow(this.jerseyAirflow, pose.time, pose.speed, this.raceNumber);
     const upperTorso = this.motocrossSpine?.chest ?? this.torso;
     // Look through the turn independently of the torso and the suspension.
     if (mx)
@@ -1862,6 +1866,7 @@ export class Rider {
     this.torso.quaternion.slerp(this.q.setFromEuler(this.euler), rise);
     this.gpSpine?.reset();
     this.motocrossSpine?.reset();
+    this.jerseyAirflow?.fill(0);
     this.head.rotation.set(-0.6 + 0.5 * rise, 0, 0);
     // The GP neck articulates while riding; recovery restores its rest length.
     if (this.gp && this.kit !== 'motocross')

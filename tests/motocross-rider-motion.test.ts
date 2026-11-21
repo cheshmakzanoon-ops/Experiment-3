@@ -49,6 +49,45 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('flutters free jersey panels in the airstream with pinned seams, stable skinning and exact seeks', () => {
+    for (const detail of ['high', 'mid', 'far'] as const) {
+      const rider = new Rider(colours, detail, 'motocross', 17);
+      try {
+        const skin = rider.root.getObjectByName('Motocross sculpted textile torso') as T.SkinnedMesh;
+        expect(skin.isSkinnedMesh).toBe(true);
+        if (detail === 'far') {
+          expect(skin.morphTargetInfluences?.length ?? 0).toBe(0);
+          continue;
+        }
+        const g = skin.geometry, p = g.getAttribute('position');
+        const offsets = g.morphAttributes.position, normals = g.morphAttributes.normal;
+        expect(offsets).toHaveLength(2);
+        let peak = 0, normalTilt = 0, loose = 0;
+        for (let i = 0; i < p.count; i++) {
+          const y = p.getY(i), radial = Math.hypot(offsets[0].getZ(i), offsets[1].getZ(i));
+          if (y < .06 || y > .365 || (y > .147 && y < .216) || p.getZ(i) > -.025)
+            expect(radial).toBe(0);
+          if (radial > .003) loose++;
+          peak = Math.max(peak, radial);
+          normalTilt = Math.max(normalTilt, Math.abs(normals[0].getY(i)));
+        }
+        expect(peak).toBeLessThanOrEqual(.00851);
+        expect(loose).toBeGreaterThan(20);
+        expect(normalTilt).toBeGreaterThan(.1);
+        const sample = (time: number, speed: number) => {
+          rider.ride({...neutral, time, speed});
+          return [...skin.morphTargetInfluences!];
+        };
+        expect(sample(2, 0)).toEqual([0, 0]);
+        const a = sample(2, 24);
+        expect(sample(2.08, 24)).not.toEqual(a);
+        rider.separated(0, 0, 2.08);
+        expect(skin.morphTargetInfluences).toEqual([0, 0]);
+        expect(sample(2, 24)).toEqual(a);
+      } finally { rider.dispose(); }
+    }
+  });
+
   it('reconstructs landing load at each mudguard and at the standing rider before full travel', () => {
     const definition = VEHICLES.mx450, materials = new BikeMaterials(0);
     const model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());

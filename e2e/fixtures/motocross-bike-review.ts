@@ -45,6 +45,9 @@ export interface MotocrossPoseSample {
   forkOffset?: number;
   shockOffset?: number;
   speed?: number;
+  gLong?: number;
+  leanRate?: number;
+  supportG?: number;
   frontRotation?: number;
   rearRotation?: number;
   frontOmega?: number;
@@ -301,6 +304,9 @@ export function captureMotocrossBike(
         frontWater: sample.frontWater ?? 0,
         rearWater: sample.rearWater ?? 0,
         speed: sample.speed ?? 0,
+        gLong: sample.gLong,
+        leanRate: sample.leanRate,
+        dirtSupportG: sample.supportG,
       });
       model.root.position.y =
         (explicitChassis ? def.bike!.cgHeight : chassis.height) -
