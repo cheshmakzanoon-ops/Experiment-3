@@ -312,8 +312,12 @@ function tailoring(cut: Exclude<GpSuitCut, 'plain'>) {
   float rib=sin(ribAlong*(6.28318530718/ribPitch));
   float weaveResolve=1.-smoothstep(.0008,.0032,px);
   float weave=sin(vGpSuitBind.y*2600.)*sin((vGpSuitBind.x+vGpSuitBind.z)*3100.);
-  float crease=gpSuitNoise(vGpSuitBind*vec3(41.,107.,37.))-.5;
   float creaseResolve=1.-smoothstep(.004,.022,px);
+  float crease=0., wearTone=0.;
+  if (creaseResolve > 0. && gpSuitWear > 0.) {
+    crease=gpSuitNoise(vGpSuitBind*vec3(41.,107.,37.))-.5;
+    wearTone=.4+.6*gpSuitNoise(vGpSuitBind*vec3(24.,11.,24.));
+  }
   gpSuitHeight*=1.-gpSuitStretch*.9;
   gpSuitHeight+=gpSuitRib*rib*.00032*ribResolve +
     gpSuitStretch*weave*.000055*weaveResolve - seam*.00015 + stitch*.00011 +
@@ -322,7 +326,7 @@ function tailoring(cut: Exclude<GpSuitCut, 'plain'>) {
   ${lumbarRelief}
   diffuseColor.rgb*=1.-gpSuitRib*.13-seam*.22;
   diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.55+vec3(.16),stitch*.7);
-  gpSuitWear*=creaseResolve*(.4+.6*gpSuitNoise(vGpSuitBind*vec3(24.,11.,24.)));
+  gpSuitWear*=creaseResolve*wearTone;
 }`;
 }
 
@@ -334,7 +338,7 @@ export function installGpSuitFinish(
   perforated: boolean,
   cut: GpSuitCut = 'plain',
 ) {
-  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-${cut === 'torso' ? 'v5' : 'v4'}`;
+  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v6`;
   chainShaderHook(material, key, (shader) => {
     const coordinates =
       cut === 'plain'
@@ -390,7 +394,8 @@ ${cut === 'plain' ? '' : TAILOR_HELPERS}`,
       `{
   float px=length(fwidth(vGpSuitBind));
   float fine=1.-smoothstep(.0012,.0042,px);
-  gpSuitGrain=(gpSuitNoise(vGpSuitBind*570.)-.5)*fine;
+  // The filtered mean is exactly zero beyond the grain footprint.
+  gpSuitGrain=fine > 0. ? (gpSuitNoise(vGpSuitBind*570.)-.5)*fine : 0.;
   gpSuitPore=0.;
   ${
     perforated
