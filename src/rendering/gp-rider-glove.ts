@@ -2,6 +2,7 @@ import * as T from 'three';
 import { sampleProfile } from './profile-sampling.ts';
 import { GP_GLOVE_GRIP } from './gp-rider-contact.ts';
 import type { RiderDetail } from './rider.ts';
+import { gpEquipmentUv, type GpEquipmentPart } from './gp-equipment-print.ts';
 import { GpBrakeFingers } from './gp-brake-fingers.ts';
 
 type Detail = Exclude<RiderDetail, 'far'>;
@@ -103,14 +104,15 @@ export function addGpRacingGlove(
   parent: T.Group,
   detail: Detail,
   side: -1 | 1,
-  materials: { leather: T.Material; panel: T.Material; armour: T.Material },
+  materials: { leather: T.Material; panel: T.Material; armour: T.Material; printed?: T.Material },
   articulatedBrake = false,
 ) {
   if (side !== -1 && side !== 1) throw new RangeError('Invalid GP glove side');
   const high = detail === 'high',
     sides = high ? 8 : 6,
     controls = articulatedBrake && high && side === -1;
-  const add = (geometry: T.BufferGeometry, material: T.Material, name: string) => {
+  const add = (geometry: T.BufferGeometry, material: T.Material, name: string, print: GpEquipmentPart, reinforcement = false) => {
+    if (materials.printed) gpEquipmentUv(geometry, print, reinforcement);
     if (side < 0) {
       geometry.scale(-1, 1, 1);
       const index = geometry.index!;
@@ -122,7 +124,7 @@ export function addGpRacingGlove(
     }
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
-    const mesh = new T.Mesh(geometry, material);
+    const mesh = new T.Mesh(geometry, materials.printed ?? material);
     mesh.name = name;
     mesh.castShadow = mesh.receiveShadow = true;
     parent.add(mesh);
@@ -135,7 +137,7 @@ export function addGpRacingGlove(
       true,
     ),
     materials.leather,
-    'GP fitted palm and flared gauntlet',
+    'GP fitted palm and flared gauntlet', 'palm',
   );
 
   const panelMaterial = high ? materials.panel : materials.leather;
@@ -144,7 +146,7 @@ export function addGpRacingGlove(
       palmAt(T.MathUtils.lerp(-0.042, 0.036, v), T.MathUtils.lerp(0.28, Math.PI - 0.28, u), 0.0008),
     ),
     panelMaterial,
-    'GP continuous dorsal leather panel',
+    'GP continuous dorsal leather panel', 'back',
   );
   add(
     surface(2, high ? 8 : 6, (u, v) =>
@@ -155,7 +157,7 @@ export function addGpRacingGlove(
       ),
     ),
     panelMaterial,
-    'GP overlapping wrist closure',
+    'GP overlapping wrist closure', 'closure',
   );
 
   const fingerX = [-0.0245, -0.008, 0.0085, 0.025],
@@ -179,13 +181,13 @@ export function addGpRacingGlove(
     add(
       surface(high ? 10 : 6, sides, (u, v) => fingerAt(u, v), true),
       materials.leather,
-      `GP wrapped finger ${finger + 1}`,
+      `GP wrapped finger ${finger + 1}`, 'digit',
     );
     if (high)
       add(
         surface(5, 3, (u, v) => fingerAt(T.MathUtils.lerp(0.1, 0.4, u), v * 0.72, 0.0006)),
         panelMaterial,
-        `GP dorsal finger reinforcement ${finger + 1}`,
+        `GP dorsal finger reinforcement ${finger + 1}`, 'digit', true,
       );
   }
 
@@ -213,7 +215,7 @@ export function addGpRacingGlove(
       true,
     ),
     materials.leather,
-    'GP medial thumb wrapped below grip',
+    'GP medial thumb wrapped below grip', 'palm',
   );
 
   // A single molded bridge follows the metacarpals instead of four exposed
@@ -236,7 +238,10 @@ export function addGpRacingGlove(
       true,
     ),
     high ? materials.armour : materials.leather,
-    'GP molded metacarpal bridge',
+    'GP molded metacarpal bridge', 'knuckle',
   );
-  return controls ? new GpBrakeFingers(parent, materials.leather) : undefined;
+  if (!controls) return;
+  const fingers = new GpBrakeFingers(parent, materials.printed ?? materials.leather);
+  if (materials.printed) gpEquipmentUv(fingers.mesh.geometry, 'digit');
+  return fingers;
 }

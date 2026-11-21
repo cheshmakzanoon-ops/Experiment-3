@@ -16,6 +16,7 @@ import { installMxGoggleFilm } from './offroad/motocross-goggle-film.ts';
 import { applyMxAssemblyOcclusion } from './offroad/mx-assembly-occlusion.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
+import { gpEquipmentUv } from './gp-equipment-print.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
 import type { GpBrakeFingers } from './gp-brake-fingers.ts';
 import { gpHeadFrame, gpKneeOut } from './gp-rider-motion.ts';
@@ -810,6 +811,13 @@ export class Rider {
     }
     if (!mx && detail !== 'far') {
       const prints = sharedPrints ?? (gpSuit ? gpRiderPrints(colours, raceNumber) : undefined);
+      if (gpSuit && prints) {
+        glove.color.setHex(0xffffff);
+        glove.map = prints.limb;
+        glove.name = 'GP printed gloves and racing boots';
+        glove.roughness = 0.56;
+        glove.normalScale.set(0.09, 0.09);
+      }
       leather.map = prints?.limb ?? riderPanelTexture(colours, false);
       leather.color.setHex(0xffffff);
       torsoLeather.map = prints?.torso ?? riderPanelTexture(colours, true);
@@ -1105,6 +1113,7 @@ export class Rider {
       brow.position.copy(shell.position);
       for (const side of [-1, 1]) {
         const pivot = part(this.head, new T.CylinderGeometry(0.01, 0.01, 0.004, 12), glove);
+        if (gpSuit) gpEquipmentUv(pivot.geometry, 'plain');
         pivot.rotation.z = Math.PI / 2;
         pivot.position.set(side * 0.137, 0.153, 0.035);
         const vent = part(this.head, new RoundedBoxGeometry(0.061, 0.012, 0.006, 2, 0.003), flex);
@@ -1310,6 +1319,7 @@ export class Rider {
           new RoundedBoxGeometry(0.007, 0.1, 0.082, 2, 0.003),
           glove,
         );
+        if (gpSuit) gpEquipmentUv(backing.geometry, 'plain');
         backing.position.set(side * 0.054, 0.035, 0.007);
         const puck = part(this.shins[i].group, kneeSliderGeometry(), slider);
         puck.name = 'Shaped replaceable polymer knee slider';
@@ -1328,7 +1338,7 @@ export class Rider {
           hand,
           detail,
           side,
-          { leather: glove, panel, armour },
+          { leather: glove, panel, armour, printed: gpSuit ? glove : undefined },
           detail === 'high' && i === 1,
         );
         if (fingers) this.brakeFingers = fingers;
@@ -1353,7 +1363,7 @@ export class Rider {
         );
       else
         foot.add(
-          gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider }, gp || !!this.roadClass),
+          gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider, printed: gpSuit ? glove : undefined }, gp || !!this.roadClass),
         );
       this.shins[i].group.add(foot);
       foot.position.set(0, RIDER.shin + 0.02, 0);

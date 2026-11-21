@@ -1,3 +1,4 @@
+import { drawGpEquipment } from './gp-equipment-print.ts';
 import { canvasTexture } from './geometry.ts';
 import { type LiveryScheme } from './car-livery.ts';
 import { BRAND_ART, drawMark, drawWordmark, fitHeight, type Brand } from './studio/brand-atlas.ts';
@@ -136,6 +137,8 @@ export function gpTorsoPrint(colours: RiderColours, number: number, team: Livery
  * or hip and V=1 is the cuff. All cut edges meet at the wrap seam. */
 export function gpLimbPrint(colours: RiderColours, team: LiveryScheme) {
   return canvasTexture(1024, 512, c => {
+    c.save();
+    c.scale(1, 0.75);
     for (const sleeve of [true, false]) {
       c.save();
       c.translate(sleeve ? 0 : 512, 0);
@@ -184,5 +187,7 @@ export function gpLimbPrint(colours: RiderColours, team: LiveryScheme) {
       }
       c.restore();
     }
+    c.restore();
+    drawGpEquipment(c, colours, team);
   });
 }

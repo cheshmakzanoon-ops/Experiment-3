@@ -326,6 +326,7 @@ ${cut === 'limb' ? '#ifdef USE_SKINNING\nvGpSuitCut = gpSuitCut;\n#else\nvGpSuit
       injectAfter(shader, 'uv_vertex', `
 #if defined(USE_MAP) && defined(USE_SKINNING)
   vMapUv.x = (gpSuitCut.x > 1.5 ? .5 : 0.) + (2. + 508. * vMapUv.x) / 1024.;
+  vMapUv.y = (130. + 380. * vMapUv.y) / 512.;
 #endif`, 'vertex');
     }
     injectDeclarations(

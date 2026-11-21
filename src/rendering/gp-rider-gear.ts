@@ -3,6 +3,7 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 import type { RiderDetail } from './rider.ts';
+import { gpEquipmentUv, type GpEquipmentPart } from './gp-equipment-print.ts';
 import { GP_BOOT_ANKLE } from './gp-rider-contact.ts';
 
 /** Metres in the existing ankle frame: +Y points down the shin, +Z to the toe.
@@ -144,6 +145,7 @@ export function gpRacingBoot(
     sole: T.Material;
     armour: T.Material;
     slider: T.Material;
+    printed?: T.Material;
   },
   contactPose = false,
 ) {
@@ -153,8 +155,9 @@ export function gpRacingBoot(
   const close = detail === 'high',
     distant = contactPose && detail === 'far',
     sides = close ? 16 : detail === 'mid' ? 10 : 8;
-  const add = (g: T.BufferGeometry, m: T.Material, name: string, parent = root) => {
-    const mesh = new T.Mesh(g, m);
+  const add = (g: T.BufferGeometry, m: T.Material, name: string, parent = root, print?: GpEquipmentPart) => {
+    if (materials.printed && print) gpEquipmentUv(g, print);
+    const mesh = new T.Mesh(g, print && materials.printed ? materials.printed : m);
     mesh.name = name;
     mesh.castShadow = mesh.receiveShadow = true;
     parent.add(mesh);
@@ -180,7 +183,7 @@ export function gpRacingBoot(
     // One finish across the reinforced upper and articulated cuff. The GP
     // forefoot no longer reads as a black seat-textured glove beneath a shaft.
     contactPose ? materials.panel : materials.leather,
-    'Anatomical forefoot and heel',
+    'Anatomical forefoot and heel', root, 'foot',
   );
   const cuffGeometry = loft(
     contactPose ? GP_CUFF : CUFF,
@@ -190,7 +193,7 @@ export function gpRacingBoot(
     contactPose ? 0.78 : 1,
   );
   if (contactPose) cuffGeometry.translate(-GP_BOOT_ANKLE[0], -GP_BOOT_ANKLE[1], -GP_BOOT_ANKLE[2]);
-  add(cuffGeometry, materials.panel, 'Tapered calf and Achilles cuff', cuffRoot);
+  add(cuffGeometry, materials.panel, 'Tapered calf and Achilles cuff', cuffRoot, 'shaft');
   // Retain the exact sole height/cross-section at the peg: only its plan-view
   // outline and closed end faces follow the reinforced upper.
   const sole = footProfile.map(
@@ -313,7 +316,7 @@ export function gpRacingBoot(
       seamGeometry,
       contactPose ? materials.panel : materials.sole,
       'Recessed inner boot closure',
-      cuffRoot,
+      cuffRoot, 'plain',
     );
   }
   if (contactPose) batchBikeRigidMeshes(cuffRoot);
