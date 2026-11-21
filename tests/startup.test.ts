@@ -867,25 +867,33 @@ it('never treats an unfinished GPU preparation deadline as successful completion
   }
 });
 
-it('does not apply graphics or compile when preparation fails', async () => {
-  const target = {
-    disposed: false,
-    waitForPreparedFrame: vi.fn(async () => {
-      throw new Error('GPU preparation did not complete');
-    }),
-    setQuality: vi.fn(),
-  };
-  await expect(
-    RacingRenderer.prototype.prepareQuality.call(
-      target as unknown as RacingRenderer,
-      'low',
-      {} as never,
-      () => false,
-      async () => {},
-    ),
-  ).rejects.toThrow('GPU preparation did not complete');
-  expect(target.setQuality).not.toHaveBeenCalled();
-});
+it.each(['valley-ridge-mx', 'arena-nord-sx'])(
+  'keeps the active graphics on %s if outstanding GPU work fails to complete',
+  async (id) => {
+    const target = {
+      disposed: false,
+      showroomOnly: false,
+      circuit: { track: { circuit: { id } } },
+      waitForPreparedFrame: vi.fn(async () => {
+        throw new Error('GPU preparation did not complete');
+      }),
+      setQuality: vi.fn(),
+      bikeShells: { warmFieldDetails: vi.fn() },
+    };
+    await expect(
+      RacingRenderer.prototype.prepareQuality.call(
+        target as unknown as RacingRenderer,
+        'low',
+        {} as never,
+        () => false,
+        async () => {},
+      ),
+    ).rejects.toThrow('GPU preparation did not complete');
+    expect(target.waitForPreparedFrame).toHaveBeenCalledOnce();
+    expect(target.setQuality).not.toHaveBeenCalled();
+    expect(target.bikeShells.warmFieldDetails).not.toHaveBeenCalled();
+  },
+);
 
 it.each([
   ['gpr1', 'gpr2'],
