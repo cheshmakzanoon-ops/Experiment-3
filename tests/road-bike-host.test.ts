@@ -6,13 +6,11 @@ import { RoadBikeHost } from '../src/rendering/road-bike-host.ts';
 import { sampleChassisPose } from '../src/rendering/snapshot-interpolation.ts';
 import { CAR_STRIDE, carBase, F, H, HEADER, R, RACE_BASE } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
+import { DEFAULT_LIVERY } from '../src/storage/livery.ts';
 
 afterEach(() => vi.unstubAllGlobals());
 
-it.each([
-  ['gp and road', ['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750', 'gpr1', 'gpr2']],
-  ['motocross', ['mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250']],
-] as const)('allocates seven empty %s frames and assembles a replacement car exactly once', (_group, roster) => {
+function stubCanvas() {
   const context = new Proxy(
     {
       measureText: () => ({ width: 40 }),
@@ -23,6 +21,13 @@ it.each([
     { get: (object, key) => Reflect.get(object, key) ?? (() => {}) },
   );
   vi.stubGlobal('document', { createElement: () => ({ getContext: () => context }) });
+}
+
+it.each([
+  ['gp and road', ['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750', 'gpr1', 'gpr2']],
+  ['motocross', ['mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250']],
+] as const)('allocates seven empty %s frames and assembles a replacement car exactly once', (_group, roster) => {
+  stubCanvas();
   const scene = new T.Scene();
   const roadMaterial = new T.MeshStandardMaterial();
   const showroom = { id: 0, root: new T.Group() };
@@ -69,6 +74,43 @@ it.each([
   expect(target.pitCrew.setWheelGunFits).toHaveBeenCalledTimes(1);
   expect(target.pitCrew.setWheelGunFits.mock.calls[0][1]).toHaveLength(4);
   expect(target.cars.filter((car) => car instanceof RoadBikeHost)).toHaveLength(6);
+});
+
+it('holds a lightweight GP player through practice, then restores its edited Formula livery and mirrors on a vehicle cut', () => {
+  stubCanvas();
+  const renderer = Object.create(RacingRenderer.prototype) as RacingRenderer;
+  const install = vi.fn(), fits = vi.fn(), mirrors = vi.fn();
+  Object.assign(renderer, {
+    scene: new T.Scene(), cars: [], showroomOnly: false,
+    circuit: { track: { circuit: { id: 'poggio-alto' } }, roadMaterial: new T.MeshStandardMaterial() },
+    vehicleBodies: { setPlayerLivery: vi.fn() },
+    pendingFormulaPitFits: new Set(), deferredFormulaArt: new Set(), reflectionMaterials: [],
+    installFormulaArt: install, pitCrew: { setWheelGunFits: fits },
+    reflection: { attachMirrors: mirrors, quality: vi.fn() }, graphics: { mirrorQuality: 'low' },
+  });
+  renderer.setCars(1);
+  const host = renderer.cars[0];
+  expect(host).toBeInstanceOf(RoadBikeHost);
+  expect(host.root.children).toHaveLength(0);
+  const livery = { ...DEFAULT_LIVERY, primary: '#b2304c' };
+  renderer.setLivery(livery);
+  expect(renderer.playerPaintColour).toBe(livery.primary);
+  const frame = new Float32Array(HEADER + CAR_STRIDE);
+  const slot = carBase(0) + RACE_BASE + R.VEHICLE;
+  frame[slot] = vehicleIndex('gpr2');
+  renderer.setCars(1, frame);
+  expect(renderer.cars[0]).toBe(host);
+  expect(install).not.toHaveBeenCalled();
+  expect(fits).not.toHaveBeenCalled();
+  frame[slot] = vehicleIndex('apx01');
+  renderer.setCars(1, frame);
+  renderer.setCars(1, frame);
+  const player = renderer.formulaCar(0);
+  expect(host.root.parent).toBeNull();
+  expect(player.paint.color.getHexString()).toBe(livery.primary.slice(1));
+  expect(mirrors).toHaveBeenCalledExactlyOnceWith(player.mirrors);
+  expect(install).toHaveBeenCalledExactlyOnceWith(player);
+  expect(fits).toHaveBeenCalledTimes(1);
 });
 
 it('reconstructs the chassis pose at each interpolation, hold, seek and vehicle cut', () => {

@@ -255,7 +255,9 @@ const surfaceNormal = (y: number, phi: number, out: T.Vector3) => {
     b = gpHelmetPoint(y, phi - 0.01),
     c = gpHelmetPoint(Math.min(GP_HELMET_TOP, y + 0.004), phi),
     d = gpHelmetPoint(y - 0.004, phi);
-  return out.crossVectors(a.sub(b), c.sub(d)).normalize().negate();
+  // Increasing azimuth runs across the front towards +X; height runs up.
+  // Their cross product is the outward normal used by the shell triangles.
+  return out.crossVectors(a.sub(b), c.sub(d)).normalize();
 };
 
 /** Place a detail on the shell with its +Y along the outward normal and its
@@ -266,7 +268,7 @@ function onShell(mesh: T.Mesh, y: number, phi: number, lift: number) {
   const z = up.addScaledVector(normal, -up.dot(normal)).normalize(),
     x = new T.Vector3().crossVectors(normal, z);
   mesh.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(x, normal, z));
-  gpHelmetPoint(y, phi, lift, mesh.position);
+  gpHelmetPoint(y, phi, 0, mesh.position).addScaledVector(normal, lift);
   return mesh;
 }
 

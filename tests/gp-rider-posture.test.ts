@@ -14,6 +14,7 @@ import {
 import { GpRiderBody, GP_RIDER_BODY_MAX_GAP } from '../src/rendering/gp-rider-dynamics.ts';
 import {
   GP_HELMET_CENTRE,
+  addGpHelmetDetails,
   gpHelmetShell,
   gpHelmetSpoiler,
   gpHelmetVent,
@@ -353,4 +354,40 @@ describe('GP race helmet', () => {
     spoiler.dispose();
     visor.dispose();
   });
+});
+
+it('opens every mounted GP helmet duct to the outside, with a visible liner behind its lip', () => {
+  const material = new T.MeshBasicMaterial(), head = new T.Group();
+  const shell = new T.Mesh(gpHelmetShell('high'), material);
+  head.add(shell);
+  addGpHelmetDetails(head, 'high', {
+    shell: material, visor: material, liner: material, trim: material,
+  });
+  head.updateMatrixWorld(true);
+  const centre = new T.Vector3(...GP_HELMET_CENTRE);
+  const vents = head.children.filter((piece) =>
+    ['GP crown intake', 'GP chin vent', 'GP rear exhaust'].includes(piece.name),
+  );
+  expect(vents).toHaveLength(5);
+  try {
+    for (const vent of vents) {
+      const normal = new T.Vector3(0, 1, 0).applyQuaternion(vent.quaternion);
+      const outward = vent.position.clone().sub(centre).normalize();
+      expect(normal.dot(outward), vent.name).toBeGreaterThan(0.55);
+      const duct = head.children.find((piece) =>
+        piece.name === vent.name + ' duct' && piece.position.equals(vent.position),
+      )!;
+      const ray = new T.Raycaster(vent.position.clone().addScaledVector(normal, 0.035), normal.clone().negate());
+      const first = ray.intersectObjects([shell, vent, duct], false)[0];
+      expect(first?.object, vent.name + ' backing').toBe(duct);
+      const rim = vent as T.Mesh<T.BufferGeometry>;
+      rim.geometry.computeBoundingBox();
+      const edge = new T.Vector3(rim.geometry.boundingBox!.max.x * 0.84, 0.035, 0);
+      ray.ray.origin.copy(vent.localToWorld(edge));
+      expect(ray.intersectObjects([shell, vent, duct], false)[0]?.object, vent.name + ' rim').toBe(vent);
+    }
+  } finally {
+    head.traverse((o) => { if (o instanceof T.Mesh) o.geometry.dispose(); });
+    material.dispose();
+  }
 });

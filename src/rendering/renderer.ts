@@ -97,7 +97,7 @@ import {
   validatePhoto,
   type PhotoSettings,
 } from './photo-camera.ts';
-import { type Livery } from '../storage/livery.ts';
+import { validateLivery, type Livery } from '../storage/livery.ts';
 import {
   configureSky,
   circuitLightState,
@@ -289,7 +289,12 @@ export class RacingRenderer {
   readonly camera = new T.PerspectiveCamera(58, 1, 0.045, 7000);
   readonly circuit: CircuitScene;
   readonly cars: (FormulaCar | RoadBikeHost)[] = [];
-  /** Slot zero also owns the showroom car and editable team livery. */
+  private teamLivery?: Livery;
+  get playerPaintColour() {
+    const paint = this.playerCar?.paint.color;
+    return paint ? '#' + paint.getHexString() : this.teamLivery?.primary;
+  }
+  /** An assembled Formula player, including its showroom representation. */
   get playerCar() {
     const player = this.cars[0];
     return player instanceof RoadBikeHost ? undefined : player;
@@ -973,6 +978,7 @@ export class RacingRenderer {
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
     const unassignedDirtSlot = !frame && isMotocrossVenue(this.circuit.track);
+    const unassignedGpSlot = !frame && !this.showroomOnly && isGpCourse(this.circuit.track);
     // Motorcycle rivals supply all their own geometry. A replay can replace that
     // entrant with a car, so promote the slot on the first actual car frame.
     for (let id = 0; id < n; id++) {
@@ -984,8 +990,11 @@ export class RacingRenderer {
       const motorcycleFrame = definition?.dynamicsKind === 'bike' &&
         (!definition.bike?.offroad || definition.classId === 'motocross');
       if (prior && (!definition || motorcycleFrame)) continue;
-      if (id > 0 && motorcycleFrame) {
-        const host = new RoadBikeHost(id, definition.classId === 'motocross' ? 'Motocross' : 'Road');
+      // A GP venue first needs a pose for its player. The first labelled
+      // snapshot can still select a Formula body, including from a replay.
+      const gpPlayer = id === 0 && !this.showroomOnly && (unassignedGpSlot || definition?.classId === 'gp-bike');
+      if ((id > 0 && motorcycleFrame) || gpPlayer) {
+        const host = new RoadBikeHost(id, definition?.classId === 'motocross' ? 'Motocross' : 'Road');
         this.cars[id] = host;
         this.scene.add(host.root);
         this.reflectionMaterials[id] = [this.circuit.roadMaterial];
@@ -1001,6 +1010,7 @@ export class RacingRenderer {
         deferFormulaArt,
       );
       if (prior) prior.root.removeFromParent();
+      if (id === 0 && this.teamLivery) car.setLivery(this.teamLivery);
       this.cars[id] = car;
       this.pendingFormulaPitFits.add(car.id);
       this.scene.add(car.root);
@@ -1501,10 +1511,11 @@ export class RacingRenderer {
   setLivery(livery: Livery) {
     // Catalogue bodies take the edit too (entrant 0, once it differs from the
     // default identity); the Formula car below keeps its own flank skins.
-    this.vehicleBodies.setPlayerLivery(livery);
+    this.teamLivery = validateLivery(livery);
+    this.vehicleBodies.setPlayerLivery(this.teamLivery);
     const car = this.playerCar;
     if (!car) return;
-    car.setLivery(livery);
+    car.setLivery(this.teamLivery);
     for (const material of car.reflectivePaint)
       if (material.map) this.textures.refresh(material.map);
     // Retain the car paint for a later vehicle change. Its hidden Formula
