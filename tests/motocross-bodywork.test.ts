@@ -185,6 +185,27 @@ describe('motocross bodywork volumes', () => {
 });
 
 describe('motocross neck brace', () => {
+  it('shows the release below the stamped tongue and seats its two moulded end faces', () => {
+    const g = motocrossNeckBrace('high');
+    const mesh = new T.Mesh(g, new T.MeshBasicMaterial());
+    const tangent = new T.Vector3(-0.5, 0, Math.sqrt(3) / 2);
+    const pivot = new T.Vector3(0.113 * Math.cos(Math.PI / 6), 0.5055, 0.024 + 0.084 / 2);
+    try {
+      for (const sign of [-1, 1]) {
+        const ray = new T.Raycaster(pivot, tangent.clone().multiplyScalar(sign), 0, 0.004);
+        const hit = ray.intersectObject(mesh)[0];
+        expect(hit?.distance).toBeGreaterThan(0.0008);
+        expect(hit.distance).toBeLessThan(0.0023);
+        expect(hit.face!.normal.dot(ray.ray.direction)).toBeLessThan(-0.95);
+      }
+      const above = new T.Raycaster(new T.Vector3(0.108, 0.53, 0.072), new T.Vector3(0, -1, 0));
+      expect(above.intersectObject(mesh)[0]?.point.y).toBeCloseTo(0.5185, 5);
+    } finally {
+      mesh.material.dispose();
+      g.dispose();
+    }
+  });
+
   it.each(['high', 'mid', 'far'] as const)('%s ring rests on the shoulders clear of the neck', (detail) => {
     const brace = motocrossNeckBrace(detail),
       p = brace.getAttribute('position');

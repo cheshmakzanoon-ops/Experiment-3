@@ -443,8 +443,10 @@ export function motocrossNeckBrace(detail: RiderDetail) {
     [0.6, -0.86, rubber],
     [0.99, -0.46, graphite],
   ] as const;
-  for (let i = 0; i < around; i++) {
-    const angle = (i * Math.PI * 2) / around,
+  const splitAngle = Math.PI / 6;
+  const splitHalfWidth = 0.0135;
+  for (let i = 0; i <= around; i++) {
+    const angle = splitAngle + splitHalfWidth + (i / around) * (2 * Math.PI - 2 * splitHalfWidth),
       x = Math.cos(angle),
       z = Math.sin(angle);
     const rear = Math.max(0, -z),
@@ -463,9 +465,23 @@ export function motocrossNeckBrace(detail: RiderDetail) {
       );
     }
   }
+  // The narrow break sits at the right-hand release. Cap the two moulded
+  // faces separately so light and background can show through a real gap.
+  // Separate cap vertices preserve the round outer normals up to the edge.
+  for (const end of [0, around]) {
+    const start = position.length / 3;
+    for (let j = 0; j < section.length; j++) {
+      const offset = 3 * (end * section.length + j);
+      vertex(position[offset], position[offset + 1], position[offset + 2], rubber);
+    }
+    for (let j = 1; j < section.length - 1; j++) {
+      if (end === 0) index.push(start, start + j + 1, start + j);
+      else index.push(start, start + j, start + j + 1);
+    }
+  }
   for (let i = 0; i < around; i++)
     for (let j = 0; j < section.length; j++) {
-      const next = (i + 1) % around,
+      const next = i + 1,
         up = (j + 1) % section.length;
       const p = i * section.length + j,
         q = next * section.length + j;
@@ -542,6 +558,17 @@ export function motocrossNeckBrace(detail: RiderDetail) {
         [0.514, 0.049, 0.013, 0.005, graphite],
       ]);
     }
+  if (detail === 'high') {
+    // A stamped release tongue bridges the top of the split. Its foam
+    // bearing surfaces and the clearance beneath remain open on both sides.
+    const latch = new T.BoxGeometry(0.022, 0.005, 0.013)
+      .rotateY(Math.PI / 2 - splitAngle)
+      .translate(0.108, 0.516, 0.072);
+    const p = latch.getAttribute('position'), first = position.length / 3;
+    for (let i = 0; i < p.count; i++) vertex(p.getX(i), p.getY(i), p.getZ(i), fastener);
+    for (const i of latch.index!.array) index.push(first + i);
+    latch.dispose();
+  }
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(position, 3));
   geometry.setAttribute('color', new T.Float32BufferAttribute(color, 3));
