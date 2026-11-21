@@ -2701,12 +2701,18 @@ export class BikeShells {
         const high = quality === 'high';
         if (entry.highGpFinish !== high) {
           entry.highGpFinish = high;
-          setGpOcclusionStrength(occlusion, high);
           setGpMetalAnisotropy(entry.materials, high);
           setGpPanelRelief(entry.materials, high);
-          if (!high) for (const capsule of occlusion.gpCapA.value) capsule.w = 0;
         }
-        if (high) {
+        // The wheel, fork and rider self-shadows cover only a few pixels
+        // on a distant rival. Fade the cone tracing continuously under the
+        // active lens; full-size followed machines and telephoto keep it.
+        const activeBefore = occlusion.gpCapStrength.value > 0;
+        const weight = high ? 1 - T.MathUtils.smoothstep(distance, 48, 100) : 0;
+        setGpOcclusionStrength(occlusion, high, weight);
+        if (weight === 0 && activeBefore)
+          for (const capsule of occlusion.gpCapA.value) capsule.w = 0;
+        if (weight > 0) {
           const { rider, sprung } = model as BikeModel;
           // The seated rider casts contact shadows; a separated rider does not.
           const seated =

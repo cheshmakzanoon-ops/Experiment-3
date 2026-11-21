@@ -221,11 +221,16 @@ export function bindGpOcclusion(uniforms: GpOcclusionUniforms, volume: GpOcclusi
   uniforms.gpOccInvSize.value.set(1 / (nx * v), 1 / (ny * v), 1 / (nz * v));
   uniforms.gpOccParams.value.z = v;
 }
-export function setGpOcclusionStrength(uniforms: GpOcclusionUniforms, enabled: boolean) {
-  const on = enabled && uniforms.gpOccVolume.value !== null;
-  uniforms.gpOccParams.value.x = on ? GP_OCCLUSION.diffuse : 0;
-  uniforms.gpOccParams.value.y = on ? GP_OCCLUSION.specular : 0;
-  uniforms.gpCapStrength.value = on ? GP_OCCLUSION.rider : 0;
+export function setGpOcclusionStrength(
+  uniforms: GpOcclusionUniforms,
+  enabled: boolean,
+  weight = 1,
+) {
+  const amount =
+    enabled && uniforms.gpOccVolume.value !== null ? T.MathUtils.clamp(weight, 0, 1) : 0;
+  uniforms.gpOccParams.value.x = GP_OCCLUSION.diffuse * amount;
+  uniforms.gpOccParams.value.y = GP_OCCLUSION.specular * amount;
+  uniforms.gpCapStrength.value = GP_OCCLUSION.rider * amount;
 }
 /** Write one rider capsule (slot `i`) in the occlusion frame. A radius of 0
  * retires the slot. */

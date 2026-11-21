@@ -383,6 +383,31 @@ describe('GP bike-space occlusion', () => {
       expect(occlusion.gpOccFromWorld.value.equals(inactiveInverse)).toBe(false);
       expect(occlusion.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
       expect(occlusion.gpCapA.value.filter((c) => c.w > 0)).toHaveLength(GP_CAPSULES);
+      // The same entrant can move between a distant broadcast frame, a
+      // narrow-lens shot and the followed cockpit without an extra program.
+      host.root.position.set(0, 0, 0);
+      camera.position.set(0, 0, 93);
+      shells.update(frame, frame, 1, [host], camera, 'high', -1);
+      expect(occlusion.gpOccParams.value.x).toBeGreaterThan(0);
+      expect(occlusion.gpOccParams.value.x).toBeLessThan(GP_OCCLUSION.diffuse);
+      const intermediate = occlusion.gpOccParams.value.x;
+      camera.position.z = 175;
+      shells.update(frame, frame, 1, [host], camera, 'high', -1);
+      expect(occlusion.gpOccParams.value.x).toBe(0);
+      expect(occlusion.gpCapA.value.every((c) => c.w === 0)).toBe(true);
+      const frozen = occlusion.gpOccFromWorld.value.clone();
+      host.root.position.y = 5;
+      shells.update(frame, frame, 1, [host], camera, 'high', -1);
+      expect(occlusion.gpOccFromWorld.value.equals(frozen)).toBe(true);
+      camera.fov = 12;
+      shells.update(frame, frame, 1, [host], camera, 'high', -1);
+      expect(occlusion.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
+      expect(occlusion.gpCapA.value.filter((c) => c.w > 0)).toHaveLength(GP_CAPSULES);
+      host.root.position.y = 0;
+      camera.fov = 58;
+      camera.position.z = 93;
+      shells.update(frame, frame, 1, [host], camera, 'high', -1);
+      expect(occlusion.gpOccParams.value.x).toBe(intermediate);
     } finally {
       shells.disposeAll();
     }
