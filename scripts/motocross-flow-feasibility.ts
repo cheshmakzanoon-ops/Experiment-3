@@ -57,17 +57,19 @@ type Machine = (typeof MACHINES)[number];
  * These are fixed game inputs from the bounded 2026-10-20 continuous-route
  * check, based on the existing isolated-jump probe. Summit and Finish need
  * small corrections because suspension and terrain now carry through from
- * the preceding features. No speed search or physics tuning runs here. */
+ * the preceding features. The MX250 inputs for Barn, Rhythm and Finish
+ * were resurveyed together with the isolated targets in November. No speed
+ * search or physics tuning runs here. */
 const APPROACH_SPEEDS: Readonly<Record<string, readonly [number, number]>> = {
   'RIDGE TABLE': [11.77010999927624, 11.77010999927624],
-  'BARN DOUBLE': [13.914366993645539, 13.814366993645539],
+  'BARN DOUBLE': [14.15, 13.814366993645539],
   'SKY TRIPLE': [14.278589940140192, 13.878589940140191],
   'SUMMIT TABLE': [12.764305261357515 - 0.2, 12.664305261357516 - 0.2],
   'VALLEY DOUBLE': [14.12871040127835, 13.528710401278351],
-  TRIPLE: [13.785179725737494, 13.485179725737494],
+  TRIPLE: [13.92, 13.485179725737494],
   'LANE DOUBLE': [11.733430927878059, 11.733430927878059],
   TABLETOP: [10.588741265344332, 9.988741265344332],
-  'FINISH TRIPLE': [13.425018894942802 + 0.3, 13.325018894942803 - 0.3],
+  'FINISH TRIPLE': [13.5, 13.325018894942803 - 0.3],
 };
 const DT = 1 / 120;
 const MAX_SECONDS = 90;

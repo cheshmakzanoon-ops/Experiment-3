@@ -57,14 +57,17 @@ interface Approach {
 /** Fixed inputs from the bounded 2026-10-19 jump survey check. These are game
  * approach speeds, not measurements from reference photographs. They were
  * selected around jumpHoldSpeed and then verified with manually eligible
- * takeoffs in the full simulation. No speed search runs in this script.
+ * takeoffs in the full simulation. Four entries were resurveyed after the
+ * airborne shift-cut and covered-floor work. All seven trials over ±0.08 m/s
+ * around each revised input passed the unmodified landing criterion. No speed
+ * search runs in this script.
  * Creek Kicker has no surveyed downslope and is not a landing target. */
 const APPROACHES: readonly Approach[] = [
   { venue: 'valley-ridge-mx', name: 'RIDGE TABLE', speeds: [11.77010999927624, 11.77010999927624] },
   {
     venue: 'valley-ridge-mx',
     name: 'BARN DOUBLE',
-    speeds: [13.914366993645539, 13.814366993645539],
+    speeds: [14.15, 13.814366993645539],
   },
   {
     venue: 'valley-ridge-mx',
@@ -74,20 +77,20 @@ const APPROACHES: readonly Approach[] = [
   {
     venue: 'valley-ridge-mx',
     name: 'SUMMIT TABLE',
-    speeds: [12.764305261357515, 12.664305261357516],
+    speeds: [12.764305261357515, 12.43],
   },
   {
     venue: 'valley-ridge-mx',
     name: 'VALLEY DOUBLE',
     speeds: [14.12871040127835, 13.528710401278351],
   },
-  { venue: 'arena-nord-sx', name: 'TRIPLE', speeds: [13.785179725737494, 13.485179725737494] },
+  { venue: 'arena-nord-sx', name: 'TRIPLE', speeds: [13.92, 13.485179725737494] },
   { venue: 'arena-nord-sx', name: 'LANE DOUBLE', speeds: [11.733430927878059, 11.733430927878059] },
   { venue: 'arena-nord-sx', name: 'TABLETOP', speeds: [10.588741265344332, 9.988741265344332] },
   {
     venue: 'arena-nord-sx',
     name: 'FINISH TRIPLE',
-    speeds: [13.425018894942802, 13.325018894942803],
+    speeds: [13.425018894942802, 13.53],
   },
 ];
 const DT = 1 / 120;

@@ -65,6 +65,17 @@ const RACES: Race[] = [
     vehicles: Array(8).fill('mx450'),
     seed: 41003,
   }),
+  // Wet outside the covered stadium. An exposed water grid used to stop
+  // this mixed field for over 30 seconds on the opening rhythm section.
+  fixed('Arena Nord enclosed race during rain', {
+    circuit: 'arena-nord-sx',
+    ruleset: 'motocross-moto',
+    weather: 'rain',
+    laps: 2,
+    opponents: 9,
+    vehicles: Array.from({ length: 10 }, (_, i) => (i % 2 ? 'mx250' : 'mx450')),
+    seed: 50204,
+  }),
   fixed('Kestrel rallycross heat', {
     circuit: 'kestrel-rx',
     ruleset: 'rallycross-joker',

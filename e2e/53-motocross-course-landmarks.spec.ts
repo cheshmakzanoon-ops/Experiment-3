@@ -140,7 +140,6 @@ test('MX and SX braking lines render their shared physical relief and compiled w
   expect(errors).toEqual([]);
 });
 
-
 test('the trackside crowd follows a passing leader and restores held, stopped and rewound poses on WebGL2', async ({
   page,
 }, info) => {
@@ -157,14 +156,12 @@ test('the trackside crowd follows a passing leader and restores held, stopped an
       }
     ).MxCourseReview.captureMxSpectatorPass(),
   );
-  await info.attach('trackside-crowd.png', {
-    body: Buffer.from(image.split(',')[1], 'base64'),
-    contentType: 'image/png',
-  });
-  await info.attach('trackside-crowd.json', {
-    body: JSON.stringify(measure),
-    contentType: 'application/json',
-  });
+  const imagePath = info.outputPath('trackside-crowd.png');
+  const metricsPath = info.outputPath('trackside-crowd.json');
+  await writeFile(imagePath, Buffer.from(image.split(',')[1], 'base64'));
+  await writeFile(metricsPath, JSON.stringify(measure, null, 2));
+  await info.attach('trackside-crowd.png', { path: imagePath, contentType: 'image/png' });
+  await info.attach('trackside-crowd.json', { path: metricsPath, contentType: 'application/json' });
   expect(errors).toEqual([]);
   expect(measure.approach).toBeGreaterThan(100);
   expect(measure.cross).toBeGreaterThan(100);
