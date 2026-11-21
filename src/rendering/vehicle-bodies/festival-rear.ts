@@ -378,6 +378,41 @@ function addPocketReverseOptic(
     );
 }
 
+/** Flat-backed road sheets place their optics directly on the closing panel.
+ * Use the same centres and projected widths for the stamped and distant shells. */
+export function addFlatReversingOptics(
+  parts: Parts,
+  model: ClosedBodyModel,
+  material: T.Material,
+  detail: Detail,
+) {
+  const { f, s } = model;
+  const half = model.halfWidth(model.zRear) * 0.8;
+  const y = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
+  const z = model.zRear - (detail === 2 ? 0.019 : 0.023);
+  if (s.lamps.rear === 'round') {
+    // Near assemblies already have an inner dome surrounded by a red annulus.
+    if (detail === 2) {
+      for (const side of [-1, 1])
+        parts.add(
+          new T.CircleGeometry(0.047 * 0.63, 8).rotateY(Math.PI),
+          material,
+          placed(side * (half * 0.74 - 0.15), y, z),
+        );
+    }
+    return;
+  }
+  const twin = s.lamps.rear === 'twin';
+  const width = twin ? 0.24 : half * (s.lamps.rear === 'strip' ? 1.8 : 1.7);
+  const height = twin ? 0.085 : s.lamps.rear === 'strip' ? 0.036 : 0.06;
+  const centre = twin ? half * 0.74 - width * 0.26 : width * 0.28;
+  for (const side of [-1, 1])
+    addReversingOptic(
+      parts, material, side * centre, y - height * 0.29, z,
+      width * (twin ? 0.19 : 0.09), height * 0.15, detail,
+    );
+}
+
 /** Far body shells have a closed rear cap. Locate their small white lenses at
  * the corresponding near optic centres and bring them onto the cap face. */
 export function addFarReversingOptics(parts: Parts, model: ClosedBodyModel, material: T.Material) {
@@ -396,6 +431,10 @@ export function addFarReversingOptics(parts: Parts, model: ClosedBodyModel, mate
         0.028,
         2,
       );
+    return;
+  }
+  if (!model.s.rearSweep) {
+    addFlatReversingOptics(parts, model, material, 2);
     return;
   }
   for (const p of festivalTailPockets(model))

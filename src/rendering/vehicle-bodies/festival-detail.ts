@@ -23,6 +23,7 @@ import {
 import {
   addFestivalSideDucts,
   addFestivalTailLights,
+  addFlatReversingOptics,
   addFestivalRearBodywork,
   addReversingOptic,
   festivalRegistrationPocket,
@@ -730,7 +731,7 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
         );
         parts.add(
           new T.SphereGeometry(radius * 0.63, 18, 10).scale(1, 1, 0.24),
-          mats.tail,
+          offset !== 0 && mats.reverse ? mats.reverse : mats.tail,
           placed(x, y, z - 0.012),
         );
         parts.add(
@@ -803,13 +804,15 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
         placed(px, y + height * 0.07, z - 0.011),
       );
     }
-    parts.add(
-      roundedBox(width * 0.18, 0.008, 0.014, 0.002, 1),
-      sharedMaterials.chrome(),
-      placed(x + width * 0.27, y - height * 0.29, z - 0.014),
-    );
+    if (!mats.reverse)
+      parts.add(
+        roundedBox(width * 0.18, 0.008, 0.014, 0.002, 1),
+        sharedMaterials.chrome(),
+        placed(x + width * 0.27, y - height * 0.29, z - 0.014),
+      );
     parts.add(roundedBox(width, height, 0.006, 0.007, 2), opticalCover, placed(x, y, z - 0.024));
   }
+  if (mats.reverse) addFlatReversingOptics(parts, model, mats.reverse, detail);
 }
 
 /** Electric signature lighting for a sheet with `signature`: a continuous light

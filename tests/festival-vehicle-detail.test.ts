@@ -181,6 +181,7 @@ describe('Festival vehicle exterior construction', () => {
       // place), so it is released with the body like paint, accent and helmet.
       const { paint, accent, helmet, suit, head, tail, board } = body.materials;
       const resources = new Set<Resource>([paint, accent, helmet, suit, head, tail, board]);
+      if (body.materials.reverse) resources.add(body.materials.reverse);
       if (board.map) resources.add(board.map);
       const display = body.lods[0].cabin?.display;
       if (display) resources.add(display.material);
