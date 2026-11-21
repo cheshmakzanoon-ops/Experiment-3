@@ -1,5 +1,6 @@
 import * as T from 'three';
 import type { GpTyreAppearance } from '../gp-tyre-finish.ts';
+import { retainMxTyreLettering } from './mx-tyre-lettering.ts';
 import type { MudUniforms } from './mud.ts';
 import { SM_ROAD_GROOVE_GLSL, SM_TREAD_CHANNELS } from './motocross-road-tread.ts';
 import {
@@ -44,6 +45,9 @@ varying vec4 vMxTyreBind;
 uniform vec2 mxTyreFront, mxTyreRear;
 // Radius and rim radius of each axle, in metres.
 uniform vec4 mxTyreDimensions;
+#ifdef MX_STAMPED_SIDEWALL
+uniform sampler2D mxTyreLettering;
+#endif
 // This entrant's deposited coat and its moisture (the bike's mud uniforms).
 uniform float mxTyreMudCoat, mxTyreMudWet;
 float mxTyreHeight, mxTyreRoughness;
@@ -88,6 +92,26 @@ const SAMPLE = /* glsl */ `
     mix(1., .6, water);
   mxTyreRoughness = clamp(mix(.77, .92 - wear * .14, crown) +
     .035 * streak * scuff - .24 * water, .46, .96);
+#ifdef MX_STAMPED_SIDEWALL
+  // Bound the radial strip between bead and crown on each carcass. Sample
+  // the opposite side in its own reading direction. Analytic derivatives
+  // keep the mip stable as the atan seam rotates through the contact patch.
+  float ringSpan = mix(.027, .032, axle);
+  float ring = (radial - dimensions.y - mix(.025, .036, axle)) / ringSpan;
+  float turn = -sign(p.x) / 6.2831853;
+  vec2 printUv = vec2(.5 + angle * turn, 1. - (axle * 64. + 57. - ring * 50.) / 128.);
+  vec2 tangent = vec2(-p.z, p.y) * (turn / max(radial * radial, .0001));
+  vec2 gradX = vec2(dot(tangent, dFdx(p.yz)), dFdx(radial) * 50. / (128. * ringSpan));
+  vec2 gradY = vec2(dot(tangent, dFdy(p.yz)), dFdy(radial) * 50. / (128. * ringSpan));
+  if (detail > .0 && ring > .0 && ring < 1. && across > .54) {
+    vec2 ink = textureGrad(mxTyreLettering, printUv, gradX, gradY).rg * detail *
+      smoothstep(.54, .76, across);
+    mxTyreHeight += .00055 * ink.r;
+    diffuseColor.rgb *= 1. + .46 * ink.r;
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.39,.24,.062) * (1. - .4 * water), ink.g * .82);
+    mxTyreRoughness -= ink.r * .045;
+  }
+#endif
 #ifdef MX_SUPERMOTO_TYRE
   // Staggered channels sweep outwards from the uncut centre strip. Keep
   // integer repeats at the angular seam and fade sub-pixel rubber relief.
@@ -152,6 +176,7 @@ export function installMotocrossTyreFinish(
   rearRim: number,
   mud?: MudUniforms,
   tread: 'knobby' | 'road' = 'knobby',
+  stamped = false,
 ): MotocrossTyreFinish {
   const existing = finishes.get(material);
   if (existing) return existing;
@@ -167,10 +192,12 @@ export function installMotocrossTyreFinish(
   };
   finishes.set(material, finish);
   const road = tread === 'road';
+  const stamp = stamped && !road ? retainMxTyreLettering(material) : undefined;
   chainShaderHook(
     material,
-    road ? 'supermoto-tyre-finish-v1' : 'motocross-tyre-finish-v1',
+    road ? 'supermoto-tyre-finish-v1' : stamp ? 'motocross-stamped-tyre-v1' : 'motocross-tyre-finish-v1',
     (shader) => {
+      if (stamp) shader.uniforms.mxTyreLettering = { value: stamp };
       shader.uniforms.mxTyreFront = front;
       shader.uniforms.mxTyreRear = rear;
       shader.uniforms.mxTyreDimensions = {
@@ -189,7 +216,8 @@ export function installMotocrossTyreFinish(
       injectDeclarations(
         shader,
         'common',
-        (road ? '#define MX_SUPERMOTO_TYRE\n' + SM_ROAD_GROOVE_GLSL : '') + DECLARATIONS,
+        (road ? '#define MX_SUPERMOTO_TYRE\n' + SM_ROAD_GROOVE_GLSL : '') +
+          (stamp ? '#define MX_STAMPED_SIDEWALL\n' : '') + DECLARATIONS,
         'fragment',
       );
       injectBefore(shader, 'color_fragment', SAMPLE, 'fragment');

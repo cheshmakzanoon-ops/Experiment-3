@@ -24,7 +24,7 @@ import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive, distantMotocrossChain } from './motocross-chain-drive.ts';
 import { addMotocrossRadiators } from './motocross-radiators.ts';
-import { motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
+import { motocrossRim, motocrossRimFittings, motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
 import { installMotocrossMetalFinish } from './motocross-metal-finish.ts';
 import {
   bindMotocrossTyre,
@@ -300,6 +300,7 @@ export class DirtBikeModel {
       rearRim,
       this.mud,
       supermoto ? 'road' : 'knobby',
+      detail !== 'far',
     );
     // Both the knobby and the 17-inch supermoto wheels use crossed stainless wire.
     // Keep the moving-wire shader off the shared steel used by fixed hardware.
@@ -338,26 +339,35 @@ export class DirtBikeModel {
               detail === 'high' ? MX_TREAD_PAIRS * 2 : detail === 'mid' ? 24 : 20,
               front ? 'front' : 'rear',
               detail === 'far',
+              wheelSides,
             ),
             front,
           ),
           tyreMaterial,
         );
       // Rim hoop, hub and spokes.
-      const hoop = add(
-        spin,
-        new T.CylinderGeometry(rim, rim, 0.033, wheelSides, 1, true),
-        rimMaterial,
-      );
-      hoop.rotation.z = Math.PI / 2;
-      for (const side of [-1, 1]) {
-        const lip = add(
+      if (!supermoto) {
+        add(spin, motocrossRim(rim, halfWidth, wheelSides), rimMaterial).name =
+          'Motocross rolled bead seat and drop-centre rim';
+        if (detail !== 'far')
+          add(spin, motocrossRimFittings(rim, front, detail), m.aluminium).name =
+            'Motocross valve and mechanical bead lock';
+      } else {
+        const hoop = add(
           spin,
-          new T.TorusGeometry(rim, 0.006, 6, wheelSides),
+          new T.CylinderGeometry(rim, rim, 0.033, wheelSides, 1, true),
           rimMaterial,
-          side * 0.019,
         );
-        lip.rotation.y = Math.PI / 2;
+        hoop.rotation.z = Math.PI / 2;
+        for (const side of [-1, 1]) {
+          const lip = add(
+            spin,
+            new T.TorusGeometry(rim, 0.006, 6, wheelSides),
+            rimMaterial,
+            side * 0.019,
+          );
+          lip.rotation.y = Math.PI / 2;
+        }
       }
       if (detail === 'far') {
         add(spin, new T.CylinderGeometry(0.034, 0.034, 0.092, 12), rimMaterial).rotation.z =

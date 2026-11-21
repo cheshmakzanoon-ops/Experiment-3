@@ -7,6 +7,7 @@ import {
   bindMotocrossTyre,
   installMotocrossTyreFinish,
 } from '../src/rendering/offroad/motocross-tyre-finish.ts';
+import { motocrossRim, motocrossRimFittings } from '../src/rendering/offroad/motocross-wheel-detail.ts';
 import { installMud, mudUniforms } from '../src/rendering/offroad/mud.ts';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 
@@ -71,6 +72,60 @@ describe('recorded motocross tyre finish', () => {
       material.dispose();
     },
   );
+
+  it('shares one mould atlas between near wheels and releases it with the final material', () => {
+    const make = (stamp: boolean, tread: 'road' | 'knobby' = 'knobby') => {
+      const material = new T.MeshStandardMaterial();
+      installMotocrossTyreFinish(material, 0.352, 0.2667, 0.338, 0.2286, undefined, tread, stamp);
+      return material;
+    };
+    const a = make(true), b = make(true), far = make(false), street = make(true, 'road');
+    const texture = compile(a).uniforms.mxTyreLettering.value as T.Texture;
+    expect(compile(b).uniforms.mxTyreLettering.value).toBe(texture);
+    expect(compile(far).uniforms.mxTyreLettering).toBeUndefined();
+    expect(compile(street).uniforms.mxTyreLettering).toBeUndefined();
+    let releases = 0;
+    texture.addEventListener('dispose', () => releases++);
+    a.dispose();
+    a.dispose();
+    expect(releases).toBe(0);
+    b.dispose();
+    expect(releases).toBe(1);
+    far.dispose();
+    street.dispose();
+  });
+
+  it.each(['front', 'rear'] as const)('buries the %s shoulder lugs and seats hardware inside the bead', axle => {
+    const front = axle === 'front', radius = front ? 0.352 : 0.338;
+    const width = front ? 0.042 : 0.06, rim = front ? 0.2667 : 0.2286;
+    for (const [segments, rings, height, far] of [[36, 44, .016, false], [18, 24, .016, false], [24, 20, .009, true]] as const) {
+      const tread = motocrossTread(radius, width, height, rings, axle, far, segments);
+      const p = tread.getAttribute('position'), crown = 1.15 * width;
+      let roots = 0, tops = 0, crest = 0;
+      for (let i = 0; i < p.count; i++) {
+        const x = Math.abs(p.getX(i)), radial = Math.hypot(p.getY(i), p.getZ(i));
+        crest = Math.max(radial, crest);
+        if (x < width * .6 || x > width * .84) continue;
+        const carcass = radius - height - crown + Math.sqrt(crown * crown - x * x);
+        if (radial < carcass * Math.cos(Math.PI / segments)) roots++;
+        if (radial >= carcass + height * .35) tops++;
+      }
+      expect(roots).toBeGreaterThan(rings);
+      expect(tops).toBeGreaterThan(rings);
+      expect(crest).toBeLessThanOrEqual(radius + 1e-7);
+      const metal = motocrossRim(rim, width, segments);
+      const fittings = motocrossRimFittings(rim, front, 'mid');
+      const rads = (g: T.BufferGeometry) => {
+        const p = g.getAttribute('position');
+        return Array.from({length: p.count}, (_,i) => Math.hypot(p.getY(i),p.getZ(i)));
+      };
+      expect(Math.max(...rads(metal))).toBeGreaterThan(rim + .012);
+      expect(Math.min(...rads(metal))).toBeLessThan(rim);
+      expect(Math.max(...rads(fittings))).toBeLessThan(rim);
+      expect(Math.min(...rads(fittings))).toBeLessThan(rim - .025);
+      for (const g of [tread, metal, fittings]) g.dispose();
+    }
+  });
 
   it.each(['front', 'rear'] as const)(
     '%s tread and carcass batch into one draw without losing axle coordinates or the physical envelope',

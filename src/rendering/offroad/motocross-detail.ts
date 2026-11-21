@@ -1224,38 +1224,38 @@ export function motocrossTread(
   count: number,
   axle: 'front' | 'rear' = 'rear',
   distant = false,
+  carcassSides = 36,
 ) {
   // Every block in a row has the same manufactured shape. Form and normal
   // that shape once, then rotate it directly into the wheel's final buffers.
   // The tyre is one mesh at every level, including its angular distant lugs.
+  const crown = halfWidth * 1.15;
+  const core = radius - height - crown;
+  // A mesh carcass is an inscribed polygon in both directions. The block
+  // roots must pass its lowest facet, even between two circumferential rings.
+  const burial = (radius-height) * (1-Math.cos(Math.PI/carcassSides)) + 0.0018;
   const rows = (offsets: number[]) =>
     offsets.map((offset) => {
-      const shoulder = Math.abs(offset) > 0.8,
-        front = axle === 'front';
+      const shoulder = Math.abs(offset) > 0.8, front = axle === 'front';
       const width = halfWidth * (shoulder ? 0.5 : front ? 0.46 : 0.74);
       const length = shoulder ? 0.026 : front ? 0.037 : 0.025;
-      const g = distant
-        ? new T.BoxGeometry(width, height, length)
-        : motocrossLug(width, height, length);
+      const g = distant ? new T.BoxGeometry(width, height, length)
+        : motocrossLug(width, height, length, front ? -0.11 : 0.15);
       const position = g.getAttribute('position');
-      const chevron = shoulder ? Math.sign(offset) * 0.26 : front ? 0.18 : -0.12;
-      for (let i = 0; i < position.count; i++)
-        position.setZ(i, position.getZ(i) + position.getX(i) * chevron);
-      g.rotateZ(shoulder ? -Math.sign(offset) * 0.46 : offset * 0.12);
-      g.translate(
-        offset * halfWidth * 0.84,
-        radius - height * 0.52 - (shoulder ? height * 0.27 : 0),
-        0,
-      );
+      const chevron = shoulder ? Math.sign(offset) * 0.32 : front ? 0.16 : -0.12;
+      const shoulderAngle = Math.asin(offset * halfWidth * 0.84 / crown);
       for (let i = 0; i < position.count; i++) {
-        const r = Math.hypot(position.getY(i), position.getZ(i));
-        if (r > radius)
-          position.setXYZ(
-            i,
-            position.getX(i),
-            (position.getY(i) * radius) / r,
-            (position.getZ(i) * radius) / r,
-          );
+        // Lay each lug along the same rounded cross-section as the rubber.
+        // Its lug walls grow out along that local normal; a tilted box at the
+        // crown radius used to leave daylight under the shoulder blocks.
+        const localX = position.getX(i);
+        const a = shoulderAngle + localX / crown;
+        const c = Math.cos(a);
+        const depth = position.getY(i) / height + 0.5;
+        const lift = height * depth - (1-depth) * burial / c;
+        const radial = core + (crown + lift) * c;
+        const angle = (position.getZ(i) + localX * chevron) / radius;
+        position.setXYZ(i, (crown + lift) * Math.sin(a), radial * Math.cos(angle), radial * Math.sin(angle));
       }
       g.computeVertexNormals();
       return {
@@ -1316,7 +1316,7 @@ export function motocrossTread(
 /** Rounded manufacturing corners and a narrow worn crown on each tread lug.
  * Three chamfered rings keep the polygon cost bounded; no per-lug mesh, texture
  * or rounded-box subdivision is kept after the wheel has been merged. */
-function motocrossLug(width: number, height: number, length: number) {
+function motocrossLug(width: number, height: number, length: number, rake: number) {
   const positions: number[] = [],
     uv: number[] = [],
     indices: number[] = [];
@@ -1337,7 +1337,7 @@ function motocrossLug(width: number, height: number, length: number) {
     [0.76, height * 0.5],
   ])
     for (const [x, z] of ring) {
-      positions.push((x * width * scale) / 2, y, (z * length * scale) / 2);
+      positions.push((x * width * scale) / 2, y, (z * length * scale) / 2 + length*rake*(y/height+0.5));
       uv.push((x + 1) / 2, (z + 1) / 2);
     }
   for (let row = 0; row < 2; row++)
@@ -1346,10 +1346,11 @@ function motocrossLug(width: number, height: number, length: number) {
         b = row * 8 + ((i + 1) % 8);
       indices.push(a, a + 8, b, b, a + 8, b + 8);
     }
-  for (let i = 1; i < 7; i++) {
-    indices.push(0, i, i + 1);
-    indices.push(16, 16 + i + 1, 16 + i);
-  }
+  // A crown vertex follows the true outer radius even on the centre row.
+  // Its opposite face is buried inside the tyre through every LOD.
+  positions.push(0, height/2, length*rake);
+  uv.push(0.5, 0.5);
+  for (let i = 0; i < 8; i++) indices.push(24, 16 + ((i+1)%8), 16 + i);
   const indexed = new T.BufferGeometry();
   indexed.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   indexed.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));

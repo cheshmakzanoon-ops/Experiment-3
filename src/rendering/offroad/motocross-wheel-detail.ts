@@ -106,3 +106,43 @@ export function motocrossWheelSpokes(rim: number, detail: RiderDetail, exposureH
   geometry.computeBoundingSphere();
   return geometry;
 }
+
+/** Cross-section of the rolled alloy hoop in wheel metres. The rolled edge
+ * overlaps the rubber bead. The drop channel lies between the nipple seats;
+ * it is visible through the spokes on both sides of the machine. */
+export function motocrossRim(rim: number, halfWidth: number, segments: number) {
+  const edge = halfWidth * 0.82 - 0.009;
+  const section = [
+    [-edge, 0.0105], [-edge + 0.002, 0.014], [-edge + 0.005, 0.013],
+    [-edge * 0.64, 0.003], [0, -0.001],
+    [edge * 0.64, 0.003], [edge - 0.005, 0.013], [edge - 0.002, 0.014], [edge, 0.0105],
+    [edge * 0.78, -0.0005], [0, -0.006], [-edge * 0.78, -0.0005], [-edge, 0.0105],
+  ];
+  const geometry = new T.LatheGeometry(section.map(([x, offset]) =>
+    new T.Vector2(rim + offset, x)), segments).rotateZ(Math.PI / 2);
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/** Both service fittings project inward from the rim bed. Their two stations
+ * fall between spoke nipples, and the valve's cap stays clear of the wires. */
+export function motocrossRimFittings(rim: number, front: boolean, detail: RiderDetail) {
+  const parts: T.BufferGeometry[] = [];
+  const valve = (front ? 1.5 : 4.5) * Math.PI / 18;
+  const collar = (angle: number, inset: number, length: number, outer: number, inner: number, sides: number) => {
+    const g = new T.CylinderGeometry(outer, inner, length, sides);
+    g.translate(0, rim - inset - length / 2, 0).rotateX(angle);
+    parts.push(g);
+  };
+  const facets = detail === 'high' ? 10 : 6;
+  collar(valve, 0.005, 0.004, 0.0075, 0.0065, facets);
+  collar(valve, 0.009, 0.013, 0.0045, 0.0038, facets);
+  collar(valve, 0.022, 0.01, 0.005, 0.0043, 8);
+  const lock = valve + Math.PI * 0.78;
+  collar(lock, 0.005, 0.003, 0.0105, 0.0105, facets);
+  collar(lock, 0.008, 0.007, 0.008, 0.0073, 6);
+  collar(lock, 0.015, 0.004, 0.0038, 0.0031, facets);
+  const result = mergeGeometries(parts)!;
+  for (const part of parts) part.dispose();
+  return result;
+}
