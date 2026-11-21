@@ -21,6 +21,7 @@ import { box, mesh, rod, label, unprintedBack } from './geometry.ts';
 import {
   buildGpGrandstandArchitecture,
   gpGrandstandStyle,
+  gpStandFascia,
 } from './venue-kit/gp-grandstand-architecture.ts';
 
 /** Original site plan: front edges stay behind the physical barrier. Shared by
@@ -90,9 +91,9 @@ export function standMaterials(track?: Track) {
     people: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
     sign: unprintedBack(
       new T.MeshStandardMaterial({
-        map: label(
+        map: gpStyle && track ? gpStandFascia(track.circuit.id) : label(
           venueLabel,
-          gpStyle?.background ?? '#273536',
+          '#273536',
           '#e5e2d7',
           1024,
           128,

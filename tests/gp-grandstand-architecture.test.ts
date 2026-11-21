@@ -113,6 +113,14 @@ describe('GP spectator-side venue architecture', () => {
       expect(sight.count).toBe(1);
       current.updateMatrixWorld(true);
       const architecture = current.children.find((child) => child.userData.gpGrandstand)!;
+      const fascia = architecture.getObjectByName(
+        `${gpGrandstandStyle(id)!.label} grandstand fascia`,
+      ) as T.Mesh<T.PlaneGeometry>;
+      const uv = fascia.geometry.getAttribute('uv');
+      const panels = Math.max(...Array.from(uv.array).filter((_, i) => i % 2 === 0));
+      expect(Number.isInteger(panels)).toBe(true);
+      expect(fascia.geometry.parameters.width / panels).toBeGreaterThan(3.6);
+      expect(fascia.geometry.parameters.width / panels).toBeLessThan(4.4);
       expect(architecture).toBeDefined();
       expect(architecture.children).toHaveLength(5);
       let triangles = 0;
@@ -198,9 +206,9 @@ describe('GP grandstand naming and shared materials', () => {
   it.each(venues)('%s prints its own name once for every shared stand material', (id) => {
     const track = new Track('clear', false, undefined, CIRCUITS[id]),
       m = standMaterials(track);
-    expect(drawn.at(-1)).toBe(gpGrandstandStyle(id)!.label);
-    expect(drawn.at(-1)).not.toMatch(/AUREL/);
+    expect(drawn.slice(-2)).toEqual(gpGrandstandStyle(id)!.label.split('  /  '));
     expect(m.sign.userData.venueLabel).toBe(gpGrandstandStyle(id)!.label);
+    expect(m.sign.map!.wrapS).toBe(T.RepeatWrapping);
     expect(m.sign.map!.image.width).toBe(1024);
     expect(m.sign.map!.image.height).toBe(128);
     m.sign.map!.dispose();

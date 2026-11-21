@@ -1,7 +1,7 @@
 import * as T from 'three';
 import type { Track } from '../../simulation/track.ts';
 import type { BroadcastSightlines } from '../broadcast-sightlines.ts';
-import { box, mergeStatic, mesh, rod } from '../geometry.ts';
+import { box, canvasTexture, mergeStatic, mesh, rod } from '../geometry.ts';
 import type { StandSpec } from '../venue-plan.ts';
 
 /** REF 032/036/077: open spectator terraces, thin overhanging roofs and
@@ -49,6 +49,43 @@ const STYLES = Object.freeze({
 type GpVenue = keyof typeof STYLES;
 export function gpGrandstandStyle(venue: string) {
   return Object.hasOwn(STYLES, venue) ? STYLES[venue as GpVenue] : null;
+}
+
+/** Four-metre enamel panels under the front eave. Each shares one texture
+ * across stands; the geometry carries the number of printed panels. */
+export function gpStandFascia(venue: string) {
+  const style = gpGrandstandStyle(venue);
+  if (!style) throw new Error('Unknown GP stand fascia');
+  const [name, category] = style.label.split('  /  ');
+  const texture = canvasTexture(1024, 128, (c) => {
+    c.fillStyle = style.background;
+    c.fillRect(0, 0, 1024, 128);
+    c.fillStyle = '#e7e2d3';
+    c.fillRect(8, 10, 1008, 2);
+    c.fillRect(8, 116, 1008, 2);
+    c.fillStyle = 'rgba(18,21,24,.6)';
+    c.fillRect(0, 0, 3, 128);
+    c.fillRect(1021, 0, 3, 128);
+    // Reflective enamel rivet heads stay clear of the letterforms.
+    for (const x of [14, 1010])
+      for (const y of [20, 106]) {
+        c.fillStyle = '#333a37';
+        c.fillRect(x - 2, y - 1, 4, 4);
+        c.fillStyle = '#a7afa3';
+        c.fillRect(x - 1, y - 2, 2, 2);
+      }
+    c.textBaseline = 'middle';
+    c.textAlign = 'left';
+    c.font = '700 62px sans-serif';
+    c.fillStyle = '#eeeae0';
+    c.fillText(name, 58, 67, 565);
+    c.fillRect(669, 30, 3, 66);
+    c.font = '600 29px sans-serif';
+    c.fillText(category, 701, 65, 255);
+  });
+  texture.wrapS = T.RepeatWrapping;
+  texture.name = `${name} enamel spectator fascia`;
+  return texture;
 }
 
 const FRONT = -1.8;
@@ -275,7 +312,11 @@ export function buildGpGrandstandArchitecture(
   // hangs below the lowest front eave, safely above the spectator heads.
   box(root, m.underside, side * -1.77, 5.65, 0, 0.08, 0.62, length * 0.72 + 0.18);
   mergeStatic(root);
-  const sign = mesh(root, new T.PlaneGeometry(length * 0.72, 0.5), m.sign, side * -1.82, 5.65, 0);
+  const fascia = new T.PlaneGeometry(length * 0.72, 0.5);
+  const panels = Math.max(1, Math.round((length * 0.72) / 4));
+  const panelUv = fascia.getAttribute('uv');
+  for (let v = 0; v < panelUv.count; v++) panelUv.setX(v, panelUv.getX(v) * panels);
+  const sign = mesh(root, fascia, m.sign, side * -1.82, 5.65, 0);
   sign.name = `${style.label} grandstand fascia`;
   sign.rotation.y = (-side * Math.PI) / 2;
   sign.castShadow = false;

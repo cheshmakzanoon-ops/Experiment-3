@@ -68,7 +68,7 @@ export function gpAxleFasteners(side: number) {
     6,
   );
   ring.rotateZ((-side * Math.PI) / 2).translate(side * 0.025, 0, 0);
-  const pieces = [ring];
+  const pieces: T.BufferGeometry[] = [ring];
   for (const y of [0.035, 0.055]) {
     const bolt = new T.CylinderGeometry(0.0052, 0.0052, 0.0065, 6, 1);
     bolt.rotateZ(Math.PI / 2).translate(side * (y > 0.04 ? 0.02 : 0.023), y, -0.013);
