@@ -661,14 +661,9 @@ export class RoadMeshes {
       }
       this.piers(e, builder);
     }
-    const guardrails = buildFestivalGuardrails(
-      net,
-      this.field,
-      this.materials.rail,
-      this.reflectorMaterial,
-    );
-    this.root.add(guardrails.root);
-    // Merge per chunk and layer.
+    // Finish and release the road ribbons before allocating the guardrail batches.
+    // Both builders temporarily hold double-precision JavaScript arrays.
+    const roadGroups: T.Group[] = [];
     const triangles = { n: 0 };
     for (const [key, chunk] of chunks) {
       const group = new T.Group();
@@ -686,8 +681,15 @@ export class RoadMeshes {
         mesh.matrixAutoUpdate = false;
         group.add(mesh);
       }
-      this.root.add(group);
+      roadGroups.push(group);
     }
+    const guardrails = buildFestivalGuardrails(
+      net,
+      this.field,
+      this.materials.rail,
+      this.reflectorMaterial,
+    );
+    this.root.add(guardrails.root, ...roadGroups);
     const townLamps = buildTownLamps(lamps, this.materials.post, this.lampMaterial);
     this.townLamps = townLamps;
     this.root.add(townLamps.root);

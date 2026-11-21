@@ -412,7 +412,9 @@ export function buildFestivalGuardrails(
   } finally {
     for (const geometry of [post, joint, end, marker.metal, marker.faces]) geometry.dispose();
   }
+  stats.chunks = chunks.size;
   for (const [key, batches] of chunks) {
+    chunks.delete(key);
     for (const [name, batch, material] of [
       ['Guardrail assembly', batches.steel, steel],
       ['Guardrail marker faces', batches.reflectors, reflector],
@@ -429,6 +431,5 @@ export function buildFestivalGuardrails(
       root.add(mesh);
     }
   }
-  stats.chunks = chunks.size;
   return { root, stats, runs };
 }
