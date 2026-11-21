@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { crowdGarmentColour } from '../src/rendering/crowd-wardrobe.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
+import { mxPressSuite } from '../src/rendering/offroad/mx-press-suite.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { trackPoint } from '../src/simulation/track.ts';
@@ -19,6 +20,30 @@ function compile(material: T.Material) {
 }
 
 describe('motocross stadium audience', () => {
+  it('keeps occupied rooms behind the mullions, with distinct warm and cool interiors', () => {
+    const cool = mxPressSuite(7, 3, false), warm = mxPressSuite(7, 3, true);
+    cool.computeBoundingBox();
+    expect(cool.boundingBox!.min.z).toBeCloseTo(-2.8, 5);
+    expect(cool.boundingBox!.max.z).toBeGreaterThan(0);
+    const positions = cool.getAttribute('position');
+    expect(Array.from(positions.array)).toEqual(Array.from(warm.getAttribute('position').array));
+    const depths = new Set(Array.from({length: positions.count}, (_, i) => positions.getZ(i)));
+    expect(depths.size).toBeGreaterThan(8);
+    expect(cool.getAttribute('color').array).not.toEqual(warm.getAttribute('color').array);
+    const arena = new Stadium(rigTrack('arena-nord-sx'));
+    try {
+      const interiors = arena.root.getObjectByName('Arena Nord occupied press and hospitality suites') as T.Mesh<T.BufferGeometry, T.MeshBasicMaterial>;
+      expect(interiors.material.isMeshBasicMaterial).toBe(true);
+      expect(interiors.material.transparent).toBe(false);
+      const count = (interiors.geometry.index?.count ?? interiors.geometry.getAttribute('position').count) / 3;
+      expect(count).toBeGreaterThan(1500);
+      expect(count).toBeLessThan(4000);
+    } finally {
+      warm.dispose();
+      cool.dispose();
+      arena.dispose();
+    }
+  });
   it('assigns every lower-row seat to cards on Low and Medium and restores its sculpt on High', () => {
     const arena = new Stadium(rigTrack('arena-nord-sx'));
     const range = compile(arena.crowd.material as T.Material).uniforms.crowdLodRange

@@ -6,6 +6,7 @@ import { Track, trackPoint } from '../src/simulation/track.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { inStandFootprint } from '../src/rendering/grandstand.ts';
 import { tracksideRigs } from '../src/rendering/trackside.ts';
+import { fitMxCanopyFabric } from '../src/rendering/offroad/mx-canopy-print.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import {
   MX_FURNITURE_LIMITS,
@@ -126,6 +127,37 @@ describe('original MX trackside model kit', () => {
     parts.forEach((p) => p.geometry.dispose());
   });
 
+  it('prints four team flysheets and frees the valance only between its attachments', () => {
+    const parts = mxTracksideParts('canopy');
+    const source = parts.find((part) => part.canopyCut === 'hem')!.geometry;
+    const sourceUv = source.getAttribute('uv');
+    const rows = new Set<number>();
+    for (let team = 0; team < 4; team++) {
+      const g = source.clone();
+      const yaw = new T.Matrix4().makeRotationY(team * Math.PI / 2);
+      fitMxCanopyFabric(g, 'hem', team, yaw);
+      const uv = g.getAttribute('uv'), wind = g.getAttribute('mxCloth');
+      let free = 0;
+      for (let i = 0; i < uv.count; i++) {
+        const row = Math.floor((1 - uv.getY(i)) * 4);
+        expect(row).toBe(team);
+        rows.add(row);
+        const length = Math.hypot(wind.getX(i), wind.getY(i));
+        const u = sourceUv.getX(i);
+        if (sourceUv.getY(i) === 1 || u === 0 || u === 1) expect(length).toBeLessThan(1e-7);
+        else {
+          expect(length).toBeGreaterThan(0);
+          expect(length).toBeLessThanOrEqual(0.085001);
+          free++;
+        }
+      }
+      expect(free).toBeGreaterThan(4);
+      g.dispose();
+    }
+    expect(rows.size).toBe(4);
+    for (const part of parts) part.geometry.dispose();
+  });
+
   it('keeps the marshal entry open and speaker grilles separate from their drivers', () => {
     const parts = mxTracksideParts('marshal-post');
     const root = buildMxTracksideModel('marshal-post');
@@ -169,6 +201,10 @@ describe('original MX trackside model kit', () => {
       expect(kit.triangles).toBe(indoor ? 47584 : 102272);
       expect(kit.triangles).toBeLessThan(MX_FURNITURE_LIMITS.maximumTriangles);
       expect(kit.root.children).toHaveLength(5);
+      const fabric = kit.root.getObjectByName('MX trackside model batch / fabric') as T.Mesh;
+      expect(!!fabric.customDepthMaterial).toBe(!indoor);
+      expect(!!fabric.customDistanceMaterial).toBe(!indoor);
+      expect(fabric.geometry.hasAttribute('mxCloth')).toBe(!indoor);
       expect(dressing.stats.canopies).toBe(indoor ? 0 : 4);
       const cameras = tracksideRigs(track),
         p = trackPoint();

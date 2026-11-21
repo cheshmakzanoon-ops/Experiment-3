@@ -214,7 +214,7 @@ export class MxCourseDressing {
       }
       this.shoulders(r);
     }
-    this.trackside = new MxTracksideFurniture(track);
+    this.trackside = new MxTracksideFurniture(track, this.venueTime, this.wind);
     this.root.add(this.trackside.root);
     this.stats.canopies = this.trackside.stats.canopy;
     if (!indoor) {

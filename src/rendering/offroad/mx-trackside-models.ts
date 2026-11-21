@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { fitMxCanopyFabric, mxCanopyPrint, type CanopyCut } from './mx-canopy-print.ts';
 import { bindMxKitFinish, installMxKitFinish } from './mx-trackside-finish.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -19,12 +20,13 @@ export interface MxTracksidePart {
   name: string;
   material: MxTracksideMaterial;
   geometry: T.BufferGeometry;
+  canopyCut?: CanopyCut;
 }
 type V3 = readonly [number, number, number];
 
 /** Original, metre-scale asset sources. The same evaluated part buffers are
  * exported to Blender; no commercial image, logo, mesh or network asset is used. */
-export function mxTracksidePalette(): MxTracksidePalette {
+export function mxTracksidePalette(printedCanopies = false): MxTracksidePalette {
   const make = (name: MxTracksideMaterial, roughness: number, metalness = 0) => {
     const material = new T.MeshStandardMaterial({
       name: `MX trackside ${name}`,
@@ -34,6 +36,11 @@ export function mxTracksidePalette(): MxTracksidePalette {
       metalness,
       side: name === 'fabric' ? T.DoubleSide : T.FrontSide,
     });
+    if (name === 'fabric' && printedCanopies) {
+      const ink = mxCanopyPrint();
+      material.map = ink;
+      material.addEventListener('dispose', () => ink.dispose());
+    }
     installMxKitFinish(material, name);
     return material;
   };
@@ -57,7 +64,7 @@ class Builder {
   constructor(readonly detail: MxTracksideDetail) {
     this.round = detail === 'near' ? 16 : 10;
   }
-  add(name: string, material: MxTracksideMaterial, hex: number, source: T.BufferGeometry) {
+  add(name: string, material: MxTracksideMaterial, hex: number, source: T.BufferGeometry, canopyCut?: CanopyCut) {
     const g = source.index ? source.toNonIndexed() : source;
     if (g !== source) source.dispose();
     const pos = g.getAttribute('position'),
@@ -78,7 +85,7 @@ class Builder {
     bindMxKitFinish(g, material === 'timber');
     g.name = name;
     g.computeBoundingSphere();
-    this.parts.push({ name, material, geometry: g });
+    this.parts.push({ name, material, geometry: g, canopyCut });
   }
   box(
     name: string,
@@ -221,16 +228,16 @@ function canopy(b: Builder) {
     g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
     g.setIndex(index);
     g.computeVertexNormals();
-    b.add('Tensioned sewn canopy roof panel', 'fabric', side % 2 ? 0xd7d4c6 : 0xc6cabe, g);
-    b.bar('Raised stitched hip seam', 'fabric', 0xbfc4b7, [0, 3.552, 0], corners[side], 0.006, 5);
+    b.add('Tensioned sewn canopy roof panel', 'fabric', 0xf4f3eb, g, 'roof');
+    b.bar('Raised stitched hip seam', 'fabric', 0x536368, [0, 3.552, 0], corners[side], 0.006, 5);
     const centre = a.clone().add(c).multiplyScalar(0.5);
-    const strip = new T.PlaneGeometry(4.6, 0.23, cols, 1),
+    const strip = new T.PlaneGeometry(4.6, 0.27, cols, 1),
       sp = strip.getAttribute('position');
     for (let i = 0; i < sp.count; i++)
       sp.setY(i, sp.getY(i) - 0.11 * Math.cos((sp.getX(i) / 4.6) * Math.PI) ** 2);
-    strip.rotateY(side % 2 ? Math.PI / 2 : 0).translate(centre.x, 2.4, centre.z);
+    strip.rotateY(Math.PI - (side * Math.PI) / 2).translate(centre.x, 2.49 - 0.135, centre.z);
     strip.computeVertexNormals();
-    b.add('Hanging hemmed valance', 'fabric', side % 2 ? PAINT : ORANGE, strip);
+    b.add('Hanging hemmed valance', 'fabric', 0xf1f0e9, strip, 'hem');
   }
   for (const x of [-2.16, 2.16])
     for (const z of [-2.16, 2.16]) {
@@ -793,9 +800,12 @@ export function mxTracksideParts(
 /** Bakes five material groups at most. Logical part names stay available for
  * review and export even though the renderer need not draw hundreds of parts. */
 export function buildMxTracksideModel(kind: MxTracksideModel, detail: MxTracksideDetail = 'near') {
-  const palette = mxTracksidePalette(),
+  const palette = mxTracksidePalette(kind === 'canopy'),
     parts = mxTracksideParts(kind, detail),
     root = new T.Group();
+  if (kind === 'canopy')
+    for (const part of parts)
+      if (part.material === 'fabric') fitMxCanopyFabric(part.geometry, part.canopyCut, 0);
   root.name = `MX authored ${kind}`;
   root.userData.model = kind;
   root.userData.detail = detail;

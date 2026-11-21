@@ -3,6 +3,7 @@ import { MxStadiumAudience } from './mx-stadium-audience.ts';
 import { MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
+import { mxPressSuite } from './mx-press-suite.ts';
 import { mxRoofDeck } from './mx-roof-deck.ts';
 import { MxTimingBoard } from './mx-timing-board.ts';
 import { MxCrowdPass } from './mx-crowd-pass.ts';
@@ -172,7 +173,8 @@ export class Stadium {
       cases: T.BufferGeometry[] = [],
       lights: T.BufferGeometry[] = [],
       beams: T.BufferGeometry[] = [],
-      soffits: T.BufferGeometry[] = [];
+      soffits: T.BufferGeometry[] = [],
+      suites: T.BufferGeometry[] = [];
     let portals = 0;
     const chairsBySection: T.Matrix4[] = [],
       chairColours: T.Color[] = [];
@@ -308,17 +310,24 @@ export class Stadium {
         return geometry.rotateY(yaw).translate(x, floor + y, z);
       };
       const length = along + 2 * outerWall;
-      soffits.push(transform(new T.BoxGeometry(length, 14, 0.24), 0, outerWall + 0.7, 26.5));
-      // Mullioned, shadowed hospitality/service bays above the last row.
+      // Leave the window storey open; the occupied rooms extend behind
+      // this facade and retain their depth from the start straight.
+      soffits.push(transform(new T.BoxGeometry(length, 11.92, 0.24), 0, outerWall + 0.7, 27.54));
+      soffits.push(transform(new T.BoxGeometry(length, 1.96, 0.24), 0, outerWall + 0.7, 18.25));
       const bays = Math.max(4, Math.floor(length / 7));
+      const bayWidth = length / bays;
       for (let bay = 0; bay < bays; bay++) {
         const t = ((bay + 0.5) / bays - 0.5) * length;
-        cases.push(
-          transform(new T.BoxGeometry(length / bays - 0.32, 2.3, 0.2), t, outerWall + 0.47, 20.4),
-        );
-        rigging.push(transform(new T.BoxGeometry(0.11, 2.4, 0.28), t, outerWall + 0.27, 20.4));
-        if (bay % 2 === 0)
-          lights.push(transform(new T.BoxGeometry(0.48, 0.1, 0.05), t, outerWall + 0.32, 21.9));
+        const index = bay + (side.axis === 'x' ? 3 : 0) + (side.sign > 0 ? 5 : 0);
+        // Corner plant rooms and closed service bays divide the occupied banks.
+        if (bay === 0 || bay === bays - 1 || index % 7 === 0 || index % 7 === 1) {
+          cases.push(transform(new T.BoxGeometry(bayWidth, 2.36, 0.2), t, outerWall + 0.47, 20.4));
+        } else {
+          suites.push(
+            transform(mxPressSuite(bayWidth - 0.18, index, index % 5 > 1), t, outerWall + 0.34, 20.4),
+          );
+        }
+        rigging.push(transform(new T.BoxGeometry(0.15, 2.48, 0.32), t + bayWidth / 2, outerWall + 0.32, 20.4));
       }
       for (const y of [18.65, 22.05])
         tiers.push(transform(new T.BoxGeometry(length, 0.24, 0.8), 0, outerWall + 0.2, y));
@@ -389,6 +398,9 @@ export class Stadium {
     for (const pour of tiers) materials.boxProjectUv(pour);
     this.batch(tiers, concrete, 'Arena concrete seating decks');
     this.batch(soffits, deck, 'Arena service walls and acoustic cladding');
+    this.batch(suites, new T.MeshBasicMaterial({
+      vertexColors: true, name: 'Baked practical lighting in Arena Nord press suites',
+    }), 'Arena Nord occupied press and hospitality suites');
     // Reuse the original SDF-sculpted people kit already used by outdoor
     // grandstands: shaped shoulders/jaws, bent knees, hair/caps and separate
     // folded/resting-arm shells. Only the four lower rows use this sculpt;

@@ -1,4 +1,7 @@
 import * as T from 'three';
+import { fitMxCanopyFabric } from './mx-canopy-print.ts';
+import { attachMxClothShadows, installMxClothWind } from './mx-event-cloth.ts';
+import { MxVenueWind } from './mx-venue-wind.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp } from '../../core/math.ts';
 import { mxFurnitureGround } from './mx-ground-pose.ts';
@@ -259,20 +262,25 @@ export class MxTracksideFurniture {
   readonly plan: ReturnType<typeof planMxTracksideFurniture>;
   readonly stats: Record<MxTracksideModel, number>;
   readonly triangles: number;
-  constructor(track: Track) {
+  constructor(track: Track, time = { value: 0 }, wind = new MxVenueWind()) {
     this.root.name = 'MX modelled service bays and marshal posts';
     this.plan = planMxTracksideFurniture(track);
     this.stats = Object.fromEntries(MX_TRACKSIDE_MODELS.map((k) => [k, 0])) as Record<
       MxTracksideModel,
       number
     >;
-    const palette = mxTracksidePalette();
+    const printed = this.plan.placements.some((p) => p.kind === 'canopy');
+    const palette = mxTracksidePalette(printed);
+    if (printed) installMxClothWind(palette.fabric, time, true, wind);
     const templates = new Map(MX_TRACKSIDE_MODELS.map((k) => [k, mxTracksideParts(k, 'near')]));
     const batches = new Map<MxTracksideMaterial, T.BufferGeometry[]>();
     for (const placement of this.plan.placements) {
       this.stats[placement.kind]++;
       for (const part of templates.get(placement.kind)!) {
-        const g = part.geometry.clone().applyMatrix4(placement.matrix);
+        const g = part.geometry.clone();
+        if (printed && part.material === 'fabric')
+          fitMxCanopyFabric(g, part.canopyCut, placement.cluster, placement.matrix);
+        g.applyMatrix4(placement.matrix);
         const list = batches.get(part.material) ?? [];
         list.push(g);
         batches.set(part.material, list);
@@ -295,6 +303,7 @@ export class MxTracksideFurniture {
       mesh.name = `MX trackside model batch / ${role}`;
       mesh.castShadow = mesh.receiveShadow = true;
       triangles += geometry.getAttribute('position').count / 3;
+      if (printed && role === 'fabric') attachMxClothShadows(mesh, time, wind);
       this.root.add(mesh);
     }
     this.triangles = triangles;
@@ -304,6 +313,8 @@ export class MxTracksideFurniture {
   dispose() {
     for (const child of this.root.children)
       if (child instanceof T.Mesh) {
+        child.customDepthMaterial?.dispose();
+        child.customDistanceMaterial?.dispose();
         child.geometry.dispose();
         (child.material as T.Material).dispose();
       }
