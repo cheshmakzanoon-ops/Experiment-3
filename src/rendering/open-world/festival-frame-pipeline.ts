@@ -7,7 +7,7 @@ import { METER_KEY } from '../exposure-meter.ts';
 import { MotionBlur } from '../motion-blur.ts';
 import type { GraphicsOptions } from '../options.ts';
 import { SceneAmbientPass } from '../scene-ambient-pass.ts';
-import { StudioFrame, studioUniforms } from '../studio/studio-frame.ts';
+import { StudioFrame } from '../studio/studio-frame.ts';
 
 /** The festival's scene/depth pass and its frame-dependent image controls.
  * Keep the meter in linear HDR, before the caller adds bloom and OutputPass;
@@ -66,9 +66,7 @@ export class FestivalFramePipeline {
     this.reducedMotion = reducedMotion;
     const identity = `${lighting}:${view}:${vehicle}:${photo}`;
     this.studioFrame.update(presented, this.camera, this.sun, identity);
-    // The festival's established onshore breeze also drives its leaf depth
-    // materials; retain it after StudioFrame writes the snapshot weather.
-    studioUniforms.studioWind.value.set(2.6, 1.4, presented[H.TIME], 0.5);
+    // Leaves, pennants, and their shadow passes share the recorded weather vector.
     this.motion.setStrength(reducedMotion ? 0 : graphics.motionBlur, !photo);
     this.motion.prepareFrame(
       presented,

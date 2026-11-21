@@ -6,6 +6,7 @@ import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import type { QualityPreset } from '../options.ts';
 import { installCanopyNormals } from '../canopy-normals.ts';
+import { bindHarbourCloth, harbourPennant } from './harbour-pennants.ts';
 import { TrackGrass, type GrassClump } from '../vegetation/grass.ts';
 import { PhotoForest, type PhotoPlant } from '../vegetation/forest.ts';
 import type { VegetationLibrary } from '../vegetation/library.ts';
@@ -249,7 +250,7 @@ function workboatHull() {
   return g;
 }
 
-type BatchKind = 'stone' | 'metal' | 'glass' | 'sign' | 'bulb';
+type BatchKind = 'stone' | 'metal' | 'glass' | 'sign' | 'bulb' | 'cloth';
 type StaticChunk = { kind: BatchKind; batch: GeometryBatch };
 
 export class HorizonDressing {
@@ -267,6 +268,8 @@ export class HorizonDressing {
   };
   private readonly atlas = signAtlas();
   private readonly materials: Record<BatchKind, T.MeshStandardMaterial>;
+  private readonly clothDepth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking, side: T.DoubleSide });
+  private readonly clothDistance = new T.MeshDistanceMaterial({ side: T.DoubleSide });
   private batchScope = '';
   private authoredBoats = false;
   useAuthoredBoats() {
@@ -312,6 +315,7 @@ export class HorizonDressing {
   ) {
     this.root.name = 'Solvane Horizon reference art pass';
     this.materials = {
+      cloth: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.93, side: T.DoubleSide }),
       stone: new T.MeshStandardMaterial({
         color: 0xffffff,
         vertexColors: true,
@@ -347,6 +351,9 @@ export class HorizonDressing {
         roughness: 0.32,
       }),
     };
+    bindHarbourCloth(this.materials.cloth, true);
+    bindHarbourCloth(this.clothDepth, false);
+    bindHarbourCloth(this.clothDistance, false);
     this.shopfronts();
     this.harbourStrings();
     this.batchScope = 'legacy-boats ';
@@ -358,6 +365,12 @@ export class HorizonDressing {
       const g = chunk.batch.finish();
       const mesh = new T.Mesh(g, this.materials[chunk.kind]);
       mesh.name = `Solvane ${key}`;
+      if (chunk.kind === 'cloth') {
+        mesh.customDepthMaterial = this.clothDepth;
+        mesh.customDistanceMaterial = this.clothDistance;
+        g.boundingBox!.expandByScalar(0.78);
+        g.boundingSphere!.radius += 0.78;
+      }
       mesh.userData.horizonDetailKind = chunk.kind;
       mesh.userData.legacyBoat = key.startsWith('legacy-boats ');
       mesh.castShadow = chunk.kind !== 'sign' && chunk.kind !== 'bulb';
@@ -659,15 +672,13 @@ export class HorizonDressing {
               });
             }
           } else if (k > 0 && k < 20) {
-            const triangle = new T.BufferGeometry();
-            triangle.setAttribute(
-              'position',
-              new T.Float32BufferAttribute([-0.32, 0, 0, 0.32, 0, 0, 0.09, -0.88, 0.045], 3),
-            );
-            triangle.computeVertexNormals();
+            const spacing = 2 * half / 20;
+            const riseAt = (station: number) =>
+              (p.y + 9.2 - 1.15 * Math.sin(station * Math.PI / 20) - y) * 0.32 / spacing;
+            const triangle = harbourPennant(riseAt(k - 1), riseAt(k + 1));
             const colors = [0xd7c497, 0x3d7374, 0xad5c44, 0xd0d5c3];
             this.part(
-              'stone',
+              'cloth',
               triangle,
               position.x,
               position.y,
@@ -1026,6 +1037,8 @@ if (diffuseColor.a < 0.01) discard;`,
       this.lanterns.geometry.dispose();
       (this.lanterns.material as T.Material).dispose();
     }
+    this.clothDepth.dispose();
+    this.clothDistance.dispose();
     for (const material of Object.values(this.materials)) material.dispose();
     this.atlas.dispose();
     this.root.clear();
