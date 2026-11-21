@@ -52,11 +52,17 @@ The 26 races recorded zero player or rival resets and zero seconds off course. A
 
 Tyre response at the edge of rural asphalt uses the share of the steered tread on pavement, paint and gravel. This affects wet grip, rolling resistance and the tyre’s response to loose ground. Each wheel leaves a continuous skid ribbon at its own tread width and contact height, including on banked roads and elevated decks.
 
-The SC-7 recording follows two four-second sections of a wet, six-entrant Port Ilse Street Loop race. The braking and cornering views use the player’s recorded wheel, steering, suspension and body transforms from the 120 Hz simulation. The review renders the player car, its local road and nearby buildings under fixed light. The speed readout comes from the same snapshots. The video plays at 24 frames per second.
+The SC-7 recording follows two four-second sections of a wet, six-entrant Port Ilse Street Loop race. The braking and cornering views use the player’s recorded wheel, steering, suspension and body transforms from the 120 Hz simulation. The review renders the player car, its local road and nearby buildings under fixed light. The speed readout comes from the same snapshots. The video plays at 24 frames per second. The front wheels reached 29.83° and 23.03° of steering lock. Vertical hub travel across the four wheels ranged from 31.6 to 56.4 mm within the two shots.
 
 [Watch the SC-7 brake and corner in Port Ilse (8 seconds)](port-ilse-sc7.mp4)
 
-A wet four-car Ashvale Sprint replay fed the same recorded SC-7 controls to the production 120 Hz stepper, with clock updates arriving at 30, 60 and 144 Hz. Each run finished in 82.10 seconds. All 110 once-per-second snapshots matched byte for byte across the three runs, including the rivals. Render throughput was outside the scope of this clock test.
+A wet four-car Ashvale Sprint replay fed identical recorded SC-7 commands to the production 120 Hz stepper. The visual clock ran at 30, 60 and 144 Hz, then alternated between 6.94 and 37.50 ms per update. Each run finished in 82.10 seconds. All 13,200 player-and-rival snapshots matched at every physics tick, covering 71,174,400 bytes per run. These measurements concern simulation timing and state. Display frame times require a hardware capture.
+
+To repeat the replay from the repository root, install the project dependencies and run the included check.
+
+```sh
+node --experimental-transform-types docs/production/solvane-coast-field-review/replay-cadence.mjs
+```
 
 ### Quarry Track Drift Zone
 
@@ -75,6 +81,10 @@ The full chase capture uses the shipping road renderer. The three material close
 ![In-game wet quarry chase view above three comparable road-material close-ups](quarry-road.jpg)
 
 ![Production session showing the map, photo mode, an active race and the result](festival-session.jpg)
+
+### Paddock and controls
+
+From the paddock, choose **Festival** and **Enter Festival**. The packaged game opened Harbour Front in the EH-3 with a saved Low preset. Keyboard throttle took the car to 40 km/h and Escape opened the Festival pause menu. A fresh launch at 960 × 600 also entered Harbour Front, accelerated to 30 km/h and returned to the public paddock through Exit Festival. Both runs reported zero failed requests and zero page errors. An earlier local attempt with a constrained Chromium heap closed during the transition. Fifteen separate browser checks covered keyboard and controller navigation, retry, map and photo modes, and the rival display on desktop and phone layouts.
 
 A published Chromium run at `2782f81f` completed all 12 driving-session checks. Keyboard input moved the car 57.38 m and slowed it from 65.63 to 0.54 km/h. The same run exercised map travel, photo orbit, garage changes, live rivals, an assisted race finish, retry and exit. Its water, dust, smoke and night-light reviews all passed. The run used Mesa software rendering at 960 × 540 in Low. Console and competition frame times still require measurements on the target hardware.
 

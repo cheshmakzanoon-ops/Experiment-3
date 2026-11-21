@@ -811,7 +811,61 @@
         "entrants": 4,
         "digest": "8e09964e701015ff10012b6749d818d8eeb059232c935a7ae00c120613eb5e73"
       }
-    ]
+    ],
+    "everyPhysicsTick": {
+      "source": "336fb587aa672f436f0d22cd8b8d8c7a48c3b9fe",
+      "event": "valley-sprint",
+      "vehicle": "sc7",
+      "weather": "rain",
+      "seed": 41271,
+      "method": "Identical recorded throttle, brake and steer commands. Every serialized four-car simulation snapshot was hashed at 120 Hz for 110 seconds. Presentation cadence used integer 1/720-second intervals.",
+      "runs": [
+        {
+          "presentation": "30 Hz",
+          "frames": 3300,
+          "ticks": 13200,
+          "bytesCompared": 71174400,
+          "droppedSeconds": 0,
+          "finishSeconds": 82.10000000001396,
+          "position": 4,
+          "entrants": 4,
+          "digest": "f1824382bebbb541eeba0f970f494019cd0a5fa8d5bceee01e5c84754c1db8c3"
+        },
+        {
+          "presentation": "60 Hz",
+          "frames": 6600,
+          "ticks": 13200,
+          "bytesCompared": 71174400,
+          "droppedSeconds": 0,
+          "finishSeconds": 82.10000000001396,
+          "position": 4,
+          "entrants": 4,
+          "digest": "f1824382bebbb541eeba0f970f494019cd0a5fa8d5bceee01e5c84754c1db8c3"
+        },
+        {
+          "presentation": "144 Hz",
+          "frames": 15840,
+          "ticks": 13200,
+          "bytesCompared": 71174400,
+          "droppedSeconds": 0,
+          "finishSeconds": 82.10000000001396,
+          "position": 4,
+          "entrants": 4,
+          "digest": "f1824382bebbb541eeba0f970f494019cd0a5fa8d5bceee01e5c84754c1db8c3"
+        },
+        {
+          "presentation": "variable 6.94–37.50 ms",
+          "frames": 6600,
+          "ticks": 13200,
+          "bytesCompared": 71174400,
+          "droppedSeconds": 0,
+          "finishSeconds": 82.10000000001396,
+          "position": 4,
+          "entrants": 4,
+          "digest": "f1824382bebbb541eeba0f970f494019cd0a5fa8d5bceee01e5c84754c1db8c3"
+        }
+      ]
+    }
   },
   "quarryCarriageway": {
     "source": "80e8dc69d6b7209a69422369709a948642e63e40",
@@ -968,7 +1022,103 @@
     ],
     "resets": 0,
     "encoding": "800 × 450 WebGL picture with a 50-pixel telemetry band, H.264, 192 distinct captured frames.",
-    "method": "Two four-second excerpts from the wet six-entrant race. Production player rig and snapshot motion, local road and nearby building meshes under fixed review lighting."
+    "method": "Two four-second excerpts from the wet six-entrant race. Production player rig and snapshot motion, local road and nearby building meshes under fixed review lighting.",
+    "wheelMotion": {
+      "source": "997080f1b5a2e6d485f7cb76775feb20aa1cac0d",
+      "method": "Four production contact records per SC-7 snapshot in the two recorded shots. Differences are evaluated within each shot, excluding the edit.",
+      "sampleCount": 192,
+      "maxBodyQuaternionNormError": 3.282844063257073e-08,
+      "wheels": [
+        {
+          "wheel": 0,
+          "hubTravelMm": 33.16,
+          "maxHubChangePerVideoFrameMm": 14.86,
+          "radialCompressionMm": [
+            0.0,
+            35.0
+          ],
+          "loadN": [
+            0,
+            8941
+          ],
+          "steeringDegrees": [
+            -29.83,
+            0.45
+          ],
+          "omegaRadPerSecond": [
+            8.06,
+            87.43
+          ],
+          "validContactRecords": 192
+        },
+        {
+          "wheel": 1,
+          "hubTravelMm": 31.6,
+          "maxHubChangePerVideoFrameMm": 14.12,
+          "radialCompressionMm": [
+            0.0,
+            34.0
+          ],
+          "loadN": [
+            0,
+            8682
+          ],
+          "steeringDegrees": [
+            -23.03,
+            0.34
+          ],
+          "omegaRadPerSecond": [
+            9.0,
+            87.31
+          ],
+          "validContactRecords": 192
+        },
+        {
+          "wheel": 2,
+          "hubTravelMm": 56.08,
+          "maxHubChangePerVideoFrameMm": 19.55,
+          "radialCompressionMm": [
+            0.0,
+            55.82
+          ],
+          "loadN": [
+            0,
+            13516
+          ],
+          "steeringDegrees": [
+            -0.11,
+            -0.11
+          ],
+          "omegaRadPerSecond": [
+            8.04,
+            87.95
+          ],
+          "validContactRecords": 192
+        },
+        {
+          "wheel": 3,
+          "hubTravelMm": 56.38,
+          "maxHubChangePerVideoFrameMm": 19.97,
+          "radialCompressionMm": [
+            0.0,
+            54.96
+          ],
+          "loadN": [
+            0,
+            13299
+          ],
+          "steeringDegrees": [
+            0.11,
+            0.11
+          ],
+          "omegaRadPerSecond": [
+            9.27,
+            87.9
+          ],
+          "validContactRecords": 192
+        }
+      ]
+    }
   },
   "roadBuffers": {
     "beforeCommit": "80e8dc69d6b7209a69422369709a948642e63e40",
@@ -995,6 +1145,88 @@
       "uv1": "43e3e1a0ddbb631343b461a28011ea4b6db6127995119aaf8a01613ca32f0d96",
       "festivalRoadData": "ce9fe9a1fc29b37cd443b1ad4a6093d69aca322f2ced70b855c560e469e8108b",
       "festivalSurfaceData": "5603c2c2a9556c920a9ad74c19bad5922706568e50a5cd8f707b9982d7b6cc03"
+    }
+  },
+  "publicInputChecks": {
+    "source": "336fb587aa672f436f0d22cd8b8d8c7a48c3b9fe",
+    "quality": "low",
+    "actualProduct": {
+      "viewport": [
+        800,
+        500
+      ],
+      "savedPreferencesReloaded": true,
+      "steps": [
+        {
+          "name": "Production paddock rendered"
+        },
+        {
+          "name": "Entered Festival from the paddock",
+          "festRoad": "Harbour Front",
+          "festMachineName": "EH-3 ELECTRIC HYPERCAR",
+          "festSpeed": "3",
+          "festDriveState": "FREE ROAM"
+        },
+        {
+          "name": "Shipping HUD showed keyboard acceleration",
+          "festRoad": "Harbour Front",
+          "festMachineName": "EH-3 ELECTRIC HYPERCAR",
+          "festSpeed": "40",
+          "festDriveState": "FREE ROAM"
+        },
+        {
+          "name": "Opened the Festival pause menu"
+        }
+      ],
+      "pageErrors": [],
+      "failedRequests": []
+    },
+    "inputComponents": {
+      "passed": 15,
+      "browserBackend": "SwiftShader",
+      "coverage": "Real launch-board and Festival HUD components, keyboard, standard emulated controller, retry, map, photo mode, race feedback and screen sizes."
+    },
+    "freshStartReturn": {
+      "viewport": [
+        960,
+        600
+      ],
+      "savedPreferencesReloaded": false,
+      "steps": [
+        {
+          "name": "Production paddock rendered"
+        },
+        {
+          "name": "Entered Festival from the paddock",
+          "festRoad": "Harbour Front",
+          "festMachineName": "EH-3 ELECTRIC HYPERCAR",
+          "festSpeed": "6",
+          "festDriveState": "FREE ROAM"
+        },
+        {
+          "name": "Shipping HUD showed keyboard acceleration",
+          "festRoad": "Harbour Front",
+          "festMachineName": "EH-3 ELECTRIC HYPERCAR",
+          "festSpeed": "30",
+          "festDriveState": "FREE ROAM"
+        },
+        {
+          "name": "Opened the Festival pause menu"
+        },
+        {
+          "name": "Returned to the paddock and released the Festival HUD"
+        }
+      ],
+      "pageErrors": [],
+      "failedRequests": []
+    },
+    "firstAttempt": {
+      "viewport": [
+        960,
+        600
+      ],
+      "rendererHeapLimitMB": 660,
+      "outcome": "The browser process closed while entering Festival after the quality change."
     }
   }
 }
