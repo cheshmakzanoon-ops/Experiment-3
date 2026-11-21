@@ -1,5 +1,6 @@
 import { VEHICLE_IDS } from '../src/simulation/vehicles.ts';
 import * as T from 'three';
+import { G } from '../src/core/math.ts';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { B, BC, BIKE_BASE, CAR_STRIDE, F, H, R, RACE_BASE, ROAD_BIKE_CONTACT,
   WHEEL_CONTACT_BASE, wheelContactBase } from '../src/simulation/protocol.ts';
@@ -264,6 +265,25 @@ describe('GP spring-damped rider body', () => {
     // Let the existing downward velocity rebound while the wheels unload.
     const flight = sample(0.31, 0);
     expect(body.sample(crest, flight, 1, CAR).compression).toBeLessThan(-0.009);
+    // Measured free flight has an independently reconstructible age. Test a
+    // launch and descent on a bank with road-tangent speed, and one wheel
+    // higher than the last wheel off the pavement.
+    const ny = 0.96, nx = 0.28, launch = 2.1;
+    for (const age of [0.03, 0.12, 0.32]) {
+      const at = sample(0.31 + age, 0), vn = launch - G * ny * age;
+      const clearance = launch * age - 0.5 * G * ny * age ** 2;
+      for (const index of [0, 2]) {
+        const axle = wheelContactBase(CAR, index);
+        at[axle + BC.NORMAL_X] = nx;
+        at[axle + BC.NORMAL_Y] = ny;
+        at[axle + BC.GAP] = clearance / ny + (index === 0 ? 0.08 : 0);
+      }
+      at[CAR + F.VX] = vn * nx + 12 * ny;
+      at[CAR + F.VY] = vn * ny - 12 * nx;
+      const live = body.sample(at, at, 1, CAR).compression;
+      expect(live).toBeCloseTo(-0.018 * (1 - (1 + 23 * age) * Math.exp(-23 * age)), 6);
+      expect(new GpRiderBody().sample(at, at, 1, CAR).compression).toBeCloseTo(live, 10);
+    }
     expect(body.sample(cruising, cruising, 1, CAR).compression).toBe(0);
     crest[CAR + F.SPEED] = 0;
     expect(new GpRiderBody().sample(crest, crest, 1, CAR).plant).toBe(0);

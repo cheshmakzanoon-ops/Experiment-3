@@ -14,45 +14,74 @@ export function gpFairingWear(health?: number) {
 export function installGpFairingWear(material: T.MeshPhysicalMaterial, wear: T.IUniform<number>) {
   chainShaderHook(material, 'gp-fairing-wear-v1', (shader) => {
     shader.uniforms.gpFairingWear = wear;
-    injectDeclarations(shader, 'common', 'varying vec2 vGpWearPoint;', 'vertex');
-    injectAfter(shader, 'uv_vertex', `
+    injectDeclarations(shader, 'common', 'varying vec3 vGpWearPoint;', 'vertex');
+    injectAfter(
+      shader,
+      'uv_vertex',
+      `
       // Decode the two halves of the shell atlas into longitudinal/vertical metres.
-      vGpWearPoint = vec2((abs(uv.x * 2.0 - 1.0) - 0.5) * 2.04, (uv.y - 0.5) * 1.24);
-    `, 'vertex');
-    injectDeclarations(shader, 'common', `
+      vGpWearPoint = vec3((abs(uv.x * 2.0 - 1.0) - 0.5) * 2.04, (uv.y - 0.5) * 1.24, step(0.5, uv.x));
+    `,
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      `
       uniform float gpFairingWear;
-      varying vec2 vGpWearPoint;
+      varying vec3 vGpWearPoint;
       float gpScuffPatch(vec2 offset, vec2 radius) {
         vec2 p = offset / radius;
         return 1.0 - smoothstep(0.10, 1.0, dot(p, p));
       }
-    `, 'fragment');
-    injectAfter(shader, 'color_fragment', `
+    `,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'color_fragment',
+      `
       float gpScuff = 0.0;
       if (gpFairingWear > 0.0 && gl_FrontFacing) {
-        vec2 p = vGpWearPoint;
+        vec2 p = vGpWearPoint.xy;
         float cheek = gpScuffPatch(p - vec2(0.42, -0.11), vec2(0.24, 0.065));
         float lower = gpScuffPatch(p - vec2(0.25, -0.32), vec2(0.18, 0.042));
         float foil = gpScuffPatch(p - vec2(0.735, 0.063), vec2(0.11, 0.073));
-        float band = p.y * 245.0 + p.x * 18.0 + 0.9 * sin(p.x * 14.0);
+        float band = p.y * 245.0 + p.x * 18.0 + 0.9 * sin(p.x * 14.0 + vGpWearPoint.z);
         float footprint = fwidth(band);
-        float line = 1.0 - smoothstep(0.04, 0.17, abs(fract(band) - 0.5));
+        // Each fibre drag starts and stops at a different point in the rub.
+        float seed = fract((floor(band) + 41.0 + 29.0 * vGpWearPoint.z) * 0.1031);
+        seed = fract(seed * (seed + 33.33) * (seed * 2.0 + 0.17));
+        float width = mix(0.05, 0.16, seed);
+        float line = 1.0 - smoothstep(0.25 * width, width + 0.05, abs(fract(band) - 0.5));
+        line *= smoothstep(-0.48, 0.27, sin((p.x + seed * 0.65) * mix(12.0, 29.0, seed)));
         // Narrow scratches converge on their coverage as they recede on a rival bike.
-        line = mix(line, 0.21, smoothstep(0.12, 0.75, footprint));
+        line = mix(line, 0.11, smoothstep(0.12, 0.75, footprint));
         float edge = max(max(cheek, lower * 0.74), foil);
+        edge *= 0.94 + 0.06 * sin(28.0 * p.x + vGpWearPoint.z) * sin(71.0 * p.y);
         gpScuff = smoothstep(1.0 - gpFairingWear, 1.12, edge) * (0.2 + 0.8 * line);
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.043, 0.046, 0.048), gpScuff);
       }
-    `, 'fragment');
-    injectAfter(shader, 'roughnessmap_fragment',
-      'roughnessFactor = mix(roughnessFactor, 0.74, gpScuff);', 'fragment');
-    injectAfter(shader, 'metalnessmap_fragment',
-      'metalnessFactor *= 1.0 - gpScuff;', 'fragment');
-    injectAfter(shader, 'lights_physical_fragment', `
+    `,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      'roughnessFactor = mix(roughnessFactor, 0.74, gpScuff);',
+      'fragment',
+    );
+    injectAfter(shader, 'metalnessmap_fragment', 'metalnessFactor *= 1.0 - gpScuff;', 'fragment');
+    injectAfter(
+      shader,
+      'lights_physical_fragment',
+      `
       #ifdef USE_CLEARCOAT
         material.clearcoat *= 1.0 - gpScuff;
         material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.65, gpScuff);
       #endif
-    `, 'fragment');
+    `,
+      'fragment',
+    );
   });
 }

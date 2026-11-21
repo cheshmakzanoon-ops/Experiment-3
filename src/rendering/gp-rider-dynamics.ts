@@ -1,4 +1,5 @@
 import { B, BC, BIKE_BASE, F, H, hasRoadBikeContact, wheelContactBase } from '../simulation/protocol.ts';
+import { G } from '../core/math.ts';
 import type { RiderPose } from './rider.ts';
 import { gpBodyTargets, type GpRiderBodyState } from './gp-rider-posture.ts';
 
@@ -41,9 +42,8 @@ const blank = (): GpRiderBodyState => ({ sitUp: 0, surge: 0, sway: 0, plant: 0, 
  * targets interpolated between the two snapshots it has seen. The presented
  * value between snapshots is interpolated, never integrated, so render rate,
  * held/paused frames and repeated draws cannot change it. Wall-clock time is
- * never read. A seek, rewind, gap over 0.5 s or a non-riding state restarts
- * at equilibrium (the pose `gpBodyTargets` gives for that snapshot), exactly
- * like the particle playback's discontinuity rule. */
+ * never read. A seek, rewind or gap over 0.5 s restores the snapshot targets.
+ * In flight the recorded motion also fixes the amount of body extension. */
 export class GpRiderBody {
   private readonly position = blank();
   private readonly velocity = blank();
@@ -64,7 +64,7 @@ export class GpRiderBody {
       return targetsAt(alpha < 1 ? a : b, car, this.presented);
     }
     const elapsed = tb - this.time;
-    if (!(elapsed >= 0) || elapsed > GP_RIDER_BODY_MAX_GAP) this.reset(a, b, car);
+    if (!(elapsed >= 0) || elapsed > GP_RIDER_BODY_MAX_GAP) this.reset(b, car);
     else if (elapsed > 0) this.advance(b, car, elapsed);
     // Interpolate within the last integrated interval at the presented time.
     const span = this.time - this.previousTime,
@@ -76,16 +76,48 @@ export class GpRiderBody {
     return this.presented;
   }
 
-  private reset(a: Float32Array, b: Float32Array, car: number) {
-    void a;
+  private reset(b: Float32Array, car: number) {
     targetsAt(b, car, this.position);
-    targetsAt(b, car, this.target);
+    Object.assign(this.target, this.position);
     for (const channel of CHANNELS) this.velocity[channel] = 0;
-    // An equilibrium restart has no integrated history to interpolate across.
+    this.flightExtension(b, car);
+    // A restart has no earlier state to interpolate across.
     Object.assign(this.previous, this.position);
     this.time = b[H.TIME];
     this.previousTime = this.time;
     this.resets++;
+  }
+
+  /** The last wheel to leave the road bounds time in free flight. Its
+   * clearance and the chassis velocity are recorded, so the unloaded rider
+   * can extend smoothly even on the first frame of a seek into mid-air. */
+  private flightExtension(frame: Float32Array, car: number) {
+    // The suspension solver measures vertical clearance. Project it onto
+    // the local road plane before solving h = v_now * t + g_normal * t²/2.
+    const front = wheelContactBase(car, 0);
+    const rear = wheelContactBase(car, 2);
+    const frontGap = frame[front + BC.GAP] * frame[front + BC.NORMAL_Y];
+    const rearGap = frame[rear + BC.GAP] * frame[rear + BC.NORMAL_Y];
+    const axle = frontGap < rearGap ? front : rear;
+    const gap = Math.min(frontGap, rearGap);
+    if (
+      !(gap > 0) ||
+      frame[front + BC.LOAD] + frame[rear + BC.LOAD] > 1e-6 ||
+      !hasRoadBikeContact(frame, car)
+    ) return;
+    const ny = frame[axle + BC.NORMAL_Y];
+    const velocity =
+      frame[car + F.VX] * frame[axle + BC.NORMAL_X] +
+      frame[car + F.VY] * ny +
+      frame[car + F.VZ] * frame[axle + BC.NORMAL_Z];
+    if (!Number.isFinite(velocity)) return;
+    const gravity = G * ny;
+    const launchSpeed = Math.sqrt(velocity * velocity + 2 * gravity * gap);
+    const t = velocity >= 0 ? (2 * gap) / (launchSpeed + velocity) : (launchSpeed - velocity) / gravity;
+    const omega = GP_RIDER_BODY_SPRINGS.compression[0], decay = Math.exp(-omega * t);
+    const extension = this.target.compression;
+    this.position.compression = extension * (1 - (1 + omega * t) * decay);
+    this.velocity.compression = extension * omega * omega * t * decay;
   }
 
   private advance(b: Float32Array, car: number, elapsed: number) {
@@ -109,6 +141,7 @@ export class GpRiderBody {
     this.position.sitUp = Math.min(1.1, Math.max(0, this.position.sitUp));
     this.position.plant = Math.min(1, Math.max(0, this.position.plant));
     Object.assign(this.target, this.next);
+    this.flightExtension(b, car);
     this.previousTime = this.time;
     this.time = b[H.TIME];
   }
