@@ -12,6 +12,8 @@ on:
       - src/rendering/open-world/festival-practical-lights.ts
       - src/rendering/open-world/festival-renderer.ts
       - src/rendering/open-world/horizon-dressing.ts
+      - src/rendering/open-world/buildings.ts
+      - src/rendering/open-world/quay-warehouse.ts
       - src/rendering/open-world/roads.ts
       - src/rendering/open-world/terrain*.ts
       - src/rendering/open-world/water.ts
@@ -31,11 +33,13 @@ on:
       - src/simulation/rigid.ts
       - src/simulation/wheel-momentum.ts
       - src/simulation/open-world/skill-chain.ts
+      - src/simulation/open-world/region-data.ts
       - src/simulation/open-world/session.ts
       - src/simulation/open-world/festival-events.ts
       - src/simulation/open-world/open-world-track.ts
       - src/ui/festival-hud.ts
       - tests/festival-airtime.test.ts
+      - tests/festival-quay-warehouse.test.ts
       - tests/festival-dry-clouds.test.ts
       - tests/festival-practical-lights.test.ts
       - tests/festival-terrain-transitions.test.ts
@@ -105,7 +109,8 @@ jobs:
             tests/festival-headland-lantern.test.ts tests/festival-harbour-pennants.test.ts \
             tests/festival-start-boards.test.ts tests/festival-rear-construction.test.ts \
             tests/festival-qa-defects.test.ts tests/festival-shoulder-contact.test.ts \
-            tests/festival-road-surface.test.ts \
+            tests/festival-road-surface.test.ts tests/festival-quay-warehouse.test.ts \
+            tests/reflections.test.ts \
             --maxWorkers=1 --reporter=default --reporter=json --outputFile="$HORIZON_R6_OUT/tests.json" \
             2>&1 | tee "$HORIZON_R6_OUT/tests.log"
       - name: Lint and content validation
