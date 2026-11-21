@@ -94,23 +94,19 @@ const SAMPLE = /* glsl */ `
     .035 * streak * scuff - .24 * water, .46, .96);
 #ifdef MX_STAMPED_SIDEWALL
   // Bound the radial strip between bead and crown on each carcass. Sample
-  // the opposite side in its own reading direction. Analytic derivatives
-  // keep the mip stable as the atan seam rotates through the contact patch.
+  // the opposite side in its own reading direction. The atlas is blank at
+  // the angular seam. Fetch on the whole pixel quad before masking the ink:
+  // neighbouring fragments must select consistent mips across a raised edge.
   float ringSpan = mix(.027, .032, axle);
   float ring = (radial - dimensions.y - mix(.025, .036, axle)) / ringSpan;
   float turn = -sign(p.x) / 6.2831853;
   vec2 printUv = vec2(.5 + angle * turn, 1. - (axle * 64. + 57. - ring * 50.) / 128.);
-  vec2 tangent = vec2(-p.z, p.y) * (turn / max(radial * radial, .0001));
-  vec2 gradX = vec2(dot(tangent, dFdx(p.yz)), dFdx(radial) * 50. / (128. * ringSpan));
-  vec2 gradY = vec2(dot(tangent, dFdy(p.yz)), dFdy(radial) * 50. / (128. * ringSpan));
-  if (detail > .0 && ring > .0 && ring < 1. && across > .54) {
-    vec2 ink = textureGrad(mxTyreLettering, printUv, gradX, gradY).rg * detail *
-      smoothstep(.54, .76, across);
-    mxTyreHeight += .00055 * ink.r;
-    diffuseColor.rgb *= 1. + .46 * ink.r;
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.39,.24,.062) * (1. - .4 * water), ink.g * .82);
-    mxTyreRoughness -= ink.r * .045;
-  }
+  vec2 ink = texture2D(mxTyreLettering, printUv).rg * detail *
+    smoothstep(.54, .76, across) * step(0., ring) * step(ring, 1.);
+  mxTyreHeight += .00055 * ink.r;
+  diffuseColor.rgb *= 1. + .46 * ink.r;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.39,.24,.062) * (1. - .4 * water), ink.g * .82);
+  mxTyreRoughness -= ink.r * .045;
 #endif
 #ifdef MX_SUPERMOTO_TYRE
   // Staggered channels sweep outwards from the uncut centre strip. Keep
@@ -195,7 +191,7 @@ export function installMotocrossTyreFinish(
   const stamp = stamped && !road ? retainMxTyreLettering(material) : undefined;
   chainShaderHook(
     material,
-    road ? 'supermoto-tyre-finish-v1' : stamp ? 'motocross-stamped-tyre-v1' : 'motocross-tyre-finish-v1',
+    road ? 'supermoto-tyre-finish-v1' : stamp ? 'motocross-stamped-tyre-v2' : 'motocross-tyre-finish-v1',
     (shader) => {
       if (stamp) shader.uniforms.mxTyreLettering = { value: stamp };
       shader.uniforms.mxTyreFront = front;

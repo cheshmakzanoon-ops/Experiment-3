@@ -41,7 +41,6 @@ function createStamp() {
   const t = new T.CanvasTexture(canvas);
   t.name = 'MX sidewall mould and balance paint';
   t.wrapS = T.RepeatWrapping;
-  t.anisotropy = 4;
   return t;
 }
 
