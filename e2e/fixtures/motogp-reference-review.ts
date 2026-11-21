@@ -45,6 +45,7 @@ export function captureBikeSequence(
         | 'rearRotation'
         | 'rearBrake'
         | 'speed'
+        | 'frontFairingHealth'
         | 'rpm'
       >
     >;
@@ -335,6 +336,7 @@ export function captureBikeSequence(
         hash,
         cockpit: view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null,
         frontBrake: sample.frontBrake ?? pose.brake,
+        fairingWear: materials.fairingWear.value,
         frontWheelRotation: bike.root.getObjectByName('GP front wheel spin')?.rotation.x ?? null,
         riderPose: {
           lean: samplePose.chassisLean,

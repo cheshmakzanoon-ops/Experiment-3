@@ -24,7 +24,7 @@ import {
 } from './bike-definitions.ts';
 import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from './config.ts';
 import { MARSHAL } from './marshal.ts';
-import { bikeSlipstreamDragScale, gpWingAirflow } from './bike-slipstream.ts';
+import { bikeSlipstreamDragScale, gpWingEfficiency } from './bike-slipstream.ts';
 import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
 import { peakGrip } from './tire.ts';
@@ -320,7 +320,7 @@ export class BikeVehicle extends Vehicle {
     if (!Number.isFinite(energy) || energy < 0) throw new Error('Invalid impact energy');
     void point;
     this.impact = Math.max(this.impact, Math.min(1, energy / 30000));
-    // Fairing/wing scrapes are cosmetic here; a hard contact unseats the rider.
+    // GP fairing damage reduces wing load. Hard contact can also unseat the rider.
     this.frontHealth = Math.max(0.3, this.frontHealth - energy / 400000);
     if (energy > this.bikeSpec.crashEnergy && this.riding) this.contactCrash = true;
   }
@@ -441,9 +441,7 @@ export class BikeVehicle extends Vehicle {
       rearGrip = this.surfaceGrip(2) * this.bumpGrip(2, this.setup.rearDamping);
     d.grip = Math.min(frontGrip, rearGrip);
     if (gpPrototype) {
-      // Parameters belong to this entrant. Start from its clean-air spec on
-      // every step, so leaving the wake restores the full wing coefficient.
-      d.p.downforce = spec.downforce * gpWingAirflow(this.wake);
+      d.p.downforce = spec.downforce * gpWingEfficiency(this.wake, this.frontHealth, this.floorHealth);
       // Each GP tyre retains its own surface, temperature, wear and damping
       // response. The lower value still bounds the rider's lean intent; it
       // no longer replaces the clean wheel's longitudinal friction circle.

@@ -1,5 +1,6 @@
 import { gpAerofoil } from './gp-aerofoil.ts';
 import { gpFairingOutlet } from './gp-fairing-outlet.ts';
+import { installGpFairingWear } from './gp-fairing-wear.ts';
 import * as T from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -1468,6 +1469,7 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
     name: 'GP box wing paint (clear-coated)',
   });
   installShellInterior(material);
+  installGpFairingWear(material, materials.fairingWear);
   installSsrMask(material);
   tagWeatherSurface(material, 'paint');
   materials.list.push(material);
@@ -1524,6 +1526,7 @@ export function gpLiveryMaterial(
     name: 'GP race shell livery (clear-coated)',
   });
   installShellInterior(material);
+  if (variant !== 'sport') installGpFairingWear(material, materials.fairingWear);
   // ULTRA screen-space reflections: the lacquer mirrors the road, kerbs and
   // neighbouring bikes (inert unless the SSR stage is running).
   installSsrMask(material);

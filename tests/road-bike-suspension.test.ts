@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DynamicsTrack } from '../scripts/dynamics-fixtures.ts';
-import { G, type Vec3 } from '../src/core/math.ts';
+import { G, Vec3 } from '../src/core/math.ts';
 import { GP_R1, GP_R2, SS_600 } from '../src/simulation/bike-definitions.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { COMPOUNDS, DEFAULT_SETUP } from '../src/simulation/config.ts';
@@ -56,6 +56,35 @@ function machine(definition: VehicleDefinition, track: ProfileTrack, speed = 0, 
 }
 
 describe('production road/GP sprung chassis and unilateral contacts', () => {
+  it.each([GP_R1, GP_R2])('$id carries fairing damage into both axles and recovers through pit repair', (definition) => {
+    const track = new ProfileTrack(flat);
+    const reference = machine(definition, track, 55);
+    const damaged = machine(definition, track, 55);
+    const point = new Vec3(0, 0.3, 0.6);
+    // Repeated light contact scuffs the fairing without triggering a rider fall.
+    for (let i = 0; i < 40; i++) damaged.impactAt(2000, point);
+    reference.wake = damaged.wake = 0.5;
+    for (let i = 0; i < 120; i++) {
+      reference.step(DT, track);
+      damaged.step(DT, track);
+    }
+    expect(damaged.riding).toBe(true);
+    expect(damaged.frontHealth).toBeCloseTo(0.8, 10);
+    const coefficient = definition.bike!.downforce;
+    const force = coefficient * 0.85 * 0.89 * damaged.speed ** 2;
+    expect(damaged.aero.front).toBeCloseTo(force * definition.bike!.downforceFront, 8);
+    expect(damaged.aero.rear).toBeCloseTo(force * (1 - definition.bike!.downforceFront), 8);
+    expect(damaged.roadSuspension.frontCompression).toBeLessThan(reference.roadSuspension.frontCompression);
+    expect(damaged.roadSuspension.rearCompression).toBeLessThan(reference.roadSuspension.rearCompression);
+    damaged.repairFrontWing(1);
+    damaged.step(DT, track);
+    expect(damaged.dynamics.p.downforce).toBe(reference.dynamics.p.downforce);
+    damaged.wake = 0;
+    damaged.floorHealth = 0.5;
+    damaged.step(DT, track);
+    expect(damaged.dynamics.p.downforce).toBeCloseTo(coefficient * 0.725, 10);
+  });
+
   it.each([GP_R1, GP_R2])('$id loads both axles with the wing force reported in and out of a wake', (definition) => {
     const track = new ProfileTrack(flat);
     const clean = machine(definition, track, 55);

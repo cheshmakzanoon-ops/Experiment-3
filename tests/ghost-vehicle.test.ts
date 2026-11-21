@@ -131,6 +131,11 @@ describe('Time Trial ghost by recorded vehicle', () => {
     try {
       const pose = ghostPose();
       pose.y = 0.6;
+      pose.vehicle = 'gpr1';
+      // Building at Low immediately installs the translucent ghost finish.
+      // A later upgrade must still voxelise the saved opaque chassis geometry.
+      ghost.update(pose, camera, 'low', 1, 1 / 60);
+      expect(gpOcclusionCacheSize()).toBe(before);
       for (const [vehicle, kind] of [
         ['gpr1', 'bike'],
         ['gpr2', 'bike'],

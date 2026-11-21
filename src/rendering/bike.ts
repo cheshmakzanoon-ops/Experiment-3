@@ -16,6 +16,7 @@ import {
   gpFrontFender,
 } from './gp-appearance.ts';
 import * as T from 'three';
+import { gpFairingWear } from './gp-fairing-wear.ts';
 import { motocrossTravelYaw } from './offroad/motocross-rider-motion.ts';
 import { MxArenaBikeLight } from './offroad/mx-arena-bike-light.ts';
 import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
@@ -65,7 +66,9 @@ import {
   setGpOcclusionStrength,
   voxelizeGpOcclusion,
   type GpOcclusionGrid,
+  type GpOcclusionSource,
 } from './gp-occlusion.ts';
+import type { Quality } from './options.ts';
 import { setGpPanelRelief } from './gp-panel-relief.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { RoadBikeInstruments } from './road-bike-instruments.ts';
@@ -525,6 +528,7 @@ export class BikeMaterials {
   readonly list: T.Material[] = [];
   readonly wheelExposure = new RoadWheelExposure();
   readonly opticalRain = new GpOpticalRain();
+  readonly fairingWear = { value: 0 };
   private readonly prints = new Map<string, GpRiderPrints>();
   private headlight?: T.MeshStandardMaterial;
   private roadGlass?: T.MeshStandardMaterial;
@@ -1953,7 +1957,7 @@ export class BikeModel {
   /** Rest-pose occupancy of the machine without its rider, in the sprung
    * frame (gp-occlusion.ts). Poses the model upright at static sag; the next
    * presented pose replaces it. */
-  occlusionGrid(): GpOcclusionGrid {
+  occlusionSources(): GpOcclusionSource[] {
     this.pose({
       fork: this.sag.fork,
       shock: this.sag.shock,
@@ -1969,7 +1973,10 @@ export class BikeModel {
       compoundColour: 0xffffff,
       riding: true,
     });
-    return voxelizeGpOcclusion(gpOcclusionSources(this.root, this.sprung, [this.rider.root]));
+    return gpOcclusionSources(this.root, this.sprung, [this.rider.root]);
+  }
+  occlusionGrid(): GpOcclusionGrid {
+    return voxelizeGpOcclusion(this.occlusionSources());
   }
   /** World-space subjects of the actually posed motorcycle. The head may
    * be separated from the machine during a replay. All other subjects
@@ -2005,7 +2012,10 @@ export class BikeModel {
   pose(v: BikePoseValues) {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
-    if (this.definition.classId === 'gp-bike') this.m.opticalRain.set(v.time, v.liquidRain, v.speed);
+    if (this.definition.classId === 'gp-bike') {
+      this.m.opticalRain.set(v.time, v.liquidRain, v.speed);
+      this.m.fairingWear.value = gpFairingWear(v.frontFairingHealth);
+    }
     this.cockpit?.update(v);
     this.roadClocks?.update(v);
     this.gpRearsets.update(v.rearBrake);
@@ -2159,6 +2169,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   rainVisibility?: number;
   /** Falling liquid precipitation in mm/h, independent of surface standing water. */
   liquidRain?: number;
+  /** Recorded GP fairing condition; shared by the paint and wing at every LOD. */
+  frontFairingHealth?: number;
   rpm?: number;
   gear?: number;
   fork: number;
@@ -2218,6 +2230,8 @@ interface Entry {
   riderBody?: GpRiderBody;
   /** GP prototypes: key of the shared bike-space occlusion volume. */
   occlusion?: string;
+  /** Original opaque surfaces and their rest transforms until High first needs them. */
+  pendingOcclusion?: GpOcclusionSource[];
   /** GP material switches belong to the entrant and survive model LOD changes. */
   highGpFinish?: boolean;
 }
@@ -2350,7 +2364,7 @@ export class BikeShells {
     if (!def.bike) return 0;
     return chassisLean(sampleBikeField(a, b, o, B.LEAN, t), def.bike);
   }
-  private build(id: number, definition: VehicleDefinition, field: boolean): Entry {
+  private build(id: number, definition: VehicleDefinition, field: boolean, quality: Quality): Entry {
     // The player's SS-600 and SBK-1000 wear their own team scheme (bike-sheet.ts
     // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
     const scheme = bikeEntrantScheme(definition.id, id);
@@ -2373,7 +2387,10 @@ export class BikeShells {
     // Capture the opaque rest pose before a presentation hook can replace its
     // materials (the Time Trial ghost installs a translucent material). A cold
     // cache must bake the same volume regardless of which entrant builds first.
-    const occlusion = gp ? this.occlude(definition.id, levels, materials) : undefined;
+    const pendingOcclusion = gp && quality !== 'high' ? levels[0].occlusionSources() : undefined;
+    const occlusion = gp && quality === 'high'
+      ? this.occlude(definition.id, levels, materials, () => levels[0].occlusionGrid())
+      : undefined;
     for (const level of levels) this.install(level.root);
     const rig = new BikeServiceRig(bikeServiceGeometry(definition));
     this.root.add(rig.root);
@@ -2399,6 +2416,7 @@ export class BikeShells {
       rig,
       riderBody,
       occlusion,
+      pendingOcclusion,
       probePaint,
     };
   }
@@ -2468,11 +2486,16 @@ export class BikeShells {
   }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high
    * model and hook every lit, opaque bike and rider material of the entrant. */
-  private occlude(key: string, levels: BikeModel[], materials: BikeMaterials) {
-    const volume = acquireGpOcclusion(key, () => levels[0].occlusionGrid());
+  private occlude(
+    key: string,
+    levels: Entry['levels'],
+    materials: BikeMaterials,
+    buildGrid: () => GpOcclusionGrid,
+  ) {
+    const volume = acquireGpOcclusion(key, buildGrid);
     bindGpOcclusion(materials.occlusion, volume);
     const owned = new Set<T.Material>(materials.list);
-    for (const level of levels) for (const m of level.rider.ownedMaterials) owned.add(m);
+    for (const level of levels) if (level) for (const m of level.rider.ownedMaterials) owned.add(m);
     for (const m of owned)
       if (m instanceof T.MeshStandardMaterial && !m.transparent && m.colorWrite)
         installGpOcclusion(m, materials.occlusion);
@@ -2552,7 +2575,7 @@ export class BikeShells {
     alpha: number,
     cars: readonly { root: T.Object3D }[],
     camera: T.PerspectiveCamera,
-    quality: 'low' | 'medium' | 'high',
+    quality: Quality,
     follow: number,
     // During race loading each entrant gets its own repaint opportunity.
     entrant?: number,
@@ -2589,8 +2612,15 @@ export class BikeShells {
       }
       if (!entry || entry.definition !== definition) {
         if (entry) this.dispose(entry);
-        entry = this.build(id, definition, b[H.CARS] > 1);
+        entry = this.build(id, definition, b[H.CARS] > 1, quality);
         this.entries.set(id, entry);
+      }
+      const pending = entry.pendingOcclusion;
+      if (quality === 'high' && pending) {
+        entry.occlusion = this.occlude(definition.id, entry.levels, entry.materials, () =>
+          voxelizeGpOcclusion(pending),
+        );
+        entry.pendingOcclusion = undefined;
       }
       const car = cars[id].root;
       car.visible = false;
@@ -2686,6 +2716,7 @@ export class BikeShells {
       front = o + WHEEL_BASE,
       rear = front + 2 * WHEEL_STRIDE;
     v.speed = sampleValue(a, b, o + F.SPEED, t);
+    v.frontFairingHealth = sampleValue(a, b, o + F.FRONT_HEALTH, t);
     v.time = sampleValue(a, b, H.TIME, t);
     v.liquidRain = T.MathUtils.lerp(frameLiquidRain(a), frameLiquidRain(b), t);
     v.rainVisibility = Math.max(v.liquidRain / 2, sampleValue(a, b, H.WATER, t) / 0.35);

@@ -337,6 +337,12 @@ describe('GP bike-space occlusion', () => {
       host = { root: new T.Object3D() },
       camera = new T.PerspectiveCamera(58, 16 / 9);
     try {
+      for (const tier of ['low', 'medium'] as const) {
+        shells.update(frame, frame, 1, [host], camera, tier, 0);
+        expect(gpOcclusionCacheSize()).toBe(before);
+        const model = shells.gpPresentation(0)!;
+        expect(studioHookKeys(model.rider.ownedMaterials[0])).not.toContain('gp-occlusion-v1');
+      }
       shells.update(frame, frame, 1, [host], camera, 'high', 0);
       expect(gpOcclusionCacheSize()).toBe(before + 1);
       const entry = (

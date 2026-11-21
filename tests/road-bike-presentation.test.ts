@@ -300,10 +300,41 @@ function fixture(vehicle = 'gpr1', setup: Partial<Setup> = {}) {
 }
 const o = carBase(0);
 type Posed = Pick<BikeModel, 'root' | 'sprung' | 'rider' | 'definition'> & {
-  m: { rubber: T.Material };
+  m: { rubber: T.Material; fairingWear: { value: number } };
   frontSpin: T.Group;
   rearSpin: T.Group;
 };
+it.each(['gpr1', 'gpr2'])('%s restores recorded fairing wear through LOD changes, pit repair and replay', (id) => {
+  stubCanvas();
+  const { sim, bike } = fixture(id), pose = spyPose(), shells = new BikeShells();
+  try {
+    const intact = sim.makeFrame();
+    bike.frontHealth = 0.65;
+    sim.step(1 / 120);
+    const worn = sim.makeFrame();
+    const uniform = render(shells, pose, intact).model.m.fairingWear;
+    expect(uniform.value).toBe(0);
+    for (const distance of [0, 70, 300]) {
+      expect(render(shells, pose, worn, worn, 1, distance).model.m.fairingWear).toBe(uniform);
+      expect(uniform.value).toBeCloseTo(0.5);
+    }
+    render(shells, pose, intact, worn, 0.5);
+    expect(uniform.value).toBeCloseTo(0.25);
+    bike.repairFrontWing(2);
+    sim.step(1 / 120);
+    render(shells, pose, sim.makeFrame());
+    expect(uniform.value).toBe(0);
+    render(shells, pose, worn);
+    expect(uniform.value).toBeCloseTo(0.5);
+    const legacy = intact.slice();
+    legacy[o + F.FRONT_HEALTH] = 0;
+    render(shells, pose, legacy);
+    expect(uniform.value).toBe(0);
+  } finally {
+    shells.disposeAll();
+  }
+});
+
 function spyPose() {
   return vi.spyOn(BikeModel.prototype, 'pose');
 }

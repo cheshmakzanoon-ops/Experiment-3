@@ -90,9 +90,8 @@ describe('GP livery panel relief', () => {
       expect(ua.gpReliefStrength.value).toBe(0);
 
       const shader = {
-        vertexShader: '',
-        fragmentShader:
-          '#include <common>\n#include <normal_fragment_maps>\n#include <clearcoat_normal_fragment_maps>\n',
+        vertexShader: T.ShaderLib.physical.vertexShader,
+        fragmentShader: T.ShaderLib.physical.fragmentShader,
         uniforms: {},
       } as unknown as T.WebGLProgramParametersWithUniforms;
       pa.onBeforeCompile(shader, {} as T.WebGLRenderer);

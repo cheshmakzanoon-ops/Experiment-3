@@ -24,3 +24,11 @@ export function bikeSlipstreamDragScale(tuck: number, tuckDrag: number, tow: num
 export function gpWingAirflow(wake: number) {
   return 1 - 0.3 * (Number.isFinite(wake) ? clamp(wake, 0, 1) : 0);
 }
+
+/** Remaining prototype downforce after bodywork damage and disturbed air.
+ * Both the approach planner and the axle loads use the same calibration. */
+export function gpWingEfficiency(wake: number, frontHealth: number, floorHealth: number) {
+  const front = Number.isFinite(frontHealth) ? clamp(frontHealth, 0, 1) : 1;
+  const floor = Number.isFinite(floorHealth) ? clamp(floorHealth, 0, 1) : 1;
+  return (0.45 + 0.55 * Math.min(front, floor)) * gpWingAirflow(wake);
+}
