@@ -5,6 +5,15 @@ type VertexArray = T.BufferAttribute['array'];
 function sameStorage(a: VertexArray, b: VertexArray) {
   if (a === b) return true;
   if (a.constructor !== b.constructor || a.byteLength !== b.byteLength) return false;
+  // Compare aligned position, normal and UV buffers four bytes at a time.
+  // Integer views preserve NaN payloads and the sign of zero without copying.
+  if (((a.byteOffset | b.byteOffset | a.byteLength) & 3) === 0) {
+    const words = a.byteLength / 4;
+    const left = new Uint32Array(a.buffer, a.byteOffset, words),
+      right = new Uint32Array(b.buffer, b.byteOffset, words);
+    for (let i = 0; i < words; i++) if (left[i] !== right[i]) return false;
+    return true;
+  }
   const left = new Uint8Array(a.buffer, a.byteOffset, a.byteLength),
     right = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
   for (let i = 0; i < left.length; i++) if (left[i] !== right[i]) return false;

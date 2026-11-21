@@ -723,6 +723,12 @@ it('only shares byte-identical immutable mesh attributes across matching designs
     g.setAttribute('position', new T.Float32BufferAttribute([x, 0, 0], 3));
     g.setAttribute('uv', new T.Float32BufferAttribute([1, 0], 2));
     g.setAttribute('variant', new T.InstancedBufferAttribute(new Float32Array([1]), 1));
+    const different = Object.is(x, -0);
+    // Exclude the different padding byte preceding this three-byte attribute.
+    const padded = new Uint8Array([different ? 91 : 37, 21, 34, 55]);
+    g.setAttribute('thread', new T.BufferAttribute(padded.subarray(1), 1));
+    const edge = new Uint8Array([11, 23, 35, 47, different ? 9 : 7]);
+    g.setAttribute('edge', new T.BufferAttribute(edge, 1));
     return new T.Mesh(g, new T.MeshBasicMaterial());
   };
   const first = mesh(0),
@@ -736,6 +742,8 @@ it('only shares byte-identical immutable mesh attributes across matching designs
     expect(array(first, 'uv') === array(other, 'uv')).toBe(true);
     expect(array(first, 'position') === array(other, 'position')).toBe(false);
     expect(Object.is(array(other, 'position')[0], -0)).toBe(true);
+    expect(array(first, 'thread') === array(other, 'thread')).toBe(true);
+    expect(array(first, 'edge') === array(other, 'edge')).toBe(false);
     expect(array(first, 'variant') === array(other, 'variant')).toBe(false);
     expect(array(first, 'uv') === array(separate, 'uv')).toBe(false);
   } finally {
