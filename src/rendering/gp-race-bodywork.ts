@@ -17,7 +17,9 @@ import {
   type WordmarkStyle,
 } from './studio/brand-atlas.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
-import { carbonMaterial } from './materials.ts';
+import { CARBON_FINISHES, carbonMaterial } from './materials.ts';
+import carbonWeave from '../shaders/carbon.frag?raw';
+import carbonNormal from '../shaders/carbon-normal.frag?raw';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { installSsrMask } from './ultra/ssr-mask.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
@@ -1599,21 +1601,37 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
     name: 'GP box wing paint (clear-coated)',
   });
   installShellInterior(material);
-  chainShaderHook(material, 'gp-foil-laminate-v1', (shader) => {
+  chainShaderHook(material, 'gp-foil-laminate-v2', (shader) => {
     injectDeclarations(
-      shader, 'common', 'attribute float gpFoilCarbon; varying float vGpFoilCarbon;', 'vertex',
+      shader, 'common',
+      'attribute float gpFoilCarbon; varying float vGpFoilCarbon; varying vec2 vCarbonUv;',
+      'vertex',
     );
-    injectAfter(shader, 'begin_vertex', 'vGpFoilCarbon = gpFoilCarbon;', 'vertex');
-    injectDeclarations(shader, 'common', 'varying float vGpFoilCarbon;', 'fragment');
+    injectAfter(shader, 'begin_vertex', `
+      vGpFoilCarbon = gpFoilCarbon;
+      vCarbonUv = (position.xy + position.z * 0.7071) * 333.0;`, 'vertex');
+    injectDeclarations(shader, 'common', `
+      varying float vGpFoilCarbon;
+      varying vec2 vCarbonUv;
+      #define CARBON_WEAVE ${CARBON_FINISHES.satin.weave.toFixed(3)}`, 'fragment');
     injectAfter(
       shader, 'color_fragment',
-      'diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.026, 0.030, 0.034), vGpFoilCarbon);',
+      'diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.016, 0.019, 0.022), vGpFoilCarbon);',
       'fragment',
     );
     injectAfter(
       shader, 'roughnessmap_fragment',
-      'roughnessFactor = mix(roughnessFactor, 0.45, vGpFoilCarbon);', 'fragment',
+      `roughnessFactor = mix(roughnessFactor, 0.45, vGpFoilCarbon);
+      // The laminate uses the same three-millimetre twill as the cockpit.
+      // Blend it under the rolled paint edge and leave the crown lacquer smooth.
+      vec3 gpFoilBase = diffuseColor.rgb;
+      float gpFoilRoughness = roughnessFactor;
+      ${carbonWeave}
+      diffuseColor.rgb = mix(gpFoilBase, diffuseColor.rgb, vGpFoilCarbon);
+      roughnessFactor = mix(gpFoilRoughness, roughnessFactor, vGpFoilCarbon);
+      carbonResolved *= vGpFoilCarbon;`, 'fragment',
     );
+    injectAfter(shader, 'normal_fragment_maps', carbonNormal, 'fragment');
     injectAfter(
       shader, 'metalnessmap_fragment', 'metalnessFactor *= 1.0 - vGpFoilCarbon;', 'fragment',
     );
