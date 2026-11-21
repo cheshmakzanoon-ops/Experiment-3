@@ -9,7 +9,12 @@ import {
   bikeCockpitProfile,
   staticSag,
 } from '../src/rendering/bike.ts';
-import { bikeFirstPersonView, bikeInstrumentReadout } from '../src/rendering/bike-cockpit.ts';
+import {
+  bikeFirstPersonView,
+  bikeInstrumentReadout,
+  gpInstrumentTelemetry,
+  BikeCockpit,
+} from '../src/rendering/bike-cockpit.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { Simulation } from '../src/simulation/world.ts';
@@ -54,6 +59,54 @@ describe('GP cockpit real-camera contract', () => {
   it('does not mislabel corrupt gear samples as reverse', () => {
     for (const gear of [undefined, NaN, Infinity, -Infinity])
       expect(bikeInstrumentReadout({ gear }, 16000).gear).toBe('N');
+  });
+  it('displays recorded rider and tyre telemetry even when the gear and RPM hold', () => {
+    const dash = new BikeCockpit(16000, true);
+    const display = dash.root.children.find(
+      (o) => o instanceof T.Mesh && (o.material as T.MeshBasicMaterial).map,
+    ) as T.Mesh<T.BufferGeometry, T.MeshBasicMaterial>;
+    const texture = display.material.map!;
+    const before = texture.version;
+    const sample = {
+      speed: 43,
+      gear: 3,
+      rpm: 10100,
+      frontSurfaceTemp: 81.2,
+      rearSurfaceTemp: 97.1,
+      chassisLean: -0.7,
+      intervention: 0.47,
+      throttle: 0.72,
+      rearBrake: 0.5,
+      pitLane: true,
+    };
+    const fields = gpInstrumentTelemetry(sample);
+    expect(fields).toEqual({
+      front: '81',
+      rear: '97',
+      lean: '40°R',
+      control: 47,
+      drive: 4,
+      braking: 3,
+      pit: true,
+    });
+    dash.update(sample);
+    expect(texture.version).toBe(before + 1);
+    dash.update({ ...sample, frontSurfaceTemp: 81.23 });
+    expect(texture.version).toBe(before + 1);
+    dash.update({ ...sample, chassisLean: 0.7, intervention: 0, pitLane: false });
+    expect(texture.version).toBe(before + 2);
+    dash.update(sample);
+    expect(texture.version).toBe(before + 3);
+    expect(
+      gpInstrumentTelemetry({
+        frontSurfaceTemp: NaN,
+        rearSurfaceTemp: Infinity,
+        chassisLean: NaN,
+        brake: 3,
+        throttle: -1,
+      }),
+    ).toEqual({ front: '—', rear: '—', lean: '—', control: 0, drive: 0, braking: 6, pit: false });
+    dash.dispose();
   });
   it('restores the helmet for menu, tail, broadcast and orbit views', () => {
     expect(bikeFirstPersonView('cockpit', false, false)).toBe(true);

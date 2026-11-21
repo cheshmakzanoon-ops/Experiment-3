@@ -2157,6 +2157,8 @@ export class BikeModel {
 }
 export interface BikePoseValues extends GpTyreAppearance {
   sight?: GpRiderSight;
+  intervention?: number;
+  pitLane?: boolean;
   /** Explicit measured road pose; absent for legacy, stands and dirt bikes. */
   roadContact?: RoadBikeContactPose;
   /** Snapshot values for the near cockpit; metres/second and protocol gear index. */
@@ -2736,6 +2738,8 @@ export class BikeShells {
     v.rainVisibility = Math.max(v.liquidRain / 2, sampleValue(a, b, H.WATER, t) / 0.35);
     v.rpm = sampleValue(a, b, o + F.RPM, t);
     v.gear = source[o + F.GEAR];
+    v.pitLane = source[o + F.IN_PIT] > 0;
+    v.intervention = sampleBikeField(a, b, o, B.INTERVENTION, t);
     v.fork = sampleBikeField(a, b, o, B.FORK, t);
     v.shock = sampleBikeField(a, b, o, B.SHOCK, t);
     v.steer = sampleBikeField(a, b, o, B.STEER, t);

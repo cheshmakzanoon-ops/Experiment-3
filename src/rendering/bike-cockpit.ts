@@ -21,6 +21,14 @@ export interface BikeInstrumentValues {
   /** Vehicle.gear / F.GEAR: reverse=-1, neutral=0, forward gears=1..N. */
   gear?: number;
   rpm?: number;
+  frontSurfaceTemp?: number;
+  rearSurfaceTemp?: number;
+  chassisLean?: number;
+  intervention?: number;
+  brake?: number;
+  rearBrake?: number;
+  throttle?: number;
+  pitLane?: boolean;
 }
 /** Snapshot gears are already the displayed numbers. Only the drivetrain's
  * internal ratio lookup adds one to index its reverse/neutral entries. */
@@ -32,6 +40,32 @@ export function bikeInstrumentReadout(values: BikeInstrumentValues, limiterRPM: 
     gear: gear < 0 ? 'R' : gear === 0 ? 'N' : String(gear),
     rpm: Math.round(Math.max(0, finite(values.rpm)) / 100) * 100,
     fill: T.MathUtils.clamp(finite(values.rpm) / Math.max(1, finite(limiterRPM)), 0, 1),
+  };
+}
+
+/** Quantise to the precision actually painted on the GP dash. A studio or
+ * older sample can have absent channels; a missing measurement has no reading. */
+export function gpInstrumentTelemetry(v: BikeInstrumentValues) {
+  const temperature = (value?: number) =>
+    value !== undefined && Number.isFinite(value) ? String(Math.round(value)) : '—';
+  const fraction = (value?: number) =>
+    Number.isFinite(value) ? T.MathUtils.clamp(value!, 0, 1) : 0;
+  const degrees = Number.isFinite(v.chassisLean)
+    ? Math.round(T.MathUtils.radToDeg(v.chassisLean!))
+    : null;
+  return {
+    front: temperature(v.frontSurfaceTemp),
+    rear: temperature(v.rearSurfaceTemp),
+    lean:
+      degrees === null
+        ? '—'
+        : degrees === 0
+          ? '0°'
+          : `${Math.abs(degrees)}°${degrees > 0 ? 'L' : 'R'}`,
+    control: Math.round(fraction(v.intervention) * 100),
+    drive: Math.round(fraction(v.throttle) * 6),
+    braking: Math.round(Math.max(fraction(v.brake), fraction(v.rearBrake)) * 6),
+    pit: v.pitLane === true,
   };
 }
 
@@ -120,12 +154,15 @@ export class BikeCockpit {
   update(values: BikeInstrumentValues) {
     const r = bikeInstrumentReadout(values, this.limiterRPM);
     const lamps = this.gp ? gpShiftLightsLit(r.fill) : Math.round(r.fill * 12);
-    const key = `${r.speed}/${r.gear}/${r.rpm}/${lamps}`;
+    const gp = this.gp ? gpInstrumentTelemetry(values) : null;
+    let key = `${r.speed}/${r.gear}/${r.rpm}/${lamps}`;
+    if (gp)
+      key += `/${gp.front}/${gp.rear}/${gp.lean}/${gp.control}/${gp.drive}/${gp.braking}/${gp.pit}`;
     if (key === this.key) return;
     this.key = key;
     const c = this.canvas.getContext('2d');
     if (!c) return;
-    if (this.gp) this.drawGp(c, r, lamps);
+    if (gp) this.drawGp(c, r, lamps, gp);
     else this.drawRoad(c, r, lamps);
     this.texture.needsUpdate = true;
   }
@@ -160,11 +197,12 @@ export class BikeCockpit {
   }
   /** Race TFT (REF 017/074/088): LED bezel with a shift-light row and two
    * status columns around a transflective panel carrying a thin rev bar, the
-   * electronics map readouts, speed and a small gear digit. */
+   * tyre and rider telemetry, speed and the selected gear. */
   private drawGp(
     c: CanvasRenderingContext2D,
     r: ReturnType<typeof bikeInstrumentReadout>,
     lamps: number,
+    telemetry: ReturnType<typeof gpInstrumentTelemetry>,
   ) {
     const W = 512,
       H = 288;
@@ -189,10 +227,10 @@ export class BikeCockpit {
     const n = GP_SHIFT_LIGHTS.count;
     for (let i = 0; i < n; i++)
       led(56 + (i * (W - 112)) / (n - 1), 19, 8, shiftColour(i), i < lamps);
-    // Status columns: pit limiter, traction, launch... lit green when armed.
+    // Input ladders rise from the bottom. Both brake controls feed the red column.
     for (let i = 0; i < 6; i++) {
-      led(19, 62 + i * 38, 7, '#3fe07c', i < 3);
-      led(W - 19, 62 + i * 38, 7, '#3fe07c', i < 2);
+      led(19, 62 + i * 38, 7, '#ff634a', 6 - i <= telemetry.braking);
+      led(W - 19, 62 + i * 38, 7, '#42e38b', 6 - i <= telemetry.drive);
     }
     // Transflective panel.
     const x0 = 42,
@@ -216,23 +254,27 @@ export class BikeCockpit {
     for (let k = 1; k < thousands; k++)
       c.fillRect(barX + (barW * k * 1000) / this.limiterRPM, y0 + 26, 2, 5);
     c.textBaseline = 'alphabetic';
-    // Electronics maps (fixed race settings) down the left.
-    c.textAlign = 'left';
-    c.font = '700 21px monospace';
-    const maps: [string, string][] = [
-      ['TC', '4'],
-      ['AW', '3'],
-      ['EB', '2'],
-      ['MAP', '1'],
+    // The two tyre surfaces are measured separately. The intervention is the
+    // recorded combined traction/wheelie correction reported by the bike.
+    const channels = [
+      ['F °C', telemetry.front],
+      ['R °C', telemetry.rear],
+      ['LEAN', telemetry.lean],
+      ['CTRL', `${telemetry.control}%`],
     ];
-    maps.forEach(([label, value], i) => {
-      c.fillStyle = '#7f9188';
-      c.fillText(label, x0 + 12, y0 + 64 + i * 46);
-      c.fillStyle = '#e9efe9';
-      c.fillText(value, x0 + 70, y0 + 64 + i * 46);
+    channels.forEach(([label, value], i) => {
+      const baseline = y0 + 65 + i * 43;
+      c.textAlign = 'left';
+      c.font = '700 17px monospace';
+      c.fillStyle = '#a7b6ad';
+      c.fillText(label, x0 + 11, baseline);
+      c.textAlign = 'right';
+      c.font = '700 21px monospace';
+      c.fillStyle = i === 3 && telemetry.control >= 10 ? '#ffd378' : '#edf2ea';
+      c.fillText(value, x0 + 119, baseline);
     });
     c.fillStyle = '#3a4640';
-    c.fillRect(x0 + 100, y0 + 40, 2, y1 - y0 - 54);
+    c.fillRect(x0 + 129, y0 + 40, 2, y1 - y0 - 54);
     // Speed, centre.
     c.textAlign = 'center';
     c.fillStyle = '#eef3ee';
@@ -255,7 +297,8 @@ export class BikeCockpit {
     c.fillStyle = '#56645d';
     c.font = '700 13px sans-serif';
     c.textAlign = 'left';
-    c.fillText('MOTOBOUND RACE TFT', x0 + 116, y1 - 10);
+    c.fillStyle = telemetry.pit ? '#ffdc78' : '#94a99e';
+    c.fillText(telemetry.pit ? 'PIT LANE' : 'RPM', telemetry.pit ? 255 : 280, y1 - 10);
   }
   dispose() {
     this.texture.dispose();
