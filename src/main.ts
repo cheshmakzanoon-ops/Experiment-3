@@ -52,9 +52,11 @@ import {
   DEFAULT_OPTIONS,
   DRIVERS,
   racingSession,
+  validateOptions,
   validateSetup,
   type SessionOptions,
 } from './simulation/config.ts';
+import { gpGridForVehicles } from './simulation/gp-grid.ts';
 import { meetingFromEvent } from './ui/offroad-meeting.ts';
 import { MeetingFlow } from './ui/meeting-flow.ts';
 import { B, BIKE_BASE, F, H, O, OFFROAD_BASE, R, RACE_BASE, carBase } from './simulation/protocol.ts';
@@ -608,7 +610,7 @@ export class GameApp {
     this.menuPresentationActive = false;
   }
   /** Build (or rebuild for another circuit) the complete presentation. */
-  private async buildRenderer(canvas: HTMLCanvasElement, showroomOnly = false) {
+  private async buildRenderer(canvas: HTMLCanvasElement, showroomOnly = false, gpGrid = false) {
     this.resetMenuPresentation();
     this.canvas = canvas;
     this.renderer = await RacingRenderer.create(
@@ -616,7 +618,7 @@ export class GameApp {
       this.track,
       (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
       () => this.disposed || this.errorStopped,
-      { quality: this.settings.quality, graphics: this.settings.graphics },
+      { quality: this.settings.quality, graphics: this.settings.graphics, gpGrid },
       showroomOnly,
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
@@ -662,15 +664,15 @@ export class GameApp {
   }
   /** Circuits own their venue geometry, so a change rebuilds the presentation
    * once, while loading; the simulation worker builds its own matching Track. */
-  private async switchCircuit(id: CircuitId) {
+  private async switchCircuit(id: CircuitId, gpGrid = false) {
     if (!this.canvas) return true;
-    if (this.track.circuit.id === id && this.renderer && !this.renderer.showroomOnly) return true;
+    if (this.track.circuit.id === id && this.renderer?.canPrepareGrid(gpGrid)) return true;
     this.ui.loading(`Building ${circuitDefinition(id).name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     this.renderer?.dispose();
     this.renderer = null;
     this.track = new Track('clear', false, undefined, circuitDefinition(id));
-    return this.buildRenderer(this.canvas);
+    return this.buildRenderer(this.canvas, false, gpGrid);
   }
   /** Reduced motion removes camera vibration and motion blur (§21.5). */
   private applyMotion(renderer: RacingRenderer, settings: Settings) {
@@ -1180,7 +1182,9 @@ export class GameApp {
     }
     if (this.disposed) return;
     const circuit = circuitDefinition(options.circuit).id;
-    if (!(await this.switchCircuit(circuit)) || this.disposed) return;
+    // The worker falls back to Formula for incomplete or unknown vehicle lists.
+    const gpGrid = gpGridForVehicles(validateOptions(options).vehicles);
+    if (!(await this.switchCircuit(circuit, gpGrid)) || this.disposed) return;
     this.applyLight(career?.light ?? null);
     const { default: PhysicsWorker } = await physicsWorker;
     if (this.disposed) return;

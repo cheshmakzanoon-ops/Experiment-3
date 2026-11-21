@@ -743,6 +743,19 @@ it('stops cancelled construction before touching any further GPU resources', asy
   expect(target.draw).not.toHaveBeenCalled();
   expect(target.renderer.compileAsync).not.toHaveBeenCalled();
 });
+it('reuses motorcycle stands for another GP field and requires car jacks for a later mixed field', () => {
+  const { target, typed } = fixture('gpr1');
+  const canPrepare = (gpGrid: boolean) => RacingRenderer.prototype.canPrepareGrid.call(typed, gpGrid);
+  Object.assign(target, { showroomOnly: false, gpPitStandsOnly: true });
+  expect(canPrepare(true)).toBe(true);
+  expect(canPrepare(false)).toBe(false);
+  Object.assign(target, { gpPitStandsOnly: false });
+  expect(canPrepare(true)).toBe(true);
+  expect(canPrepare(false)).toBe(true);
+  Object.assign(target, { showroomOnly: true });
+  expect(canPrepare(true)).toBe(false);
+  expect(canPrepare(false)).toBe(false);
+});
 it('requires the complete selected circuit before a showroom can prepare driving', async () => {
   const { target, typed, sample } = fixture('mx450');
   Object.assign(target, { showroomOnly: true });

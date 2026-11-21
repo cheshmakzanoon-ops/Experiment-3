@@ -24,6 +24,7 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
 }, info) => {
   const errors: string[] = [];
   const requestErrors: string[] = [];
+  const pitAssets = new Set<string>();
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -33,6 +34,8 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   );
   page.on('response', (response) => {
     if (response.status() >= 400) requestErrors.push(`${response.status()} ${response.url()}`);
+    const asset = new URL(response.url()).pathname.split('/').pop();
+    if (asset?.startsWith('aurel-') && asset.endsWith('.glb')) pitAssets.add(asset);
   });
   const diag = () => page.evaluate(() => window.apexDiagnostics());
   const capture = async (name: string) => {
@@ -175,6 +178,10 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   await expect(page.locator('#hud')).toHaveAttribute('data-bike', 'true');
   await expect(page.locator('#gpMachine')).toContainText('GP-R1');
   const entered = await diag();
+  expect(pitAssets.has('aurel-wheel-gun.glb')).toBe(true);
+  expect(pitAssets.has('aurel-a32-pit-jacks.glb')).toBe(false);
+  expect(entered.renderer?.pitPersonnel.wheelGuns).toBeTruthy();
+  expect(entered.renderer?.pitPersonnel.pitJacks).toBeNull();
   expect(entered.options).toMatchObject({
     mode: 'practice',
     circuit: 'poggio-alto',

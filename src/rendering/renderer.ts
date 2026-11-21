@@ -511,6 +511,9 @@ export class RacingRenderer {
     /** The menu owns a full-detail vehicle and its studio. Circuit geometry
      * stays deferred until a race or circuit inspection is requested. */
     readonly showroomOnly = false,
+    /** The selected prototype field uses the bike rigs' own front and rear
+     * paddock stands. A later car session builds its authored jack equipment. */
+    private readonly gpPitStandsOnly = false,
   ) {
     // Before any material program compiles (idempotent, shared chunk).
     installSpecularAntialiasing();
@@ -676,6 +679,10 @@ export class RacingRenderer {
     }
     this.resize();
   }
+  /** A new car field needs its own jack kit before the pit crew caches any poses. */
+  canPrepareGrid(gpGrid: boolean) {
+    return !this.showroomOnly && (!this.gpPitStandsOnly || gpGrid);
+  }
   /** The factory owns partial resources until the complete scene is ready.
    * Cancellation disposes the partial scene; a failed job is never hidden. */
   static async create(
@@ -683,7 +690,7 @@ export class RacingRenderer {
     track: Track,
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
-    initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
+    initial?: { quality: QualityPreset; graphics?: GraphicsOptions; gpGrid?: boolean },
     showroomOnly = false,
   ): Promise<RacingRenderer | null> {
     // The showroom builds the pit and grid crew; a circuit also reads crowd,
@@ -703,7 +710,8 @@ export class RacingRenderer {
     // the first ground sample into one large synchronous raster task.
     if (!showroomOnly && !(await prepareVenueGround(track, progress, cancelled))) return null;
     if (cancelled()) return null;
-    const renderer = new RacingRenderer(canvas, track, true, showroomOnly);
+    const gpPitStandsOnly = !showroomOnly && !!initial?.gpGrid && isGpCourse(track);
+    const renderer = new RacingRenderer(canvas, track, true, showroomOnly, gpPitStandsOnly);
     // Night venues open floodlit (a live sky, if enabled, still overrides).
     if (track.circuit.catalogue?.night) renderer.lighting = 'night';
     // The initial studio preview uses daylight even when its selected venue is night.
@@ -815,13 +823,16 @@ export class RacingRenderer {
         progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
         renderer.tyreEquipment = await loadTyreEquipment(cancelled);
         installTyreEquipment(renderer.tyreEquipment, track);
+        // The dedicated GP paddock has its own racks during venue preparation too.
+        renderer.tyreEquipment.root.visible = !gpPitStandsOnly;
         renderer.circuit.group.add(renderer.tyreEquipment.root);
-        // Dirt motos have a gate and mechanics area. Only the pit-service
-        // venues need Formula wheel-gun and jack assets on the crew.
+        // Both the car and the two motorcycle axle crews use the authored wheel gun.
         progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
         renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
-        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A32 front and rear jacks' });
-        renderer.pitCrew.installPitJacks(await loadPitJacks(cancelled));
+        if (!gpPitStandsOnly) {
+          progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A32 front and rear jacks' });
+          renderer.pitCrew.installPitJacks(await loadPitJacks(cancelled));
+        }
         renderer.textures.register(renderer.pitCrew.root);
         if (renderer.circuit.heroGarage)
           renderer.wheelGunStorage = new WheelGunStorage(
@@ -2295,7 +2306,7 @@ export class RacingRenderer {
     this.circuit.photoPlanting?.update(this.camera, this.preset, this.graphics.vegetationDensity);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
-    this.tyreEquipment?.update(this.camera, this.quality);
+    if (this.tyreEquipment?.root.visible) this.tyreEquipment.update(this.camera, this.quality);
     this.wheelGunStorage?.update(this.camera);
     this.circuit.tyreBlankets?.update(this.camera, this.quality, illumination);
     if (this.circuit.heroGarage)
@@ -2791,6 +2802,9 @@ export class RacingRenderer {
         this.circuit.crowd,
         this.circuit.staff.root,
         this.circuit.tyreBlankets?.root,
+        // GP fields replace the car racks. Their nearby dynamic shadow follows
+        // their current visibility on a retained circuit after a field change.
+        this.tyreEquipment && isGpCourse(this.circuit.track) ? this.tyreEquipment.root : undefined,
         ...this.circuit.crowdClusters.map((cluster) => cluster.root),
       ],
       farCasters,
