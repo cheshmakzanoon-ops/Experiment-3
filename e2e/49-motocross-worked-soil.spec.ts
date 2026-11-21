@@ -57,11 +57,18 @@ const test = base.extend<{ capture: SoilCapture }>({
   },
 });
 
+// The fixture renders into an offscreen canvas and attaches its real PNGs.
+// Retain actions and DOM snapshots in failure traces without recording the empty page.
+test.use({ trace: { mode: 'retain-on-failure', screenshots: false, snapshots: true } });
+
 test('MX and SX prepared traffic remains visible and reversible with resident production soil', async ({
   capture,
 }, info) => {
   for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
-    const result = await capture(circuit, { compact: process.env.APEX_MX_SOIL_COMPACT === '1' });
+    const result = await capture(circuit, {
+      compact: process.env.APEX_MX_SOIL_COMPACT === '1',
+      evidenceImagesOnly: true,
+    });
     expect(result.sourceUnchanged).toBe(true);
     expect(result.geometry.courseWidthBytes).toBe(result.geometry.vertices * 4);
     expect(result.geometry.courseWearBytes).toBe(result.geometry.vertices * 16);
@@ -69,6 +76,7 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
     expect(result.hooks).toContain('mx-soil-morphology-v2');
     expect(result.scans.failed).toEqual([]);
     for (const { samples } of result.results) {
+      expect(samples.map((sample) => Boolean(sample.image))).toEqual([true, true, false, false, true, false]);
       for (const sample of samples) {
         expect(sample.glError).toBe(0);
         expect(sample.hash).not.toBe(0);

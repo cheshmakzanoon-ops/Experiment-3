@@ -14,6 +14,8 @@ interface SoilCaptureOptions {
    * the original full-size viewport and shadow coverage. */
   compact?: boolean;
   compareEvaluation?: boolean;
+  /** Export the three PNGs per camera that the full review attaches. Every frame is read and hashed. */
+  evidenceImagesOnly?: boolean;
 }
 
 // Remove only the zero-contribution exits from the assembled production shader.
@@ -177,7 +179,7 @@ export async function captureMotocrossWorkedSoil(
     scene.updateMatrixWorld(true);
     return { station, width: p.width, camera: camera.position.toArray(), target: target.toArray() };
   };
-  const capture = (label: string) => {
+  const capture = (label: string, retainImage = true) => {
     renderer.render(scene, camera);
     const gl = renderer.getContext(),
       pixels = new Uint8Array(width * height * 4);
@@ -186,7 +188,7 @@ export async function captureMotocrossWorkedSoil(
     for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     return {
       label,
-      image: renderer.domElement.toDataURL('image/png'),
+      image: retainImage ? renderer.domElement.toDataURL('image/png') : '',
       hash,
       glError: gl.getError(),
       calls: renderer.info.render.calls,
@@ -207,6 +209,7 @@ export async function captureMotocrossWorkedSoil(
       );
     const results = [];
     const comparisons = [];
+    const retainRepeatImages = !options.evidenceImagesOnly;
     for (const angle of ['approach', 'berm', 'jump'] as const) {
       const cameraPose = position(angle);
       const wetness = options.compareEvaluation && angle === 'berm' ? 0.72 : 0;
@@ -220,9 +223,9 @@ export async function captureMotocrossWorkedSoil(
       const prepared = capture(`${angle}-prepared`);
       view.record({ reset: false, wetness: 0.72, blocks: new Float32Array() }, 8, true);
       const wet = capture(`${angle}-wet`),
-        held = capture(`${angle}-wet-held`);
+        held = capture(`${angle}-wet-held`, retainRepeatImages);
       view.showAt(0);
-      const restored = capture(`${angle}-prepared-restored`);
+      const restored = capture(`${angle}-prepared-restored`, retainRepeatImages);
       // Disable only the added feature weights, preserving the same geometry,
       // scans, light, shader and camera. Restore those exact bytes afterwards.
       const attributes = meshes.map((mesh) => {
@@ -238,7 +241,7 @@ export async function captureMotocrossWorkedSoil(
         attribute.array.set(original);
         attribute.needsUpdate = true;
       }
-      const featureRestored = capture(`${angle}-course-wear-restored`);
+      const featureRestored = capture(`${angle}-course-wear-restored`, retainRepeatImages);
       results.push({
         angle,
         cameraPose,
