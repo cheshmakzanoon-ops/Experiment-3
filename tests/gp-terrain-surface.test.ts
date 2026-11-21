@@ -103,3 +103,35 @@ it('keeps the four GP landscapes distinct behind their surveyed road corridors',
     }
   }
 });
+
+it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'])(
+  '%s distributes distant planting over its actual landforms and keeps the racing corridor clear',
+  id => {
+    const track = new Track('clear', false, undefined, CIRCUITS[id]);
+    const ground = terrainSurface(terrainFor(track));
+    const { treeline } = grovePlan(track), p = trackPoint();
+    const bearings = new Set<number>(), habitats = new Set<string>();
+    const cx = track.points.reduce((sum, q) => sum + q.x, 0) / track.points.length;
+    const cz = track.points.reduce((sum, q) => sum + q.z, 0) / track.points.length;
+    let highest = -Infinity, lowest = Infinity, farthest = 0, closest = Infinity;
+    expect(treeline.length).toBeGreaterThan(350);
+    expect(treeline.length).toBeLessThan(2200);
+    for (const tree of treeline) {
+      expect(tree.y).toBeCloseTo(ground.height(tree.x, tree.z), 4);
+      track.nearest(tree.x, tree.z, p);
+      const distance = Math.hypot(p.x - tree.x, p.z - tree.z);
+      farthest = Math.max(farthest, distance);
+      closest = Math.min(closest, distance);
+      lowest = Math.min(lowest, tree.y);
+      highest = Math.max(highest, tree.y);
+      bearings.add(Math.floor((Math.atan2(tree.z - cz, tree.x - cx) + Math.PI) / (Math.PI / 4)));
+      habitats.add(tree.role!);
+    }
+    expect(closest).toBeGreaterThan(90);
+    expect(farthest - closest).toBeGreaterThan(500);
+    expect(bearings.size).toBeGreaterThan(5);
+    expect(habitats.size).toBeGreaterThan(1);
+    if (id === 'haarveld') expect(highest - lowest).toBeLessThan(16);
+    if (id === 'poggio-alto' || id === 'montejaral') expect(highest - lowest).toBeGreaterThan(90);
+  },
+);

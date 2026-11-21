@@ -41,7 +41,7 @@ export function photoPlants(
   const available = library.available,
     out: PhotoPlant[] = [];
   for (const tree of trees) {
-    const r = role?.(tree) ?? treeRole(tree.height, tree.width);
+    const r = tree.role ?? role?.(tree) ?? treeRole(tree.height, tree.width);
     const hash = plantHash(tree.x, tree.z, 17);
     const id = pickSpecies(r, palette, hash, available);
     const species = id ? library.get(id) : null;

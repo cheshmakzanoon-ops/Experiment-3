@@ -1,3 +1,5 @@
+import { gpRidgePlanting } from './venue-kit/gp-ridge-planting.ts';
+import type { TreeRole } from './vegetation/species.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { cataloguePlantingGround } from './venue-kit/planting-ground.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -40,6 +42,7 @@ export interface TreePlacement {
   height: number;
   width: number;
   yaw: number;
+  role?: TreeRole;
 }
 /** Planting rules use the NEAREST segment, not just the segment that generated
  * a candidate. This also excludes an adjacent return straight and the paddock. */
@@ -199,6 +202,7 @@ export function grovePlan(
       });
     }
   }
+  if (isGpCourse(track)) return { groves, treeline: gpRidgePlanting(track, seed, blocked) };
   // Broken treeline on the foothills: two jittered rows with noise gaps.
   const treeline: TreePlacement[] = [];
   for (let row = 0; row < 2; row++)
