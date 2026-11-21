@@ -1,4 +1,5 @@
 import { clamp } from '../../core/math.ts';
+import { trackPoint } from '../track.ts';
 import type { Checkpoint, RouteEdgeSpec, RoutePoint, RouteSpec } from '../route-graph.ts';
 import type { RoadNetwork } from './road-network.ts';
 import type { XZ } from './region-data.ts';
@@ -19,9 +20,9 @@ interface Position {
   z: number;
 }
 /** Snap a world point to the closest network position. */
-export function snapToNetwork(network: RoadNetwork, x: number, z: number): Position {
+export function snapToNetwork(network: RoadNetwork, x: number, z: number, height?: number): Position {
   const p = { s: 0, x: 0, y: 0, z: 0, tx: 0, tz: 1, nx: 1, nz: 0, curvature: 0, width: 0, bank: 0, gradient: 0 };
-  network.nearest(x, z, p);
+  network.nearest(x, z, p, height);
   const edge = network.edgeOf[network.lastSegment],
     e = network.edges[edge];
   return { edge, s: clamp(p.s - e.offset, 0, e.length), x: p.x, z: p.z };
@@ -106,16 +107,20 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
 }
 
 /** Plan a route through ordered waypoints (closed: back to the first). */
-export function planRoute(network: RoadNetwork, waypoints: readonly XZ[], closed: boolean): RouteLeg[] {
+export function planRoute(network: RoadNetwork, waypoints: readonly XZ[], closed: boolean, departure?: { heading: number; height: number }): RouteLeg[] {
   if (waypoints.length < 2) throw new Error('A route needs at least two waypoints');
-  const stops = waypoints.map(([x, z]) => snapToNetwork(network, x, z));
+  const stops = waypoints.map(([x, z], i) => snapToNetwork(network, x, z, i === 0 ? departure?.height : undefined));
   if (closed) stops.push(stops[0]);
   const legs: RouteLeg[] = [];
   let dir: 0 | 1 | -1 = 0;
+  if (departure) {
+    const start = stops[0], tangent = network.at(network.edges[start.edge].offset + start.s, trackPoint());
+    dir = Math.sin(departure.heading) * tangent.tx + Math.cos(departure.heading) * tangent.tz >= 0 ? 1 : -1;
+  }
   for (let k = 0; k < stops.length - 1; k++) {
     const piece = shortest(network, stops[k], stops[k + 1], dir);
     legs.push(...piece);
-    dir = piece[piece.length - 1].dir;
+    if (piece.length) dir = piece[piece.length - 1].dir;
   }
   // Merge consecutive pieces of the same edge and direction.
   const merged: RouteLeg[] = [];

@@ -73,7 +73,7 @@ import { streetTrees } from './street-trees.ts';
 import { StaticFootprintContact } from './static-footprint.ts';
 import { SOLVANE, SPEED_CLASS_KMH, type RegionDefinition } from './region-data.ts';
 import { RouteDriver, type RouteObstacle } from './route-driver.ts';
-import { pathPoint, planRoute, RoutePath } from './route-path.ts';
+import { pathPoint, planRoute, RoutePath, type RouteLeg } from './route-path.ts';
 import {
   FestivalSkillChain,
   type FestivalSkillMotion,
@@ -246,6 +246,8 @@ export class OpenWorldSimulation {
   time = 0;
   autopilot = false;
   private autopilotDriver: RouteDriver | null = null;
+  private readonly cruiseStops = new Set<string>();
+  private cruiseTarget: string | null = null;
   private cardEvent: FestivalEvent | null = null;
   /** A race card the player declined ("not now"): it stays closed until the
    * player has left its marker. */
@@ -571,7 +573,9 @@ export class OpenWorldSimulation {
         this.declined = null;
         this.cardEvent = null;
         this.parked = true;
-        this.say(runUp ? `${event.spec.name}: drive through the gate` : `Travelled to ${event.spec.name}`);
+        this.say(
+          runUp ? `${event.spec.name}: drive through the gate` : `Travelled to ${event.spec.name}`,
+        );
         break;
       }
       case 'traffic':
@@ -1086,23 +1090,46 @@ export class OpenWorldSimulation {
   private cruise(dt: number) {
     if (!this.autopilotDriver) {
       const pos = this.player.body.position;
-      const target = [...this.events]
-        .filter((e) => Math.hypot(e.marker.x - pos.x, e.marker.z - pos.z) > 60)
-        .sort(
-          (a, b) =>
-            Math.hypot(a.marker.x - pos.x, a.marker.z - pos.z) -
-            Math.hypot(b.marker.x - pos.x, b.marker.z - pos.z),
-        )[0];
+      const candidates: { event: FestivalEvent; distance: number }[] = [];
+      for (const event of this.events) {
+        const distance = Math.hypot(event.marker.x - pos.x, event.marker.z - pos.z);
+        if (distance > 60) candidates.push({ event, distance });
+        else this.cruiseStops.add(event.spec.id);
+      }
+      candidates.sort((a, b) => a.distance - b.distance);
+      if (!candidates.length) return;
+      if (candidates.every(({ event }) => this.cruiseStops.has(event.spec.id)))
+        this.cruiseStops.clear();
+      const q = this.player.body.orientation;
+      const heading = Math.atan2(2 * (q.x * q.z + q.w * q.y), 1 - 2 * (q.x * q.x + q.y * q.y));
+      let best: RouteLeg[] = [],
+        bestLength = Infinity;
+      let target: FestivalEvent | undefined;
+      // Choose by legal driving distance. Euclidean distance is a lower bound
+      // and lets us skip farther candidates after finding a closer reachable stop.
+      for (const candidate of candidates) {
+        if (candidate.distance > bestLength) break;
+        const event = candidate.event;
+        if (this.cruiseStops.has(event.spec.id)) continue;
+        const legs = planRoute(
+          this.world.network,
+          [
+            [pos.x, pos.z],
+            [event.marker.x, event.marker.z],
+          ],
+          false,
+          { heading, height: pos.y },
+        );
+        const length = legs.reduce((sum, leg) => sum + Math.abs(leg.to - leg.from), 0);
+        if (legs.length && length < bestLength) {
+          best = legs;
+          bestLength = length;
+          target = event;
+        }
+      }
       if (!target) return;
-      const legs = planRoute(
-        this.world.network,
-        [
-          [pos.x, pos.z],
-          [target.marker.x, target.marker.z],
-        ],
-        false,
-      );
-      const path = new RoutePath(this.world.network, legs, false);
+      this.cruiseTarget = target.spec.id;
+      const path = new RoutePath(this.world.network, best, false);
       // Among ambient traffic: in the right-hand lane, following, never
       // overtaking into the oncoming lane.
       this.autopilotDriver = new RouteDriver(
@@ -1127,6 +1154,8 @@ export class OpenWorldSimulation {
     if (arrived && this.player.speed < 0.5) {
       this.autopilot = false;
       this.autopilotDriver = null;
+      if (this.cruiseTarget) this.cruiseStops.add(this.cruiseTarget);
+      this.cruiseTarget = null;
       this.say('Autopilot: arrived');
     }
   }
@@ -1228,9 +1257,10 @@ export class OpenWorldSimulation {
           if (d >= r) continue;
           // Resolve the planting surface only after horizontal overlap. Street
           // trunks start at the iron grate above the underlying carved roadbed.
-          const base = trees[i + 3] === TREE_SPECIES.STREET
-            ? streetTrees(this.world.network).rootHeight(trees[i], trees[i + 1])
-            : this.track.tiles.height(trees[i], trees[i + 1]);
+          const base =
+            trees[i + 3] === TREE_SPECIES.STREET
+              ? streetTrees(this.world.network).rootHeight(trees[i], trees[i + 1])
+              : this.track.tiles.height(trees[i], trees[i + 1]);
           if (bottom > base + trees[i + 2] || top < base) continue;
           let nx: number, nz: number, depth: number;
           if (d > 1e-4) {

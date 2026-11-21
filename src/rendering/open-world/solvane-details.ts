@@ -327,7 +327,10 @@ export class SolvaneDetails {
     for (const boat of this.boats) {
       const d = boat.root.position.distanceTo(this.eye);
       boat.root.visible = d < (low ? 400 : 1100);
-      if (!boat.root.visible) { boat.mooring.root.visible = false; continue; }
+      if (!boat.root.visible) {
+        boat.mooring.root.visible = false;
+        continue;
+      }
       const nearDistance = medium ? 100 : 170;
       boat.near.visible = !low && d < nearDistance * (boat.near.visible ? 1.1 : 1);
       boat.far.visible = !boat.near.visible;

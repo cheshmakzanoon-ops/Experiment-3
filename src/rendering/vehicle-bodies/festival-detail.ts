@@ -767,7 +767,16 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
           placed(x + side * width * 0.35, cy - row * 0.027, z - 0.017),
         );
       }
-      addReversingOptic(parts, mats.reverse ?? sharedMaterials.steel(),x,centreY,z-.020,width*.61,.028,detail);
+      addReversingOptic(
+        parts,
+        mats.reverse ?? sharedMaterials.steel(),
+        x,
+        centreY,
+        z - 0.02,
+        width * 0.61,
+        0.028,
+        detail,
+      );
       parts.add(
         roundedBox(width, height, 0.009, 0.016, 2),
         opticalCover,
