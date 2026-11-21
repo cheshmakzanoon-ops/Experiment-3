@@ -234,13 +234,18 @@ describe('GP race shell R6 on the production models', () => {
           try {
             const wing = shell.root.getObjectByName('GP race shell / box wings') as T.Mesh;
             const p = wing.geometry.getAttribute('position'),
+              skin = wing.geometry.getAttribute('gpFoilCarbon'),
               ray = new T.Raycaster();
+            expect(skin.count).toBe(p.count);
+            expect(skin.normalized).toBe(true);
             const shoot = (side: number, y: number, z: number, object: T.Object3D) => {
               ray.set(new T.Vector3(side, y, z), new T.Vector3(-side, 0, 0));
               return ray.intersectObject(object)[0]?.point;
             };
             for (const side of [-1, 1]) {
-              let upper = false,
+              let painted = 0,
+                laminate = 0,
+                upper = false,
                 lower = false,
                 tip = 0;
               for (let i = 0; i < p.count; i++) {
@@ -248,6 +253,8 @@ describe('GP race shell R6 on the production models', () => {
                   y = p.getY(i),
                   z = p.getZ(i);
                 if (x < 0) continue;
+                if (skin.getX(i) > 0.98) laminate++;
+                if (skin.getX(i) < 0.02) painted++;
                 tip = Math.max(tip, x);
                 if (x > 0.24 || (upper && lower)) continue;
                 const wall = shoot(side, y, z, shell.body);
@@ -256,6 +263,8 @@ describe('GP race shell R6 on the production models', () => {
                   if (y < 0.036) lower = true;
                 }
               }
+              expect(painted).toBeGreaterThan(4);
+              expect(laminate).toBeGreaterThan(4);
               expect(upper && lower, detail + ' aero return is fixed at both ends').toBe(true);
               expect(tip).toBeGreaterThan(0.29);
               if (detail === 'far') continue;

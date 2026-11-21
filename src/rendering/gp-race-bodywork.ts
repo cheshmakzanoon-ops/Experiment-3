@@ -20,6 +20,7 @@ import { tagWeatherSurface } from './weather-presentation.ts';
 import { carbonMaterial } from './materials.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { installSsrMask } from './ultra/ssr-mask.ts';
+import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 import { GP_PANEL_RELIEF, installGpPanelRelief } from './gp-panel-relief.ts';
 import {
   GP_LIVERY_FRAME,
@@ -725,6 +726,14 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
     high ? 28 : far ? 7 : 12,
     high ? 10 : far ? 4 : 6,
   );
+  // The enamel rolls over the leading nose and outer endplate. The downward
+  // face exposes the moulded laminate. Bake the boundary in the unposed foil
+  // so it follows the bike through full lean and on both mirrored cheeks.
+  const normals = wing.getAttribute('normal');
+  const underside = new Uint8Array(normals.count);
+  for (let i = 0; i < underside.length; i++)
+    underside[i] = Math.round(255 * T.MathUtils.smoothstep(-normals.getY(i), 0.22, 0.78));
+  wing.setAttribute('gpFoilCarbon', new T.Uint8BufferAttribute(underside, 1, true));
   if (far) return pair(wing);
   // Inner slat: a short third element between the blades (REF 056, 060).
   const slat = gpAerofoil(
@@ -743,6 +752,14 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
     0.1,
     high ? 8 : 4,
     high ? 8 : 6,
+  );
+  slat.setAttribute(
+    'gpFoilCarbon',
+    new T.Uint8BufferAttribute(
+      new Uint8Array(slat.getAttribute('position').count).fill(255),
+      1,
+      true,
+    ),
   );
   const both = mergeGeometries([wing, slat], false)!;
   wing.dispose();
@@ -1582,6 +1599,30 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
     name: 'GP box wing paint (clear-coated)',
   });
   installShellInterior(material);
+  chainShaderHook(material, 'gp-foil-laminate-v1', (shader) => {
+    injectDeclarations(
+      shader, 'common', 'attribute float gpFoilCarbon; varying float vGpFoilCarbon;', 'vertex',
+    );
+    injectAfter(shader, 'begin_vertex', 'vGpFoilCarbon = gpFoilCarbon;', 'vertex');
+    injectDeclarations(shader, 'common', 'varying float vGpFoilCarbon;', 'fragment');
+    injectAfter(
+      shader, 'color_fragment',
+      'diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.026, 0.030, 0.034), vGpFoilCarbon);',
+      'fragment',
+    );
+    injectAfter(
+      shader, 'roughnessmap_fragment',
+      'roughnessFactor = mix(roughnessFactor, 0.45, vGpFoilCarbon);', 'fragment',
+    );
+    injectAfter(
+      shader, 'metalnessmap_fragment', 'metalnessFactor *= 1.0 - vGpFoilCarbon;', 'fragment',
+    );
+    injectAfter(shader, 'lights_physical_fragment', `
+      #ifdef USE_CLEARCOAT
+      material.clearcoat *= 1.0 - 0.50 * vGpFoilCarbon;
+      material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.23, vGpFoilCarbon);
+      #endif`, 'fragment');
+  });
   installGpFairingWear(material, materials.fairingWear);
   installSsrMask(material);
   tagWeatherSurface(material, 'paint');
