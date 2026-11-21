@@ -29,29 +29,35 @@ async function compileSoilReview() {
 }
 
 const test = base.extend<{ capture: SoilCapture }>({
-  capture: async ({ page }, use) => {
+  capture: async ({ context }, use) => {
     const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.message));
-    page.on('console', (message) => {
-      if (message.type() === 'error') errors.push(message.text());
-    });
-    bundle ??= compileSoilReview();
-    await page.route('**/motocross-worked-soil.html', (route) =>
+    const script = await (bundle ??= compileSoilReview());
+    await context.route('**/motocross-worked-soil.html', (route) =>
       route.fulfill({
         contentType: 'text/html',
         body: '<!doctype html><title>Production motocross worked soil</title>',
       }),
     );
-    await page.goto('/motocross-worked-soil.html');
-    await page.addScriptTag({ content: await bundle });
-    const capture: SoilCapture = (circuit, options) =>
-      page.evaluate(
-        ({ circuit, options }) =>
-          (window as unknown as {
-            MotocrossWorkedSoil: { captureMotocrossWorkedSoil: SoilCapture };
-          }).MotocrossWorkedSoil.captureMotocrossWorkedSoil(circuit, options),
-        { circuit, options },
-      );
+    const capture: SoilCapture = async (circuit, options) => {
+      const page = await context.newPage();
+      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('console', (message) => {
+        if (message.type() === 'error') errors.push(message.text());
+      });
+      try {
+        await page.goto('/motocross-worked-soil.html');
+        await page.addScriptTag({ content: script });
+        return await page.evaluate(
+          ({ circuit, options }) =>
+            (window as unknown as {
+              MotocrossWorkedSoil: { captureMotocrossWorkedSoil: SoilCapture };
+            }).MotocrossWorkedSoil.captureMotocrossWorkedSoil(circuit, options),
+          { circuit, options },
+        );
+      } finally {
+        await page.close();
+      }
+    };
     await use(capture);
     expect(errors).toEqual([]);
   },
@@ -64,7 +70,10 @@ test.use({ trace: { mode: 'retain-on-failure', screenshots: false, snapshots: tr
 test('MX and SX prepared traffic remains visible and reversible with resident production soil', async ({
   capture,
 }, info) => {
-  for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
+  // The two independent pages own their scan caches, geometry and GPU
+  // contexts. Both full-size venue checks share the original test deadline.
+  const circuits = ['valley-ridge-mx', 'arena-nord-sx'] as const;
+  await Promise.all(circuits.map(async (circuit) => {
     const result = await capture(circuit, {
       compact: process.env.APEX_MX_SOIL_COMPACT === '1',
       evidenceImagesOnly: true,
@@ -101,7 +110,7 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
       body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
       contentType: 'application/json',
     });
-  }
+  }));
 });
 
 test('skipping zero soil contributions matches the exhaustive shader on both courses', async ({
