@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { CIRCUITS } from '../../src/simulation/circuits.ts';
+import { F, H, HEADER, CAR_STRIDE, carBase } from '../../src/simulation/protocol.ts';
+import { PHASE } from '../../src/simulation/race.ts';
 import { Track } from '../../src/simulation/track.ts';
 import { buildGrandstand, standFrame, standMaterials } from '../../src/rendering/grandstand.ts';
 import { venuePlan } from '../../src/rendering/venue-plan.ts';
@@ -76,6 +78,7 @@ export async function captureGpGrandstands() {
     };
     seats: number;
     crowdClusters: number;
+    gaze: number[];
     states: ReturnType<typeof read>[];
     afterDispose: ReturnType<typeof resources>;
     weather: ReturnType<WeatherPresentation['diagnostics']>;
@@ -183,6 +186,20 @@ export async function captureGpGrandstands() {
         weatherState = weather.diagnostics(),
         structure = geometryBudget(stand, true),
         retained = { seats: geometryBudget(seats), crowd: geometryBudget(audience) };
+      // Keep the traffic response, clock, camera and shadows identical. Only
+      // the head turn changes between the first and second pictures.
+      const pass = new Float32Array(HEADER + CAR_STRIDE);
+      pass[H.CARS] = 1;
+      pass[H.PHASE] = PHASE.RACING;
+      pass[carBase(0) + F.SPEED] = 45;
+      pass[carBase(0) + F.X] = -site.side * 15;
+      pass[carBase(0) + F.Z] = 17;
+      const gaze = [false, true, true].map((enabled) => {
+        for (const cluster of clusters)
+          cluster.update(12, camera.position, 0, pass, camera.fov, camera.aspect, enabled);
+        renderer.render(scene, camera);
+        return read('gp spectator gaze').hash;
+      });
       // Measure the unchanged generic builder with the same physical track,
       // camera, seat/crowd population, LOD selection and lighting. Aggregate
       // triangle counts are dominated by the existing crowd, so a guessed
@@ -244,6 +261,7 @@ export async function captureGpGrandstands() {
         baseline,
         seats: seats.count,
         crowdClusters: clusters.length,
+        gaze,
         states,
         afterDispose: resources(),
         weather: weatherState,

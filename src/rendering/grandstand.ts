@@ -323,6 +323,7 @@ export function buildGrandstand(
       821 + Math.round(site.s) + offset,
       m.people,
       hero ? Math.floor(offset / chunkSize) % 4 : undefined,
+      gpStyle ? side : 0,
     );
     peopleRoot.add(cluster.root);
     clusters?.push(cluster);

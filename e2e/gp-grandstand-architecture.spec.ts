@@ -54,6 +54,8 @@ test('four GP grandstands render production crowds and stable wet/held/reset mat
     expect(capture.architectureBatches).toBe(5);
     expect(capture.seats).toBeGreaterThan(500);
     expect(capture.crowdClusters).toBeGreaterThan(0);
+    expect(capture.gaze[1]).not.toBe(capture.gaze[0]);
+    expect(capture.gaze[2]).toBe(capture.gaze[1]);
     expect(capture.label).not.toMatch(/AUREL/);
     expect(capture.architecture.triangles).toBeLessThan(capture.site.length * 300 + 2000);
     expect(capture.retained).toEqual(capture.baseline.retained);

@@ -1,6 +1,37 @@
 import { clamp } from '../core/math.ts';
-import { F, H, CAR_STRIDE, HEADER, carBase } from '../simulation/protocol.ts';
+import { B, BIKE_BASE, F, H, CAR_STRIDE, HEADER, carBase } from '../simulation/protocol.ts';
+import { PHASE } from '../simulation/race.ts';
 import type { Vector2, Vector3 } from 'three';
+
+/** Head turn toward a passing pack, in a spectator's seat frame. Neighbouring
+ * riders contribute together, so a pair passing side by side cannot make
+ * heads snap between targets when their running order changes. */
+export function gpSpectatorYaw(frame: Float32Array, centre: Vector3, sideX: number, sideZ: number) {
+  if (frame[H.PHASE] !== PHASE.RACING) return 0;
+  let direction = 0,
+    total = 0;
+  for (let id = 0; id < frame[H.CARS]; id++) {
+    const o = carBase(id);
+    if (
+      frame[o + F.IN_PIT] ||
+      frame[o + F.PIT_PHASE] ||
+      frame[o + F.RETIRED] ||
+      frame[o + BIKE_BASE + B.STATE]
+    )
+      continue;
+    const dx = frame[o + F.X] - centre.x,
+      dz = frame[o + F.Z] - centre.z;
+    const distanceSq = dx * dx + dz * dz;
+    const forward = sideX * dz - sideZ * dx;
+    if (forward <= 0 || distanceSq >= 90 * 90 || distanceSq < 0.01) continue;
+    const range = 1 - distanceSq / (90 * 90);
+    const strength =
+      range * range * clamp(forward / 8, 0, 1) * clamp((frame[o + F.SPEED] - 3) / 20, 0, 1);
+    direction += (strength * (sideX * dx + sideZ * dz)) / Math.sqrt(distanceSq);
+    total += strength;
+  }
+  return (0.62 * direction) / Math.max(1, total);
+}
 
 /** Local, snapshot-derived spectator response. Nearby moving traffic and a real
  * close battle elicit cheering; a measured impact elicits a separate flinch.

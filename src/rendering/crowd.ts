@@ -13,7 +13,7 @@ import { tagWeatherSurface } from './weather-presentation.ts';
 import * as T from 'three';
 import { PEOPLE_ASSET } from './people-asset.ts';
 import { clamp } from '../core/math.ts';
-import { crowdResponse } from './crowd-response.ts';
+import { crowdResponse, gpSpectatorYaw } from './crowd-response.ts';
 
 /** Spectator heads are the crew head sculpt at this scale (see
  * scripts/lib/human-sculpt.ts); the shader's face frame divides it out. */
@@ -60,6 +60,7 @@ interface CrowdUniforms {
   crowdReaction?: { value: T.Vector2 };
   crowdPassA?: { value: T.Vector4 };
   crowdPassB?: { value: T.Vector4 };
+  crowdGpYaw?: { value: number };
   crowdLodRange?: { value: T.Vector2 };
 }
 
@@ -107,6 +108,9 @@ varying float vCrowdAccessory;
 uniform vec2 crowdClock;
 uniform float crowdMotion;
 uniform vec2 crowdReaction;
+#ifdef GP_CROWD_GAZE
+uniform float crowdGpYaw;
+#endif
 #ifdef MX_CROWD_PASS
 uniform vec4 crowdPassA, crowdPassB;
 vec2 crowdPassAt(vec4 racer, vec2 seat, vec2 side, vec2 forward) {
@@ -149,6 +153,9 @@ mat3 crowdTurn() {
   float c = cos(angle), s = sin(angle);
   if (crowdJoint > 2.5) {
     float gaze = angle + (fract(spectatorPhase*3.71)-.5)*.22 + nearby.x*.57;
+    #ifdef GP_CROWD_GAZE
+    gaze += crowdGpYaw * (.66 + .34 * fract(spectatorPhase * 4.73));
+    #endif
     float gc=cos(gaze), gs=sin(gaze);
     return mat3(gc,0.,-gs, 0.,1.,0., gs,0.,gc);
   }
@@ -180,6 +187,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     shader.uniforms.crowdLodRange = uniforms.crowdLodRange ?? { value: new T.Vector2(0, 1) };
     shader.vertexShader =
       (uniforms.crowdPassA ? '#define MX_CROWD_PASS\n' : '') +
+      (uniforms.crowdGpYaw ? '#define GP_CROWD_GAZE\n' : '') +
       'varying float vCrowdRank;\n' +
       deform +
       (colour
@@ -435,7 +443,7 @@ vColor.rgb = vec3(1.);`,
     }
   };
   material.customProgramCacheKey = () =>
-    `apex-procedural-crowd-v15-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}`;
+    `apex-procedural-crowd-v15-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
@@ -458,6 +466,7 @@ export class CrowdCluster {
     crowdReaction: { value: new T.Vector2() },
   };
   readonly audienceTime = { value: 0 };
+  readonly gpYaw?: { value: number };
   level: CrowdDetail = 0;
   readonly lodRanges = [new T.Vector2(0, 1), new T.Vector2(), new T.Vector2(), new T.Vector2()];
   private centre = new T.Vector3();
@@ -468,11 +477,13 @@ export class CrowdCluster {
     seed: number,
     material: T.MeshStandardMaterial,
     authoredFamily?: number,
+    private readonly gpSeatSide = 0,
   ) {
     if (!matrices.length || matrices.length !== colors.length || !Number.isSafeInteger(seed))
       throw new Error('Invalid spectator cluster');
     this.root.name = `Authored crowd cluster ${seed}`;
     this.root.userData.authoredPeople = PEOPLE_ASSET;
+    if (gpSeatSide) this.gpYaw = { value: 0 };
     const phase = new Float32Array(matrices.length),
       skin = new Float32Array(matrices.length * 3),
       style = new Float32Array(matrices.length * 4);
@@ -506,7 +517,8 @@ export class CrowdCluster {
       const depth =
         level === 3 ? undefined : new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
       const distanceMaterial = level === 3 ? undefined : new T.MeshDistanceMaterial();
-      const uniforms = { ...this.uniforms, crowdLodRange: { value: this.lodRanges[level] } };
+      const uniforms = { ...this.uniforms, crowdLodRange: { value: this.lodRanges[level] },
+        ...(this.gpYaw && { crowdGpYaw: this.gpYaw }) };
       if (level === 3) installCrowdImpostorShader(colorMaterial, this.lodRanges[level]);
       else {
         installCrowdShader(colorMaterial, uniforms, true);
@@ -578,6 +590,7 @@ export class CrowdCluster {
     frame?: Float32Array,
     fov = 58,
     aspect = 16 / 9,
+    gpGrid = false,
   ) {
     if (
       !Number.isFinite(time) ||
@@ -594,6 +607,13 @@ export class CrowdCluster {
     crowdResponse(frame, this.centre, this.uniforms.crowdReaction.value).multiplyScalar(
       clamp((180 - distance) / 50, 0, 1) * (1 - clamp(rain / 60, 0, 0.4)),
     );
+    if (this.gpYaw) {
+      const m = this.root.matrixWorld.elements;
+      const side = this.gpSeatSide / (Math.hypot(m[8], m[10]) || 1);
+      this.gpYaw.value = gpGrid && frame && visualDistance < 480
+        ? gpSpectatorYaw(frame, this.centre, side * m[8], side * m[10])
+        : 0;
+    }
     this.level = crowdDetail(visualDistance, this.level);
     crowdLodRanges(visualDistance, this.lodRanges);
     this.levels.forEach((mesh, i) => {
