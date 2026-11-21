@@ -302,7 +302,7 @@ describe('festival road surface continuity', () => {
     return out;
   };
   it('reads every junction mouth as the road: the carriageway of each road meeting there is road surface', () => {
-    const paved: number[] = [WORLD_SURFACE.ASPHALT, WORLD_SURFACE.MARKING];
+    const paved: number[] = [WORLD_SURFACE.ASPHALT, WORLD_SURFACE.MARKING, WORLD_SURFACE.IRON];
     let points = 0,
       off: string[] = [],
       loose: string[] = [];
