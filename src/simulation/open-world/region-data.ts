@@ -173,6 +173,8 @@ export interface RoadSpec {
   roadClass: RoadClass;
   /** Wearing course of an unsealed road. Ordinary tracks use the native soil. */
   surfacing?: 'compacted-gravel';
+  /** Threshold survey points and reciprocal pavement designators of an airfield's landing strip. */
+  landingStrip?: { ends: readonly [XZ, XZ]; numbers: readonly [string, string] };
   /** Catmull-Rom control points (m). */
   points: readonly XZ[];
   /** A closed loop (runway/taxiway circuits). */
@@ -574,6 +576,7 @@ export const SOLVANE: RegionDefinition = Object.freeze({
     {
       id: 'airfield',
       name: 'Kestrel Runway and Taxiway',
+      landingStrip: { ends: [[1840,1830],[3550,1830]], numbers: ['09','27'] },
       roadClass: 'runway',
       closed: true,
       points: [

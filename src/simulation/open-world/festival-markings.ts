@@ -1,3 +1,4 @@
+import { airfieldSection, airfieldGlyphCoverage, type AirfieldSection } from './airfield-layout.ts';
 import { clamp } from '../../core/math.ts';
 import type { RoadEdge, RoadNetwork } from './road-network.ts';
 import { townCrossings, type TownCrossing } from './town-crossings.ts';
@@ -243,6 +244,7 @@ function contains(quad: PaintFootprint, x: number, z: number) {
 export class FestivalMarkings {
   readonly grids: readonly FestivalCircuitGrid[];
   readonly lines: readonly (readonly FestivalPaintLine[])[];
+  readonly airfield: readonly (AirfieldSection | null)[];
   readonly crossings: readonly (readonly TownCrossing[])[];
   private readonly apronEdges = new Map<number, readonly FestivalCircuitApron[]>();
   private readonly apronFootprints = new Map<number, PaintFootprint>();
@@ -250,7 +252,8 @@ export class FestivalMarkings {
 
   constructor(private readonly network: RoadNetwork) {
     this.crossings = network.edges.map((edge) => townCrossings(network, edge));
-    this.lines = network.edges.map((edge) => roadLines(network, edge));
+    this.airfield = network.edges.map((edge) => airfieldSection(network, edge));
+    this.lines = network.edges.map((edge) => this.airfield[edge.index]?.lines ?? roadLines(network, edge));
     for (const edge of network.edges) {
       if (edge.roadClass !== 'circuit') continue;
       const aprons: FestivalCircuitApron[] = [];
@@ -353,6 +356,7 @@ export class FestivalMarkings {
       if (local < site.minPaint - Math.abs(ds) || local > site.maxPaint + Math.abs(ds)) continue;
       for (const line of site.lines) fraction += treadOnLine(line, local, lateral, ds, dl);
     }
+    fraction += airfieldGlyphCoverage(this.airfield[edgeIndex], local, lateral, ds, dl);
     return clamp(fraction, 0, 1);
   }
 
@@ -372,6 +376,7 @@ export class FestivalMarkings {
       absolute = Math.abs(lateral);
     if (absolute > half) return false;
     const local = station - edge.offset;
+    if (airfieldGlyphCoverage(this.airfield[edgeIndex], local, lateral, 0, 0) > 0) return true;
     for (const line of this.lines[edgeIndex]) {
       if (
         Math.abs(lateral - line.lateral) <= line.width / 2 &&

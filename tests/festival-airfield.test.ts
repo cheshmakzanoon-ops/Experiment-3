@@ -1,3 +1,7 @@
+import { festivalMarkings } from '../src/simulation/open-world/festival-markings.ts';
+import { openWorld } from '../src/simulation/open-world/world.ts';
+import { trackPoint } from '../src/simulation/track.ts';
+import { RoadMeshes } from '../src/rendering/open-world/roads.ts';
 import * as T from 'three';
 import { expect, it } from 'vitest';
 import type { Structure } from '../src/simulation/open-world/placement.ts';
@@ -58,5 +62,37 @@ it('fits a raked control cab, an open gallery and a road-level entrance to the K
     expect(buildings.stats.triangles).toBeLessThan(6000);
   } finally {
     buildings.dispose();
+  }
+});
+
+it('mounts red and green in opposite directions at the same flush threshold sockets', () => {
+  const world = openWorld();
+  const roads = new RoadMeshes(world.network, world.field);
+  const system = roads.airfieldLights;
+  try {
+    const strip = festivalMarkings(world.network).airfield.find((s) => s?.strip)!.strip!;
+    const edge = world.network.edges.find(
+      (e) => festivalMarkings(world.network).airfield[e.index]?.strip,
+    )!;
+    const p = world.network.at(edge.offset + strip.from, trackPoint());
+    const eye = new T.Vector3(p.x, p.y + 1.5, p.z);
+    const halos = system.root.children.filter((o): o is T.Points => o instanceof T.Points);
+    expect(system.count).toBeGreaterThan(140);
+    let directional = 0;
+    for (const h of halos) {
+      const g = h.geometry,
+        a = g.getAttribute('frontTint'),
+        b = g.getAttribute('backTint');
+      for (let i = 0; i < a.count; i++) if (Math.abs(a.getX(i) - b.getX(i)) > 0.3) directional++;
+    }
+    expect(directional).toBe(16);
+    roads.setNight(0, eye);
+    expect(halos.some((h) => h.visible)).toBe(false);
+    roads.setNight(1, eye);
+    expect(halos.some((h) => h.visible)).toBe(true);
+    roads.setNight(1, new T.Vector3(800, 10, -2600));
+    expect(system.root.children.some((h) => h.visible)).toBe(false);
+  } finally {
+    roads.dispose();
   }
 });

@@ -1,3 +1,4 @@
+import { runwayRubber, RUNWAY_RUBBER } from './airfield-layout.ts';
 import { clamp, Vec3 } from '../../core/math.ts';
 import { rayHit } from '../bvh.ts';
 import { FootwayContact } from './footway-contact.ts';
@@ -650,6 +651,13 @@ export class OpenWorldTrack {
     if (out.frozen > 0) out.resistance += FROST.rolling * frozenCover(out.frozen);
     // A light general rubber coat on public asphalt; no racing line.
     out.rubber = physics.code === SURFACE.ASPHALT || physics.code === SURFACE.PAINT ? 0.08 : 0;
+    const strip = road.roadClass === 'runway' && this.markings.airfield[road.index]?.strip;
+    if (strip && surface === WORLD_SURFACE.ASPHALT) {
+      const station = out.s - road.offset;
+      out.rubber += RUNWAY_RUBBER.coverage * runwayRubber(
+        Math.min(station - strip.from, strip.to - station), out.lateral,
+      );
+    }
     out.marbles = 0;
     out.temp = this.#surfaceTemperature;
     return out;

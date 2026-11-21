@@ -1,3 +1,4 @@
+import { AirfieldLights } from './airfield-lights.ts';
 import * as T from 'three';
 import type { StreetLightSocket } from './street-light-pools.ts';
 import {
@@ -363,6 +364,7 @@ function installScannedVerge(material: T.MeshStandardMaterial) {
  */
 export class RoadMeshes {
   readonly root = new T.Group();
+  readonly airfieldLights: AirfieldLights;
   readonly lampSockets: StreetLightSocket[] = [];
   readonly materials: Record<Layer, T.Material>;
   readonly lampMaterial: T.MeshStandardMaterial;
@@ -391,6 +393,7 @@ export class RoadMeshes {
     circuitBoards: 0,
     circuitChevrons: 0,
     circuitCueChunks: 0,
+    airfieldLamps: 0,
   };
   constructor(
     readonly network: RoadNetwork,
@@ -461,6 +464,8 @@ export class RoadMeshes {
       }),
       post: new T.MeshStandardMaterial({ vertexColors: true, metalness: 0.52, roughness: 0.48 }),
     };
+    this.airfieldLights = new AirfieldLights(network, festivalMarkings(network));
+    this.root.add(this.airfieldLights.root);
     this.build();
   }
   private layerOf(e: RoadEdge): Layer {
@@ -495,6 +500,10 @@ export class RoadMeshes {
         layer = this.layerOf(e),
         height: SurfaceHeight = (pt, l) => net.surfaceHeight(pt, l, hw, crown);
       const frame = new FestivalRoadFrame(net, e);
+      const runway = festivalMarkings(net).airfield[e.index]?.strip;
+      const surfaceContext = (pt: TrackPoint, station: number) => festivalSurfaceContext(e,
+        pt.curvature, runway ? Math.min(station - runway.from, runway.to - station) : undefined,
+      );
       const across = [-hw, -hw * 0.5, 0, hw * 0.5, hw];
       let previousBuilder: Builder | undefined;
       let previousEndRow: number[] = [];
@@ -511,7 +520,7 @@ export class RoadMeshes {
         const b = builder(mx, mz, layer);
         const row = (pt: TrackPoint, v: number) => {
           const profile = spec.surface === 'asphalt' ? festivalRoadProfile(net, e, v) : undefined;
-          const context = profile ? festivalSurfaceContext(e, pt.curvature) : undefined;
+          const context = profile ? surfaceContext(pt, v) : undefined;
           return across.map((l) => {
             const n = frame.normal(pt, l);
             return b.vertex(
@@ -560,7 +569,7 @@ export class RoadMeshes {
                 n.z,
                 profile,
                 profile
-                  ? festivalSurfaceContext(e, pt.curvature)
+                  ? surfaceContext(pt, v)
                   : shoulderLayer === 'verge'
                     ? [0, spec.shoulder]
                     : undefined,
@@ -578,7 +587,7 @@ export class RoadMeshes {
                 n.z,
                 profile,
                 profile
-                  ? festivalSurfaceContext(e, pt.curvature)
+                  ? surfaceContext(pt, v)
                   : shoulderLayer === 'verge'
                     ? [spec.shoulder, spec.shoulder]
                     : undefined,
@@ -687,6 +696,7 @@ export class RoadMeshes {
       circuitBoards: cues.stats.boards,
       circuitChevrons: cues.stats.chevrons,
       circuitCueChunks: cues.stats.chunks,
+      airfieldLamps: this.airfieldLights.count,
     };
   }
   /** Permanent track paint, independent of event-marker visibility. Resolve
@@ -803,6 +813,29 @@ export class RoadMeshes {
         }
       });
     }
+    for (const band of layout.airfield[e.index]?.glyphs ?? []) {
+      for (let s = band.from; s < band.to; s += step) {
+        const end = Math.min(band.to, s + step);
+        net.at(e.offset + s, a);
+        net.at(e.offset + end, b);
+        const batch = builder((a.x + b.x) / 2, (a.z + b.z) / 2, 'paint');
+        const row = (point: TrackPoint, station: number) => {
+          const t = (station - band.from) / (band.to - band.from);
+          const left = band.left0 + (band.left1 - band.left0) * t;
+          const right = band.right0 + (band.right1 - band.right0) * t;
+          return [left, right].map((l) => {
+            const normal = frame.normal(point, l);
+            return batch.vertex(
+              point.x + point.nx * l, net.surfaceHeight(point, l, hw, spec.crown) + 0.012,
+              point.z + point.nz * l, l, station, normal.x, normal.y, normal.z,
+              undefined, [l - left, right - left],
+            );
+          });
+        };
+        const [a0, a1] = row(a, s), [b0, b1] = row(b, end);
+        batch.quad(a0, a1, b0, b1);
+      }
+    }
     if (e.roadClass === 'circuit') this.cornerAprons(e, builder, frame);
   }
   private inJunction(e: RoadEdge, s: number) {
@@ -917,7 +950,8 @@ export class RoadMeshes {
     }
   }
   /** Night: street lamps glow (bloom carries them). */
-  setNight(night: number) {
+  setNight(night: number, eye?: T.Vector3) {
+    this.airfieldLights.setNight(night, eye);
     this.lampMaterial.emissiveIntensity = 0.05 + night * 9;
     this.reflectorMaterial.emissiveIntensity = 0.02 + night * 0.72;
   }
@@ -928,12 +962,13 @@ export class RoadMeshes {
     const geometries = new Set<T.BufferGeometry>();
     this.root.traverse((o) => {
       if (o instanceof T.InstancedMesh) o.dispose();
-      if (o instanceof T.Mesh) geometries.add(o.geometry);
+      if (o instanceof T.Mesh || o instanceof T.Points) geometries.add(o.geometry);
     });
     for (const geometry of geometries) geometry.dispose();
     for (const m of Object.values(this.materials)) m.dispose();
     this.lampMaterial.dispose();
     this.reflectorMaterial.dispose();
     this.circuitCueMaterial.dispose();
+    this.airfieldLights.dispose();
   }
 }

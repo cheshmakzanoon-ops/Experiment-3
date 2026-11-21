@@ -3,6 +3,7 @@ import * as T from 'three';
 import { Vec3 } from '../src/core/math.ts';
 import { RoadMeshes } from '../src/rendering/open-world/roads.ts';
 import { OpenWorldTrack } from '../src/simulation/open-world/open-world-track.ts';
+import { festivalMarkings } from '../src/simulation/open-world/festival-markings.ts';
 import { townCrossings } from '../src/simulation/open-world/town-crossings.ts';
 import { townFootways } from '../src/simulation/open-world/town-footways.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
@@ -96,7 +97,8 @@ describe('Circuit paint agrees with rendered contact footprints', () => {
     const country = network.edges.find(
       (e) => e.spec.markings === 'centre' && e.roadClass === 'country' && e.length > 250,
     )!;
-    const runway = network.edges.find((e) => e.spec.markings === 'runway' && e.length > 250)!;
+    const runway = network.edges.find((e) => festivalMarkings(network).airfield[e.index]?.strip)!;
+    const threshold = festivalMarkings(network).airfield[runway.index]!.strip!.from;
     const check = (road: typeof edge, station: number, lateral: number, painted: boolean) => {
       const p = network.at(road.offset + station, trackPoint());
       const point = new T.Vector3(
@@ -115,15 +117,59 @@ describe('Circuit paint agrees with rendered contact footprints', () => {
       check(motorway, 124.25, side * 3.6, true);
       check(motorway, 124.75, side * 3.6, false);
       check(motorway, 122, side * (motorway.spec.halfWidth - 0.75), true);
-      check(runway, 24, side * 7.6, true);
-      check(runway, 24, side * 8.55, false);
-      check(runway, 44, side * 7.6, false);
+      check(runway, threshold + 16, side * 7.52, true);
+      check(runway, threshold + 16, side * 8.46, false);
+      check(runway, threshold + 33, side * 7.52, false);
     }
     check(motorway, 122, 0, false);
     check(country, 92.7, 0, true);
     check(country, 93.3, 0, false);
-    check(runway, 126, 0, true);
-    check(runway, 134, 0, false);
+    const dash = Math.ceil((threshold + 82) / 48) * 48;
+    check(runway, dash + 10, 0, true);
+    check(runway, dash + 34, 0, false);
+  });
+
+  it('matches both Kestrel runway numbers, their open counters and touchdown rubber to the tyres', () => {
+    const marks = festivalMarkings(network);
+    const runway = network.edges.find((e) => marks.airfield[e.index]?.strip)!;
+    const airfield = marks.airfield[runway.index]!;
+    const strip = airfield.strip!;
+    const pointAt = (station: number, lateral: number) => {
+      const p = network.at(runway.offset + station, trackPoint());
+      return new T.Vector3(
+        p.x + p.nx * lateral,
+        network.surfaceHeight(p, lateral, runway.spec.halfWidth, runway.spec.crown),
+        p.z + p.nz * lateral,
+      );
+    };
+    expect(airfield.glyphs.length).toBe(28);
+    for (const band of airfield.glyphs) {
+      const s = (band.from + band.to) / 2,
+        left = (band.left0 + band.left1) / 2,
+        right = (band.right0 + band.right1) / 2;
+      const point = pointAt(s, (left + right) / 2);
+      expect(visiblePaint(point)).toBe(true);
+      expect(sample(point).surface).toBe(SURFACE.PAINT);
+      if (right - left > 0.45)
+        expect(
+          marks.roadPaintCoverage(runway.index, runway.offset + s, right, 0, 0.08),
+        ).toBeCloseTo(0.5, 4);
+    }
+    // The central opening in the 0 leaves real asphalt between its strokes.
+    const counter = pointAt(strip.from + 48.5, (3.55 + 1.08) / 2);
+    expect(visiblePaint(counter)).toBe(false);
+    expect(sample(counter).surface).toBe(SURFACE.ASPHALT);
+    const landed = pointAt(strip.from + 238, 2.75),
+      clear = pointAt(strip.from + 238, 11.5);
+    const tyre = makeTire('wet'),
+      load = 3500;
+    const dryRubber = sample(landed, dry),
+      dryClear = sample(clear, dry);
+    const wetRubber = sample(landed, rain),
+      wetClear = sample(clear, rain);
+    expect(dryRubber.rubber).toBeGreaterThan(dryClear.rubber + 0.25);
+    expect(peakGrip(tyre, load, dryRubber, 25)).toBeGreaterThan(peakGrip(tyre, load, dryClear, 25));
+    expect(peakGrip(tyre, load, wetRubber, 25)).toBeLessThan(peakGrip(tyre, load, wetClear, 25));
   });
 
   it('aligns urban crossing paint, wet tyre coverage and dropped kerbs in both approach directions', () => {

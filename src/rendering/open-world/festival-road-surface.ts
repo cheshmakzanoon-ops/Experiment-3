@@ -1,3 +1,4 @@
+import { RUNWAY_RUBBER as R } from '../../simulation/open-world/airfield-layout.ts';
 import * as T from 'three';
 import type { TrackPoint } from '../../simulation/track.ts';
 import { trackPoint } from '../../simulation/track.ts';
@@ -133,7 +134,9 @@ export function festivalRoadProfile(
 export function festivalSurfaceContext(
   edge: RoadEdge,
   curvature: number,
+  thresholdDistance?: number,
 ): readonly [number, number] {
+  if (edge.roadClass === 'runway' && thresholdDistance !== undefined) return [-1, thresholdDistance];
   return edge.roadClass === 'circuit' ? [1, curvature] : [0, 0];
 }
 
@@ -174,6 +177,19 @@ float festivalSeal = 0.0;
   festivalPolish *= 1.0 - smoothstep(0.16, 0.45, footprint.x);
   festivalPolish *= (1.0 - smoothstep(halfRoad - 0.3, halfRoad, abs(q.x)));
   diffuseColor.rgb *= 1.0 - festivalPolish * mix(0.025, 0.075, age);
+
+  if (vFestivalSurfaceData.x < -0.5 && vFestivalSurfaceData.y > 0.0) {
+    float threshold = vFestivalSurfaceData.y;
+    float envelope = smoothstep(${f(R.start)}, ${f(R.full)}, threshold) *
+                     (1.0 - smoothstep(${f(R.fade)}, ${f(R.end)}, threshold));
+    float x = abs(q.x);
+    float wheel = min(abs(x - ${f(R.inner)}), abs(x - ${f(R.outer)}));
+    float deposit = envelope * (1.0 - smoothstep(${f(R.core)}, ${f(R.edge)}, wheel));
+    float trace = owNoise(vec2(q.x * 4.9 + seed, q.y * 0.032));
+    float rubber = deposit * mix(0.47, 1.0, trace);
+    diffuseColor.rgb *= 1.0 - rubber * (0.26 + 0.12 * wet);
+    festivalPolish = max(festivalPolish, rubber);
+  }
 
   // Circuit wear is a broad, broken history of use, with stronger polish
   // through bends. It is independent of the public-road wheel-path mask.
@@ -312,7 +328,7 @@ export function installFestivalRoadSurface(material: T.MeshPhysicalMaterial, age
   if (!material.userData.wetSurface)
     throw new Error('Festival road surfacing needs the existing library wet-surface material');
   const ageUniform = { value: age };
-  return chainShaderHook(material, 'festival-road-surface-v2', (shader) => {
+  return chainShaderHook(material, 'festival-road-surface-v3', (shader) => {
     shader.uniforms.festivalSurfaceAge = ageUniform;
     shader.uniforms.festivalRoadDetail = festivalRoadDetail;
     injectDeclarations(

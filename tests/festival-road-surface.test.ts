@@ -1,3 +1,4 @@
+import { festivalMarkings } from '../src/simulation/open-world/festival-markings.ts';
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import { trackPoint } from '../src/simulation/track.ts';
@@ -177,9 +178,9 @@ describe('Festival surfacing integration', () => {
       expect(sa.uniforms.festivalSurfaceAge.value).toBe(0.9);
       expect(sb.uniforms.festivalSurfaceAge.value).toBe(0.32);
       expect(sa.uniforms.festivalSurfaceAge).not.toBe(sb.uniforms.festivalSurfaceAge);
-      expect(studioHookKeys(a).filter((key) => key === 'festival-road-surface-v2')).toHaveLength(1);
+      expect(studioHookKeys(a).filter((key) => key === 'festival-road-surface-v3')).toHaveLength(1);
       expect(a.customProgramCacheKey()).toContain('library-wet-surface-v1');
-      expect(a.customProgramCacheKey()).toContain('festival-road-surface-v2');
+      expect(a.customProgramCacheKey()).toContain('festival-road-surface-v3');
       // Clearcoat consumes the drainage-modified puddle after the original
       // weather sample. A reordering would silently detach it from rain.
       const f = sa.fragmentShader;
@@ -270,6 +271,10 @@ describe('Festival surfacing integration', () => {
                   Math.abs(context.getY(i) - point.curvature),
                 );
               }
+            } else if (edge.roadClass === 'runway' && festivalMarkings(net).airfield[edge.index]?.strip) {
+              const strip = festivalMarkings(net).airfield[edge.index]!.strip!;
+              const distance = Math.min(uv.getY(i) - strip.from, strip.to - uv.getY(i));
+              if (context.getX(i) !== -1 || Math.abs(context.getY(i) - distance) > 0.001) invalidContext++;
             } else {
               if (context.getX(i) !== 0 || context.getY(i) !== 0) invalidContext++;
             }
