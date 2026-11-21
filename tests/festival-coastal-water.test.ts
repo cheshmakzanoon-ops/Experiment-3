@@ -253,6 +253,21 @@ describe('Festival coastal water geometry', () => {
   });
 });
 
+function stubWaveCanvas() {
+  vi.stubGlobal('document', {
+    createElement: () => ({
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        createImageData: (width: number, height: number) => ({
+          data: new Uint8ClampedArray(width * height * 4),
+        }),
+        putImageData: () => {},
+      }),
+    }),
+  });
+}
+
 describe('Festival coastal water materials and lifetime', () => {
   it('preserves physical sea waves, binds presented time and borrows the normal map', () => {
     const normal = new T.Texture();
@@ -298,19 +313,67 @@ describe('Festival coastal water materials and lifetime', () => {
     normal.dispose();
   });
 
+  it('advects the Ashvale current through bends and slows into level tidal water', () => {
+    stubWaveCanvas();
+    const water = new Water(field);
+    try {
+      const geo = water.river.geometry;
+      const flow = geo.getAttribute('riverFlow'),
+        pos = geo.getAttribute('position'),
+        normal = geo.getAttribute('normal');
+      const material = water.river.material as T.MeshPhysicalMaterial;
+      expect(studioHookKeys(material)).toEqual(['festival-river-current-v1']);
+      const shader = {
+        uniforms: T.UniformsUtils.clone(T.ShaderLib.physical.uniforms),
+        vertexShader: T.ShaderLib.physical.vertexShader,
+        fragmentShader: T.ShaderLib.physical.fragmentShader,
+      } as StudioShader;
+      material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+      expect(shader.uniforms.studioTime).toBe(studioUniforms.studioTime);
+      expect(shader.uniforms.riverHalfWidth.value).toBeCloseTo(SOLVANE.valley.channel * 0.95);
+      const centre = (i: number) =>
+        new T.Vector3()
+          .fromBufferAttribute(pos, i)
+          .add(new T.Vector3().fromBufferAttribute(pos, i + 1))
+          .multiplyScalar(0.5);
+      let fast = 0,
+        tidal = 0;
+      for (let i = 2; i < flow.count; i += 2) {
+        expect([flow.getX(i), flow.getX(i + 1)]).toEqual([-1, 1]);
+        expect(flow.getY(i)).toBe(flow.getY(i + 1));
+        const previous = centre(i - 2),
+          here = centre(i),
+          delta = here.clone().sub(previous);
+        const elapsed = flow.getY(i) - flow.getY(i - 2);
+        expect(elapsed).toBeGreaterThan(0);
+        const speed = Math.hypot(delta.x, delta.z) / elapsed;
+        // The normal follows the local slope, including where two reaches meet.
+        const surfaceNormal = new T.Vector3().fromBufferAttribute(normal, i);
+        expect(surfaceNormal.length()).toBeCloseTo(1, 5);
+        if (i < flow.count - 2) {
+          const chord = centre(i + 2)
+            .sub(previous)
+            .normalize();
+          expect(Math.abs(surfaceNormal.dot(chord))).toBeLessThan(0.0001);
+        }
+        if (flow.getZ(i) > 0.03) {
+          expect(speed).toBeGreaterThan(1.55);
+          fast++;
+        }
+        if (here.y === SOLVANE.seaLevel && previous.y === here.y) {
+          expect(speed).toBeCloseTo(0.45, 3);
+          tidal++;
+        }
+      }
+      expect(fast).toBeGreaterThan(20);
+      expect(tidal).toBeGreaterThan(10);
+    } finally {
+      water.dispose();
+    }
+  });
+
   it('disposes the actual generated sea texture exactly once across sea, river and shore', () => {
-    vi.stubGlobal('document', {
-      createElement: () => ({
-        width: 0,
-        height: 0,
-        getContext: () => ({
-          createImageData: (width: number, height: number) => ({
-            data: new Uint8ClampedArray(width * height * 4),
-          }),
-          putImageData: () => {},
-        }),
-      }),
-    });
+    stubWaveCanvas();
     const water = new Water(field);
     const texture = (water.sea.material as T.MeshPhysicalMaterial).normalMap!;
     expect(texture).toBeInstanceOf(T.CanvasTexture);

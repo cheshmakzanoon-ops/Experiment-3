@@ -1,10 +1,11 @@
 import * as T from 'three';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
-import { buildSea, installSeaWaves } from '../sea.ts';
+import { buildSea } from '../sea.ts';
 import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
 import { useStudioUniforms } from '../studio/studio-frame.ts';
 import { CoastalWater, FESTIVAL_SEA } from './coastal-water.ts';
 import { installHarbourSwell } from './harbour-swell.ts';
+import { installRiverCurrent } from './river-current.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
 
 /** The sea wave shader maps plane UV to world metres at this scale. */
@@ -168,9 +169,11 @@ export class Water {
     const points = region.valley.points,
       positions: number[] = [],
       normals: number[] = [],
+      flow: number[] = [],
       uvs: number[] = [],
       index: number[] = [];
-    let along = 0;
+    let along = 0,
+      travelTime = 0;
     const width = region.valley.channel * 0.95;
     const steps: { x: number; z: number; y: number }[] = [];
     for (let k = 0; k < points.length - 1; k++) {
@@ -191,12 +194,27 @@ export class Water {
         len = Math.hypot(dx, dz) || 1,
         nx = dz / len,
         nz = -dx / len;
-      if (i) along += Math.hypot(p.x - steps[i - 1].x, p.z - steps[i - 1].z);
+      const surfaceGrade = (Math.max(region.seaLevel, b.y) - Math.max(region.seaLevel, a.y)) / len;
+      const normalLength = Math.hypot(1, surfaceGrade);
+      // Travel seconds are continuous across control points, including the flat tidal reach.
+      if (i) {
+        const previous = steps[i - 1];
+        const run = Math.hypot(p.x - previous.x, p.z - previous.z);
+        const drop = Math.max(region.seaLevel, previous.y) - Math.max(region.seaLevel, p.y);
+        const speed = 0.45 + 6.7 * Math.sqrt(Math.max(0, drop / Math.max(0.01, run)));
+        along += run;
+        travelTime += run / speed;
+      }
       // The river meets the sea at sea level.
       const y = Math.max(region.seaLevel, p.y);
       for (const side of [-1, 1]) {
         positions.push(p.x + nx * side * width, y, p.z + nz * side * width);
-        normals.push(0, 1, 0);
+        normals.push(
+          (-surfaceGrade * dx) / len / normalLength,
+          1 / normalLength,
+          (-surfaceGrade * dz) / len / normalLength,
+        );
+        flow.push(side, travelTime, Math.max(0, -surfaceGrade));
         uvs.push((side * width) / SEA_UV_METRES, along / SEA_UV_METRES);
       }
       if (i) {
@@ -207,13 +225,14 @@ export class Water {
     const river = new T.BufferGeometry();
     river.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
     river.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
+    river.setAttribute('riverFlow', new T.Float32BufferAttribute(flow, 3));
     river.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
     river.setIndex(index);
     river.computeBoundingSphere();
     const riverMaterial = (this.sea.material as T.MeshPhysicalMaterial).clone();
     riverMaterial.color.setHex(0x1d3a33);
     riverMaterial.name = 'Ashvale river';
-    installSeaWaves(riverMaterial);
+    installRiverCurrent(riverMaterial, width);
     riverMaterial.polygonOffset = true;
     riverMaterial.polygonOffsetFactor = -1;
     this.river = new T.Mesh(river, riverMaterial);
