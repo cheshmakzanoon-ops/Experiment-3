@@ -1,3 +1,4 @@
+import { gpFarmsteadPlan, inGpFarmstead } from './venue-kit/gp-farmsteads.ts';
 import { gpRidgePlanting } from './venue-kit/gp-ridge-planting.ts';
 import type { TreeRole } from './vegetation/species.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
@@ -59,6 +60,7 @@ export function vegetationPlan(
   const occupied = new Map<string, TreePlacement[]>();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
+  const farms = gpFarmsteadPlan(track);
   const gpGround = isGpCourse(track) ? cataloguePlantingGround(track) : undefined;
   const ground = terrainFor(track),
     zones = venuePlan(track).plantingZones;
@@ -90,6 +92,7 @@ export function vegetationPlan(
       inServiceFootprint(services, x, z, 8) ||
       extraExclusion?.(x, z, 8) ||
       inDistrictFootprint(districts, x, z, 8) ||
+      inGpFarmstead(farms, x, z, 8) ||
       inLandmarkFootprint(landmark, x, z, 8)
     )
       blocked = true;
@@ -140,6 +143,7 @@ export function grovePlan(
     nearest = trackPoint();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
+  const farms = gpFarmsteadPlan(track);
   const terrain = terrainFor(track), planted = drawnTerrain(track);
   const blocked = (x: number, z: number, margin: number) => {
     // Nothing grows below the waterline on a coastal venue.
@@ -150,6 +154,7 @@ export function grovePlan(
       inStandFootprint(track, x, z, margin) ||
       inServiceFootprint(services, x, z, margin) ||
       inDistrictFootprint(districts, x, z, margin) ||
+      inGpFarmstead(farms, x, z, margin) ||
       inLandmarkFootprint(landmark, x, z, margin)
     );
   };

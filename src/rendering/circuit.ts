@@ -1,6 +1,7 @@
 import { TERRAIN_SIZE, terrainSegments, terrainSurface } from './terrain-surface.ts';
 import { GpClassification } from './venue-kit/gp-classification.ts';
 import { GpPitBoards } from './venue-kit/gp-pit-boards.ts';
+import { buildGpFarmsteads } from './venue-kit/gp-farmsteads.ts';
 import { buildGpGarageEquipment } from './venue-kit/gp-garage-equipment.ts';
 import { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { AurelQuarryKit } from './aurel-quarry.ts';
@@ -516,6 +517,7 @@ export class CircuitScene {
       );
     });
     this.infrastructure();
+    if (track.gpEdges) this.construction.add('GP rural architecture', 3, () => buildGpFarmsteads(track, this.props));
     this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
       buildTrackInfrastructure(
         track,
