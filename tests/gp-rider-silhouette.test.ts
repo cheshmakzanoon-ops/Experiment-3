@@ -85,6 +85,18 @@ describe('GP torso and limb silhouette continuity', () => {
         shell.updateMatrixWorld(true);
         const ray = new T.Raycaster(),
           forward = new T.Vector3(0, 0, 1);
+        // The lower back has two supported pads inside the one-piece shell.
+        // Probe the actual indexed skin on each side of its centre seam.
+        const evaluateSeat = (x: number) => {
+          ray.set(new T.Vector3(x, 0.0314, -0.5), forward);
+          return ray.intersectObject(shell)[0].point.z;
+        };
+        const centreSeat = evaluateSeat(0.0001),
+          leftSeat = evaluateSeat(-0.062),
+          rightSeat = evaluateSeat(0.062);
+        expect(Math.abs(leftSeat - rightSeat)).toBeLessThan(0.001);
+        expect(centreSeat - leftSeat).toBeGreaterThan(0.004);
+        expect(centreSeat - leftSeat).toBeLessThan(0.023);
         let previous = 0;
         for (let x = -0.15; x < 0.151; x += 0.015) {
           ray.set(new T.Vector3(x + 0.00017, 0.423, -0.5), forward);

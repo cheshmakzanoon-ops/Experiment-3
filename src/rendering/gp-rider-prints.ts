@@ -1,4 +1,5 @@
 import { drawGpEquipment } from './gp-equipment-print.ts';
+import { GP_LUMBAR_PLEATS } from './gp-rider-suit.ts';
 import { canvasTexture } from './geometry.ts';
 import { type LiveryScheme } from './car-livery.ts';
 import { BRAND_ART, drawMark, drawWordmark, fitHeight, type Brand } from './studio/brand-atlas.ts';
@@ -98,11 +99,14 @@ export function gpTorsoPrint(colours: RiderColours, number: number, team: Livery
       if (mid === 768) {
         // Transverse concertina above the seat. The bend shortens each rib
         // toward the hip and leaves an uninterrupted central sponsor panel.
-        for (let i = 0; i < 8; i++) {
-          const w = 82 + Math.sin(i / 7 * Math.PI) * 37, y = 374 + i * 7;
+        const pleats = GP_LUMBAR_PLEATS;
+        for (let i = 0; i < pleats.count; i++) {
+          const w = pleats.width + Math.sin(i / (pleats.count - 1) * Math.PI) * pleats.flare,
+            y = pleats.first + i * pleats.pitch,
+            rise = pleats.curve * w * w;
           c.beginPath();
-          c.moveTo(-w, y + 10);
-          c.quadraticCurveTo(0, y - 13, w, y + 10);
+          c.moveTo(-w, y + rise);
+          c.quadraticCurveTo(0, y - rise, w, y + rise);
           c.strokeStyle = i === 0 ? '#515355' : '#32373d';
           c.lineWidth = 3;
           c.stroke();

@@ -40,6 +40,17 @@ const HOUSING_HEIGHTS = HOUSING.map(([y]) => y);
 const HOUSING_RISE = HOUSING.map(([, rise]) => rise);
 const HOUSING_WIDTH = HOUSING.map(([, , width]) => width);
 
+/** Eight leather pleats above the seat. The print and the light-catching
+ * relief share the same coordinates on the 1024 × 512 torso wrap. */
+export const GP_LUMBAR_PLEATS = {
+  count: 8,
+  first: 374,
+  pitch: 7,
+  width: 82,
+  flare: 37,
+  curve: 0.00075,
+} as const;
+
 /** Continuous torso with a shaped pelvis, shoulder slope and integrated aero
  * housing. A fixed sample budget replaces both old torso and hump meshes;
  * changing the profile's station count cannot silently inflate render cost. */
@@ -57,7 +68,10 @@ export function gpTorsoGeometry(detail: 'high' | 'mid' | 'far') {
         sampleProfile(TORSO_HEIGHTS, axis, y),
       ),
       rise = sampleProfile(HOUSING_HEIGHTS, HOUSING_RISE, y),
-      housingWidth = sampleProfile(HOUSING_HEIGHTS, HOUSING_WIDTH, y);
+      housingWidth = sampleProfile(HOUSING_HEIGHTS, HOUSING_WIDTH, y),
+      // The padded seat wraps two loaded hips. Its shallow centre valley
+      // ends below the lumbar pleats and blends into the trouser roots.
+      seatBand = Math.max(0, 1 - ((y - 0.031) / 0.104) ** 2) ** 2;
     for (let column = 0; column <= sides; column++) {
       const angle = (column / sides) * Math.PI * 2,
         c = Math.cos(angle),
@@ -65,8 +79,11 @@ export function gpTorsoGeometry(detail: 'high' | 'mid' | 'far') {
         shape = (value: number) => Math.sign(value) * Math.abs(value) ** 0.8,
         x = shape(c) * width,
         shoulderBlend = Math.max(0, 1 - (x / housingWidth) ** 2),
-        housing = s < 0 ? rise * shoulderBlend ** 2 : 0;
-      positions.push(x, y, centre + shape(s) * (s > 0 ? front : back) - housing);
+        housing = s < 0 ? rise * shoulderBlend ** 2 : 0,
+        hip = Math.exp(-(((Math.abs(x) - 0.064) / 0.042) ** 2)),
+        centreSeam = Math.exp(-((x / 0.031) ** 2)),
+        seat = seatBand * Math.max(0, -s) ** 2 * (0.008 * hip - 0.009 * centreSeam);
+      positions.push(x, y, centre + shape(s) * (s > 0 ? front : back) - housing - seat);
       uv.push(column / sides, row / rows);
       if (row < rows && column < sides) {
         const a = row * (sides + 1) + column,
@@ -251,6 +268,25 @@ function tailoring(cut: Exclude<GpSuitCut, 'plain'>) {
   float hipDistance=(vGpSuitBind.y-.19)/.1;
   gpSuitWear=exp(-hipDistance*hipDistance) *
     smoothstep(.065,.12,abs(vGpSuitBind.x));`;
+  const lumbar = GP_LUMBAR_PLEATS, last = lumbar.count - 1;
+  const lumbarRelief = cut === 'torso' ? `
+  // A 7-pixel step in the torso print spans 8.7 mm on the fitted skin.
+  // Evaluate derivatives before clipping and retire the relief continuously
+  // when a pixel covers a pleat. The underlying leather remains visible.
+  float crossPanel = (vGpSuitUv.x - .75) * 1024.;
+  float pleatRow = ((1. - vGpSuitUv.y) * 512. - ${lumbar.first}.
+    - ${lumbar.curve} * crossPanel * crossPanel) / ${lumbar.pitch}.;
+  float rowFootprint = max(fwidth(pleatRow), .001);
+  if (abs(crossPanel) < ${lumbar.width + lumbar.flare}. && pleatRow > -.55 &&
+      pleatRow < ${last + 0.55} && rowFootprint < .94) {
+    float halfWidth = ${lumbar.width}. + ${lumbar.flare}. * sin(clamp(pleatRow / ${last}., 0., 1.) * 3.14159265);
+    float pleats = (1. - smoothstep(halfWidth - 5., halfWidth, abs(crossPanel))) *
+      smoothstep(-.55, -.18, pleatRow) * (1. - smoothstep(${last + 0.18}, ${last + 0.55}, pleatRow));
+    float ridge = .5 + .5 * cos(pleatRow * 6.28318531);
+    float response = pleats * (1. - smoothstep(.34, .94, rowFootprint));
+    gpSuitHeight += .00075 * ridge * ridge * response;
+    diffuseColor.rgb *= 1. - .15 * (1. - ridge) * response;
+  }` : '';
   return `{
   float px=max(length(fwidth(vGpSuitBind)),.00004);
   float aa=max(px*.75,.00005);
@@ -283,6 +319,7 @@ function tailoring(cut: Exclude<GpSuitCut, 'plain'>) {
     gpSuitStretch*weave*.000055*weaveResolve - seam*.00015 + stitch*.00011 +
     crease*.00019*gpSuitWear*creaseResolve;
   diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.018,.023,.029),gpSuitStretch*.87);
+  ${lumbarRelief}
   diffuseColor.rgb*=1.-gpSuitRib*.13-seam*.22;
   diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.55+vec3(.16),stitch*.7);
   gpSuitWear*=creaseResolve*(.4+.6*gpSuitNoise(vGpSuitBind*vec3(24.,11.,24.)));
@@ -297,7 +334,7 @@ export function installGpSuitFinish(
   perforated: boolean,
   cut: GpSuitCut = 'plain',
 ) {
-  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v4`;
+  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-${cut === 'torso' ? 'v5' : 'v4'}`;
   chainShaderHook(material, key, (shader) => {
     const coordinates =
       cut === 'plain'
