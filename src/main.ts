@@ -3287,7 +3287,10 @@ export class GameApp {
         prepare: async () =>
           !renderer ||
           !graphicsChanged ||
-          renderer.prepareQuality(settings.quality, settings.graphics, cancelled, yieldBrowserTask),
+          renderer.prepareQuality(
+            settings.quality, settings.graphics, cancelled, yieldBrowserTask,
+            this.state === 'paused' || this.state === 'replay' ? this.state : undefined,
+          ),
         apply: () => {
           this.settings = settings;
           this.input.settings = settings;

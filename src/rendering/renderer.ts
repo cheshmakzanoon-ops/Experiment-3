@@ -1391,15 +1391,15 @@ export class RacingRenderer {
       return true;
     });
   }
-  /** A settings edit is not a new race. Drain the preceding submission before
-   * releasing its textures/targets, and compile without drawing or resetting
-   * the camera, car poses, physics, replay or recorded presentation clocks.
-   * The application owns normal-frame exclusion for the whole transaction. */
+  /** The application excludes normal frames during a settings edit. Drain the
+   * preceding submission before releasing its textures and targets. A held
+   * GP session can then validate the new rendering path on its displayed pose. */
   async prepareQuality(
     quality: QualityPreset,
     graphics: GraphicsOptions,
     cancelled: () => boolean,
     yieldControl: () => Promise<void>,
+    heldView?: 'paused' | 'replay',
   ): Promise<boolean> {
     if (this.disposed || cancelled()) return false;
     const gpField = !this.showroomOnly && isGpCourse(this.circuit.track) &&
@@ -1470,12 +1470,20 @@ export class RacingRenderer {
           this.camera,
           this.composer.readBuffer,
           undefined,
-          { cancelled: stopped, requireLinkedPrograms: warmGpSurfaces },
+          { cancelled: stopped, requireLinkedPrograms: gpField },
         ),
       );
-      if (warmGpSurfaces && !stopped()) {
+      if (gpField && !stopped()) {
         this.gpuFrames.submittedFrame();
         await this.waitForPreparedFrame(stopped, yieldControl);
+        if (heldView && !stopped()) {
+          // Linking leaves shadows, material first use and post-processing until the
+          // first full draw. Exercise those paths before the preference is written.
+          // Both inputs contain exactly the same recorded pose and time.
+          const frame = this.presented.value.slice();
+          this.draw(frame, frame, 1, 0, false, heldView === 'replay', 0);
+          await this.waitForPreparedFrame(stopped, yieldControl);
+        }
       }
       complete = !stopped();
       return complete;

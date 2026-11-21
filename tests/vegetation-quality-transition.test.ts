@@ -219,6 +219,41 @@ describe('live circuit vegetation quality', () => {
       if (outcome !== 'healthy') expect(renderer.graphics).toBe(previous);
     },
   );
+  it.each([
+    { view: 'paused', preset: 'high', loseFrame: false },
+    { view: 'replay', preset: 'high', loseFrame: false },
+    { view: 'paused', preset: 'low', loseFrame: false },
+    { view: 'paused', preset: 'high', loseFrame: true },
+  ] as const)('requires the held $view frame at $preset to finish before saving (loss $loseFrame)', async ({ view, preset, loseFrame }) => {
+    const { renderer, state, backend } = fixture('poggio-alto');
+    const frame = menuPreview(state.track, 20, 'gpr1'), original = frame.slice();
+    const submittedFrame = vi.fn();
+    let lost = false;
+    const draw = vi.fn((...args: Parameters<RacingRenderer['draw']>) => {
+      const [previous, current, alpha, dt, menu, replay, elapsed] = args;
+      expect(previous).not.toBe(frame);
+      expect(previous).toBe(current);
+      expect(previous).toEqual(original);
+      expect([alpha, dt, menu, replay, elapsed]).toEqual([1, 0, false, view === 'replay', 0]);
+      submittedFrame();
+    });
+    Object.assign(renderer, {
+      presented: { value: frame }, photoSky: { enabled: false },
+      gpuFrames: { submittedFrame }, preparePlanting: async () => null, draw,
+    });
+    Object.assign(backend, { getContext: () => ({ isContextLost: () => lost }) });
+    vi.spyOn(scannedGround, 'enabled', 'get').mockReturnValue(false);
+    state.waitForPreparedFrame.mockImplementation(async () => {
+      if (submittedFrame.mock.calls.length === 2) lost = loseFrame;
+      return true;
+    });
+    expect(await renderer.prepareQuality(preset, graphicsPreset(preset), () => false, async () => {}, view))
+      .toBe(!loseFrame);
+    expect(frame).toEqual(original);
+    expect(draw).toHaveBeenCalledOnce();
+    expect(state.waitForPreparedFrame).toHaveBeenCalledTimes(3);
+    expect(renderer.preset).toBe(loseFrame ? 'medium' : preset);
+  });
   it.each(['cancel during meadow preparation', 'compile error'] as const)(
     'restores both planting and meadow owners after %s',
     async (failure) => {

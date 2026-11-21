@@ -17,7 +17,7 @@ GP-R1 has a high side-mounted silencer. GP-R2 has a lower belly-side outlet. Eac
 | GP-R1 | 109,459 | 110,425 | 105 |
 | GP-R2 | 108,834 | 109,800 | 104 |
 
-The two rear views used Chromium and SwiftShader. Both completed with zero WebGL errors. Model counts exclude the studio floor and additional submitted geometry. Draw counts depend on the camera and scene.
+The two rear views used Chromium and SwiftShader. Both completed with zero WebGL errors. Model counts exclude the studio floor and additional submitted geometry. Draw counts depend on the camera and scene. Cold High-preset circuit starts on the software renderers failed before the first riding frame.
 
 ![GP-R1 outer fairing, intact on the left and scuffed on the right](fairing-wear.webp)
 
@@ -45,7 +45,19 @@ Four GP-R1 riders run on wet tyres in the second session. The chase camera recor
 
 The single-rider wet practice shows 202 km/h on both dashboard and HUD. On pause, the physics worker and displayed frame agreed at 15.940775 s. Further frames held that time, and the recorded history advanced from 150 to 180 samples after resuming. Both wheel contacts measured water in the chase and cockpit views.
 
+Changing graphics while a GP race or replay is held now submits the displayed motorcycle pose through the new shadows, materials and post-processing. The preference waits for the GPU to finish that frame. The renderer also checks the shader link results and waits for the requested photographed sky and track surfaces within their loading budgets.
+
 ## Circuits
+
+![Live chase and onboard pairs at Cape Wrenna, Haarveld and Montejaral](circuit-practice.webp)
+
+Each pair shows a solo dry practice entered through the game menu on Low. The left column follows the rider and the right column looks through the windscreen. The speed comes from the HUD in each captured image. The simulation continued recording through all six views. Montejaral completed both views in an independent browser process after the first browser process crashed during entry.
+
+| Circuit, top to bottom | Prototype | Chase | Cockpit |
+| --- | --- | ---: | ---: |
+| Cape Wrenna | GP-R2 | 122 km/h | 197 km/h |
+| Haarveld | GP-R1 | 115 km/h | 188 km/h |
+| Montejaral | GP-R2 | 122 km/h | 206 km/h |
 
 ![The four timing towers with a simulated race classification](race-control.webp)
 
