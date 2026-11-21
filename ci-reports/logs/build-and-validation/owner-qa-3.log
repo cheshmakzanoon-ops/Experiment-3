@@ -1,0 +1,255 @@
+### owner-qa (3) (job 136766973806)
+--- error digest (first 120 matching lines) ---
+208:owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:44.1759140Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+owner-qa (3)	Set up job	﻿2026-11-21T07:01:17.6828828Z Current runner version: '2.338.2'
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6846358Z ##[group]Runner Image Provisioner
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6847006Z Hosted Compute Agent
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6847405Z Version: 20261111.635
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6847896Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6848463Z Build Date: 2026-11-11T01:49:01Z
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6848966Z Worker ID: {f6fc11e5-02b4-4bf1-ad23-49c1ee4acc15}
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6849483Z Region: us-east-1
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6850047Z Cloud: AWS
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6850446Z ##[endgroup]
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6851412Z ##[group]Operating System
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6851867Z Ubuntu
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6852238Z 24.04.5
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6852823Z LTS
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6853218Z ##[endgroup]
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6853625Z ##[group]Runner Image
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6854073Z Image: ubuntu-24.04
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6854664Z Version: 20261116.133.1
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6855473Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6856739Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6857442Z ##[endgroup]
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6858223Z ##[group]GITHUB_TOKEN Permissions
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6859962Z Contents: read
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6860384Z Metadata: read
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6860778Z ##[endgroup]
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6862247Z Secret source: Actions
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6862970Z Cache mode: write
+owner-qa (3)	Set up job	2026-11-21T07:01:17.6863559Z Prepare workflow directory
+owner-qa (3)	Set up job	2026-11-21T07:01:17.7125070Z Prepare all required actions
+owner-qa (3)	Set up job	2026-11-21T07:01:17.7161468Z Getting action download info
+owner-qa (3)	Set up job	2026-11-21T07:01:17.8859442Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+owner-qa (3)	Set up job	2026-11-21T07:01:19.7302170Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+owner-qa (3)	Set up job	2026-11-21T07:01:19.8643928Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+owner-qa (3)	Set up job	2026-11-21T07:01:20.2076008Z Complete job name: owner-qa (3)
+owner-qa (3)	Run actions/checkout@v4	﻿2026-11-21T07:01:20.2817066Z ##[group]Run actions/checkout@v4
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2818255Z with:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2819063Z   repository: cheshmakzanoon-ops/Experiment-3
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2825604Z   token: ***
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2826383Z   ssh-strict: true
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2827224Z   ssh-user: git
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2828058Z   persist-credentials: true
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2829022Z   clean: true
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2829816Z   sparse-checkout-cone-mode: true
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2830719Z   fetch-depth: 1
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2831456Z   fetch-tags: false
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2832321Z   show-progress: true
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2833111Z   lfs: false
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2833850Z   submodules: false
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2834776Z   set-safe-directory: true
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2835670Z   allow-unsafe-pr-checkout: false
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2836814Z env:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2837551Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2838491Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2839405Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:20.2840285Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.4830736Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.4832434Z ##[group]Getting Git version info
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.4832894Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.4833639Z [command]/usr/bin/git version
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7401476Z git version 2.56.1
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7413836Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7424696Z Temporarily overriding HOME='/home/runner/work/_temp/293330a8-5ccc-4a74-8d1e-04f15b64fd8a' before making global git config changes
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7425738Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7428738Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7467232Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7470619Z ##[group]Initializing the repository
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.7473256Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8334249Z hint: Using 'master' as the name for the initial branch. This default branch name
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8334991Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8335687Z hint: to use in all of your new repositories, which will suppress this warning,
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8336141Z hint: call:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8336381Z hint:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8336782Z hint: 	git config --global init.defaultBranch <name>
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8337108Z hint:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8337452Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8337976Z hint: 'development'. The just-created branch can be renamed via this command:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8338359Z hint:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8338635Z hint: 	git branch -m <name>
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8338906Z hint:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8339290Z hint: Disable this message with "git config set advice.defaultBranchName false"
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8340733Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8348998Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8393369Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8393868Z ##[group]Disabling automatic garbage collection
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8396250Z [command]/usr/bin/git config --local gc.auto 0
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8416525Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8417169Z ##[group]Setting up auth
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8421190Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:23.8446009Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1253317Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1276782Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1419201Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1465797Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1589796Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1616123Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1616761Z ##[group]Fetching the repository
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:24.1627603Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +e5f362bc6a9dfe901fdfe8f429f496732b55fa18:refs/remotes/origin/main
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9556031Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9556576Z  * [new ref]         e5f362bc6a9dfe901fdfe8f429f496732b55fa18 -> origin/main
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9560353Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9560900Z ##[group]Determining the checkout info
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9562360Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9567762Z [command]/usr/bin/git sparse-checkout disable
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9630137Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9660916Z ##[group]Checking out the ref
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:31.9664102Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:32.9791384Z Updating files:  48% (4533/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:32.9918718Z Updating files:  49% (4567/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:32.9945811Z Updating files:  50% (4660/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0048091Z Updating files:  51% (4753/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0215997Z Updating files:  52% (4846/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0286501Z Updating files:  53% (4940/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0374225Z Updating files:  54% (5033/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0423693Z Updating files:  55% (5126/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0477537Z Updating files:  56% (5219/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0527769Z Updating files:  57% (5312/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0575461Z Updating files:  58% (5406/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0607483Z Updating files:  59% (5499/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0742637Z Updating files:  60% (5592/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0855232Z Updating files:  61% (5685/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.0909935Z Updating files:  62% (5778/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.1047737Z Updating files:  63% (5871/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.1206195Z Updating files:  64% (5965/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.1400842Z Updating files:  65% (6058/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.1691053Z Updating files:  66% (6151/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.1965446Z Updating files:  67% (6244/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.2163142Z Updating files:  68% (6337/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.2327704Z Updating files:  69% (6431/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.2637173Z Updating files:  70% (6524/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.2851175Z Updating files:  71% (6617/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.2886264Z Updating files:  72% (6710/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.2930972Z Updating files:  73% (6803/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.3210935Z Updating files:  74% (6897/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.3730361Z Updating files:  75% (6990/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.5207972Z Updating files:  76% (7083/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.7884769Z Updating files:  77% (7176/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8156128Z Updating files:  78% (7269/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8228544Z Updating files:  79% (7363/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8267904Z Updating files:  80% (7456/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8529042Z Updating files:  81% (7549/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8720627Z Updating files:  82% (7642/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8878812Z Updating files:  83% (7735/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8920505Z Updating files:  84% (7828/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.8970063Z Updating files:  85% (7922/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9107954Z Updating files:  86% (8015/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9159170Z Updating files:  87% (8108/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9203537Z Updating files:  88% (8201/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9262788Z Updating files:  89% (8294/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9322408Z Updating files:  90% (8388/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9368153Z Updating files:  91% (8481/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9405164Z Updating files:  92% (8574/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9449844Z Updating files:  93% (8667/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9489099Z Updating files:  94% (8760/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9527644Z Updating files:  95% (8854/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9570012Z Updating files:  96% (8947/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9607356Z Updating files:  97% (9040/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9645139Z Updating files:  98% (9133/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9685867Z Updating files:  99% (9226/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9686243Z Updating files: 100% (9319/9319)
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9686526Z Updating files: 100% (9319/9319), done.
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9767476Z Switched to a new branch 'main'
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9774575Z branch 'main' set up to track 'origin/main'.
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9832024Z ##[endgroup]
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9868748Z [command]/usr/bin/git log -1 --format=%H
+owner-qa (3)	Run actions/checkout@v4	2026-11-21T07:01:33.9894809Z e5f362bc6a9dfe901fdfe8f429f496732b55fa18
+owner-qa (3)	Run actions/setup-node@v4	﻿2026-11-21T07:01:34.0091865Z ##[group]Run actions/setup-node@v4
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0092157Z with:
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0092368Z   node-version: 22
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0092595Z   cache: npm
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0092813Z   always-auth: false
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0093049Z   check-latest: false
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0095007Z   token: ***
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0095219Z env:
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0095455Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0095727Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0096018Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.0096275Z ##[endgroup]
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.2528695Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.2532596Z (node:2139) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.2533421Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:34.2535283Z ##[group]Environment details
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:38.9674144Z node: v22.23.5
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:38.9675031Z npm: 10.9.9
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:38.9675273Z yarn: 1.22.22
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:38.9675987Z ##[endgroup]
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:38.9702661Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.4201358Z /home/runner/.npm
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.4935565Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.5011410Z (node:2139) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.8388128Z Received 34424064 of 34424064 (100.0%), 111.3 MBs/sec
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.8388804Z Cache Size: ~33 MB (34424064 B)
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.8407036Z [command]/usr/bin/tar -xf /home/runner/work/_temp/ac04f5ad-3e36-48bb-ba1e-9298f1e513eb/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.8747075Z Cache restored successfully
+owner-qa (3)	Run actions/setup-node@v4	2026-11-21T07:01:39.8757664Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-21T07:01:40.0082355Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.0083116Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.2657596Z shell: /usr/bin/bash -e {0}
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.2657974Z env:
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.2658261Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.2658560Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.2658810Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:40.2659048Z ##[endgroup]
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:43.2739049Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:43.5743470Z 
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:43.5744647Z added 194 packages in 2s
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:44.1597972Z (node:2189) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:44.1598732Z (Use `node --trace-warnings ...` to show where the warning was created)
+owner-qa (3)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-21T07:01:44.1759140Z ##[error]The operation was canceled.
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-21T07:01:44.1845356Z ##[group]Run actions/upload-artifact@v4
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1845711Z with:
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1845936Z   name: owner-qa-3-of-4
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1846319Z   path: test-results/
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1846699Z   retention-days: 7
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1846967Z   if-no-files-found: warn
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1847205Z   compression-level: 6
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1847455Z   overwrite: false
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1847710Z   include-hidden-files: false
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1847966Z env:
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1848198Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1848462Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1848726Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.1848994Z ##[endgroup]
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.3023043Z (node:2222) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.3023950Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.3055420Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.3065550Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-21T07:01:44.3077305Z ##[warning]No files were found with the provided path: test-results/
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json. No artifacts will be uploaded.
+owner-qa (3)	Post Run actions/checkout@v4	﻿2026-11-21T07:01:44.3209535Z Post job cleanup.
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3833617Z [command]/usr/bin/git version
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3861122Z git version 2.56.1
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3886240Z Temporarily overriding HOME='/home/runner/work/_temp/414f52df-7191-4169-8db5-3144daa209b9' before making global git config changes
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3887576Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3889282Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3914996Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.3937460Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.4103790Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.4123691Z http.https://github.com/.extraheader
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.4130610Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.4152159Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.4335837Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-21T07:01:44.4339798Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (3)	Complete job	﻿2026-11-21T07:01:44.4582172Z Cleaning up orphan processes
+owner-qa (3)	Complete job	2026-11-21T07:01:44.4783077Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
