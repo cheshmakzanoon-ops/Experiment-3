@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import { openWorld } from '../src/simulation/open-world/world.ts';
 import { planRoute } from '../src/simulation/open-world/route-path.ts';
 import { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
+import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { trackPoint } from '../src/simulation/track.ts';
 
 it('takes the block in the car’s travel direction when the closest marker lies behind it', () => {
@@ -64,4 +65,25 @@ it('resumes a harbour cruise after marker stops without resetting the player int
   }
   expect(distance).toBeGreaterThan(1500);
   expect(peakTraffic).toBeGreaterThan(8);
+}, 60000);
+
+it('brakes upright before taking the right-angle Market Street turn on the road superbike', () => {
+  const session = new OpenWorldSimulation({ vehicle: 'sbk1000', tileBudget: 24 });
+  const network = session.world.network;
+  const junction = network.nodes.find((node) => {
+    const roads = node.edges.map((id) => network.edges[id].road.id);
+    return roads.includes('market') && roads.includes('chandlers');
+  })!;
+  const bike = session.player as BikeVehicle;
+  let entered = false;
+  let exited = false;
+  for (let i = 0; i < 160 * 120 && !exited; i++) {
+    if (!session.autopilot && i % 600 === 0) session.command({ type: 'autopilot', value: true });
+    session.step(1 / 120);
+    if (!bike.riding || session.player !== bike) throw Error('Rider fell or needed a reset');
+    const p = bike.body.position;
+    if (Math.hypot(p.x - junction.x, p.z - junction.z) < 8) entered = true;
+    if (entered && p.x > junction.x + 36 && Math.abs(p.z - junction.z) < 6) exited = true;
+  }
+  expect(exited).toBe(true);
 }, 60000);

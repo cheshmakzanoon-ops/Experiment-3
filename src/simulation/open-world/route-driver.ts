@@ -360,6 +360,10 @@ export class RouteDriver {
     let water = 0;
     for (const contact of c.contacts) water = Math.max(water, contact.water);
     const wetBraking = !bike ? clamp(water / 3, 0, 1) : 0;
+    // At a square town junction the rider must shed speed while upright, before
+    // the steering controller asks for lean. Reserve that roll-in distance in
+    // the free-roam profile, keeping both the approach and the actual apex.
+    const rollIn = bike && Number.isFinite(this.speedCap) ? clamp(c.speed * 0.8, 8, 20) : 0;
     for (let i = 0; i < samples; i++) {
       const at = this.d + i * ENVELOPE_STEP;
       const curvatureAt = (x: number) =>
@@ -379,6 +383,12 @@ export class RouteDriver {
           const w = curvatureAt(at + o);
           if (Math.abs(w) > Math.abs(k)) k = w;
         }
+      if (rollIn && road.roadClass === 'town') {
+        for (const offset of BIKE_WINDOW) {
+          const ahead = curvatureAt(at + rollIn + offset);
+          if (Math.abs(ahead) > 0.055 && Math.abs(ahead) > Math.abs(k)) k = ahead;
+        }
+      }
       this.curvatures[i] = Math.abs(k);
       // Crests: keep the tyres loaded (v²·κ below ~half of g) instead of
       // flying a rolling road and landing off-line.
