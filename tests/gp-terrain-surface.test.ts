@@ -104,7 +104,7 @@ it('keeps the four GP landscapes distinct behind their surveyed road corridors',
   }
 });
 
-it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'])(
+it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const)(
   '%s distributes distant planting over its actual landforms and keeps the racing corridor clear',
   id => {
     const track = new Track('clear', false, undefined, CIRCUITS[id]);
