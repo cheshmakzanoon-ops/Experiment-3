@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { gpRotorCoordinates } from './gp-rotor-finish.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /** Original 340 mm solid carbon assembly, aligned to the wheel's X axle.
@@ -40,7 +41,7 @@ function annulus(outer: number, inner: number, depth: number, curves: number) {
   });
   geometry.translate(0, 0, -depth / 2);
   geometry.rotateY(Math.PI / 2);
-  return geometry;
+  return gpRotorCoordinates(geometry, false);
 }
 
 /** One connected six-web carrier with open windows and a real axle bore. */

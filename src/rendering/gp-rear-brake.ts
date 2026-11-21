@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { gpRotorCoordinates } from './gp-rotor-finish.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { BikeMaterials } from './bike.ts';
@@ -118,7 +119,7 @@ export function gpRearRotor(detail: RiderDetail) {
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   geometry.name = 'GP dished five-web rear brake rotor';
-  return geometry;
+  return gpRotorCoordinates(geometry, true);
 }
 
 type Finishes = Pick<BikeMaterials, 'aluminium' | 'dark' | 'caliper' | 'steel'>;

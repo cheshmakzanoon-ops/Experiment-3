@@ -38,7 +38,7 @@ import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpRearBrakeCaliper, gpRearRotor, GP_REAR_DISC } from './gp-rear-brake.ts';
-import { gpDiscGlow } from './gp-disc-glow.ts';
+import { gpDiscGlow, gpSteelDiscGlow } from './gp-disc-glow.ts';
 import { GpSliderSparks, SLIDER_SPARKS } from './gp-slider-sparks.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
@@ -533,6 +533,7 @@ export class BikeMaterials {
   readonly wheelExposure = new RoadWheelExposure();
   readonly opticalRain = new GpOpticalRain();
   readonly fairingWear = { value: 0 };
+  readonly gpRearRotorGlow = { value: 0 };
   private readonly prints = new Map<string, GpRiderPrints>();
   private headlight?: T.MeshStandardMaterial;
   private roadGlass?: T.MeshStandardMaterial;
@@ -1011,7 +1012,7 @@ export class BikeModel {
               }
           }
       } else if (gpPrototype) {
-        add(spin, gpRearRotor(detail), m.steel, GP_REAR_DISC.x);
+        add(spin, gpRearRotor(detail), m.disc, GP_REAR_DISC.x);
       } else if (classic) {
         add(spin, classicDrum(detail), m.aluminium).name = 'Finned rear brake drum';
       } else add(spin, ringGeometry(0.11, 0.07, 0.006, sides), m.steel, -0.085, 0, 0);
@@ -2069,6 +2070,7 @@ export class BikeModel {
       // emits a restrained red glow instead of a neon-orange disc.
       this.m.disc.emissive.setHex(0xb9210a);
       this.m.disc.emissiveIntensity = gpDiscGlow(v.discTemp);
+      this.m.gpRearRotorGlow.value = gpSteelDiscGlow(v.rearDiscTemp);
     } else {
       this.m.disc.emissive.setHex(0xff4a10);
       this.m.disc.emissiveIntensity = T.MathUtils.clamp((v.discTemp - 450) / 350, 0, 1) * 1.6;
@@ -2179,7 +2181,7 @@ export interface BikePoseValues extends GpTyreAppearance {
   brake: number;
   rearBrake: number;
   discTemp: number;
-  /** Independently recorded rear rotor temperature for MX steel brakes (°C). */
+  /** Independently recorded rear rotor temperature for GP and MX steel brakes (°C). */
   rearDiscTemp?: number;
   compoundColour: number;
   riding: boolean;

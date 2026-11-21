@@ -1,3 +1,4 @@
+import { installGpRotorFinish } from './gp-rotor-finish.ts';
 import { installGpOpticalRain } from './gp-optics-rain.ts';
 import * as T from 'three';
 import { installGlassFresnel } from './materials/library.ts';
@@ -22,6 +23,7 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   }
   materials.paint.color.multiplyScalar(0.84);
   materials.paint.userData.gpAppearance = 'r5-refined';
+  installGpRotorFinish(materials.disc, materials.gpRearRotorGlow);
   // Lacquered surfaces join the ULTRA screen-space reflection mask (a no-op
   // everywhere the SSR stage is not running).
   for (const lacquer of [materials.paint, materials.secondary, materials.accent])
