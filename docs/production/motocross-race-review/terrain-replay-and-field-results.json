@@ -1,0 +1,683 @@
+{
+  "terrain": {
+    "before": "a2cab68a3f74a970a724205c2d2f0fdfe5e1f709",
+    "after": "2571e037b8c00807880466d5c688983ef6d13e44",
+    "node": "v24.22.3",
+    "description": "CPU-only presentation on the Intel Xeon Platinum 8573C. Each cycle sent an empty reset, a wetness-only change and a backwards seek to that reset. Four warm-up cycles preceded 24 timed cycles. Each stage hash covers the concatenated Float32 positions, normals and soil attributes of every terrain chunk in traversal order. Update counts list the number of changed position, normal and soil attributes respectively.",
+    "courses": [
+      {
+        "circuit": "valley-ridge-mx",
+        "chunks": 10,
+        "streamBytes": 1707480,
+        "before": {
+          "samples": 24,
+          "medianMs": 63.165,
+          "p95Ms": 98.34
+        },
+        "after": {
+          "samples": 24,
+          "medianMs": 0.321,
+          "p95Ms": 0.45
+        },
+        "stages": [
+          {
+            "display": "empty initial export",
+            "changedAttributesBefore": [
+              10,
+              10,
+              10
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "f42b00d8297e9457f43cb3d20a86b6cd6ef7439cec2fa61e032bb1d02256caeb"
+          },
+          {
+            "display": "wetness only",
+            "changedAttributesBefore": [
+              0,
+              0,
+              0
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "f42b00d8297e9457f43cb3d20a86b6cd6ef7439cec2fa61e032bb1d02256caeb"
+          },
+          {
+            "display": "rewind pristine",
+            "changedAttributesBefore": [
+              10,
+              10,
+              10
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "f42b00d8297e9457f43cb3d20a86b6cd6ef7439cec2fa61e032bb1d02256caeb"
+          },
+          {
+            "display": "compaction on seam",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              2
+            ],
+            "sharedSHA256": "1c8df84ae4ba48d86e4c7b02c21925155167a1a26b16d94806f61ad1bf87c7b6"
+          },
+          {
+            "display": "repeat compaction",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "1c8df84ae4ba48d86e4c7b02c21925155167a1a26b16d94806f61ad1bf87c7b6"
+          },
+          {
+            "display": "rut on seam",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "e85a272c2bd67017009ac773798b21ee051e384a9b2ae63a15bd2171c1c8dda1"
+          },
+          {
+            "display": "rewind from rut",
+            "changedAttributesBefore": [
+              10,
+              10,
+              10
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "1c8df84ae4ba48d86e4c7b02c21925155167a1a26b16d94806f61ad1bf87c7b6"
+          },
+          {
+            "display": "seek live",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "e85a272c2bd67017009ac773798b21ee051e384a9b2ae63a15bd2171c1c8dda1"
+          },
+          {
+            "display": "reset worn ground",
+            "changedAttributesBefore": [
+              10,
+              10,
+              10
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "f42b00d8297e9457f43cb3d20a86b6cd6ef7439cec2fa61e032bb1d02256caeb"
+          }
+        ]
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "chunks": 7,
+        "streamBytes": 1098972,
+        "before": {
+          "samples": 24,
+          "medianMs": 32.219,
+          "p95Ms": 46.417
+        },
+        "after": {
+          "samples": 24,
+          "medianMs": 0.194,
+          "p95Ms": 0.229
+        },
+        "stages": [
+          {
+            "display": "empty initial export",
+            "changedAttributesBefore": [
+              7,
+              7,
+              7
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "265fb49d965faea3da9a58f0c7e771d13ab7033cf2ed9258722d9352abfdfdb6"
+          },
+          {
+            "display": "wetness only",
+            "changedAttributesBefore": [
+              0,
+              0,
+              0
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "265fb49d965faea3da9a58f0c7e771d13ab7033cf2ed9258722d9352abfdfdb6"
+          },
+          {
+            "display": "rewind pristine",
+            "changedAttributesBefore": [
+              7,
+              7,
+              7
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "265fb49d965faea3da9a58f0c7e771d13ab7033cf2ed9258722d9352abfdfdb6"
+          },
+          {
+            "display": "compaction on seam",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              2
+            ],
+            "sharedSHA256": "a60cbd500b46e1ab84afce1431ecb4a1dfcbc8fe77b0ec61cf5f3c1a7a469110"
+          },
+          {
+            "display": "repeat compaction",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              0,
+              0,
+              0
+            ],
+            "sharedSHA256": "a60cbd500b46e1ab84afce1431ecb4a1dfcbc8fe77b0ec61cf5f3c1a7a469110"
+          },
+          {
+            "display": "rut on seam",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "0da5fb42b3bef83491dea189007fd530ef27431fc08cb14887e5267a379ca7cd"
+          },
+          {
+            "display": "rewind from rut",
+            "changedAttributesBefore": [
+              7,
+              7,
+              7
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "a60cbd500b46e1ab84afce1431ecb4a1dfcbc8fe77b0ec61cf5f3c1a7a469110"
+          },
+          {
+            "display": "seek live",
+            "changedAttributesBefore": [
+              2,
+              4,
+              2
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "0da5fb42b3bef83491dea189007fd530ef27431fc08cb14887e5267a379ca7cd"
+          },
+          {
+            "display": "reset worn ground",
+            "changedAttributesBefore": [
+              7,
+              7,
+              7
+            ],
+            "changedAttributesAfter": [
+              2,
+              4,
+              2
+            ],
+            "sharedSHA256": "265fb49d965faea3da9a58f0c7e771d13ab7033cf2ed9258722d9352abfdfdb6"
+          }
+        ]
+      }
+    ]
+  },
+  "mixedClassRaces": {
+    "source": "3ab61fa1c9559fe945ae79432ebaa7245bf0a31b",
+    "description": "Production Simulation with default session options, motocross-moto race rules, autopilot and seven opponents. The published seeds use two laps and alternating MX250/MX450 entries. Stops are measured while racing below 1 m/s, excluding waiting starters, finished riders and pits.",
+    "results": [
+      {
+        "circuit": "valley-ridge-mx",
+        "weather": "clear",
+        "seed": 285109,
+        "laps": 2,
+        "vehicles": [
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450"
+        ],
+        "fixedHz": 120,
+        "completed": true,
+        "finishers": 8,
+        "falls": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "longestStopS": 2.933,
+        "worst": {
+          "i": 5,
+          "s": 614.3,
+          "t": 68.9,
+          "state": "riding"
+        },
+        "peakSpeedMps": 25.69,
+        "raceS": 171.18,
+        "terrainHash": "cee6bbe9"
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "weather": "clear",
+        "seed": 285109,
+        "laps": 2,
+        "vehicles": [
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450"
+        ],
+        "fixedHz": 120,
+        "completed": true,
+        "finishers": 8,
+        "falls": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopS": 13.408,
+        "worst": {
+          "i": 7,
+          "s": 165,
+          "t": 103.5,
+          "state": "riding"
+        },
+        "peakSpeedMps": 23.4,
+        "raceS": 210.56,
+        "terrainHash": "c30d9d7e"
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "weather": "rain",
+        "seed": 83047,
+        "laps": 2,
+        "vehicles": [
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450"
+        ],
+        "fixedHz": 120,
+        "completed": true,
+        "finishers": 8,
+        "falls": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "longestStopS": 14.692,
+        "worst": {
+          "i": 7,
+          "s": 130.1,
+          "t": 44.2,
+          "state": "riding"
+        },
+        "peakSpeedMps": 10.91,
+        "raceS": 548.04,
+        "terrainHash": "de49c0fd"
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "weather": "changeable",
+        "seed": 83047,
+        "laps": 2,
+        "vehicles": [
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450"
+        ],
+        "fixedHz": 120,
+        "completed": true,
+        "finishers": 8,
+        "falls": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopS": 14.133,
+        "worst": {
+          "i": 3,
+          "s": 405.8,
+          "t": 234.9,
+          "state": "riding"
+        },
+        "peakSpeedMps": 20.58,
+        "raceS": 309.36,
+        "terrainHash": "1ca1a930"
+      }
+    ]
+  },
+  "integratedRaceSuite": {
+    "source": "a2cab68a3f74a970a724205c2d2f0fdfe5e1f709",
+    "scripts": [
+      "scripts/offroad-calibration.ts",
+      "scripts/offroad-races.ts"
+    ],
+    "fixedStepSeconds": 0.008333333333333333,
+    "racesPassed": 11,
+    "jumpsPassed": 20,
+    "failures": [],
+    "motorcycleRaces": [
+      {
+        "race": "Valley Ridge motocross moto",
+        "weather": "clear",
+        "laps": 3,
+        "seed": 41001,
+        "crashes": [
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 9.88,
+        "finishTimes": [
+          259.8,
+          258.59,
+          238.38,
+          253.6,
+          233.27,
+          244.13,
+          225.98,
+          221.28
+        ],
+        "retired": []
+      },
+      {
+        "race": "Arena Nord supercross main",
+        "weather": "clear",
+        "laps": 3,
+        "seed": 41003,
+        "crashes": [
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          1
+        ],
+        "longestStopSeconds": 10.67,
+        "finishTimes": [
+          295.01,
+          242.88,
+          270.21,
+          292.41,
+          271.16,
+          282.19,
+          296.79,
+          221.61
+        ],
+        "retired": []
+      },
+      {
+        "race": "Arena Nord enclosed race during rain",
+        "weather": "rain",
+        "laps": 2,
+        "seed": 50204,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 10.33,
+        "finishTimes": [
+          167.68,
+          162.52,
+          192.64,
+          196.06,
+          205.02,
+          158.83,
+          190.81,
+          157.42,
+          177.29,
+          164.07
+        ],
+        "retired": []
+      },
+      {
+        "race": "event valley-ridge-mx-moto-1",
+        "weather": "clear",
+        "laps": 4,
+        "seed": 41001,
+        "crashes": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 13.02,
+        "finishTimes": [
+          348.77,
+          323.64,
+          318.13,
+          344.35,
+          307.41,
+          334.32,
+          316.28,
+          301.05,
+          295.24,
+          300.16
+        ],
+        "retired": []
+      },
+      {
+        "race": "event valley-ridge-mx-moto-2",
+        "weather": "changeable",
+        "laps": 4,
+        "seed": 41002,
+        "crashes": [
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 14.33,
+        "finishTimes": [
+          787.72,
+          696.35,
+          674.59,
+          806.41,
+          826.29,
+          790.74,
+          732.49,
+          833.11,
+          766.88,
+          778.31
+        ],
+        "retired": []
+      },
+      {
+        "race": "event arena-nord-supercross",
+        "weather": "clear",
+        "laps": 6,
+        "seed": 41003,
+        "crashes": [
+          1,
+          0,
+          1,
+          3,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 10.73,
+        "finishTimes": [
+          514.79,
+          485.79,
+          529.69,
+          545.93,
+          563.14,
+          566.44,
+          548.05,
+          504.17,
+          498.34,
+          501.69
+        ],
+        "retired": []
+      },
+      {
+        "race": "event valley-ridge-supermoto",
+        "weather": "clear",
+        "laps": 3,
+        "seed": 41004,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 9.79,
+        "finishTimes": [
+          239.51,
+          225.83,
+          237.46,
+          247.53,
+          266.12,
+          269.58,
+          251.67,
+          220.52
+        ],
+        "retired": []
+      }
+    ]
+  }
+}
