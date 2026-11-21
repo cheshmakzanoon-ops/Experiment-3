@@ -9,6 +9,9 @@ import { trackPoint, type Track } from '../../simulation/track.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { installMud, mudUniforms } from './mud.ts';
+import {
+  mxArenaStartGrate, mxArenaStartSlab, mxStartGrateDistanceMaterial, mxStartGrateDistancePlane,
+} from './mx-start-grate.ts';
 import { MX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
@@ -21,8 +24,8 @@ const PANEL = Object.freeze({ height: 0.52, gap: 0.08 });
  * soil spray the rear tyres threw back at each drop. Coordinates are the
  * slab's own metres (x across the gate, z toward it); lane spacing/offset
  * follow the session's slots. Shading only: no geometry, textures or draws. */
-function installStartPadDirt(material: T.MeshPhysicalMaterial, lanes: T.IUniform<T.Vector3>) {
-  chainShaderHook(material, 'mx-start-pad-dirt-and-stencils-v2', (shader) => {
+function installStartPadDirt(material: T.MeshPhysicalMaterial, lanes: T.IUniform<T.Vector3>, indoor: boolean) {
+  chainShaderHook(material, `mx-start-pad-${indoor ? 'sx' : 'mx'}-stencils-v3`, (shader) => {
     shader.uniforms.mxPadLanes = lanes;
     shader.uniforms.mxPadSoil = {
       value: new T.Color(MX_SOIL_COLOURS.hardpack),
@@ -105,7 +108,7 @@ float mxPadNoise( vec2 p ) {
   diffuseColor.rgb *= 1.0 - 0.46 * joint;
   mxPadHeight -= 0.0028 * joint;
   float number = laneIndex + 1.0;
-  vec2 mark = vec2( -localX + 0.28, p.y + 0.88 );
+  vec2 mark = vec2( -localX + 0.28, p.y + ${indoor ? '1.15' : '0.88'} );
   if ( top > 0.0 && number >= 1.0 && number <= mxPadLanes.z && abs( mark.y ) < 0.15 && abs( mark.x ) < 0.18 ) {
     int n = int( number );
     float ink = n < 10 ? mxPadDigit( mark, n, aa ) : max(
@@ -166,6 +169,7 @@ export class StartGate {
   });
   private readonly pad = materials.concrete({ variant: 'rough', horizontal: 1 });
   private readonly lanes = { value: new T.Vector3(1, 0, 1) };
+  private grateDistanceMaterial?: T.MeshStandardMaterial;
   constructor(
     private readonly track: Track,
     private readonly course: OffroadCourse,
@@ -183,7 +187,7 @@ export class StartGate {
     roost.offroadMudWet.value = 0.25;
     installMud(this.steel, roost);
     installMud(this.frame, roost);
-    installStartPadDirt(this.pad, this.lanes);
+    installStartPadDirt(this.pad, this.lanes, course.kind === 'supercross');
     this.root.position.set(p.x, p.y, p.z);
     // Local +Z along the lap, +X along the track normal (lateral).
     this.root.rotation.y = Math.atan2(p.tx, p.tz);
@@ -286,7 +290,28 @@ export class StartGate {
     // Starter's pad (riders' side): concrete, flush with the dirt.
     // Concrete and its scanned normal/roughness are authored in metres.
     // A unit UV square stretches a single patch across the whole starting field.
-    const slab = new T.Mesh(materials.boxProjectUv(new T.BoxGeometry(span, 0.12, 2.6)), this.pad);
+    const indoor = this.course.kind === 'supercross';
+    const concrete = indoor ? mxArenaStartSlab(span, lateral) : new T.BoxGeometry(span, 0.12, 2.6);
+    const slab = new T.Mesh(materials.boxProjectUv(concrete), this.pad);
+    if (indoor) {
+      const grate = new T.InstancedMesh(materials.boxProjectUv(mxArenaStartGrate()), this.steel, lateral.length);
+      grate.name = 'Arena Nord expanded-steel launch grates';
+      lateral.forEach((x, i) => grate.setMatrixAt(i, mounts.makeTranslation(x, -0.05, -1.4)));
+      grate.castShadow = grate.receiveShadow = true;
+      grate.computeBoundingSphere();
+      this.grateDistanceMaterial ??= mxStartGrateDistanceMaterial();
+      const proxy = new T.InstancedMesh(mxStartGrateDistancePlane(), this.grateDistanceMaterial, lateral.length);
+      proxy.instanceMatrix.copy(grate.instanceMatrix);
+      proxy.name = 'Filtered launch grates';
+      proxy.receiveShadow = true;
+      proxy.computeBoundingSphere();
+      const lod = new T.LOD();
+      lod.name = 'Arena launch grate distance levels';
+      lod.addLevel(grate,0);
+      lod.addLevel(proxy,28,0.12);
+      proxy.visible = false;
+      this.body.add(lod);
+    }
     slab.name = 'MX numbered starter pad';
     slab.position.set(0, -0.05, -1.4);
     slab.receiveShadow = true;

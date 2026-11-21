@@ -11,6 +11,8 @@ import { MxDustMaterial } from '../src/rendering/offroad/mx-dust-material.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { StartGate } from '../src/rendering/offroad/start-gate.ts';
 import { TerrainView, SOIL_COLOURS } from '../src/rendering/offroad/terrain-view.ts';
+import { valleyRidgeBackdrop } from '../src/rendering/venue-kit/terrain.ts';
+import { terrainFor } from '../src/rendering/terrain.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { SOIL_KINDS } from '../src/simulation/offroad/course.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
@@ -45,6 +47,17 @@ function shader(material: T.Material, kind: 'physical' | 'points') {
   material.onBeforeCompile(result, {} as T.WebGLRenderer);
   return result;
 }
+
+it('keeps every riding line inside the valley floor and builds a saddle between two distant ridges', () => {
+  const track = rigTrack('valley-ridge-mx'), ground = terrainFor(track);
+  const cx = track.points.reduce((sum, point) => sum + point.x, 0) / track.points.length;
+  const cz = track.points.reduce((sum, point) => sum + point.z, 0) / track.points.length;
+  for (const point of track.points)
+    expect(valleyRidgeBackdrop(point.x - cx, point.z - cz)).toBe(0);
+  const saddle = ground.height(cx + 900, cz);
+  expect(ground.height(cx, cz + 900) - saddle).toBeGreaterThan(90);
+  expect(ground.height(cx - 1450, cz) - saddle).toBeGreaterThan(100);
+});
 
 function frameAt(s = 100) {
   const track = rigTrack('valley-ridge-mx'),
@@ -326,6 +339,58 @@ describe('reference-informed MX environments', () => {
 });
 
 describe('MX contact, dust and landing presentation', () => {
+  it('sets each indoor starting grate flush in an open concrete pocket and widens with the field', () => {
+    const track = rigTrack('arena-nord-sx'), course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+    const gate = new StartGate(track, course), frame = frameAt();
+    const down = new T.Vector3(0, -1, 0), ray = new T.Raycaster();
+    const sample = (o: T.Mesh, x: number, z: number) => {
+      const p = gate.root.localToWorld(new T.Vector3(x, 1.2, z));
+      ray.set(p, down);
+      return ray.intersectObject(o)[0]?.point.y;
+    };
+    try {
+      for (const count of [gate.panelCount, gate.panelCount + 2]) {
+        frame[H.CARS] = count;
+        gate.update(frame);
+        gate.root.updateMatrixWorld(true);
+        const concrete = gate.root.getObjectByName('MX numbered starter pad') as T.Mesh;
+        const steel = gate.root.getObjectByName('Arena Nord expanded-steel launch grates') as T.InstancedMesh;
+        const lod = steel.parent as T.LOD;
+        const camera = new T.PerspectiveCamera(), where = lod.getWorldPosition(new T.Vector3());
+        camera.position.copy(where).add(new T.Vector3(0,2,35));
+        camera.updateMatrixWorld();
+        lod.update(camera);
+        const distant = lod.getObjectByName('Filtered launch grates') as T.InstancedMesh;
+        expect(distant.visible).toBe(true);
+        expect(steel.visible).toBe(false);
+        expect(distant.geometry.index!.count/3).toBe(2);
+        expect(distant.count).toBe(steel.count);
+        camera.position.copy(where).add(new T.Vector3(0,1,4));
+        camera.updateMatrixWorld();
+        lod.update(camera);
+        expect(steel.visible).toBe(true);
+        expect(distant.visible).toBe(false);
+        expect(steel.count).toBe(count);
+        const lane = -((count - 1) * course.spec.gate!.spacing) / 2;
+        const top = gate.root.position.y + 0.01;
+        expect(sample(concrete, lane + 0.46, -1.38)).toBeCloseTo(top, 5);
+        expect(sample(concrete, lane, -1.38)).toBeUndefined();
+        expect(sample(steel, lane + 0.356, -1.38)).toBeCloseTo(top, 5);
+        let open = 0, supported = 0;
+        // Raycast into physical diamonds between the cross-bearers.
+        for (let i = 0; i < 40; i++) {
+          const height = sample(steel, lane - 0.1 + i * 0.005, -1.52);
+          if (height === undefined) open++;
+          else if (height >= top - 0.006) supported++;
+        }
+        expect(open).toBeGreaterThan(15);
+        expect(supported).toBeGreaterThan(2);
+      }
+    } finally {
+      gate.dispose();
+    }
+  });
+
   it('projects both gate tyres onto the concrete and starts throwing soil only past the slab', () => {
     const track = rigTrack('valley-ridge-mx');
     const course = (Track.offroadOf(track) as TrackTerrainSurface).course;

@@ -11,6 +11,8 @@ import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import { mxFurnitureGround } from './mx-trackside-furniture.ts';
 import { planMxCourseSites, type MxCourseSite, type MxJumpGuide } from './mx-course-sites.ts';
+import { mxQuarryFace } from './mx-quarry-face.ts';
+import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
 
 export const MX_LANDMARK_BUDGET = Object.freeze({ draws: 16, triangles: 42000 });
 type Role = 'timber' | 'metal' | 'paint' | 'rock' | 'guide';
@@ -174,10 +176,13 @@ class LandmarkBuilder {
     if (geometry !== source) source.dispose();
     const position = geometry.getAttribute('position'),
       base = colour instanceof T.Color ? colour : new T.Color(colour),
+      tint = geometry.getAttribute('color'),
       colors = new Float32Array(position.count * 3);
     for (let i = 0; i < position.count; i++) {
       const shade = 0.975 + 0.025 * Math.sin(position.getY(i) * 1.5 + position.getX(i) * 0.4);
-      colors.set([base.r * shade, base.g * shade, base.b * shade], i * 3);
+      colors[i * 3] = base.r * shade * (tint?.getX(i) ?? 1);
+      colors[i * 3 + 1] = base.g * shade * (tint?.getY(i) ?? 1);
+      colors[i * 3 + 2] = base.b * shade * (tint?.getZ(i) ?? 1);
     }
     geometry.setAttribute('color', new T.BufferAttribute(colors, 3));
     if (role === 'rock') {
@@ -406,57 +411,23 @@ function buildBarn(track: Track, site: MxCourseSite) {
   return b;
 }
 
-function quarryMass(seed: number, size: V3) {
-  const geometry = new T.IcosahedronGeometry(1, 3),
-    position = geometry.getAttribute('position');
-  for (let i = 0; i < position.count; i++) {
-    const x = position.getX(i),
-      y = position.getY(i),
-      z = position.getZ(i),
-      stratum = Math.sin((y + x * 0.25) * 17 + seed),
-      fracture = Math.sin(x * 9.7 + z * 8.3 + seed) * Math.sin(y * 7.1 - z * 5.6),
-      radius = 1 + 0.065 * stratum + 0.1 * fracture;
-    position.setXYZ(
-      i,
-      x * size[0] * radius,
-      (y + 1) * 0.5 * size[1] * (1 + fracture * 0.11),
-      z * size[2] * radius,
-    );
-  }
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
 function buildQuarry(track: Track, site: MxCourseSite) {
   const b = new LandmarkBuilder(site.name, siteTransform(site)),
     random = new Random(61041);
-  for (const [x, z, width, height, depth] of [
-    [-3.9, 0.1, 3.8, 4.8, 2.9],
-    [0.1, 0.65, 4.4, 6.1, 3.1],
-    [4.25, 0.1, 3.4, 3.9, 2.5],
-  ]) {
-    const y = localGround(track, site, x, z) - 0.5;
-    b.add(
-      'rock',
-      quarryMass(x + 3, [width, height, depth])
-        .rotateY(x * 0.03)
-        .translate(x, y, z),
-      0x82847b,
-    );
+  b.add('rock', mxQuarryFace((x, z) => localGround(track, site, x, z)), 0xffffff);
+  // Fallen angular plates spread from the face at the foot of the cut.
+  const plate = mxFieldstoneGeometry();
+  for (let i = 0; i < 38; i++) {
+    const x = (random.next() - 0.5) * 16,
+      z = -2.65 - random.next() ** 1.7 * 2.1,
+      scale = 0.12 + random.next() ** 2 * 0.63,
+      y = localGround(track, site, x, z);
+    b.add('rock', plate.clone().scale(scale * 1.45, scale * 0.61, scale)
+      .rotateZ((random.next() - 0.5) * 0.52).rotateY(random.next() * Math.PI)
+      .translate(x, y + scale * 0.2, z),
+      new T.Color(0xa39c8b).multiplyScalar(0.78 + random.next() * 0.3));
   }
-  for (let i = 0; i < 28; i++) {
-    const x = (random.next() - 0.5) * 15,
-      z = -2.8 + random.next() * 0.8,
-      scale = 0.18 + random.next() * 0.4,
-      y = localGround(track, site, x, z) - 0.13;
-    b.add(
-      'rock',
-      quarryMass(i * 1.7, [scale * 1.4, scale, scale])
-        .rotateY(random.next() * 5)
-        .translate(x, y, z),
-      new T.Color(0x88877a).multiplyScalar(0.82 + random.next() * 0.25),
-    );
-  }
+  plate.dispose();
   return b;
 }
 

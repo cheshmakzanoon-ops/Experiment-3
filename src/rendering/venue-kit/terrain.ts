@@ -10,6 +10,24 @@ const smoothstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
+/** The outdoor MX course sits between two offset ridges. Their sedimentary
+ * spines cross at different bearings, leaving a low saddle to the east.
+ * Distances and heights are metres from the venue centre. The paddock and
+ * every surveyed riding, service and spectator position stay on the local hill. */
+export function valleyRidgeBackdrop(x: number, z: number) {
+  const radius = Math.hypot(x, z);
+  if (radius <= 320) return 0;
+  const along = x * 0.91 + z * 0.415,
+    across = z * 0.91 - x * 0.415;
+  const nearSpine = across - 810 - 56 * Math.sin(along / 225);
+  const farSpine = x * 0.82 + z * 0.57 + 1240 + 115 * Math.sin(z / 440);
+  const fold = valueNoise(along / 295 + 11.4, across / 215 - 2.8);
+  const spur = valueNoise(along / 98 - 4.7, across / 130 + 6.9);
+  const front = (145 + fold * 125 + spur * 28) * Math.exp(-((nearSpine / (240 + 80 * fold)) ** 2));
+  const back = (180 + 160 * fold) * Math.exp(-((farSpine / 365) ** 2));
+  return smoothstep(320, 630, radius) * (Math.max(front, back) + 0.15 * Math.min(front, back));
+}
+
 /** Landform for a catalogue venue: the ground follows the road (lowest road
  * under stacked sections), then blends over ~200 m into the theme's natural
  * relief — mountains, mesas, rolling parkland, or a coast whose sea lies on
@@ -67,7 +85,8 @@ export function catalogueTerrain(track: Track): Terrain {
         return base - 1.5 + style.relief * (1.4 * n1 + 0.5 * n2);
       case 'hills':
         return (
-          base + style.relief * (ridgedNoise(x * 0.0016 + 4.1, z * 0.0016 - 2.3) - 0.35) + 6 * n2
+          base + style.relief * (ridgedNoise(x * 0.0016 + 4.1, z * 0.0016 - 2.3) - 0.35) + 6 * n2 +
+          (meta.theme === 'motocross' ? valleyRidgeBackdrop(x - cx, z - cz) : 0)
         );
       case 'mountains': {
         // Peaks rise away from the venue: the pass sits on a saddle.
