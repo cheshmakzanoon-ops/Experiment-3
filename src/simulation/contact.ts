@@ -2,16 +2,27 @@ import { clamp, TAU, Vec3 } from '../core/math.ts';
 import { TriangleBVH, VerticalRayColumn, rayHit } from './bvh.ts';
 import { RoadSurfaceProjection, type Track, type SurfaceSample } from './track.ts';
 import { TireFootprint } from './tire-footprint.ts';
+import { apronWidth, GP_KERB_WIDTH } from './gp-course-edges.ts';
 
 /** One authored height law feeds the contact mesh and rendered kerbs. */
-export function kerbHeight(s: number, across: number): number {
-  const shoulder = clamp(across / 0.12, 0, 1) * clamp((1.1 - across) / 0.12, 0, 1);
-  return shoulder * (0.025 + 0.016 * Math.sin((s * TAU) / 0.65));
+export function kerbHeight(s: number, across: number, amount = 1): number {
+  const shoulder =
+    clamp(across / 0.12, 0, 1) * clamp((GP_KERB_WIDTH * amount - across) / 0.12, 0, 1);
+  return amount * shoulder * (0.025 + 0.016 * Math.sin((s * TAU) / 0.65));
 }
-export function trackHeight(y: number, bank: number, s: number, lateral: number, width: number) {
+export function trackHeight(
+  y: number,
+  bank: number,
+  s: number,
+  lateral: number,
+  width: number,
+  amount = 1,
+) {
   const across = Math.abs(lateral) - width;
   return (
-    y + bank * clamp(lateral, -12, 12) + (across > 0 && across < 1.1 ? kerbHeight(s, across) : 0)
+    y +
+    bank * clamp(lateral, -12, 12) +
+    (across > 0 && across < 1.1 ? kerbHeight(s, across, amount) : 0)
   );
 }
 
@@ -55,32 +66,44 @@ export class TrackContactMesh {
     const n = new Vec3();
     for (let row = 0; row <= rows; row++) {
       track.at((row * track.length) / rows, p);
+      const left = track.gpEdges?.at(p.s, -1) ?? 1;
+      const right = track.gpEdges?.at(p.s, 1) ?? 1;
       for (let col = 0; col < columns; col++) {
+        const amount = col < 7 ? left : right;
         let lateral: number;
         if (col === 0 || col === columns - 1) lateral = bands[col];
         else if (col === 7) lateral = 0;
         else if (col < 7) lateral = -p.width + bands[col];
         else lateral = p.width + bands[col];
+        if (amount < 1) {
+          const side = col < 7 ? -1 : 1;
+          if (col === 2 || col === 12) lateral = side * (p.width + apronWidth(amount));
+          if (col === 3 || col === 4 || col === 10 || col === 11)
+            lateral = side * (p.width + Math.abs(bands[col]) * Math.max(0.04, amount));
+        }
         // Asphalt/paint bands approach the kerb from the inside.
         if (col === 6) lateral = -p.width + 0.18;
         if (col === 8) lateral = p.width - 0.18;
         const inPit = track.inPitLane(p.s, lateral);
         const height = inPit
           ? p.y + p.bank * clamp(lateral, -12, 12)
-          : trackHeight(p.y, p.bank, p.s, lateral, p.width);
+          : trackHeight(p.y, p.bank, p.s, lateral, p.width, amount);
         const i = (row * columns + col) * 3;
         this.vertices[i] = p.x + p.nx * lateral;
         this.vertices[i + 1] = height;
         this.vertices[i + 2] = p.z + p.nz * lateral;
         const across = Math.abs(lateral) - p.width;
         const sideDerivative =
-          !inPit && across > 0 && across < 1.1
-            ? ((kerbHeight(p.s, across + 0.005) - kerbHeight(p.s, across - 0.005)) / 0.01) *
+          !inPit && across > 0 && across < GP_KERB_WIDTH * amount
+            ? ((kerbHeight(p.s, across + 0.005, amount) - kerbHeight(p.s, across - 0.005, amount)) /
+                0.01) *
               Math.sign(lateral)
             : 0;
         const alongDerivative =
-          !inPit && across > 0 && across < 1.1
-            ? (kerbHeight(p.s + 0.005, across) - kerbHeight(p.s - 0.005, across)) / 0.01
+          !inPit && across > 0 && across < GP_KERB_WIDTH * amount
+            ? (kerbHeight(p.s + 0.005, across, track.gpEdges?.at(p.s + 0.005, lateral) ?? 1) -
+                kerbHeight(p.s - 0.005, across, track.gpEdges?.at(p.s - 0.005, lateral) ?? 1)) /
+              0.01
             : 0;
         const bank = Math.abs(lateral) < 12 ? p.bank : 0;
         n.set(
@@ -113,7 +136,12 @@ export class TrackContactMesh {
     if (band >= 3 && band <= 10) return true;
     const p = this.ownershipPoint;
     this.track.nearest(x, z, p, y);
-    const protectedWidth = p.width + (band === 2 || band === 11 ? 1.1 : 4) - 1e-7;
+    const lateral = (x - p.x) * p.nx + (z - p.z) * p.nz;
+    const amount = this.track.gpEdges?.at(p.s, lateral) ?? 1;
+    const protectedWidth =
+      p.width +
+      (band === 2 || band === 11 ? GP_KERB_WIDTH * Math.max(0.04, amount) : apronWidth(amount)) -
+      1e-7;
     // Equal boundaries have a legitimate adjacent inner triangle; the small
     // tolerance only admits floating-point seam error, never a height blend.
     return (x - p.x) ** 2 + (z - p.z) ** 2 >= protectedWidth * protectedWidth;

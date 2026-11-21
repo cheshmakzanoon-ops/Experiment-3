@@ -28,6 +28,7 @@ import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
 import { TrackLaneIndex } from './track-lane-index.ts';
 import { isGpCourse } from './gp-corner-shape.ts';
+import { apronWidth, GP_KERB_WIDTH, GpCourseEdges } from './gp-course-edges.ts';
 export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -146,6 +147,7 @@ export class Track {
   readonly hash = new Map<string, number[]>();
   /** Start segment for each equal-distance bin of the authored ribbon. */
   private readonly stationIntervals: Uint32Array;
+  readonly gpEdges: GpCourseEdges | null;
   private readonly laneIndex: TrackLaneIndex | null;
   readonly length: number;
   /** Venue pit lane/grid data (WP10). */
@@ -320,6 +322,7 @@ export class Track {
       while (segment + 1 < count && this.points[segment + 1].s <= station) segment++;
       this.stationIntervals[bin] = segment;
     }
+    this.gpEdges = isGpCourse(this) ? new GpCourseEdges(this) : null;
     const drainagePoint = trackPoint();
     for (let row = 0; row < CELL_ROWS; row++) {
       const s = ((row + 0.5) / CELL_ROWS) * this.length;
@@ -576,8 +579,9 @@ export class Track {
         return out;
       }
     }
+    const edgeAmount = a > p.width && this.gpEdges ? this.gpEdges.at(p.s, l) : 1;
     if (pit) surface = SURFACE.PIT;
-    else if (a > p.width + 4) {
+    else if (a > p.width + apronWidth(edgeAmount)) {
       surface = this.runoffSurface(p, l);
       // Grass and gravel friction and rigid rolling resistance come from the
       // material table; the tyre adds compaction work from its sinkage
@@ -589,13 +593,13 @@ export class Track {
         grip = 0.9;
         resistance = 0.017;
       }
-    } else if (a > p.width + 1.1) {
-      surface = SURFACE.PAINT;
-      grip = 0.93;
+    } else if (a > p.width + GP_KERB_WIDTH * edgeAmount) {
+      surface = edgeAmount > 0.12 ? SURFACE.PAINT : SURFACE.ASPHALT;
+      grip = edgeAmount > 0.12 ? 0.93 : 0.96;
     } else if (a > p.width) {
       surface = SURFACE.KERB;
       grip = 0.91;
-      kerb = kerbHeight(p.s, a - p.width);
+      kerb = kerbHeight(p.s, a - p.width, edgeAmount);
     } else if (a > p.width - 0.18) {
       surface = SURFACE.PAINT;
       grip = 0.94;

@@ -141,12 +141,12 @@ describe('rendered pit-crossing kerbs use the same lane membership as contact', 
             flattened++;
             // The other edge of the circuit is not part of this pit lane.
             expect(circuitKerbHeight(track, s, -lateral, across)).toBeCloseTo(
-              kerbHeight(s, across),
+              kerbHeight(s, across, track.gpEdges!.at(s, -lateral)),
               12,
             );
           } else {
-            expect(height).toBeCloseTo(kerbHeight(s, across), 12);
-            raised++;
+            expect(height).toBeCloseTo(kerbHeight(s, across, track.gpEdges!.at(s, lateral)), 12);
+            if (height > 0.001) raised++;
           }
         }
       }

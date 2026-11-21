@@ -76,6 +76,7 @@ import {
 } from './studio/road-detail.ts';
 import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
+import { apronWidth, GP_KERB_WIDTH } from '../simulation/gp-course-edges.ts';
 import { Track, CELL_ROWS, CELL_COLS, SURFACE, trackPoint } from '../simulation/track.ts';
 import { ROAD_COVER_FULL_SCALE_MM } from './weather-presentation.ts';
 import { H } from '../simulation/protocol.ts';
@@ -99,7 +100,9 @@ const STRIPE_COLOURS = [new T.Color(0xdc553b), new T.Color(0xe8e3cf)] as const;
 /** Same pit-lane membership as TrackContactMesh and Track.sample, including
  * left-side pit lanes. Rendering must never show a kerb across a flat merge. */
 export function circuitKerbHeight(track: Track, s: number, lateral: number, across: number) {
-  return track.inPitLane(s, lateral) ? 0 : kerbHeight(s, across);
+  return track.inPitLane(s, lateral)
+    ? 0
+    : kerbHeight(s, across, track.gpEdges?.at(s, lateral) ?? 1);
 }
 interface RibbonOptions {
   start?: number;
@@ -326,7 +329,10 @@ export class CircuitScene {
       this.queueRibbon(runOff, {
         offset: (s, t) => {
           track.at(s, this.temp);
-          return (t * 2 - 1) * (this.temp.width + 4);
+          if (!track.gpEdges) return (t * 2 - 1) * (this.temp.width + 4);
+          const left = this.temp.width + apronWidth(track.gpEdges.at(s, -1));
+          const right = this.temp.width + apronWidth(track.gpEdges.at(s, 1));
+          return -left + t * (left + right);
         },
         height: () => -0.008,
         columns: 4,
@@ -361,16 +367,22 @@ export class CircuitScene {
     }
     installScannedKerb(kerb);
     for (const side of paved ? [-1, 1] : []) {
-      this.queueRibbon(kerb, {
-        offset: (s, t) => {
-          track.at(s, this.temp);
-          return side * (this.temp.width + t * 1.1);
-        },
-        height: (s, l, t) => circuitKerbHeight(track, s, l, t * 1.1),
-        step: 0.16,
-        stripes: true,
-        columns: 6,
-      });
+      for (const [start, end] of track.gpEdges?.runs(side) ?? [[0, track.length]]) {
+        this.queueRibbon(kerb, {
+          start,
+          end,
+          offset: (s, t) => {
+            track.at(s, this.temp);
+            return side * (this.temp.width + t * GP_KERB_WIDTH * (track.gpEdges?.at(s, side) ?? 1));
+          },
+          height: (s, l, t) =>
+            circuitKerbHeight(track, s, l, t * GP_KERB_WIDTH * (track.gpEdges?.at(s, side) ?? 1)),
+          include: track.gpEdges ? (s, l) => !track.inPitLane(s, l) : undefined,
+          step: 0.16,
+          stripes: true,
+          columns: 6,
+        });
+      }
       this.queueRibbon(white, {
         offset: (s, t) => {
           track.at(s, this.temp);
@@ -433,7 +445,12 @@ export class CircuitScene {
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
           z = pos.getZ(i);
-        pos.setY(i, gpGround ? gpGround.vertex(i % (segments + 1), Math.floor(i / (segments + 1))) : model.height(x, z));
+        pos.setY(
+          i,
+          gpGround
+            ? gpGround.vertex(i % (segments + 1), Math.floor(i / (segments + 1)))
+            : model.height(x, z),
+        );
         // Match the apron's metre-scaled original grass and world-space finish,
         // instead of a flat beige horizon with a hard material boundary.
         terrainUV.setXY(i, x / 5, z / 5);
@@ -794,6 +811,7 @@ export class CircuitScene {
       gpRunoff = options.runoff && gpEdgeDesign(this.track),
       gpPaint = gpRunoff ? new Float32Array(vertexCount) : null,
       gpGravel = gpRunoff ? new Float32Array(vertexCount) : null,
+      gpKerb = gpRunoff ? new Float32Array(vertexCount) : null,
       custom = Object.entries(options.attributes ?? {}).map(
         ([name, value]) => [name, value, [] as number[]] as const,
       ),
@@ -814,6 +832,8 @@ export class CircuitScene {
       const apronScheme = runoffStyle ? runoffStyleAt(this.track, s) : 0;
       const leftPaint = gpPaint ? gpCornerPaint(this.track, s, -1) : 0;
       const rightPaint = gpPaint ? gpCornerPaint(this.track, s, 1) : 0;
+      const leftKerb = gpKerb ? (this.track.gpEdges?.at(s, -1) ?? 1) : 0;
+      const rightKerb = gpKerb ? (this.track.gpEdges?.at(s, 1) ?? 1) : 0;
       const leftGravel =
         gpGravel && this.track.runoffSurface(p, -p.width - 5.5) === SURFACE.GRAVEL ? 1 : 0;
       const rightGravel =
@@ -840,6 +860,7 @@ export class CircuitScene {
         if (runoffStyle) runoffStyle[index] = apronScheme;
         if (usage) usage[index] = l < 0 ? leftUse : rightUse;
         if (gpPaint) gpPaint[index] = l === 0 ? 0 : l < 0 ? leftPaint : rightPaint;
+        if (gpKerb) gpKerb[index] = l < 0 ? leftKerb : rightKerb;
         if (gpGravel) gpGravel[index] = l < 0 ? leftGravel : rightGravel;
       }
     }
@@ -866,6 +887,7 @@ export class CircuitScene {
     if (kerbStyle) g.setAttribute('kerbStyle', new T.BufferAttribute(kerbStyle, 1));
     if (runoffStyle) g.setAttribute('runoffStyle', new T.BufferAttribute(runoffStyle, 1));
     if (usage) g.setAttribute('kerbUsage', new T.BufferAttribute(usage, 1));
+    if (gpKerb) g.setAttribute('gpKerbAmount', new T.BufferAttribute(gpKerb, 1));
     if (gpPaint) g.setAttribute('gpCornerPaint', new T.BufferAttribute(gpPaint, 1));
     if (gpGravel) g.setAttribute('gpVergeGravel', new T.BufferAttribute(gpGravel, 1));
     g.setIndex(indices);

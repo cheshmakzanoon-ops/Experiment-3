@@ -1,6 +1,7 @@
 import type * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import { SURFACE, trackPoint, type TrackPoint } from '../../simulation/track.ts';
+import { apronWidth } from '../../simulation/gp-course-edges.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import type { BuildQueue } from '../build-queue.ts';
 import { drawnTerrain, type Terrain } from '../terrain.ts';
@@ -48,7 +49,7 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
     p = trackPoint(),
     m = kit.materials,
     terrain = drawnTerrain(track);
-  const inner = (s: number) => track.at(s, p).width + 4;
+  const shoulder = (s: number, side: number) => apronWidth(track.gpEdges?.at(s, side) ?? 1);
   const surfaceAt = (s: number, lateral: number) => track.runoffSurface(track.at(s, p), lateral);
   // GP venues: a gravel trap's ribbon reaches one quad into the grass either
   // side, carrying `gravelCover` (0 off the physical trap), so the trap ends
@@ -59,13 +60,13 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
     columns: 2,
     offset: (s: number, t: number) => {
       track.at(s, p);
-      const a = p.width + 4,
+      const a = p.width + shoulder(s, side) - (gp ? 0.14 : 0),
         b = Math.max(a, track.boundaryAt(p, side) + 1);
       return side * (a + (b - a) * t);
     },
     height: () => lift,
     include: (s: number, lateral: number) =>
-      Math.abs(lateral) > inner(s) + 0.05 &&
+      Math.abs(lateral) > track.at(s, p).width + shoulder(s, side) + 0.05 &&
       (surfaceAt(s, lateral) === kind ||
         (scattered(kind) &&
           (surfaceAt(s - 4, lateral) === kind || surfaceAt(s + 4, lateral) === kind))),
@@ -112,8 +113,9 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
           for (let s = start; s < end && !present; s += 4) {
             track.at(s, p);
             const outer = track.boundaryAt(p, side) + 1,
-              middle = side * (p.width + 4 + Math.max(0, outer - p.width - 4) / 2);
-            present = outer > p.width + 4.2 && track.runoffSurface(p, middle) === kind;
+              inner = p.width + shoulder(s, side),
+              middle = side * (inner + Math.max(0, outer - inner) / 2);
+            present = outer > inner + 0.2 && track.runoffSurface(p, middle) === kind;
           }
           if (present) host.ribbon(material, { start, end, ...verge(side, kind, material, lift) });
         }

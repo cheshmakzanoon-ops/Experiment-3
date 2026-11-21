@@ -229,25 +229,25 @@ export function installRunoffFinish(
 ) {
   material.color.setHex(0xffffff);
   if (gp) material.userData.gpEdgeDesign = gp.id;
-  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v2` : RUNOFF_HOOK, (shader) => {
+  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v3` : RUNOFF_HOOK, (shader) => {
     installTrackEdgeHelpers(shader, lapLength);
     if (gp) {
       injectDeclarations(
         shader,
         'common',
-        'attribute float gpCornerPaint; attribute float gpVergeGravel; varying float vGpCornerPaint; varying float vGpVergeGravel;',
+        'attribute float gpCornerPaint; attribute float gpVergeGravel; attribute float gpKerbAmount; varying float vGpCornerPaint; varying float vGpVergeGravel; varying float vGpKerbAmount;',
         'vertex',
       );
       injectAfter(
         shader,
         'begin_vertex',
-        'vGpCornerPaint = gpCornerPaint; vGpVergeGravel = gpVergeGravel;',
+        'vGpCornerPaint = gpCornerPaint; vGpVergeGravel = gpVergeGravel; vGpKerbAmount = gpKerbAmount;',
         'vertex',
       );
       injectDeclarations(
         shader,
         'common',
-        'varying float vGpCornerPaint; varying float vGpVergeGravel;',
+        'varying float vGpCornerPaint; varying float vGpVergeGravel; varying float vGpKerbAmount;',
         'fragment',
       );
     }
@@ -300,7 +300,7 @@ ${
 		// toward the apex. Flat colour fields, no chevrons.
 		float paintTex = clamp( tex, .8, 1.16 );
 		float paintWear = smoothstep( .5, .85, finishFilteredNoise( vFinishWorld.xz * 1.3 + vec2( 7.1, 2.9 ) ) * .6 + finishFilteredNoise( vFinishWorld.xz * 11.0 ) * .4 );
-		float separatorTo = ${f(RUNOFF.from + GP_KERB.separator)};
+		float separatorTo = vGpKerbAmount * ${f(RUNOFF.from + GP_KERB.separator)};
 		float separator = 1.0 - smoothstep( separatorTo - px, separatorTo + px, e );
 		float escape = smoothstep( .05, .7, vGpCornerPaint );
 		float outerFrom = mix( 4.6, ${f(GP_KERB.outerFrom)}, escape );
@@ -309,6 +309,7 @@ ${
 		vec3 field = mix( bandColour, ${v3(gp?.apronOuter ?? 0)}, outer );
 		surface = mix( base, field * ( .92 + .14 * grain ) * paintTex, .94 * ( 1.0 - .3 * paintWear ) );
 		surface = mix( surface, ${v3(0xd9d7cf)} * paintTex, max( separator, outerLine ) * .9 * ( 1.0 - .4 * paintWear ) );
+		surface = mix( base, surface, smoothstep( .04, .35, vGpKerbAmount ) );
 `
     : `		float px = max( fwidth( e ), 1e-4 );
 		// GP paint follows each side's real bend: an outer edge on straights,
