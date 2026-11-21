@@ -1,0 +1,123 @@
+{
+  "source": "e9707881168a8e2585c8ed0dcc53c7d87f0ba576",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "seed": 83047,
+  "stepHz": 120,
+  "warmupTicks": 1200,
+  "measuredTicks": 3600,
+  "channelsPerRider": 70,
+  "results": [
+    {
+      "circuit": "valley-ridge-mx",
+      "weather": "rain",
+      "publicationHz": 30,
+      "publications": 1200,
+      "commonFrames": 1200,
+      "terrainHash": "fd480094",
+      "channelHash": "691b0d44598db6b30e49575eb3343e612d6f75a50875485c42f391c82aa4ffa4",
+      "maxAirTime": 0.03333333507180214,
+      "peakSpeed": 10.902046203613281,
+      "solverP50ms": 0.884,
+      "solverP95ms": 2.408,
+      "solverP99ms": 5.227,
+      "solverOverBudget": 25
+    },
+    {
+      "circuit": "valley-ridge-mx",
+      "weather": "rain",
+      "publicationHz": 60,
+      "publications": 2400,
+      "commonFrames": 1200,
+      "terrainHash": "fd480094",
+      "channelHash": "691b0d44598db6b30e49575eb3343e612d6f75a50875485c42f391c82aa4ffa4",
+      "maxAirTime": 0.03333333507180214,
+      "peakSpeed": 10.902046203613281,
+      "solverP50ms": 1.162,
+      "solverP95ms": 2.862,
+      "solverP99ms": 14.328,
+      "solverOverBudget": 71
+    },
+    {
+      "circuit": "valley-ridge-mx",
+      "weather": "rain",
+      "publicationHz": 120,
+      "publications": 4800,
+      "commonFrames": 1200,
+      "terrainHash": "fd480094",
+      "channelHash": "691b0d44598db6b30e49575eb3343e612d6f75a50875485c42f391c82aa4ffa4",
+      "maxAirTime": 0.03333333507180214,
+      "peakSpeed": 10.902046203613281,
+      "solverP50ms": 1.008,
+      "solverP95ms": 2.197,
+      "solverP99ms": 10.492,
+      "solverOverBudget": 49
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "weather": "changeable",
+      "publicationHz": 30,
+      "publications": 1200,
+      "commonFrames": 1200,
+      "terrainHash": "a55b5277",
+      "channelHash": "425f5bd2d63d50eb8dc155cf2b565201edb20a968430198960d85f15c4683ada",
+      "maxAirTime": 0.8291666507720947,
+      "peakSpeed": 19.612096786499023,
+      "solverP50ms": 0.726,
+      "solverP95ms": 1.7,
+      "solverP99ms": 2.515,
+      "solverOverBudget": 4
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "weather": "changeable",
+      "publicationHz": 60,
+      "publications": 2400,
+      "commonFrames": 1200,
+      "terrainHash": "a55b5277",
+      "channelHash": "425f5bd2d63d50eb8dc155cf2b565201edb20a968430198960d85f15c4683ada",
+      "maxAirTime": 0.8291666507720947,
+      "peakSpeed": 19.612096786499023,
+      "solverP50ms": 0.682,
+      "solverP95ms": 1.331,
+      "solverP99ms": 2.034,
+      "solverOverBudget": 8
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "weather": "changeable",
+      "publicationHz": 120,
+      "publications": 4800,
+      "commonFrames": 1200,
+      "terrainHash": "a55b5277",
+      "channelHash": "425f5bd2d63d50eb8dc155cf2b565201edb20a968430198960d85f15c4683ada",
+      "maxAirTime": 0.8291666507720947,
+      "peakSpeed": 19.612096786499023,
+      "solverP50ms": 0.554,
+      "solverP95ms": 1.124,
+      "solverP99ms": 1.77,
+      "solverOverBudget": 4
+    }
+  ],
+  "riderOrder": [
+    "mx250",
+    "mx450",
+    "mx250",
+    "mx450",
+    "mx250",
+    "mx450",
+    "mx250",
+    "mx450"
+  ],
+  "measurement": {
+    "race": "Two-lap motocross moto, AI controls on all eight riders, 40 seconds of fixed-step simulation.",
+    "comparison": "SHA-256 over the Float32 protocol bytes at 1200 common 30 Hz timestamps, with riders in slot order. Each publish rate starts a fresh copy of the same race.",
+    "blocks": [
+      "First 16 chassis channels",
+      "All 16 off-road rider and race channels",
+      "All five wheel-motion channels",
+      "Contact mask and all 32 wheel-contact channels"
+    ],
+    "timer": "Wall time for Simulation.step only, after 1200 warm-up ticks. Snapshot serialization, hashing, graphics and input-device latency are outside the timer.",
+    "solverOverBudget": "Number of the 3600 measured steps longer than 1000/120 milliseconds."
+  }
+}
