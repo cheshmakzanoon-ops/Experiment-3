@@ -8,6 +8,10 @@ The two columns use the same cameras. Street trees have matching trunk collision
 
 ![Matched chase and street views in Port Ilse](port-ilse.jpg)
 
+The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The full-size frames and pixel comparisons are in the hosted run.
+
+![Port Ilse storefront and festoon lighting on wet streets at night](port-ilse-night.jpg)
+
 ## The wet mountain approach
 
 The builds are `6a37db8` and `a2cab68`. Both frames use the SC-7 chase camera on arrival at the Varda Pass speed zone, 800 × 450 in Low, with the same rain and sunset presets. The replacement for the bright start ring is visible on the right shoulder. Distant tree crowns now follow the near forest. The improved slope lighting keeps the road and hillside distinguishable.
@@ -92,8 +96,10 @@ The gameplay build at `336fb587` passed 637 local regression tests across 81 fil
 
 All 12 driving checks passed on the same build with Chromium and SwiftShader at 960 × 540 in Low. Keyboard input moved the car 32.49 m and braked it from 65.47 km/h to a stop. The three-entrant Harbour Opening Run finished in 105.37 seconds with assistance and zero off-route time. Retry started a distinct run, and exiting released the Festival scene. The session plate above comes from this run. Three recorded frames each of tyre smoke, quarry dust and water spray passed their image checks.
 
+The hosted Mesa run passed 153 focused tests and all 12 driving checks on the same source. Keyboard input moved the car 57.44 m and braked it from 65.63 to 0.75 km/h. The Harbour Opening Run finished in 105.37 seconds. Smoke, quarry dust, water spray and both Medium-preset night compositions passed without reported graphics errors. A separate local SwiftShader attempt timed out on the first Medium storefront capture.
+
 Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
 
-On the local Mesa software renderer, an earlier long race closed at 62% progress. Local attempts to capture the High preset on Mesa and SwiftShader also closed during loading. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
+On the local Mesa software renderer, an earlier long race closed at 62% progress. Two early High attempts closed during loading. A subsequent Mesa run reached the first High-preset harbour frame at 960 × 540 with 1,916 draw calls and 6,894,556 submitted triangles. Its compositor capture exceeded 90 seconds. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
 
-[Earlier hosted Mesa driving and optics run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44859158969) · [Per-car, per-event, mesh and validation measurements](measurements.json)
+[Final hosted driving and optics run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760) · [Earlier hosted Mesa driving and optics run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44859158969) · [Per-car, per-event, mesh and validation measurements](measurements.json)

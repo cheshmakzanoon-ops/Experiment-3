@@ -1294,7 +1294,13 @@
           "peakParticles": 397,
           "captures": 3
         }
-      ]
+      ],
+      "nightAttempt": {
+        "quality": "medium",
+        "passed": false,
+        "lastStage": "night:storefront:frozen capture",
+        "outcome": "The first storefront capture exceeded the local software-rendering deadline."
+      }
     },
     "nativeExports": {
       "blender": "5.2.2 LTS",
@@ -1368,7 +1374,76 @@
         "Mesa llvmpipe through the public paddock",
         "SwiftShader through the production session fixture"
       ],
-      "outcome": "Both renderer processes closed before a High-preset capture."
+      "outcome": "Both renderer processes closed before a High-preset capture.",
+      "productionSessionFirstDraw": {
+        "quality": "high",
+        "backend": "Mesa llvmpipe",
+        "viewport": [
+          960,
+          540
+        ],
+        "vehicle": "eh3",
+        "travel": "harbour-welcome",
+        "camera": "chase",
+        "drawCalls": 1916,
+        "triangles": 6894556,
+        "outcome": "The first frame was submitted. The compositor screenshot exceeded 90 seconds. A separate readback attempt lost its renderer during loading."
+      }
+    },
+    "hostedMesa": {
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760",
+      "browser": "140.0.7339.186",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "quality": "low",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "focusedTestFiles": 21,
+      "focusedTestsPassed": 153,
+      "journeyChecksPassed": 12,
+      "pageErrors": [],
+      "failedAssets": [],
+      "playerKeyboard": {
+        "distanceM": 57.43550694620207,
+        "movingKmh": 65.62554531254523,
+        "stoppedKmh": 0.749917027072932
+      },
+      "race": {
+        "eventName": "Harbour Opening Run",
+        "vehicleId": "tc1",
+        "assisted": true,
+        "entrants": 3,
+        "position": 3,
+        "time": 105.3666666667094,
+        "offRouteSeconds": 0
+      },
+      "opticsPassed": [
+        "smoke",
+        "dust",
+        "water",
+        "night"
+      ],
+      "nightCompositions": [
+        {
+          "camera": "storefront",
+          "width": 960,
+          "height": 600,
+          "activeLocalLights": 2,
+          "changedPixelsByTwoOrMore": 51782,
+          "drawCalls": 603,
+          "triangles": 1439697
+        },
+        {
+          "camera": "festoon",
+          "width": 960,
+          "height": 600,
+          "activeLocalLights": 2,
+          "changedPixelsByTwoOrMore": 230226,
+          "drawCalls": 487,
+          "triangles": 1470018
+        }
+      ]
     }
   }
 }
