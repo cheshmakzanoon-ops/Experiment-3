@@ -482,6 +482,7 @@ export function captureMotocrossFieldSharing() {
       hash,
       foreground,
       geometries: renderer.info.memory.geometries,
+      textures: renderer.info.memory.textures,
       glError: gl.getError(),
     };
   };

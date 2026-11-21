@@ -441,7 +441,10 @@ test('shared motocross GPU buffers preserve the surviving rider and release the 
   expect(survivor).toEqual(one);
   expect(both.geometries).toBeLessThan(one.geometries * 1.7);
   expect(empty.foreground).toBe(0);
+  // Identical weave, glove and boot relief has six shared WebGL images.
+  expect(both.textures).toBeLessThanOrEqual(2 * one.textures - 6);
   expect(empty.geometries).toBe(0);
+  expect(empty.textures).toBe(0);
 });
 
 test('restores the photographed recovery pose after a running stride', async ({ review }) => {
