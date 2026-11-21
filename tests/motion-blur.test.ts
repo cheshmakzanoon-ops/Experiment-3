@@ -10,7 +10,22 @@ import {
   shutterSeconds,
 } from '../src/rendering/studio/velocity.ts';
 import { StudioFrame, createStudioUniforms } from '../src/rendering/studio/studio-frame.ts';
-import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts';
+import {
+  B,
+  BC,
+  BIKE_BASE,
+  CAR_STRIDE,
+  F,
+  H,
+  HEADER,
+  R,
+  RACE_BASE,
+  ROAD_BIKE_CONTACT,
+  WHEEL_CONTACT_BASE,
+  carBase,
+  wheelContactBase,
+} from '../src/simulation/protocol.ts';
+import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 
 it('off by default and unavailable float buffers cannot enable a fake effect', () => {
   const pass = new MotionBlur(false);
@@ -126,6 +141,53 @@ function reference(
     ((now.y - before.y) * SIZE.y) / 2,
   );
 }
+
+it('keeps asphalt moving under a leaned GP rider on banks and in legacy recordings', () => {
+  const camera = rig([0, 1.65, -4.9], [0, 0.9, 13]);
+  for (const [id, lean, crossfall, grade, measured] of [
+    ['gpr1', 0.7, -0.11, 0.08, true],
+    ['gpr2', -0.72, 0.13, -0.05, true],
+    ['gpr1', -0.6, 0, 0, false],
+  ] as const) {
+    const bike = VEHICLES[id].bike!;
+    const frame = snapshot(),
+      car = carBase(0);
+    frame[H.CARS] = 1;
+    frame[car + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+    frame[car + BIKE_BASE + B.LEAN] = lean;
+    frame[car + F.Y] = bike.crownRadius + (bike.cgHeight - bike.crownRadius) * Math.cos(lean);
+    new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), lean).toArray(frame, car + F.QX);
+    if (measured) {
+      frame[car + WHEEL_CONTACT_BASE] = ROAD_BIKE_CONTACT;
+      const normal = new T.Vector3(-crossfall, 1, -grade).normalize();
+      for (const [wheel, z] of [
+        [0, bike.cgToFront],
+        [2, -bike.cgToRear],
+      ]) {
+        const p = wheelContactBase(car, wheel);
+        frame[p + BC.Z] = z;
+        frame[p + BC.Y] = grade * z;
+        normal.toArray(frame, p + BC.NORMAL_X);
+        frame[p + BC.LOAD] = 800;
+      }
+    }
+    const { motion, shutter } = field(frame, camera, 'attached');
+    const previousCamera = camera.clone();
+    previousCamera.position.z -= SPEED * shutter;
+    previousCamera.updateMatrixWorld(true);
+    for (const x of [-0.45, -0.15, 0.15, 0.45]) {
+      for (const z of [-0.9, 0, 0.9]) {
+        const road = new T.Vector3(x, crossfall * x + grade * z, z);
+        const expected = reference(camera, previousCamera, road, road);
+        expect(expected.length()).toBeGreaterThan(1);
+        expect(motion.pixels(road, camera, SIZE).distanceTo(expected)).toBeLessThan(1e-6);
+      }
+    }
+    expect(
+      motion.pixels(new T.Vector3(0, frame[car + F.Y], 0), camera, SIZE).length(),
+    ).toBeLessThan(1e-6);
+  }
+});
 
 it('streaks static world against an attached camera and keeps the followed car locked', () => {
   const frame = snapshot();

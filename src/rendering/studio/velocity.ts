@@ -1,5 +1,16 @@
 import * as T from 'three';
-import { F, carBase } from '../../simulation/protocol.ts';
+import {
+  B,
+  BC,
+  BIKE_BASE,
+  F,
+  R,
+  RACE_BASE,
+  carBase,
+  hasRoadBikeContact,
+  wheelContactBase,
+} from '../../simulation/protocol.ts';
+import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
 import { STUDIO_CAR_HALF_EXTENTS, STUDIO_MAX_CARS, studioUniforms } from './studio-frame.ts';
 
 /**
@@ -189,6 +200,9 @@ export class MotionField {
   private readonly spinMatrix = new T.Matrix4();
   private readonly spinOffset = new T.Matrix4();
   private readonly cameraInverse = new T.Matrix4();
+  private readonly roadUp = new T.Vector3();
+  private readonly roadRight = new T.Vector3();
+  private readonly roadForward = new T.Vector3();
   /** Spinning wheel discs for the next `update` (the first `wheelCount`);
    * the renderer fills them from the presented snapshot each frame. */
   readonly wheels: MotionWheel[] = Array.from({ length: MOTION_MAX_WHEELS }, () => ({
@@ -199,6 +213,65 @@ export class MotionField {
     omega: 0,
   }));
   wheelCount = 0;
+
+  /** The bike rolls about its contact patches. Its motion mask must have a
+   * road-parallel floor, or applying that same roll to the box freezes a
+   * wedge of asphalt next to the rider in chase and cockpit views. */
+  private roadBikeBox(
+    out: T.Matrix4,
+    frame: Float32Array,
+    car: number,
+    definition: VehicleDefinition,
+    now: T.Matrix4,
+    pose: T.Vector4,
+    cameraWorld: T.Matrix4,
+  ) {
+    const bike = definition.bike!;
+    const front = wheelContactBase(car, 0),
+      rear = wheelContactBase(car, 2);
+    if (hasRoadBikeContact(frame, car)) {
+      this.roadUp
+        .fromArray(frame, front + BC.NORMAL_X)
+        .add(this.axis.fromArray(frame, rear + BC.NORMAL_X))
+        .normalize();
+    } else {
+      // Earlier recordings carry road grade in the chassis pitch and have
+      // no lateral road normal. Remove the recorded wheelie/stoppie pitch.
+      const pitch = Math.asin(T.MathUtils.clamp(now.elements[9], -1, 1));
+      const slope = Math.sin(
+        pitch -
+          (Math.abs(frame[car + BIKE_BASE + B.LEAN]) > 1.2
+            ? 0
+            : frame[car + BIKE_BASE + B.PITCH] || 0),
+      );
+      this.roadUp.set(-Math.sin(pose.z) * slope, 1, -Math.cos(pose.z) * slope).normalize();
+    }
+    this.roadForward.set(Math.sin(pose.z), 0, Math.cos(pose.z));
+    this.roadRight.crossVectors(this.roadUp, this.roadForward).normalize();
+    this.roadForward.crossVectors(this.roadRight, this.roadUp);
+    const roll = Math.abs(this.axis.setFromMatrixColumn(now, 1).dot(this.roadRight));
+    const halfWidth =
+      definition.halfExtents[0] +
+      MOTION_BLUR.boxMargin +
+      roll * (bike.cgHeight + bike.riderOffsetMax);
+    const halfLength =
+      Math.max(
+        definition.halfExtents[2],
+        bike.cgToFront + bike.frontWheelRadius,
+        bike.cgToRear + bike.rearWheelRadius,
+      ) + MOTION_BLUR.boxMargin;
+    const halfHeight = (MOTION_BLUR.boxTop - MOTION_BLUR.boxFloor) / 2;
+    this.position
+      .set(pose.x, pose.w, pose.y)
+      .addScaledVector(this.roadUp, MOTION_BLUR.boxFloor + halfHeight);
+    this.scratch
+      .makeBasis(this.roadRight, this.roadUp, this.roadForward)
+      .setPosition(this.position);
+    out
+      .makeScale(1 / halfWidth, 1 / halfHeight, 1 / halfLength)
+      .multiply(this.scratch.invert())
+      .multiply(cameraWorld);
+  }
 
   /** No motion this frame: velocity is exactly zero everywhere. */
   still() {
@@ -279,13 +352,26 @@ export class MotionField {
       halfHeight = (MOTION_BLUR.boxTop - MOTION_BLUR.boxFloor) / 2;
     for (let id = 0; id < cars; id++) {
       const now = carNow[id];
-      // Box centre height in chassis space: tyre contacts (groundY) + band middle.
-      const centre = poses[id].w - now.elements[13] + MOTION_BLUR.boxFloor + halfHeight;
-      u.motionBox.value[id]
-        .makeScale(1 / halfWidth, 1 / halfHeight, 1 / halfLength)
-        .multiply(this.inverse.makeTranslation(0, -centre, 0))
-        .multiply(this.scratch.copy(now).invert())
-        .multiply(cameraWorld);
+      const car = carBase(id),
+        definition = vehicleAt(Math.round(presented[car + RACE_BASE + R.VEHICLE]));
+      if (definition.classId === 'gp-bike' && definition.bike) {
+        this.roadBikeBox(
+          u.motionBox.value[id],
+          presented,
+          car,
+          definition,
+          now,
+          poses[id],
+          cameraWorld,
+        );
+      } else {
+        const centre = poses[id].w - now.elements[13] + MOTION_BLUR.boxFloor + halfHeight;
+        u.motionBox.value[id]
+          .makeScale(1 / halfWidth, 1 / halfHeight, 1 / halfLength)
+          .multiply(this.inverse.makeTranslation(0, -centre, 0))
+          .multiply(this.scratch.copy(now).invert())
+          .multiply(cameraWorld);
+      }
       const prev = u.motionPrev.value[id];
       if (locked && id === follow) prev.copy(projection);
       else
