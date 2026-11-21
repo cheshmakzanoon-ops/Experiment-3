@@ -2,6 +2,7 @@ import * as T from 'three';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { clamp, Random } from '../../core/math.ts';
 import { MATERIAL } from '../../simulation/surface-material.ts';
+import { renderWind } from '../../simulation/weather.ts';
 import {
   carBase,
   B,
@@ -253,6 +254,7 @@ export class Roost {
   private readonly clodColour = new T.Color();
   private readonly terrain: TrackTerrainSurface | null;
   private readonly motocross: boolean;
+  private readonly windExposed: boolean;
   private cursor = 0;
   private collisionCursor = 0;
   enabled = true;
@@ -261,6 +263,7 @@ export class Roost {
     const surface = track ? Track.offroadOf(track) : null;
     this.terrain = surface instanceof TrackTerrainSurface ? surface : null;
     this.motocross = surface?.kind === 'motocross' || surface?.kind === 'supercross';
+    this.windExposed = this.motocross && !this.terrain?.course.spec.indoor;
     const g = new T.BufferGeometry();
     g.setAttribute(
       'position',
@@ -576,6 +579,8 @@ export class Roost {
     this.points.visible = this.enabled;
     this.shadows(frame);
     const step = Math.min(dt, 0.05);
+    const windX = this.windExposed ? renderWind(frame[H.WIND_X]) : 0,
+      windZ = this.windExposed ? renderWind(frame[H.WIND_Z]) : 0;
     let groundSamples = 0;
     // Rotate the starting slot so a full pool shares the ground-query budget.
     for (let slot = 0; slot < ROOST_CAPACITY; slot++) {
@@ -586,8 +591,12 @@ export class Roost {
       const k = i * 3;
       const drag = Math.exp(-this.drag[i] * step);
       if (!this.settled[i]) {
-        this.velocities[k] *= drag;
-        this.velocities[k + 2] *= drag;
+        // Suspended fines entrain the recorded near-ground wind. The clods
+        // that land beside the rut keep their much heavier ballistic path.
+        // Arena Nord's roof and walls shelter the cloud from outdoor wind.
+        const couple = this.dust[i] ? 0.65 * (1 - drag) : 0;
+        this.velocities[k] = this.velocities[k] * drag + windX * couple;
+        this.velocities[k + 2] = this.velocities[k + 2] * drag + windZ * couple;
         this.velocities[k + 1] =
           this.velocities[k + 1] * drag -
           9.81 * step * (this.drag[i] > 1 ? (this.motocross ? 0.025 : 0.08) : 1);

@@ -5,6 +5,7 @@ import {
   type TerrainRenderDelta,
 } from '../../simulation/offroad/course-terrain.ts';
 import { H } from '../../simulation/protocol.ts';
+import { MxVenueWind } from './mx-venue-wind.ts';
 import { Track } from '../../simulation/track.ts';
 import type { BuildQueue } from '../build-queue.ts';
 import type { QualityPreset } from '../options.ts';
@@ -15,6 +16,7 @@ import { StartGate } from './start-gate.ts';
 import { TerrainView } from './terrain-view.ts';
 import { MxCourseDressing } from './mx-course-dressing.ts';
 import { MxCourseLandmarks } from './mx-course-landmarks.ts';
+import { MxRidgeWoodland } from './mx-ridge-woodland.ts';
 import { installMxArenaLighting } from './mx-arena-lighting.ts';
 import { MxTyreTraces } from './mx-tyre-traces.ts';
 import { MxLooseSoil } from './mx-loose-soil.ts';
@@ -40,12 +42,14 @@ export class OffroadScene {
   stadium: Stadium | null = null;
   dressing: MxCourseDressing | null = null;
   landmarks: MxCourseLandmarks | null = null;
+  ridgeWoodland: MxRidgeWoodland | null = null;
   looseSoil: MxLooseSoil | null = null;
   spectators: MxSpectators | null = null;
   meadow: MxMeadow | null = null;
   readonly roost: Roost;
   readonly marshalLocations: MarshalLocation[] = [];
   private lastTime = NaN;
+  private readonly wind = new MxVenueWind();
   private disposed = false;
   private readonly pending: {
     delta: TerrainRenderDelta | undefined;
@@ -58,8 +62,13 @@ export class OffroadScene {
    * leave moving gate leaves and people out of the ground's lasting shadow. */
   appendCaptureExclusions(roots: T.Object3D[], pass: 'probe' | 'static-shadow') {
     if (!this.gate) return;
-    for (const object of [this.roost.points, this.roost.clods, this.roost.contactShadows,
-      this.tyreTraces?.mesh, this.stadium?.nearCrowd]) {
+    for (const object of [
+      this.roost.points,
+      this.roost.clods,
+      this.roost.contactShadows,
+      this.tyreTraces?.mesh,
+      this.stadium?.nearCrowd,
+    ]) {
       if (object) roots.push(object);
     }
     if (pass === 'probe') {
@@ -109,9 +118,14 @@ export class OffroadScene {
           if (this.terrain) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
           this.group.add(this.stadium.root);
         });
+      if (track.circuit.id === 'valley-ridge-mx')
+        this.queue(construction, 'Valley Ridge distant woodland', 1, () => {
+          this.ridgeWoodland = new MxRidgeWoodland(track);
+          this.group.add(this.ridgeWoodland.root);
+        });
       if (course.kind === 'motocross' || course.kind === 'supercross') {
         this.queue(construction, 'MX course furniture and shoulders', 3, () => {
-          this.dressing = new MxCourseDressing(track);
+          this.dressing = new MxCourseDressing(track, this.wind);
           this.marshalLocations.push(
             ...mxMarshalLocations(track, this.dressing.trackside.plan.sites),
           );
@@ -128,7 +142,11 @@ export class OffroadScene {
             this.group.add(this.spectators.root);
           });
         if (course.kind === 'motocross') {
-          this.meadow = new MxMeadow(track, () => this.dressing?.trackside.plan.sites ?? []);
+          this.meadow = new MxMeadow(
+            track,
+            () => this.dressing?.trackside.plan.sites ?? [],
+            this.wind,
+          );
           this.group.add(this.meadow.root);
           this.meadow.queueInitial(construction);
         }
@@ -186,13 +204,14 @@ export class OffroadScene {
     if (this.disposed) return;
     this.gate?.update(frame, measured);
     if (this.stadium) {
-      this.stadium.update(frame[H.TIME]);
+      this.stadium.update(frame[H.TIME], frame);
       this.stadium.timing.update(frame);
     }
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
+    if (this.meadow) this.wind.set(frame[H.WIND_X], frame[H.WIND_Z]);
     this.dressing?.update(time);
-    this.spectators?.update(time);
+    this.spectators?.update(time, frame);
     this.meadow?.update(time);
     if (this.terrain) this.looseSoil?.setWetness(this.terrain.soilWetness);
     // Even a sub-frame reverse seek can cross a takeoff/contact edge.
@@ -217,6 +236,7 @@ export class OffroadScene {
     this.stadium?.dispose();
     this.dressing?.dispose();
     this.landmarks?.dispose();
+    this.ridgeWoodland?.dispose();
     this.looseSoil?.dispose();
     this.spectators?.dispose();
     this.meadow?.dispose();

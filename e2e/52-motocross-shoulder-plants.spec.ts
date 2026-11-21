@@ -77,6 +77,16 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
   expect(result.foliage.reduce((sum, p) => sum + p.triangles, 0)).toBeLessThan(160000);
   expect(result.foliage.reduce((sum, p) => sum + p.attributeBytes, 0)).toBeLessThan(32000);
   expect(result.foliage.reduce((sum, p) => sum + p.instanceBytes, 0)).toBeLessThan(340000);
+  const [forward, reversed, calm, calmLater, replay] = result.weather;
+  expect(forward.hash).not.toBe(reversed.hash);
+  expect(calm.hash).not.toBe(forward.hash);
+  expect(calmLater.hash).toBe(calm.hash);
+  expect(replay.hash).toBe(forward.hash);
+  for (const sample of result.weather) {
+    expect(sample.glError).toBe(0);
+    expect(sample.calls).toBe(forward.calls);
+    expect(sample.triangles).toBe(forward.triangles);
+  }
   const samples = result.samples;
   console.log('MX_SHOULDER_VIEW', JSON.stringify(result.cameraPlants));
   console.log('MX_SHOULDER_MOVED_VIEW', JSON.stringify(result.movedPlants));

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { MxVenueWind } from './mx-venue-wind.ts';
 import { mod, Random } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
@@ -67,6 +68,7 @@ export class MxMeadow {
   constructor(
     private readonly track: Track,
     furniture: readonly MxFurnitureSite[] | (() => readonly MxFurnitureSite[]) = [],
+    private readonly wind = new MxVenueWind(),
   ) {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface) || surface.kind !== 'motocross')
@@ -313,7 +315,7 @@ export class MxMeadow {
       }
       yield;
     }
-    build.material = mxShoulderPlantMaterial(this.time);
+    build.material = mxShoulderPlantMaterial(this.time, this.wind);
     build.geometry = mxShoulderPlantGeometry('meadow');
     for (let c = 0; c < chunks; c++) {
       if (!poses[c].length) {

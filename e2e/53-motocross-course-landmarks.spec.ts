@@ -2,7 +2,10 @@ import { expect, test, type Page } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
-import type { captureMxCourseIdentities } from './fixtures/motocross-course-landmarks.ts';
+import type {
+  captureMxCourseIdentities,
+  captureMxSpectatorPass,
+} from './fixtures/motocross-course-landmarks.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
 async function loadCourseReview(page: Page) {
@@ -135,4 +138,40 @@ test('MX and SX braking lines render their shared physical relief and compiled w
     }
   }
   expect(errors).toEqual([]);
+});
+
+
+test('the trackside crowd follows a passing leader and restores held, stopped and rewound poses on WebGL2', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await loadCourseReview(page);
+  const { image, ...measure } = await page.evaluate(() =>
+    (
+      window as unknown as {
+        MxCourseReview: { captureMxSpectatorPass: typeof captureMxSpectatorPass };
+      }
+    ).MxCourseReview.captureMxSpectatorPass(),
+  );
+  await info.attach('trackside-crowd.png', {
+    body: Buffer.from(image.split(',')[1], 'base64'),
+    contentType: 'image/png',
+  });
+  await info.attach('trackside-crowd.json', {
+    body: JSON.stringify(measure),
+    contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
+  expect(measure.approach).toBeGreaterThan(100);
+  expect(measure.cross).toBeGreaterThan(100);
+  expect([measure.parked, measure.hold, measure.seek]).toEqual([0, 0, 0]);
+  for (const m of measure.measures) {
+    expect(m.error).toBe(0);
+    expect(m.calls).toBe(measure.measures[0].calls);
+    expect(m.triangles).toBe(measure.measures[0].triangles);
+  }
 });

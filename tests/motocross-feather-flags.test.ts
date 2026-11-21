@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
+import { MxVenueWind } from '../src/rendering/offroad/mx-venue-wind.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
@@ -78,7 +79,8 @@ describe('motocross event feather flags', () => {
   });
 
   it('pins the sail seams and replays the same wind field in the colour and two shadow passes', () => {
-    const dressing = new MxCourseDressing(rigTrack('valley-ridge-mx'));
+    const wind = new MxVenueWind();
+    const dressing = new MxCourseDressing(rigTrack('valley-ridge-mx'), wind);
     try {
       const cloth = dressing.root.getObjectByName('MX printed woven barriers') as T.Mesh;
       const binding = cloth.geometry.getAttribute('mxCloth') as T.BufferAttribute;
@@ -97,11 +99,23 @@ describe('motocross event feather flags', () => {
         } as StudioShader;
         material.onBeforeCompile(shader, {} as T.WebGLRenderer);
         expect(shader.vertexShader).toContain('transformed.xz += mxCloth.xy');
+        expect(shader.uniforms.mxVenueWind).toBe(wind);
         return shader.uniforms.mxClothTime;
       };
       const time = clock(cloth.material as T.Material, 'standard');
       expect(clock(cloth.customDepthMaterial!, 'depth')).toBe(time);
       expect(clock(cloth.customDistanceMaterial!, 'distanceRGBA')).toBe(time);
+      wind.set(3,4);
+      expect(wind.value.x).toBeCloseTo(0.6,12);
+      expect(wind.value.y).toBeCloseTo(0.8,12);
+      const held = wind.value.toArray();
+      wind.set(-3,-4);
+      expect(wind.value.z).toBe(held[2]);
+      expect(wind.value.x).toBe(-held[0]);
+      wind.set(0,0);
+      expect(wind.value.length()).toBe(0);
+      wind.set(3,4);
+      expect(wind.value.toArray()).toEqual(held);
       for (const value of [8.25, 19.5, 19.5, 8.25]) {
         dressing.update(value);
         expect(time.value).toBe(value);

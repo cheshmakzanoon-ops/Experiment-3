@@ -28,8 +28,8 @@ afterEach(() => {
   for (const roost of pending.splice(0)) roost.dispose();
 });
 
-function harness(riders = 1) {
-  const track = rigTrack('valley-ridge-mx');
+function harness(riders = 1, venue: 'valley-ridge-mx' | 'arena-nord-sx' = 'valley-ridge-mx') {
+  const track = rigTrack(venue);
   const terrain = (Track.offroadOf(track) as TrackTerrainSurface).terrain;
   const roost = new Roost(track);
   pending.push(roost);
@@ -74,6 +74,37 @@ function harness(riders = 1) {
 }
 
 describe('lit motocross soil and independent touchdown contacts', () => {
+  it.each(['valley-ridge-mx','arena-nord-sx'] as const)('advects only exposed suspended fines in %s with the recorded crosswind', venue => {
+    const calm = harness(1, venue), wind = harness(1, venue);
+    for (const h of [calm,wind]) {
+      for (let i=0;i<40;i++) h.roost.update(h.frame,1/60);
+      h.load(0,0);
+    }
+    wind.frame[H.WIND_X] = 7;
+    wind.frame[H.WIND_Z] = -3;
+    for (let i=0;i<30;i++) {
+      calm.roost.update(calm.frame,1/60);
+      wind.roost.update(wind.frame,1/60);
+    }
+    const a = calm.roost.points.geometry, b = wind.roost.points.geometry;
+    const kind = a.getAttribute('mxParticleShape'), alpha = a.getAttribute('mxParticleAlpha');
+    const p = a.getAttribute('position'), q = b.getAttribute('position');
+    let observed = 0;
+    for (let i=0;i<p.count;i++) {
+      if (kind.getX(i)!==1 || alpha.getX(i)<=0) continue;
+      observed++;
+      const dx = q.getX(i)-p.getX(i), dz = q.getZ(i)-p.getZ(i);
+      if (venue === 'valley-ridge-mx') {
+        expect(dx).toBeGreaterThan(0.15);
+        expect(dz/dx).toBeCloseTo(-3/7,3);
+      } else {
+        expect(dx).toBe(0);
+        expect(dz).toBe(0);
+      }
+    }
+    expect(observed).toBeGreaterThan(0);
+    expect(wind.roost.clods!.instanceMatrix.array).toEqual(calm.roost.clods!.instanceMatrix.array);
+  });
   it('keeps opaque lit fragments and diffuse dust in one bounded particle pool', () => {
     const h = harness(8);
     h.roost.density = 1.5;

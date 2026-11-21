@@ -32,7 +32,7 @@ varying float vMxCourseWidth;
 varying vec4 vMxCourseWear;
 uniform float mxCourseLength;
 // 1 in a supercross stadium: the watered, tacky racing line runs darker and
-// glossier while the untouched edges dry lighter, with chalk lane lines.
+// glossier while untouched clay stays lighter around the jump shoulders.
 uniform float mxSoilIndoor;
 // Screen footprint of the course coordinates (set per fragment, uniform flow).
 // Every filter below reads this, never a derivative of a parallax-shifted
@@ -273,15 +273,19 @@ const COLOUR = /* glsl */ `{
   float sod = smoothstep(0.30, 0.77, broad * 0.72 + broken * 0.28);
   vec3 vergeTint = mix(vec3(0.76, 0.87, 0.79), vec3(1.17, 1.03, 0.85), sod);
   diffuseColor.rgb *= mix(vec3(1.0), vergeTint, verge * 0.85);
-  // Stadium: the watered line (where the passes pack it) is darker and
-  // tacky; chalked lane lines mark the inside of each lane edge.
+  // The watered stadium line darkens where tyres pack it. The crew's lime
+  // survives at surveyed jump shoulders, in the high parts of the grains.
   float tacky = mxSoilIndoor * onSoil * clamp( passes.z * 1.2 + mxPreparedGroove * 0.6, 0.0, 1.0 );
   diffuseColor.rgb *= 1.0 - tacky * 0.24;
-  float chalkWidth = 0.035 + fp.x * 1.5;
-  float chalk = mxSoilIndoor * onSoil * ( 1.0 - smoothstep( chalkWidth * 0.5, chalkWidth,
-    abs( abs( vMxCourse.x ) - ( halfWidth - 0.25 ) ) ) )
-    * step( 0.3, fract( p.y * 0.25 ) ) * ( 1.0 - smoothstep( 0.05, 0.25, fp.x ) );
-  diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.82, 0.82, 0.78 ), chalk * 0.85 );
+  float workedShoulder = smoothstep(0.38,0.88,max(vMxCourseWear.x,vMxCourseWear.y*0.78));
+  float markWidth = 0.055 + 0.075*broken;
+  float edgeMark = abs(abs(vMxCourse.x) - (halfWidth-0.30 + 0.21*(broad-0.5)));
+  float coverage = 1.0 - smoothstep(markWidth*0.40,markWidth+min(fp.x,0.2),edgeMark);
+  float chalk = mxSoilIndoor*onSoil*workedShoulder*coverage
+    * smoothstep(0.27,0.74,0.62*broken + 0.38*broad)
+    * (1.0-0.65*mxPreparedWet) * (1.0-smoothstep(0.04,0.23,fp.x));
+  vec3 limedClay = diffuseColor.rgb*0.62 + vec3(0.33,0.30,0.25);
+  diffuseColor.rgb = mix(diffuseColor.rgb,limedClay,chalk*0.68);
   mxPreparedWet = max( mxPreparedWet, tacky * 0.55 );
   // 043/059/092: wet loam reflects chiefly along its depressions. Dry raised
   // aggregate remains rough; the complete course never becomes one mirror.

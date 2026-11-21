@@ -1,4 +1,5 @@
 import * as T from 'three';
+export { captureMxSpectatorPass } from './motocross-crowd-pass.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BuildQueue } from '../../src/rendering/build-queue.ts';
 import { OffroadScene } from '../../src/rendering/offroad/index.ts';

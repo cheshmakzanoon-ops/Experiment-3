@@ -5,6 +5,7 @@ import { mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mxRoofDeck } from './mx-roof-deck.ts';
 import { MxTimingBoard } from './mx-timing-board.ts';
+import { MxCrowdPass } from './mx-crowd-pass.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
@@ -105,7 +106,10 @@ export class Stadium {
   private stopHaze: (() => void) | null = null;
   private stopCrowdDetail: (() => void) | null = null;
   private disposed = false;
+  private readonly pass = new MxCrowdPass(86);
   private readonly crowdUniforms = {
+    crowdPassA: this.pass.a,
+    crowdPassB: this.pass.b,
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0.32 },
     crowdReaction: { value: new T.Vector2(0.72, 0.45) },
@@ -473,7 +477,9 @@ export class Stadium {
     this.audience = new MxStadiumAudience(this.crowd, this.nearCrowd, sculptedSeats);
     // A venue reflection omits the close sculpts. Their original seat cards
     // fill the same places for that pass, then yield to the main camera again.
-    this.crowd.onBeforeRender = () => { crowdRange.x = this.nearCrowd.visible ? 0.2 : 0; };
+    this.crowd.onBeforeRender = () => {
+      crowdRange.x = this.nearCrowd.visible ? 0.2 : 0;
+    };
     // The same seat table, colours and skin carry into the low-cost cards.
     // The rank interval and mesh visibility change together, without
     // rebuilding instance buffers or leaving gaps in the front four rows.
@@ -506,9 +512,16 @@ export class Stadium {
       y: floor + STADIUM.roof - 2 - 1.36,
     });
     const outer = STADIUM.tiers * STADIUM.depth + STADIUM.concourse;
-    const roof = new T.Mesh(mxRoofDeck(span.x + 2 * outer, span.z + 2 * outer, 'arena'),
-      new T.MeshStandardMaterial({ name: 'Arena galvanized structural decking', color: 0x6b7579,
-        metalness: 0.48, roughness: 0.61, vertexColors: true }));
+    const roof = new T.Mesh(
+      mxRoofDeck(span.x + 2 * outer, span.z + 2 * outer, 'arena'),
+      new T.MeshStandardMaterial({
+        name: 'Arena galvanized structural decking',
+        color: 0x6b7579,
+        metalness: 0.48,
+        roughness: 0.61,
+        vertexColors: true,
+      }),
+    );
     roof.name = 'Arena roof deck';
     roof.position.set((min.x + max.x) / 2, floor + STADIUM.roof, (min.z + max.z) / 2);
     this.root.add(roof);
@@ -610,8 +623,13 @@ export class Stadium {
       cases.push(new T.BoxGeometry(20.6, 5.32, 0.5).translate(cx, y, z));
       for (const dx of [-7.4, 7.4]) {
         for (const side of [-1, 1]) {
-          rigging.push(member(new T.Vector3(cx + dx, y + 2.55, z),
-            new T.Vector3(cx + dx + side * 1.18, floor + STADIUM.roof - 0.48, z), 0.058));
+          rigging.push(
+            member(
+              new T.Vector3(cx + dx, y + 2.55, z),
+              new T.Vector3(cx + dx + side * 1.18, floor + STADIUM.roof - 0.48, z),
+              0.058,
+            ),
+          );
         }
       }
       return new T.Vector3(cx, y, z - end * 0.265);
@@ -628,11 +646,15 @@ export class Stadium {
   }
   /** Absolute simulation time only: a held frame freezes the entire crowd,
    * and revisiting a timestamp restores exactly the same unsynchronised pose. */
-  update(time: number) {
+  update(time: number, frame?: Float32Array) {
     if (!Number.isFinite(time)) throw new Error('Invalid stadium presentation time');
     const cycle = Math.PI * 2;
     this.crowdUniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
-    this.crowdUniforms.crowdReaction.value.set(0.72 + Math.sin(time * 0.37) * 0.1, 0.45);
+    this.pass.update(frame);
+    this.crowdUniforms.crowdReaction.value.set(
+      frame ? 0.17 : 0.72 + Math.sin(time * 0.37) * 0.1,
+      frame ? 0.12 : 0.45,
+    );
   }
   private batch(parts: T.BufferGeometry[], material: T.Material, name: string) {
     const geometry = mergeGeometries(parts, false);

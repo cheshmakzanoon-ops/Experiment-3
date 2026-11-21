@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { Random } from '../../core/math.ts';
+import { MxVenueWind } from './mx-venue-wind.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 export type MxPlantKind = 'grass' | 'fern' | 'scrub' | 'tuft' | 'meadow';
@@ -191,7 +192,7 @@ export function mxShoulderPlantGeometry(kind: MxPlantKind): T.BufferGeometry {
 
 /** One clock per venue. Absolute simulation time makes a paused frame still
  * and a backwards replay seek reproduce the same bend, without integration. */
-export function mxShoulderPlantMaterial(time: { value: number }) {
+export function mxShoulderPlantMaterial(time: { value: number }, wind = new MxVenueWind()) {
   const material = new T.MeshStandardMaterial({
     color: 0xffffff,
     vertexColors: true,
@@ -201,10 +202,11 @@ export function mxShoulderPlantMaterial(time: { value: number }) {
   });
   chainShaderHook(material, 'mx-shoulder-wind-v1', (shader) => {
     shader.uniforms.mxPlantTime = time;
+    shader.uniforms.mxVenueWind = wind;
     injectDeclarations(
       shader,
       'common',
-      'attribute float mxPlantFlex;\nuniform float mxPlantTime;',
+      'attribute float mxPlantFlex;\nuniform float mxPlantTime;\nuniform vec3 mxVenueWind;',
       'vertex',
     );
     injectAfter(
@@ -218,8 +220,17 @@ export function mxShoulderPlantMaterial(time: { value: number }) {
       mxPlantAnchor = modelMatrix * mxPlantAnchor;
       float mxGust = sin( mxPlantTime * 1.45 + dot( mxPlantAnchor.xz, vec2( 0.14, 0.09 ) ) );
       float mxFlutter = sin( mxPlantTime * 3.1 + dot( mxPlantAnchor.xz, vec2( 0.7, -0.43 ) ) );
-      transformed.xz += vec2( ${MX_SHOULDER_WIND.x}, ${MX_SHOULDER_WIND.z} ) * mxPlantFlex *
-        ( mxGust + ${MX_SHOULDER_WIND.flutter} * mxFlutter );
+      mat3 mxPlantWorld = mat3(modelMatrix);
+      #ifdef USE_INSTANCING
+        mxPlantWorld *= mat3(instanceMatrix);
+      #endif
+      vec3 mxAir = vec3(mxVenueWind.x,0.0,mxVenueWind.y);
+      // Resolve world wind into the rotated plant's local axes. The planted
+      // root has zero flexibility and stays fixed on the berm.
+      vec2 mxBend = vec2(dot(normalize(mxPlantWorld[0]),mxAir),
+                         dot(normalize(mxPlantWorld[2]),mxAir));
+      transformed.xz += mxBend * ${MX_SHOULDER_WIND.x} * mxPlantFlex * mxVenueWind.z *
+        (0.48 + 0.40*mxGust + ${MX_SHOULDER_WIND.flutter}*mxFlutter);
     `,
       'vertex',
     );

@@ -93,6 +93,37 @@ describe('supercross roof floodlight grid', () => {
     }
   });
 
+  it('splits specular energy continuously across the roof, including a parked preset change and outdoor rewind', () => {
+    const grid = { minX: -80, minZ: -50, spanX: 160, spanZ: 100, columns: 8, rows: 5, y: 26 };
+    const light = new MxArenaBikeLight(), p = new T.Vector3(0, 1.4, 0);
+    try {
+      setMxQuality('high');
+      light.update(grid,p);
+      const west = light.west.value, east = light.east.value;
+      expect(west.w + east.w).toBeCloseTo(light.key.value.w, 12);
+      expect(west.w).toBeCloseTo(east.w, 10);
+      expect(east.x - west.x).toBeGreaterThan(0.55);
+      for (const bank of [west,east]) expect(Math.hypot(bank.x, bank.y, bank.z)).toBeCloseTo(1, 12);
+      p.x = 10 - 1e-4;
+      light.update(grid,p);
+      const previous = west.clone();
+      p.x += 2e-4;
+      light.update(grid,p);
+      expect(west.clone().sub(previous).length()).toBeLessThan(0.001);
+      setMxQuality('medium');
+      light.update(grid,p);
+      expect(west.w + east.w).toBe(0);
+      expect(light.key.value.w).toBeGreaterThan(0);
+      setMxQuality('high');
+      light.update(grid,p);
+      expect(west.w + east.w).toBeCloseTo(light.key.value.w,12);
+      light.update(undefined,p);
+      expect(west.w + east.w + light.key.value.w).toBe(0);
+    } finally {
+      setMxQuality('high');
+    }
+  });
+
   it('retains its single haze draw on Medium without enabling High surface detail', () => {
     setMxQuality('medium');
     const stadium = new Stadium(rigTrack('arena-nord-sx'));

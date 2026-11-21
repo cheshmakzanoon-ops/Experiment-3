@@ -7,6 +7,7 @@ import { installCrowdShader, spectatorGeometry, spectatorVariation } from '../cr
 import { inStandFootprint } from '../grandstand.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { onMxDetail } from './mx-quality.ts';
+import { MxCrowdPass } from './mx-crowd-pass.ts';
 import {
   mxFurnitureGround,
   mxMarshalLocations,
@@ -150,7 +151,10 @@ export class MxSpectators {
   readonly stats = { spectators: 0, marshals: 0, groups: 0, triangles: 0, draws: 0 };
   readonly plan: ReturnType<typeof planMxSpectators>;
   private readonly crowds: { mesh: T.InstancedMesh; total: number }[] = [];
+  private readonly pass = new MxCrowdPass(44);
   private readonly uniforms = {
+    crowdPassA: this.pass.a,
+    crowdPassB: this.pass.b,
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0.28 },
     crowdReaction: { value: new T.Vector2(0.5, 0.3) },
@@ -244,12 +248,16 @@ export class MxSpectators {
         mesh.count = high ? total : Math.floor(total * LOW_SHARE);
     });
   }
-  /** Absolute simulation time only. */
-  update(time: number) {
+  /** The race snapshot and its clock drive every gesture. */
+  update(time: number, frame?: Float32Array) {
     if (this.disposed || !Number.isFinite(time)) return;
     const cycle = Math.PI * 2;
     this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
-    this.uniforms.crowdReaction.value.set(0.55 + Math.sin(time * 0.37) * 0.15, 0.32);
+    this.pass.update(frame);
+    this.uniforms.crowdReaction.value.set(
+      frame ? 0.1 : 0.55 + Math.sin(time * 0.37) * 0.15,
+      frame ? 0.07 : 0.32,
+    );
   }
   dispose() {
     if (this.disposed) return;

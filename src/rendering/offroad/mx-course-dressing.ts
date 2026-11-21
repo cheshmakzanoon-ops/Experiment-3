@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { MxVenueWind } from './mx-venue-wind.ts';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxFootprintMatrix, mxFurnitureGround } from './mx-ground-pose.ts';
@@ -166,7 +167,7 @@ export class MxCourseDressing {
   private readonly shoulderViews: MxShoulderView[] = [];
   private stopTufts: (() => void) | null = null;
   private disposed = false;
-  constructor(private readonly track: Track) {
+  constructor(private readonly track: Track, private readonly wind = new MxVenueWind()) {
     const surface = Track.offroadOf(track);
     if (
       !(surface instanceof TrackTerrainSurface) ||
@@ -185,7 +186,7 @@ export class MxCourseDressing {
       side: T.DoubleSide,
       name: 'MX printed woven barriers',
     });
-    if (!indoor) installMxClothWind(cloth, this.venueTime, true);
+    if (!indoor) installMxClothWind(cloth, this.venueTime, true, this.wind);
     const yellow = new T.MeshStandardMaterial({
       color: 0xc8cf56,
       roughness: 0.68,
@@ -388,7 +389,7 @@ export class MxCourseDressing {
       mesh.name = material.name;
       mesh.castShadow = mesh.receiveShadow = true;
       geometry.computeBoundingSphere();
-      if (material === cloth && !indoor) attachMxClothShadows(mesh, this.venueTime);
+      if (material === cloth && !indoor) attachMxClothShadows(mesh, this.venueTime, this.wind);
       this.root.add(mesh);
     }
     // Materials created for an empty batch still have a lifecycle.
@@ -918,7 +919,7 @@ export class MxCourseDressing {
         ),
       );
     }
-    const grassMaterial = mxShoulderPlantMaterial(this.venueTime);
+    const grassMaterial = mxShoulderPlantMaterial(this.venueTime, this.wind);
     const rockMaterial = new T.MeshStandardMaterial({
       color: 0x8b8376,
       vertexColors: true,

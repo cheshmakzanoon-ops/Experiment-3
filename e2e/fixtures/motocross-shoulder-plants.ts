@@ -2,6 +2,7 @@ import * as T from 'three';
 import { disposeTextureLoaders } from '../../src/rendering/assets/texture-loader.ts';
 import { scannedGround } from '../../src/rendering/ground/scan-store.ts';
 import { materials } from '../../src/rendering/materials/index.ts';
+import { MxVenueWind } from '../../src/rendering/offroad/mx-venue-wind.ts';
 import { MxCourseDressing } from '../../src/rendering/offroad/mx-course-dressing.ts';
 import { TerrainView } from '../../src/rendering/offroad/terrain-view.ts';
 import { studioHookKeys } from '../../src/rendering/studio/shader-hooks.ts';
@@ -21,7 +22,8 @@ export async function captureMotocrossShoulderPlants() {
     surface = Track.offroadOf(track) as TrackTerrainSurface,
     sourceHash = surface.terrain.hash(),
     terrain = new TerrainView(track),
-    dressing = new MxCourseDressing(track),
+    wind = new MxVenueWind(),
+    dressing = new MxCourseDressing(track, wind),
     plants = names.map((name) => dressing.root.getObjectByName(name) as T.InstancedMesh);
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(WIDTH, HEIGHT);
@@ -151,16 +153,37 @@ export async function captureMotocrossShoulderPlants() {
       capture('wind-11-held', 11),
       capture('wind-10-seek', 10),
     ];
+    // A frozen race clock isolates the direction response from the animation.
+    // At zero wind, two different race times must produce identical pixels.
+    const weather = [];
+    for (const [x, z, t] of [
+      [8, 2, 10],
+      [-8, -2, 10],
+      [0, 0, 10],
+      [0, 0, 17],
+      [8, 2, 10],
+    ]) {
+      wind.set(x, z);
+      const { hash, calls, triangles, glError } = capture('recorded-wind', t, 'full');
+      weather.push({ x, z, t, hash, calls, triangles, glError });
+    }
     scene.add(dressing.turf);
     scene.updateMatrixWorld(true);
     scene.matrixWorldAutoUpdate = false;
     const comparePlants = () => {
-      const original = new Uint32Array(WIDTH * HEIGHT), compact = new Uint32Array(original.length);
+      const original = new Uint32Array(WIDTH * HEIGHT),
+        compact = new Uint32Array(original.length);
       const measure = (view: 'full' | 'culled', rgba: Uint32Array<ArrayBuffer>) => {
-        const { hash, triangles, calls, glError } = capture('all-plants', 10, view, new Uint8Array(rgba.buffer));
+        const { hash, triangles, calls, glError } = capture(
+          'all-plants',
+          10,
+          view,
+          new Uint8Array(rgba.buffer),
+        );
         return { hash, triangles, calls, error: glError };
       };
-      const full = measure('full', original), culled = measure('culled', compact);
+      const full = measure('full', original),
+        culled = measure('culled', compact);
       let changedPixels = 0;
       for (let i = 0; i < original.length; i++) if (original[i] !== compact[i]) changedPixels++;
       return { full, culled, comparedPixels: original.length, changedPixels };
@@ -175,6 +198,7 @@ export async function captureMotocrossShoulderPlants() {
     return {
       cameraPlants,
       movedPlants,
+      weather,
       scope:
         'Isolated production TerrainView and MxCourseDressing; fixed component-review lighting.',
       circuit: 'valley-ridge-mx',

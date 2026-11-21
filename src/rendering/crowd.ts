@@ -58,6 +58,8 @@ interface CrowdUniforms {
   crowdClock: { value: T.Vector2 };
   crowdMotion: { value: number };
   crowdReaction?: { value: T.Vector2 };
+  crowdPassA?: { value: T.Vector4 };
+  crowdPassB?: { value: T.Vector4 };
   crowdLodRange?: { value: T.Vector2 };
 }
 
@@ -105,6 +107,17 @@ varying float vCrowdAccessory;
 uniform vec2 crowdClock;
 uniform float crowdMotion;
 uniform vec2 crowdReaction;
+#ifdef MX_CROWD_PASS
+uniform vec4 crowdPassA, crowdPassB;
+vec2 crowdPassAt(vec4 racer, vec2 seat, vec2 side, vec2 forward) {
+  vec2 delta = racer.xy - seat;
+  float d2 = dot(delta,delta);
+  vec2 dir = delta * inversesqrt(max(d2,0.01));
+  float strength = racer.z * (1.0-smoothstep(0.04,1.0,d2*racer.w))
+    * smoothstep(-0.3,0.25,dot(forward,dir));
+  return vec2(dot(side,dir)*strength,strength);
+}
+#endif
 // Per-seat arm pose: about a third sit with their arms folded (no gestures).
 float crowdCrossed() { return step(.66, fract(spectatorPhase * 6.71)); }
 mat3 crowdTurn() {
@@ -112,6 +125,17 @@ mat3 crowdTurn() {
   float wave = (sin(crowdClock.x + spectatorPhase) * 0.7
     + sin(crowdClock.y + spectatorPhase * 1.73) * 0.3) * crowdMotion;
   float angle = crowdJoint > 2.5 ? wave * 0.075 : wave * 0.035;
+  vec2 nearby = vec2(0.0);
+  #if defined(MX_CROWD_PASS) && defined(USE_INSTANCING)
+  if (crowdJoint > .5 && crowdPassA.z+crowdPassB.z > 0.0) {
+    vec2 seat = (modelMatrix * instanceMatrix[3]).xz;
+    // The spectator faces local -X, with local +Z to the side.
+    vec2 side = normalize((mat3(modelMatrix)*instanceMatrix[2].xyz).xz);
+    vec2 forward = normalize(-(mat3(modelMatrix)*instanceMatrix[0].xyz).xz);
+    nearby = crowdPassAt(crowdPassA,seat,side,forward) + crowdPassAt(crowdPassB,seat,side,forward);
+    nearby /= max(1.0,nearby.y);
+  }
+  #endif
   if (crowdJoint > .5 && crowdJoint < 2.5) {
     float participant = smoothstep(.18,.5,fract(spectatorPhase * 2.17));
     float gesture = .86 + .14 * sin(crowdClock.x * 3. + spectatorPhase * 1.9);
@@ -119,12 +143,12 @@ mat3 crowdTurn() {
     float handChoice=fract(spectatorPhase*4.13);
     float activeHand=handChoice<.34 ? step(1.5,crowdJoint) : handChoice<.68 ? 1.-step(1.5,crowdJoint) : 1.;
     participant*=activeHand;
-    angle -= participant * (crowdReaction.x * .82 * gesture + crowdReaction.y * .48);
+    angle -= participant * ((crowdReaction.x + nearby.y*.72) * .82 * gesture + crowdReaction.y * .48);
   }
   if (crowdJoint < 0.5) angle = 0.0;
   float c = cos(angle), s = sin(angle);
   if (crowdJoint > 2.5) {
-    float gaze = angle + (fract(spectatorPhase*3.71)-.5)*.22;
+    float gaze = angle + (fract(spectatorPhase*3.71)-.5)*.22 + nearby.x*.57;
     float gc=cos(gaze), gs=sin(gaze);
     return mat3(gc,0.,-gs, 0.,1.,0., gs,0.,gc);
   }
@@ -155,6 +179,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     shader.uniforms.crowdReaction = uniforms.crowdReaction ?? { value: new T.Vector2() };
     shader.uniforms.crowdLodRange = uniforms.crowdLodRange ?? { value: new T.Vector2(0, 1) };
     shader.vertexShader =
+      (uniforms.crowdPassA ? '#define MX_CROWD_PASS\n' : '') +
       'varying float vCrowdRank;\n' +
       deform +
       (colour
@@ -409,7 +434,8 @@ vColor.rgb = vec3(1.);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `apex-procedural-crowd-v15-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () =>
+    `apex-procedural-crowd-v15-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
