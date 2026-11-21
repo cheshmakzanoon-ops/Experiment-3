@@ -3,6 +3,7 @@ import { trackPoint, type Track } from '../../simulation/track.ts';
 import { ridgedNoise, valueNoise } from '../terrain-profile.ts';
 import type { Terrain } from '../terrain.ts';
 import { PLAZA_RADIUS, catalogueLandmark, sideSpanAt, venueField } from './plan.ts';
+import { gpCountryside } from './gp-countryside.ts';
 import { VENUE_THEMES } from './theme.ts';
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -74,6 +75,7 @@ export function catalogueTerrain(track: Track): Terrain {
     uz = coastal ? sz / seaward : 0,
     coastX = dropCount ? dx / dropCount : cx,
     coastZ = dropCount ? dz / dropCount : cz;
+  const countryside = gpCountryside(track.circuit.id, coastX - cx, coastZ - cz, ux, uz);
   const landmark = catalogueLandmark(track);
   const natural = (x: number, z: number) => {
     const n1 = valueNoise(x * 0.0021 + 3.1, z * 0.0021 - 7.4) - 0.5,
@@ -121,7 +123,9 @@ export function catalogueTerrain(track: Track): Terrain {
   const height = (x: number, z: number) => {
     let h: number;
     field.sample(x, z, sample);
-    const raw = natural(x, z);
+    let raw = natural(x, z);
+    if (countryside && sample.distance > 170)
+      raw += countryside(x - cx, z - cz) * smoothstep(170, 285, sample.distance);
     if (!Number.isFinite(sample.distance)) h = raw;
     else {
       const apron = 40,

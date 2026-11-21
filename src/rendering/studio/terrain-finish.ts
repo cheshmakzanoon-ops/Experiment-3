@@ -86,15 +86,32 @@ export const GP_FAR = Object.freeze({
   glade: Object.freeze([0.16, 0.3] as const),
 });
 
+/** Survey-scale parcels on the gentler land around each original GP circuit.
+ * The dimensions are metres. The row pitch is broad enough to filter before
+ * individual crop lines become sub-pixel at a trackside camera. */
+const GP_FIELDS = {
+  hills:   { bearing: 0.49, width: 108, length: 224, cover: 0.68, soil: 0x8b8750, crop: 0x727f45, pitch: 7.5 },
+  rolling: { bearing: -0.62, width: 84, length: 183, cover: 0.83, soil: 0xa58d61, crop: 0x87824f, pitch: 9.0 },
+  flat:    { bearing: 0.29, width: 95, length: 278, cover: 0.88, soil: 0x789056, crop: 0x607a42, pitch: 5.0 },
+  coast:   { bearing: -0.35, width: 61, length: 127, cover: 0.46, soil: 0x888a66, crop: 0x718052, pitch: 5.5 },
+} as const;
+
 /** The far material meets the authored venue planting: taller woodland at
  * Poggio and Haarveld, lower shelter belts on the coast and open dry scrub
  * in the sierra. Values stay in linear light throughout. */
 function gpLandColours(style?: VenueThemeStyle) {
   const dense = style?.forestBelts ?? true;
+  const landform = style?.landform;
+  const fields = landform && landform in GP_FIELDS
+    ? GP_FIELDS[landform as keyof typeof GP_FIELDS] : GP_FIELDS.hills;
   const ground = new T.Color(style?.groundTint ?? 0x667a3a);
   const reference = new T.Color(0x667a3a);
   const ratio = (a: number, b: number) => T.MathUtils.clamp(a / b, 0.7, 1.44);
   return {
+    gpFieldBearing: { value: new T.Vector2(Math.cos(fields.bearing), Math.sin(fields.bearing)) },
+    gpParcel: { value: new T.Vector4(fields.length, fields.width, fields.cover, fields.pitch) },
+    gpFieldSoil: { value: new T.Color(fields.soil) },
+    gpFieldCrop: { value: new T.Color(fields.crop) },
     gpCanopyLow: {
       value: new T.Color(FAR.canopy[0]).lerp(ground.clone().multiplyScalar(0.36), 0.42),
     },
@@ -114,6 +131,33 @@ function gpLandColours(style?: VenueThemeStyle) {
   };
 }
 
+// World-anchored field boundaries. The analytic footprint is taken before
+// fract/floor so distant crop rows and the narrow hedges fade without sparkling.
+const FIELD_FINISH = /* glsl */ `
+  vec2 farmWorld = vec2(dot(vFinishWorld.xz, gpFieldBearing),
+    dot(vFinishWorld.xz, vec2(-gpFieldBearing.y, gpFieldBearing.x)));
+  farmWorld.y += 19.0 * sin(farmWorld.x * 0.0035) + 7.0 * sin(farmWorld.x * 0.0089);
+  vec2 parcel = farmWorld / gpParcel.xy;
+  vec2 footprint = max(fwidth(parcel), vec2(0.0001));
+  parcel.x += 0.81 * apexLandHash(vec2(floor(parcel.y), 47.1));
+  float cropType = apexLandHash(floor(parcel) + vec2(12.0, 71.0));
+  vec2 local = fract(parcel);
+  vec2 edgeMetres = min(local, 1.0 - local) * gpParcel.xy;
+  float border = min(edgeMetres.x, edgeMetres.y);
+  float filterMetres = max(0.8, landFootprint * 0.7);
+  float interior = smoothstep(1.3 - filterMetres, 2.2 + filterMetres, border);
+  float resolved = 1.0 - smoothstep(0.23, 0.72, max(footprint.x, footprint.y));
+  float farmland = far * (1.0 - smoothstep(0.025, 0.115, slope))
+    * smoothstep(0.16, 0.43, landMoisture) * resolved;
+  float managed = farmland * (1.0 - smoothstep(gpParcel.z - 0.07, gpParcel.z + 0.07, cropType));
+  forest = mix(forest, (1.0 - interior) * 0.84, managed);
+  float rowPhase = farmWorld.y * 6.2831853 / gpParcel.w;
+  float rowContrast = 1.0 - smoothstep(0.7, 2.9, fwidth(rowPhase));
+  vec3 crop = mix(gpFieldCrop, gpFieldSoil, smoothstep(0.04, 0.74, cropType));
+  crop *= 0.96 + 0.10 * landTone + 0.065 * cos(rowPhase) * rowContrast;
+  diffuseColor.rgb = mix(diffuseColor.rgb, crop, managed * interior * 0.82);
+`;
+
 const finishGlsl = (
   forestFrom: number,
   forestFull: number,
@@ -130,9 +174,11 @@ const finishGlsl = (
 	apexLandGrad *= 1.0 + ${f(LANDFORM.steepGain)} * smoothstep( 0.15, 0.5, slope );
 	diffuseColor.rgb *= 1.0 + ${f(LANDFORM.tone)} * landTone;
 	float far = smoothstep( ${f(forestFrom)}, ${f(forestFull)}, vTrackDistance );
-	float glade = smoothstep( ${gp ? 'gpGlade.x, gpGlade.y' : `${glade[0].toFixed(2)}, ${glade[1].toFixed(2)}`}, finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) ) );
+	float landMoisture = finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) );
+	float glade = smoothstep( ${gp ? 'gpGlade.x, gpGlade.y' : `${glade[0].toFixed(2)}, ${glade[1].toFixed(2)}`}, landMoisture );
 	float flatEnough = 1.0 - smoothstep( ${f(FAR.maxForestSlope - 0.1)}, ${f(FAR.maxForestSlope)}, slope );
 	float forest = far * glade * flatEnough;
+	${gp ? FIELD_FINISH : ''}
 	float crownA = finishFilteredNoise( vFinishWorld.xz / ${f(FAR.crownMetres[1])} );
 	float crownB = finishFilteredNoise( vFinishWorld.xz / ${f(FAR.crownMetres[0])} + vec2( 3.7, 9.1 ) );
 	float crowns = 0.6 * crownA + 0.4 * crownB;
@@ -172,7 +218,9 @@ export function installTerrainFinish(material: T.Material, gp = false, style?: V
         'common',
         `
 uniform vec3 gpCanopyLow, gpCanopyHigh, gpMeadowTint, gpRockColour;
-uniform vec2 gpGlade;
+uniform vec2 gpGlade, gpFieldBearing;
+uniform vec4 gpParcel;
+uniform vec3 gpFieldSoil, gpFieldCrop;
 uniform float gpCrownHeight;`,
         'fragment',
       );

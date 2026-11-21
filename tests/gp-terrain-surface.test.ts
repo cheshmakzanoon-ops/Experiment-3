@@ -72,3 +72,34 @@ it('embeds the outer edge of the GP verge into the actual hillside across both p
     expect(lowest).toBeCloseTo(-0.08, 6);
   }
 });
+
+it('keeps the four GP landscapes distinct behind their surveyed road corridors', () => {
+  for (const [id, minimum, maximum] of [
+    ['poggio-alto', 165, 245], ['montejaral', 240, 335],
+    ['cape-wrenna', 96, 145], ['haarveld', 4, 9],
+  ] as const) {
+    const track = new Track('clear', false, undefined, CIRCUITS[id]);
+    const terrain = terrainFor(track);
+    let highest = -Infinity, lowest = Infinity;
+    for (let z = -2400; z <= 2400; z += 70) {
+      for (let x = -2400; x <= 2400; x += 70) {
+        const height = terrain.height(x, z);
+        highest = Math.max(highest, height);
+        lowest = Math.min(lowest, height);
+      }
+    }
+    expect(highest, id).toBeGreaterThan(minimum);
+    expect(highest, id).toBeLessThan(maximum);
+    if (id === 'cape-wrenna') {
+      expect(lowest).toBeLessThan(terrain.seaLevel! - 30);
+      for (let z = -1600; z <= 700; z += 115)
+        expect(terrain.height(2450, z)).toBeLessThan(terrain.seaLevel!);
+    }
+    const p = trackPoint();
+    for (let s = 0; s < track.length; s += 41) {
+      track.at(s, p);
+      // The distant terrain stays below the surveyed centreline, even over a crest.
+      expect(terrain.height(p.x, p.z), id).toBeLessThan(p.y + 0.1);
+    }
+  }
+});
