@@ -1,0 +1,58 @@
+name: Motocross soil framebuffer
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/motocross-soil-framebuffer.yml
+      - src/rendering/offroad/mx-soil-detail.ts
+      - src/rendering/offroad/mx-soil-morphology.ts
+      - e2e/49-motocross-worked-soil.spec.ts
+      - e2e/fixtures/motocross-worked-soil.ts
+permissions:
+  contents: read
+
+# The race review also exercises this spec. Keep this measurement independent
+# so a new bike, rider or stadium commit cannot cancel a soil readback in flight.
+jobs:
+  soil:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      APEX_MOTOCROSS_XVFB_CAPTURE: '1'
+      APEX_MX_SOIL_COMPACT: '0'
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      LP_NUM_THREADS: '4'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build the shipped game
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Install Chromium and Mesa
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Render full-size soil and compare both shader paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/49-motocross-worked-soil.spec.ts --config playwright.motocross.config.ts 2>&1 | tee "$RUNNER_TEMP/mx-soil.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motocross-soil-framebuffers
+          path: |
+            ${{ runner.temp }}/mx-soil.log
+            test-results/motocross/
+            playwright-report/motocross/index.html
+            browser-backend.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 14
