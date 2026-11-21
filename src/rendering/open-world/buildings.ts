@@ -14,6 +14,7 @@ import { FACADE_ATLAS_GLSL, FacadeAtlas } from './facade-atlas.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
 import { addFarmGable } from './farm-gable.ts';
 import { addQuayWarehouse } from './quay-warehouse.ts';
+import { AirfieldTower } from './airfield-tower.ts';
 import { HeadlandLantern } from './headland-lantern.ts';
 import type { QualityPreset } from '../options.ts';
 import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
@@ -504,6 +505,7 @@ export class Buildings {
   readonly lantern: T.MeshStandardMaterial;
   readonly joinery: FacadeJoinery;
   private readonly openings: FacadePlacement[] = [];
+  private readonly towers: AirfieldTower[] = [];
   private readonly headlands: HeadlandLantern[] = [];
   private readonly atlas = new FacadeAtlas();
   private readonly atlasMap: { value: T.DataTexture | null } = { value: null };
@@ -538,6 +540,12 @@ export class Buildings {
     // so city-wide JS vertex arrays never coexist with all the GPU buffers.
     const chunks = new Map<string, Structure[]>();
     for (const s of structures) {
+      if (s.kind === 'tower') {
+        const tower = new AirfieldTower(s);
+        this.root.add(tower.root);
+        this.towers.push(tower);
+        continue;
+      }
       const key = `${Math.floor(s.x / BUILDING_BLOCK)},${Math.floor(s.z / BUILDING_BLOCK)}`;
       let block = chunks.get(key);
       if (!block) chunks.set(key, (block = []));
@@ -547,7 +555,7 @@ export class Buildings {
           new HeadlandLantern(s, this.headlands.length ? this.lantern.clone() : this.lantern),
         );
     }
-    let triangles = 0;
+    let triangles = this.towers.reduce((sum, tower) => sum + tower.triangles, 0);
     for (const [key, block] of chunks) {
       const m = new Mesher();
       for (const s of block) this.add(m, s);
@@ -869,76 +877,19 @@ export class Buildings {
         box(ladderX, y, ladderZ, 0.056, 0.042, 0.56, 0x88918b);
       return;
     }
-    if (s.kind === 'tower' || s.kind === 'lighthouse') {
-      // Round shaft (16 sides), lighthouse white with a red band.
-      const r = Math.min(s.hx, s.hz),
-        sides = 16;
+    if (s.kind === 'lighthouse') {
+      const radius = Math.min(s.hx, s.hz), sides = 16;
       for (let k = 0; k < sides; k++) {
-        const a0 = (k / sides) * Math.PI * 2,
-          a1 = ((k + 1) / sides) * Math.PI * 2,
-          taper = s.kind === 'lighthouse' ? 0.72 : 1;
-        const p0 = [s.x + Math.cos(a0) * r, s.z + Math.sin(a0) * r],
-          p1 = [s.x + Math.cos(a1) * r, s.z + Math.sin(a1) * r],
-          t0 = [s.x + Math.cos(a0) * r * taper, s.z + Math.sin(a0) * r * taper],
-          t1 = [s.x + Math.cos(a1) * r * taper, s.z + Math.sin(a1) * r * taper];
-        const am = (a0 + a1) / 2;
-        const coastal = s.kind === 'lighthouse';
-        const u0 = coastal ? a0 * r : (k + 1) * 2.5;
-        const u1 = coastal ? a1 * r : k * 2.5;
-        const color = s.kind === 'lighthouse' ? 0xe8e6e0 : 0xb9b6ae;
+        const a = k * Math.PI * 2 / sides, b = (k + 1) * Math.PI * 2 / sides;
+        const at = (angle: number, y: number, r: number) => [
+          s.x + Math.cos(angle) * r, y, s.z + Math.sin(angle) * r,
+        ] as const;
         m.quad(
-          [
-            [p1[0], base, p1[1]],
-            [p0[0], base, p0[1]],
-            [t0[0], top, t0[1]],
-            [t1[0], top, t1[1]],
-          ],
-          [Math.cos(am), 0, Math.sin(am)],
-          [
-            [u1, 0],
-            [u0, 0],
-            [u0, s.height],
-            [u1, s.height],
-          ],
-          color,
-          [style, coastal ? 8 : 9, 0, s.height],
+          [at(b, base, radius), at(a, base, radius), at(a, top, radius * 0.72), at(b, top, radius * 0.72)],
+          [Math.cos((a + b) / 2), 0, Math.sin((a + b) / 2)],
+          [[b * radius, 0], [a * radius, 0], [a * radius, s.height], [b * radius, s.height]],
+          0xe8e6e0, [style, 8, 0, s.height],
         );
-        if (s.kind === 'tower') {
-          // Glazed control cab on top.
-          const g0 = [s.x + Math.cos(a0) * r * 1.5, s.z + Math.sin(a0) * r * 1.5],
-            g1 = [s.x + Math.cos(a1) * r * 1.5, s.z + Math.sin(a1) * r * 1.5];
-          m.quad(
-            [
-              [g1[0], top, g1[1]],
-              [g0[0], top, g0[1]],
-              [g0[0], top + 3.4, g0[1]],
-              [g1[0], top + 3.4, g1[1]],
-            ],
-            [Math.cos(am), 0, Math.sin(am)],
-            [
-              [0.3, 0.5],
-              [2.9, 0.5],
-              [2.9, 3],
-              [0.3, 3],
-            ],
-            0x30383c,
-            [style, 7, 1, 3.4],
-          );
-          m.tri(
-            [
-              [g0[0], top + 3.4, g0[1]],
-              [s.x, top + 4.2, s.z],
-              [g1[0], top + 3.4, g1[1]],
-            ],
-            [0, 1, 0],
-            0x3a3d40,
-            roofFacade,
-          );
-        }
-      }
-      if (s.kind === 'tower') {
-        box(0, top + 3.5, 0, r * 3.15, 0.25, r * 3.15, 0x484e50);
-        box(0, top + 5.6, 0, 0.14, 4.1, 0.14, 0x6f7778);
       }
       return;
     }
@@ -1283,6 +1234,8 @@ export class Buildings {
   update(camera: T.Camera, quality: QualityPreset, viewportHeight = 720) {
     this.joinery.update(camera, quality);
     camera.getWorldPosition(this.cameraPosition);
+    for (const tower of this.towers)
+      tower.update(this.cameraPosition, viewportHeight * camera.projectionMatrix.elements[5] * 0.5);
     // The projection sets the world distance at which recess parallax becomes
     // subpixel. A nearer corner of a broad block keeps the entire block detailed.
     const pixels = { low: 0.95, medium: 0.8, high: 0.65, ultra: 0.55 }[quality];
@@ -1310,10 +1263,12 @@ export class Buildings {
   }
   setNight(night: number, time = 0, eye?: T.Vector3) {
     this.night.value = night;
+    for (const tower of this.towers) tower.setNight(night);
     for (const headland of this.headlands) headland.update(time, night, eye);
   }
   dispose() {
     this.joinery.dispose();
+    for (const tower of this.towers) tower.dispose();
     for (const headland of this.headlands) headland.dispose();
     this.atlasMap.value?.dispose();
     this.root.traverse((o) => {
