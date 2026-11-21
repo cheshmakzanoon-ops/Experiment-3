@@ -135,6 +135,11 @@ describe('Festival car surface construction', () => {
       for (const lod of body.lods) {
         const root = lod.group;
         root.updateMatrixWorld(true);
+        // Raycaster visits invisible descendants by default. The live feed overlay is
+        // parked until cockpit rendering; inspect the surfaces that this LOD draws.
+        const visible: T.Mesh[] = [];
+        root.visible = true;
+        root.traverseVisible(node => { if (node instanceof T.Mesh) visible.push(node); });
         for (const side of [-1, 1]) {
           const ray = new T.Raycaster(
             new T.Vector3(side * layout.x, layout.y, layout.z - 0.34),
@@ -142,14 +147,15 @@ describe('Festival car surface construction', () => {
             0,
             0.48,
           );
-          const hit = ray.intersectObject(root, true)[0];
+          const hit = ray.intersectObjects(visible, false)[0];
           expect(hit, `${id} pane`).toBeDefined();
           const mat = (hit.object as T.Mesh).material;
           expect(Array.isArray(mat) ? mat[hit.face!.materialIndex] : mat).toBe(
             sharedMaterials.chrome(),
           );
-          expect(hit.face!.normal.z).toBeLessThan(-0.85);
-          expect(hit.face!.normal.x * side).toBeLessThan(0);
+          const normal = hit.face!.normal.clone().applyNormalMatrix(new T.Matrix3().getNormalMatrix(hit.object.matrixWorld));
+          expect(normal.z, `${id} ${side} rearward pane`).toBeLessThan(-0.85);
+          expect(normal.x * side, `${id} ${side} inward pane`).toBeLessThan(0);
           expect(Math.abs(hit.point.x)).toBeGreaterThan(model.halfWidth(layout.z));
         }
       }
