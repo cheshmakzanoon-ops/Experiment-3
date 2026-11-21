@@ -131,6 +131,32 @@ describe('local wet rubber grip', () => {
       expect(Math.abs(distances[1][i] - distances[0][i]) / distances[1][i]).toBeLessThan(0.005);
   });
 
+  it.each(['gpr1', 'gpr2'] as const)('%s water lift follows the axle support and speed over the road', (id) => {
+    const track = new Track('clear');
+    const sample = (front: number, rear: number, water: number, speed: number) => {
+      const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', VEHICLES[id]);
+      bike.place(track, 120);
+      bike.dynamics.speed = speed;
+      bike.dynamics.contactLoads = { front, rear };
+      // Identical water at both ends. Reversing the support mimics the
+      // change from braking to acceleration without changing the tyre.
+      for (const surface of bike.contacts) surface.water = water;
+      bike.dynamics.motoGP!.rearOmega = 500;
+      bike.step(1 / 120, track);
+      const [f, fa, r, ra] = bike.tires;
+      expect([fa.aquaplane, ra.aquaplane]).toEqual([f.aquaplane, r.aquaplane]);
+      return { lift: [f.aquaplane, r.aquaplane], grip: [bike.dynamics.frontGrip!, bike.dynamics.rearGrip!] };
+    };
+    const braking = sample(2150, 600, 3, 51), drive = sample(600, 2150, 3, 51);
+    expect(braking.lift[1]).toBeGreaterThan(braking.lift[0] + .25);
+    expect(drive.lift[0]).toBeGreaterThan(drive.lift[1] + .25);
+    expect(braking.grip[0]).toBeGreaterThan(drive.grip[0]);
+    expect(braking.grip[1]).toBeLessThan(drive.grip[1]);
+    expect(sample(0, 2100, 3, 51).lift[0]).toBe(0);
+    expect(sample(1200, 1300, 3, 0).lift).toEqual([0, 0]);
+    expect(sample(2000, 600, 0, 51)).toEqual(sample(600, 2000, 0, 51));
+  });
+
   it('reaches GP front and rear grip separately through the real session adapter', () => {
     const track = new Track('clear'),
       bike = new BikeVehicle(0, 'wet', DEFAULT_SETUP, 'sport', VEHICLES.gpr1);

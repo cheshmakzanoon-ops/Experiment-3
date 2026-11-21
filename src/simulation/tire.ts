@@ -330,26 +330,29 @@ function treadTexture(sample: SurfaceSample, pure: number) {
   return patchValue(sample, pure, roadAsphalt.textureMm, roadPaint.textureMm, shoulder.textureMm);
 }
 
+/** Normal load available to squeeze water out of this patch. A stationary
+ * wheel can be sliding across water and a spinning wheel can be at rest
+ * over it, so use speed over the ground rather than wheel angular speed. */
+export function contactWaterLift(t: Tire, normalLoad: number, patch: SurfaceSample, groundSpeed: number) {
+  if (patch.water <= 0 || normalLoad <= 0) return 0;
+  const texture = treadTexture(patch, surfaceMaterial(patch.surface).textureMm);
+  return aquaplaning(t.compound, normalLoad, patch.water, groundSpeed, t.wear, t.pressure, texture);
+}
+
 /** Peak friction coefficient μ (excluding camber, which needs the slip
  * direction). Load sensitivity, grip window, water film, aquaplaning, wear,
  * contamination, damage, pressure, rubber/marbles and the ground material. */
-export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number) {
+export function peakGrip(
+  t: Tire, load: number, s: SurfaceSample, speed: number,
+  hydro = contactWaterLift(t, load, s, speed),
+) {
   const c = COMPOUNDS[t.compound],
     k = t.construction,
     m = surfaceMaterial(s.surface),
     loadRatio = Math.max(load, 100) / k.nominalLoad,
     wetRatio = s.water / (s.water + c.waterTolerance),
     wetPenalty =
-      (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio,
-    hydro = aquaplaning(
-      t.compound,
-      load,
-      s.water,
-      speed,
-      t.wear,
-      t.pressure,
-      treadTexture(s, m.textureMm),
-    );
+      (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio;
   let ground = materialGrip(m, s.water, s.temp) / m.grip,
     surface = surfaceGrip(t, s),
     rubber = rubberGrip(m, s.rubber, s.water) - s.marbles * 0.14;

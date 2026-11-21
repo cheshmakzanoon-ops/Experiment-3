@@ -27,7 +27,7 @@ import { MARSHAL } from './marshal.ts';
 import { bikeSlipstreamDragScale, gpWingEfficiency } from './bike-slipstream.ts';
 import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
-import { peakGrip } from './tire.ts';
+import { contactWaterLift, peakGrip } from './tire.ts';
 import { SURFACE, surfaceSample, trackPoint, type SurfaceSample, type Track } from './track.ts';
 import { Vehicle, engineTorque } from './vehicle.ts';
 import { CROSSWIND, crosswindForce, windLoadFactor } from './weather.ts';
@@ -373,10 +373,21 @@ export class BikeVehicle extends Vehicle {
   }
   /** Grip multiplier of a contact patch relative to a fresh dry slick. */
   protected surfaceGrip(i: number) {
-    const t = this.tires[i];
-    return (
-      peakGrip(t, 2200, this.contacts[i], Math.max(this.dynamics.speed, 20)) / COMPOUNDS.medium.mu
-    );
+    const t = this.tires[i], patch = this.contacts[i], d = this.dynamics, gp = d.motoGP;
+    if (!gp) return peakGrip(t, 2200, patch, Math.max(d.speed, 20)) / COMPOUNDS.medium.mu;
+    // The GP contact solver already applies each tyre's normal force. Keep
+    // its calibrated dry friction curve while using the axle's own support
+    // for water evacuation. Each sample and its load come from the last
+    // completed substep; before the first contact use static weight balance.
+    const front = i === 0, spec = this.bikeSpec;
+    const normalLoad = front ? d.contactLoads?.front : d.contactLoads?.rear;
+    const staticLoad = d.mass * G * (front ? spec.cgToRear : spec.cgToFront) / this.spec.wheelbase;
+    const arm = front ? spec.cgToFront : -spec.cgToRear;
+    const lateral = this.slide + gp.lateralSpeed + gp.yawRate * arm;
+    const groundSpeed = Math.hypot(d.speed, lateral);
+    const lift = this.riding ? contactWaterLift(t, normalLoad ?? staticLoad, patch, groundSpeed) : 0;
+    t.aquaplane = this.tires[i + 1].aquaplane = lift;
+    return peakGrip(t, 2200, patch, groundSpeed, lift) / COMPOUNDS.medium.mu;
   }
   protected drive(dt: number, throttle: number) {
     const spec = this.spec,

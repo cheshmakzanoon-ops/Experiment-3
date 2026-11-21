@@ -86,8 +86,9 @@ import {
  * v30: GP steering follows the raked wheel on its measured road plane.
  * v31: rear GP tyre forces and heating use the rear contact's rolling plane.
  * v32: GP riders arrest yaw during braking as the rear wheel begins to slide.
- * Support-class road riders reserve tyre capacity and brake along their actual lane. */
-export const SIMULATION_VERSION = 32;
+ * Support-class road riders reserve tyre capacity and brake along their actual lane.
+ * v33: each GP contact evacuates water at its measured axle load and ground speed. */
+export const SIMULATION_VERSION = 33;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
