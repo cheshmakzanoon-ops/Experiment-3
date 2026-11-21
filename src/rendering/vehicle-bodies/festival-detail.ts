@@ -240,6 +240,7 @@ export interface FasciaOpening {
   height: number;
   radius: number;
   depth: number;
+  form?: 'touring' | 'sport' | 'classic' | 'curtain';
 }
 /** Openings are bounded by the real end section, not invented car dimensions.
  * Keeping the same aperture outline in LOD0/1 prevents a grille pop at 35 m. */
@@ -264,16 +265,50 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
   if (!(width > 0.14 && height > 0.025)) return [];
   const depth = rear ? 0.09 : s.style === 'truck' ? 0.15 : 0.11;
   const split = !rear && (s.style === 'supercar' || s.style === 'prototype');
-  if (split)
-    return [-1, 1].map((side) => ({
-      x: side * width * 0.26,
-      y,
-      width: width * 0.44,
-      height,
-      radius: Math.min(height * 0.22, 0.025),
-      depth,
-    }));
-  return [{ x: 0, y, width, height, radius: Math.min(height * 0.22, 0.035), depth }];
+  const form =
+    !rear && s.mirrorForm && s.mirrorForm !== 'work'
+      ? s.mirrorForm === 'bullet'
+        ? 'classic'
+        : s.mirrorForm === 'sport'
+          ? 'sport'
+          : 'touring'
+      : undefined;
+  const main: FasciaOpening[] = split
+    ? [-1, 1].map((side) => ({
+        x: side * width * 0.26,
+        y,
+        width: width * 0.44,
+        height,
+        radius: Math.min(height * 0.22, 0.025),
+        depth,
+        form,
+      }))
+    : [{ x: 0, y, width, height, radius: Math.min(height * 0.22, 0.035), depth, form }];
+  // Inboard of the bumper cheek, tucked beneath the upper lamp assembly.
+  // Upright lamp stacks and the classic treatment keep their own end panels.
+  if (!rear && !lamps.length && (form === 'sport' || form === 'touring')) {
+    const inner = width * 0.5 + 0.042;
+    const curtainHeight = height * 0.78;
+    const curtainY = y - height * 0.075;
+    const outer =
+      Math.min(
+        model.sideX(z, curtainY - curtainHeight * 0.5),
+        model.sideX(z, curtainY + curtainHeight * 0.5),
+      ) - 0.033;
+    const curtainWidth = Math.min(outer - inner, 0.142);
+    if (curtainWidth > 0.063)
+      for (const side of [-1, 1])
+        main.push({
+          x: side * (outer - curtainWidth * 0.5),
+          y: curtainY,
+          width: curtainWidth,
+          height: curtainHeight,
+          radius: Math.min(curtainWidth * 0.17, 0.02),
+          depth: 0.086,
+          form: 'curtain',
+        });
+  }
+  return main;
 }
 
 function roundedOutline(w: number, h: number, r: number, segments: number): Pt[] {
@@ -291,6 +326,40 @@ function roundedOutline(w: number, h: number, r: number, segments: number): Pt[]
     }
   return out;
 }
+/** Local contour shared by the hole, rolled lip and liner. Both LODs
+ * retain the exact width and arc stations that define each mouth. */
+export function festivalMouthContour(mouth: FasciaOpening, detail: Detail): Pt[] {
+  const w = mouth.width,
+    h = mouth.height;
+  if (mouth.form === 'classic') {
+    const n = detail === 0 ? 32 : 20;
+    return Array.from({ length: n }, (_, i) => {
+      const a = (2 * Math.PI * i) / n,
+        c = Math.cos(a),
+        s = Math.sin(a);
+      return [
+        0.5 * w * Math.sign(c) * Math.abs(c) ** 0.73,
+        0.5 * h * Math.sign(s) * Math.abs(s) ** 0.76,
+      ];
+    });
+  }
+  const base = roundedOutline(w, h, mouth.radius, detail === 0 ? 4 : 2);
+  if (!mouth.form) return base;
+  const hand = Math.sign(mouth.x);
+  return base.map(([x, y]) => {
+    const t = y / h + 0.5,
+      u = x / w;
+    switch (mouth.form) {
+      case 'curtain':
+        return [x * (0.72 + 0.27 * t) + w * 0.115 * (t - 0.5) * hand, y];
+      case 'sport':
+        return [x * (0.74 + 0.25 * t) + hand * w * (t - 0.5) * 0.095, y + hand * u * h * 0.065];
+      default:
+        return [x * (0.79 + 0.2 * t), y];
+    }
+  });
+}
+
 function asVectors(points: readonly Pt[]) {
   return points.map(([x, y]) => new T.Vector2(x, y));
 }
@@ -308,7 +377,7 @@ export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear =
   ];
   const shape = new T.Shape(asVectors(outline));
   for (const mouth of festivalFasciaOpenings(model, rear)) {
-    const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
+    const contour = festivalMouthContour(mouth, detail);
     shape.holes.push(new T.Path(contour.map(([x, y]) => new T.Vector2(x + mouth.x, y + mouth.y))));
   }
   if (!rear)
@@ -373,7 +442,7 @@ function addFascia(
     rear ? 'Sculpted rear fascia' : 'Sculpted front fascia',
   );
   for (const mouth of festivalFasciaOpenings(model, rear)) {
-    const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
+    const contour = festivalMouthContour(mouth, detail);
     const at = placed(mouth.x, mouth.y, z);
     // Cooling cavities need a rough, dark liner. Satin carbon on an up-facing
     // duct floor mirrors the bright sky at a low camera as a solid white strip:
@@ -392,15 +461,27 @@ function addFascia(
       rear ? sharedMaterials.plastic() : darkOptics,
       placed(mouth.x, mouth.y, coreZ - sign * 0.01),
     );
-    const rows = detail === 0 ? Math.max(4, Math.round(mouth.height / 0.012)) : 4;
+    // On road cars the fins are pressed sheet, with a small inclined face.
+    // A subpixel rounded-box bevel on every radiator fin wastes thousands
+    // of triangles through a grille and produces pinprick highlights.
+    const pressed = !!mouth.form;
+    const curtain = mouth.form === 'curtain';
+    const rows = curtain ? 3 : detail === 0 ? Math.max(4, Math.round(mouth.height / 0.012)) : 4;
     for (let k = 0; k < rows; k++) {
       const y = mouth.y + ((k + 0.5) / rows - 0.5) * mouth.height * 0.8;
       parts.add(
-        roundedBox(mouth.width * 0.85, rear ? 0.006 : 0.0035, 0.009, 0.0015, 1),
-        rear ? sharedMaterials.trim() : sharedMaterials.steel(),
-        placed(mouth.x, y, coreZ),
+        pressed
+          ? new T.BoxGeometry(
+              mouth.width * 0.86,
+              curtain ? 0.009 : 0.004,
+              curtain ? 0.021 : 0.009,
+            ).rotateX(curtain ? -0.3 : -0.17)
+          : roundedBox(mouth.width * 0.85, rear ? 0.006 : 0.0035, 0.009, 0.0015, 1),
+        rear || curtain ? sharedMaterials.trim() : sharedMaterials.steel(),
+        placed(mouth.x, y, coreZ + (curtain ? 0.04 : 0)),
       );
     }
+    if (curtain) continue;
     // Real slats ahead of the radiator are separated by daylight-visible gaps.
     const bars = rear
       ? 7

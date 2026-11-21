@@ -11,7 +11,11 @@ import {
   festivalNoseZ,
   type FestivalLampPocket,
 } from '../src/rendering/vehicle-bodies/festival-nose.ts';
-import { festivalFasciaOpenings } from '../src/rendering/vehicle-bodies/festival-detail.ts';
+import {
+  festivalFasciaCap,
+  festivalFasciaOpenings,
+  festivalMouthContour,
+} from '../src/rendering/vehicle-bodies/festival-detail.ts';
 
 function build(id: string, sweep = true) {
   const definition = VEHICLES[id],
@@ -46,6 +50,51 @@ function pocketRay(model: ClosedBodyModel, pocket: FestivalLampPocket, x: number
 }
 
 describe('RH3, SC7 and EH3 integrated front ends', () => {
+  it('cuts shaped outboard curtains and leaves a solid painted bridge at both driving LODs', () => {
+    const material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+    for (const id of ['rh3', 'sc7', 'eh3', 'rs5', 'rp6', 'rr4', 'rm8', 'rd2', 'rg63', 'lx12']) {
+      const v = VEHICLES[id],
+        sheet = bodySheetFor(v) as ClosedSheet;
+      const model = new ClosedBodyModel(bodyFrame(v), sheet, [
+        sheet.wheels.width[0] / 2,
+        sheet.wheels.width[1] / 2,
+      ]);
+      const openings = festivalFasciaOpenings(model),
+        curtains = openings.filter((o) => o.form === 'curtain');
+      expect(curtains.length, id).toBe(['rh3', 'sc7', 'eh3'].includes(id) ? 2 : 0);
+      for (const detail of [0, 1] as const) {
+        const cap = new T.Mesh(festivalFasciaCap(model, detail), material);
+        const probe = (x: number, y: number) =>
+          new T.Raycaster(
+            new T.Vector3(x, y, model.zFront + 0.2),
+            new T.Vector3(0, 0, -1),
+            0,
+            0.4,
+          ).intersectObject(cap);
+        for (const o of openings) {
+          const outline = festivalMouthContour(o, detail);
+          expect(T.ShapeUtils.area(outline.map(([x, y]) => new T.Vector2(x, y)))).toBeGreaterThan(
+            o.width * o.height * 0.55,
+          );
+          expect(probe(o.x, o.y), id).toHaveLength(0);
+          if (o.form !== 'curtain') continue;
+          const inner = Math.abs(o.x) - o.width * 0.5;
+          const neighbour = Math.max(
+            ...openings
+              .filter((p) => p.form !== 'curtain')
+              .map((p) => Math.abs(p.x) + p.width * 0.5),
+          );
+          expect(inner - neighbour, id).toBeGreaterThan(0.015);
+          expect(probe(Math.sign(o.x) * (inner + neighbour) * 0.5, o.y).length, id).toBeGreaterThan(
+            0,
+          );
+        }
+        cap.geometry.dispose();
+      }
+    }
+    material.dispose();
+  });
+
   it('cuts actual lamp holes, retains nearby painted skin and exposes recessed optics', () => {
     for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);

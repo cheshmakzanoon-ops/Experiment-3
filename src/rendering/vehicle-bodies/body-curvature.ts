@@ -18,6 +18,7 @@ export function tessellateBodyCurve(
     values: Array.from(attribute.array),
   }));
   const positions = attributes.find((a) => a.name === 'position')!.values;
+  const sourceComponents = positions.length;
   const source = geometry.index
     ? Array.from(geometry.index.array)
     : Array.from({ length: positions.length / 3 }, (_, i) => i);
@@ -170,6 +171,19 @@ export function tessellateBodyCurve(
       count: indices.length - first,
       materialIndex: group.materialIndex,
     });
+  }
+  // A linear blend between two unit normals falls inside the unit sphere.
+  // Keep authored corners intact and restore unit length on new vertices,
+  // including the seams where the following deformation is exactly zero.
+  const normals = attributes.find((attribute) => attribute.name === 'normal')?.values;
+  if (normals) {
+    for (let i = sourceComponents; i < normals.length; i += 3) {
+      const length = Math.hypot(normals[i], normals[i + 1], normals[i + 2]);
+      if (length === 0) continue;
+      normals[i] /= length;
+      normals[i + 1] /= length;
+      normals[i + 2] /= length;
+    }
   }
   for (const attribute of attributes)
     geometry.setAttribute(
