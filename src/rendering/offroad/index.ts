@@ -142,8 +142,8 @@ export class OffroadScene {
         if (course.kind === 'motocross')
           // After the furniture: onlookers keep clear of its service bays and posts.
           this.queue(construction, 'MX spectators and marshals', 4, () => {
-            this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? []);
-            this.group.add(this.spectators.root);
+            this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? [], this.dressing?.courseSites);
+            this.group.add(this.spectators.root, this.spectators.rails);
           });
         if (course.kind === 'motocross') {
           this.meadow = new MxMeadow(
@@ -155,7 +155,7 @@ export class OffroadScene {
           this.meadow.queueInitial(construction);
         }
         this.queue(construction, 'MX course identities and jump profiles', 2, () => {
-          this.landmarks = new MxCourseLandmarks(track);
+          this.landmarks = new MxCourseLandmarks(track, this.dressing?.courseSites);
           this.group.add(this.landmarks.root);
         });
       }

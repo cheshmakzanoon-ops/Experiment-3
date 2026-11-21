@@ -96,6 +96,7 @@ export class MxCourseDressing {
     bales: 0,
     vans: 0,
   };
+  readonly courseSites: ReturnType<typeof planMxCourseSites>;
   private readonly ownedTextures = new Set<T.Texture>();
   private readonly batches = new Map<T.Material, T.BufferGeometry[]>();
   private readonly point = trackPoint();
@@ -215,6 +216,7 @@ export class MxCourseDressing {
       this.shoulders(r);
     }
     this.trackside = new MxTracksideFurniture(track, this.venueTime, this.wind);
+    this.courseSites = planMxCourseSites(track, this.trackside.plan.sites);
     this.root.add(this.trackside.root);
     this.stats.canopies = this.trackside.stats.canopy;
     if (!indoor) {
@@ -435,7 +437,7 @@ export class MxCourseDressing {
       course = this.surface.course,
       ahead = trackPoint(),
       behind = trackPoint(),
-      occupied = [...this.trackside.plan.sites, ...planMxCourseSites(track).landmarks];
+      occupied = [...this.trackside.plan.sites, ...this.courseSites.landmarks];
     const sail = (row: number, phase: number) => {
       const columns = 6,
         rows = 10,
@@ -506,7 +508,7 @@ export class MxCourseDressing {
       vanColours: T.Color[] = [],
       vanCrews: number[] = [],
       sites = this.trackside.plan.sites,
-      landmarks = planMxCourseSites(track).landmarks,
+      landmarks = this.courseSites.landmarks,
       random = new Random(52811);
     const free = (x: number, z: number, r: number) =>
       !sites.some((q) => Math.hypot(q.x - x, q.z - z) < q.radius + r) &&

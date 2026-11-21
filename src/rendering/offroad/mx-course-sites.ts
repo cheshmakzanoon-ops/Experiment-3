@@ -4,7 +4,7 @@ import type { JumpSurvey } from '../../simulation/offroad/profile.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { tracksideRigs } from '../trackside.ts';
-import { mxFurnitureGround, planMxTracksideFurniture } from './mx-trackside-furniture.ts';
+import { mxFurnitureGround, planMxTracksideFurniture, type MxFurnitureSite } from './mx-trackside-furniture.ts';
 import { STADIUM } from './stadium-dimensions.ts';
 
 export interface MxCourseSite {
@@ -44,7 +44,7 @@ const SETBACKS = [1, 3, 6, 10, 15, 21];
  * encounter. A circular envelope contains every rotated model corner and is
  * rejected against every centreline segment, including neighbouring SX lanes.
  * No terrain, racing width, collision boundary or jump survey is modified. */
-export function planMxCourseSites(track: Track): {
+export function planMxCourseSites(track: Track, furnitureSites?: readonly MxFurnitureSite[]): {
   landmarks: MxCourseSite[];
   guides: MxJumpGuide[];
   rejected: number;
@@ -92,7 +92,7 @@ export function planMxCourseSites(track: Track): {
       }
     }
   }
-  const furniture = planMxTracksideFurniture(track).sites,
+  const furniture = furnitureSites ?? planMxTracksideFurniture(track).sites,
     cameras = tracksideRigs(track),
     landmarks: MxCourseSite[] = [],
     guides: MxJumpGuide[] = [];

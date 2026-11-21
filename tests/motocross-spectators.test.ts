@@ -69,6 +69,38 @@ describe('MX spectators and flag marshals', () => {
     none.dispose();
   });
 
+  it('grounds each public rail outside all race lanes and leaves the static metal in the shadow bake', () => {
+    const track = rigTrack('valley-ridge-mx'), surface = Track.offroadOf(track) as TrackTerrainSurface;
+    const dressing = new MxCourseDressing(track), crowd = new MxSpectators(track, dressing.trackside.plan.sites, dressing.courseSites);
+    const rails = crowd.rails.getObjectByName('Galvanised viewing barriers') as T.InstancedMesh;
+    try {
+      expect(crowd.root.getObjectByName(rails.name)).toBeUndefined();
+      expect(rails.isInstancedMesh && rails.castShadow).toBe(true);
+      expect(rails.count).toBeGreaterThan(6);
+      expect(rails.count).toBeLessThan(120);
+      const p = rails.geometry.getAttribute('position'), point = trackPoint(), matrix = new T.Matrix4(), location = new T.Vector3();
+      const reserved = [...dressing.trackside.plan.sites, ...dressing.courseSites.landmarks, ...dressing.courseSites.guides];
+      let maxFootGap = 0;
+      for (let i = 0; i < rails.count; i++) {
+        rails.getMatrixAt(i, matrix);
+        location.setFromMatrixPosition(matrix);
+        for (const obstacle of reserved) expect(Math.hypot(location.x - obstacle.x, location.z - obstacle.z)).toBeGreaterThan(obstacle.radius + 1.5);
+        for (let j = 0; j < p.count; j++) {
+          if (p.getY(j) > 1e-5) continue;
+          location.fromBufferAttribute(p, j).applyMatrix4(matrix);
+          const lateral = track.nearest(location.x, location.z, point);
+          expect(Math.abs(lateral)).toBeGreaterThan(surface.course.legalWidth(point.width, point.s, lateral) + 2.85);
+          maxFootGap = Math.max(maxFootGap, Math.abs(location.y - mxFurnitureGround(track, location.x, location.z)));
+        }
+      }
+      expect(maxFootGap).toBeLessThan(.09);
+      expect((rails.geometry.getIndex()!.count / 3) * rails.count).toBeLessThan(50000);
+    } finally {
+      dressing.dispose();
+      crowd.dispose();
+    }
+  });
+
   it('thins the standing public independently of race officials on Low and Medium', () => {
     const track = rigTrack('valley-ridge-mx'),
       dressing = new MxCourseDressing(track),

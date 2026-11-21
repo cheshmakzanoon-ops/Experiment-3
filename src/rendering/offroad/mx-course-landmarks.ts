@@ -547,7 +547,7 @@ export class MxCourseLandmarks {
   private readonly atlas: T.Texture;
   private readonly materials: Record<Role, T.MeshStandardMaterial>;
   private disposed = false;
-  constructor(track: Track) {
+  constructor(track: Track, surveyed?: ReturnType<typeof planMxCourseSites>) {
     const surface = Track.offroadOf(track);
     if (
       !(surface instanceof TrackTerrainSurface) ||
@@ -555,7 +555,7 @@ export class MxCourseLandmarks {
     )
       throw new Error('Course landmarks require an MX or SX track');
     this.root.name = 'MX course identities and surveyed jump guides';
-    this.plan = planMxCourseSites(track);
+    this.plan = surveyed ?? planMxCourseSites(track);
     const atlas = guideAtlas(surface.course);
     this.atlas = atlas.texture;
     this.materials = landmarkMaterials(atlas.texture, this.plan.landmarks.length > 0);

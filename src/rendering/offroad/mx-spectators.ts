@@ -7,6 +7,8 @@ import { installCrowdShader, spectatorGeometry, spectatorVariation } from '../cr
 import { inStandFootprint } from '../grandstand.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { onMxDetail } from './mx-quality.ts';
+import { planMxCourseSites } from './mx-course-sites.ts';
+import { mxViewingRails } from './mx-viewing-rails.ts';
 import { MxCrowdPass } from './mx-crowd-pass.ts';
 import {
   mxFurnitureGround,
@@ -148,6 +150,7 @@ const CHUNK = 140;
 
 export class MxSpectators {
   readonly root = new T.Group();
+  readonly rails: T.Group;
   readonly stats = { spectators: 0, marshals: 0, groups: 0, triangles: 0, draws: 0 };
   readonly plan: ReturnType<typeof planMxSpectators>;
   private readonly crowds: { mesh: T.InstancedMesh; total: number }[] = [];
@@ -161,9 +164,12 @@ export class MxSpectators {
   };
   private readonly unsubscribe: (() => void) | null = null;
   private disposed = false;
-  constructor(track: Track, furniture: readonly MxFurnitureSite[]) {
+  constructor(track: Track, furniture: readonly MxFurnitureSite[], surveyed?: ReturnType<typeof planMxCourseSites>) {
     this.root.name = 'MX spectators and flag marshals';
     this.plan = planMxSpectators(track, furniture);
+    const sites = this.plan.groups ? surveyed ?? planMxCourseSites(track, furniture) : undefined;
+    this.rails = mxViewingRails(track, this.plan.placements,
+      sites ? [...furniture, ...sites.landmarks, ...sites.guides] : furniture);
     // Race officials render through the articulated marshal rig at every
     // graphics preset. Only the public is part of the thinned crowd.
     const placements = this.plan.placements.filter((p) => p.kind === 'spectator');
@@ -263,7 +269,7 @@ export class MxSpectators {
     if (this.disposed) return;
     this.disposed = true;
     this.unsubscribe?.();
-    disposeOffroadResources([this.root]);
+    disposeOffroadResources([this.root, this.rails]);
     this.crowds.length = 0;
   }
 }
