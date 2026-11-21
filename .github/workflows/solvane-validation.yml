@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/solvane-validation.yml
       - scripts/solvane-browser-review.mjs
+      - authoring/motocross/install_blender.sh
       - src/rendering/open-world/solvane-details.ts
       - public/models/solvane/**
       - authoring/solvane/build_detail_kit.py
@@ -52,18 +53,15 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify the pinned authoring tool
-        run: |
-          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
-          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
-          mkdir "$RUNNER_TEMP/blender"
-          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+        run: bash authoring/motocross/install_blender.sh "$RUNNER_TEMP"
       - name: Reopen the committed native source; never rebuild it in place
         run: |
-          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_detail_kit.py -- --source "$PWD/authoring/solvane/detail-kit.blend" --output-root "$RUNNER_TEMP/reexport"
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_detail_kit.py -- --source "$PWD/authoring/solvane/detail-kit.blend" --output-root "$RUNNER_TEMP/reexport"
           cmp public/models/solvane/detail-kit.glb "$RUNNER_TEMP/reexport/public/models/solvane/detail-kit.glb"
           git diff --exit-code
   browser:
-    needs: [contracts, native-source]
+    # The browser reads the committed GLB. The native re-export remains an independent check.
+    needs: contracts
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
