@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
 import * as T from 'three';
+import { openWorld } from '../src/simulation/open-world/world.ts';
+import { RoadMeshes } from '../src/rendering/open-world/roads.ts';
 import { buildTownLamps } from '../src/rendering/open-world/town-lamps.ts';
 
 it('preserves every mast, cast shadow and optic socket while distant luminaires shed subpixel castings', () => {
@@ -47,4 +49,26 @@ it('preserves every mast, cast shadow and optic socket while distant luminaires 
   for (const g of geometries) g.dispose();
   post.dispose();
   lens.dispose();
+});
+
+it('selects streetlamp detail from the live road scene without moving the light pool', () => {
+  const world = openWorld();
+  const roads = new RoadMeshes(world.network, world.field);
+  try {
+    const fixtures = roads.root.getObjectByName('Port Ilse street luminaires')!;
+    const sockets = roads.lampSockets.map((s) => s.position.toArray());
+    expect(sockets.length).toBe(240);
+    roads.setNight(1, new T.Vector3(560, 7, -2598), 'low');
+    const count = (name: string) => fixtures.children.reduce((sum, mesh) =>
+      sum + (mesh.name === name && mesh.visible ? (mesh as T.InstancedMesh).count : 0), 0);
+    const near = count('Town lamp posts');
+    expect(near).toBeGreaterThan(0);
+    expect(count('Distant town lamp posts')).toBe(sockets.length - near);
+    roads.setNight(0, new T.Vector3(3000, 400, 1200), 'medium');
+    expect(count('Town lamp posts')).toBe(0);
+    expect(count('Distant town lamp heads')).toBe(sockets.length);
+    expect(roads.lampSockets.map((s) => s.position.toArray())).toEqual(sockets);
+  } finally {
+    roads.dispose();
+  }
 });

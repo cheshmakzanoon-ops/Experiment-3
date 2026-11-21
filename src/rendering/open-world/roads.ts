@@ -657,7 +657,7 @@ export class RoadMeshes {
           const paving = builder(mid.x, mid.z, 'paving');
           for (const side of [-1, 1]) addCrossingLanding(paving, net, e, site, side);
         }
-        this.townLamps(e, lamps);
+        this.placeTownLamps(e, lamps);
       }
       this.piers(e, builder);
     }
@@ -934,7 +934,7 @@ export class RoadMeshes {
       );
     }
   }
-  private townLamps(e: RoadEdge, lamps: T.Matrix4[]) {
+  private placeTownLamps(e: RoadEdge, lamps: T.Matrix4[]) {
     const net = this.network,
       p = roadPoint();
     const footways = townFootways(net);
@@ -969,7 +969,7 @@ export class RoadMeshes {
     this.airfieldLights.setNight(night, eye);
     if (eye) {
       this.ironwork.update(eye);
-      this.townLamps?.update(eye,quality);
+      this.townLamps?.update(eye, quality);
     }
     this.lampMaterial.emissiveIntensity = 0.05 + night * 9;
     this.reflectorMaterial.emissiveIntensity = 0.02 + night * 0.72;
