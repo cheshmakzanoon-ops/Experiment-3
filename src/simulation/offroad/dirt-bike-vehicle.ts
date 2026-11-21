@@ -131,6 +131,7 @@ export class DirtBikeVehicle extends BikeVehicle {
   airYaw = 0;
   airYawRate = 0;
   private riderBankInFlight = false;
+  private airContactRollRate = 0;
   /** Suspension compressions (m) and the forces they carry (N). */
   compressionFront = 0;
   compressionRear = 0;
@@ -284,6 +285,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.vy = this.pitchRate = 0;
     this.airYaw = this.airYawRate = 0;
     this.riderBankInFlight = false;
+    this.airContactRollRate = 0;
     this.riderWeight.reset();
     this.riderAirRate = 0;
     this.riderBody = this.automaticBody;
@@ -375,7 +377,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       b = this.body,
       spec = this.bikeSpec;
     this.debris.step(dt, track);
-    const speedBeforeCollision = d.speed;
+    const speedBeforeCollision = d.speed, rollRateBeforeCollision = d.leanRate;
     this.absorbExternal(dt);
     const externalSpeedImpulse = Math.abs(d.speed - speedBeforeCollision) > 0.05;
     const ai = this.aiSteps > 0;
@@ -408,6 +410,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     const course = offroadCourse(track.circuit),
       motocross = course?.kind === 'motocross' || course?.kind === 'supercross';
     if (motocross && this.airborne) {
+      if (ai && !this.riderBankInFlight)
+        this.airContactRollRate += d.leanRate - rollRateBeforeCollision;
       // The inherited absorber sends a transverse impulse to slide. Its
       // angular impulse belongs to the chassis while both wheels are free:
       // rotating the ballistic heading would curve the path after contact.
@@ -828,7 +832,23 @@ export class DirtBikeVehicle extends BikeVehicle {
     // The demonstration rider levels a bank commanded by the player in this
     // flight. A yaw-only collision rotates the machine about a different axis.
     if (!ai) this.riderBankInFlight = true;
-    if (this.riderBankInFlight) this.airLean(dt, ai);
+    if (this.riderBankInFlight) {
+      this.airContactRollRate = 0;
+      this.airLean(dt, ai);
+    } else if (this.airContactRollRate !== 0) {
+      // The pack rider braces against a contact roll around its existing
+      // bank. Integrate only the new roll velocity over its 125 ms damping
+      // time. The external absorber already added it to the total lean rate.
+      const lostRate = this.airContactRollRate * -Math.expm1(-8 * dt);
+      const angle = d.lean + lostRate / 8;
+      d.lean = clamp(angle, -this.bikeSpec.maxLean, this.bikeSpec.maxLean);
+      d.leanRate -= lostRate;
+      this.airContactRollRate -= lostRate;
+      if (d.lean !== angle || Math.abs(this.airContactRollRate) < 1e-5) {
+        d.leanRate -= this.airContactRollRate;
+        this.airContactRollRate = 0;
+      }
+    }
     this.airWhip(dt, ai);
     d.steer = approach(d.steer, 0, dt * 2);
     d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
@@ -1351,6 +1371,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         // Touchdown: judged once both the speed split and pitch are known.
         this.airborne = false;
         this.landings++;
+        this.airContactRollRate = 0;
         const slopeAt = Math.atan(
           cF > 0 && cR > 0 ? 0.5 * (slope(0) + slope(2)) : cF > 0 ? slope(0) : slope(2),
         );
@@ -1422,6 +1443,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.airborne = true;
         this.airTime = 0;
         this.riderBankInFlight = false;
+        this.airContactRollRate = 0;
         // Initialise composite momentum from the real take-off rate; any
         // rider movement already begun on the ground is not applied twice.
         this.riderAirRate = -coupling * this.riderWeight.velocity;

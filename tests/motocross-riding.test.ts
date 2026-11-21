@@ -424,6 +424,20 @@ describe('motocross whip and tyre alignment', () => {
     expect(landing.outcome).not.toBe('crash-side');
   });
 
+  it.each([-1, 1])('shows an airborne pack rider absorb a roll impulse from side %s', (side) => {
+    const free = launch('sport', true), hit = launch('sport', true);
+    const heading = hit.bike.heading;
+    hit.bike.body.omega.x += side * Math.sin(heading) * 1.1;
+    hit.bike.body.omega.z += side * Math.cos(heading) * 1.1;
+    fly(free, 0.14);
+    fly(hit, 0.14);
+    expect(hit.bike.airborne && free.bike.airborne).toBe(true);
+    expect(side * (hit.bike.dynamics.lean - free.bike.dynamics.lean)).toBeLessThan(-0.06);
+    expect(Math.abs(hit.bike.dynamics.leanRate - free.bike.dynamics.leanRate)).toBeLessThan(0.5);
+    expect(hit.bike.dynamics.x).toBeCloseTo(free.bike.dynamics.x, 8);
+    expect(hit.bike.dynamics.z).toBeCloseTo(free.bike.dynamics.z, 8);
+  });
+
   it('keeps a yaw-only contact out of the airborne demonstration rider’s bank controller', () => {
     const free = launch('sport', true), hit = launch('sport', true);
     for (const run of [free, hit]) {
