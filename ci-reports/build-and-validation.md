@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44849773010
-- commit: `615eb26675` · Shape the Festival road fleet with wrapped valances and a bonded hatch visor
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44850437999
+- commit: `feaf96686b` · Animate GP rider load absorption and rain on cockpit and helmet glass
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-21T01:22:15Z · updated: 2026-11-21T01:28:32Z
+- started: 2026-11-21T01:29:09Z · updated: 2026-11-21T01:31:02Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| scenarios | cancelled | 6 |  |
-| validate | cancelled | 6 |  |
-| unit-tests (1) | cancelled | 6 |  |
-| offroad-scenarios | cancelled | 6 |  |
-| unit-tests (3) | cancelled | 6 |  |
-| unit-tests (2) | cancelled | 6 |  |
-| unit-tests (4) | cancelled | 6 |  |
-| publish | cancelled | 0 |  |
-| wet-presentation | cancelled | 0 |  |
-| owner-qa | cancelled | 0 |  |
-| browser | cancelled | 0 |  |
+| scenarios | cancelled | 1 |  |
+| offroad-scenarios | cancelled | 1 |  |
+| validate | cancelled | 1 |  |
+| unit-tests (2) | cancelled | 1 |  |
+| unit-tests (1) | cancelled | 1 |  |
+| unit-tests (3) | cancelled | 1 |  |
+| unit-tests (4) | cancelled | 1 |  |
+| wet-presentation | cancelled | -1 |  |
+| browser | cancelled | -1 |  |
+| owner-qa | cancelled | -1 |  |
+| publish | cancelled | -1 |  |
