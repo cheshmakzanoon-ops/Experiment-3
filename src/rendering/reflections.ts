@@ -202,6 +202,10 @@ export class ReflectionSystem {
   >();
   private capturedCar: T.Object3D | null = null;
   private probeActive = false;
+  /** Only a held starting-grid capture can span submissions at the same race time. */
+  get gridCapturePending() {
+    return this.pendingReason === 'immediate' && this.pendingFace >= 0;
+  }
   get localProbeActive() {
     return this.probeActive;
   }
@@ -295,9 +299,7 @@ export class ReflectionSystem {
       deferredCadenceFaces: this.deferredCadenceFaces,
       motionDistance: PROBE_MOTION_REFRESH.distance,
       minimumInterval: PROBE_MOTION_REFRESH.minimumInterval,
-      // Initial/seek/subject/environment captures deliberately retain their
-      // existing six-face immediate cost; the ordinary face budget is not a
-      // claim that these exceptional captures are sliced.
+      // A completed initial or cut reflection always contains all six faces.
       immediateFaces: 6,
       immediateRetryPending: this.immediateRetryPending,
       lastStart: Number.isFinite(this.lastStart) ? this.lastStart : null,
@@ -349,6 +351,7 @@ export class ReflectionSystem {
     intervalSeconds = 1.5,
     skyScale?: { value: number },
     paceStaticRefresh = false,
+    prepareGridFace = false,
   ) {
     if (this.activePass) return;
     if (!high) {
@@ -390,21 +393,28 @@ export class ReflectionSystem {
     // The same request waits for the start budget, even before a cube exists.
     // A genuinely new source/subject/environment can still request a capture
     // at that instant, as can an explicit invalidate().
+    const sameRequest =
+      this.requestEpoch === this.attemptedEpoch && car === this.attemptedCar &&
+      environmentIdentity === this.attemptedEnvironment;
+    const nextGridFace =
+      prepareGridFace && sameRequest && this.gridCapturePending && this.clock === this.attemptedClock;
     if (
-      this.requestEpoch === this.attemptedEpoch &&
-      car === this.attemptedCar &&
-      environmentIdentity === this.attemptedEnvironment &&
+      sameRequest && !nextGridFace &&
       (this.clock === this.attemptedClock ||
         (immediate && this.immediateRetryPending && this.clock - this.lastStart < minimum))
     )
       return;
     if (!immediate && !advancing) return;
-    // First captures, seeks (invalidate) and subject or environment changes
-    // render all six faces now and drop any refresh in progress.
+    // A visible cut resolves all six faces immediately. Behind the dirt grid's
+    // loading screen, each face retires before the next is submitted.
     let from = 0,
       to = 6;
     let starting = false;
-    if (immediate) {
+    if (nextGridFace) {
+      from = this.pendingFace;
+      to = from + 1;
+    } else if (immediate) {
+      if (prepareGridFace) to = 1;
       this.pendingFace = -1;
       this.pendingReason = 'immediate';
       this.immediateRetryPending = true;

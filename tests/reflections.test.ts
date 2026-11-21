@@ -472,6 +472,66 @@ function slicedFixture() {
   });
   return { ...base, renderer, gl: renderer as unknown as T.WebGLRenderer, faces };
 }
+it('submits the six held motocross grid faces separately and publishes one complete reflection', () => {
+  const reflection = new ReflectionSystem();
+  const { gl, faces } = slicedFixture();
+  const scene = new T.Scene(), bike = new T.Group(), finish = new T.MeshStandardMaterial();
+  const sky = { value: 1 };
+  const capture = (grid: boolean) =>
+    reflection.updateProbe(gl, scene, bike, [finish], true, 1.5, sky, false, grid);
+  const full = vi.spyOn(T.CubeCamera.prototype, 'update').mockImplementation(() => undefined);
+  try {
+    bike.position.x = 4;
+    reflection.beginFrame(0, false);
+    for (let i = 0; i < 6; i++) {
+      capture(true);
+      expect(faces).toHaveLength(i + 1);
+      expect(reflection.gridCapturePending).toBe(i < 5);
+      expect(bike.visible).toBe(true);
+      expect(sky.value).toBe(1);
+      if (i < 5) {
+        expect(finish.envMap).toBeNull();
+        expect(reflection.probeUpdates).toBe(0);
+        capture(false);
+        expect(faces).toHaveLength(i + 1);
+      }
+    }
+    capture(true);
+    expect(full).not.toHaveBeenCalled();
+    expect(faces.map(f => f.face)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(faces.map(f => f.mipmaps)).toEqual([false, false, false, false, false, true]);
+    expect(faces.every(f => f.x === 4 && f.texture === finish.envMap)).toBe(true);
+    expect(reflection.probeDiagnostics).toMatchObject({ completed: 1, capturedAt: 0, starts: { immediate: 1 } });
+  } finally {
+    full.mockRestore();
+    reflection.dispose();
+    finish.dispose();
+  }
+});
+
+it('restarts a partially captured gate if the lighting changes at the held instant', () => {
+  const reflection = new ReflectionSystem(), { gl, faces } = slicedFixture();
+  const scene = new T.Scene(), bike = new T.Group(), finish = new T.MeshStandardMaterial();
+  const sky = new T.Texture();
+  const face = () => reflection.updateProbe(gl, scene, bike, [finish], true, 1.5, undefined, false, true);
+  try {
+    reflection.beginFrame(0, false);
+    face();
+    face();
+    scene.environment = sky;
+    face();
+    expect(finish.envMap).toBeNull();
+    for (let i = 1; i < 6; i++) face();
+    expect(faces.map(f => f.face)).toEqual([0, 1, 0, 1, 2, 3, 4, 5]);
+    expect(finish.envMap).toBe(faces[7].texture);
+    expect(reflection.probeDiagnostics).toMatchObject({ completed: 1, starts: { immediate: 2 } });
+  } finally {
+    reflection.dispose();
+    finish.dispose();
+    sky.dispose();
+  }
+});
+
 it('spreads a periodic refresh over frames from one eye and publishes it only when complete', () => {
   const reflection = new ReflectionSystem(),
     { gl, faces } = slicedFixture();

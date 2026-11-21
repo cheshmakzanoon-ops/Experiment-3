@@ -1311,10 +1311,12 @@ export class RacingRenderer {
             // The held starting grid needs one complete cubemap. Retire its six
             // scenery views before submitting near shadows and the colour image.
             progress(roadField ? 'Capturing GP venue reflections…' : 'Capturing motocross venue reflections…');
-            this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-probe');
-            this.gpuFrames.submittedFrame();
-            await this.waitForPreparedFrame(cancelled, yieldFrame);
-            if (cancelled()) return false;
+            do {
+              this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-probe');
+              this.gpuFrames.submittedFrame();
+              await this.waitForPreparedFrame(cancelled, yieldFrame);
+              if (cancelled()) return false;
+            } while (!roadField && this.reflection.gridCapturePending);
           }
           if (splitShadows) {
             progress(`Rendering ${roadField ? 'GP' : 'motocross'} ${mode} shadow maps…`);
@@ -2598,6 +2600,7 @@ export class RacingRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
         motocrossFollow && !menu && !this.photo && !replay && !wetReflection &&
           this.gpuFrames.completionLatencyMs > 50,
+        pass === 'venue-probe' && motocrossFollow && isMotocrossVenue(this.circuit.track),
       );
       if (pass === 'venue-probe') return;
       if (pass === 'venue-shadows') {

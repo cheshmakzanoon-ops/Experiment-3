@@ -558,24 +558,28 @@ it('retires the MX venue depth pass before submitting the real chase and cockpit
     'shadow-fence', 'gpu-ready', 'chase',
   ]);
 });
-it.each([false, true])('keeps the opening MX cubemap on its own GPU fence, cancellation %s', async (stop) => {
+it.each([false, true])('retires each opening MX cube face and stops on cancellation %s', async (stop) => {
   const { calls, sample, target, typed } = fixture('mx450');
   Object.assign(target.circuit, { offroad: {}, track: { circuit: { offroad: { kind: 'motocross' } } } });
-  Object.assign(target, { graphics: { reflections: 'local' } });
+  const faceCount = () => calls.filter((name) => name === 'venue-probe').length;
+  Object.assign(target, {
+    graphics: { reflections: 'local' },
+    reflection: { get gridCapturePending() { return faceCount() < 6; } },
+  });
   Object.assign(target.bikeShells, { prepareDirtField: vi.fn(async () => true) });
   for (let i = 0; i < sample[H.CARS]; i++)
     sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
   let cancelled = false;
   target.waitForPreparedFrame.mockImplementation(async () => {
     calls.push('gpu-ready');
-    if (stop && calls.includes('venue-probe')) cancelled = true;
+    if (stop && faceCount() === 3) cancelled = true;
   });
   expect(await RacingRenderer.prototype.prepare.call(
     typed, sample, vi.fn(), () => cancelled, async () => {}, false,
   )).toBe(!stop);
   const passes = calls.filter((name) => ['venue-probe', 'shadow-fence', 'gpu-ready', 'draw'].includes(name));
-  expect(passes).toEqual(stop ? ['venue-probe', 'shadow-fence', 'gpu-ready'] :
-    ['venue-probe', 'shadow-fence', 'gpu-ready', 'draw', 'gpu-ready', 'draw', 'gpu-ready']);
+  const faces = Array.from({ length: stop ? 3 : 6 }, () => ['venue-probe', 'shadow-fence', 'gpu-ready']).flat();
+  expect(passes).toEqual(stop ? faces : [...faces, 'draw', 'gpu-ready', 'draw', 'gpu-ready']);
   expect(target.warmupFrames).toBe(stop ? 0 : 2);
 });
 it('reuses only the identical live gate on a slow GPU while waiting for an advancing worker sample', () => {
@@ -628,8 +632,13 @@ it('warms both hidden MX views on the full target and retains the finished probe
     prepareDirtField: vi.fn(async () => true), motocrossPresentation: vi.fn(() => ({ root: new T.Group() })),
   });
   const views: [string, boolean, number, number][] = [];
+  let capturedFaces = 0;
+  Object.defineProperty(mx.reflection, 'gridCapturePending', {
+    get: () => capturedFaces > 0 && capturedFaces < 6,
+  });
   const draw = target.draw.getMockImplementation()!;
   target.draw.mockImplementation((...args) => {
+    if (args[7] === 'venue-probe') capturedFaces++;
     if (args[7] === 'held-colour') views.push([target.mode, colour.scissorTest, colour.scissor.z, colour.scissor.w]);
     return draw(...args);
   });
@@ -639,7 +648,8 @@ it('warms both hidden MX views on the full target and retains the finished probe
     await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, async () => {}, false);
     const passes = calls.filter((name) => ['venue-probe', 'venue-shadows', 'held-colour', 'gpu-ready'].includes(name));
     expect(passes).toEqual([
-      'venue-probe', 'gpu-ready', 'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
+      ...Array.from({ length: 6 }, () => ['venue-probe', 'gpu-ready']).flat(),
+      'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
       'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
     ]);
     expect(views).toEqual([['chase', true, 320, 200], ['cockpit', true, 320, 200]]);
