@@ -56,6 +56,8 @@ The 26 races recorded zero player or rival resets and zero seconds off course. A
 
 Tyre response at the edge of rural asphalt uses the share of the steered tread on pavement, paint and gravel. This affects wet grip, rolling resistance and the tyre’s response to loose ground. Each wheel leaves a continuous skid ribbon at its own tread width and contact height, including on banked roads and elevated decks.
 
+On High, the car paint and wet road use local reflections. After a delayed driving frame they keep the last complete map while the next one updates. Six delayed frames, each three seconds apart and 28 m farther down the road, previously submitted 36 cubemap faces. They now submit six. The updated map becomes visible when its sixth face is ready. Fast travel and photo seeks still refresh the whole map immediately. The test counts draw submissions from the production reflection code and Three.js cube cameras.
+
 The SC-7 recording follows two four-second sections of a wet, six-entrant Port Ilse Street Loop race. The braking and cornering views use the player’s recorded wheel, steering, suspension and body transforms from the 120 Hz simulation. The review renders the player car, its local road and nearby buildings under fixed light. The speed readout comes from the same snapshots. The video plays at 24 frames per second. The front wheels reached 29.83° and 23.03° of steering lock. Vertical hub travel across the four wheels ranged from 31.6 to 56.4 mm within the two shots.
 
 [Watch the SC-7 brake and corner in Port Ilse (8 seconds)](port-ilse-sc7.mp4)
@@ -97,6 +99,8 @@ The gameplay build at `336fb587` passed 637 local regression tests across 81 fil
 All 12 driving checks passed on the same build with Chromium and SwiftShader at 960 × 540 in Low. Keyboard input moved the car 32.49 m and braked it from 65.47 km/h to a stop. The three-entrant Harbour Opening Run finished in 105.37 seconds with assistance and zero off-route time. Retry started a distinct run, and exiting released the Festival scene. The session plate above comes from this run. Three recorded frames each of tyre smoke, quarry dust and water spray passed their image checks.
 
 The hosted Mesa run passed 153 focused tests and all 12 driving checks on the same source. Keyboard input moved the car 57.44 m and braked it from 65.63 to 0.75 km/h. The Harbour Opening Run finished in 105.37 seconds. Smoke, quarry dust, water spray and both Medium-preset night compositions passed without reported graphics errors. A separate local SwiftShader attempt timed out on the first Medium storefront capture.
+
+The later reflection change at `726babfc` passed 678 tests across 83 files, the production build, lint, content validation and the bundle budget. Initial JavaScript was 3.67 MB gzipped against a 4 MB budget. Its 960 × 540 Low-preset driving session passed all 12 checks on SwiftShader. The three-car Harbour Opening Run finished in 105.37 seconds with zero off-route time. The run reported zero page errors and zero failed asset requests. All 13,200 physics snapshots also matched the earlier build at each of the four presentation cadences.
 
 Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
 
