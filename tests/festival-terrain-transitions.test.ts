@@ -81,11 +81,13 @@ function fixture(maxTiles = 5, withTrees = false) {
     camera = new T.PerspectiveCamera();
   camera.position.set(1200, 150, 900);
   camera.updateMatrixWorld();
-  const deliver = (request: TileRequest) => {
+  const deliver = (request: TileRequest, configure?: (tile: TileMeshData) => void) => {
     pending.delete(request.id);
-    receive({ data: data(request, withTrees) } as MessageEvent<FromTileWorker>);
+    const tile = data(request, withTrees);
+    configure?.(tile);
+    receive({ data: tile } as MessageEvent<FromTileWorker>);
   };
-  const deliverAll = () => [...pending.values()].forEach(deliver);
+  const deliverAll = () => [...pending.values()].forEach((request) => deliver(request));
   const move = (x: number, z = 900) => {
     camera.position.set(x, 150, z);
     camera.updateMatrixWorld();
@@ -130,6 +132,49 @@ function startMorph() {
 }
 
 describe('Festival terrain hierarchy transitions', () => {
+  it('preserves signed land cover and material blends on both morph endpoints and the skirts', () => {
+    const f = fixture();
+    const rootLayers = [0.319, 0.52, 1, 0],
+      fineLayers = [0.722, 0, 0.7, 1];
+    const supply = (layers: number[], cover: number) => {
+      for (const request of [...f.pending.values()]) {
+        f.deliver(request, (tile) => {
+          for (let v = 0; v < tile.heights.length; v++) {
+            tile.splat.set(layers, v * 4);
+            tile.shade.set([0, 0.44, 0.87, cover], v * 4);
+          }
+        });
+      }
+    };
+    f.terrain.update(f.camera, 0);
+    supply(rootLayers, -0.674);
+    f.terrain.update(f.camera, 0);
+    supply(fineLayers, 0.523);
+    f.terrain.update(f.camera, 0.04);
+    const children = visible(f.terrain);
+    expect(children).toHaveLength(4);
+    let morphBytes = 0;
+    for (const { geometry } of children) {
+      const count = geometry.getAttribute('position').count;
+      for (const [layerName, shadeName, layers, cover] of [
+        ['splat', 'shade', fineLayers, 0.523],
+        ['parentSplat', 'parentShade', rootLayers, -0.674],
+      ] as const) {
+        const weights = geometry.getAttribute(layerName);
+        const region = geometry.getAttribute(shadeName);
+        expect(weights.array.byteLength + region.array.byteLength).toBe(count * 12);
+        for (const v of [0, Math.floor(count / 2), count - 1]) {
+          for (let i = 0; i < 4; i++)
+            expect(Math.abs(weights.getComponent(v, i) - layers[i])).toBeLessThanOrEqual(0.5 / 255);
+          expect(Math.abs(region.getW(v) - cover)).toBeLessThanOrEqual(0.5 / 32767);
+        }
+      }
+      morphBytes += count * (3 * 4 + 3 * 4 + 12);
+    }
+    expect(f.terrain.stats.morphBytes).toBe(morphBytes);
+    f.terrain.dispose();
+  });
+
   it('retains the complete parent until all four children arrive, then morphs without overlap or holes', () => {
     const f = fixture();
     f.terrain.update(f.camera, 0);

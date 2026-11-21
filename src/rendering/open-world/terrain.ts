@@ -54,6 +54,22 @@ interface Tile {
 const res = (level: number) => (level <= 2 ? 64 : 32);
 const key = (level: number, ix: number, iz: number) => (level * 4096 + ix) * 4096 + iz;
 
+/** Keep the worker samples at full precision for topology and future children.
+ * Store presentation weights in normalized vertex attributes. The fourth shade
+ * channel distinguishes urban paving from village greens and can be negative. */
+function terrainMaskAttributes(splat: Float32Array, shade: Float32Array) {
+  const layers = new Uint8Array(splat.length);
+  const region = new Int16Array(shade.length);
+  for (let i = 0; i < layers.length; i++) {
+    layers[i] = Math.round(Math.min(1, Math.max(0, splat[i])) * 255);
+    region[i] = Math.round(Math.min(1, Math.max(-1, shade[i])) * 32767);
+  }
+  return {
+    splat: new T.BufferAttribute(layers, 4, true),
+    shade: new T.BufferAttribute(region, 4, true),
+  };
+}
+
 /**
  * Streamed terrain with level of detail: a quadtree of carved height tiles
  * built in the tile worker, drawn with the layered PBR terrain material.
@@ -207,8 +223,9 @@ export class TerrainStreamer {
     const geometry = new T.BufferGeometry();
     geometry.setAttribute('position', new T.BufferAttribute(position, 3));
     geometry.setAttribute('normal', new T.BufferAttribute(normal, 3));
-    geometry.setAttribute('splat', new T.BufferAttribute(splat, 4));
-    geometry.setAttribute('shade', new T.BufferAttribute(shade, 4));
+    const masks = terrainMaskAttributes(splat, shade);
+    geometry.setAttribute('splat', masks.splat);
+    geometry.setAttribute('shade', masks.shade);
     let parentSurface: ReturnType<typeof terrainParentMorph> | undefined;
     const parent = this.tiles.get(key(tile.level + 1, tile.ix >> 1, tile.iz >> 1));
     if (parent?.data) {
@@ -225,12 +242,14 @@ export class TerrainStreamer {
       parentSurface = morph;
       geometry.morphAttributes.position = [new T.BufferAttribute(morph.position, 3)];
       geometry.morphAttributes.normal = [new T.BufferAttribute(morph.normal, 3)];
-      geometry.setAttribute('parentSplat', new T.BufferAttribute(morph.splat, 4));
-      geometry.setAttribute('parentShade', new T.BufferAttribute(morph.shade, 4));
-      tile.morphBytes = Object.values(morph).reduce(
-        (total, values) => total + values.byteLength,
-        0,
-      );
+      const parentMasks = terrainMaskAttributes(morph.splat, morph.shade);
+      geometry.setAttribute('parentSplat', parentMasks.splat);
+      geometry.setAttribute('parentShade', parentMasks.shade);
+      tile.morphBytes =
+        morph.position.byteLength +
+        morph.normal.byteLength +
+        parentMasks.splat.array.byteLength +
+        parentMasks.shade.array.byteLength;
       this.stats.morphBytes += tile.morphBytes;
     }
     const grid = this.indexFor(r);
