@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44852890984
-- commit: `d5265f06c0` · Form distinct road-car cooling ducts and preserve unit normals across body refinements
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44854914747
+- commit: `e86173704e` · Seat the headland optic on its turntable and resolve individual Fresnel rings
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-21T01:54:31Z · updated: 2026-11-21T01:56:20Z
+- started: 2026-11-21T02:15:55Z · updated: 2026-11-21T02:20:15Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| scenarios | cancelled | 1 |  |
-| unit-tests (3) | cancelled | 1 |  |
-| offroad-scenarios | cancelled | 1 |  |
-| unit-tests (4) | cancelled | 1 |  |
-| unit-tests (2) | cancelled | 1 |  |
-| validate | cancelled | 1 |  |
-| unit-tests (1) | cancelled | 1 |  |
-| browser | cancelled | 0 |  |
-| owner-qa | cancelled | 0 |  |
-| wet-presentation | cancelled | 0 |  |
+| scenarios | cancelled | 4 |  |
+| offroad-scenarios | cancelled | 4 |  |
+| unit-tests (4) | cancelled | 4 |  |
+| unit-tests (2) | cancelled | 4 |  |
+| unit-tests (1) | cancelled | 4 |  |
+| validate | cancelled | 4 |  |
+| unit-tests (3) | cancelled | 4 |  |
+| browser | cancelled | -1 |  |
+| wet-presentation | cancelled | -1 |  |
+| owner-qa | cancelled | -1 |  |
 | publish | cancelled | 0 |  |
