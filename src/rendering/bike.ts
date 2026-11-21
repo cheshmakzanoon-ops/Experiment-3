@@ -16,6 +16,7 @@ import {
   gpFrontFender,
 } from './gp-appearance.ts';
 import * as T from 'three';
+import { motocrossTravelYaw } from './offroad/motocross-rider-motion.ts';
 import { MxArenaBikeLight } from './offroad/mx-arena-bike-light.ts';
 import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
@@ -75,6 +76,7 @@ import { sampleProfile } from './profile-sampling.ts';
 import {
   carBase,
   B,
+  BIKE_BASE,
   F,
   H,
   O,
@@ -2434,7 +2436,8 @@ export class BikeShells {
    * its private uniforms and material registrations. Inactive duplicates
    * stay out of scene updates, shadow passes and compiler traversal. */
   async warmFieldDetails<T>(compile: () => Promise<T>): Promise<T> {
-    const active = new Set<string>(), parked = new Map<string, T.Object3D>();
+    const active = new Set<string>(),
+      parked = new Map<string, T.Object3D>();
     for (const entry of this.entries.values()) {
       for (let i = 0; i < entry.levels.length; i++) {
         const root = entry.levels[i]?.root;
@@ -2685,10 +2688,7 @@ export class BikeShells {
     v.speed = sampleValue(a, b, o + F.SPEED, t);
     v.time = sampleValue(a, b, H.TIME, t);
     v.liquidRain = T.MathUtils.lerp(frameLiquidRain(a), frameLiquidRain(b), t);
-    v.rainVisibility = Math.max(
-      v.liquidRain / 2,
-      sampleValue(a, b, H.WATER, t) / 0.35,
-    );
+    v.rainVisibility = Math.max(v.liquidRain / 2, sampleValue(a, b, H.WATER, t) / 0.35);
     v.rpm = sampleValue(a, b, o + F.RPM, t);
     v.gear = source[o + F.GEAR];
     v.fork = sampleBikeField(a, b, o, B.FORK, t);
@@ -2788,12 +2788,29 @@ export class BikeShells {
     definition?: VehicleDefinition,
     up = this.helmetUp,
     reducedMotion = false,
+    presented?: Float32Array,
+    follow = 0,
   ) {
     const mx = !!definition?.bike?.offroad,
       profile = bikeCockpitProfile(definition),
       mount = tail ? BIKE_ONBOARD.tail : profile.eye,
       pitch = tail ? BIKE_ONBOARD.tailPitch : profile.pitch;
-    eye.set(mount[0], mount[1], mount[2]).applyQuaternion(root.quaternion).add(root.position);
+    eye.set(mount[0], mount[1], mount[2]);
+    let helmetPitch = pitch;
+    const slot = carBase(follow);
+    const ridden =
+      mx && !tail && !reducedMotion && presented && presented[slot + BIKE_BASE + B.STATE] === 0;
+    if (ridden) {
+      // The full rider rises 17 cm at the pelvis and hinges over the bars.
+      // The helmet keeps a smaller vertical excursion as the knees absorb it.
+      const stance = T.MathUtils.clamp(presented[slot + OFFROAD_BASE + O.STANDING], 0, 1);
+      const weight = T.MathUtils.clamp(presented[slot + OFFROAD_BASE + O.BODY], -1, 1);
+      // Looking slightly down as the eye rises preserves the control sightline.
+      helmetPitch -= 0.025 * stance;
+      eye.y += 0.058 * stance;
+      eye.z += 0.026 * stance + 0.036 * weight;
+    }
+    eye.applyQuaternion(root.quaternion).add(root.position);
     up.set(0, 1, 0).applyQuaternion(root.quaternion);
     if (mx && !tail) {
       // A helmet can counter-roll while the motorcycle banks beneath it. Resolve
@@ -2808,8 +2825,19 @@ export class BikeShells {
       up.applyAxisAngle(direction, rollToLevel * horizon * (reducedMotion ? 1 : 0.44));
       const slope = Math.asin(T.MathUtils.clamp(direction.y, -1, 1));
       const gaze =
-        pitch - horizon * T.MathUtils.clamp(slope * (reducedMotion ? 0.55 : 0.32), -0.11, 0.11);
+        helmetPitch - horizon * T.MathUtils.clamp(slope * (reducedMotion ? 0.55 : 0.32), -0.11, 0.11);
+      const yaw = ridden
+        ? 0.18 *
+          horizon *
+          motocrossTravelYaw(
+            direction.x,
+            direction.z,
+            presented[slot + F.VX],
+            presented[slot + F.VZ],
+          )
+        : 0;
       direction.multiplyScalar(Math.cos(gaze)).addScaledVector(up, Math.sin(gaze));
+      if (yaw !== 0) direction.applyAxisAngle(up, yaw);
     } else {
       direction.set(0, Math.sin(pitch), Math.cos(pitch)).applyQuaternion(root.quaternion);
     }

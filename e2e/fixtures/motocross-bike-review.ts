@@ -7,7 +7,19 @@ import { MxArenaBikeLight } from '../../src/rendering/offroad/mx-arena-bike-ligh
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
 import { VEHICLES, vehicleIndex, type VehicleDefinition } from '../../src/simulation/vehicles.ts';
-import { CAR_STRIDE, HEADER, H, F, R, RACE_BASE, carBase } from '../../src/simulation/protocol.ts';
+import {
+  B,
+  BIKE_BASE,
+  CAR_STRIDE,
+  HEADER,
+  H,
+  F,
+  O,
+  OFFROAD_BASE,
+  R,
+  RACE_BASE,
+  carBase,
+} from '../../src/simulation/protocol.ts';
 import type { RiderDetail } from '../../src/rendering/rider.ts';
 import { inspectMotocrossCockpit } from './motocross-cockpit-contract.ts';
 import { inspectMotocrossRiderContacts } from './motocross-rider-contact-contract.ts';
@@ -324,7 +336,21 @@ export function captureMotocrossBike(
       }
       if (view === 'onboard') {
         const direction = new T.Vector3();
-        new BikeShells().onboard(model.root, camera.position, direction, false, def, camera.up);
+        const frame = new Float32Array(HEADER + CAR_STRIDE),
+          slot = carBase(0);
+        frame[slot + OFFROAD_BASE + O.STANDING] = sample.standing ?? 0;
+        frame[slot + OFFROAD_BASE + O.BODY] = sample.body ?? 0;
+        frame[slot + BIKE_BASE + B.STATE] = sample.recovery ? 3 : 0;
+        new BikeShells().onboard(
+          model.root,
+          camera.position,
+          direction,
+          false,
+          def,
+          camera.up,
+          false,
+          frame,
+        );
         camera.fov = bikeOnboardFov(sample.speed ?? 0, def);
         camera.lookAt(camera.position.clone().add(direction));
         camera.updateProjectionMatrix();

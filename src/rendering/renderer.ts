@@ -2031,6 +2031,8 @@ export class RacingRenderer {
             followedDefinition,
             this.bikeViewUp,
             this.reducedMotion,
+            presented,
+            this.follow,
           );
           this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
         }

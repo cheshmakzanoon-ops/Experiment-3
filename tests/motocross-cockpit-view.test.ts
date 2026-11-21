@@ -3,6 +3,16 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
+import {
+  B,
+  BIKE_BASE,
+  CAR_STRIDE,
+  F,
+  HEADER,
+  O,
+  OFFROAD_BASE,
+  carBase,
+} from '../src/simulation/protocol.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { inspectMotocrossCockpit } from '../e2e/fixtures/motocross-cockpit-contract.ts';
 
@@ -52,6 +62,43 @@ describe('Motocross production onboard visibility', () => {
     expect(sample(0.7, 0)).toEqual(original);
   });
 
+  it('moves the helmet with the displayed rider, looks into a whip and repeats the eye on a seek', () => {
+    const shells = new BikeShells(),
+      root = new T.Object3D();
+    const eye = new T.Vector3(),
+      gaze = new T.Vector3(),
+      up = new T.Vector3();
+    const frame = new Float32Array(HEADER + 2 * CAR_STRIDE),
+      slot = carBase(1);
+    const sample = (
+      stance: number,
+      weight: number,
+      speedX: number,
+      reduced = false,
+      tail = false,
+    ) => {
+      frame[slot + OFFROAD_BASE + O.STANDING] = stance;
+      frame[slot + OFFROAD_BASE + O.BODY] = weight;
+      frame[slot + F.VX] = speedX;
+      frame[slot + F.VZ] = 14;
+      shells.onboard(root, eye, gaze, tail, VEHICLES.mx450, up, reduced, frame, 1);
+      return [...eye.toArray(), ...gaze.toArray(), ...up.toArray()];
+    };
+    const seated = sample(0, 0, 0);
+    const forward = sample(1, 1, 8);
+    expect(eye.y - seated[1]).toBeCloseTo(0.058, 7);
+    expect(eye.z - seated[2]).toBeGreaterThan(0.05);
+    expect(gaze.x).toBeGreaterThan(0.04);
+    const aft = sample(1, -1, -8);
+    expect(aft[2]).toBeLessThan(forward[2] - 0.05);
+    expect(gaze.x).toBeLessThan(-0.04);
+    expect(sample(1, 1, 8)).toEqual(forward);
+    expect(sample(1, 1, 8, true)).toEqual(seated);
+    expect(sample(1, 1, 8, false, true)).toEqual(sample(0, 0, 0, false, true));
+    frame[slot + BIKE_BASE + B.STATE] = 3;
+    expect(sample(1, 1, 8)).toEqual(seated);
+  });
+
   for (const id of ['mx250', 'mx450', 'sm450'])
     it(`${id}: clears the number plate and rider while keeping real controls in view`, () => {
       const definition = VEHICLES[id],
@@ -63,6 +110,8 @@ describe('Motocross production onboard visibility', () => {
         camera = new T.PerspectiveCamera(58, 16 / 10, 0.03, 1000);
       model.rider.setFirstPerson(true, true);
       try {
+        const frame = new Float32Array(HEADER + CAR_STRIDE),
+          slot = carBase(0);
         for (const aspect of [4 / 3, 16 / 10, 21 / 9])
           for (const pose of [
             { standing: 0, body: 0, brake: 0, lean: 0, steer: 0, load: 0, speed: 0 },
@@ -97,7 +146,18 @@ describe('Motocross production onboard visibility', () => {
             });
             model.root.position.set(17, 0.86, -11);
             model.root.rotation.set(0.06, 0.7, -pose.lean, 'YXZ');
-            shells.onboard(model.root, camera.position, direction, false, definition, camera.up);
+            frame[slot + OFFROAD_BASE + O.STANDING] = pose.standing;
+            frame[slot + OFFROAD_BASE + O.BODY] = pose.body;
+            shells.onboard(
+              model.root,
+              camera.position,
+              direction,
+              false,
+              definition,
+              camera.up,
+              false,
+              frame,
+            );
             camera.lookAt(camera.position.clone().add(direction));
             camera.aspect = aspect;
             camera.fov = bikeOnboardFov(pose.speed, definition);
