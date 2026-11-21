@@ -6,13 +6,18 @@ const HALF = 0.365,
   REAR = -0.99,
   FRONT = 1.1,
   TOP = 0.06,
-  COLUMNS = 7,
-  ROWS = 56,
   RIM = 0.018;
+
+// More open webs let the outdoor pad shed the deeper loam of Valley Ridge.
+export const MX_START_GRATE = {
+  stadium: { columns: 7, rows: 56, bed: [49, 44, 38] },
+  outdoor: { columns: 5, rows: 36, bed: [66, 47, 33] },
+} as const;
+type GratePattern = (typeof MX_START_GRATE)[keyof typeof MX_START_GRATE];
 
 /** Concrete retaining the perimeter and a real opening under each launch
  * cassette. The riding surface of the steel is flush with the surrounding pad. */
-export function mxArenaStartSlab(span: number, lanes: readonly number[]) {
+export function mxStartSlab(span: number, lanes: readonly number[]) {
   const rect = (path: T.Path, left: number, right: number, rear: number, front: number) => {
     path.moveTo(left, -rear);
     path.lineTo(right, -rear);
@@ -36,12 +41,10 @@ export function mxArenaStartSlab(span: number, lanes: readonly number[]) {
 /** Short webs of expanded steel join on alternate half-pitch rows. A
  * trapezoidal cross-section catches light on the crown and on a wider,
  * darker sheared edge. The open diamonds reveal the bed underneath. */
-export function mxArenaStartGrate() {
+export function mxStartGrate({ columns, rows }: GratePattern) {
   const position: number[] = [],
     indices: number[] = [];
-  const columns = COLUMNS,
-    rows = ROWS,
-    rim = RIM;
+  const rim = RIM;
   const half = HALF - rim * 0.5;
   const z0 = REAR + rim * 0.5,
     z1 = FRONT - rim * 0.5;
@@ -91,7 +94,7 @@ export function mxArenaStartGrate() {
   grate.setIndex(indices);
   grate.computeVertexNormals();
   // One template for the whole grid. All of the rails and support ribs use
-  // the same galvanized material as the lattice and receive arena lighting.
+  // the same galvanized material as the lattice and receive the same light.
   const parts = [grate];
   for (const x of [-HALF + rim / 2, HALF - rim / 2])
     parts.push(
@@ -116,13 +119,13 @@ export function mxArenaStartGrate() {
 /** Once the diamond webs become subpixel, sample a mipmapped plan view.
  * The same tread pitch and three cross-bearers keep the pattern registered
  * as the camera passes the gate. A whole grid then uses two triangles per lane. */
-export function mxStartGrateDistanceMaterial() {
+export function mxStartGrateDistanceMaterial({ columns, rows, bed }: GratePattern) {
   const w = 128,
     h = 384,
     span = FRONT - REAR;
   const pixel = span / h,
-    dx = (2 * HALF - RIM) / COLUMNS,
-    dz = (span - RIM) / ROWS;
+    dx = (2 * HALF - RIM) / columns,
+    dz = (span - RIM) / rows;
   const invSlope = 1 / Math.hypot(1 / dx, 0.5 / dz);
   const rgba = new Uint8Array(w * h * 4);
   for (let y = 0; y < h; y++)
@@ -140,11 +143,12 @@ export function mxStartGrateDistanceMaterial() {
       const steel =
         1 - T.MathUtils.smoothstep(Math.min(wire - 0.0037, rim - RIM), -pixel * 0.45, pixel * 0.45);
       const support = (Math.abs((along / span) * 4 - Math.round((along / span) * 4)) * span) / 4;
-      const bed = support < 0.007 ? 74 : 49 + 4 * Math.sin(18 * across + 5 * along);
+      const rib = support < 0.007;
+      const grain = 4 * Math.sin(18 * across + 5 * along);
       const i = (y * w + x) * 4;
-      rgba[i] = T.MathUtils.lerp(bed, 151, steel);
-      rgba[i + 1] = T.MathUtils.lerp(bed * 0.9, 153, steel);
-      rgba[i + 2] = T.MathUtils.lerp(bed * 0.78, 149, steel);
+      rgba[i] = T.MathUtils.lerp(rib ? 74 : bed[0] + grain, 151, steel);
+      rgba[i + 1] = T.MathUtils.lerp(rib ? 67 : bed[1] + grain, 153, steel);
+      rgba[i + 2] = T.MathUtils.lerp(rib ? 58 : bed[2] + grain, 149, steel);
       rgba[i + 3] = 255;
     }
   const map = new T.DataTexture(rgba, w, h);

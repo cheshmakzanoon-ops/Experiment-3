@@ -24,7 +24,7 @@ Two suspended boards show the official lap, race clock and finish state. This cl
 
 ## Outside at Valley Ridge
 
-The quarry cutting has exposed strata, broken turf and fallen rock at its base. The mechanics area and spectator group in this course-detail camera give the bank its scale. Both circuits have open steel launch grates set into the concrete.
+The quarry cutting has exposed strata, broken turf and fallen rock at its base. The mechanics area and spectator group in this course-detail camera give the bank its scale. Both circuits have open steel launch grates set into the concrete. The outdoor grid uses a wider diamond pitch with the loam visible through the webs.
 
 ![Valley Ridge quarry, exposed rock beds and spectators at track level](quarry.webp)
 

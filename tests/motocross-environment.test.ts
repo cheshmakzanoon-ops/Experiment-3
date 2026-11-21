@@ -272,16 +272,16 @@ describe('reference-informed MX environments', () => {
     const panel = hinge.children[0] as T.InstancedMesh;
     const draws = () => {
       let count = 0;
-      gate.root.traverse((object) => {
+      gate.root.traverseVisible((object) => {
         if (object instanceof T.Mesh) count++;
       });
       return count;
     };
     expect(panel).toBeInstanceOf(T.InstancedMesh);
     expect(panel.count).toBe(gate.panelCount);
-    expect(draws()).toBe(5);
+    expect(draws()).toBe(6);
     const pad = gate.root.getObjectByName('MX numbered starter pad') as T.Mesh<
-      T.BoxGeometry,
+      T.BufferGeometry,
       T.MeshPhysicalMaterial
     >;
     const uv = pad.geometry.getAttribute('uv');
@@ -332,15 +332,15 @@ describe('reference-informed MX environments', () => {
     expect(gate.panelCount).toBe(frame[H.CARS]);
     expect(laneLayout.z).toBe(gate.panelCount);
     expect(laneLayout.y).toBeCloseTo((-(gate.panelCount - 1) * laneLayout.x) / 2);
-    expect(draws()).toBe(5);
+    expect(draws()).toBe(6);
     twoSided.dispose();
     gate.dispose();
   });
 });
 
 describe('MX contact, dust and landing presentation', () => {
-  it('sets each indoor starting grate flush in an open concrete pocket and widens with the field', () => {
-    const track = rigTrack('arena-nord-sx'), course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+  it.each(['arena-nord-sx', 'valley-ridge-mx'] as const)('sets the starting grates at %s flush in open concrete pockets and widens with the field', (venue) => {
+    const track = rigTrack(venue), course = (Track.offroadOf(track) as TrackTerrainSurface).course;
     const gate = new StartGate(track, course), frame = frameAt();
     const down = new T.Vector3(0, -1, 0), ray = new T.Raycaster();
     const sample = (o: T.Mesh, x: number, z: number) => {
@@ -354,7 +354,8 @@ describe('MX contact, dust and landing presentation', () => {
         gate.update(frame);
         gate.root.updateMatrixWorld(true);
         const concrete = gate.root.getObjectByName('MX numbered starter pad') as T.Mesh;
-        const steel = gate.root.getObjectByName('Arena Nord expanded-steel launch grates') as T.InstancedMesh;
+        const name = venue === 'arena-nord-sx' ? 'Arena Nord' : 'Valley Ridge';
+        const steel = gate.root.getObjectByName(name + ' expanded-steel launch grates') as T.InstancedMesh;
         const lod = steel.parent as T.LOD;
         const camera = new T.PerspectiveCamera(), where = lod.getWorldPosition(new T.Vector3());
         camera.position.copy(where).add(new T.Vector3(0,2,35));

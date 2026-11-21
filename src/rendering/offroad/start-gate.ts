@@ -10,7 +10,7 @@ import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { installMud, mudUniforms } from './mud.ts';
 import {
-  mxArenaStartGrate, mxArenaStartSlab, mxStartGrateDistanceMaterial, mxStartGrateDistancePlane,
+  MX_START_GRATE, mxStartGrate, mxStartSlab, mxStartGrateDistanceMaterial, mxStartGrateDistancePlane,
 } from './mx-start-grate.ts';
 import { MX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
@@ -291,27 +291,27 @@ export class StartGate {
     // Concrete and its scanned normal/roughness are authored in metres.
     // A unit UV square stretches a single patch across the whole starting field.
     const indoor = this.course.kind === 'supercross';
-    const concrete = indoor ? mxArenaStartSlab(span, lateral) : new T.BoxGeometry(span, 0.12, 2.6);
-    const slab = new T.Mesh(materials.boxProjectUv(concrete), this.pad);
-    if (indoor) {
-      const grate = new T.InstancedMesh(materials.boxProjectUv(mxArenaStartGrate()), this.steel, lateral.length);
-      grate.name = 'Arena Nord expanded-steel launch grates';
-      lateral.forEach((x, i) => grate.setMatrixAt(i, mounts.makeTranslation(x, -0.05, -1.4)));
-      grate.castShadow = grate.receiveShadow = true;
-      grate.computeBoundingSphere();
-      this.grateDistanceMaterial ??= mxStartGrateDistanceMaterial();
-      const proxy = new T.InstancedMesh(mxStartGrateDistancePlane(), this.grateDistanceMaterial, lateral.length);
-      proxy.instanceMatrix.copy(grate.instanceMatrix);
-      proxy.name = 'Filtered launch grates';
-      proxy.receiveShadow = true;
-      proxy.computeBoundingSphere();
-      const lod = new T.LOD();
-      lod.name = 'Arena launch grate distance levels';
-      lod.addLevel(grate,0);
-      lod.addLevel(proxy,28,0.12);
-      proxy.visible = false;
-      this.body.add(lod);
-    }
+    const pattern = indoor ? MX_START_GRATE.stadium : MX_START_GRATE.outdoor;
+    const slab = new T.Mesh(materials.boxProjectUv(mxStartSlab(span, lateral)), this.pad);
+    const grate = new T.InstancedMesh(
+      materials.boxProjectUv(mxStartGrate(pattern)), this.steel, lateral.length,
+    );
+    grate.name = indoor ? 'Arena Nord expanded-steel launch grates' : 'Valley Ridge expanded-steel launch grates';
+    lateral.forEach((x, i) => grate.setMatrixAt(i, mounts.makeTranslation(x, -0.05, -1.4)));
+    grate.castShadow = grate.receiveShadow = true;
+    grate.computeBoundingSphere();
+    this.grateDistanceMaterial ??= mxStartGrateDistanceMaterial(pattern);
+    const proxy = new T.InstancedMesh(mxStartGrateDistancePlane(), this.grateDistanceMaterial, lateral.length);
+    proxy.instanceMatrix.copy(grate.instanceMatrix);
+    proxy.name = 'Filtered launch grates';
+    proxy.receiveShadow = true;
+    proxy.computeBoundingSphere();
+    const lod = new T.LOD();
+    lod.name = 'Launch grate distance levels';
+    lod.addLevel(grate, 0);
+    lod.addLevel(proxy, 28, 0.12);
+    proxy.visible = false;
+    this.body.add(lod);
     slab.name = 'MX numbered starter pad';
     slab.position.set(0, -0.05, -1.4);
     slab.receiveShadow = true;
