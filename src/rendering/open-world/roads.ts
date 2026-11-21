@@ -1,3 +1,4 @@
+import { paintStations } from './paint-tessellation.ts';
 import { AirfieldLights } from './airfield-lights.ts';
 import * as T from 'three';
 import type { StreetLightSocket } from './street-light-pools.ts';
@@ -780,9 +781,11 @@ export class RoadMeshes {
         let previousPaint: Builder | undefined;
         let endLeft = -1,
           endRight = -1;
+        const w = line.width / 2;
+        const stations = paintStations(net, e, from, to, line.lateral - w, line.lateral + w);
         net.at(e.offset + from, a);
-        for (let s = from; s < to; s += step) {
-          const end = Math.min(to, s + step);
+        for (let i = 1; i < stations.length; i++) {
+          const s = stations[i - 1], end = stations[i];
           net.at(e.offset + end, b);
           const builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
           const corner = (pt: TrackPoint, l: number, v: number) => {
@@ -800,7 +803,6 @@ export class RoadMeshes {
               [l - line.lateral + line.width / 2, line.width],
             );
           };
-          const w = line.width / 2;
           const a0 = previousPaint === builderAt ? endLeft : corner(a, line.lateral - w, s),
             a1 = previousPaint === builderAt ? endRight : corner(a, line.lateral + w, s);
           endLeft = corner(b, line.lateral - w, end);
