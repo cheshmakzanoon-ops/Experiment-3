@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
-import type { captureGpPaddocks } from './fixtures/gp-paddock-review.ts';
+import type { captureGpPaddocks, captureGpPennants } from './fixtures/gp-paddock-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('four GP pit complexes render with the existing garages, stable weather restoration and resource release', async ({
@@ -58,6 +58,18 @@ test('four GP pit complexes render with the existing garages, stable weather res
   expect(new Set(result.releases.map((entry) => entry.geometries)).size).toBe(1);
   expect(new Set(result.releases.map((entry) => entry.textures)).size).toBe(1);
   for (const entry of result.releases) expect(entry.geometries).toBe(0);
+  const wind = await page.evaluate(() => (window as unknown as {
+    GpPaddockReview: { captureGpPennants: typeof captureGpPennants };
+  }).GpPaddockReview.captureGpPennants());
+  for (const sample of wind) {
+    expect(sample.error).toBe(0);
+    expect(sample.count).toBeGreaterThan(75);
+  }
+  expect(wind[1].x - wind[4].x).toBeGreaterThan(70);
+  expect(wind[1].y).toBeGreaterThan(wind[0].y + 15);
+  expect(wind[1].hash).toBe(wind[2].hash);
+  expect(wind[1].hash).toBe(wind[5].hash);
+  expect(wind[1].hash).not.toBe(wind[3].hash);
   expect(errors).toEqual([]);
   await info.attach('gp-paddock-render-receipt.json', {
     body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),

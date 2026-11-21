@@ -22,7 +22,10 @@ describe('GP layered pit architecture', () => {
     expect(plan).toHaveLength(12);
     expect(gpPaddockPlan(track)).toEqual(plan);
     root.updateMatrixWorld(true);
-    expect(root.children).toHaveLength(6);
+    const pennants = root.getObjectByName('GP paddock wind pennants') as T.InstancedMesh;
+    expect(pennants.count).toBe(4);
+    expect(pennants.customDepthMaterial).toBeInstanceOf(T.MeshDepthMaterial);
+    expect(root.children.filter((child) => child !== pennants)).toHaveLength(6);
     const geometries = new Set<T.BufferGeometry>(),
       used = new Set<T.Material>();
     let triangles = 0;
@@ -32,13 +35,14 @@ describe('GP layered pit architecture', () => {
       geometries.add(geometry);
       used.add(object.material as T.Material);
       const position = geometry.getAttribute('position');
-      triangles += (geometry.index?.count ?? position.count) / 3;
+      triangles += ((geometry.index?.count ?? position.count) / 3) *
+        (object instanceof T.InstancedMesh ? object.count : 1);
       for (const attribute of Object.values(geometry.attributes))
         expect(Array.from(attribute.array).every(Number.isFinite)).toBe(true);
       expect(object.castShadow && object.receiveShadow).toBe(true);
     });
     expect(triangles).toBeLessThan(10000);
-    expect(used.size).toBe(6);
+    expect(used.size).toBe(7);
     for (const material of used)
       expect(Object.values(material).some((value) => value instanceof T.Texture)).toBe(false);
 
@@ -82,6 +86,8 @@ describe('GP layered pit architecture', () => {
     // releases them; no detached material/texture cache survives a venue swap.
     expect([...geometries].every((g) => g.boundingSphere !== null)).toBe(true);
     for (const geometry of geometries) geometry.dispose();
+    pennants.customDepthMaterial?.dispose();
+    pennants.dispose();
     for (const material of used) material.dispose();
   });
 

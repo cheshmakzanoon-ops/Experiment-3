@@ -1,3 +1,4 @@
+import { gpPaddockPennants } from './gp-paddock-pennants.ts';
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
@@ -193,12 +194,25 @@ export function buildGpPaddockArchitecture(track: Track, materials: PaddockMater
   tagWeatherSurface(accent, 'paint');
   for (const material of [materials.steel, materials.cladding])
     tagWeatherSurface(material, 'metal');
+  const pennantAnchors: T.Matrix4[] = [];
   for (const site of plan) {
     const bay = new T.Group(),
       width = site.width - 0.06;
     bay.position.set(site.x, site.y, site.z);
     bay.rotation.y = site.yaw;
     root.add(bay);
+    if (site.index % 3 === 1) {
+      const x = -4.6, roofY = roofHeight(style, x, 0, site.width);
+      const foot = new T.Mesh(new T.CylinderGeometry(.22, .27, .16, 8), materials.steel);
+      foot.position.set(x, roofY + .055, 0);
+      const mast = new T.Mesh(new T.CylinderGeometry(.045, .078, 4.35, 9), materials.steel);
+      mast.position.set(x, roofY + 2.23, 0);
+      foot.castShadow = foot.receiveShadow = mast.castShadow = mast.receiveShadow = true;
+      bay.add(foot, mast);
+      bay.updateMatrix();
+      pennantAnchors.push(bay.matrix.clone().multiply(
+        new T.Matrix4().makeTranslation(x, roofY + 4.24, 0)));
+    }
     // The upper level has depth: floor, rear wall, recessed glazing and
     // projecting terrace. No new supports enter the active pit-lane corridor.
     box(bay, materials.concrete, 0, 6.59, 0, 13.1, 0.24, width);
@@ -274,8 +288,9 @@ export function buildGpPaddockArchitecture(track: Track, materials: PaddockMater
       box(bay, materials.cladding, 0, 8.4, end, 13, 3.4, 0.16);
     }
   }
-  // Six materials, no new textures/lights, no per-frame work. Explicitly merge
-  // here so twelve structural bay repeats do not create hundreds of draws.
+  // The roof and masts share the six structural batches. Append the single
+  // cloth draw after merging so its four independent wind frames survive.
   mergeStatic(root);
+  root.add(gpPaddockPennants(pennantAnchors, style.accent));
   return root;
 }

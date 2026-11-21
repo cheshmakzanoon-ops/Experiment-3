@@ -1,10 +1,11 @@
+import { gpPaddockPennants } from '../../src/rendering/venue-kit/gp-paddock-pennants.ts';
 import { PHASE } from '../../src/simulation/race.ts';
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { clamp } from '../../src/core/math.ts';
 import { BikeShells } from '../../src/rendering/bike.ts';
 import { installCarGrounding } from '../../src/rendering/studio/car-grounding.ts';
-import { StudioFrame } from '../../src/rendering/studio/studio-frame.ts';
+import { StudioFrame, studioUniforms } from '../../src/rendering/studio/studio-frame.ts';
 import { sampleChassisPose } from '../../src/rendering/snapshot-interpolation.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { B, BIKE_BASE, carBase, F } from '../../src/simulation/protocol.ts';
@@ -462,5 +463,47 @@ export async function captureGpPaddocks(
     environment.dispose();
     renderer.dispose();
     renderer.forceContextLoss();
+  }
+}
+
+/** Same production cloth under opposite winds and non-monotonic snapshots.
+ * Its illuminated silhouette supplies the metrics; no shader internals or
+ * CPU copy of the deformation are used to predict the output. */
+export function captureGpPennants() {
+  const renderer = new T.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  const width = 320, height = 192;
+  renderer.setSize(width, height);
+  renderer.shadowMap.enabled = true;
+  const scene = new T.Scene(), camera = new T.OrthographicCamera(-3.7, 3.7, 1.9, -2.54, .1, 30);
+  scene.background = new T.Color(0x10141a);
+  camera.position.set(0, 0, 8);
+  const sun = new T.DirectionalLight(0xfff3dd, 2.5);
+  sun.castShadow = true;
+  sun.position.set(3, 5, 4);
+  const flags = gpPaddockPennants([new T.Matrix4()], 0xaf6b45);
+  scene.add(flags, sun, new T.HemisphereLight(0xdcf0ff, 0xab8172, 1.6));
+  const time = studioUniforms.studioTime, wind = studioUniforms.studioWind;
+  const savedTime = time.value, savedWind = wind.value.clone();
+  const gl = renderer.getContext(), pixels = new Uint8Array(width * height * 4);
+  try {
+    return [[2, 0], [2, 9], [2, 9], [2.24, 9], [2, -9], [2, 9]].map(([t, x]) => {
+      time.value = t;
+      wind.value.set(x, 0, t, 0);
+      renderer.render(scene, camera);
+      gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      let count = 0, cx = 0, cy = 0, hash = 2166136261;
+      for (let i = 0; i < width * height; i++) {
+        const r = pixels[i * 4], g = pixels[i * 4 + 1];
+        hash = Math.imul(hash ^ r, 16777619);
+        if (Math.max(r, g) <= 66) continue;
+        count++;
+        cx += i % width; cy += Math.floor(i / width);
+      }
+      return { x: cx / count, y: cy / count, count, hash: hash >>> 0, error: gl.getError() };
+    });
+  } finally {
+    time.value = savedTime; wind.value.copy(savedWind);
+    flags.geometry.dispose(); flags.material.dispose(); flags.customDepthMaterial?.dispose();
+    flags.dispose(); sun.shadow.dispose(); renderer.dispose(); renderer.forceContextLoss();
   }
 }
