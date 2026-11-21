@@ -7,7 +7,7 @@ import { FLAG } from '../simulation/marshal.ts';
 import { H } from '../simulation/protocol.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { drainSide, drainStations } from '../simulation/surface-drainage.ts';
-import { box, mesh, rod } from './geometry.ts';
+import { box, mesh, mergeStatic, rod } from './geometry.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { installVenueFinish } from './venue-materials.ts';
 import { grassApronOffset } from './ground-profile.ts';
@@ -94,7 +94,8 @@ export function trackInfrastructurePlan(track: Track): TrackInfrastructurePlan {
   const drains = drainStations(track.length).map(({ s, ordinal }) => {
     const side = preferredSide(track, s, ordinal),
       p = track.at(s, trackPoint()),
-      lateral = side * (p.width + 1.42);
+      margin = track.gpEdges ? 0.23 + 1.19 * track.gpEdges.at(s, side) : 1.42,
+      lateral = side * (p.width + margin);
     return siteAt(track, 'drain', s, side, lateral);
   });
 
@@ -167,7 +168,10 @@ export function drainGratingGeometry(track: Track, site: TrackDetailSite) {
   const grate = mergeGeometries(parts, false)!;
   parts.forEach((p) => p.dispose());
   const bed = new T.BoxGeometry(0.405, 0.008, 1.635).translate(0, 0.003, 0);
+  const gp = track.gpEdges;
+  const lateralScale = gp ? 0.72 + 0.28 * gp.at(site.s, site.side) : 1;
   for (const geometry of [grate, bed]) {
+    if (lateralScale < 1) geometry.scale(lateralScale, 1, 1);
     const positions = geometry.getAttribute('position'),
       c = Math.cos(site.yaw),
       n = Math.sin(site.yaw);
@@ -176,11 +180,10 @@ export function drainGratingGeometry(track: Track, site: TrackDetailSite) {
         z = positions.getZ(i);
       const worldX = site.x + c * x + n * z,
         worldZ = site.z - n * x + c * z;
-      // Aurel's painted runoff sits 32 mm above the grass datum. Keep the
-      // drain above that finish with a shallow cosmetic relief, rather than
-      // burying the bars beneath it or adding a new physical bump.
+      // The GP shoulder and Aurel apron sit 32 mm above the grass datum.
+      // Set the slots just clear of the paving at the local grade and camber.
       const localHeight =
-        track.circuit.id === 'aurel' ? 0.033 + positions.getY(i) * 0.2 : positions.getY(i);
+        gp || track.circuit.id === 'aurel' ? 0.033 + positions.getY(i) * 0.2 : positions.getY(i);
       positions.setY(i, localHeight + groundHeight(track, worldX, worldZ) - site.y);
     }
     geometry.computeVertexNormals();
@@ -245,17 +248,37 @@ export function buildTrackInfrastructure(
 
   installVenueFinish(concrete, 'stone');
   installVenueFinish(steel, 'metal');
+  const drainSectors = new Map<number, T.Group>();
   for (const site of plan.drains) {
+    let carrier = parent;
+    if (track.gpEdges) {
+      const sector = Math.floor(site.s / 220);
+      let group = drainSectors.get(sector);
+      if (!group) {
+        group = new T.Group();
+        group.name = 'GP shoulder drainage sector ' + sector;
+        drainSectors.set(sector, group);
+        parent.add(group);
+      }
+      carrier = group;
+    }
     const { grate, bed } = drainGratingGeometry(track, site);
     for (const [geometry, material, name] of [
       [grate, steel, 'Slotted drainage grate'],
       [bed, dark, 'Recessed drain bed'],
     ] as const) {
-      const drain = mesh(parent, geometry, material);
+      const drain = mesh(carrier, geometry, material);
       placeRoot(drain, site);
       drain.name = `${name} ${Math.round(site.s)}m`;
       drain.castShadow = false;
     }
+  }
+
+  // Bake the conformed bars and beds per stretch. Frustum culling can still
+  // discard the far side of a circuit and grates never enter the sun pass.
+  for (const sector of drainSectors.values()) {
+    mergeStatic(sector);
+    for (const drain of sector.children) drain.castShadow = false;
   }
 
   for (const [index, site] of plan.marshalPosts.entries()) {
