@@ -86,9 +86,36 @@ function sameRigidMesh(a: T.BufferGeometry, b: T.BufferGeometry) {
   });
 }
 
-/** Isolate Three's upload/dispose events from each bike's private construction
- * geometry. A rigid template owns its GPU buffers and borrows immutable CPU data. */
+function immutableAttribute(source: T.BufferAttribute) {
+  if (source.constructor === T.BufferAttribute) {
+    const copy = new T.BufferAttribute(source.array, source.itemSize, source.normalized);
+    copy.name = source.name;
+    copy.gpuType = source.gpuType;
+    return copy.setUsage(source.usage);
+  }
+  // Preserve special accessors such as Float16BufferAttribute's decoding.
+  const copy = source.clone();
+  copy.array = source.array;
+  return copy;
+}
+
+/** Each rigid template owns its upload/dispose events. Merged race meshes
+ * already have immutable vertex data, so allocate only new GPU descriptors. */
 function rigidTemplate(source: T.BufferGeometry) {
+  if (source.constructor === T.BufferGeometry) {
+    const copy = new T.BufferGeometry();
+    copy.name = source.name;
+    copy.morphTargetsRelative = source.morphTargetsRelative;
+    if (source.index) copy.setIndex(immutableAttribute(source.index));
+    for (const [name, attr] of Object.entries(source.attributes))
+      copy.setAttribute(name, immutableAttribute(attr as T.BufferAttribute));
+    for (const group of source.groups) copy.addGroup(group.start, group.count, group.materialIndex);
+    copy.setDrawRange(source.drawRange.start, source.drawRange.count);
+    copy.boundingBox = source.boundingBox?.clone() ?? null;
+    copy.boundingSphere = source.boundingSphere?.clone() ?? null;
+    return { geometry: copy, owners: 0 };
+  }
+  // Parametric Three geometries retain their concrete type and parameters.
   const copy = source.clone();
   for (const [name, attr] of Object.entries(source.attributes))
     (copy.getAttribute(name) as T.BufferAttribute).array = attr.array;

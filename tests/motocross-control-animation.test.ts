@@ -755,6 +755,44 @@ it('only shares byte-identical immutable mesh attributes across matching designs
   }
 });
 
+it('builds a merged race mesh from immutable storage without duplicating its vertex arrays', () => {
+  const pool = new MxGeometryPool(), geometry = new T.BufferGeometry();
+  const positions = new T.BufferAttribute(new Float32Array([0,0,0, 1,0,0, 0,2,0]), 3);
+  const index = new T.BufferAttribute(new Uint16Array([0,1,2]), 1);
+  const colour = new T.BufferAttribute(new Uint8Array([255,0,0, 0,255,0, 0,0,255]), 3, true);
+  colour.name = 'Race colours';
+  const mesh = new T.Mesh(geometry, new T.MeshBasicMaterial());
+  geometry.setAttribute('position', positions).setAttribute('color', colour).setIndex(index);
+  geometry.name = 'Merged wheel';
+  geometry.addGroup(0, 3, 0);
+  geometry.setDrawRange(0, 3);
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  const clones = [positions, index, colour].map(attribute => vi.spyOn(attribute, 'clone'));
+  try {
+    pool.share('mx450/high', mesh);
+    const rendered = mesh.geometry;
+    for (const clone of clones) expect(clone).not.toHaveBeenCalled();
+    expect(rendered).not.toBe(geometry);
+    expect(rendered.index).not.toBe(index);
+    expect(rendered.index!.array).toBe(index.array);
+    const mapped = rendered.getAttribute('color');
+    expect(mapped).not.toBe(colour);
+    expect(mapped.array).toBe(colour.array);
+    expect([mapped.name, mapped.normalized, mapped.count]).toEqual(['Race colours', true, 3]);
+    expect(rendered.groups).toEqual(geometry.groups);
+    expect(rendered.drawRange).toEqual(geometry.drawRange);
+    expect(rendered.boundingBox!.equals(geometry.boundingBox!)).toBe(true);
+    expect(rendered.boundingSphere!.equals(geometry.boundingSphere!)).toBe(true);
+    expect(rendered.boundingSphere).not.toBe(geometry.boundingSphere);
+  } finally {
+    clones.forEach(clone => clone.mockRestore());
+    pool.clear();
+    geometry.dispose();
+    mesh.material.dispose();
+  }
+});
+
 it('keeps shared rigid GPU buffers alive until their last bike leaves the field', () => {
   const pool = new MxGeometryPool(),
     a = new T.BoxGeometry(),
