@@ -1,7 +1,9 @@
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { MX_LAMP_OPTICS } from './mx-floodlight.ts';
+import { STADIUM } from './stadium-dimensions.ts';
 
-export const MX_ARENA_LIGHT_HOOK = 'mx-arena-floodlights-v1';
+export const MX_ARENA_LIGHT_HOOK = 'mx-arena-floodlights-v2';
 
 /** The roof's regular floodlight grid in world metres (`Stadium.lampGrid`). */
 export interface MxArenaGrid {
@@ -59,7 +61,41 @@ float mxArenaIrradiance( vec3 world, vec3 up ) {
     }
   }
   return e;
-}`;
+}
+#ifdef MX_HIGH_DETAIL
+// Intersect the reflected view ray with the real roof. Only one housing can
+// occupy the narrow image of a water film. The halo reaches zero before the
+// midway plane so selecting the next bank cannot create a hard seam.
+float mxArenaFloorReflection(vec3 world, vec3 up, vec3 eye, float film) {
+  vec3 ray = reflect(-eye, up);
+  if (ray.y <= .035 || world.y >= mxArenaLamp.z || film <= .01) return 0.;
+  float distanceToRoof = (mxArenaLamp.z - world.y) / ray.y;
+  vec2 hit = world.xz + ray.xz * distanceToRoof;
+  vec2 cell = (hit - mxArenaGrid.xy) / mxArenaGrid.zw;
+  vec2 bank = floor(cell);
+  if (any(lessThan(bank, vec2(0.))) || any(greaterThanEqual(bank, mxArenaLamp.xy))) return 0.;
+  vec2 offset = (fract(cell) - .5) * mxArenaGrid.zw;
+  float field = max(abs(offset.x) / mxArenaGrid.z, abs(offset.y) / mxArenaGrid.w);
+  float fade = 1. - smoothstep(.33, .5, field);
+  // Water spreads the lights by their angular roughness. Unresolved lens
+  // area is conserved as the highlight broadens across a rougher patch.
+  float radius = ${MX_LAMP_OPTICS.radius.toFixed(3)};
+  float blur = min(distanceToRoof * mix(.038, .009, film), min(mxArenaGrid.z, mxArenaGrid.w) * .19);
+  float width2 = radius * radius + blur * blur;
+  vec2 toCentre = (.5 * mxArenaLamp.xy - bank - .5) * mxArenaGrid.zw;
+  vec3 aim = normalize(vec3(toCentre.x * ${MX_LAMP_OPTICS.inwardAim}, -${(STADIUM.roof - MX_LAMP_OPTICS.belowRoof - MX_LAMP_OPTICS.focusHeight).toFixed(2)}, toCentre.y * ${MX_LAMP_OPTICS.inwardAim}));
+  // Rotate local X by the mounting quaternion (down to aim), then project
+  // the tilted lens row into the same horizontal plane as the ray hit.
+  vec3 axis = vec3(1. - aim.x * aim.x / (1. - aim.y), aim.x, -aim.z * aim.x / (1. - aim.y));
+  vec2 along = ${MX_LAMP_OPTICS.pitch.toFixed(2)} * (axis.xz - ray.xz * (axis.y / ray.y));
+  float lobes = exp(-dot(offset - along, offset - along) / width2)
+              + exp(-dot(offset, offset) / width2)
+              + exp(-dot(offset + along, offset + along) / width2);
+  float facing = clamp(dot(up, eye), 0., 1.);
+  float fresnel = .0204 + .9796 * pow(1. - facing, 5.);
+  return fade * film * fresnel * max(0., dot(aim, -ray)) * (radius * radius / width2) * lobes;
+}
+#endif`;
 
 const LIGHTING = /* glsl */ `
 if ( mxArenaLamp.w > 0.0 ) {
@@ -67,6 +103,22 @@ if ( mxArenaLamp.w > 0.0 ) {
   vec3 arenaUp = normalize( ( vec4( normal, 0.0 ) * viewMatrix ).xyz );
   reflectedLight.directDiffuse += mxArenaColour.rgb * ( mxArenaLamp.w * mxArenaIrradiance( vApexWorld, arenaUp ) )
     * BRDF_Lambert( material.diffuseColor );
+  #if defined(MX_HIGH_DETAIL) && defined(MX_SOIL_HAS_WATER_FILM)
+  // Arena groomers water the racing line under the roof. Compact, polished
+  // clay can catch a broad glint before enough water collects for a puddle.
+  float dampTrack = .58 * smoothstep(.32, .55, mxPreparedWet)
+    * smoothstep(.24, .82, mxPreparedPacked) * mxPreparedGroove
+    * clamp(vMxCourse.z, 0., 1.);
+  float gloss = max(mxMorphFilm, dampTrack);
+  if (gloss > .01) {
+    vec3 pooledNormal = normalize(mix(normal, nonPerturbedNormal, gloss * .72));
+    vec3 filmUp = normalize((vec4(pooledNormal, 0.) * viewMatrix).xyz);
+    vec3 eye = normalize((vec4(geometryViewDir, 0.) * viewMatrix).xyz);
+    reflectedLight.directSpecular += mxArenaColour.rgb * (mxArenaLamp.w *
+      ${(MX_LAMP_OPTICS.radiance / MX_ARENA_LIGHT.intensity).toFixed(8)} *
+      mxArenaFloorReflection(vApexWorld, filmUp, eye, gloss));
+  }
+  #endif
 }`;
 
 /** Light a supercross floor from the roof's floodlight grid. The terrain soil

@@ -1,6 +1,12 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+/** The three lenses share one casting, spaced along its local X axis. */
+export const MX_LAMP_OPTICS = Object.freeze({
+  pitch: 0.37, radius: 0.128, radiance: 18,
+  belowRoof: 3.36, focusHeight: 0.5, inwardAim: 0.22,
+});
+
 function combine(parts: T.BufferGeometry[]) {
   const result = mergeGeometries(parts)!;
   for (const part of parts) part.dispose();
@@ -23,7 +29,7 @@ export function mxFloodlightHead() {
         .rotateZ(Math.PI / 2)
         .translate(side * 0.598, 0.188, 0),
     );
-  for (const x of [-0.37, 0, 0.37]) {
+  for (const x of [-MX_LAMP_OPTICS.pitch, 0, MX_LAMP_OPTICS.pitch]) {
     // Spun reflector narrows toward the emitter; the rolled lip catches
     // light at oblique angles while the recessed glass faces the floor.
     metal.push(
@@ -45,7 +51,7 @@ export function mxFloodlightHead() {
           new T.Vector2(0, 0.023),
           new T.Vector2(0.072, 0.027),
           new T.Vector2(0.117, 0.039),
-          new T.Vector2(0.128, 0.046),
+          new T.Vector2(MX_LAMP_OPTICS.radius, 0.046),
         ],
         16,
       ).translate(x, 0, 0),

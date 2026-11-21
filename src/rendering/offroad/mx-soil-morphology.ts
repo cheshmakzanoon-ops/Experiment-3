@@ -7,6 +7,7 @@ export const MX_SOIL_MORPHOLOGY_KINDS = ['hardpack', 'loam', 'sand', 'mud'] as c
 export const MX_SOIL_MORPHOLOGY_HOOK = 'mx-soil-morphology-v2';
 
 const DECLARATIONS = /* glsl */ `
+#define MX_SOIL_HAS_WATER_FILM
 varying vec4 vMxSoilMix;
 float mxMorphRelief = 0.0;
 float mxMorphCavity = 0.0;

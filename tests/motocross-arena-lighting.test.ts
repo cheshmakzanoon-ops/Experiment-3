@@ -6,7 +6,7 @@ import {
   MX_ARENA_LIGHT_HOOK,
 } from '../src/rendering/offroad/mx-arena-lighting.ts';
 import { MxArenaBikeLight } from '../src/rendering/offroad/mx-arena-bike-light.ts';
-import { mxFloodlightHead, mxFloodlightMount } from '../src/rendering/offroad/mx-floodlight.ts';
+import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from '../src/rendering/offroad/mx-floodlight.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
@@ -30,6 +30,12 @@ describe('supercross roof floodlight grid', () => {
       const mount = mxFloodlightMount(origin, target);
       const direction = target.clone().sub(origin).normalize();
       expect(down.clone().transformDirection(mount).dot(direction)).toBeCloseTo(1, 6);
+      // The floor projects this tilted row into its reflected view. Derive
+      // the same world axis directly from the visible lamp's real mesh.
+      const x = new T.Vector3(1, 0, 0).transformDirection(mount);
+      const { x: ax, y: ay, z: az } = direction;
+      const row = new T.Vector3(1 - ax * ax / (1 - ay), ax, -az * ax / (1 - ay));
+      expect(row.distanceTo(x)).toBeLessThan(1e-7);
       // A ray from inside the real light pool must hit the front of all
       // three glass cells, and their normals must face away from the truss.
       const mesh = new T.Mesh(head.glass, new T.MeshBasicMaterial());
@@ -159,6 +165,7 @@ describe('supercross roof floodlight grid', () => {
         T.MeshStandardMaterial
       >;
       expect(lenses.material.emissive.getHex()).toBe(MX_ARENA_LIGHT.colour);
+      expect(lenses.material.emissiveIntensity).toBe(MX_LAMP_OPTICS.radiance);
       // Hung from the roof's trusses (2 m under the deck) with the housing below.
       const box = new T.Box3().setFromObject(stadium.root);
       expect(grid.y).toBeLessThan(box.min.y + STADIUM.roof);
@@ -190,6 +197,11 @@ describe('supercross roof floodlight grid', () => {
     const f = shader.fragmentShader;
     expect(f).toContain('float mxArenaIrradiance( vec3 world, vec3 up )');
     expect(f).toContain('reflectedLight.directDiffuse *= mxArenaColour.a;');
+    const highFloor = f.slice(f.indexOf('#if defined(MX_HIGH_DETAIL) && defined(MX_SOIL_HAS_WATER_FILM)'));
+    expect(f).toContain('#define MX_SOIL_HAS_WATER_FILM');
+    expect(highFloor.slice(0, highFloor.indexOf('#endif'))).toContain(
+      'mxArenaFloorReflection(vApexWorld, filmUp, eye, gloss)',
+    );
     expect(count(f, '{')).toBe(count(f, '}'));
     expect(count(f, '(')).toBe(count(f, ')'));
     // 4 x 4 lamps suffice because the fade reaches zero by the reach, two cells.
