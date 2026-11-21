@@ -2,6 +2,8 @@ import * as T from 'three';
 import { installPointLightWork } from './point-light-work.ts';
 import { H } from '../simulation/protocol.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
+import { sideSpanAt } from './venue-kit/plan.ts';
 import {
   AERIAL_PERSPECTIVE_FRAGMENT,
   AERIAL_PERSPECTIVE_PARS,
@@ -16,8 +18,62 @@ export interface FogPocket {
   floor: number;
   scaleHeight: number;
 }
+/** Three separated basins per lap keep the established optical-depth budget.
+ * The GP survey favours a dip below both approaches. The marsh at a coastal
+ * drop can sit below the racing surface; it must hug sea level there. */
+function gpFogPockets(track: Track): FogPocket[] {
+  const catalogue = track.circuit.catalogue!;
+  const land = track.circuit.id;
+  const coastal = land === 'cape-wrenna';
+  const flat = land === 'haarveld';
+  const p = trackPoint(),
+    before = trackPoint(),
+    after = trackPoint();
+  const result: FogPocket[] = [];
+  for (let sector = 0; sector < 3; sector++) {
+    let best = -Infinity;
+    let selected = 0;
+    let selectedShore = 0;
+    for (let j = 0; j < 18; j++) {
+      const s = (track.length * (sector + 0.13 + (0.74 * j) / 17)) / 3;
+      track.at(s, p);
+      track.at(s - 115, before);
+      track.at(s + 115, after);
+      const shore =
+        coastal && catalogue.seaLevel !== null
+          ? ([-1, 1].find((side) => sideSpanAt(catalogue.dressing.drops, s, side, track.length)) ??
+            0)
+          : 0;
+      // A bank of sea mist belongs to its surveyed shoreline. Inland, a
+      // trough bounded in both directions is preferred to a steep hillside.
+      const prominence = Math.min(before.y, after.y) - p.y;
+      const score = prominence * 2.1 - p.y * 0.18 - Math.abs(p.gradient) * 55 + (shore ? 24 : 0);
+      if (score > best) {
+        best = score;
+        selected = s;
+        selectedShore = shore;
+      }
+    }
+    track.at(selected, p);
+    const side = selectedShore || (p.bank === 0 ? (sector === 1 ? -1 : 1) : -Math.sign(p.bank));
+    const offset = selectedShore ? 119 : Math.max(33, track.boundaryAt(p, side) + 9);
+    const floor = selectedShore ? catalogue.seaLevel! + 0.65 : p.y + p.bank * side * 12 - 1.05;
+    const radius = selectedShore ? 172 : flat ? 120 : land === 'montejaral' ? 102 : 138;
+    const scaleHeight = selectedShore ? 7.5 : flat ? 2.8 : land === 'montejaral' ? 3.6 : 5.2;
+    result.push({
+      x: p.x + p.nx * side * offset,
+      z: p.z + p.nz * side * offset,
+      radius,
+      floor,
+      scaleHeight,
+    });
+  }
+  return result;
+}
+
 /** Authored low-lying districts, sampled from the same original road geometry. */
 export function fogPockets(track: Track): readonly FogPocket[] {
+  if (isGpCourse(track) && track.circuit.catalogue) return gpFogPockets(track);
   const p = trackPoint();
   return [0.18, 0.49, 0.79].map((fraction, i) => {
     track.at(track.length * fraction, p);
