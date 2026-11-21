@@ -1,5 +1,7 @@
 # Motocross reference upgrade
 
+Open the [motocross and supercross gallery](./motocross-evidence/reference-upgrade-2026-11-20/README.md) for the current bikes, venues, timing boards and measured riding results.
+
 ## Outcome and scope
 
 The motocross work improves the existing MX250/MX450 presentation, rider equipment and contact poses, prepared soil, course markers, stadium construction, dirt effects, player air control, chase camera and paddock/HUD flow. It applies observations from all **100 individually inspected reference images** to the existing outdoor motocross and stadium supercross modes.
