@@ -5,7 +5,12 @@ import { gpCornerShapes } from '../src/simulation/gp-corner-shape.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 import { kerbHeight } from '../src/simulation/contact.ts';
 import { CircuitScene, circuitKerbHeight } from '../src/rendering/circuit.ts';
-import { gpCornerPaint, gpEdgeDesign } from '../src/rendering/venue-kit/gp-edge-design.ts';
+import {
+  gpCornerPaint,
+  gpEdgeDesign,
+  gpPitPavingLateral,
+  gpPitStripeLateral,
+} from '../src/rendering/venue-kit/gp-edge-design.ts';
 import { kerbStyleAt, runoffStyleAt } from '../src/rendering/venue-plan.ts';
 import { installCircuitFinish } from '../src/rendering/circuit-finish.ts';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
@@ -23,6 +28,43 @@ const ribbonHost = (track: Track) =>
     track,
     surfaces: new T.Group(),
   });
+
+describe('GP pit merge surface', () => {
+  it.each(venues)(
+    '%s runs the wet main asphalt continuously through both ends of the pit lane',
+    (id) => {
+      const track = tracks.get(id)!;
+      const point = trackPoint(),
+        pit = track.pit;
+      let partial = 0,
+        separated = 0,
+        closed = 0;
+      for (let s = -pit.divergeStart; s <= pit.mergeEnd; s += 1.25) {
+        const width = track.at(s, point).width;
+        const centre = track.pitOffset(s);
+        const low = gpPitPavingLateral(centre, pit.side, width, 0);
+        const high = gpPitPavingLateral(centre, pit.side, width, 1);
+        if (high < low || Math.min(pit.side * low, pit.side * high) < width - 1e-6)
+          throw new Error(`Pavement crosses the live racing surface at ${s} m`);
+        if (Math.abs(centre) + 3.6 <= width) {
+          expect(high - low).toBe(0);
+          closed++;
+        } else if (Math.abs(centre) - 3.6 < width) {
+          expect(high - low).toBeCloseTo(Math.abs(centre) + 3.6 - width, 5);
+          partial++;
+        } else {
+          expect(high - low).toBeCloseTo(7.2);
+          separated++;
+        }
+      }
+      expect(Math.min(closed, partial, separated)).toBeGreaterThan(2);
+      for (const side of [-1, 1]) {
+        expect(gpPitStripeLateral(3, side, 0)).toBe(gpPitStripeLateral(3, side, 1));
+        expect(gpPitStripeLateral(7, side, 1) - gpPitStripeLateral(7, side, 0)).toBeCloseTo(0.12);
+      }
+    },
+  );
+});
 
 describe('GP course paint follows the real bend and preserves its contact surface', () => {
   it.each(venues)(

@@ -90,7 +90,12 @@ import { installCarGrounding } from './studio/car-grounding.ts';
 import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
-import { gpCornerPaint, gpEdgeDesign } from './venue-kit/gp-edge-design.ts';
+import {
+  gpCornerPaint,
+  gpEdgeDesign,
+  gpPitPavingLateral,
+  gpPitStripeLateral,
+} from './venue-kit/gp-edge-design.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
@@ -390,6 +395,7 @@ export class CircuitScene {
           track.at(s, this.temp);
           return side * (this.temp.width - 0.17 + t * 0.14);
         },
+        include: track.gpEdges ? (s, l) => !track.inPitLane(s, l) : undefined,
         height: () => 0.006,
         step: 2,
       });
@@ -417,7 +423,15 @@ export class CircuitScene {
         this.queueRibbon(pitMat, {
           start,
           end,
-          offset: (s, t) => track.pitOffset(s) + (t * 2 - 1) * 3.6,
+          offset: (s, t) =>
+            track.gpEdges
+              ? gpPitPavingLateral(
+                  track.pitOffset(s),
+                  track.pit.side,
+                  track.at(s, this.temp).width,
+                  t,
+                )
+              : track.pitOffset(s) + (t * 2 - 1) * 3.6,
           height: () => 0.003,
           columns: 4,
           step: 1,
@@ -426,7 +440,10 @@ export class CircuitScene {
           this.queueRibbon(white, {
             start,
             end,
-            offset: (s, t) => track.pitOffset(s) + side * (3.35 + t * 0.12),
+            offset: (s, t) =>
+              track.gpEdges
+                ? gpPitStripeLateral(track.pitOffset(s), side, t)
+                : track.pitOffset(s) + side * (3.35 + t * 0.12),
             height: () => 0.008,
             step: 1,
           });
@@ -518,7 +535,8 @@ export class CircuitScene {
       );
     });
     this.infrastructure();
-    if (track.gpEdges) this.construction.add('GP rural architecture', 3, () => buildGpFarmsteads(track, this.props));
+    if (track.gpEdges)
+      this.construction.add('GP rural architecture', 3, () => buildGpFarmsteads(track, this.props));
     this.construction.add('Drainage, marshal and replay-camera infrastructure', 3, () =>
       buildTrackInfrastructure(
         track,
@@ -897,7 +915,8 @@ export class CircuitScene {
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);
     o.castShadow = false;
-    if (options.stripes && this.track.gpEdges) installGpKerbDetail(o, indices, rows, cols, ascending);
+    if (options.stripes && this.track.gpEdges)
+      installGpKerbDetail(o, indices, rows, cols, ascending);
     // Narrow ribbons (painted lines, kerbs) record their measured width and a
     // centreline sampled about every 4 m for the probe detail survey.
     let width = 0;

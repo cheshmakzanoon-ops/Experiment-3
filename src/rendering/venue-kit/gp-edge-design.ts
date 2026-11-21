@@ -60,6 +60,20 @@ export function gpEdgeDesign(track: Track): GpEdgeDesign | null {
   return DESIGNS[track.circuit.id] ?? null;
 }
 
+/** Race asphalt already fills the lane where it rejoins the track. Weld the
+ * pit pavement to the running edge so its separate wet finish cannot cover
+ * the racing line with a rectangular sheet at the end of the merge. */
+export function gpPitPavingLateral(centre: number, side: number, width: number, t: number) {
+  return side * Math.max(width, side * (centre + (2 * t - 1) * 3.6));
+}
+
+/** Taper the separator to a point as the lane ceases to be separately
+ * recognised by Track.inPitLane. Both sides keep ascending vertex order. */
+export function gpPitStripeLateral(centre: number, side: number, t: number) {
+  const taper = smooth((Math.abs(centre) - 3) / 3.6);
+  return centre + side * 3.41 + (t - 0.5) * 0.12 * taper;
+}
+
 const windows = new WeakMap<Track, ReturnType<typeof gpCornerShapes>>();
 const smooth = (value: number) => {
   const t = clamp(value, 0, 1);
