@@ -61,12 +61,12 @@ describe('motocross suspension-driven rider motion', () => {
         }
         const g = skin.geometry, p = g.getAttribute('position');
         const offsets = g.morphAttributes.position, normals = g.morphAttributes.normal;
-        if (!offsets || !normals) throw new Error('Missing boot morph targets');
+        if (!offsets || !normals) throw new Error('Missing jersey airflow morph targets');
         expect(offsets).toHaveLength(2);
         let peak = 0, normalTilt = 0, loose = 0;
         for (let i = 0; i < p.count; i++) {
           const y = p.getY(i), radial = Math.hypot(offsets[0].getZ(i), offsets[1].getZ(i));
-          if (y < .06 || y > .365 || (y > .147 && y < .216) || p.getZ(i) > -.025)
+          if (y <= .07 || y > .365 || (y > .147 && y < .216) || p.getZ(i) > -.025)
             expect(radial).toBe(0);
           if (radial > .003) loose++;
           peak = Math.max(peak, radial);

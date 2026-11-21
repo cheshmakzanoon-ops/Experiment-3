@@ -80,6 +80,8 @@ export interface SurfaceSample {
    * loose soils give loose-construction tyres their recovery. Absent or false
    * elsewhere, where only grass and gravel do (festival dirt is unchanged). */
   terrain?: boolean;
+  /** Water held in loose soil at this contact, independent of the free water film (mm). */
+  soilMoisture?: number;
 }
 export const trackPoint = (): TrackPoint => ({
   s: 0,
@@ -540,6 +542,7 @@ export class Track {
   ): SurfaceSample {
     out.paintCoverage = undefined;
     out.shoulderCoverage = undefined;
+    out.soilMoisture = undefined;
     const p = projection?.point ?? this.queryPoint;
     let l: number;
     if (projection) {

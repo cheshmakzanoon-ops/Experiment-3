@@ -6,7 +6,8 @@ import { chassisLean } from '../bike-definitions.ts';
 import { DEFAULT_SETUP, type Assist, type Compound, type Setup } from '../config.ts';
 import { MARSHAL } from '../marshal.ts';
 import { MATERIAL } from '../surface-material.ts';
-import { surfaceSample, Track } from '../track.ts';
+import { surfaceSample, Track, type SurfaceSample } from '../track.ts';
+import type { Tire } from '../tire.ts';
 import type { VehicleDefinition } from '../vehicles.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
@@ -41,6 +42,30 @@ const DEEP_CONTACT = 0.12,
 const PLAYER_GRIP_GRACE = 0.4;
 /** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
 const LANDING_NOSE_UP = 0.1;
+
+/** Fraction of a clean machine coated per second by one contact. A spinning
+ * tyre above a puddle cannot lift clay. On the ground both rolling distance
+ * and scrub lift soil, in proportion to the support carried at that axle. */
+export function motocrossSoilPickup(
+  patch: Pick<SurfaceSample, 'surface' | 'soilMoisture'>,
+  wheel: Pick<Tire, 'load' | 'slip'>,
+  staticLoad: number,
+  speed: number,
+) {
+  if (wheel.load <= 0 || staticLoad <= 0) return 0;
+  let adhesion: number;
+  switch (patch.surface) {
+    case MATERIAL.MUD: adhesion = 1; break;
+    case MATERIAL.DIRT:
+    case MATERIAL.SAND:
+    case MATERIAL.GRAVEL_ROAD: adhesion = .15 + .85 * (patch.soilMoisture ?? 0); break;
+    default: return 0;
+  }
+  // Limit the soil available at one footprint. A bottom-out impulse or a
+  // near-stationary burnout cannot paint a whole bike in one simulation tick.
+  const support = clamp(wheel.load / staticLoad, 0, 1.25);
+  return adhesion * support * (.0004 * speed + .012 * Math.min(1.5, Math.abs(wheel.slip)));
+}
 
 /** Resolve an incoming horizontal velocity in a yawed tyre basis. This is
  * an orthogonal change of axes, including any pre-existing contact slide;
@@ -1482,22 +1507,26 @@ export class DirtBikeVehicle extends BikeVehicle {
   /** Mud carried by machine and rider: picked up on wet, soft soil with speed
    * and wheelspin, shed slowly (presentation-only state, but recorded). */
   private updateMud(dt: number) {
-    const c = this.contacts[2],
-      d = this.dynamics,
-      wetSoil =
-        c.surface === MATERIAL.MUD
-          ? 1
-          : c.surface === MATERIAL.DIRT ||
-              c.surface === MATERIAL.SAND ||
-              c.surface === MATERIAL.GRAVEL_ROAD
-            ? 0.15 + this.moisture
-            : 0;
-    // A dry moto leaves a film of dust over several laps; mud and spin coat
-    // a machine within a lap or two.
-    const pick = this.airborne
-      ? 0
-      : wetSoil * (0.0004 * d.speed + 0.012 * Math.abs(d.rearSlip)) * dt;
-    this.mud = clamp(this.mud + pick - 0.0015 * dt * this.mud, 0, 1);
+    let pickup = 0;
+    if (!this.airborne && this.riding) {
+      const weightPerMetre = (this.dynamics.mass * G) / this.spec.wheelbase;
+      const front = motocrossSoilPickup(
+        this.contacts[0],
+        this.tires[0],
+        weightPerMetre * this.bikeSpec.cgToRear,
+        this.speed,
+      );
+      const rear = motocrossSoilPickup(
+        this.contacts[2],
+        this.tires[2],
+        weightPerMetre * this.bikeSpec.cgToFront,
+        this.speed,
+      );
+      // The broad rear tread throws most of the coat, including across the
+      // rear of the rider. A front-only touchdown can still throw soil up.
+      pickup = 0.32 * front + 0.68 * rear;
+    }
+    this.mud = clamp(this.mud + dt * (pickup - 0.0015 * this.mud), 0, 1);
   }
   protected override updateSuspensionAndTyres(dt: number, track: Track) {
     const d = this.dynamics,
@@ -1668,11 +1697,11 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.written.omega.copy(b.omega);
     // Ruts and moisture under the machine (snapshot channels).
     const surface = Track.offroadOf(track);
+    this.moisture = this.contacts[2].soilMoisture ?? 0;
     if (surface instanceof TrackTerrainSurface) {
       const t = surface.terrain;
       this.rutFront = t.depthAt(this.contacts[0].lateral, this.contacts[0].s);
       this.rutRear = t.depthAt(this.contacts[2].lateral, this.contacts[2].s);
-      this.moisture = t.moistureAt(t.cellIndex(this.contacts[2].lateral, this.contacts[2].s));
     }
   }
   override restart(track: Track, reason: 'rider' | 'stranded' = 'rider') {

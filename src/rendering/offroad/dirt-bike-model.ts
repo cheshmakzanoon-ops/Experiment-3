@@ -66,6 +66,7 @@ import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
   motocrossAirbox,
   motocrossMudFlap,
+  mxMudFlapLoad,
   motocrossSeat,
   motocrossSeatPleats,
   motocrossTankShell,
@@ -129,6 +130,7 @@ export class DirtBikeModel {
   private readonly shock?: MotocrossRearShock;
   private readonly footControls?: MotocrossFootControls;
   private readonly brakeHose?: MotocrossBrakeHose;
+  private readonly mudFlap?: T.Mesh;
   private readonly shockUpper = new T.Vector3(0, -0.02, -0.29);
   private readonly shockLower = new T.Vector3();
   private readonly upperEye = new T.Vector3();
@@ -860,6 +862,7 @@ export class DirtBikeModel {
       const flap = add(this.sprung, motocrossMudFlap(), dark, 0, -0.14, -0.345);
       flap.rotation.x = 0.3;
       flap.name = 'Motocross rear mud flap';
+      this.mudFlap = flap;
     }
     add(this.sprung, motocrossSeat(detail), this.m.seat).name = 'Motocross one-piece seat';
     if (detail !== 'far')
@@ -1189,6 +1192,17 @@ export class DirtBikeModel {
       1,
     );
     const bias = forkStroke - rearStroke;
+    if (this.mudFlap?.morphTargetInfluences) {
+      const rimSpeed = Number.isFinite(v.rearOmega)
+        ? Math.abs(v.rearOmega!) * b.rearWheelRadius
+        : 0;
+      this.mudFlap.morphTargetInfluences[0] = mxMudFlapLoad(
+        v.speed,
+        rimSpeed,
+        v.dirtSupportG,
+        rearStroke,
+      );
+    }
     if (this.frontFender.morphTargetInfluences && this.rearFender.morphTargetInfluences) {
       this.frontFender.morphTargetInfluences[0] = mxFenderLoad(v.dirtSupportG, v.speed, bias);
       this.rearFender.morphTargetInfluences[0] = mxFenderLoad(v.dirtSupportG, v.speed, -bias);

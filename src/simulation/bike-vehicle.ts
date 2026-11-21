@@ -1249,6 +1249,7 @@ export class BikeVehicle extends Vehicle {
     to.surface = from.surface;
     to.paintCoverage = from.paintCoverage;
     to.shoulderCoverage = from.shoulderCoverage;
+    to.soilMoisture = from.soilMoisture;
     to.water = from.water;
     to.rubber = from.rubber;
     to.marbles = from.marbles;

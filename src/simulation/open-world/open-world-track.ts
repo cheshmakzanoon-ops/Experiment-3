@@ -450,6 +450,7 @@ export class OpenWorldTrack {
   sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
     out.paintCoverage = undefined;
     out.shoulderCoverage = undefined;
+    out.soilMoisture = undefined;
     const net = this.network,
       p = this.point,
       c = this.candidates,

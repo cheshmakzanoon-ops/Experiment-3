@@ -4,6 +4,7 @@ import { staticSag } from '../src/rendering/bike.ts';
 import {
   motocrossAirbox,
   motocrossMudFlap,
+  mxMudFlapLoad,
   motocrossSeat,
   motocrossTankShell,
   motocrossTankTop,
@@ -80,6 +81,81 @@ describe('motocross bodywork volumes', () => {
     expect(tank.boundingBox!.max.y).toBeLessThan(clamp);
     tank.dispose();
   });
+
+  it('pins the mud flap under the airbox and bends its ribbed free edge without stretching it', () => {
+    const flap = motocrossMudFlap();
+    try {
+      const p = flap.getAttribute('position'),
+        n = flap.getAttribute('normal');
+      const move = flap.morphAttributes.position![0],
+        tilt = flap.morphAttributes.normal![0];
+      let travel = 0;
+      for (let i = 0; i < p.count; i++) {
+        const dy = move.getY(i),
+          dz = move.getZ(i);
+        travel = Math.max(travel, dz);
+        if (p.getY(i) >= 0.07) expect([move.getX(i), dy, dz]).toEqual([0, 0, 0]);
+        const reach = Math.max(0, 0.07 - p.getY(i));
+        const chord = Math.hypot(reach - dy, dz);
+        expect(chord).toBeLessThanOrEqual(reach + 1e-7);
+        expect(chord).toBeGreaterThanOrEqual(0.985 * reach);
+        const transformed = new T.Vector3()
+          .fromBufferAttribute(n, i)
+          .add(new T.Vector3().fromBufferAttribute(tilt, i));
+        expect(transformed.length()).toBeCloseTo(1, 5);
+      }
+      expect(travel).toBeGreaterThan(0.036);
+      expect(travel).toBeLessThan(0.043);
+      expect(mxMudFlapLoad(0, 0, 1, 0)).toBe(0);
+      expect(mxMudFlapLoad(22, 40, 0, 0)).toBeLessThan(0);
+      expect(mxMudFlapLoad(6, 25, 1, 0)).toBeGreaterThan(0.3);
+      expect(mxMudFlapLoad(6, 25, 3, 1)).toBeGreaterThan(0.9);
+    } finally {
+      flap.dispose();
+    }
+  });
+
+  it.each(['mx450', 'mx250'])(
+    '%s mud flap clears the moving rear tyre at droop, sag and bottom-out',
+    (id) => {
+      const def = VEHICLES[id],
+        b = def.bike!,
+        sag = staticSag(def);
+      const pivot = new T.Vector2(-0.15, -0.36);
+      const axle = new T.Vector2(-b.cgToRear, b.rearWheelRadius - b.cgHeight);
+      const arm = axle.distanceTo(pivot),
+        flap = motocrossMudFlap();
+      const p = flap.getAttribute('position'),
+        m = flap.morphAttributes.position![0];
+      const position = new T.Vector3(),
+        offset = new T.Vector3(),
+        xAxis = new T.Vector3(1, 0, 0);
+      try {
+        for (const shock of [0, sag.shock, b.shockTravel]) {
+          const dy = axle.y + shock - sag.shock - pivot.y;
+          const z = pivot.x - Math.sqrt(arm * arm - dy * dy),
+            y = pivot.y + dy;
+          const stroke = Math.max(0, (shock - sag.shock) / (b.shockTravel - sag.shock));
+          const weight = mxMudFlapLoad(22, 22, stroke ? 3 : 0, stroke);
+          let gap = Infinity;
+          for (let i = 0; i < p.count; i++) {
+            position
+              .fromBufferAttribute(p, i)
+              .addScaledVector(offset.fromBufferAttribute(m, i), weight)
+              .applyAxisAngle(xAxis, 0.3);
+            if (Math.abs(position.x) <= 0.066)
+              gap = Math.min(
+                gap,
+                Math.hypot(position.z - 0.345 - z, position.y - 0.14 - y) - b.rearWheelRadius,
+              );
+          }
+          expect(gap).toBeGreaterThan(0.005);
+        }
+      } finally {
+        flap.dispose();
+      }
+    },
+  );
 
   it.each(['mx450', 'mx250', 'sm450'])('%s airbox clears the rear tyre through full travel', (id) => {
     const def = VEHICLES[id],

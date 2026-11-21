@@ -7,7 +7,7 @@ const smooth = T.MathUtils.smoothstep;
  * stay still. Negative Z is away from the rider's back in garment space. */
 function displacement(x: number, y: number, z: number, phase: number) {
   const back = smooth(-z, 0.025, 0.103);
-  const hem = smooth(y, 0.06, 0.089) * (1 - smooth(y, 0.117, 0.147));
+  const hem = smooth(y, 0.071, 0.094) * (1 - smooth(y, 0.117, 0.147));
   const upper = smooth(y, 0.216, 0.255) * (1 - smooth(y, 0.323, 0.365));
   const fold = y * 65 + x * 19 + 0.86 * Math.sin(x * 15 + y * 6);
   return -back * (0.005 * hem + 0.0085 * upper) * Math.sin(fold + phase);
@@ -32,7 +32,7 @@ export function prepareMxJerseyAirflow(skin: T.SkinnedMesh) {
       const x = positions.getX(i),
         y = positions.getY(i),
         z = positions.getZ(i);
-      if (z >= -0.024 || y < 0.059 || y > 0.366) continue;
+      if (z >= -0.024 || y <= 0.07 || y > 0.366) continue;
       move[i * 3 + 2] = displacement(x, y, z, phase);
       const dx =
         (displacement(x + delta, y, z, phase) - displacement(x - delta, y, z, phase)) / (2 * delta);

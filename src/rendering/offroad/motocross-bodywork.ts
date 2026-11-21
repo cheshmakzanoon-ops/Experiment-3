@@ -126,18 +126,51 @@ export function motocrossAirbox(detail: RiderDetail) {
   return superLoft(AIRBOX, sidesFor(detail), 3.4);
 }
 
-/** Rear mudguard flap between the airbox and the tyre (a flat, slightly
- * dished sheet hanging from the subframe), seen through the wheel opening. */
+/** Flexible moulding hung from the airbox, with a pinched waist, rounded
+ * lower corners and three vertical strengthening beads. The clamped upper
+ * 30 mm stay fixed as the free length bends toward or away from the tyre. */
 export function motocrossMudFlap() {
-  const g = new T.BoxGeometry(0.19, 0.2, 0.006, 4, 4, 1),
+  const g = new T.BoxGeometry(.19, .20, .006, 6, 5, 1),
     p = g.getAttribute('position');
   for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      y = p.getY(i);
-    // Dish toward the tyre and taper the lower corners.
-    p.setZ(i, p.getZ(i) - 0.5 * x * x + 0.12 * (y + 0.1) * (y + 0.1));
-    p.setX(i, x * (1 - 0.18 * T.MathUtils.clamp(-y / 0.1, 0, 1)));
+    const x = p.getX(i), y = p.getY(i), side = x / .095;
+    const down = T.MathUtils.clamp((.1 - y) / .2, 0, 1);
+    const beads = Math.max(0, Math.cos(side * Math.PI * 3)) ** 3;
+    const field = Math.sin(Math.PI * down) ** 2;
+    p.setXYZ(i, x * (1 - .16 * down ** 2), y + .011 * down ** 4 * Math.abs(side) ** 3,
+      p.getZ(i) - .0045 * side ** 2 - .0038 * field * beads);
   }
   g.computeVertexNormals();
+  const n = g.getAttribute('normal'), offsets = new Float32Array(p.count * 3),
+    tilts = new Float32Array(p.count * 3);
+  const length = .17, angle = .48;
+  for (let i = 0; i < p.count; i++) {
+    const reach = Math.max(0, .07 - p.getY(i)), rot = angle * reach / length;
+    const sn = Math.sin(rot), cs = Math.cos(rot);
+    offsets[i * 3 + 1] = reach - length * sn / angle;
+    offsets[i * 3 + 2] = length * (1 - cs) / angle;
+    tilts[i * 3 + 1] = (cs - 1) * n.getY(i) + sn * n.getZ(i);
+    tilts[i * 3 + 2] = -sn * n.getY(i) + (cs - 1) * n.getZ(i);
+  }
+  g.morphTargetsRelative = true;
+  g.morphAttributes.position = [new T.BufferAttribute(offsets, 3)];
+  g.morphAttributes.normal = [new T.BufferAttribute(tilts, 3)];
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  g.boundingBox!.expandByScalar(.008);
+  g.boundingSphere!.radius += .008;
   return g;
+}
+
+/** Air carries the unloaded flap back slightly. Rear stroke and a loaded
+ * tyre throwing soil bend it toward the frame. All samples use the recorded
+ * bike state, including a replay cut directly to the middle of a landing. */
+export function mxMudFlapLoad(speed: number | undefined, rimSpeed: number, support: number | undefined, rearStroke: number) {
+  const v = Number.isFinite(speed) ? Math.abs(speed!) : 0;
+  const g = Number.isFinite(support) ? Math.max(0, support!) : 1;
+  const moving = T.MathUtils.smoothstep(v, .5, 18);
+  const throwing = T.MathUtils.smoothstep(Math.max(0, rimSpeed - v), 1, 12)
+    * T.MathUtils.smoothstep(g, .15, 1.0);
+  return T.MathUtils.clamp(.57 * rearStroke + .28 * T.MathUtils.smoothstep(g, 1.4, 3.5)
+    + .39 * throwing - .15 * moving, -.15, 1);
 }

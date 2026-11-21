@@ -309,6 +309,7 @@ export class TrackTerrainSurface implements OffroadSurface {
     out.cell = cell;
     out.pit = false;
     out.terrain = true;
+    out.soilMoisture = c.moisture;
     return true;
   }
   /** Heightfield ray cast by vertical projection (rays point nearly down):
