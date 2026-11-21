@@ -41,7 +41,7 @@ import {
   festivalDetailFor,
 } from './festival-detail.ts';
 import { cutFestivalBodyPockets, warpFestivalNose } from './festival-nose.ts';
-import { roadSplitter, addRoadUndertray } from './road-underbody.ts';
+import { roadSplitter, addRoadUndertray, addHatchVisor } from './road-underbody.ts';
 import { warpFestivalRear } from './festival-rear.ts';
 import { cutFestivalDoorJoints, shapeFestivalSide } from './festival-side.ts';
 
@@ -178,6 +178,16 @@ export class ClosedBodyModel {
   /** Half width at the beltline, with flares bulging over the wheels. */
   halfWidth(z: number) {
     let hw = this.halfBase * this.taper.at(z);
+    // Door skins draw in between the axles. Meet each wheel opening at full
+    // track with zero slope so the arch and its liner keep the tyre clearance.
+    const form = this.s.mirrorForm;
+    if (form && form !== 'work') {
+      const front = this.arches[0],
+        rear = this.arches[1];
+      const u = clamp((z - rear.z - rear.r) / (front.z - front.r - rear.z - rear.r), 0, 1);
+      const waist = form === 'sport' ? 0.052 : form === 'bullet' ? 0.037 : 0.026;
+      hw -= waist * Math.sin(Math.PI * u) ** 2;
+    }
     for (const a of this.arches) {
       const u = (z - a.z) / (a.r * 1.55);
       if (Math.abs(u) < 1) hw += a.flare * Math.cos((u * Math.PI) / 2) ** 2;
@@ -228,6 +238,9 @@ export class ClosedBodyModel {
     const floorW = Math.min(hw * 0.86, hw - 0.08);
     const rockerY = floor + Math.min(0.08, (belt - floor) * 0.4);
     const deckW = hw * (this.s.style === 'truck' ? 0.92 : 0.8);
+    const form = this.s.mirrorForm;
+    const rocker =
+      form === 'sport' ? 0.915 : form === 'touring' ? 0.935 : form === 'bullet' ? 0.945 : 0.97;
     const upper = (b: number): Pt[] => {
       const shoulder = Math.min(top + fender - 0.03, b + (top - b) * 0.68 + fender * 0.6);
       return [
@@ -255,7 +268,7 @@ export class ClosedBodyModel {
       [floorW * 0.9, floor],
       [floorW * 0.95, floor + 0.0002],
       [floorW, floor + 0.0004],
-      [hw * 0.97, rockerY],
+      [hw * rocker, rockerY],
       ...upper(belt),
     ];
   }
@@ -1343,6 +1356,8 @@ export function buildClosedBody(
     });
   }
   void rr;
+  const bondedVisor = s.wing?.kind === 'roof' && s.windowForm === 'hatch' && gh;
+  if (bondedVisor && s.wing) addHatchVisor(parts, bondedVisor, s.wing, mats, detail);
   for (const mesh of parts.build(lod.group, detail === 0))
     if (!Array.isArray(mesh.material) && mesh.material.userData.vehicleLampLens)
       mesh.castShadow = false;
@@ -1355,7 +1370,7 @@ export function buildClosedBody(
         lod.cabin!.glass.push(o);
       }
     });
-  if (s.wing) {
+  if (s.wing && !bondedVisor) {
     const built = wing(parts, model, s.wing, mats, detail, detailedFestival);
     if (built) {
       const g = new T.Group();

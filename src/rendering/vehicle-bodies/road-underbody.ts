@@ -1,6 +1,8 @@
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
-import type { ClosedBodyModel } from './closed-body.ts';
+import type { ClosedBodyModel, Greenhouse } from './closed-body.ts';
+import type { WingSheet } from './body-sheet.ts';
+import type { CarMaterials } from './common.ts';
 import { sharedMaterials } from './materials.ts';
 import type { Parts } from './parts.ts';
 import type { Detail } from './wheel.ts';
@@ -108,6 +110,66 @@ export function roadSplitterStation(model: ClosedBodyModel, u: number) {
   };
 }
 
+/** A bonded continuation of the painted hatch roof. The leading flange
+ * enters the roof and the underside returns to it at both cantrails. */
+export function addHatchVisor(
+  parts: Parts,
+  house: Greenhouse,
+  wing: WingSheet,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  const span = house.model.s.width * wing.span * 0.5;
+  const root = house.zRR + 0.095,
+    chord = wing.chord;
+  const roof = house.control(root);
+  const height = (x: number) => {
+    const a = Math.abs(x);
+    for (let i = roof.length - 1; i > 0; i--) {
+      const [xi, yi] = roof[i],
+        [xo, yo] = roof[i - 1];
+      if (a <= xo) return yi + ((yo - yi) * (a - xi)) / (xo - xi);
+    }
+    return roof[0][1];
+  };
+  const station = (u: number) => {
+    const x = u * span,
+      end = ease((Math.abs(u) - 0.69) / 0.31);
+    const y = height(x),
+      z = root - 0.025 * end;
+    const lip = z - chord * (1 - 0.27 * end);
+    return { x, y, z, lip, end };
+  };
+  const n = [24, 14, 8][detail];
+  const rings = Array.from({ length: n + 1 }, (_, i) => {
+    const { x, y, z, lip, end } = station((2 * i) / n - 1);
+    return [
+      v(x, y - 0.008, z + 0.026),
+      v(x, y + 0.007, z),
+      v(x, y + 0.014, z - chord * 0.48),
+      v(x, y + 0.017 - 0.026 * end, lip + 0.018),
+      v(x, y + 0.011 - 0.027 * end, lip),
+      v(x, y - 0.015 - 0.032 * end, lip + 0.005),
+      v(x, y - 0.027 - 0.05 * end, lip + 0.038),
+      v(x, y - 0.018, z - 0.018),
+    ];
+  });
+  parts.add(pressing(rings), mats.paint);
+  if (detail === 2) return;
+  // The high stop lamp shares the animated rear-lamp circuit. Its lens sits
+  // in the upright trailing fold, with a narrow return around the perimeter.
+  const lamp = Array.from({ length: 9 }, (_, i) => {
+    const { x, y, lip } = station((i / 4 - 1) * 0.295);
+    return [
+      v(x, y + 0.005, lip + 0.002),
+      v(x, y + 0.005, lip - 0.003),
+      v(x, y - 0.009, lip - 0.003),
+      v(x, y - 0.01, lip + 0.003),
+    ];
+  });
+  parts.add(pressing(lamp), mats.tail);
+}
+
 export function roadSplitter(model: ClosedBodyModel, detail: Detail) {
   const n = [24, 14, 8][detail];
   const rings = Array.from({ length: n + 1 }, (_, i) => {
@@ -132,26 +194,44 @@ export function addRoadUndertray(parts: Parts, model: ClosedBodyModel, detail: D
   const { f, s, zRear } = model;
   const span = model.halfWidth(zRear) * 0.87;
   const performance = s.diffuser >= 0.15;
-  const bands = detail === 0 ? 20 : 12;
-  const valance = Array.from({ length: bands + 1 }, (_, i) => {
-    const u = -1 + (2 * i) / bands,
-      bend = ease((Math.abs(u) - 0.7) / 0.3);
-    const z = zRear + 0.09 * bend;
+  // Return the valance around the actual quarter panel. The horizontal face
+  // and the side return share a station at the turn. A single flat panel
+  // across the tail would disappear inside the broadening rear shoulder.
+  const touring = s.mirrorForm === 'touring';
+  const chrome = s.mirrorForm === 'bullet';
+  const truck = s.mirrorForm === 'work';
+  const count = detail === 0 ? 16 : 8;
+  function station(u: number, wrap: number) {
+    const bend = ease(wrap),
+      a = Math.abs(u),
+      side = Math.sign(u);
+    const z = zRear + (truck ? 0.04 : chrome ? 0.12 : 0.18) * wrap;
     const floor = model.control(z)[0][1];
-    const opening =
-      s.diffuser > 0 ? (1 - ease((Math.abs(u) - 0.58) / 0.23)) * (performance ? 0.035 : 0.017) : 0;
-    const y = floor - 0.018 + opening + 0.023 * bend,
-      x = u * span;
+    const low = floor - 0.013 + 0.015 * a * a + bend * 0.012;
+    const depth = truck ? 0.048 : chrome ? 0.077 : touring ? 0.137 : 0.105 + s.diffuser * 0.42;
+    const high = low + depth + (truck || chrome ? 0 : 0.048 * ease((a - 0.5) / 0.47));
+    const face = (y: number, offset: number, inset = 0) => {
+      const x = model.sideX(z, Math.max(floor + 0.002, y)) - inset + offset * bend;
+      return v(u * x, y, z - offset * (1 - bend));
+    };
+    const toe = Math.max(0.02, (high - low) * 0.21);
     return [
-      v(x * 0.998, y + 0.051, z + 0.031),
-      v(x, y + 0.046, z - 0.002),
-      v(x * 1.002, y + 0.031, z - 0.014),
-      v(x, y + 0.006, z - 0.015),
-      v(x * 0.995, y, z - 0.007),
-      v(x * 0.989, y + 0.002, z + 0.055),
+      face(high - 0.007, -0.004, 0.004),
+      face(high, 0.009),
+      face(high - 0.013, 0.021),
+      face(low + toe, 0.026),
+      face(low + 0.009, 0.019, 0.007),
+      face(low, 0.005, 0.012),
+      v(side * Math.max(0, a * (model.sideX(z, high) - 0.029)), low + 0.004, z + 0.04),
     ];
-  });
-  parts.add(pressing(valance), sharedMaterials.plastic());
+  }
+  const left = [-1, -0.72, -0.4, -0.16].map((w) => station(-1, -w));
+  const face = Array.from({ length: count + 1 }, (_, i) => station((2 * i) / count - 1, 0));
+  const right = [0.16, 0.4, 0.72, 1].map((w) => station(1, w));
+  parts.add(
+    pressing([...left, ...face, ...right]),
+    chrome ? sharedMaterials.chrome() : sharedMaterials.plastic(),
+  );
   if (s.diffuser <= 0) return;
   const length = clamp(s.overhang[1] - f.radius - 0.065, 0.22, performance ? 0.7 : 0.47);
   const exit = zRear - 0.025,

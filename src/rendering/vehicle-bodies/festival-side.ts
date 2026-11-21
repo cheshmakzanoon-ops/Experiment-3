@@ -448,16 +448,15 @@ export function addFestivalDoorHandles(
         if (Math.max(a[1], b[1]) < low || Math.min(a[1], b[1]) > high) continue;
         for (const h of [low, high]) {
           const t = a[1] === b[1] ? 0 : clamp((h - a[1]) / (b[1] - a[1]), 0, 1);
-          boundary = Math.max(boundary, a[0] + t * (b[0] - a[0]));
+          // Clearance is measured normal to the raked door joint. Convert it
+          // to a longitudinal offset at the height of the handle envelope.
+          const slope = (b[0] - a[0]) / (b[1] - a[1]);
+          const clearance = FESTIVAL_DOOR_JOINT.width / 2 + FESTIVAL_DOOR_JOINT.handleClearance;
+          const offset = clearance * (Number.isFinite(slope) ? Math.hypot(1, slope) : 1);
+          boundary = Math.max(boundary, a[0] + t * (b[0] - a[0]) + offset);
         }
       }
-      z = Math.max(
-        z,
-        boundary +
-          FESTIVAL_DOOR_JOINT.width / 2 +
-          FESTIVAL_DOOR_JOINT.handleClearance -
-          envelope.min.z,
-      );
+      z = Math.max(z, boundary - envelope.min.z);
     }
     const x = model.sideX(z, y);
     if (x < 0.1) {

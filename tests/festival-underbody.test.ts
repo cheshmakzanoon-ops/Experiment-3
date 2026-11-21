@@ -53,6 +53,28 @@ describe('Festival lower body construction', () => {
       }
     }
   });
+  it('wraps the lower insert around each rear quarter at racing distance', () => {
+    for (const id of ['rh3', 'sc7', 'eh3', 'rs5', 'rm8', 'rr4', 'rd2', 'lx12', 'rg63']) {
+      const m = modelFor(id);
+      for (const detail of [0, 1] as const) {
+        const parts = new Parts(),
+          tail = new T.Group();
+        addRoadUndertray(parts, m, detail);
+        parts.build(tail, false);
+        const role = id === 'rg63' ? sharedMaterials.chrome() : sharedMaterials.plastic();
+        const insert = tail.children.find((c) => (c as T.Mesh).material === role) as T.Mesh;
+        const z = m.zRear + (id === 'rg63' ? 0.08 : 0.12);
+        const y = m.control(z)[0][1] + 0.04;
+        for (const sign of [-1, 1]) {
+          const ray = new T.Raycaster(new T.Vector3(sign * 2, y, z), new T.Vector3(-sign, 0, 0));
+          const hits = ray.intersectObject(insert);
+          expect(hits.length, id).toBeGreaterThan(0);
+          expect(Math.abs(hits[0].point.x), id).toBeGreaterThan(m.sideX(z, y) - 0.004);
+        }
+        for (const part of tail.children) (part as T.Mesh).geometry.dispose();
+      }
+    }
+  });
   it('keeps each longitudinal strake attached to the same expanding outlet at both racing distances', () => {
     for (const id of ['sc7', 'eh3', 'rs5', 'rh3', 'rd2', 'rg63', 'rp6']) {
       const m = modelFor(id);

@@ -422,7 +422,11 @@ export function festivalRegistrationPocket(model: ClosedBodyModel): FestivalTail
     width = supercar ? 0.6 : 0.64,
     height = supercar ? 0.16 : 0.19,
     y = model.f.y(
-      model.s.tailHousing ? Math.min(0.7, model.s.tail - 0.34) : supercar ? 0.49 : 0.73,
+      model.s.tailHousing
+        ? Math.min(0.7, model.s.tail - 0.34)
+        : supercar
+          ? 0.49
+          : model.s.tail - 0.35,
     ),
     outline = counterClockwise(
       [
