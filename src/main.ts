@@ -672,13 +672,18 @@ export class GameApp {
   private async switchCircuit(id: CircuitId, gpGrid = false) {
     if (!this.canvas) return true;
     if (this.track.circuit.id === id && this.renderer?.canPrepareGrid(gpGrid)) return true;
-    this.ui.loading(`Building ${circuitDefinition(id).name}…`);
+    const definition = circuitDefinition(id), kind = definition.offroad?.kind;
+    this.ui.loading(`Building ${definition.name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const carTemplates = gpGrid ? this.renderer?.releaseCarTemplates() : undefined;
+    // Dirt circuits retain the decoded models for later garage selections.
+    // Give them the existing templates before disposing the old scene, so
+    // entering either moto does not decode all five showroom exports again.
+    const reuseTemplates = gpGrid || kind === 'motocross' || kind === 'supercross';
+    const carTemplates = reuseTemplates ? this.renderer?.releaseCarTemplates() : undefined;
     try {
       this.renderer?.dispose();
       this.renderer = null;
-      this.track = new Track('clear', false, undefined, circuitDefinition(id));
+      this.track = new Track('clear', false, undefined, definition);
       return await this.buildRenderer(this.canvas, false, gpGrid, carTemplates);
     } finally {
       // Before the new renderer takes ownership, cancellation or failure still releases every template.

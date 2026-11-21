@@ -285,8 +285,8 @@ export type { Quality } from './options.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
 const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLAYER__ === true;
 
-/** The original car and its driver give every instance private geometry. Their decoded
- * templates can move from the showroom to a GP circuit, including its later car previews. */
+/** Each car and driver owns its instance geometry. Their decoded templates
+ * can move between the showroom and motorcycle circuits for later car previews. */
 export class CarTemplateTransfer {
   constructor(
     private assets: {

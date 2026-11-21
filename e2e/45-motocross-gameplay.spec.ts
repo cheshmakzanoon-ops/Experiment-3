@@ -23,6 +23,12 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   // GPU have separate readiness budgets; this is a functional, bounded run.
   test.setTimeout(1200000);
   const errors: string[] = [];
+  const carTemplateRequests: string[] = [];
+  page.on('request', request => {
+    const pathname = new URL(request.url()).pathname;
+    if (/\/(?:apx01-(?:shell|driver)|a61-rival-(?:near|mid|far))\.glb(?:-[\w-]+)?\.gz$/.test(pathname))
+      carTemplateRequests.push(pathname);
+  });
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -113,6 +119,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   expect(entryPresentation.presentedBackdrop).toBe('studio');
   expect(entryPresentation.construction.tasks).toBe(0);
   expect(entryPresentation.gpuFrameQueue.completed).toBeGreaterThan(0);
+  const showroomTemplates = carTemplateRequests.slice();
+  expect(showroomTemplates.length).toBeGreaterThan(0);
   // Software GPUs can spend the whole riding budget on a production frame.
   // An explicit opt-in exercises the same visible settings flow while the
   // separate bike/world fixtures retain their full rendering checks.
@@ -188,6 +196,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.renderer?.presentationPurpose).toBe('circuit');
     expect(initialized.renderer?.construction.tasks).toBeGreaterThan(0);
     expect(initialized.renderer?.preparation?.status).toBe('complete');
+    expect(carTemplateRequests, `${circuit} reuses the decoded showroom assets`).toEqual(showroomTemplates);
     const graphics = initialized.renderer!.graphics;
     if (graphics.reflections === 'local' && graphics.shadowSize > 0) {
       const { warmupRoadColour, warmupDirtCockpitColour } = initialized.renderer!;
@@ -413,9 +422,11 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await expect
       .poll(async () => {
         const state = await diag();
-        return { state: state.state, camera: state.renderer?.camera };
+        return { state: state.state, camera: state.renderer?.requestedCamera };
       })
       .toEqual({ state: 'driving', camera: 'cockpit' });
+    // Acknowledging the input and presenting its first GPU-complete frame
+    // are separate events. The capture below proves the latter on screen.
     await capture(`${circuit}-actual-onboard.png`, d => d.renderer?.presentedCamera === 'cockpit');
     await page.keyboard.press('Escape');
     const resumeButton = page.getByRole('button', { name: 'RESUME SESSION', exact: true });
