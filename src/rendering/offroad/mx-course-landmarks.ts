@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { disposeOffroadResources } from './owned-resources.ts';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import type { OffroadCourse } from '../../simulation/offroad/course.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -414,7 +414,11 @@ function buildBarn(track: Track, site: MxCourseSite) {
 function buildQuarry(track: Track, site: MxCourseSite) {
   const b = new LandmarkBuilder(site.name, siteTransform(site)),
     random = new Random(61041);
-  b.add('rock', mxQuarryFace((x, z) => localGround(track, site, x, z)), 0xffffff);
+  const face = mxQuarryFace((x, z) => localGround(track, site, x, z));
+  // The batch already uses triangle lists. Keep genuinely broken edges sharp
+  // while blending the normals across gently weathered neighbouring facets.
+  b.add('rock', toCreasedNormals(face, Math.PI / 5), 0xffffff);
+  face.dispose();
   // Fallen angular plates spread from the face at the foot of the cut.
   const plate = mxFieldstoneGeometry();
   for (let i = 0; i < 38; i++) {

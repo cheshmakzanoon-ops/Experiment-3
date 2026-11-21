@@ -24,9 +24,13 @@ Two suspended boards show the official lap, race clock and finish state. This cl
 
 ## Outside at Valley Ridge
 
-The quarry cutting has exposed strata, broken turf and fallen rock at its base. The mechanics area and spectator group in this course-detail camera give the bank its scale.
+The wide course-detail view records the quarry before its final fracture pass. The mechanics area and nearby spectators give the exposed bank and fallen rock their scale.
 
 ![Valley Ridge quarry, exposed rock beds and spectators at track level](quarry.webp)
+
+The matched close-ups show the earlier surface on the left and the revised cutting on the right under the same angled light. Across 49 sections of the old face, 92 steps folded downward, the deepest by 12.08 cm. The new beds meet in order at every section. Broken blocks have separate face angles and chipped crests. Both versions use 2,840 triangles.
+
+![Matched quarry studies showing continuous sedimentary beds and sharply lit block fractures in the revised mesh on the right](quarry-beds.webp)
 
 Two wooded ridges frame the course about 0.8 and 1.25 km from its centre. This landscape study isolates the production terrain and trees. During a race, flags, grass and fine dust respond to the recorded outdoor wind. The heavy clods retain their ballistic arc. Spectators near the leaders turn as the riders pass.
 

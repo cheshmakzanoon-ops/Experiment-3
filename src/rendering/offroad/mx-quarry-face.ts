@@ -26,11 +26,40 @@ export function mxQuarryFace(ground: (x: number, z: number) => number) {
     const back = 0.8 + 1.9 * edge + 0.55 * valueNoise(x * 0.5, 2.1);
     const frontFloor = ground(x, front),
       backFloor = ground(x, back);
-    const brokenCrest = 0.51 * valueNoise(x * 1.5, 4.3) + 0.25 * Math.sin(x * 1.37 + 1);
+    // Adjacent blocks meet on diagonal joints. Their tilted faces weather at
+    // different depths, and the seams chip through the upper silhouette.
+    let block = 0,
+      crestChip = 0,
+      faultThrow = 0;
+    for (const [i, plane] of jointPlanes.entries()) {
+      if (x > plane) block++;
+      const offset = x - plane - (i % 2 ? 0.9 : -0.55);
+      crestChip = Math.max(
+        crestChip,
+        (0.22 + 0.11 * (i % 3)) * Math.max(0, 1 - Math.abs(offset) / 0.51),
+      );
+      faultThrow += (i % 2 ? -0.26 : 0.21) * T.MathUtils.smoothstep(x - plane, -0.22, 0.22);
+    }
+    const blockCentre =
+      ((jointPlanes[block - 1] ?? -width / 2) + (jointPlanes[block] ?? width / 2)) / 2;
+    const blockSlope = block % 2 ? -0.16 : 0.21;
+    const slabFace = (x - blockCentre) * blockSlope;
+    const brokenCrest = 0.51 * valueNoise(x * 1.5, 4.3) + 0.25 * Math.sin(x * 1.37 + 1) - crestChip;
     const crown =
       0.32 +
       edge * (3.24 + 1.5 * valueNoise(x * 0.26 + 1.8, 0.6) + brokenCrest) +
       0.36 * (x / width + 0.5);
+    // A bedding contact belongs to both neighbouring strata. Warping each
+    // bed independently let its upper lip fold back through the next bed.
+    const horizons = beds.map((t, i) => {
+      if (i === 0 || i === beds.length - 1) return t * crown;
+      const thickness = crown * Math.min(t - beds[i - 1], beds[i + 1] - t);
+      const dip =
+        0.17 * Math.sin(x * 0.49 + i * 0.81) +
+        0.22 * (valueNoise(x * 0.63, i * 0.72) - 0.5) +
+        faultThrow * 4 * t * (1 - t);
+      return t * crown + T.MathUtils.clamp(dip * edge, -thickness * 0.36, thickness * 0.36);
+    });
     const vertex = (y: number, z: number, tint: T.Color, brightness = 1) => {
       positions.push(x, y, z);
       colours.push(tint.r * brightness, tint.g * brightness, tint.b * brightness);
@@ -51,25 +80,27 @@ export function mxQuarryFace(ground: (x: number, z: number) => number) {
         [0.96, -0.15],
       ]) {
         const t = T.MathUtils.lerp(beds[bed], beds[bed + 1], fraction);
-        const strata =
-          Math.sin(x * 0.72 + bed * 0.74) * 0.11 + (valueNoise(x * 0.77, bed * 0.72) - 0.5) * 0.18;
-        const y = frontFloor + t * crown + strata * edge;
+        const y = frontFloor + T.MathUtils.lerp(horizons[bed], horizons[bed + 1], fraction);
         let joint = 0;
         for (let i = 0; i < jointPlanes.length; i++) {
           const distance = Math.abs(x - jointPlanes[i] - (y - frontFloor) * (i % 2 ? 0.28 : -0.16));
-          joint = Math.max(joint, 1 - T.MathUtils.smoothstep(distance, 0.025, 0.4));
+          joint = Math.max(
+            joint,
+            1 - T.MathUtils.clamp((distance - 0.025) / (0.16 + (i % 3) * 0.035), 0, 1),
+          );
         }
         const rough = valueNoise(x * 1.2 + y * 0.35, y * 0.9 + 7.2);
         const fracture = valueNoise(x * 0.82 - t * 0.98, t * 3.9 + 2.8);
         const z =
           front +
           0.74 * t +
-          relief * (0.12 + 0.88 * hardness) +
+          slabFace * edge * (0.6 + 0.4 * t) +
+          relief * (0.03 + 0.97 * hardness * hardness) +
           joint * 0.55 +
           (fracture - 0.5) * 0.69 +
           (rough - 0.5) * 0.23;
         colour.copy(stone).lerp(iron, 0.15 + 0.5 * valueNoise(x * 0.46, bed + 0.3));
-        if (fraction === 0) colour.lerp(seam, 0.21 + 0.24 * hardness);
+        if (fraction === 0) colour.lerp(seam, 0.06 + 0.39 * hardness);
         vertex(y, z, colour, (0.84 + rough * 0.22) * (1 - joint * 0.29));
       }
     }
@@ -81,7 +112,7 @@ export function mxQuarryFace(ground: (x: number, z: number) => number) {
       [0.82, 0.47],
       [1, 0],
     ]) {
-      const z = T.MathUtils.lerp(front + 0.74, back, t);
+      const z = T.MathUtils.lerp(front + 0.74 + slabFace * edge, back, t);
       const y = T.MathUtils.lerp(frontFloor, backFloor, t) + h * crown - 0.42 * t;
       const moss = valueNoise(x * 0.62 + 5.8, z * 0.9);
       colour.copy(stone).lerp(turf, 0.25 + 0.6 * moss);

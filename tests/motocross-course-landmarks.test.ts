@@ -10,9 +10,33 @@ import {
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { Track } from '../src/simulation/track.ts';
+import { mxQuarryFace } from '../src/rendering/offroad/mx-quarry-face.ts';
 import { MX_COURSE_SITE_HEIGHT } from '../src/rendering/offroad/mx-course-sites.ts';
 
 describe('course identities and surveyed jump reading', () => {
+  it('keeps adjoining quarry beds in vertical order across the eroded face', () => {
+    const rock = mxQuarryFace((x, z) => 0.07 * x + 0.03 * z);
+    try {
+      const position = rock.getAttribute('position');
+      let sections = 0, minimumRise = Infinity;
+      for (let first = 0; first < position.count;) {
+        const x = position.getX(first);
+        let end = first + 1;
+        while (end < position.count && position.getX(end) === x) end++;
+        // The last four samples run over the grassy crown and down the rear.
+        for (let vertex = first + 1; vertex < end - 4; vertex++) {
+          minimumRise = Math.min(minimumRise, position.getY(vertex) - position.getY(vertex - 1));
+        }
+        sections++;
+        first = end;
+      }
+      expect(sections).toBeGreaterThan(40);
+      expect(minimumRise).toBeGreaterThan(0);
+    } finally {
+      rock.dispose();
+    }
+  });
+
   it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
     '%s diagrams reproduce the contact profile and actual landing zone',
     (id) => {
