@@ -1,6 +1,7 @@
 import type * as T from 'three';
 import type { SoilKind } from '../../simulation/offroad/course.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { MX_LAUNCH_SOIL, mxStartLanes } from './mx-launch-soil.ts';
 
 /** Prepared motocross soil: warm clay, mineral sand and cooler damp loam.
  * The existing scanned maps supply grain/roughness. These sRGB base colours
@@ -24,7 +25,7 @@ export const MX_SX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.fre
   sand: 0x86684a,
 });
 
-export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v4';
+export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v5';
 
 const DECLARATIONS = /* glsl */ `
 varying vec4 vMxCourse;
@@ -190,6 +191,7 @@ vec4 mxPassesAt( vec2 p, vec2 fp ) {
     mxLaneAt( p.y, lane, f.spacing, f.corner ),
     mxLaneAt( p.y, lane + 1.0, f.spacing, f.corner ) );
 }
+${MX_LAUNCH_SOIL}
 `;
 
 const COLOUR = /* glsl */ `{
@@ -208,6 +210,7 @@ const COLOUR = /* glsl */ `{
   float wallSide = sign( vMxCourseWear.w );
   float wallAcross = p.x * wallSide / halfWidth;
   vec4 passes = mxPassesAt( p, fp );
+  vec4 launch = mxGateSoil( p, fp ) * onSoil;
   float broad = mxSoilNoise( p * vec2( 0.3, 0.085 ) );
   float broken = mxSoilNoise( p * vec2( 2.1, 0.67 ) );
   float wander = 0.045 * sin( p.y * 0.24 ) + ( broad - 0.5 ) * 0.16;
@@ -216,7 +219,7 @@ const COLOUR = /* glsl */ `{
   float rake = ( 1.0 - smoothstep( 0.045, 0.16 + rakeWidth,
     abs( fract( rakePhase ) - 0.5 ) ) )
     * ( 1.0 - smoothstep( 0.32, 0.9, rakeWidth ) );
-  float tread = passes.w;
+  float tread = max( passes.w, launch.w );
   float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fp ) );
   float aggregate = smoothstep( 0.63, 0.84, mxSoilNoise( p * 19.0 ) ) * aggregateFade;
   // A bank's lower ridden shelf is pressed, while the upper lip retains
@@ -229,9 +232,11 @@ const COLOUR = /* glsl */ `{
   mxPreparedPacked = onSoil * clamp( passes.z * ( 0.70 + broad * 0.30 )
     + bermShelf * 0.22 + vApexSoil.y * 0.60, 0.0, 1.0 );
   mxPreparedPacked *= 1.0 - bermLip * 0.32 * ( 1.0 - vApexSoil.y );
+  mxPreparedPacked = max( mxPreparedPacked, launch.z * 0.84 );
   mxPreparedAggregate = onSoil * aggregate * ( 1.0 - mxPreparedPacked * 0.65 );
   mxPreparedAggregate *= 1.0 + bermLip * 0.8;
   mxPreparedGroove = onSoil * clamp( passes.x + vApexSoil.z * 5.0, 0.0, 1.0 );
+  mxPreparedGroove = max( mxPreparedGroove, launch.x * 0.94 );
   float rakeUnridden = rake * ( 1.0 - passes.z * 0.88 ) * ( 0.35 + broken * 0.65 );
   // Short longitudinal landing scuffs sit inside the existing tyre width.
   // Use the loaded passages so airborne/grass surfaces cannot acquire them.
@@ -245,7 +250,7 @@ const COLOUR = /* glsl */ `{
   mxPreparedRelief = onSoil * ( 0.0045 * rakeUnridden
     - 0.032 * passes.x * grooveBump - 0.006 * passes.z + 0.013 * passes.y * grooveBump
     - 0.0035 * tread - 0.005 * touchdown )
-    + 0.003 * mxPreparedAggregate;
+    + 0.003 * mxPreparedAggregate - 0.024 * launch.x + 0.015 * launch.y - 0.003 * launch.w;
   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
   // Drained, sun-dried crests and lips keep a pale skin of loose fines.
   mxPreparedCrest = onSoil * max( -vMxSoilTopo, 0.0 ) *
@@ -254,7 +259,8 @@ const COLOUR = /* glsl */ `{
   diffuseColor.rgb *= mix( 1.0, grainTone, onSoil )
     * ( 1.0 - mxPreparedPacked * 0.18 - mxPreparedGroove * 0.27
       + onSoil * passes.y * 0.095 + mxPreparedAggregate * 0.13 - tread * 0.045
-      - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 + mxPreparedCrest * 0.07 );
+      - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 + mxPreparedCrest * 0.07
+      + launch.y * 0.16 - launch.x * 0.08 );
   // Unridden margins: the loose, fluffier soil the graders push to the
   // edge holds its moisture and reads darker and browner than the packed
   // lines, with an irregular inner boundary. Reads at chase distance.
@@ -315,9 +321,13 @@ export function installMxSoilDetail(
   material: T.MeshPhysicalMaterial,
   courseLength: number,
   indoor = false,
+  gateStation = 0,
+  startLanes = mxStartLanes(),
 ) {
   return chainShaderHook(material, MX_SOIL_DETAIL_HOOK, (shader) => {
     shader.uniforms.mxCourseLength = { value: Math.max(1, courseLength) };
+    shader.uniforms.mxGateStation = { value: gateStation };
+    shader.uniforms.mxStartLanes = startLanes;
     shader.uniforms.mxSoilIndoor = { value: indoor ? 1 : 0 };
     injectDeclarations(
       shader,

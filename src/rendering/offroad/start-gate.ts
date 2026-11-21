@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mxStartLanes } from './mx-launch-soil.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp } from '../../core/math.ts';
 import type { OffroadCourse } from '../../simulation/offroad/course.ts';
@@ -168,11 +169,11 @@ export class StartGate {
     roughness: 0.62,
   });
   private readonly pad = materials.concrete({ variant: 'rough', horizontal: 1 });
-  private readonly lanes = { value: new T.Vector3(1, 0, 1) };
   private grateDistanceMaterial?: T.MeshStandardMaterial;
   constructor(
     private readonly track: Track,
     private readonly course: OffroadCourse,
+    private readonly lanes = mxStartLanes(course.spec.gate),
   ) {
     const gate = course.spec.gate!;
     const p = trackPoint();
@@ -342,8 +343,8 @@ export class StartGate {
   /** Evaluate the shared hinge at the displayed instant, including during replay. */
   update(frame: Float32Array, measured = frame) {
     if (this.disposed) return;
-    const riders = Math.round(frame[H.CARS]);
-    if (riders > this.slots) this.build(riders);
+    const riders = Math.max(this.course.spec.gate!.slots, Math.round(frame[H.CARS]));
+    if (Number.isFinite(riders) && riders !== this.slots) this.build(riders);
     // The measured race and session clocks share the same green instant.
     // Only the session clock is interpolated for presentation. Reconstructing
     // elapsed time from both clocks also holds the leaves up before green

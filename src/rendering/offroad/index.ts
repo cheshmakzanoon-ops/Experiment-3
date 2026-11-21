@@ -13,6 +13,7 @@ import { installLightPools } from '../studio/light-pools.ts';
 import { Roost } from './roost.ts';
 import { Stadium } from './stadium.ts';
 import { StartGate } from './start-gate.ts';
+import { mxStartLanes } from './mx-launch-soil.ts';
 import { TerrainView } from './terrain-view.ts';
 import { MxCourseDressing } from './mx-course-dressing.ts';
 import { MxCourseLandmarks } from './mx-course-landmarks.ts';
@@ -87,6 +88,7 @@ export class OffroadScene {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
     const course = surface.course;
+    const startLanes = mxStartLanes(course.spec.gate);
     this.roost = new Roost(track);
     this.group.name = 'Off-road venue';
     this.group.add(this.roost.points);
@@ -94,7 +96,7 @@ export class OffroadScene {
     if (this.roost.contactShadows) this.group.add(this.roost.contactShadows);
     try {
       this.queue(construction, 'Off-road course terrain', 3, () => {
-        this.terrain = new TerrainView(track);
+        this.terrain = new TerrainView(track, startLanes);
         this.roost.groundHeight = (s, lateral) => this.terrain!.heightAt(s, lateral);
         // Night venues light the soil with the floodlight pools, like a ribbon.
         installLightPools(this.terrain.material);
@@ -108,7 +110,7 @@ export class OffroadScene {
       });
       if (course.spec.gate)
         this.queue(construction, 'Off-road start gate', 1, () => {
-          this.gate = new StartGate(track, course);
+          this.gate = new StartGate(track, course, startLanes);
           this.roost.startPad = this.gate;
           this.group.add(this.gate.root);
         });

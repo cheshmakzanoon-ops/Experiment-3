@@ -5,12 +5,48 @@ import {
   MX_SOIL_DETAIL_HOOK,
 } from '../src/rendering/offroad/mx-soil-detail.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
+import { mxStartLanes } from '../src/rendering/offroad/mx-launch-soil.ts';
+import { StartGate } from '../src/rendering/offroad/start-gate.ts';
+import { H, HEADER } from '../src/simulation/protocol.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 
 describe('MX prepared traffic corridor', () => {
+  it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
+    'places the %s launch hollows under the same grates even when a wider field rebuilds the start',
+    (id) => {
+      const track = rigTrack(id), course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+      const spec = course.spec.gate!, lanes = mxStartLanes(spec);
+      const surface = new TerrainView(track, lanes), gate = new StartGate(track, course, lanes);
+      const source = T.ShaderLib.physical;
+      const shader = {
+        vertexShader: source.vertexShader, fragmentShader: source.fragmentShader,
+        uniforms: T.UniformsUtils.clone(source.uniforms),
+      } as StudioShader;
+      try {
+        surface.material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+        expect(shader.uniforms.mxGateStation.value).toBe(spec.s);
+        expect(shader.uniforms.mxStartLanes).toBe(lanes);
+        const frame = new Float32Array(HEADER), mat = new T.Matrix4();
+        for (const riders of [spec.slots, spec.slots + 3, spec.slots]) {
+          frame[H.CARS] = riders;
+          gate.update(frame);
+          const grates = gate.movingLeaves.children[0] as T.InstancedMesh;
+          expect(grates.count).toBe(riders);
+          expect(lanes.value.z).toBe(grates.count);
+          for (let i = 0; i < riders; i++) {
+            grates.getMatrixAt(i, mat);
+            expect(lanes.value.y + i * lanes.value.x).toBeCloseTo(mat.elements[12], 5);
+          }
+        }
+      } finally {
+        gate.dispose();
+        surface.dispose();
+      }
+    },
+  );
   it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
     'carries the real %s corridor width across mesh chunks without altering the course',
     (id) => {

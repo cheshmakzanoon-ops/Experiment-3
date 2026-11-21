@@ -14,6 +14,7 @@ import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
 import { installMxSoilParallax } from './mx-soil-parallax.ts';
+import { mxStartLanes } from './mx-launch-soil.ts';
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
 import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
 import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
@@ -86,7 +87,7 @@ export class TerrainView {
   /** Broad variation uses a resident soil scan, never the MX/SX turf slot. */
   readonly soilMacro: ScanLayer;
   private readonly supercross: boolean;
-  constructor(readonly track: Track) {
+  constructor(readonly track: Track, startLanes?: ReturnType<typeof mxStartLanes>) {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
     this.terrain = surface.terrain;
@@ -110,7 +111,8 @@ export class TerrainView {
     this.soilMacro = this.motocross ? 'dryEarth' : this.soilSlots[0];
     installScannedSoil(this.material, this.soilSlots, this.soilMacro);
     if (this.motocross) {
-      installMxSoilDetail(this.material, track.length, surface.kind === 'supercross');
+      const gate = surface.course.spec.gate;
+      installMxSoilDetail(this.material, track.length, this.supercross, gate?.s, startLanes ?? mxStartLanes(gate));
       installMxSoilMorphology(this.material);
       installMxBrakingBumps(this.material);
       installMxTerrainShadow(this.material);
