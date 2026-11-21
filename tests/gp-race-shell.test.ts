@@ -174,6 +174,25 @@ describe('GP race shell R6 on the production models', () => {
     }
   });
 
+  it.each(['gpr1', 'gpr2'] as const)('%s presents the front number to an approaching camera', (id) => {
+    const m = new BikeMaterials(3);
+    for (const detail of ['high', 'mid'] as const) {
+      const shell = gpRaceBodywork(m, detail, id, 3);
+      const number = shell.root.getObjectByName('GP race shell / nose number') as T.Mesh;
+      const ray = new T.Raycaster(new T.Vector3(0,.20,2),new T.Vector3(0,0,-1));
+      let visibleRows = 0;
+      for (let y=.19;y<.275;y+=.004) {
+        ray.ray.origin.set(.01,y,2);
+        const hit=ray.intersectObject(number)[0], surface=ray.intersectObject(shell.body)[0];
+        if(hit?.uv && surface && hit.uv.y > .15 && hit.uv.y < .85 && Math.abs(surface.point.z-hit.point.z)<.002)
+          visibleRows++;
+      }
+      expect(visibleRows).toBeGreaterThanOrEqual(9);
+      release(shell.root);
+    }
+    m.dispose();
+  });
+
   it.each(['gpr1', 'gpr2'] as const)('%s keeps the nose inlet open through its drawn LODs', (id) => {
     const m = new BikeMaterials(0);
     try {

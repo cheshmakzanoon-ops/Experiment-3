@@ -275,9 +275,19 @@ function bodyNet(variant: GpShellVariant): P3[][] {
   // Continue the flank into the inlet shoulder. The last station is the
   // actual mould parting line shared with the inner duct at every LOD.
   const exterior = net(sections.slice(0, -2));
+  // Build a sloped brow above the intake. The number must occupy the area
+  // visible to a forward camera as well as the area visible from above.
+  for (const station of exterior) {
+    const z = station[0][2];
+    const lift = .025 * Math.max(0, 1 - Math.abs(z - .802) / .126);
+    for (let i = 0; i < 3; i++) {
+      const [x,y,forward] = station[i];
+      station[i] = [x, y + lift * (1 - i * .32), forward];
+    }
+  }
   const rim = inletPerimeter(variant);
   const shoulder: P3[] = rim.map(([x, y, z]) => [
-    x * 1.17, 0.123 + (y - 0.123) * 1.40, z - 0.043,
+    x * 1.17, 0.123 + (y - 0.123) * 1.32, z - 0.043,
   ]);
   return [...exterior, shoulder, rim];
 }
@@ -1814,9 +1824,9 @@ export function gpRaceBodywork(
     body.updateMatrixWorld(true);
     const decal = new DecalGeometry(
       body,
-      variant === 'sport' ? new T.Vector3(0, .162, .873) : new T.Vector3(0, .220, .850),
-      new T.Euler(variant === 'sport' ? -.78 : -1.08, 0, 0),
-      new T.Vector3(.15, .11, variant === 'sport' ? .2 : .055),
+      variant === 'sport' ? new T.Vector3(0, .162, .873) : new T.Vector3(0, variant === 'gpr2' ? .235 : .230, .850),
+      new T.Euler(variant === 'sport' ? -.78 : -.69, 0, 0),
+      variant === 'sport' ? new T.Vector3(.15, .11, .2) : new T.Vector3(.178, .125, .145),
     );
     if (decal.getAttribute('position').count) {
       // Clipped decal vertices carry interpolated, slightly short normals.
