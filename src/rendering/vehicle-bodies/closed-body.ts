@@ -1009,7 +1009,9 @@ export function buildClosedBody(
     );
   }
   // Mirrors on short stalks at the A-pillar base.
-  if (s.mirrors && s.mirrorForm) addRoadMirrors(parts, model, mats, detail);
+  let mirrorFeeds: T.Mesh[] | undefined;
+  if (s.mirrors && s.mirrorForm)
+    mirrorFeeds = addRoadMirrors(parts, model, mats, detail, cabin?.layout.eye);
   else if (s.mirrors && detail < 2)
     for (const side of [-1, 1]) {
       const zm = zWs - 0.14,
@@ -1360,7 +1362,8 @@ export function buildClosedBody(
       opening,
       model,
       greenhouse: gh,
-      mirrorAt: s.mirrors
+      mirrorFeeds,
+      mirrorAt: s.mirrors && !mirrorFeeds
         ? [-1, 1].map((side) => [side * (hw(zm) * 0.8 + 0.08), ym, zm - 0.049] as const)
         : [],
     });

@@ -5,6 +5,7 @@ import { bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { cabinLayout } from '../src/rendering/vehicle-bodies/cabin.ts';
 import { roadSteeringWheel } from '../src/rendering/vehicle-bodies/road-steering.ts';
 import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
+import { MirrorViews } from '../src/rendering/mirrors.ts';
 
 const roadCars = Object.values(VEHICLES).filter((def) => def.classId === 'road');
 describe('Festival driver eye and footwell', () => {
@@ -135,3 +136,56 @@ it('selects one steering-wheel range for the active lens and viewport, including
   );
   wheel.geometry.dispose();
 });
+
+it.each(roadCars)(
+  '$id seats the live rear views on the glass and reflects the neighbouring lanes',
+  (def) => {
+    const b = buildVehicleBody(0, def, bodySheetFor(def)!);
+    const cabin = b.lods[0].cabin!;
+    const views = new MirrorViews();
+    try {
+      const eye = new T.Vector3(...cabin.layout.eye);
+      const ray = new T.Raycaster();
+      b.root.position.set(38, 4, -60);
+      b.root.rotation.set(0.042, 1.16, -0.16);
+      b.root.updateMatrixWorld(true);
+      b.root.localToWorld(eye);
+      expect(cabin.mirrors).toHaveLength(2);
+      views.bind(cabin.mirrors);
+      views.orient(b.root, eye);
+      cabin.mirrors.forEach((pane, index) => {
+        const side = index ? 1 : -1;
+        const centre = pane.getWorldPosition(new T.Vector3());
+        const direction = views.cameras[index].getWorldDirection(new T.Vector3());
+        const rearLane = new T.Vector3(side * 0.18, 0.018, -1)
+          .normalize()
+          .applyQuaternion(b.root.quaternion);
+        expect(direction.dot(rearLane)).toBeGreaterThan(0.995);
+        expect(views.cameras[index].aspect).toBeCloseTo(pane.userData.opticalRearViewAspect, 8);
+        ray.set(eye, centre.clone().sub(eye).normalize());
+        const [hit] = ray.intersectObject(pane, false);
+        expect(hit?.uv?.x).toBeCloseTo(0.5, 2);
+        expect(hit?.uv?.y).toBeCloseTo(0.5, 2);
+        const points = pane.geometry.getAttribute('position'),
+          uv = pane.geometry.getAttribute('uv');
+        // World +X is the driver's left. Screen-right travels toward smaller local X.
+        let left = 0,
+          right = 0;
+        for (let k = 1; k < points.count; k++) {
+          if (points.getX(k) > points.getX(left)) left = k;
+          if (points.getX(k) < points.getX(right)) right = k;
+        }
+        expect(uv.getX(left)).toBeLessThan(0.01);
+        expect(uv.getX(right)).toBeGreaterThan(0.99);
+      });
+    } finally {
+      views.dispose();
+      const owned = new Set<T.BufferGeometry>();
+      b.root.traverse((node) => {
+        if (node instanceof T.Mesh) owned.add(node.geometry);
+      });
+      for (const geometry of owned) geometry.dispose();
+      cabin.display?.dispose();
+    }
+  },
+);

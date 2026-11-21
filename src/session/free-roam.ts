@@ -52,6 +52,7 @@ export interface FestivalHost {
   quality: QualityPreset;
   graphics: GraphicsOptions;
   reducedMotion?: boolean;
+  shake?: number;
   lighting: LightingMode;
   loading(text: string): void;
   loaded(): void;
@@ -133,6 +134,10 @@ export class FestivalSession {
   private readyResolve: (() => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
   private save: FestivalSave;
+  private readonly viewInput = new AbortController();
+  private releaseMouseLook() {
+    if (document.pointerLockElement === this.host.canvas) document.exitPointerLock();
+  }
   private readonly photoKeys = (event: KeyboardEvent) => {
     if (!this.renderer?.photo || event.code !== 'Escape') return;
     event.preventDefault();
@@ -156,6 +161,18 @@ export class FestivalSession {
     this.worker.onerror = (event) =>
       this.fail(new Error(event.message || 'Festival worker failed'));
     window.addEventListener('keydown', this.photoKeys, true);
+    const options = { signal: this.viewInput.signal };
+    host.canvas.addEventListener('dblclick', () => {
+      if (this.renderer?.mode === 'cockpit' && this.drivingInputEnabled && !this.renderer.photo)
+        void host.canvas.requestPointerLock?.()?.catch(() => host.toast('Mouse look unavailable.'));
+    }, options);
+    document.addEventListener('mousemove', (event) => {
+      if (document.pointerLockElement === host.canvas && this.drivingInputEnabled)
+        this.renderer?.moveCockpitLook(event.movementX, event.movementY);
+    }, options);
+    document.addEventListener('pointerlockchange', () => {
+      if (document.pointerLockElement !== host.canvas) this.renderer?.centreLook();
+    }, options);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
     host.loading('Building the Solvane festival region…');
@@ -193,6 +210,7 @@ export class FestivalSession {
     );
     this.renderer = renderer;
     renderer.reducedMotion = host.reducedMotion ?? false;
+    renderer.shake = host.shake ?? renderer.shake;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
     renderer.cars.bodies.setPlayerLivery(host.livery?.() ?? null);
@@ -252,7 +270,10 @@ export class FestivalSession {
     const hud = this.hud;
     this.controls = new FestivalControls(hud, {
       pause: (value) => this.post({ type: 'pause', value }),
-      driving: (on) => host.driving?.(on),
+      driving: (on) => {
+        if (!on) this.releaseMouseLook();
+        host.driving?.(on);
+      },
       menuState: () => festivalMenuState(this.status, this.save, this.renderer?.lighting ?? 'day'),
       card: () => (hud.cardOpen ? (this.status?.card?.id ?? null) : null),
       start: (id) => this.command({ type: 'start', event: id }),
@@ -506,6 +527,7 @@ export class FestivalSession {
         this.controls?.togglePause();
         return true;
       case 'camera':
+        this.releaseMouseLook();
         this.renderer?.changeCamera();
         return true;
       case 'replay':
@@ -586,9 +608,13 @@ export class FestivalSession {
   resize() {
     this.renderer?.resize();
   }
-  setReducedMotion(value: boolean) {
+  setReducedMotion(value: boolean, shake = this.host.shake) {
     this.host.reducedMotion = value;
-    if (this.renderer) this.renderer.reducedMotion = value;
+    this.host.shake = shake;
+    if (this.renderer) {
+      this.renderer.reducedMotion = value;
+      if (shake !== undefined) this.renderer.shake = shake;
+    }
   }
   diagnostics() {
     return this.renderer?.diagnostics() ?? null;
@@ -601,6 +627,8 @@ export class FestivalSession {
       request.reject(new Error('Festival session closed'));
     }
     this.commandRequests.clear();
+    this.viewInput.abort();
+    this.releaseMouseLook();
     window.removeEventListener('keydown', this.photoKeys, true);
     this.controls?.dispose();
     this.host.audio?.stop();

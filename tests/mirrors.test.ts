@@ -168,3 +168,50 @@ it('alternates the two feeds in steady state, each at the quality rate, and refr
   expect(mirrors.passes).toBe(2);
   mirrors.dispose();
 });
+
+it('projects all four edges of an angled flat cabin mirror from the reflected moving eye', () => {
+  const { root, surfaces, mirrors } = fixture();
+  const pane = new T.Mesh(
+    new T.PlaneGeometry(0.21, 0.047).rotateY(Math.PI),
+    new T.MeshStandardMaterial(),
+  );
+  pane.position.set(0, 1.03, 0.78);
+  pane.rotation.set(0.025, -0.23, 0.018);
+  pane.userData.planeSize = [0.21, 0.047];
+  pane.userData.opticalRearViewAspect = 0.21 / 0.047;
+  root.add(pane);
+  root.position.set(111, 7, -58);
+  root.rotation.set(-0.042, 0.61, 0.095);
+  mirrors.bind([...surfaces, pane]);
+  for (const dz of [0, 0.016]) {
+    const eye = root.localToWorld(new T.Vector3(0.28, 0.91, 0.1 + dz));
+    mirrors.orient(root, eye);
+    const camera = mirrors.cameras[2];
+    expect(camera.near).toBeGreaterThan(0.5);
+    for (const x of [-1, 1])
+      for (const y of [-1, 1]) {
+        const edge = pane.localToWorld(new T.Vector3(x * 0.105, y * 0.0235, 0)).project(camera);
+        expect(edge.x).toBeCloseTo(x, 6);
+        expect(edge.y).toBeCloseTo(y, 6);
+      }
+  }
+  const { renderer } = rendererMock();
+  mirrors.render(
+    renderer as unknown as T.WebGLRenderer,
+    new T.Scene(),
+    root,
+    0,
+    root.localToWorld(new T.Vector3(0.28, 0.91, 0.1)),
+  );
+  expect(renderer.render).toHaveBeenCalledTimes(3);
+  for (let i = 0; i < 3; i++) {
+    mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 1 / 15);
+    expect(mirrors.passes).toBe(1);
+  }
+  expect(
+    renderer.setRenderTarget.mock.calls.filter(([target]) => target === mirrors.targets[2]),
+  ).toHaveLength(2);
+  mirrors.dispose();
+  pane.geometry.dispose();
+  pane.material.dispose();
+});

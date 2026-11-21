@@ -4,6 +4,7 @@ import type { CabinLayout } from './cabin.ts';
 import { CabinDisplay, type DisplayKind } from './cabin-display.ts';
 import type { ClosedBodyModel, Greenhouse } from './closed-body.ts';
 import { addDriver, type BuiltLod, type CarMaterials, type DriverArmAnchor } from './common.ts';
+import { rearViewRotation } from './road-mirrors.ts';
 import { roadSteeringWheel } from './road-steering.ts';
 import { DriverArms } from './driver-arms.ts';
 import {
@@ -43,6 +44,8 @@ export interface BuiltCabin {
   glass: T.Mesh[];
   /** Rear-view feed surfaces [right, left] (MirrorViews order), or none. */
   mirrors: T.Mesh[];
+  /** Festival cab with a flat interior mirror in addition to the two wing mirrors. */
+  cockpitMirrors?: readonly T.Mesh[];
   display: CabinDisplay | null;
   /** Driver arms posed from the steering rotation (null: none built). */
   arms: DriverArms | null;
@@ -490,6 +493,7 @@ export function buildClosedCabin(input: {
   opening: CabinOpening;
   model: ClosedBodyModel;
   greenhouse: Greenhouse | null;
+  mirrorFeeds?: T.Mesh[];
   mirrorAt: readonly (readonly [number, number, number])[];
 }) {
   const { layout, mats, shell, opening: op, greenhouse: gh } = input;
@@ -717,27 +721,38 @@ export function buildClosedCabin(input: {
       anchor ? new T.Vector3(-anchor.x, anchor.y, anchor.z) : null,
     );
   }
-  // Interior rear-view mirror on the windscreen header.
+  const mirrors = input.mirrorFeeds ??
+    (input.mirrorAt.length === 2 ? mirrorFaces(input.mirrorAt, [0.1, 0.05]) : []);
+  let cockpitMirrors: readonly T.Mesh[] | undefined;
   if (gh) {
-    const y = (layout.roof ?? gh.roofY) - 0.09,
-      z = gh.zRF - 0.03;
-    detailParts.add(roundedBox(0.24, 0.065, 0.035, 0.015, 2), trim, placed(0, y, z));
-    detailParts.add(
-      new T.PlaneGeometry(0.21, 0.045).rotateY(Math.PI),
-      sharedMaterials.chrome(),
-      placed(0, y, z - 0.019),
-    );
+    const y = (layout.roof ?? gh.roofY) - 0.09, z = gh.zRF - 0.03;
+    const centre = new T.Vector3(0, y, z);
+    const rotation = rearViewRotation(centre, layout.eye, 0);
+    const mount = new T.Matrix4().compose(centre, rotation, new T.Vector3(1,1,1));
+    detailParts.add(roundedBox(0.24, 0.065, 0.035, 0.015, 2), trim, mount);
+    const glassWidth = 0.212, glassHeight = 0.047;
+    const staticGlass = new T.PlaneGeometry(glassWidth, glassHeight).rotateY(Math.PI);
+    const glassCentre = new T.Vector3(0, 0, -0.019).applyMatrix4(mount);
+    const glassMount = new T.Matrix4().compose(glassCentre, rotation, new T.Vector3(1,1,1));
+    if (input.def.classId === 'road' && mirrors.length === 2) {
+      const pane = new T.Mesh(staticGlass.clone(), sharedMaterials.chrome());
+      pane.position.copy(glassCentre).add(new T.Vector3(0,0,-0.0007).applyQuaternion(rotation));
+      pane.quaternion.copy(rotation);
+      pane.name = 'Mirror glass (windscreen)';
+      pane.visible = false;
+      pane.userData.planeSize = [glassWidth, glassHeight];
+      pane.userData.opticalRearViewAspect = glassWidth / glassHeight;
+      detail.add(pane);
+      cockpitMirrors = [...mirrors, pane];
+    }
+    detailParts.add(staticGlass, sharedMaterials.chrome(), glassMount);
     detailParts.add(
       rodGeometry(
-        new T.Vector3(0, y + 0.02, z + 0.005),
-        new T.Vector3(0, y + 0.085, z + 0.03),
-        0.008,
-        6,
-      ),
-      trim,
+        new T.Vector3(0, 0.017, 0.01).applyMatrix4(mount),
+        new T.Vector3(0, y + 0.085, z + 0.03), 0.008, 6,
+      ), trim,
     );
   }
-  const mirrors = input.mirrorAt.length === 2 ? mirrorFaces(input.mirrorAt, [0.1, 0.05]) : [];
   for (const m of mirrors) detail.add(m);
   detailParts.build(detail, false);
   headParts.build(head, true);
@@ -748,6 +763,7 @@ export function buildClosedCabin(input: {
     wheelDetail,
     steering: steering.children[0] as T.Group,
     mirrors,
+    cockpitMirrors,
     display,
     glass: [] as T.Mesh[],
     layout,

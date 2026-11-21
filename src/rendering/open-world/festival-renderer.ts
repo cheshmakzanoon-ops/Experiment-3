@@ -61,6 +61,10 @@ import { aerialFogColor } from '../studio/aerial-perspective.ts';
 import { WetRoadReflection } from '../wet-reflection.ts';
 import { Buildings } from './buildings.ts';
 import { FestivalCars } from './festival-cars.ts';
+import { InertialCamera } from '../camera-dynamics.ts';
+import { cabinEye, cabinFov, mountEye, mountFov } from '../vehicle-bodies/cabin.ts';
+import { carLod } from '../lod.ts';
+import { feedDetailDistance } from '../view-detail.ts';
 import { EventMarkers } from './markers.ts';
 import { RoadMeshes } from './roads.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
@@ -107,6 +111,7 @@ import {
 } from './festival-contacts.ts';
 
 export type FestivalCamera = 'chase' | 'far' | 'hood' | 'cockpit';
+const NO_MIRRORS: readonly T.Mesh[] = [];
 const CAMERAS: readonly FestivalCamera[] = ['chase', 'far', 'hood', 'cockpit'];
 /** Chase rigs (m): distance behind, height, look-ahead, look lift, fov. */
 const RIGS = {
@@ -158,6 +163,7 @@ export class FestivalRenderer {
   readonly trails = new FestivalTrails();
   private readonly reflection = new ReflectionSystem();
   private readonly reflectionMaterials: T.MeshStandardMaterial[] = [];
+  private mirrorSurfaces = NO_MIRRORS;
   private reflectionVersion = -1;
   private readonly vehicleRoots: T.Object3D[] = [];
   private readonly vehiclePaint: T.MeshStandardMaterial[] = [];
@@ -189,7 +195,10 @@ export class FestivalRenderer {
   lighting: LightingMode = 'day';
   mode: FestivalCamera = 'chase';
   reducedMotion = false;
+  shake = 0.35;
+  private readonly seatMotion = new InertialCamera();
   lookX = 0;
+  private lookY = 0;
   private readonly target = new T.Vector3();
   private readonly desired = new T.Vector3();
   private readonly gaze = new T.Vector3();
@@ -282,6 +291,21 @@ export class FestivalRenderer {
     this.water = new Water(world.field);
     this.atmosphere = new FestivalAtmosphere(world.field.region.seaLevel);
     this.markers = new EventMarkers(events, this.heightAt);
+    this.reflection.mirrorExclusions = [this.guidance.root, this.markers.root, this.contacts.root];
+    this.reflection.mirrorDetail = {
+      before: (camera, height) => {
+        this.cars.bodies.showFeedDetail((position, previous) =>
+          carLod(
+            feedDetailDistance(
+              position.distanceTo(camera.position), camera.fov, camera.aspect, height,
+              Math.max(1, this.renderer.domElement.height),
+            ),
+            previous, detailTier(this.preset), false,
+          ),
+        );
+      },
+      after: () => this.cars.bodies.restoreFeedDetail(),
+    };
     this.reflection.probeExclusions.push(this.markers.root);
     scene.add(
       this.terrain.root,
@@ -495,6 +519,7 @@ export class FestivalRenderer {
       g.shadowSize > 0,
       this.renderer.capabilities.maxTextureSize,
     );
+    this.reflection.quality(g.mirrorQuality);
     this.bloom.enabled = g.bloom;
     this.imagePipeline.configure(g);
     this.fxaa.enabled = g.antialias && this.scenePass.samples === 0;
@@ -534,9 +559,20 @@ export class FestivalRenderer {
     this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
     this.imagePipeline.reset();
   }
+  moveCockpitLook(dx: number, dy: number) {
+    if (this.mode !== 'cockpit' || this.photo) return;
+    this.lookX = clamp(this.lookX - dx * 0.002, -1.3, 1.3);
+    this.lookY = clamp(this.lookY - dy * 0.002, -0.45, 0.6);
+  }
+  centreLook() {
+    this.lookX = 0;
+    this.lookY = 0;
+  }
   changeCamera(mode?: FestivalCamera) {
     const next = mode ?? CAMERAS[(CAMERAS.indexOf(this.mode) + 1) % CAMERAS.length];
     this.mode = next === 'cockpit' && !this.cars.bodies.cabinOf(0) ? 'chase' : next;
+    this.lookX = 0;
+    this.lookY = 0;
     this.initialized = false;
     this.audioView.reset();
     this.imagePipeline.reset();
@@ -636,7 +672,7 @@ export class FestivalRenderer {
       dt,
       night,
       this.camera,
-      onboard && !this.photo,
+      this.mode === 'cockpit' && !this.photo,
       detailTier(this.preset),
     );
     const o = carBase(0),
@@ -692,16 +728,27 @@ export class FestivalRenderer {
       const layout = this.cars.bodies.cabinOf(0)?.layout;
       if (this.mode === 'cockpit' && !layout) this.changeCamera('hood');
       const mount = this.mode === 'cockpit' ? layout?.cockpit : layout?.mount;
-      if (mount) this.desired.fromArray(mount.eye);
+      if (cut || this.reducedMotion || this.shake <= 0) this.seatMotion.reset();
+      if (!this.reducedMotion && this.shake > 0) {
+        this.seatMotion.step(
+          cut ? 0 : Math.max(0, elapsed),
+          presented[o + F.G_LAT], presented[o + F.G_LONG], presented[o + F.G_VERT],
+          presented[o + F.IMPACT], this.shake,
+        );
+      }
+      if (layout && this.mode === 'cockpit') cabinEye(layout, this.seatMotion.offset, this.desired);
+      else if (layout) mountEye(layout, this.seatMotion.offset, this.desired);
       else this.desired.set(0, 1.18, 0.35);
       this.desired.applyQuaternion(subject.quaternion).add(this.target);
       const pitch = mount?.pitch ?? Math.atan2(0.6, 30);
       this.temp
-        .set(Math.sin(this.lookX), Math.tan(pitch), Math.cos(this.lookX))
+        .set(Math.sin(this.lookX), Math.tan(pitch + this.lookY), Math.cos(this.lookX))
         .applyQuaternion(subject.quaternion);
       this.gaze.copy(this.desired).add(this.temp);
       this.camera.position.copy(this.desired);
-      this.camera.fov = mount?.fov ?? 66;
+      this.camera.fov = layout
+        ? this.mode === 'cockpit' ? cabinFov(layout, this.graphics.cockpitFov) : mountFov(layout, speed)
+        : 66;
       this.velocity.set(0, 0, 0);
     } else {
       const rig = RIGS[this.mode === 'far' ? 'far' : 'chase'];
@@ -770,6 +817,7 @@ export class FestivalRenderer {
     // than the outside camera's 30 cm clipping plane.
     this.camera.near = this.mode === 'cockpit' && !this.photo ? 0.045 : 0.3;
     this.camera.up.set(0, 1, 0);
+    if (onboard && subject && !this.photo) this.camera.up.applyQuaternion(subject.quaternion);
     this.camera.lookAt(this.gaze);
     this.camera.updateProjectionMatrix();
     this.camera.updateMatrixWorld();
@@ -957,7 +1005,7 @@ export class FestivalRenderer {
       this.reflectionVersion = this.cars.paintVersion;
       this.reflectedVehicleVersion = this.vehiclePaintVersion;
     }
-    this.updateLocalReflection(subject, time, wet, daylight.environment, discontinuity);
+    this.updateLocalReflection(subject, time, cut ? 0 : Math.max(0, elapsed), wet, daylight.environment, discontinuity);
     this.audioView.update(this.camera, time, 0, onboard, 0);
     postLensFrame(
       this.grade,
@@ -1000,13 +1048,20 @@ export class FestivalRenderer {
   private updateLocalReflection(
     subject: T.Object3D | null,
     time: number,
+    elapsed: number,
     wet: number,
     environmentIntensity: number,
     discontinuity: boolean,
   ) {
     // Fast travel and recovery can replace the view at the same simulation instant.
     if (discontinuity) this.reflection.invalidate();
-    this.reflection.beginFrame(time, false, !this.photo);
+    const mirrors = this.mode === 'cockpit' && !this.photo ? this.cars.bodies.mirrorsFor(0) : null;
+    const surfaces = mirrors?.cockpitSurfaces ?? NO_MIRRORS;
+    if (surfaces !== this.mirrorSurfaces) {
+      this.reflection.attachMirrors(surfaces);
+      this.mirrorSurfaces = surfaces;
+    }
+    this.reflection.beginFrame(time, !!mirrors, !this.photo);
     this.reflection.setSceneryRevision(this.terrain.shadowRevision);
     this.reflection.setSkyIntensity(
       this.reflectionMaterials,
@@ -1023,6 +1078,12 @@ export class FestivalRenderer {
         wet > 0.15 ? 0.8 : 2,
         this.sky.material.uniforms.probeSkyIntensity,
       );
+    if (mirrors)
+      this.reflection.renderMirrors(this.renderer, this.scene, mirrors.root, elapsed, this.camera.position);
+  }
+  /** Explicit review capture, including a small readback of each live optical feed. */
+  mirrorReadback() {
+    return this.reflection.diagnostics(this.renderer);
   }
   /** Snapshot length check for the session controller. */
   static frameLength(cars: number) {
@@ -1034,6 +1095,7 @@ export class FestivalRenderer {
       shadows: this.shadows.diagnostics(),
       localShadows: this.streetLights.diagnostics(),
       reflectionProbe: this.reflection.probeDiagnostics,
+      mirrorUpdates: this.reflection.mirrorUpdates,
       ultra: this.ultra.diagnostics(),
     };
   }
@@ -1058,11 +1120,11 @@ export class FestivalRenderer {
     this.photoVegetation = null;
     this.water.dispose();
     this.markers.dispose();
+    this.reflection.dispose();
     this.cars.dispose();
     this.trails.dispose();
     this.guidance.dispose();
     this.orbit.dispose();
-    this.reflection.dispose();
     this.vehiclePaint.length = 0;
     this.vehicleRoots.length = 0;
     this.environment.dispose();

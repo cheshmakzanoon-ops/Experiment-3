@@ -217,6 +217,10 @@ Object.assign(window, {
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
     // Stop submitting GPU frames only for a still capture. This does not alter
     // simulation state, renderer quality, assets, or the production code path.
+    mirrorReadback: () => {
+      const internal = session as unknown as { renderer: FestivalRenderer } | null;
+      return internal?.renderer.mirrorReadback() ?? [];
+    },
     rendering: (enabled: boolean) => {
       rendering = enabled;
     },

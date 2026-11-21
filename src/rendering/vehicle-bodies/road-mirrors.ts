@@ -58,10 +58,8 @@ type Layout = ReturnType<typeof roadMirrorLayout>;
 type Ring = readonly [number, number, number];
 function skin(layout: Layout, side: number, rings: readonly Ring[], steps: number) {
   const points: number[] = [],
-    indices: number[] = [];
-  const toe = layout.form === 'work' ? 0.13 : 0.2;
-  const ct = Math.cos(toe),
-    st = Math.sin(toe);
+    indices: number[] = [],
+    uvs: number[] = [];
   const starts: number[] = [];
   for (const [w, h, depth] of rings) {
     starts.push(points.length / 3);
@@ -73,8 +71,12 @@ function skin(layout: Layout, side: number, rings: readonly Ring[], steps: numbe
       const v = Math.sign(s) * Math.abs(s) ** layout.roundness;
       const x = u * w * layout.width * 0.5;
       const y = v * h * layout.height * 0.5 * (1 - 0.1 * u) + u * w * layout.height * 0.068;
-      const z = depth * layout.length - w * layout.length * 0.055 * u;
-      points.push(side * (layout.x + x * ct + z * st), layout.y + y, layout.z + z * ct - x * st);
+      points.push(side * x, y, depth * layout.length);
+      // +X is driver-left. The target applies the single optical reversal.
+      uvs.push(
+        T.MathUtils.clamp(0.5 - (side * x) / (layout.width * 0.886), 0, 1),
+        T.MathUtils.clamp(0.5 + y / (layout.height * 0.852), 0, 1),
+      );
     }
   }
   const triangle = (a: number, b: number, c: number) => {
@@ -96,9 +98,25 @@ function skin(layout: Layout, side: number, rings: readonly Ring[], steps: numbe
   }
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(points, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
+}
+
+/** Set the pane normal halfway between the neutral eye and the rearward subject.
+ * Both the housing and its glass use this same rigid mounting transform. */
+export function rearViewRotation(
+  centre: T.Vector3,
+  eye: readonly [number, number, number],
+  outward: number,
+) {
+  const towardEye = new T.Vector3(...eye).sub(centre).normalize();
+  const rear = new T.Vector3(outward, 0.018, -1).normalize();
+  const normal = towardEye.add(rear).normalize();
+  return new T.Quaternion().setFromRotationMatrix(
+    new T.Matrix4().lookAt(centre, centre.clone().add(normal), new T.Vector3(0, 1, 0)),
+  );
 }
 
 export function addRoadMirrors(
@@ -106,12 +124,22 @@ export function addRoadMirrors(
   model: ClosedBodyModel,
   mats: CarMaterials,
   detail: Detail,
+  eye?: readonly [number, number, number],
 ) {
   const layout = roadMirrorLayout(model);
   const steps = detail === 0 ? 24 : detail === 1 ? 14 : 8;
   const trim = sharedMaterials.trim(),
     chrome = sharedMaterials.chrome();
+  const feeds: T.Mesh[] = [];
   for (const side of [-1, 1]) {
+    const centre = new T.Vector3(side * layout.x, layout.y, layout.z);
+    const rotation = eye
+      ? rearViewRotation(centre, eye, side * 0.18)
+      : new T.Quaternion().setFromAxisAngle(
+          new T.Vector3(0, 1, 0),
+          side * (layout.form === 'work' ? 0.13 : 0.2),
+        );
+    const mount = new T.Matrix4().compose(centre, rotation, new T.Vector3(1, 1, 1));
     const base = new T.Vector3(side * layout.anchorX, layout.anchorY - 0.008, layout.z + 0.045);
     const neck = new T.Vector3(
       side * (layout.x - 0.31 * layout.width),
@@ -142,6 +170,7 @@ export function addRoadMirrors(
         steps,
       ),
       layout.form === 'bullet' ? chrome : mats.paint,
+      mount,
     );
     parts.add(
       skin(
@@ -156,20 +185,30 @@ export function addRoadMirrors(
         steps,
       ),
       trim,
+      mount,
     );
     // A recessed convex pane stands slightly proud at its optical centre.
-    parts.add(
-      skin(
-        layout,
-        side,
-        [
-          [0.886, 0.852, -0.362],
-          [0.53, 0.51, -0.384],
-          [0, 0, -0.397],
-        ],
-        steps,
-      ),
-      chrome,
+    const pane = skin(
+      layout,
+      side,
+      [
+        [0.886, 0.852, -0.362],
+        [0.53, 0.51, -0.384],
+        [0, 0, -0.397],
+      ],
+      steps,
     );
+    if (detail === 0 && eye) {
+      const centreDepth = -0.397 * layout.length;
+      const feed = new T.Mesh(pane.clone().translate(0, 0, -centreDepth), chrome);
+      feed.name = side < 0 ? 'Mirror glass (right)' : 'Mirror glass (left)';
+      feed.position.set(0, 0, centreDepth - 0.002).applyMatrix4(mount);
+      feed.quaternion.copy(rotation);
+      feed.userData.opticalRearViewAspect = layout.width / layout.height;
+      feed.visible = false;
+      feeds.push(feed);
+    }
+    parts.add(pane, chrome, mount);
   }
+  return feeds;
 }

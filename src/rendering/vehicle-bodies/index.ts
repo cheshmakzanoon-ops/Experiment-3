@@ -565,7 +565,7 @@ export class VehicleBodies {
     const cabin = body?.lods[0].cabin;
     if (!body || !cabin || !body.root.visible || body.level !== 0 || cabin.mirrors.length !== 2)
       return null;
-    return { root: body.root as T.Object3D, surfaces: cabin.mirrors };
+    return { root: body.root as T.Object3D, surfaces: cabin.mirrors, cockpitSurfaces: cabin.cockpitMirrors ?? cabin.mirrors };
   }
   /** The cabin layout of the body drawn for an entrant (diagnostics). */
   cabinOf(id: number) {

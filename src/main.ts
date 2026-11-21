@@ -563,13 +563,13 @@ export class GameApp {
       );
     });
     canvas.addEventListener('dblclick', () => {
-      if (this.state === 'driving' && this.renderer?.mode === 'cockpit')
+      if (!this.festival && this.state === 'driving' && this.renderer?.mode === 'cockpit')
         void canvas
           .requestPointerLock()
           ?.catch((e) => this.ui.toast(`Mouse look unavailable: ${String(e)}`));
     });
     document.addEventListener('mousemove', (e) => {
-      if (document.pointerLockElement && this.renderer) {
+      if (!this.festival && document.pointerLockElement === canvas && this.renderer) {
         this.renderer.lookX = clamp(this.renderer.lookX - e.movementX * 0.002, -1.3, 1.3);
         this.renderer.lookY = clamp(this.renderer.lookY - e.movementY * 0.002, -0.45, 0.6);
       }
@@ -691,7 +691,7 @@ export class GameApp {
     const reduced = settings.reducedMotion || systemReducedMotion();
     renderer.shake = reduced ? 0 : settings.shake;
     renderer.reducedMotion = reduced;
-    this.festival?.setReducedMotion(reduced);
+    this.festival?.setReducedMotion(reduced, settings.shake);
     document.documentElement.dataset.reducedMotion = String(reduced);
   }
   /** Master volume, the per-class sliders and the (off by default) music switch. */
@@ -973,6 +973,7 @@ export class GameApp {
           quality: this.settings.quality,
           graphics: this.settings.graphics,
           reducedMotion: this.settings.reducedMotion || systemReducedMotion(),
+          shake: this.settings.shake,
           lighting: renderer.lighting,
           loading: (text) => this.ui.loading(text),
           loaded: () => {
