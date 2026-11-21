@@ -159,6 +159,9 @@ export class SprayClouds {
         varying float vVariation;
         varying float vAnisotropy;
         varying vec3 vLight;
+        #ifdef USE_SPRAY_PROFILE
+          varying float vWaterSheet;
+        #endif
         varying vec3 vDrySlice;
         varying vec3 vDryState;
         #include <common>
@@ -169,6 +172,9 @@ export class SprayClouds {
           vUv=position.xy; vVariation=variation;
           vOpacity=0.0; vLight=vec3(0.0); vAnisotropy=0.0; vGround=1.0;
           vDrySlice=vec3(0.0); vDryState=vec3(0.0);
+          #ifdef USE_SPRAY_PROFILE
+            vWaterSheet=-1.0;
+          #endif
           vec4 mvPosition=modelViewMatrix*vec4(center,1.0);
           #include <fog_vertex>
           float depth=-mvPosition.z;
@@ -197,6 +203,11 @@ export class SprayClouds {
             // Raw opacity still encodes the original life/mist phase. Only
             // GP optical depth and footprint change, including ground fade.
             if(spray && sprayProfile>${(SPRAY_PROFILE.GP - 0.5).toFixed(1)}) {
+              // Fresh water shears into a narrow curtain against the tyre.
+              // The same wake opens into softer mist as it rises and expands.
+              float heightAboveRoad=max(0.0,(modelMatrix*vec4(center,1.0)).y-floor);
+              vWaterSheet=(1.0-smoothstep(.10,.80,heightAboveRoad)) *
+                (1.0-smoothstep(.8,2.45,size));
               radius*=${GP_SPRAY_SCALE.radius.toFixed(2)};
               vOpacity*=${GP_SPRAY_SCALE.opacity.toFixed(2)};
             }
@@ -206,6 +217,12 @@ export class SprayClouds {
           float stretch=1.0+min(1.1,speed*0.12);
           vAnisotropy=smoothstep(0.05,1.0,speed);
           vec2 offset=radius*(across*position.x+along*position.y*stretch);
+          #ifdef USE_SPRAY_PROFILE
+            if(vWaterSheet>=0.0) {
+              float flow=vWaterSheet*vAnisotropy;
+              offset=radius*(across*position.x*(1.0-.23*flow)+along*position.y*stretch*(1.0+.31*flow));
+            }
+          #endif
           if(!spray && dryCloudDetail>0.5) {
             // Preserve projected area while removing the unstable velocity
             // axis. Round billows remain stable through an axial camera pass.
@@ -294,6 +311,9 @@ export class SprayClouds {
         varying float vAnisotropy;
         varying vec3 vLight;
         varying float vGround;
+        #ifdef USE_SPRAY_PROFILE
+          varying float vWaterSheet;
+        #endif
         varying vec3 vDrySlice;
         varying vec3 vDryState;
         #include <fog_pars_fragment>
@@ -323,6 +343,20 @@ export class SprayClouds {
             float filaments=0.5+0.5*sin(noiseP.x+sin(noiseP.y+phase))*sin(noiseP.y*0.73-phase);
             float turbulent=(0.60*core+0.40*broad)*(1.0+resolved*(filaments-0.5)*0.42);
             density=mix(exp(-dot(p,p)*3.6),turbulent,vAnisotropy);
+            #ifdef USE_SPRAY_PROFILE
+              if(vWaterSheet>=0.0) {
+                // Two folds of a single water sheet. Older droplets disperse
+                // into the connected volume. Fade the folds as motion is seen
+                // end-on or their projected spacing becomes sub-pixel.
+                float curl=.10*sin(q.y*4.4+phase)+.055*sin(q.y*8.1-phase);
+                float side=q.x-curl;
+                float fork=.055+.16*smoothstep(-.75,.8,q.y);
+                float folds=exp(-19.0*(abs(side)-fork)*(abs(side)-fork)-1.7*q.y*q.y);
+                float sheetDensity=.54*broad+.47*folds*(.89+.22*filaments*resolved);
+                density=mix(density,sheetDensity,vWaterSheet*vAnisotropy*resolved);
+                light*=1.0+.065*vWaterSheet*(1.0-smoothstep(.2,.8,density));
+              }
+            #endif
             // The cutoff must become radial as well; a square cutoff still
             // rotates visibly when near-axial motion changes to a diagonal.
             float edge=mix(length(p),max(abs(p.x),abs(p.y)),vAnisotropy*0.5);
