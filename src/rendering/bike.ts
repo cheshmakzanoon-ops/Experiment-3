@@ -1,3 +1,4 @@
+import { GpOpticalRain } from './gp-optics-rain.ts';
 import { buildRoadBikeMirrors, sportMirrorFoot } from './road-bike-mirrors.ts';
 import { gpReservoirBody, gpReservoirCap } from './gp-brake-reservoir.ts';
 import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
@@ -521,6 +522,7 @@ export function numberTexture(number: number, paint: string, ink: string) {
 export class BikeMaterials {
   readonly list: T.Material[] = [];
   readonly wheelExposure = new RoadWheelExposure();
+  readonly opticalRain = new GpOpticalRain();
   private readonly prints = new Map<string, GpRiderPrints>();
   private headlight?: T.MeshStandardMaterial;
   private roadGlass?: T.MeshStandardMaterial;
@@ -1921,6 +1923,7 @@ export class BikeModel {
       gpPrototype,
       detail !== 'far' ? m.riderPrints(colours, raceNumber, gpPrototype) : undefined,
       definition.classId,
+      gpPrototype ? m.opticalRain : undefined,
     );
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
@@ -2000,6 +2003,7 @@ export class BikeModel {
   pose(v: BikePoseValues) {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
+    if (this.definition.classId === 'gp-bike') this.m.opticalRain.set(v.time, v.liquidRain, v.speed);
     this.cockpit?.update(v);
     this.roadClocks?.update(v);
     this.gpRearsets.update(v.rearBrake);
@@ -2100,6 +2104,7 @@ export class BikeModel {
           road && v.roadContact
             ? v.roadContact.loads[0] + v.roadContact.loads[1] <= 1e-6
             : undefined,
+        roadSupportG: v.roadSupportG,
         rearBraking: v.rearBrake,
         throttle: v.throttle,
         gLong: v.gLong,
@@ -2150,6 +2155,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   time?: number;
   /** GP rear visibility lamp demand from recorded rain or standing water. */
   rainVisibility?: number;
+  /** Falling liquid precipitation in mm/h, independent of surface standing water. */
+  liquidRain?: number;
   rpm?: number;
   gear?: number;
   fork: number;
@@ -2183,6 +2190,7 @@ export interface BikePoseValues extends GpTyreAppearance {
    * (rad/s) and the spring-damped body state (gp-rider-dynamics.ts). */
   throttle?: number;
   gLong?: number;
+  roadSupportG?: number;
   leanRate?: number;
   gpBody?: GpRiderBodyState;
   /** Pit service (bike frame, m): rear wheel out of the swingarm (backwards)
@@ -2668,8 +2676,9 @@ export class BikeShells {
       rear = front + 2 * WHEEL_STRIDE;
     v.speed = sampleValue(a, b, o + F.SPEED, t);
     v.time = sampleValue(a, b, H.TIME, t);
+    v.liquidRain = T.MathUtils.lerp(frameLiquidRain(a), frameLiquidRain(b), t);
     v.rainVisibility = Math.max(
-      T.MathUtils.lerp(frameLiquidRain(a), frameLiquidRain(b), t) / 2,
+      v.liquidRain / 2,
       sampleValue(a, b, H.WATER, t) / 0.35,
     );
     v.rpm = sampleValue(a, b, o + F.RPM, t);
@@ -2717,6 +2726,7 @@ export class BikeShells {
     // plus the entrant's spring-damped body state on the simulation clock.
     v.throttle = sampleValue(a, b, o + F.THROTTLE, t);
     v.gLong = sampleValue(a, b, o + F.G_LONG, t);
+    v.roadSupportG = v.roadContact?.valid ? sampleValue(a, b, o + F.G_VERT, t) : undefined;
     v.leanRate = sampleBikeField(a, b, o, B.LEAN_RATE, t);
     v.gpBody = riderBody?.sample(a, b, t, o, v.riding);
     const rider = model.rider;

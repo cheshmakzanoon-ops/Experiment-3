@@ -13,6 +13,8 @@ export interface GpRiderBodyState {
   sway: number;
   /** 0 seated with feet on the pegs .. 1 stopped with both boots down. */
   plant: number;
+  /** Deflection of the upper body relative to the seat under normal load, metres. */
+  compression: number;
 }
 
 const finite = (value: number | undefined, fallback = 0) =>
@@ -35,6 +37,9 @@ export function gpBodyTargets(pose: RiderPose, out: GpRiderBodyState): GpRiderBo
   // Feet leave the pegs below a walking pace; a crawl keeps them up.
   out.plant = pose.roadAirborne ? 0 : 1 - T.MathUtils.smoothstep(speed, 0.45, 2.2);
   // Braking at speed lifts the chest into the airflow; at a crawl it does not.
+  // At one riding weight the torso is at its normal height. Flight and a
+  // hard landing extend and fold it within the reach of the real bars.
+  out.compression = T.MathUtils.clamp((finite(pose.roadSupportG, 1) - 1) * 0.032, -0.018, 0.044);
   out.sitUp = Math.sqrt(braking) * T.MathUtils.smoothstep(speed, 3, 12) * (1 - out.plant);
   // Deceleration throws the upper body forward against braced arms; drive
   // pushes it back until the rider loads the tank (handled by `drive`).
@@ -71,7 +76,7 @@ export class GpRiderPosture {
   /** 0 open chest .. 1 rounded upper back (lowers the neck base). */
   hunch = 0;
   inside = [0, 0];
-  private readonly targets: GpRiderBodyState = { sitUp: 0, surge: 0, sway: 0, plant: 0 };
+  private readonly targets: GpRiderBodyState = { sitUp: 0, surge: 0, sway: 0, plant: 0, compression: 0 };
 
   /** REF_018/055/085 (tuck), REF_016/052/089 (braking and grid), REF_003/004/
    * 030/031/056/060 (hang-off). Proportions are authored metres and radians,
@@ -96,7 +101,8 @@ export class GpRiderPosture {
         clamp01(throttle * (1 - braking) * T.MathUtils.smoothstep(speed, 3, 10)) *
         clamp01(0.35 + finite(pose.gLong) * 0.9) *
         (1 - tuck * 0.7),
-      surge = T.MathUtils.clamp(body.surge, -0.05, 0.06) * (1 - plant);
+      surge = T.MathUtils.clamp(body.surge, -0.05, 0.06) * (1 - plant),
+      compression = T.MathUtils.clamp(finite(body.compression), -0.02, 0.046) * (1 - plant);
     // A loaded stop and weight already moving to one side distinguish a
     // corner entry from an upright straight-line stop. Return the boot before
     // the loaded shoulder reaches the apex and keep the rear-brake foot available.
@@ -117,7 +123,7 @@ export class GpRiderPosture {
     // a stop, and one cheek off the saddle (lower) in a hang-off.
     this.pelvis.copy(seat);
     this.pelvis.x += sway * 0.58;
-    this.pelvis.y += -tuck * 0.025 - hangAbs * 0.045 + sitUp * 0.015 - plant * 0.02;
+    this.pelvis.y += -tuck * 0.025 - hangAbs * 0.045 + sitUp * 0.015 - plant * 0.02 - compression * 0.24;
     this.pelvis.z +=
       -tuck * 0.055 * (1 - sitUp) - sitUp * 0.03 + drive * 0.05 + plant * 0.09 + surge * 0.3;
     // Chest pitch from vertical. A GP rider crouches over the tank at any
@@ -128,7 +134,7 @@ export class GpRiderPosture {
     chestPitch = T.MathUtils.lerp(chestPitch, 1.24, corner * (1 - tuck));
     chestPitch += drive * 0.12 + surge * 1.6;
     chestPitch = T.MathUtils.lerp(chestPitch, 0.94, sitUp);
-    chestPitch = T.MathUtils.lerp(chestPitch, 1.08, plant);
+    chestPitch = T.MathUtils.lerp(chestPitch, 1.08, plant) + compression * 1.8;
     // Body into the corner (REF_056): the chest yaws to the inside, which
     // carries a pitched spine laterally, and rolls the inside shoulder down.
     const into = T.MathUtils.clamp(hang * 0.48 + lean * 0.1, -0.48, 0.48) * (1 - plant),
@@ -150,7 +156,7 @@ export class GpRiderPosture {
       neckRoll = -into * 0.75;
     this.hunch = tuck * (1 - sitUp) + corner * 0.5 * (1 - tuck);
     this.neck.set(0, 1, 0).applyEuler(neckAngles.set(neckPitch, chestYaw * 0.5, neckRoll, 'ZYX'));
-    this.reach.set(0, -0.012 * tuck, 0.02 * tuck + 0.015 * drive);
+    this.reach.set(0, -0.012 * tuck - compression * 0.2, 0.02 * tuck + 0.015 * drive);
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1,
         // Continuous inside/outside weights: no pole jump at zero hang-off.
@@ -171,6 +177,7 @@ export class GpRiderPosture {
         .set(side * 0.2, -0.36, -0.03)
         .lerp(tmp.set(side * 0.13, -0.42, 0.04), tuck);
       elbow.lerp(tmp.set(side * 0.34, -0.12, -0.16), sitUp);
+      elbow.x += side * compression * 0.8;
       elbow.lerp(tmp.set(side * 0.62, -0.32, 0.02), inside * (1 - tuck));
       elbow.lerp(tmp.set(side * 0.14, -0.1, -0.16), outside * (1 - tuck));
       elbow.lerp(tmp.set(side * 0.55, -0.12, -0.04), plant);

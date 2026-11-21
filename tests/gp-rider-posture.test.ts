@@ -1,6 +1,8 @@
+import { VEHICLE_IDS } from '../src/simulation/vehicles.ts';
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { B, BIKE_BASE, F, H } from '../src/simulation/protocol.ts';
+import { B, BC, BIKE_BASE, CAR_STRIDE, F, H, R, RACE_BASE, ROAD_BIKE_CONTACT,
+  WHEEL_CONTACT_BASE, wheelContactBase } from '../src/simulation/protocol.ts';
 import { GP_BOOT_PEDAL } from '../src/rendering/gp-rider-contact.ts';
 import {
   GpRiderPosture,
@@ -235,12 +237,47 @@ describe('GP spring-damped rider body', () => {
       expect(body.sample(sequence[1], sequence[2], 0.4, CAR)).toEqual(held);
   });
 
+  it('absorbs marked wheel loads, keeps boots on the pegs in flight and restores the held state', () => {
+    function sample(time: number, load: number) {
+      const f = new Float32Array(CAR + CAR_STRIDE);
+      f[H.TIME] = time;
+      f[CAR + RACE_BASE + R.VEHICLE] = VEHICLE_IDS.indexOf('gpr1');
+      f[CAR + WHEEL_CONTACT_BASE] = ROAD_BIKE_CONTACT;
+      f[CAR + F.G_VERT] = load;
+      f[CAR + F.SPEED] = 38;
+      for (const index of [0, 2]) {
+        const axle = wheelContactBase(CAR, index);
+        f[axle + BC.NORMAL_Y] = 1;
+        f[axle + BC.LOAD] = load * 1100;
+      }
+      return f;
+    }
+    const body = new GpRiderBody();
+    const cruising = sample(0, 1), landing = sample(0.08, 2.2), crest = sample(0.16, 0);
+    expect(body.sample(cruising, cruising, 1, CAR).compression).toBe(0);
+    const loaded = { ...body.sample(cruising, landing, 1, CAR) };
+    expect(loaded.compression).toBeGreaterThan(0.006);
+    expect(loaded.compression).toBeLessThan(0.039);
+    expect(body.sample(cruising, landing, 1, CAR)).toEqual(loaded);
+    body.sample(landing, crest, 1, CAR);
+    // Let the existing downward velocity rebound while the wheels unload.
+    const flight = sample(0.31, 0);
+    expect(body.sample(crest, flight, 1, CAR).compression).toBeLessThan(-0.009);
+    expect(body.sample(cruising, cruising, 1, CAR).compression).toBe(0);
+    crest[CAR + F.SPEED] = 0;
+    expect(new GpRiderBody().sample(crest, crest, 1, CAR).plant).toBe(0);
+    const legacy = crest.slice();
+    legacy[CAR + WHEEL_CONTACT_BASE] = 0;
+    expect(new GpRiderBody().sample(legacy, legacy, 1, CAR).compression).toBe(0);
+  });
+
   it('gives the body mass: the chest lunges and rebounds, then settles on its target', () => {
     const states = play(1).atSnapshots,
       onset = 59, // index of the 0.5 s snapshot
       target = gpBodyTargets(
         { ...riding, braking: 1, gLong: -1.4, speed: 50 },
         {
+          compression: 0,
           sitUp: 0,
           surge: 0,
           sway: 0,

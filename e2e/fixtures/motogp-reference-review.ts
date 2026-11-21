@@ -12,6 +12,7 @@ import {
 } from '../../src/rendering/bike.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { H } from '../../src/simulation/protocol.ts';
+import { frameLiquidRain } from '../../src/simulation/weather.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 
 /** Isolated production BikeModel, not a replacement game or promotional render. */
@@ -22,6 +23,8 @@ export function captureBikeSequence(
   samples: readonly {
     wet: boolean;
     time: number;
+    /** Allows a wet track after rainfall has stopped. */
+    rainMmH?: number;
     /** Explicit optical control only; omitted samples use the real material. */
     windscreen?: 'production' | 'legacy-volume';
     /** Replayable front-lever input; other pose channels remain fixed. */
@@ -270,9 +273,14 @@ export function captureBikeSequence(
       };
     });
     return samples.map((sample) => {
+      weatherFrame[H.TIME] = sample.time;
+      weatherFrame[H.RAIN] = sample.rainMmH ?? (sample.wet ? 20 : 0);
+      weatherFrame[H.WATER] = sample.wet ? 0.6 : 0;
       const samplePose = {
         ...pose,
         rainVisibility: sample.wet ? 1 : 0,
+        time: sample.time,
+        liquidRain: frameLiquidRain(weatherFrame),
         ...sample.pose,
         brake: sample.frontBrake ?? pose.brake,
       };
@@ -285,9 +293,6 @@ export function captureBikeSequence(
       // the authored material value rather than prescribing the candidate.
       materials.screen.thickness =
         sample.windscreen === 'legacy-volume' ? 0.002 : productionScreenThickness;
-      weatherFrame[H.TIME] = sample.time;
-      weatherFrame[H.RAIN] = sample.wet ? 20 : 0;
-      weatherFrame[H.WATER] = sample.wet ? 0.6 : 0;
       const source = weatherFrame.slice();
       weather.update(weatherFrame);
       renderer.render(scene, camera);

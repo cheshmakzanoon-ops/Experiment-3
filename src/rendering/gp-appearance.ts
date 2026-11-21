@@ -1,3 +1,4 @@
+import { installGpOpticalRain } from './gp-optics-rain.ts';
 import * as T from 'three';
 import { installGlassFresnel } from './materials/library.ts';
 import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
@@ -83,6 +84,8 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screen.depthWrite = false;
   materials.screen.roughness = 0.03;
   installGlassFresnel(materials.screen);
+  installGpOpticalRain(materials.screen, materials.opticalRain);
+  installGpOpticalRain(materials.screenLight, materials.opticalRain);
   // The rain optic uses bright diode centres and a smoked surround. Each
   // close-up lens samples one emitter, the distant strip the entire array.
   materials.lamp.color.setHex(0x1c0404);

@@ -1,4 +1,4 @@
-import { B, BIKE_BASE, F, H } from '../simulation/protocol.ts';
+import { B, BC, BIKE_BASE, F, H, hasRoadBikeContact, wheelContactBase } from '../simulation/protocol.ts';
 import type { RiderPose } from './rider.ts';
 import { gpBodyTargets, type GpRiderBodyState } from './gp-rider-posture.ts';
 
@@ -11,8 +11,9 @@ export const GP_RIDER_BODY_SPRINGS = Object.freeze({
   surge: [8, 0.38],
   sway: [9, 0.62],
   plant: [7, 1],
+  compression: [23, 0.78],
 } as const);
-const CHANNELS = ['sitUp', 'surge', 'sway', 'plant'] as const;
+const CHANNELS = ['sitUp', 'surge', 'sway', 'plant', 'compression'] as const;
 type Channel = (typeof CHANNELS)[number];
 /** Integration step bound and the longest gap treated as continuous motion. */
 const MAX_STEP = 1 / 240;
@@ -23,11 +24,15 @@ function targetsAt(frame: Float32Array, car: number, out: GpRiderBodyState) {
   scratchPose.braking = frame[car + F.BRAKE];
   scratchPose.speed = frame[car + F.SPEED];
   scratchPose.gLong = frame[car + F.G_LONG];
+  const supportedRoadPose = hasRoadBikeContact(frame, car);
+  scratchPose.roadSupportG = supportedRoadPose ? frame[car + F.G_VERT] : undefined;
+  scratchPose.roadAirborne = supportedRoadPose &&
+    frame[wheelContactBase(car, 0) + BC.LOAD] + frame[wheelContactBase(car, 2) + BC.LOAD] <= 1e-6;
   scratchPose.offset = frame[car + BIKE_BASE + B.RIDER_OFFSET];
   scratchPose.leanRate = frame[car + BIKE_BASE + B.LEAN_RATE];
   return gpBodyTargets(scratchPose, out);
 }
-const blank = (): GpRiderBodyState => ({ sitUp: 0, surge: 0, sway: 0, plant: 0 });
+const blank = (): GpRiderBodyState => ({ sitUp: 0, surge: 0, sway: 0, plant: 0, compression: 0 });
 
 /** Spring-damped rider mass for one GP entrant, shared by all of its LODs.
  *

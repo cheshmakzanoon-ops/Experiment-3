@@ -1,3 +1,4 @@
+import { installGpOpticalRain, type GpOpticalRain } from './gp-optics-rain.ts';
 import { paintDistantGpRider } from './gp-distant-rider.ts';
 import * as T from 'three';
 import { MotocrossDab, type MxDabSurface } from './offroad/motocross-dab.ts';
@@ -120,6 +121,8 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   suspensionPitch?: number;
   /** Measured road-bike support loss; feet stay on pegs even at low airspeed. */
   roadAirborne?: boolean;
+  /** Recorded normal support of a sprung road motorcycle, in rider weights. */
+  roadSupportG?: number;
   /** Independent rear pedal; the front lever must not animate the right foot. */
   rearBraking?: number;
   /** Off-road (WP41): 0 seated .. 1 standing on the pegs. */
@@ -518,6 +521,7 @@ export class Rider {
     readonly gp = false,
     private readonly sharedPrints?: GpRiderPrints,
     private readonly roadClass?: VehicleClass,
+    opticalRain?: GpOpticalRain,
   ) {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
@@ -649,6 +653,7 @@ export class Rider {
         visor.iridescenceIOR = 1.75;
         visor.iridescenceThicknessRange = [260, 430];
         visor.name = 'GP iridium visor';
+        if (opticalRain) installGpOpticalRain(visor, opticalRain, true);
       }
     }
     const flex = new T.MeshStandardMaterial({
