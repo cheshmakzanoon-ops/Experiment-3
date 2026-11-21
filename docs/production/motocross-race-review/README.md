@@ -2,6 +2,37 @@
 
 Valley Ridge and Arena Nord use the same articulated MX250 and MX450 models in racing, onboard views and replay. The SM450 supermoto shares the motocross frame and rider controls and uses its own road wheels.
 
+## Suspension, drivetrain and worked clay
+
+The 100 supplied references informed the side profile, rear-tyre shoulder, airborne rider posture and visibility across a crowded berm. The photographs below show the original MOTOBOUND models. Each comparison uses matching camera, pose, lighting and crop.
+
+![Matched MX450 views of the chain guide, axle, tyre shoulder and rim](mx450-rear-wheel-and-drive.webp)
+
+The MX250 and MX450 now have crowned tread blocks, rim locks and valves. The swingarm has a slotted lower chain guide with room for the moving links. The fork stanchions enter open dust wipers, and the top caps sit above the steering clamps. The rear flap bends under wheelspin and suspension load. The rider’s jersey moves between its fixed harness straps, and the rider loads the bars and pegs as the bike brakes, accelerates or lands. The shoulder yoke has an open release below its stamped latch. The complete High models, including their riders, use 139,972 triangles for the MX250 and 138,332 for the MX450.
+
+![Matched views of the Arena Nord press gallery, a Valley Ridge service canopy and the team van lamps](mx-press-rooms-and-paddock.webp)
+
+The Arena Nord press rooms have glazing, desks and recessed warm and cool interiors. Valley Ridge’s service canopies and vans carry matching team prints. The canopy hems move with the recorded wind. The service vans have parked wipers and headlamp lenses fitted to the bevelled front panels. All eight vans draw together in one instanced batch. Steel crowd barriers follow the spectator areas and rest on the local slope.
+
+A slipping rear tyre throws soil according to its travel relative to the track. Under braking, a locked tyre can push wet earth ahead. Loose clods follow the visible rut surface on a replay seek. In Arena Nord, the projected positions of the forty three-lens roof fixtures supply small highlights on watered, compacted clay. A 480 × 300 WebGL2 comparison using the track recorded 46 seconds into a twelve-rider race changed 401 pixels when the highlights were switched on. The repeated frame matched exactly. Both versions submitted 20 draws and 676,914 triangles in this inspection view.
+
+| Measurement | Result |
+| --- | --- |
+| Longest stop in the twelve-rider Arena Nord turn-one regression, with double-yellow braking enforced | 24.55 s before separating collision yaw from rider bank, 15.86 s afterward |
+| Vertex data copied while preparing the rigid meshes for the two MX designs across High, Mid and Far | 20,062,570 bytes before, 2,178,792 after, measured before the fork revision |
+| Standing start over 60 m | MX450 4.53 s, MX250 4.50 s |
+| Surveyed jump calibrations | All 20 runs within their expected bands |
+
+Seven seeded motorcycle races classified every entrant. The six motocross and supercross races included mixed 250/450 fields and both dry and changeable weather. The seventh used the shared chassis in supermoto trim. Across 232 rider-laps and 64 entries, the simulations recorded 22 falls. The longest stop was 13.02 seconds, within the existing 20-second limit. The six-lap Arena Nord event classified all ten riders.
+
+The Valley Ridge run used the eight-rider MX450 event, with rider weight input and an observed jump and touchdown. At Arena Nord the player opened the eight-rider MX250 gate, accelerated, switched to the cockpit and paused with that view still presented. Both went through the normal paddock on Low. The original captures measure 960 × 600 outdoors and 800 × 500 indoors.
+
+![Actual race screens from Valley Ridge and Arena Nord, including the eight-rider gates and the chase and cockpit views](mx-native-gate-chase-and-cockpit.webp)
+
+[Race results, geometry counts and WebGL measurements](suspension-and-clay-verification.json)
+
+The photographs show the browser renderer. The race simulation ran at a fixed 120 Hz. Physical GPU frame pacing and end-to-end input latency need measurements on the target device.
+
 ## MX250 and MX450 race refinement
 
 Both starting grids below were captured at 800 × 500 on High. The player selected each class and venue through the paddock and released the eight-rider gate through the normal race controls. Chromium used the SwiftShader WebGL2 software renderer.
