@@ -4,7 +4,7 @@ import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { bodySheetFor, type ClosedSheet } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
 import { ClosedBodyModel } from '../src/rendering/vehicle-bodies/closed-body.ts';
-import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
+import { buildVehicleBody, layerFrameFor } from '../src/rendering/vehicle-bodies/index.ts';
 import {
   festivalLampPockets,
   festivalLampEdge,
@@ -93,6 +93,34 @@ describe('RH3, SC7 and EH3 integrated front ends', () => {
       }
     }
     material.dispose();
+  });
+
+  it('keeps the moving central reflection continuous from the swept windscreen into the forward-canopy bonnets', () => {
+    for (const id of ['sc7', 'eh3']) {
+      const v = VEHICLES[id],
+        sheet = bodySheetFor(v) as ClosedSheet,
+        f = bodyFrame(v);
+      const m = new ClosedBodyModel(f, sheet, [
+        sheet.wheels.width[0] / 2,
+        sheet.wheels.width[1] / 2,
+      ]);
+      const foot = f.z(sheet.cabin[0]) + 0.155;
+      const [back, front] = layerFrameFor(f, m).bonnetInset!;
+      expect(back).toBeGreaterThan(foot + 0.1);
+      expect(front).toBeLessThan(m.zFront - 0.18);
+      for (const detail of [0, 1, 2] as const) {
+        const sections = m
+          .bodyRings(detail)
+          .map((ring) => [ring.depths?.at(-1) ?? ring.z, ring.half.at(-1)![1]])
+          .filter(([z]) => z >= foot - 0.01 && z < m.zFront - 0.27);
+        expect(sections.length).toBeGreaterThan(4);
+        for (let i = 1; i < sections.length; i++) {
+          const dz = sections[i][0] - sections[i - 1][0];
+          expect(dz).toBeGreaterThan(0);
+          expect(Math.abs((sections[i][1] - sections[i - 1][1]) / dz)).toBeLessThan(0.9);
+        }
+      }
+    }
   });
 
   it('cuts actual lamp holes, retains nearby painted skin and exposes recessed optics', () => {

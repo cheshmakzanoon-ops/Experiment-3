@@ -27,6 +27,8 @@ export interface LayerFrame {
   rear: number;
   /** Body half width (m). */
   half: number;
+  /** Optional ends (metres) of a pressed, tapered bonnet insert. */
+  bonnetInset?: readonly [number, number];
 }
 export interface LayerLook {
   secondary: number;
@@ -80,6 +82,19 @@ const GLSL = /* glsl */ `{
       smoothstep(zWs + 0.1 - lw.z, zWs + 0.1 + lw.z, lp.z) *
       (1.0 - smoothstep(hw * 0.42 - lw.x, hw * 0.42 + lw.x, lax)) *
       smoothstep(low + 0.2 - lw.y, low + 0.2 + lw.y, lp.y);
+    if (bodyLayerMask.z > 0.0 && bodyLayerC.z > bodyLayerC.y) {
+      // A rounded insert follows the central stamping between the cooling
+      // outlets. Its boundary stays clear of the swept glass and nose face.
+      float span = bodyLayerC.z - bodyLayerC.y;
+      float u = (lp.z - bodyLayerC.y) / span;
+      float width = hw * mix(0.29, 0.13, smoothstep(0.0, 1.0, u));
+      vec2 edge = vec2(lax / width, abs(2.0 * u - 1.0));
+      vec2 squared = edge * edge;
+      float contour = dot(squared, squared);
+      float aa = max(fwidth(contour), 0.002);
+      bonnet = (1.0 - smoothstep(1.0 - aa, 1.0 + aa, contour)) *
+        smoothstep(low + 0.055 - lw.y, low + 0.055 + lw.y, lp.y);
+    }
     // Nose: the bumper face and leading edge, forward of the arch.
     float nose = bodyLayerMask.w *
       smoothstep(zFront - 0.3 - lw.z, zFront - 0.3 + lw.z, lp.z) *
@@ -144,13 +159,13 @@ export function installBodyLayers(material: T.MeshPhysicalMaterial, frame: Layer
     setFrame(f) {
       uniforms.bodyLayerA.value.set(f.belt, f.low, f.roof, 0);
       uniforms.bodyLayerB.value.set(f.windscreen, f.rearGlass, f.front, f.rear);
-      uniforms.bodyLayerC.value.set(f.half, 0, 0, 0);
+      uniforms.bodyLayerC.value.set(f.half, f.bonnetInset?.[0] ?? 0, f.bonnetInset?.[1] ?? 0, 0);
     },
   };
   handle.setFrame(frame);
   handle.setLook(NONE);
   handles.set(material, handle);
-  chainShaderHook(material, 'body-livery-layers-v2', (shader) => {
+  chainShaderHook(material, 'body-livery-layers-v3', (shader) => {
     Object.assign(shader.uniforms, uniforms);
     injectDeclarations(
       shader,

@@ -86,6 +86,9 @@ export class ClosedBodyModel {
   archList() {
     return this.arches.map(({ z, hub, r, flare }) => ({ z, hub, r, flare }));
   }
+  get forwardCanopy() {
+    return this.s.windowForm === 'canopy' && this.s.style === 'supercar';
+  }
   constructor(
     readonly f: BodyFrame,
     readonly s: ClosedSheet,
@@ -99,6 +102,12 @@ export class ClosedBodyModel {
     this.halfBase = s.width / 2 - Math.max(s.flare[0], s.flare[1]);
     const zF = this.zFront,
       zR = this.zRear;
+    // Forward-cab mid-engine cars place the wheel under the glass foot.
+    // Carry the bonnet datum onto its overhang to avoid dropping the whole
+    // cowl through sixteen centimetres immediately ahead of the windscreen.
+    const bonnetZ = this.forwardCanopy
+      ? f.frontAxle + s.overhang[0] * 0.32
+      : f.frontAxle;
     const open = s.style === 'roadster' || !!s.open;
     const cockpit = open ? s.belt + 0.06 : s.cowl + (s.deck - s.cowl) * 0.3;
     this.top = new Track(
@@ -110,8 +119,8 @@ export class ClosedBodyModel {
         [z(rw) + 0.02, y(open ? cockpit : s.deck)],
         [(z(rw) + z(ws)) / 2, y(cockpit)],
         [z(ws) - 0.02, y(open ? cockpit : s.cowl)],
-        [Math.max(z(ws) + 0.05, (z(ws) + f.frontAxle) / 2), y((s.cowl + s.bonnet) / 2)],
-        [f.frontAxle, y(s.bonnet)],
+        [Math.max(z(ws) + 0.05, (z(ws) + bonnetZ) / 2), y((s.cowl + s.bonnet) / 2)],
+        [bonnetZ, y(s.bonnet)],
         // A truck keeps its bonnet level almost to the face and then drops square: a blunt,
         // upright front (D11) instead of the sports-car droop, so the grille, the lamps and the
         // bumper have a face to sit on.
@@ -308,7 +317,8 @@ export class ClosedBodyModel {
         : detail === 1
           ? [1, ridge + 0.09, ridge + 0.035, ridge - 0.1, (ridge - 0.1 + 0.18) / 2, 0.18, 0]
           : [1, ridge + 0.035, ridge - 0.1, 0.18, 0];
-    const strength = press[0] * smooth(t / 0.17) * smooth((1 - t) / 0.22);
+    const entry = this.forwardCanopy ? 0.32 : 0.17;
+    const strength = press[0] * smooth(t / entry) * smooth((1 - t) / 0.22);
     // A symmetric quadratic crown has a horizontal tangent at the centre
     // seam. Narrow radii at the shoulder catch a moving reflection in turns.
     const crown = deck[1] - centre[1];

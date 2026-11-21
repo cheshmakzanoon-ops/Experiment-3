@@ -105,6 +105,9 @@ export function layerFrameFor(frame: BodyFrame, model: ClosedBodyModel): LayerFr
     front: model.zFront,
     rear: model.zRear,
     half: model.halfBase,
+    bonnetInset: model.forwardCanopy
+      ? [frame.z(s.cabin[0]) + 0.31, model.zFront - 0.24]
+      : undefined,
   };
 }
 /** Build one catalogue body for entrant `id`. `livery` is the player's own

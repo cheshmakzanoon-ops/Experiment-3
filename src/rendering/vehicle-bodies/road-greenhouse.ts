@@ -40,7 +40,10 @@ export function fitRoadDeck(model: ClosedBodyModel, ring: Ring, detail: Detail):
     form = s.windowForm;
   if (!form) return ring;
   const z = ring.z;
-  const front = 1 - smooth(Math.abs(z - f.z(s.cabin[0])) / 0.41);
+  // Carry a forward canopy's swept sill into the long bonnet pressing.
+  // More stations share the bow, keeping the longitudinal mesh monotone.
+  const frontBlend = model.forwardCanopy ? 0.63 : 0.41;
+  const front = 1 - smooth(Math.abs(z - f.z(s.cabin[0])) / frontBlend);
   const rear = 1 - smooth(Math.abs(z - f.z(s.cabin[3])) / 0.31);
   if (!front && !rear) return ring;
   const shift = windscreenBow(form) * front - rearBow(form) * rear;
