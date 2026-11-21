@@ -90,6 +90,42 @@ function strip(from: number, to: number) {
 }
 
 describe('continuous motocross terrain lighting and live rut receivers', () => {
+  it('keeps clean ground and compacted soil on the GPU until their respective attributes change', () => {
+    const track = rigTrack('valley-ridge-mx');
+    const columns = (Track.offroadOf(track) as TrackTerrainSurface).terrain.renderColumns;
+    const view = new TerrainView(track);
+    const meshes = meshesOf(view);
+    const versions = (name: string) => meshes.map(mesh => attribute(mesh, name).version);
+    const heights = versions('position'), normals = versions('normal'), states = versions('apexSoilState');
+    const initial = snapshot(view);
+    const block = 96 * columns + Math.floor(columns / 2);
+    const empty = new Float32Array();
+    const tread = new Float32Array([block, 0, 0.625]);
+    const record = (time: number, reset: boolean, wetness: number, blocks: Float32Array) =>
+      view.record({ reset, wetness, blocks }, time, true);
+    try {
+      record(0, true, 0, empty);
+      record(1, false, 0.72, empty);
+      view.showAt(0);
+      expect(versions('apexSoilState')).toEqual(states);
+      record(2, false, 0.72, tread);
+      const compacted = versions('apexSoilState');
+      // Row 96 is duplicated at the end of strip zero and the start of strip one.
+      expect(compacted).toEqual(states.map((n, i) => n + (i < 2 ? 1 : 0)));
+      expect(snapshot(view)).not.toEqual(initial);
+      record(3, false, 0.72, tread);
+      expect(versions('apexSoilState')).toEqual(compacted);
+      view.showAt(0);
+      expect(snapshot(view)).toEqual(initial);
+      expect(versions('position')).toEqual(heights);
+      expect(versions('normal')).toEqual(normals);
+      expect(view.geometryRevision).toBe(0);
+      expect(view.heightRevisions.some(revision => revision !== 0)).toBe(false);
+    } finally {
+      view.dispose();
+    }
+  });
+
   it('matches one welded mesh across unequal triangles and clipped cells, without repeat-update drift', () => {
     const whole = strip(0, 4),
       left = strip(0, 2),

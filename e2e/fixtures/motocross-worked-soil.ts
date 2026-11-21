@@ -117,6 +117,9 @@ export async function captureMotocrossWorkedSoil(
   const camera = new T.PerspectiveCamera(55, width / height, 0.1, 700),
     key = new T.DirectionalLight(0xfff2dd, 2.8);
   key.castShadow = true;
+  // During the material review this terrain is the only shadow caster.
+  // The separately timed shader comparison keeps its usual full shadow pass.
+  key.shadow.autoUpdate = options.compareEvaluation === true;
   key.shadow.mapSize.setScalar(options.compact ? 512 : 1536);
   Object.assign(key.shadow.camera, {
     left: -36,
@@ -131,6 +134,7 @@ export async function captureMotocrossWorkedSoil(
   const meshes = view.group.children as T.Mesh[],
     p = trackPoint(),
     q = trackPoint();
+  let shadowRevision = -1, shadowRefreshes = 0;
   const position = (kind: 'approach' | 'berm' | 'jump') => {
     const berm = surface.course.spec.berms[0],
       jump = surface.course.jumps.find((jump) => jump.kind === 'double') ?? surface.course.jumps[0],
@@ -175,12 +179,22 @@ export async function captureMotocrossWorkedSoil(
       target.y + 23,
       target.z - p.tz * 24 + p.nz * 29,
     );
+    key.shadow.needsUpdate = true;
     camera.updateMatrixWorld();
     scene.updateMatrixWorld(true);
     return { station, width: p.width, camera: camera.position.toArray(), target: target.toArray() };
   };
   const capture = (label: string, retainImage = true) => {
+    // A different light position or a moved terrain vertex needs a fresh
+    // depth map. All six colour frames still run the complete soil shader.
+    if (view.geometryRevision !== shadowRevision) key.shadow.needsUpdate = true;
+    const refreshShadow = key.shadow.needsUpdate;
     renderer.render(scene, camera);
+    if (refreshShadow) {
+      if (!key.shadow.map || key.shadow.needsUpdate) throw new Error('The soil shadow map was not rendered');
+      shadowRevision = view.geometryRevision;
+      shadowRefreshes++;
+    }
     const gl = renderer.getContext(),
       pixels = new Uint8Array(width * height * 4);
     gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -250,7 +264,7 @@ export async function captureMotocrossWorkedSoil(
     }
     return {
       circuit,
-      capture: { width, height, shadowMapSize: key.shadow.mapSize.x },
+      capture: { width, height, shadowMapSize: key.shadow.mapSize.x, shadowRefreshes },
       results,
       comparisons,
       sourceUnchanged: sourceHash === terrain.hash(),

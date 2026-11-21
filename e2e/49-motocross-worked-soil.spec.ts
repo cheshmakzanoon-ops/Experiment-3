@@ -70,6 +70,8 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
       evidenceImagesOnly: true,
     });
     expect(result.sourceUnchanged).toBe(true);
+    expect(result.capture.shadowRefreshes).toBe(3);
+    expect(result.capture.shadowMapSize).toBe(process.env.APEX_MX_SOIL_COMPACT === '1' ? 512 : 1536);
     expect(result.geometry.courseWidthBytes).toBe(result.geometry.vertices * 4);
     expect(result.geometry.courseWearBytes).toBe(result.geometry.vertices * 16);
     expect(result.hooks).toContain('mx-groomed-soil-v4');

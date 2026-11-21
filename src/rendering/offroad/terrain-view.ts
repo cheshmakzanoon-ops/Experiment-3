@@ -40,7 +40,8 @@ interface Chunk {
   rows: number;
   base: Float32Array;
   edges: MxTerrainNormalEdges | null;
-  dirty: boolean;
+  stateDirty: boolean;
+  heightDirty: boolean;
 }
 /** One recorded export, for replays (the soil as it was at that time). */
 interface Keyframe {
@@ -324,7 +325,7 @@ export class TerrainView {
     mesh.castShadow = this.motocross;
     this.group.add(mesh);
     const edges = this.motocross ? new MxTerrainNormalEdges(geometry, vx) : null;
-    return { mesh, first, rows, base, edges, dirty: false };
+    return { mesh, first, rows, base, edges, stateDirty: false, heightDirty: false };
   }
   /** A worker keyframe: record it (replays) and, live, show it. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
@@ -354,62 +355,61 @@ export class TerrainView {
     // last full export at or before the target.
     let from = this.shown + 1;
     if (target < this.shown || this.shown < 0) {
-      this.depth.fill(0);
-      this.compaction.fill(0);
       // Before the first export there is no session soaking. Restore this
       // alongside the fields: a seek to -1 must not keep a later wet film.
       this.setWetness(0);
-      this.markAll();
       from = 0;
       for (let i = target; i >= 0; i--)
         if (this.history[i].delta.reset) {
           from = i;
           break;
         }
+      // A full export below clears the previous display itself. Earlier
+      // than the first export (or with only deltas), start from clean soil.
+      if (target < 0 || !this.history[from].delta.reset) this.clearBlocks();
     }
     for (let i = from; i <= target; i++) this.apply(this.history[i].delta);
     this.shown = target;
     this.upload();
   }
-  private markAll() {
-    this.heightRevisions.fill(this.geometryRevision + 1);
-    for (const c of this.chunks) c.dirty = true;
+  private clearBlocks() {
+    for (let block = 0; block < this.depth.length; block++)
+      if (this.depth[block] !== 0 || this.compaction[block] !== 0) this.setBlock(block, 0, 0);
   }
   private apply(delta: TerrainRenderDelta) {
-    if (delta.reset) {
-      this.depth.fill(0);
-      this.compaction.fill(0);
-      this.markAll();
-    }
-    const b = delta.blocks,
-      cols = this.terrain.renderColumns;
+    if (delta.reset) this.clearBlocks();
+    const b = delta.blocks;
     for (let k = 0; k + 2 < b.length; k += 3) {
       const block = b[k];
       if (!(block >= 0 && block < this.depth.length)) continue;
-      if (this.depth[block] !== b[k + 1]) {
-        // A changed mesh corner belongs to four cells. The previous row
-        // wraps at start/finish. Outer columns stop at the ribbon edge.
-        const previous = (block - cols + this.depth.length) % this.depth.length;
-        const revision = this.geometryRevision + 1;
-        this.heightRevisions[block] = this.heightRevisions[previous] = revision;
-        if (block % cols !== 0)
-          this.heightRevisions[block - 1] = this.heightRevisions[previous - 1] = revision;
-      }
-      this.depth[block] = b[k + 1];
-      this.compaction[block] = b[k + 2];
-      const row = Math.floor(block / cols),
-        chunkIndex = Math.floor(row / CHUNK_ROWS),
-        chunk = this.chunks[chunkIndex];
-      if (chunk) chunk.dirty = true;
-      // A block drives the vertex at its own row. At a strip boundary that
-      // row is also the PREVIOUS strip's final row; row zero closes the lap.
-      // Dirtying the next strip for row 95 missed the actual shared row 96.
-      if (row % CHUNK_ROWS === 0) {
-        const previous = this.chunks[mod(chunkIndex - 1, this.chunks.length)];
-        if (previous) previous.dirty = true;
-      }
+      this.setBlock(block, b[k + 1], b[k + 2]);
     }
     this.setWetness(delta.wetness);
+  }
+  private setBlock(block: number, depth: number, compaction: number) {
+    const heightChanged = this.depth[block] !== depth;
+    if (!heightChanged && this.compaction[block] === compaction) return;
+    const cols = this.terrain.renderColumns;
+    if (heightChanged) {
+      // The moved corner supports up to four imprint cells across the lap seam.
+      const previous = (block - cols + this.depth.length) % this.depth.length;
+      const revision = this.geometryRevision + 1;
+      this.heightRevisions[block] = this.heightRevisions[previous] = revision;
+      if (block % cols !== 0)
+        this.heightRevisions[block - 1] = this.heightRevisions[previous - 1] = revision;
+    }
+    this.depth[block] = depth;
+    this.compaction[block] = compaction;
+    const row = Math.floor(block / cols), index = Math.floor(row / CHUNK_ROWS);
+    const chunk = this.chunks[index];
+    chunk.stateDirty = true;
+    chunk.heightDirty ||= heightChanged;
+    // The first row of each strip is also the preceding strip's final row.
+    if (row % CHUNK_ROWS === 0) {
+      const previous = this.chunks[mod(index - 1, this.chunks.length)];
+      previous.stateDirty = true;
+      previous.heightDirty ||= heightChanged;
+    }
   }
   private setWetness(wetness: number) {
     this.wetness = wetness;
@@ -420,9 +420,9 @@ export class TerrainView {
     const t = this.terrain,
       cols = t.renderColumns,
       rowsTotal = t.renderRows;
-    if (this.chunks.some((chunk) => chunk.dirty)) this.geometryRevision++;
+    if (this.chunks.some((chunk) => chunk.heightDirty)) this.geometryRevision++;
     for (const chunk of this.chunks) {
-      if (!chunk.dirty) continue;
+      if (!chunk.stateDirty) continue;
       const g = chunk.mesh.geometry,
         position = g.getAttribute('position') as T.BufferAttribute,
         state = g.getAttribute('apexSoilState') as T.BufferAttribute,
@@ -433,28 +433,33 @@ export class TerrainView {
           const k = r * vx + c,
             block = row * cols + Math.min(c, cols - 1),
             d = this.depth[block];
-          position.setY(k, chunk.base[k] - d);
+          if (chunk.heightDirty) position.setY(k, chunk.base[k] - d);
           state.setY(k, this.compaction[block]);
           state.setZ(k, d);
         }
       }
-      position.needsUpdate = true;
       state.needsUpdate = true;
-      g.computeVertexNormals();
-      chunk.edges?.refresh();
+      if (chunk.heightDirty) {
+        position.needsUpdate = true;
+        g.computeVertexNormals();
+        chunk.edges?.refresh();
+      }
     }
     // First update every changed face ring, then combine raw area-weighted
     // contributions. A near-edge rut can change a neighbour's edge normal
     // even when none of that neighbour's own positions/state changed.
     this.joinNormals();
-    for (const chunk of this.chunks) chunk.dirty = false;
+    for (const chunk of this.chunks) {
+      chunk.stateDirty = false;
+      chunk.heightDirty = false;
+    }
   }
   private joinNormals(all = false) {
     if (!this.motocross) return;
     for (let i = 0; i < this.chunks.length; i++) {
       const current = this.chunks[i],
         next = this.chunks[(i + 1) % this.chunks.length];
-      if (all || current.dirty || next.dirty) current.edges!.join(next.edges!);
+      if (all || current.heightDirty || next.heightDirty) current.edges!.join(next.edges!);
     }
   }
   /** Cacheable cell of a stationary mark in the deforming soil ribbon. */
