@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 
@@ -134,6 +135,10 @@ export class HeadlandLantern {
       panel(0.55, 0.94, 0.07, 0, 0.05, 0x343f42);
       panel(0.95, 0.12, 0.26, -0.58, 0.045, oxidised);
     }
+    // The turntable and central spindle support the optic above the sill.
+    cylinder(0.45, 0.55, 0.22, sill + 0.15, oxidised);
+    cylinder(0.16, 0.29, 0.89, sill + 0.68, 0x71654c);
+    cylinder(0.41, 0.29, 0.12, sill + 1.17, oxidised);
     const shell = new T.Mesh(mergeGeometries(parts)!, this.iron);
     for (const part of parts) part.dispose();
     shell.name = 'Headland gallery, keeper windows and lantern ironwork';
@@ -150,11 +155,55 @@ export class HeadlandLantern {
       profile.push(new T.Vector2(r - 0.015, 0.21 + 0.19 * (1 - u * u)), new T.Vector2(r, 0.15));
     }
     profile.push(new T.Vector2(radius, 0.1), new T.Vector2(0, 0.1));
-    const front = new T.LatheGeometry(profile.reverse(), 32).rotateX(Math.PI / 2);
+    const front = new T.LatheGeometry(profile.reverse(), 40).rotateX(Math.PI / 2);
+    const count = front.getAttribute('position').count,
+      rgba = new Float32Array(count * 3);
+    const pass = new Float32Array(count),
+      coord = front.getAttribute('position');
+    const tint = new T.Color();
+    for (let i = 0; i < count; i++) {
+      const r = Math.hypot(coord.getX(i), coord.getY(i)) / radius;
+      const facet = coord.getZ(i) > 0.202,
+        core = r < 0.18;
+      tint.setHex(core ? 0xd4ba83 : facet ? 0x9db9ad : 0x476461).toArray(rgba, i * 3);
+      pass[i] = core ? 1 : facet ? 0.72 : 0.24;
+    }
+    front.setAttribute('color', new T.BufferAttribute(rgba, 3));
+    front.setAttribute('opticPass', new T.BufferAttribute(pass, 1));
     const back = front.clone().rotateY(Math.PI);
-    const optic = mergeGeometries([front, back])!;
-    front.dispose();
-    back.dispose();
+    const rotor: T.BufferGeometry[] = [front, back];
+    for (const side of [-1, 1]) {
+      const rim = new T.TorusGeometry(radius + 0.025, 0.043, 6, 40).translate(0, 0, side * 0.19);
+      const n = rim.getAttribute('position').count,
+        bronze = new Float32Array(n * 3);
+      tint.setHex(0x71634a);
+      for (let i = 0; i < n; i++) tint.toArray(bronze, i * 3);
+      rim.setAttribute('color', new T.BufferAttribute(bronze, 3));
+      rim.setAttribute('opticPass', new T.BufferAttribute(new Float32Array(n), 1));
+      rotor.push(rim);
+    }
+    const optic = mergeGeometries(rotor)!;
+    for (const piece of rotor) piece.dispose();
+    lamp.color.setHex(0xf0f3ef);
+    lamp.vertexColors = true;
+    lamp.roughness = 0.24;
+    lamp.metalness = 0.23;
+    chainShaderHook(lamp, 'headland-lens-transmission-v1', (shader) => {
+      injectDeclarations(
+        shader,
+        'common',
+        'attribute float opticPass; varying float vOpticPass;',
+        'vertex',
+      );
+      injectAfter(shader, 'begin_vertex', 'vOpticPass = opticPass;', 'vertex');
+      injectDeclarations(shader, 'common', 'varying float vOpticPass;', 'fragment');
+      injectAfter(
+        shader,
+        'emissivemap_fragment',
+        'totalEmissiveRadiance *= vOpticPass;',
+        'fragment',
+      );
+    });
     this.lens = new T.Mesh(optic, lamp);
     this.lens.name = 'Lighthouse lantern';
     this.lens.position.y = glazing.position.y;
@@ -173,7 +222,7 @@ export class HeadlandLantern {
     const pulse = eye
       ? headlandSignal(time, eye.x - this.centre.x, eye.y - this.centre.y, eye.z - this.centre.z)
       : 0;
-    this.lamp.emissiveIntensity = 0.045 + night * (0.32 + 19 * pulse);
+    this.lamp.emissiveIntensity = 0.014 + night * (0.09 + 19 * pulse);
     const distance = eye ? eye.distanceTo(this.centre) : 0;
     this.corona.opacity = night * (0.015 + pulse * 0.83);
     this.glow.visible = this.corona.opacity > 0.03 && distance > 22;
