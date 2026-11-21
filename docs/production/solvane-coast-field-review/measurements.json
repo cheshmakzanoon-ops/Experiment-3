@@ -1480,9 +1480,9 @@
       ],
       "artifact": "solvane-committed-coastal-launch",
       "originalPngSha256": "c8237bcf23ef57f0ad6a5f25fd3e47e7db1abcfdb99aa742983d236e36dc103f",
-      "galleryImageSha256": "3cbb1d4dddaa839017f5d682518d26d5ac7893d86a177478944b759b9d7bcceb",
       "pageErrors": [],
-      "failedAssets": []
+      "failedAssets": [],
+      "previousGalleryImageSha256": "3cbb1d4dddaa839017f5d682518d26d5ac7893d86a177478944b759b9d7bcceb"
     }
   },
   "delayedReflectionFrames": {
@@ -2792,7 +2792,154 @@
           "commit": "b89e9be6b3b016636af5480119c0c8bee5728e97",
           "vehicle": "eh3",
           "allPublishedWheelAndRaceFieldsMatched": true,
-          "script": "wheel-motion.mjs"
+          "script": "wheel-motion.mjs",
+          "sameSourceAdditionalVehicles": [
+            "rd2",
+            "rg63",
+            "lx12"
+          ],
+          "additionalVehiclesAllFieldsMatched": true
+        }
+      },
+      "hostedEarlyRendererIdentity": {
+        "commit": "84bd7d1b99edad54e7cacaa95d912c44ec50b458",
+        "fingerprint": "dadc565c76a5f048fd99c59aee37b4cfb2ba56d2adf5de3a3d85c1de64df4dc8",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44874721051",
+        "focusedTests": 188,
+        "focusedFiles": 23,
+        "drivingChecks": 12,
+        "optics": {
+          "smoke": {
+            "sampledFrames": 3,
+            "peakActive": 85
+          },
+          "dust": {
+            "sampledFrames": 3,
+            "peakActive": 210
+          },
+          "water": {
+            "sampledFrames": 3,
+            "peakActive": 397
+          },
+          "night": [
+            {
+              "camera": "storefront",
+              "activeLocalLights": 2,
+              "changedPixelsByTwoOrMore": 51750
+            },
+            {
+              "camera": "festoon",
+              "activeLocalLights": 2,
+              "changedPixelsByTwoOrMore": 230234
+            }
+          ]
+        }
+      },
+      "hostedVisualMatrix": {
+        "commit": "4d501b481c0dc5ce3c6cbd2bd2380caed0d25c4a",
+        "fingerprint": "dadc565c76a5f048fd99c59aee37b4cfb2ba56d2adf5de3a3d85c1de64df4dc8",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44875172950",
+        "views": {
+          "day-drive": {
+            "quality": "medium",
+            "lighting": "day",
+            "weather": "clear",
+            "viewport": [
+              1280,
+              720
+            ],
+            "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+            "drawCalls": 453,
+            "triangles": 1564432,
+            "imageSha256": "065bc131617ff5566d37b881b1b7081dfd2876b2340f58094da385dd7c86adcf"
+          },
+          "high-drive": {
+            "quality": "high",
+            "lighting": "day",
+            "weather": "clear",
+            "viewport": [
+              1280,
+              720
+            ],
+            "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+            "drawCalls": 982,
+            "triangles": 2870047,
+            "imageSha256": "8ab751c1ca8f2980c6939b92a1e04c2c31def8cb9d73c3128576b1746598a0fb"
+          },
+          "day-shopfront": {
+            "quality": "medium",
+            "lighting": "day",
+            "weather": "clear",
+            "viewport": [
+              1280,
+              720
+            ],
+            "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+            "drawCalls": 179,
+            "triangles": 810368,
+            "imageSha256": "228a9bfcfed2503f7332405654e9a8d0c9bf6ab57d4dd6a3c8b02872991248c1"
+          },
+          "night-rain-street": {
+            "quality": "medium",
+            "lighting": "night",
+            "weather": "rain",
+            "viewport": [
+              1280,
+              720
+            ],
+            "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+            "drawCalls": 478,
+            "triangles": 1680248,
+            "imageSha256": "e4279bd60ba73b923dd2b0bae1d69dfb47ff8495cdee6bedcacfb5f85be115c4",
+            "galleryImage": "port-ilse-wet-street.jpg",
+            "galleryImageSha256": "6b86064ecab84e9b56b837c18fbcb62b2f3f0caa7478ec1ba761926f2fb592dd"
+          },
+          "coastal-launch": {
+            "quality": "medium",
+            "lighting": "sunset",
+            "weather": "clear",
+            "viewport": [
+              1280,
+              720
+            ],
+            "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+            "drawCalls": 168,
+            "triangles": 651366,
+            "imageSha256": "996c000bd2606d07ec676cdd71ee0b478ca67b775abf58e842fee162caebb70b",
+            "galleryImage": "coastal-launch.jpg",
+            "galleryImageSha256": "1de7e97f8d686d59f1df27f503fc9c1a87bf4fc73b1bec723cba82e8a198d0cd"
+          },
+          "low-drive": {
+            "quality": "low",
+            "lighting": "day",
+            "weather": "clear",
+            "viewport": [
+              1280,
+              720
+            ],
+            "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+            "drawCalls": 333,
+            "triangles": 823168,
+            "imageSha256": "0da6211d00eee938d6a9bcb33b117617113113c00f144dda73a0c083425cf1d9"
+          }
+        },
+        "keyboardJourney": {
+          "checks": 12,
+          "sourceFilesInManifest": 1848,
+          "quality": "low",
+          "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+          "distanceM": 57.66508241345695,
+          "movingKmh": 66.12094385278297,
+          "stoppedKmh": 0.49662380392764016,
+          "race": {
+            "eventName": "Harbour Opening Run",
+            "time": 105.3666666667095,
+            "vehicleId": "tc1",
+            "entrants": 3,
+            "offRouteSeconds": 0
+          },
+          "pageErrors": [],
+          "failedAssets": []
         }
       }
     }

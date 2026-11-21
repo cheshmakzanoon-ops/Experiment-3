@@ -28,6 +28,8 @@ The Medium-preset night captures show a harbour storefront and the overhead fest
 
 ![Port Ilse storefront and festoon lighting on wet streets at night](port-ilse-night.jpg)
 
+[Full-size 1280 × 720 rainy-night street view](port-ilse-wet-street.jpg)
+
 ## The wet mountain approach
 
 The builds are `6a37db8` and `a2cab68`. Both frames use the SC-7 chase camera on arrival at the Varda Pass speed zone, 800 × 450 in Low, with the same rain and sunset presets. The replacement for the bright start ring is visible on the right shoulder. Distant tree crowns now follow the near forest. The improved slope lighting keeps the road and hillside distinguishable.
@@ -56,7 +58,7 @@ The Ashvale river now carries ripples in the direction of the channel. Its surfa
 
 ![Fixed component views of the farms, headland lantern and river material](headland-and-valley.jpg)
 
-The fixed sunset camera looks across the Port Ilse quay at the harbour launch and open coastal water. This 1280 × 720 Medium capture is from the hosted review on `47a15eca`.
+The fixed sunset camera looks across the Port Ilse quay at the harbour launch and open coastal water. This 1280 × 720 Medium capture is from the hosted review on `4d501b48`.
 
 ![The harbour launch in the coastal water at sunset](coastal-launch.jpg)
 
@@ -144,7 +146,9 @@ The quay build passed 188 focused checks across 23 files on the hosted runner. T
 
 The keyboard journey also passed all 12 checks using the browser matrix's corrected identity manifest. It carried the production fingerprint and 1,848 individual source and asset hashes. Keyboard input moved the car 66.74 m and braking reduced speed from 66.26 to below 0.01 km/h. The three-car race finished in 105.37 seconds with zero off-route time, page errors or missing assets.
 
-A hosted run of the earlier reflection build finished the driving checks but exceeded the night-load deadline while identifying its software renderer. The review now reads the WebGL renderer name from the Festival's own context before the first draw. The night checks still require the requested backend and both full lighting comparisons.
+A hosted run of the earlier reflection build finished the driving checks but exceeded the night-load deadline while identifying its software renderer. The review now reads the WebGL renderer name from the Festival's own context before the first draw. The night checks still require the requested backend and both full lighting comparisons. The hosted rerun on `84bd7d1b` passed both night views, all three particle scenarios and the 12-step driving journey. [Renderer and optics rerun](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44874721051)
+
+The final hosted camera matrix on `4d501b48` passed all six 1280 × 720 views, covering Low and High chase cameras, Medium day and night streets and the coastal launch. Its keyboard journey passed all 12 checks with the production fingerprint. The Harbour Opening Run finished in 105.37 seconds with 0 seconds off course. [Hosted camera matrix and driving checks](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44875172950)
 
 Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
 
