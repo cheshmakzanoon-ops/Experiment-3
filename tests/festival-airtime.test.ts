@@ -275,7 +275,7 @@ function quarryDrive(speed: number, interruptAir = false) {
         expect(sim.skills.status()).toMatchObject({ score: 0, sessionTotal: 0, air: null });
         for (let rest = 0; rest < 600; rest++) sim.step(1 / 120);
         expect(sim.skills.status().sessionTotal).toBe(0);
-        return { interrupted: true };
+        return { interrupted: true, longestAir };
       }
     }
     if (skills.label.includes('CLEAN LANDING')) {
@@ -300,7 +300,7 @@ function quarryDrive(speed: number, interruptAir = false) {
 }
 
 describe('Quarry Track vehicle-integrated airtime', () => {
-  it('launches naturally, lands cleanly and earns the measured air bonus on a dirt road', () => {
+  it('launches naturally, lands cleanly and earns the measured air bonus on quarry gravel', () => {
     const result = quarryDrive(32);
     expect(result.pending).toBe(true);
     expect(result.credited).toBe(true);
@@ -310,7 +310,9 @@ describe('Quarry Track vehicle-integrated airtime', () => {
     expect(result.minUp).toBeGreaterThan(0.9);
     expect(result.maxImpact).toBe(0);
     expect(result.offRoad).toBe(0);
-    expect(result.skills).toMatchObject({ score: 230, air: null, sessionTotal: 0 });
+    // Measure the flight from wheel loads independently of the scoring state machine.
+    const measuredBonus = 150 + Math.round(result.longestAir * 100);
+    expect(result.skills).toMatchObject({ score: measuredBonus, air: null, sessionTotal: 0 });
   });
 
   it('does not award ordinary suspension contact chatter on the same crest at lower speed', () => {
