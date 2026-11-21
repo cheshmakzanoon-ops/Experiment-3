@@ -1,3 +1,4 @@
+import { TerrainField } from '../src/simulation/open-world/terrain-field.ts';
 import { describe, expect, it } from 'vitest';
 import { terrainPatchIndex } from '../src/rendering/open-world/terrain-topology.ts';
 
@@ -104,5 +105,57 @@ it('classifies Port Ilse paving separately from airfield and village surfaces in
       trees: 0,
     });
     for (let i = 3; i < tile.shade.length; i += 4) expect(tile.shade[i]).toBeCloseTo(expected, 5);
+  }
+});
+
+it('puts the Varda scarp and its crest on the render and wheel height grids across a tile boundary', () => {
+  const world = openWorld(),
+    structures = new StructureGrid([]);
+  const plain = new TerrainField({ ...world.region, rockSpurs: [] });
+  const cache = world.tileCache(8);
+  let highest = 0,
+    exposed = 0,
+    largestNormalError = 0;
+  const terrain = (x0: number) =>
+    buildTileData(world, structures, {
+      type: 'tile',
+      id: 1,
+      x0,
+      z0: 2816,
+      size: 256,
+      res: 64,
+      trees: 0,
+    });
+  const west = terrain(-2816),
+    east = terrain(-2560);
+  for (let z = 0; z <= 64; z++) {
+    const a = z * 65 + 64,
+      b = z * 65;
+    expect(west.heights[a]).toBe(east.heights[b]);
+    for (let n = 0; n < 3; n++) {
+      largestNormalError = Math.max(
+        largestNormalError,
+        Math.abs(west.normals[a * 3 + n] - east.normals[b * 3 + n]),
+      );
+    }
+  }
+  expect(largestNormalError).toBeLessThan(0.00001);
+  for (let j = 1; j < 64; j += 2)
+    for (let i = 1; i < 64; i += 2) {
+      const x = -2816 + i * 4,
+        z = 2816 + j * 4,
+        v = j * 65 + i;
+      highest = Math.max(highest, world.field.height(x, z) - plain.height(x, z));
+      if (west.splat[v * 4] > 0.8) exposed++;
+      expect(west.heights[v]).toBeCloseTo(cache.height(x, z), 5);
+    }
+  expect(highest).toBeGreaterThan(32);
+  expect(exposed).toBeGreaterThan(16);
+  for (const [x, z] of [
+    [800, -2400],
+    [2250, 1820],
+    [-700, 740],
+  ]) {
+    expect(world.field.height(x, z)).toBe(plain.height(x, z));
   }
 });

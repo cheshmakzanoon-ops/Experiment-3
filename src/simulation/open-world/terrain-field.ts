@@ -1,3 +1,4 @@
+import { AlpineSpurs } from './alpine-spurs.ts';
 import { fbm, ridged, smoothstep, subSeed, valueNoise } from './noise.ts';
 import type { FlatSpec, RegionDefinition } from './region-data.ts';
 
@@ -49,6 +50,7 @@ export interface ValleySample {
  * on the road network and can be evaluated anywhere, in any thread. The hot
  * paths allocate nothing. */
 export class TerrainField {
+  private readonly spurs: AlpineSpurs;
   private readonly coast: Float64Array;
   private readonly valley: Float64Array;
   private readonly seeds: Record<
@@ -70,6 +72,7 @@ export class TerrainField {
     this.coast = packSegments(region.coast);
     this.valley = packSegments(region.valley.points);
     const s = region.seed;
+    this.spurs = new AlpineSpurs(region.rockSpurs ?? [], subSeed(s, 9));
     this.seeds = {
       coast: subSeed(s, 1),
       hills: subSeed(s, 2),
@@ -170,6 +173,7 @@ export class TerrainField {
       const relief = minWavelength < 300 ? ridged(x / 820, z / 820, this.seeds.ridge + k, 4) : 0.5;
       h += p.height * (bell ** 1.25 * (1 - p.ridge) + p.ridge * relief * bell);
     }
+    h += this.spurs.relief(x, z, minWavelength);
     // Distant ranges beyond the drivable region (horizon only).
     const edge = Math.max(Math.abs(x), z) - this.region.half;
     if (edge > -400) {

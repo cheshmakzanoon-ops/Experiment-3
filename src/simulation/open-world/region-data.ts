@@ -180,6 +180,13 @@ export interface RoadSpec {
   /** Deck surface above river level on an authored valley viaduct (m). */
   riverFreeboard?: number;
 }
+export interface RockSpurSpec {
+  from: XZ;
+  to: XZ;
+  /** Width of the dip slope and elevation above the surrounding hillside, in metres. */
+  width: number;
+  height: number;
+}
 export interface PeakSpec {
   name: string;
   x: number;
@@ -277,6 +284,7 @@ export interface RegionDefinition {
   /** Coastline, west to east (strictly increasing x); land lies north (+z). */
   coast: readonly XZ[];
   peaks: readonly PeakSpec[];
+  rockSpurs?: readonly RockSpurSpec[];
   valley: ValleySpec;
   flats: readonly FlatSpec[];
   forests: readonly ForestSpec[];
@@ -351,6 +359,17 @@ export const SOLVANE: RegionDefinition = Object.freeze({
     { name: 'Mount Varda', x: VARDA[0], z: VARDA[1], height: 520, radius: 1700, ridge: 0.22 },
     { name: 'Varda North Spur', x: -1250, z: 3600, height: 340, radius: 1050, ridge: 0.25 },
     { name: 'Coldwater Fell', x: -3900, z: 4150, height: 330, radius: 1300, ridge: 0.2 },
+  ],
+  rockSpurs: [
+    { from: [-2575, 2798], to: [-2835, 2938], width: 59, height: 55 },
+    { from: [-2820, 2884], to: [-3125, 2975], width: 82, height: 48 },
+    { from: [-2660, 2392], to: [-3160, 2524], width: 145, height: 105 },
+    { from: [-2068, 2395], to: [-2235, 2638], width: 66, height: 42 },
+    { from: [-2325, 2100], to: [-2540, 2142], width: 53, height: 37 },
+    { from: [-3175, 2655], to: [-3430, 2535], width: 87, height: 59 },
+    { from: [-3072, 3240], to: [-3540, 3380], width: 103, height: 77 },
+    { from: [-1190, 3390], to: [-1505, 3735], width: 125, height: 83 },
+    { from: [-3630, 4010], to: [-3990, 4240], width: 137, height: 92 },
   ],
   valley: {
     name: 'Ashvale',
