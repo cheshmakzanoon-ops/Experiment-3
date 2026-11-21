@@ -1212,6 +1212,8 @@ export class BikeVehicle extends Vehicle {
     to.height = from.height;
     to.normal.copy(from.normal);
     to.surface = from.surface;
+    to.paintCoverage = from.paintCoverage;
+    to.shoulderCoverage = from.shoulderCoverage;
     to.water = from.water;
     to.rubber = from.rubber;
     to.marbles = from.marbles;

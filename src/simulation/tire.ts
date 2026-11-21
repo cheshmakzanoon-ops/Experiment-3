@@ -5,6 +5,7 @@ import { updateContamination } from './contamination.ts';
 import {
   advanceSinkage,
   groundDrag,
+  MATERIAL,
   materialGrip,
   rollingCoefficient,
   rubberGrip,
@@ -312,11 +313,21 @@ export function aquaplaning(
 }
 const roadAsphalt = surfaceMaterial(SURFACE.ASPHALT);
 const roadPaint = surfaceMaterial(SURFACE.PAINT);
+const shoulder = surfaceMaterial(MATERIAL.DIRT);
+
+/** On the boundary the same contact load is shared by asphalt, line paint
+ * and the gravel shoulder. Pure surfaces keep their own material response. */
+function patchValue(s: SurfaceSample, pure: number, asphalt: number, paint: number, dirt: number) {
+  if (s.shoulderCoverage === undefined && s.paintCoverage === undefined) return pure;
+  return (
+    asphalt +
+    (paint - asphalt) * (s.paintCoverage ?? 0) +
+    (dirt - asphalt) * (s.shoulderCoverage ?? 0)
+  );
+}
 
 function treadTexture(sample: SurfaceSample, pure: number) {
-  return sample.paintCoverage === undefined
-    ? pure
-    : lerp(roadAsphalt.textureMm, roadPaint.textureMm, sample.paintCoverage);
+  return patchValue(sample, pure, roadAsphalt.textureMm, roadPaint.textureMm, shoulder.textureMm);
 }
 
 /** Peak friction coefficient μ (excluding camber, which needs the slip
@@ -342,18 +353,20 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
   let ground = materialGrip(m, s.water, s.temp) / m.grip,
     surface = surfaceGrip(t, s),
     rubber = rubberGrip(m, s.rubber, s.water) - s.marbles * 0.14;
-  if (s.paintCoverage !== undefined) {
-    ground = lerp(
-      materialGrip(roadAsphalt, s.water, s.temp) / roadAsphalt.grip,
-      materialGrip(roadPaint, s.water, s.temp) / roadPaint.grip,
-      s.paintCoverage,
-    );
+  if (s.paintCoverage !== undefined || s.shoulderCoverage !== undefined) {
+    const dirt = s.shoulderCoverage ?? 0;
+    const wetAsphalt = materialGrip(roadAsphalt, s.water, s.temp) / roadAsphalt.grip;
+    ground =
+      wetAsphalt +
+      (s.paintCoverage ?? 0) *
+        (materialGrip(roadPaint, s.water, s.temp) / roadPaint.grip - wetAsphalt);
+    if (dirt)
+      ground += dirt * (materialGrip(shoulder, s.water, s.temp) / shoulder.grip - wetAsphalt);
+    const roadRubber = rubberGrip(roadAsphalt, s.rubber, s.water);
     rubber =
-      lerp(
-        rubberGrip(roadAsphalt, s.rubber, s.water),
-        rubberGrip(roadPaint, s.rubber, s.water),
-        s.paintCoverage,
-      ) -
+      roadRubber +
+      (s.paintCoverage ?? 0) * (rubberGrip(roadPaint, s.rubber, s.water) - roadRubber) +
+      dirt * (1 - roadRubber) -
       s.marbles * 0.14;
   }
   // Snow or ice on the cell hides the road beneath it: its own friction
@@ -540,12 +553,22 @@ export function solveTire(
     t.load,
     mu,
     carcassStiffness(k, t.pressure, t.wear, t.carcassTemp, ideal),
-    material.stiffness,
-    surface.paintCoverage === undefined
-      ? material.falloff
-      : lerp(roadAsphalt.falloff, roadPaint.falloff, surface.paintCoverage),
+    patchValue(
+      surface,
+      material.stiffness,
+      roadAsphalt.stiffness,
+      roadPaint.stiffness,
+      shoulder.stiffness,
+    ),
+    patchValue(surface, material.falloff, roadAsphalt.falloff, roadPaint.falloff, shoulder.falloff),
     SLIP,
-    material.coupling,
+    patchValue(
+      surface,
+      material.coupling,
+      roadAsphalt.coupling,
+      roadPaint.coupling,
+      shoulder.coupling,
+    ),
   );
   // Camber: patch-size factor on the peak (scales D and the reference slips
   // together so slip stiffness is unchanged) and thrust as a slip-angle shift.
@@ -571,12 +594,12 @@ export function solveTire(
     treadTexture(surface, material.textureMm),
   );
   t.patchLength = clamp(2 * Math.sqrt(2 * r * (Math.max(0, t.deflection) + t.sinkage)), 0.06, 0.4);
-  t.sinkage = advanceSinkage(
-    t.sinkage,
-    sinkageTarget(material, t.load, k.width * t.patchLength),
-    vLong,
-    dt,
-  );
+  const dirt = surface.shoulderCoverage;
+  const compaction =
+    dirt === undefined
+      ? sinkageTarget(material, t.load, k.width * t.patchLength)
+      : dirt * sinkageTarget(shoulder, t.load, k.width * t.patchLength);
+  t.sinkage = advanceSinkage(t.sinkage, compaction, vLong, dt);
   const rollingScale =
       k.rollingResistance *
       (k.nominalPressure / Math.max(60, t.pressure)) ** k.rollingPressureExponent,
@@ -585,13 +608,22 @@ export function solveTire(
     // in the tyre. This is an explicit reduced split, not measured hysteresis.
     carcassRolling =
       Math.min(surface.resistance, surfaceMaterial(SURFACE.ASPHALT).rolling) * rollingScale;
+  const rollingMaterial = dirt === undefined ? material : shoulder;
   t.rolling =
     surface.resistance * rollingScale +
-    rollingCoefficient(material, t.sinkage, t.patchLength) -
-    material.rolling;
+    rollingCoefficient(rollingMaterial, t.sinkage, t.patchLength) -
+    rollingMaterial.rolling;
   t.groundRolling = Math.max(0, t.rolling - carcassRolling);
   t.groundDrag =
     t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
+  if (dirt !== undefined && t.load >= 1) {
+    const paved = groundDrag(roadAsphalt, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
+    t.groundDrag = lerp(
+      paved,
+      groundDrag(shoulder, t.sinkage, k.width, vLong, surface.water, t.aquaplane),
+      dirt,
+    );
+  }
   const rollingMoment = t.load < 1 ? 0 : (carcassRolling + (t.punctured ? 0.13 : 0)) * t.load * r;
   // Oppose solved rotation, including reverse and stationary burnouts. A
   // locked or unloaded wheel has no carcass rolling work. The smooth sign

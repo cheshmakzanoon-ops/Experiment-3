@@ -438,6 +438,7 @@ export class OpenWorldTrack {
    */
   sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
     out.paintCoverage = undefined;
+    out.shoulderCoverage = undefined;
     const net = this.network,
       p = this.point,
       c = this.candidates,
@@ -721,7 +722,10 @@ export class OpenWorldTrack {
       q.onRoad &&
       edge.roadClass !== 'circuit' &&
       edge.spec.markings !== 'none' &&
-      (q.surface === WORLD_SURFACE.ASPHALT || q.surface === WORLD_SURFACE.MARKING)
+      (q.surface === WORLD_SURFACE.ASPHALT ||
+        q.surface === WORLD_SURFACE.MARKING ||
+        (q.surface === WORLD_SURFACE.SHOULDER &&
+          Math.abs(out.lateral) - edge.spec.halfWidth < halfWidth))
     ) {
       const segment = this.lastSegment;
       const span = net.s[segment + 1] - net.s[segment];
@@ -729,8 +733,42 @@ export class OpenWorldTrack {
       const tangent = net.pointOnSegment(segment, t, this.candidatePoint);
       const ds = halfWidth * (axle.x * tangent.tx + axle.z * tangent.tz);
       const dl = halfWidth * (axle.x * tangent.nx + axle.z * tangent.nz);
-      const fraction = this.markings.roadPaintCoverage(edge.index, out.s, out.lateral, ds, dl);
-      if (fraction > 0 && fraction < 1) {
+      const offset = Math.abs(out.lateral) - edge.spec.halfWidth;
+      // At junction mouths two sealed pieces overlap. Let the owning road
+      // continue to resolve that surface. Highway shoulders are paved.
+      let dirt = 0;
+      if (
+        (edge.roadClass === 'country' || edge.roadClass === 'mountain') &&
+        !q.bridge &&
+        Math.abs(offset) < Math.abs(dl) &&
+        out.s - edge.offset > edge.spec.halfWidth &&
+        edge.offset + edge.length - out.s > edge.spec.halfWidth
+      ) {
+        dirt = 0.5 + (0.5 * offset) / Math.abs(dl);
+        out.shoulderCoverage = dirt;
+      }
+      const fraction = Math.min(
+        1 - dirt,
+        this.markings.roadPaintCoverage(edge.index, out.s, out.lateral, ds, dl),
+      );
+      if (dirt > 0) {
+        const pavement = SURFACE_PHYSICS[WORLD_SURFACE.ASPHALT],
+          stripe = SURFACE_PHYSICS[WORLD_SURFACE.MARKING],
+          shoulder = SURFACE_PHYSICS[WORLD_SURFACE.SHOULDER];
+        out.grip =
+          ((1 - dirt - fraction) * pavement.grip + fraction * stripe.grip) * edge.spec.grip +
+          dirt * shoulder.grip;
+        out.resistance =
+          pavement.resistance +
+          dirt * (shoulder.resistance - pavement.resistance) +
+          (out.frozen ? FROST.rolling * frozenCover(out.frozen) : 0);
+        out.water = Math.min(
+          3,
+          this.wetness * (pavement.water + dirt * (shoulder.water - pavement.water)),
+        );
+        out.rubber = 0.08 * (1 - dirt);
+        if (fraction > 0) out.paintCoverage = fraction;
+      } else if (fraction > 0 && fraction < 1) {
         out.paintCoverage = fraction;
         const asphalt = SURFACE_PHYSICS[WORLD_SURFACE.ASPHALT].grip,
           paint = SURFACE_PHYSICS[WORLD_SURFACE.MARKING].grip;

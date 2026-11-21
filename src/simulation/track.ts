@@ -69,6 +69,8 @@ export interface SurfaceSample {
   /** Fraction of a tyre contact line on paint when it straddles public-road
    * asphalt and paint. Point queries and single-material contacts omit it. */
   paintCoverage?: number;
+  /** Fraction of the tread on the unsealed shoulder at a paved rural edge. */
+  shoulderCoverage?: number;
   /** Snow or ice cover on the cell, mm water equivalent (weather.ts FROST).
    * Absent or 0 elsewhere and in every warm preset: the tyre model then
    * takes exactly its unfrozen path. */
@@ -533,6 +535,7 @@ export class Track {
     projection?: RoadSurfaceProjection,
   ): SurfaceSample {
     out.paintCoverage = undefined;
+    out.shoulderCoverage = undefined;
     const p = projection?.point ?? this.queryPoint;
     let l: number;
     if (projection) {

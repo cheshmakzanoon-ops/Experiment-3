@@ -11,8 +11,32 @@ import {
   carBase,
 } from '../../simulation/protocol.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
+import { roadTyreSection } from '../../simulation/bike-tyre-profile.ts';
+import { surfaceMaterial } from '../../simulation/surface-material.ts';
+import { vehicleDynamics } from '../../simulation/vehicle-dynamics.ts';
+import { markItems } from '../attribute-ranges.ts';
+import { bodySheetFor } from '../vehicle-bodies/body-sheet.ts';
 import { tireSmokeSliding } from '../effects.ts';
 import { festivalContactLocal } from './festival-contacts.ts';
+
+// Emit in world metres. The residual distance crosses render frames so a
+// 144 Hz corner and a 30 Hz corner use the same rubber and buffer budget.
+const STRIDE = 0.8;
+const markLift = 0.016;
+type GroundHeight = (x: number, z: number, y?: number) => number;
+
+function wheelTrail() {
+  return {
+    input: new T.Vector3(NaN, NaN, NaN),
+    start: new T.Vector3(),
+    edge: new T.Vector3(),
+    otherEdge: new T.Vector3(),
+    remaining: STRIDE,
+    time: 0,
+    strength: 0,
+    joined: false,
+  };
+}
 
 /** A bounded ribbon of rubber at the player's actual loaded wheel contacts.
  * Wet/loose surfaces and airborne wheels do not receive asphalt skid marks.
@@ -25,7 +49,9 @@ export class FestivalTrails {
   private readonly opacity = new Float32Array(this.capacity * 4);
   private readonly geometry = new T.BufferGeometry();
   private readonly material: T.ShaderMaterial;
-  private readonly last = Array.from({ length: 4 }, () => new T.Vector3(NaN, NaN, NaN));
+  private readonly wheels = Array.from({ length: 4 }, wheelTrail);
+  private readonly axle = new T.Vector3();
+  private readonly tread = new Float32Array(2);
   private readonly current = new T.Vector3();
   private readonly quaternion = new T.Quaternion();
   private previousTime = NaN;
@@ -65,7 +91,8 @@ export class FestivalTrails {
         varying vec2 vUv; varying float vBorn; varying float vStrength;
         void main(){ float edge=smoothstep(0.,.17,vUv.x)*smoothstep(0.,.17,1.-vUv.x);
           float fade=1.-smoothstep(28.,45.,time-vBorn);
-          float grooves=.7+.3*sin(vUv.x*73.);
+          float phase=vUv.x*73.;
+          float grooves=.78+.22*cos(phase)*(1.-smoothstep(1.,3.14,fwidth(phase)));
           float a=edge*fade*vStrength*grooves*(1.-water*.85);
           if(a<.008) discard; gl_FragColor=vec4(.035,.033,.03,a); }`,
       transparent: true,
@@ -80,10 +107,12 @@ export class FestivalTrails {
     this.root.frustumCulled = false;
   }
   reset() {
-    this.last.forEach((p) => p.set(NaN, NaN, NaN));
+    this.wheels.forEach((w) => {
+      w.input.x = NaN;
+    });
     this.previousTime = NaN;
   }
-  update(frame: Float32Array, height: (x: number, z: number, y?: number) => number) {
+  update(frame: Float32Array, height: GroundHeight) {
     const time = frame[H.TIME],
       o = carBase(0),
       vehicle = Math.round(frame[o + RACE_BASE + R.VEHICLE]);
@@ -103,73 +132,136 @@ export class FestivalTrails {
       time - this.previousTime > 0.5
     )
       this.reset();
+    const def = vehicleAt(vehicle);
+    if (vehicle !== this.previousVehicle) {
+      if (def.dynamicsKind === 'bike') {
+        const section = roadTyreSection(def.classId);
+        this.tread.set([section.frontHalfWidth * 2, section.rearHalfWidth * 2]);
+      } else {
+        const wheels = bodySheetFor(def)?.wheels.width;
+        const commonWidth = vehicleDynamics(def).tyre.width;
+        this.tread.set(wheels ?? [commonWidth, commonWidth]);
+      }
+    }
+    const priorTime = this.previousTime;
     this.previousVehicle = vehicle;
     this.previousTime = time;
     if (!this.enabled) return;
-    const def = vehicleAt(vehicle);
     this.quaternion.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
-    let changed = false;
+    const first = this.cursor;
+    let emitted = 0;
     for (let w = 0; w < 4; w++) {
       // Bikes duplicate front/rear telemetry into each axle's two slots.
       if (def.dynamicsKind === 'bike' && w % 2 === 1) continue;
       const p = o + WHEEL_BASE + w * WHEEL_STRIDE,
-        contact = this.last[w],
+        trail = this.wheels[w],
         surface = frame[p + W.SURFACE];
       const sliding = tireSmokeSliding(frame[p + W.SLIP], frame[p + W.ANGLE]);
-      const sealed = surface === 0 || surface === 1 || surface === 2 || surface === 5;
       if (
         frame[p + W.LOAD] < 30 ||
         Math.abs(frame[o + F.SPEED]) < 3 ||
         sliding < 0.06 ||
-        !sealed ||
+        !surfaceMaterial(surface).sealed ||
         frame[p + W.WATER] > 0.25
       ) {
-        contact.set(NaN, NaN, NaN);
+        trail.input.x = NaN;
         continue;
       }
       festivalContactLocal(frame, 0, w, this.current).applyQuaternion(this.quaternion);
       this.current.x += frame[o + F.X];
       this.current.z += frame[o + F.Z];
-      this.current.y =
-        height(this.current.x, this.current.z, frame[o + F.Y] + this.current.y) + 0.028;
-      const distance = contact.distanceTo(this.current);
+      this.current.y += frame[o + F.Y];
+      const dx = this.current.x - trail.input.x,
+        dz = this.current.z - trail.input.z;
+      const distance = Math.hypot(dx, dz);
+      const strength = clamp(sliding * 0.62, 0.1, 0.62);
       if (!Number.isFinite(distance) || distance > 12) {
-        contact.copy(this.current);
+        trail.start.copy(this.current);
+        trail.input.copy(this.current);
+        trail.remaining = STRIDE;
+        trail.joined = false;
+        trail.time = time;
+        trail.strength = strength * 0.22;
         continue;
       }
-      if (distance < 0.5) continue;
-      const halfWidth = def.dynamicsKind === 'bike' ? 0.065 : 0.12;
-      const dx = ((this.current.z - contact.z) / distance) * halfWidth;
-      const dz = (-(this.current.x - contact.x) / distance) * halfWidth;
-      this.positions.set(
-        [
-          contact.x - dx,
-          contact.y,
-          contact.z - dz,
-          contact.x + dx,
-          contact.y,
-          contact.z + dz,
-          this.current.x - dx,
-          this.current.y,
-          this.current.z - dz,
-          this.current.x + dx,
-          this.current.y,
-          this.current.z + dz,
-        ],
-        this.cursor * 12,
-      );
-      this.born.fill(time, this.cursor * 4, this.cursor * 4 + 4);
-      this.opacity.fill(clamp(sliding * 0.62, 0.1, 0.62), this.cursor * 4, this.cursor * 4 + 4);
-      this.cursor = (this.cursor + 1) % this.capacity;
-      this.segments = Math.min(this.capacity, this.segments + 1);
-      contact.copy(this.current);
-      changed = true;
+      if (distance > 1e-6 && distance >= trail.remaining) {
+        const width = this.tread[w >> 1];
+        const steer = frame[p + W.STEER],
+          camber = frame[p + W.CAMBER];
+        this.axle
+          .set(
+            Math.cos(steer) * Math.cos(camber),
+            -Math.sin(camber),
+            -Math.sin(steer) * Math.cos(camber),
+          )
+          .applyQuaternion(this.quaternion);
+        // Project the loaded elliptical tread onto the direction across the
+        // skid. A sideways locked tyre leaves a contact-length-wide mark.
+        const nx = dz / distance,
+          nz = -dx / distance;
+        const transverse = clamp(nx * this.axle.x + nz * this.axle.z, -1, 1);
+        const pressure = Math.max(90, frame[p + W.PRESSURE] || 200) * 1000;
+        const length = clamp(frame[p + W.LOAD] / (pressure * width * 0.76), 0.065, width * 1.35);
+        const half =
+          0.5 *
+          Math.sqrt(
+            width * width * 0.83 * transverse ** 2 + length * length * (1 - transverse ** 2),
+          );
+        const ex = nx * half,
+          ez = nz * half;
+        if (!trail.joined) {
+          this.setEdge(trail.edge, trail.start.x - ex, trail.start.z - ez, trail.start.y, height);
+          this.setEdge(
+            trail.otherEdge,
+            trail.start.x + ex,
+            trail.start.z + ez,
+            trail.start.y,
+            height,
+          );
+          trail.joined = true;
+        }
+        let at = trail.remaining;
+        for (; at <= distance + 1e-8; at += STRIDE) {
+          const fraction = Math.min(1, at / distance);
+          const x = trail.input.x + dx * fraction,
+            z = trail.input.z + dz * fraction;
+          const y = trail.input.y + (this.current.y - trail.input.y) * fraction;
+          const born = priorTime + (time - priorTime) * fraction;
+          const i = this.cursor * 4;
+          trail.edge.toArray(this.positions, i * 3);
+          trail.otherEdge.toArray(this.positions, i * 3 + 3);
+          this.setEdge(trail.edge, x - ex, z - ez, y, height).toArray(this.positions, i * 3 + 6);
+          this.setEdge(trail.otherEdge, x + ex, z + ez, y, height).toArray(
+            this.positions,
+            i * 3 + 9,
+          );
+          this.born[i] = this.born[i + 1] = trail.time;
+          this.born[i + 2] = this.born[i + 3] = born;
+          this.opacity[i] = this.opacity[i + 1] = trail.strength;
+          this.opacity[i + 2] = this.opacity[i + 3] = strength;
+          trail.time = born;
+          trail.strength = strength;
+          this.cursor = (this.cursor + 1) % this.capacity;
+          emitted++;
+        }
+        trail.remaining = at - distance;
+      } else {
+        trail.remaining -= distance;
+      }
+      trail.input.copy(this.current);
     }
-    if (changed) {
-      for (const key of ['position', 'born', 'strength'])
-        this.geometry.getAttribute(key).needsUpdate = true;
+    if (emitted) {
+      this.segments = Math.min(this.capacity, this.segments + emitted);
+      for (const key of ['position', 'born', 'strength']) {
+        const attr = this.geometry.getAttribute(key) as T.BufferAttribute;
+        markItems(attr, first * 4, Math.min(first + emitted, this.capacity) * 4 - 1);
+        if (first + emitted > this.capacity) markItems(attr, 0, this.cursor * 4 - 1);
+      }
       this.geometry.setDrawRange(0, this.segments * 6);
     }
+  }
+  private setEdge(target: T.Vector3, x: number, z: number, layer: number, height: GroundHeight) {
+    return target.set(x, height(x, z, layer) + markLift, z);
   }
   dispose() {
     this.geometry.dispose();

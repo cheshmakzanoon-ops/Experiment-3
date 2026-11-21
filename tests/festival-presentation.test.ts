@@ -51,6 +51,8 @@ describe('festival contact presentation', () => {
     trails.update(slidingFrame(10, 0), ground);
     trails.update(slidingFrame(10.1, 1), ground);
     expect(trails.segments).toBe(4);
+    const changed = trails.root.geometry.getAttribute('position') as T.BufferAttribute;
+    expect(changed.updateRanges).toEqual([{ start: 0, count: 48 }]);
     trails.update(slidingFrame(10.2, 1000), ground);
     expect(trails.segments).toBe(4);
     const p = trails.root.geometry.getAttribute('position');
@@ -62,6 +64,55 @@ describe('festival contact presentation', () => {
     expect(trails.segments).toBe(trails.capacity);
     expect(trails.root.geometry.drawRange.count).toBe(trails.capacity * 6);
     trails.dispose();
+  });
+  it('lays the same metre-spaced trace at 30, 60 and 144 Hz and uploads the touched vertices', () => {
+    function run(hz: number) {
+      const trail = new FestivalTrails();
+      for (let tick = 0; tick <= hz; tick++) {
+        const f = slidingFrame(2 + tick / hz, (24.25 * tick) / hz, 'sc7');
+        for (let w = 1; w < 4; w++) f[carBase(0) + WHEEL_BASE + w * WHEEL_STRIDE + W.LOAD] = 0;
+        trail.update(f, (x, z) => x * 0.12 + z * 0.035);
+      }
+      expect(trail.segments).toBe(30);
+      const position = trail.root.geometry.getAttribute('position') as T.BufferAttribute;
+      const result = Array.from(position.array.slice(0, trail.segments * 12));
+      expect(result[4] - result[1]).toBeCloseTo(0.12 * (result[3] - result[0]), 5);
+      trail.dispose();
+      return result;
+    }
+    const reference = run(30);
+    for (const hz of [60, 144]) run(hz).forEach((n, i) => expect(n).toBeCloseTo(reference[i], 5));
+  });
+  it('shares both cambered edges through a corner and restarts cleanly after unloading', () => {
+    const trail = new FestivalTrails();
+    const radius = 9,
+      ground = (x: number, z: number) => 0.15 * x - 0.08 * z;
+    for (let i = 0; i <= 30; i++) {
+      const a = i * 0.05,
+        f = slidingFrame(2 + i / 30, radius * Math.sin(a), 'rh3');
+      f[carBase(0) + F.X] = radius * (1 - Math.cos(a));
+      for (let w = 1; w < 4; w++) f[carBase(0) + WHEEL_BASE + w * WHEEL_STRIDE + W.LOAD] = 0;
+      trail.update(f, ground);
+    }
+    const position = trail.root.geometry.getAttribute('position') as T.BufferAttribute;
+    expect(trail.segments).toBeGreaterThan(14);
+    for (let i = 1; i < trail.segments; i++) {
+      const start = 12 * i;
+      for (let j = 0; j < 6; j++)
+        expect(position.array[start + j]).toBe(position.array[start - 6 + j]);
+      for (let j = 0; j < 4; j++) {
+        const v = start + j * 3,
+          a = position.array;
+        expect(a[v + 1] - ground(a[v], a[v + 2])).toBeCloseTo(0.016, 5);
+      }
+    }
+    const released = slidingFrame(3.1, 12);
+    for (let w = 0; w < 4; w++) released[carBase(0) + WHEEL_BASE + w * WHEEL_STRIDE + W.LOAD] = 0;
+    const count = trail.segments;
+    trail.update(released, ground);
+    trail.update(slidingFrame(3.2, 12, 'rh3'), ground);
+    expect(trail.segments).toBe(count);
+    trail.dispose();
   });
   it('leaves wet, loose and unloaded contacts unmarked and draws only two bike tracks', () => {
     const ground = () => 0;
