@@ -129,6 +129,36 @@ describe('GP race shell control-net surfaces', () => {
 });
 
 describe('GP race shell R6 on the production models', () => {
+  it.each(['gpr1', 'gpr2'] as const)('%s keeps the nose inlet open through its drawn LODs', (id) => {
+    const m = new BikeMaterials(0);
+    try {
+      for (const detail of ['high', 'mid', 'far'] as const) {
+        const shell = gpRaceBodywork(m, detail, id, 0);
+        try {
+          const duct = shell.root.getObjectByName('GP race shell / ram-air mouth')!;
+          // Off-centre rays miss the R2 divider. Paint at the mouth would make
+          // the dark liner invisible even if the geometry were present.
+          for (const x of [-.025, .025]) {
+            const ray = new T.Raycaster(new T.Vector3(x, .133, 1.1), new T.Vector3(0, 0, -1));
+            const back = ray.intersectObject(duct)[0];
+            expect(back.point.z).toBeGreaterThan(.83);
+            expect(back.point.z).toBeLessThan(.875);
+            expect(back.face!.normal.z).toBeGreaterThan(.5);
+            const paint = ray.intersectObject(shell.body)[0];
+            expect(paint?.point.z ?? 0).toBeLessThan(back.point.z);
+          }
+          const centre = new T.Raycaster(new T.Vector3(0, .134, 1.1), new T.Vector3(0, 0, -1));
+          const front = centre.intersectObject(duct)[0];
+          expect(front.point.z > .9).toBe(id === 'gpr2');
+        } finally {
+          release(shell.root);
+        }
+      }
+    } finally {
+      m.dispose();
+    }
+  });
+
   it.each(['gpr1', 'gpr2'] as const)(
     '%s has recessed exit ducts on both flanks and attached aerofoils across LODs',
     (id) => {

@@ -82,7 +82,7 @@ function bodyNet(variant: GpShellVariant): P3[][] {
   const nose = (y: number) => (r2 ? y * 1.04 : y);
   // Upper sections are arches: a narrow brow over the screen base widening
   // to the cheek fold, as in the tall front views of REF 028, 047 and 060.
-  return net([
+  const sections: Section[] = [
     {
       // Rear edge, raked forward at the top like the reference side panels.
       z: -0.1,
@@ -269,7 +269,16 @@ function bodyNet(variant: GpShellVariant): P3[][] {
         [0, 0.058],
       ],
     },
+  ];
+  if (variant === 'sport') return net(sections);
+  // Continue the flank into the inlet shoulder. The last station is the
+  // actual mould parting line shared with the inner duct at every LOD.
+  const exterior = net(sections.slice(0, -2));
+  const rim = inletPerimeter(variant);
+  const shoulder: P3[] = rim.map(([x, y, z]) => [
+    x * 1.17, 0.123 + (y - 0.123) * 1.40, z - 0.043,
   ]);
+  return [...exterior, shoulder, rim];
 }
 
 /** Fuel tank and airbox cover under the rider's chest, closing the opening
@@ -755,6 +764,43 @@ function lowerScoops(variant: GpShellVariant, detail: RiderDetail): T.BufferGeom
     high ? 10 : 6,
   );
   return pair(g);
+}
+
+/** The perimeter runs clockwise from the brow to the chin on the right half.
+ * The R1 has a narrow, arched mouth and the R2 a wide, dipped brow with a
+ * central vane. Offsetting the cheek aft gives the inlet a real plan shape. */
+function inletPerimeter(variant: 'gpr1' | 'gpr2'): P3[] {
+  const wide = variant === 'gpr2';
+  const outline = wide
+    ? [[0, .88], [.48, 1], [.82, .94], [.98, .73], [1, .49], [.93, .26], [.73, .075], [.38, .009], [0, 0]]
+    : [[0, 1], [.47, .985], [.82, .89], [.97, .71], [1, .46], [.92, .22], [.72, .07], [.39, .008], [0, 0]];
+  return outline.map(([u, v]) => [
+    u * (wide ? .108 : .085),
+    (wide ? .081 : .078) + v * (wide ? .088 : .105),
+    (wide ? .956 : .966) - (wide ? .032 : .022) * u * u - .009 * (1 - v),
+  ]);
+}
+
+/** A rolled lip turning into a rising, tapering air passage. Keep the inner
+ * floor over the swept front tyre. The dark back wall is recessed far enough
+ * that one can see the opposite wall in a three-quarter view. */
+function prototypeIntake(variant: 'gpr1' | 'gpr2', cols: number) {
+  const rim = inletPerimeter(variant);
+  const inset = (width: number, height: number, dy: number, dz: number): P3[] =>
+    rim.map(([x, y, z]) => [x * width, .13 + (y - .13) * height + dy, z + dz]);
+  const duct = shellPanelGeometry({
+    name: 'GP moulded ram-air duct', rows: 1, cols, creases: [2, 4, 6], ridge: true,
+    net: [rim, inset(.97, .90, 0, .0015), inset(.91, .80, .001, -.006),
+      inset(.78, .66, .010, -.047), inset(.71, .55, .024, -.106)],
+    caps: { end: true },
+  });
+  if (variant === 'gpr1') return duct;
+  const vane = gpAerofoil([[0, .081, .916], [0, .120, .913], [0, .165, .910]],
+    .074, .088, 2, cols > 1 ? 8 : 4);
+  const joined = mergeGeometries([duct, liveryUv(vane)], false)!;
+  duct.dispose();
+  vane.dispose();
+  return joined;
 }
 
 /** Ram-air mouth under the nose tip: a dark recessed lip. */
@@ -1279,15 +1325,21 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
   // Race number: dark keyline under the ink, heavy italic.
   const numberStyle = { weight: 0.27, slant: 0.17, tracking: 0.1, width: 1 };
   const outline = luminance(scheme.primary) > 0.55 ? '#f1f2ed' : '#0c0e10';
-  p.text(number, [0.725, 0.168], 0.112, 0.21, outline, { ...numberStyle, weight: 0.38 });
-  p.text(
-    number,
-    [0.725, 0.168],
-    0.112,
-    0.21,
-    ink === '#15191d' ? '#15191d' : '#f4f5f0',
-    numberStyle,
-  );
+  if (variant === 'sport') {
+    p.text(number, [0.725, 0.168], 0.112, 0.21, outline, { ...numberStyle, weight: 0.38 });
+    p.text(
+      number,
+      [0.725, 0.168],
+      0.112,
+      0.21,
+      ink === '#15191d' ? '#15191d' : '#f4f5f0',
+      numberStyle,
+    );
+  } else {
+    // The race number occupies one front-facing bay. A small upright team
+    // mark fits each cheek without wrapping a second number round the brow.
+    p.text(scheme.title, [.687, .163], .029, .122, ink);
+  }
   // Title partner on a raked dark panel with an accent top edge.
   p.poly(
     [
@@ -1430,15 +1482,27 @@ export function gpReliefAtlasCount() {
 }
 
 /** Front number decal art: number on a light oval bay. */
-function noseNumberTexture(entrant: number, accent: string) {
+function noseNumberTexture(entrant: number, prototype: boolean) {
+  const scheme = liveryScheme(entrant);
   const number = String(gpRaceNumber(entrant)).padStart(2, '0');
   return canvasTexture(256, 256, (c) => {
     c.clearRect(0, 0, 256, 256);
+    if (prototype) {
+      const base = new T.Color(scheme.primary);
+      const lightPaint = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722 > 0.48;
+      const style = { weight: 0.23, slant: 0.16, tracking: 0.12, width: 1 };
+      const height = fitHeight(number, 211, 158, style);
+      c.strokeStyle = lightPaint ? '#f0ede3' : '#171b22';
+      drawWordmark(c, number, 128, 128, height, { ...style, weight: 0.37 });
+      c.strokeStyle = lightPaint ? '#202730' : '#eeeede';
+      drawWordmark(c, number, 128, 128, height, style);
+      return;
+    }
     c.fillStyle = '#eceee8';
     c.beginPath();
     c.ellipse(128, 128, 118, 92, 0, 0, Math.PI * 2);
     c.fill();
-    c.strokeStyle = accent;
+    c.strokeStyle = scheme.accent;
     c.lineWidth = 7;
     c.stroke();
     c.strokeStyle = '#15181c';
@@ -1543,11 +1607,13 @@ export function gpLiveryMaterial(
   return material;
 }
 
-function noseNumberMaterial(materials: BikeMaterials, entrant: number) {
-  let material = noseMaterials.get(materials);
+const prototypeNumbers = new WeakMap<BikeMaterials, T.MeshPhysicalMaterial>();
+function noseNumberMaterial(materials: BikeMaterials, entrant: number, prototype: boolean) {
+  const cache = prototype ? prototypeNumbers : noseMaterials;
+  let material = cache.get(materials);
   if (material) return material;
   material = new T.MeshPhysicalMaterial({
-    map: noseNumberTexture(entrant, liveryScheme(entrant).accent),
+    map: noseNumberTexture(entrant, prototype),
     transparent: true,
     depthWrite: false,
     polygonOffset: true,
@@ -1560,7 +1626,7 @@ function noseNumberMaterial(materials: BikeMaterials, entrant: number) {
   });
   tagWeatherSurface(material, 'paint');
   materials.list.push(material);
-  noseMaterials.set(materials, material);
+  cache.set(materials, material);
   return material;
 }
 
@@ -1609,8 +1675,10 @@ export function gpRaceBodywork(
   // Free edges of the moulded skins get a rolled 2.8 mm lip at the High tier
   // (the panels were single paper-thin surfaces); lower LODs keep one sheet.
   // The flat end caps' closing diagonals are not free edges (facing along Z).
-  const hemmed = (g: T.BufferGeometry) =>
-    high ? hemShellEdges(g, undefined, (face) => Math.abs(face.z) > 0.92) : g;
+  const hemmed = (g: T.BufferGeometry, joinedInlet = false) =>
+    high ? hemShellEdges(g, undefined, (face, a, b) =>
+      Math.abs(face.z) > 0.92 || (joinedInlet && a.z > .91 && b.z > .91),
+    ) : g;
   const bodyGeometry = liveryUv(
     hemmed(
       shellPanelGeometry({
@@ -1618,11 +1686,12 @@ export function gpRaceBodywork(
         net: bodyNet(variant),
         creases: [2, 4, 6],
         ridge: true,
-        caps: { end: true },
+        caps: { end: variant === 'sport' },
         rows,
         cols,
         exclude: gpFrontTyreExclusion,
       }),
+      variant !== 'sport',
     ),
   );
   const tankGeometry = liveryUv(
@@ -1661,6 +1730,11 @@ export function gpRaceBodywork(
       'GP race shell / box wings',
     );
   }
+  const mouth = variant === 'sport' ? (!far && intakeMouth(variant, detail)) : prototypeIntake(variant, cols);
+  if (mouth) {
+    mesh(outlet ? painted([mouth, outlet.liner]) : mouth, materials.dark,
+      'GP race shell / ram-air mouth', false);
+  }
   if (!far) {
     if (variant !== 'sport') {
       mesh(
@@ -1669,13 +1743,6 @@ export function gpRaceBodywork(
         'GP race shell / ground-effect scoops',
       );
     }
-    const mouth = intakeMouth(variant, detail);
-    mesh(
-      outlet ? painted([mouth, outlet.liner]) : mouth,
-      materials.dark,
-      'GP race shell / ram-air mouth',
-      false,
-    );
     mesh(
       shellPanelGeometry({ name: 'GP seat', net: seatNet(), rows, cols }),
       materials.seat,
@@ -1706,14 +1773,14 @@ export function gpRaceBodywork(
     body.updateMatrixWorld(true);
     const decal = new DecalGeometry(
       body,
-      new T.Vector3(0, variant === 'gpr2' ? 0.17 : 0.162, 0.873),
-      new T.Euler(-0.78, 0, 0),
-      new T.Vector3(0.15, 0.11, 0.2),
+      variant === 'sport' ? new T.Vector3(0, .162, .873) : new T.Vector3(0, .220, .850),
+      new T.Euler(variant === 'sport' ? -.78 : -1.08, 0, 0),
+      new T.Vector3(.15, .11, variant === 'sport' ? .2 : .055),
     );
     if (decal.getAttribute('position').count) {
       // Clipped decal vertices carry interpolated, slightly short normals.
       decal.normalizeNormals();
-      mesh(decal, noseNumberMaterial(materials, entrant), 'GP race shell / nose number', false);
+      mesh(decal, noseNumberMaterial(materials, entrant, variant !== 'sport'), 'GP race shell / nose number', false);
     } else decal.dispose();
   }
   root.userData.gpRaceShell = 'r6';

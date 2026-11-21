@@ -235,8 +235,8 @@ function capGeometry(ring: P3[], mirror: -1 | 1, facing: 1 | -1): T.BufferGeomet
   for (const p of ring) pos.push(p[0] * mirror, p[1], p[2]);
   const uv = new Float32Array((pos.length / 3) * 2).fill(0.5);
   for (let k = 1; k < ring.length; k++)
-    if (facing * mirror > 0) idx.push(0, k, k + 1);
-    else idx.push(0, k + 1, k);
+    if (facing * mirror > 0) idx.push(0, k + 1, k);
+    else idx.push(0, k, k + 1);
   const c = new T.BufferGeometry();
   c.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
   c.setAttribute('uv', new T.BufferAttribute(uv, 2));
@@ -381,7 +381,7 @@ export const GP_SHELL_HEM: HemOptions = Object.freeze({
 export function hemShellEdges(
   source: T.BufferGeometry,
   options: HemOptions = GP_SHELL_HEM,
-  ignore?: (faceNormal: T.Vector3) => boolean,
+  ignore?: (faceNormal: T.Vector3, a: T.Vector3, b: T.Vector3) => boolean,
 ): T.BufferGeometry {
   const { thickness, radius, arc } = options;
   if (!(thickness > 0) || !(radius > 0) || radius > thickness || !(arc >= 1))
@@ -442,7 +442,7 @@ export function hemShellEdges(
       pb.fromBufferAttribute(position, e.b);
       pc.fromBufferAttribute(position, e.c);
       face.crossVectors(along.subVectors(pb, pa), inward.subVectors(pc, pa)).normalize();
-      if (ignore(face)) continue;
+      if (ignore(face, pa, pb)) continue;
     }
     boundary.push(e);
   }
