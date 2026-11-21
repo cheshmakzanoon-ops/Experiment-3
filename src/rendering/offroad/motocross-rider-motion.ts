@@ -10,6 +10,8 @@ export interface MotocrossRiderMotionInput {
   compression?: number;
   /** Differential wheel stroke. Positive is a fork-first landing. */
   compressionBias?: number;
+  /** Total tyre support in multiples of static weight, from the same snapshot. */
+  supportG?: number;
   chassisPitch?: number;
   /** Horizontal path direction relative to the actual steered chassis (radians). */
   travelYaw?: number;
@@ -54,7 +56,10 @@ export function sampleMotocrossRiderMotion(
 ) {
   const standing = clamp(finite(pose.standing), 0, 1),
     stroke = smooth(0.04, 1, finite(pose.compression)),
-    brace = stroke * standing,
+    // A short sharp impact loads the arms before the fork reaches full stroke;
+    // a slowly compressed fork still moves the hips through its full range.
+    load = smooth(1.25, 3.8, finite(pose.supportG)),
+    brace = (stroke + 0.32 * load * (1 - stroke)) * standing,
     bias = clamp(finite(pose.compressionBias), -1, 1),
     // More load at the hands folds the arms and shifts the hips rearward.
     // A rear-first landing is taken through the pegs and the knees first.

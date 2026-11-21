@@ -48,6 +48,7 @@ import {
 import { addMotocrossHandguards } from './motocross-handguard.ts';
 import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
 import { mxCrossbarPad } from './motocross-bar-pad.ts';
+import { mxFenderLoad, prepareMxFenderFlex } from './mx-fender-flex.ts';
 import { mxSilencerHanger, mxSilencerSleeve } from './mx-silencer.ts';
 import { mxNumberBoard, mxNumberBoardBack, mxSideNumberPlate, mxSidePlateMounts } from './motocross-number-board.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
@@ -130,6 +131,8 @@ export class DirtBikeModel {
   private readonly shockLower = new T.Vector3();
   private readonly upperEye = new T.Vector3();
   private readonly lowerEye = new T.Vector3();
+  private readonly frontFender: T.Mesh;
+  private readonly rearFender: T.Mesh;
   private readonly axles: MotocrossAxles;
   private readonly gripLocal = [new T.Vector3(), new T.Vector3()];
   private readonly scratch = new T.Vector3();
@@ -648,11 +651,13 @@ export class DirtBikeModel {
     }
     // High front fender on the lower clamp: the wheel rises into the gap.
     const kitFender = (front: boolean) => {
-      const geometry = motocrossFender(front, detail);
+      const geometry = motocrossFender(front, detail, definition.id === 'mx250');
+      if (!supermoto && detail !== 'far') prepareMxFenderFlex(geometry, front);
       const normal = geometry.getAttribute('normal');
       return mapMxKitPanel(geometry, 'fender', (i) => normal.getY(i) > 0.5, !front);
     };
-    add(this.steer, kitFender(true), shroudMaterial, 0, -0.04, OFFSET);
+    this.frontFender = add(this.steer, kitFender(true), shroudMaterial, 0, -0.04, OFFSET);
+    this.frontFender.name = 'Motocross front mudguard';
     // Lower legs (stanchions and axle lugs) slide with the recorded compression.
     this.steer.add(this.forkLower);
     this.forkLower.name = 'Motocross sliding fork lowers';
@@ -862,7 +867,8 @@ export class DirtBikeModel {
         }
       }
     }
-    add(this.sprung, kitFender(false), shroudMaterial);
+    this.rearFender = add(this.sprung, kitFender(false), shroudMaterial);
+    this.rearFender.name = 'Motocross rear mudguard';
     // MX250 carries a formed two-stroke expansion chamber. MX450 and SM450
     // retain their four-stroke header.
     add(
@@ -1154,6 +1160,21 @@ export class DirtBikeModel {
     this.mud.offroadMud.value = T.MathUtils.clamp(v.mud ?? 0, 0, 1);
     this.mud.offroadMudWet.value = T.MathUtils.clamp((v.mudWet ?? 0) * 1.6, 0, 1);
     this.tyreFinish?.update(v);
+    const forkStroke = T.MathUtils.clamp(
+      (fork - this.axles.sag.fork) / (b.forkTravel - this.axles.sag.fork),
+      0,
+      1,
+    );
+    const rearStroke = T.MathUtils.clamp(
+      (shock - this.axles.sag.shock) / (b.shockTravel - this.axles.sag.shock),
+      0,
+      1,
+    );
+    const bias = forkStroke - rearStroke;
+    if (this.frontFender.morphTargetInfluences && this.rearFender.morphTargetInfluences) {
+      this.frontFender.morphTargetInfluences[0] = mxFenderLoad(v.dirtSupportG, v.speed, bias);
+      this.rearFender.morphTargetInfluences[0] = mxFenderLoad(v.dirtSupportG, v.speed, -bias);
+    }
     if (v.riding) {
       this.steerMount.updateMatrix();
       this.steer.updateMatrix();
@@ -1177,16 +1198,6 @@ export class DirtBikeModel {
       // Suspension travel separately drives the rider's compression response.
       this.scratch.set(0, 0, 1).applyQuaternion(this.root.quaternion);
       const chassisPitch = -Math.asin(T.MathUtils.clamp(this.scratch.y, -1, 1));
-      const forkStroke = T.MathUtils.clamp(
-        (fork - this.axles.sag.fork) / (b.forkTravel - this.axles.sag.fork),
-        0,
-        1,
-      );
-      const rearStroke = T.MathUtils.clamp(
-        (shock - this.axles.sag.shock) / (b.shockTravel - this.axles.sag.shock),
-        0,
-        1,
-      );
       this.rider.ride({
         lean: v.chassisLean,
         offset: v.riderOffset * 0.4,
@@ -1204,7 +1215,8 @@ export class DirtBikeModel {
         chassisPitch,
         travelYaw: motocrossTravelYaw(this.scratch.x, this.scratch.z, v.velocityX, v.velocityZ),
         compression: (forkStroke + rearStroke) / 2,
-        compressionBias: forkStroke - rearStroke,
+        compressionBias: bias,
+        supportG: v.dirtSupportG,
       });
     }
   }

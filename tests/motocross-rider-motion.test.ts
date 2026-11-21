@@ -49,6 +49,37 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('reconstructs landing load at each mudguard and at the standing rider before full travel', () => {
+    const definition = VEHICLES.mx450, materials = new BikeMaterials(0);
+    const model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+    const sag = staticSag(definition);
+    const base: BikePoseValues = {
+      ...sag, steer: 0, frontRotation: 0, rearRotation: 0, chassisLean: 0,
+      riderOffset: 0, tuck: 0, brake: 0, rearBrake: 0, discTemp: 0,
+      compoundColour: 0xffffff, riding: true, standing: 1, speed: 12,
+    };
+    const front = model.root.getObjectByName('Motocross front mudguard') as T.Mesh;
+    const rear = model.root.getObjectByName('Motocross rear mudguard') as T.Mesh;
+    const torso = model.rider.root.getObjectByName('Rider torso')!;
+    const sample = (g: number, fork = sag.fork) => {
+      model.pose({ ...base, dirtSupportG: g, fork });
+      return [front.morphTargetInfluences![0], rear.morphTargetInfluences![0], torso.position.y];
+    };
+    try {
+      const unloaded = sample(0), neutral = sample(1), contact = sample(3.8);
+      expect(unloaded[0]).toBeLessThan(0);
+      expect(neutral[0]).toBe(0);
+      expect(contact[0]).toBeGreaterThan(0.5);
+      expect(contact[2]).toBeLessThan(neutral[2] - 0.015);
+      const noseFirst = sample(3.8, definition.bike!.forkTravel);
+      expect(noseFirst[0]).toBeGreaterThan(noseFirst[1] + 0.25);
+      expect(sample(0)).toEqual(unloaded);
+      expect(sample(1)).toEqual(neutral);
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  });
   it('runs with the wrists beside the ribs and each hand opposing the boot on its own side', () => {
     const rider = new Rider(colours, 'mid', 'motocross');
     const point = new T.Vector3();

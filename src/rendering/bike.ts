@@ -2192,6 +2192,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   standing?: number;
   dab?: number;
   body?: number;
+  /** Interpolated tyre support in multiples of the MX bike's own weight. */
+  dirtSupportG?: number;
   /** World horizontal motion of a motocross entrant, including tyre sideslip. */
   velocityX?: number;
   velocityZ?: number;
@@ -2760,6 +2762,7 @@ export class BikeShells {
     v.standing = sampleOffroadField(a, b, o, O.STANDING, t);
     v.dab = sampleOffroadField(a, b, o, O.DAB, t);
     if (model instanceof DirtBikeModel) {
+      v.dirtSupportG = sampleValue(a, b, o + F.G_VERT, t);
       v.velocityX = sampleValue(a, b, o + F.VX, t);
       v.velocityZ = sampleValue(a, b, o + F.VZ, t);
     }

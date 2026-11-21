@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { motocrossHandguard } from '../src/rendering/offroad/motocross-handguard.ts';
 import { mxCrossbarPad } from '../src/rendering/offroad/motocross-bar-pad.ts';
+import { prepareMxFenderFlex } from '../src/rendering/offroad/mx-fender-flex.ts';
 import {
   mxNumberBoard,
   mxSideNumberPlate,
@@ -71,6 +72,33 @@ function inspect(geometry: T.BufferGeometry) {
 }
 
 describe('motocross formed bodywork', () => {
+  it.each([true, false])('holds both skins of the mounting lands while the free blade flexes (%s)', (front) => {
+    const mesh = motocrossFender(front, 'high', true);
+    try {
+      prepareMxFenderFlex(mesh, front);
+      const p = mesh.getAttribute('position'), normal = mesh.getAttribute('normal');
+      const [delta] = mesh.morphAttributes.position, [dn] = mesh.morphAttributes.normal;
+      const n = new T.Vector3(), d = new T.Vector3();
+      let pinned = 0, maxBend = 0, normalChange = 0;
+      for (let i = 0; i < p.count; i++) {
+        const z = p.getZ(i);
+        if (front ? z > -0.1 && z < 0.09 : z > -0.77) {
+          pinned++;
+          expect(delta.getY(i)).toBeCloseTo(0, 9);
+          expect(d.fromBufferAttribute(dn, i).length()).toBeLessThan(1e-6);
+        }
+        maxBend = Math.max(maxBend, -delta.getY(i));
+        normalChange = Math.max(normalChange, d.fromBufferAttribute(dn, i).length());
+        n.fromBufferAttribute(normal, i).add(d);
+        expect(n.length()).toBeCloseTo(1, 5);
+      }
+      expect(pinned).toBeGreaterThan(20);
+      expect(maxBend).toBeCloseTo(front ? 0.026 : 0.018, 4);
+      expect(normalChange).toBeGreaterThan(0.06);
+    } finally {
+      mesh.dispose();
+    }
+  });
   it.each(['high', 'mid', 'far'] as const)(
     '%s control padding has a through bore and number board has a curved, unprinted back',
     (detail) => {

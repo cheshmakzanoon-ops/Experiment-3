@@ -53,7 +53,7 @@ function offsetInnerSkin(
  * describe large continuous surfaces that remain readable from a chase view.
  * Both skins share the same parameterisation, so the underside is recessed
  * by the actual wall thickness and never crosses the visible upper surface. */
-export function motocrossFender(front: boolean, detail: RiderDetail) {
+export function motocrossFender(front: boolean, detail: RiderDetail, lightFrame = false) {
   const stations = front ? FRONT_FENDER : REAR_FENDER,
     zs = stations.map((s) => s[0]),
     ys = stations.map((s) => s[1]),
@@ -72,7 +72,10 @@ export function motocrossFender(front: boolean, detail: RiderDetail) {
         y = sampleProfile(zs, ys, z),
         width = sampleProfile(zs, widths, z),
         crown = sampleProfile(zs, crowns, z),
-        ends = Math.sin(t * Math.PI) ** 0.7;
+        ends = Math.sin(t * Math.PI) ** 0.7,
+        free = front ? T.MathUtils.smoothstep(z, 0.06, 0.47)
+          : 1 - T.MathUtils.smoothstep(z, -1.06, -0.78),
+        taper = lightFrame ? 1 - 0.16 * free : 1;
       for (let column = 0; column <= columns; column++) {
         const u = (column / columns) * 2 - 1,
           side = Math.abs(u),
@@ -80,7 +83,11 @@ export function motocrossFender(front: boolean, detail: RiderDetail) {
           channel = 0.007 * Math.exp(-(((side - 0.5) / 0.14) ** 2)),
           lip = 0.007 * T.MathUtils.smoothstep(side, 0.77, 1),
           height = crown * (1 - u * u) ** 1.15 + (ridge - channel - lip) * ends;
-        positions.push(u * width, y + height, z);
+        // The 250 uses a light blade with a waisted tip and folded outer
+        // shoulders; the 450 retains the broad crowned guard. Mounting lands
+        // keep their dimensions at the clamp and under the back of the saddle.
+        const crease = lightFrame ? free * (0.012 * (1 - side) ** 2 - 0.007 * side ** 3) : 0;
+        positions.push(u * width * taper, y + height + crease, z);
         uvs.push(column / columns, t);
         if (row < rows && column < columns) {
           const a = (underside ? stride : 0) + row * (columns + 1) + column,

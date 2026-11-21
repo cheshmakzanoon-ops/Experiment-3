@@ -82,7 +82,11 @@ export class MotocrossRiderSpine {
         standing * (0.105 + compression * 0.05) +
         Math.max(body, 0) * 0.035 -
         Math.max(-body, 0) * 0.015,
-      twist = clamp(lean * 0.12 + steer * 0.09, -0.14, 0.14) * (1 - standing * 0.3),
+      // In a whip the shoulders keep sight of the landing while the hips
+      // remain over the pegs. The lumbar joint distributes the separation.
+      twist =
+        clamp(lean * 0.12 + steer * 0.09, -0.14, 0.14) * (1 - standing * 0.3) +
+        clamp(finite(pose.travelYaw), -0.65, 0.65) * (0.06 + 0.16 * standing),
       sideBend = clamp(lean * 0.11, -0.12, 0.12);
     this.pelvis.position.copy(position);
     this.pelvis.quaternion.setFromEuler(
