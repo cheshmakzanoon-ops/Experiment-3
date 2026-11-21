@@ -1,0 +1,283 @@
+### browser (4) (job 136830236002)
+--- error digest (first 120 matching lines) ---
+838:browser (4)	UNKNOWN STEP	2026-11-21T12:20:01.1408063Z   ✘   9 e2e/43-motocross-world.spec.ts:9:3 › arena-nord-sx production terrain loads photographed soil with correct macros and reversible wetness on WebGL2 (4.5m)
+840:browser (4)	UNKNOWN STEP	2026-11-21T12:20:01.1410831Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoContain^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // indexOf^[[22m
+871:browser (4)	UNKNOWN STEP	2026-11-21T12:26:15.2914999Z   ✘  16 e2e/a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry (4.2m)
+873:browser (4)	UNKNOWN STEP	2026-11-21T12:26:15.2916423Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+879:browser (4)	UNKNOWN STEP	2026-11-21T12:26:15.2917700Z - Timeout 240000ms exceeded while waiting on the predicate
+924:browser (4)	UNKNOWN STEP	2026-11-21T12:46:53.2762879Z   ✘  17 e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 sunset full production landscape, cockpit and stable camera cycles (20.6m)
+928:browser (4)	UNKNOWN STEP	2026-11-21T12:46:53.2765165Z Error: page.evaluate: Test timeout of 1200000ms exceeded.
+940:browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6970608Z   ✘  20 e2e/graphics-high-journey.spec.ts:628:1 › High production scene presents an active GP chassis and two completed photo views (2.2m)
+942:browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6972556Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+948:browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6973991Z - Timeout 90000ms exceeded while waiting on the predicate
+974:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8161617Z   1) e2e/43-motocross-world.spec.ts:9:3 › arena-nord-sx production terrain loads photographed soil with correct macros and reversible wetness on WebGL2 
+976:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8162505Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoContain^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // indexOf^[[22m
+981:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8165927Z       69 |         expect(sample.bikes).toBe(8);
+982:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8166243Z       70 |         expect(sample.terrainCells).toBeGreaterThan(50);
+983:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8166695Z     > 71 |         expect(sample.soilHooks).toContain('mx-groomed-soil-v4');
+985:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8167449Z       72 |         expect(sample.soilScans.active).toBe(true);
+986:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8167851Z       73 |         expect(sample.soilScans.macro).toBe('dryEarth');
+987:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8168281Z       74 |         expect(sample.soilScans.compiledMacroSampler).toBe('apexScanDryEarthC');
+1002:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8173422Z   2) e2e/a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry › Expect "poll toMatch" 
+1004:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8174010Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+1010:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8175361Z     - Timeout 240000ms exceeded while waiting on the predicate
+1038:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8183825Z   3) e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 sunset full production landscape, cockpit and stable camera cycles 
+1042:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184589Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
+1061:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8189934Z   4) e2e/graphics-high-journey.spec.ts:628:1 › High production scene presents an active GP chassis and two completed photo views › Expect "poll toBe" 
+1063:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8190649Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+1069:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191797Z     - Timeout 90000ms exceeded while waiting on the predicate
+1076:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8193868Z       700 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');
+1077:browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8194260Z       701 |     expect(prepared.renderer?.preparation?.status).toBe('complete');
+1097:browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1840231Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:15.9289079Z [browser-progress] 125s  >  > graphics-high-journey.spec.ts > High production scene presents an active GP chassis and two completed photo views / Fixture "context"
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6970608Z   ✘  20 e2e/graphics-high-journey.spec.ts:628:1 › High production scene presents an active GP chassis and two completed photo views (2.2m)
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6971582Z [browser-failure]  >  > graphics-high-journey.spec.ts > High production scene presents an active GP chassis and two completed photo views
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6972556Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6972921Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6973153Z Expected: ^[[32m"paused"^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6973466Z Received: ^[[31m"loading"^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6973627Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6973719Z Call Log:
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6973991Z - Timeout 90000ms exceeded while waiting on the predicate
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:24.6974406Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:698:5
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:25.2074646Z [browser-progress] START  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset
+browser (4)	UNKNOWN STEP	2026-11-21T12:49:45.9427232Z [browser-progress] 21s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:50:15.9727412Z [browser-progress] 51s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:50:46.0027039Z [browser-progress] 81s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:51:16.0317276Z [browser-progress] 111s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:51:46.0627200Z [browser-progress] 141s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:52:16.0947006Z [browser-progress] 171s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:52:46.1247183Z [browser-progress] 201s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:53:16.1547061Z [browser-progress] 231s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Evaluate
+browser (4)	UNKNOWN STEP	2026-11-21T12:53:37.7033063Z {"lighting":"sunset","calls":3103,"triangles":17234638,"passes":{"environment":{"calls":71,"triangles":7878},"probe":{"calls":0,"triangles":0},"mirrors":{"calls":1001,"triangles":3820873},"wet":{"calls":0,"triangles":0},"shadow":{"calls":1368,"triangles":8249998},"composer":{"calls":663,"triangles":5155889},"other":{"calls":0,"triangles":0}},"shadowEquivalence":{"width":2048,"height":2048,"changedBytes":0,"uncropped":{"calls":505,"triangles":4346804},"cropped":{"calls":503,"triangles":4145924},"savedTriangles":200880,"geometryUnchanged":true},"glErrorStages":[],"drawErrors":null,"largestShadowSubmissions":[{"object":"Aurel circuit/Spectators and marshal staff/Authored crowd cluster 1197/Authored crowd cluster 1197 detail 0","lens":"ortho:-38,38,-38,38","calls":1,"triangles":419584},{"object":"Aurel circuit/Spectators and marshal staff/Authored crowd cluster 1261/Authored crowd cluster 1261 detail 0","lens":"ortho:-38,38,-38,38","calls":1,"triangles":419584},{"object":"Aurel circuit/Spectators and marshal staff/Authored crowd cluster 1325/Authored crowd cluster 1325 detail 0","lens":"ortho:-38,38,-38,38","calls":1,"triangles":419584},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 450m/A12 authored secondary grandstand 450m/A12 / 450m / seat","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":274896},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 780m/A12 authored secondary grandstand 780m/A12 / 780m / seat","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":274896},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 1220m/A12 authored secondary grandstand 1220m/A12 / 1220m / seat","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":274896},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 1670m/A12 authored secondary grandstand 1670m/A12 / 1670m / seat","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":274896},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 2210m/A12 authored secondary grandstand 2210m/A12 / 2210m / seat","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":274896},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 2600m/A12 authored secondary grandstand 2600m/A12 / 2600m / seat","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":274896},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand 55m/A13 seats 55m/seat_mid","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":199920},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand -72m/A13 seats -72m/seat_mid","lens":"ortho:-778.0037158772825,778.0037158772832,-168.26302020895415,168.26302020895432","calls":1,"triangles":157920},{"object":"Aurel circuit/Venue props and structures/AUREL / GRAND CIRCUIT grandstand -72m/A13 seats -72m/seat_mid","lens":"ortho:-38,38,-38,38","calls":1,"triangles":157920}]}
+browser (4)	UNKNOWN STEP	2026-11-21T12:53:46.1597257Z [browser-progress] 261s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget sunset / Close context
+browser (4)	UNKNOWN STEP	2026-11-21T12:53:57.1104890Z   ✓  21 e2e/scenery-shadow-budget.spec.ts:10:3 › scenery shadow budget sunset (4.5m)
+browser (4)	UNKNOWN STEP	2026-11-21T12:53:57.1274474Z [browser-progress] START  >  > settings-transition.spec.ts > settings transition: 640x400 owns its first covered frame and persists quality
+browser (4)	UNKNOWN STEP	2026-11-21T12:54:16.1633795Z [browser-progress] 19s  >  > settings-transition.spec.ts > settings transition: 640x400 owns its first covered frame and persists quality / Expect "toBeVisible"
+browser (4)	UNKNOWN STEP	2026-11-21T12:54:17.1205796Z   ✓  22 e2e/settings-transition.spec.ts:8:3 › settings transition: 640x400 owns its first covered frame and persists quality (20.0s)
+browser (4)	UNKNOWN STEP	2026-11-21T12:54:17.1276413Z [browser-progress] START  >  > shader-work-proof.spec.ts > inactive shader work: weatherWorkProof preserves native pixels and active effects
+browser (4)	UNKNOWN STEP	2026-11-21T12:54:19.7855161Z   ✓  23 e2e/shader-work-proof.spec.ts:30:3 › inactive shader work: weatherWorkProof preserves native pixels and active effects (1.2s)
+browser (4)	UNKNOWN STEP	2026-11-21T12:54:20.8012317Z [browser-progress] START  >  > 29-populated-race-review.spec.ts > 27H.6 wet-following night: low-preset populated race and trackside evidence
+browser (4)	UNKNOWN STEP	2026-11-21T12:54:46.1638066Z [browser-progress] 25s  >  > 29-populated-race-review.spec.ts > 27H.6 wet-following night: low-preset populated race and trackside evidence / Expect "toBe"
+browser (4)	UNKNOWN STEP	2026-11-21T12:55:16.1689593Z [browser-progress] 55s  >  > 29-populated-race-review.spec.ts > 27H.6 wet-following night: low-preset populated race and trackside evidence / Click locator('#modal [data-action="modalClose"]')
+browser (4)	UNKNOWN STEP	2026-11-21T12:55:46.1818155Z [browser-progress] 85s  >  > 29-populated-race-review.spec.ts > 27H.6 wet-following night: low-preset populated race and trackside evidence / Expect "toBe"
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.7364940Z   ✓  24 e2e/29-populated-race-review.spec.ts:74:3 › 27H.6 wet-following night: low-preset populated race and trackside evidence (1.7m)
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8150209Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8153343Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8161617Z   1) e2e/43-motocross-world.spec.ts:9:3 › arena-nord-sx production terrain loads photographed soil with correct macros and reversible wetness on WebGL2 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8162088Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8162505Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoContain^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // indexOf^[[22m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8162873Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8163092Z     Expected value: ^[[32m"mx-groomed-soil-v4"^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8164714Z     Received array: ^[[31m["library-soil-v1", "library-wet-surface-v1", "scanned-soil-v1", "mx-groomed-soil-v5", "mx-soil-morphology-v2", "mx-physical-braking-lines-v1", "mx-terrain-receiver-plane-v1", "mx-soil-relief-march-v1", "light-pools-v2", "mx-arena-floodlights-v2", …]^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8165794Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8165927Z       69 |         expect(sample.bikes).toBe(8);
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8166243Z       70 |         expect(sample.terrainCells).toBeGreaterThan(50);
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8166695Z     > 71 |         expect(sample.soilHooks).toContain('mx-groomed-soil-v4');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8167087Z          |                                  ^
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8167449Z       72 |         expect(sample.soilScans.active).toBe(true);
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8167851Z       73 |         expect(sample.soilScans.macro).toBe('dryEarth');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8168281Z       74 |         expect(sample.soilScans.compiledMacroSampler).toBe('apexScanDryEarthC');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8168838Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/43-motocross-world.spec.ts:71:34
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8169096Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8169421Z     attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8169946Z     test-results/43-motocross-world-arena-n-68c31-eversible-wetness-on-WebGL2/test-failed-1.png
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8170490Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8170699Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8170996Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8171474Z     test-results/43-motocross-world-arena-n-68c31-eversible-wetness-on-WebGL2/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8171823Z     Usage:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8171909Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8172228Z         npx playwright show-trace test-results/43-motocross-world-arena-n-68c31-eversible-wetness-on-WebGL2/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8172569Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8172845Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8173052Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8173422Z   2) e2e/a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry › Expect "poll toMatch" 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8173725Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8174010Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8174259Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8174427Z     Expected pattern: ^[[32m/^(driving|briefing)$/^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8174850Z     Received string:  ^[[31m"loading"^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8175039Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8175114Z     Call Log:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8175361Z     - Timeout 240000ms exceeded while waiting on the predicate
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8175538Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8176021Z        at race-entry.ts:6
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8176152Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8176373Z       4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8176867Z       5 | export async function finishRaceEntry(page: Page) {
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8177137Z     > 6 |   await expect
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8177314Z         |   ^
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8177479Z       7 |     .poll(
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8177655Z       8 |       async () => {
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8177940Z       9 |         const d = await page.evaluate(() => window.apexDiagnostics());
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8178380Z         at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8178831Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:34:3
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8179057Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8179359Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8179871Z     test-results/a31-wheel-gun-A31-loads-th-651a5-efore-normal-practice-entry/test-failed-1.png
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8180399Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8180608Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8180905Z     Error Context: test-results/a31-wheel-gun-A31-loads-th-651a5-efore-normal-practice-entry/error-context.md
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8181222Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8181506Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8181970Z     test-results/a31-wheel-gun-A31-loads-th-651a5-efore-normal-practice-entry/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8182301Z     Usage:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8182391Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8182700Z         npx playwright show-trace test-results/a31-wheel-gun-A31-loads-th-651a5-efore-normal-practice-entry/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8183026Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8183273Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8183481Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8183825Z   3) e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 sunset full production landscape, cockpit and stable camera cycles 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184139Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184281Z     ^[[31mTest timeout of 1200000ms exceeded.^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184438Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184589Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184770Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8184889Z       46 |     await page.goto('/vegetation-survey');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8185194Z       47 |     await page.addScriptTag({ content: chunk.code });
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8185536Z     > 48 |     const report = await page.evaluate(
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8185947Z          |                               ^
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8186230Z       49 |       (l) =>
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8186417Z       50 |         (
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8186609Z       51 |           window as unknown as {
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8186970Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/aurel-vegetation.spec.ts:48:31
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8187211Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8187497Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8187975Z     test-results/aurel-vegetation-A51-A54-s-85c0f-it-and-stable-camera-cycles/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8188297Z     Usage:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8188386Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8188696Z         npx playwright show-trace test-results/aurel-vegetation-A51-A54-s-85c0f-it-and-stable-camera-cycles/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8189017Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8189264Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8189472Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8189934Z   4) e2e/graphics-high-journey.spec.ts:628:1 › High production scene presents an active GP chassis and two completed photo views › Expect "poll toBe" 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8190320Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8190649Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8190920Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191047Z     Expected: ^[[32m"paused"^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191368Z     Received: ^[[31m"loading"^[[39m
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191498Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191561Z     Call Log:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191797Z     - Timeout 90000ms exceeded while waiting on the predicate
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8191980Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8192114Z       696 |     await page.selectOption('#weather', 'clear');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8192535Z       697 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8193000Z     > 698 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8193311Z           |     ^
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8193509Z       699 |     const prepared = await read();
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8193868Z       700 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8194260Z       701 |     expect(prepared.renderer?.preparation?.status).toBe('complete');
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8194702Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:698:5
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8194961Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8195241Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8195911Z     test-results/graphics-high-journey-High-55700-d-two-completed-photo-views/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8196310Z     Usage:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8196400Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8196705Z         npx playwright show-trace test-results/graphics-high-journey-High-55700-d-two-completed-photo-views/trace.zip
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8197036Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8197301Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8197513Z 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8197651Z   Slow test file: e2e/aurel-vegetation.spec.ts (20.6m)
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8198067Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8198400Z   4 failed
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8198939Z     e2e/43-motocross-world.spec.ts:9:3 › arena-nord-sx production terrain loads photographed soil with correct macros and reversible wetness on WebGL2 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8199618Z     e2e/a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry ───────────
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8200207Z     e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 sunset full production landscape, cockpit and stable camera cycles 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8200882Z     e2e/graphics-high-journey.spec.ts:628:1 › High production scene presents an active GP chassis and two completed photo views 
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8201347Z   2 skipped
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:00.8201510Z   18 passed (47.4m)
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1840231Z ##[error]Process completed with exit code 1.
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1891873Z ##[group]Run actions/upload-artifact@v4
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1892116Z with:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1892298Z   name: browser-validation-4-of-16
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1892712Z   path: test-results/
+browser (4)	UNKNOWN STEP	playwright-report/
+browser (4)	UNKNOWN STEP	browser-shard-plan.json
+browser (4)	UNKNOWN STEP	browser-backend.json
+browser (4)	UNKNOWN STEP	browser-progress.json
+browser (4)	UNKNOWN STEP	
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1893225Z   retention-days: 7
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1893405Z   if-no-files-found: warn
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1893600Z   compression-level: 6
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1893812Z   overwrite: false
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1893991Z   include-hidden-files: false
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1894222Z env:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1894435Z   APEX_BROWSER_BACKEND: mesa
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1894633Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1894841Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1895033Z   GALLIUM_DRIVER: llvmpipe
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.1895212Z ##[endgroup]
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3139250Z (node:5749) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3139858Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3297341Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3299041Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3299646Z With the provided path, there will be 93 files uploaded
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3303565Z Artifact name is valid!
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.3304060Z Root directory input is valid!
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.5648808Z Beginning upload of artifact content to blob storage
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:01.7995902Z (node:5749) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:02.0496179Z Uploaded bytes 8388608
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:02.1813798Z Uploaded bytes 16777216
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:02.4669619Z Uploaded bytes 25165824
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:02.6369938Z Uploaded bytes 33554432
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:02.8579177Z Uploaded bytes 41943040
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:03.1217228Z Uploaded bytes 50331648
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:03.3008892Z Uploaded bytes 58720256
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:03.5259579Z Uploaded bytes 67108864
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:03.7673688Z Uploaded bytes 75497472
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:04.0120794Z Uploaded bytes 83886080
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:04.1661907Z Uploaded bytes 92274688
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:04.4516807Z Uploaded bytes 100663296
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:04.6958604Z Uploaded bytes 109051904
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:04.7891119Z Uploaded bytes 117440512
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:05.0990425Z Uploaded bytes 125829120
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:05.2666088Z Uploaded bytes 134217728
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:05.4750960Z Uploaded bytes 142606336
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:05.6874988Z Uploaded bytes 150994944
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:05.8908549Z Uploaded bytes 159383552
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:06.1528518Z Uploaded bytes 167772160
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:06.4632372Z Uploaded bytes 176160768
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:06.5714946Z Uploaded bytes 184549376
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:06.7638348Z Uploaded bytes 192937984
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:06.9801449Z Uploaded bytes 201326592
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:07.3374411Z Uploaded bytes 209715200
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:07.4341459Z Uploaded bytes 218103808
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:07.6809518Z Uploaded bytes 226492416
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:07.8986527Z Uploaded bytes 234881024
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:08.1053686Z Uploaded bytes 243269632
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:08.4303859Z Uploaded bytes 251658240
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:08.5394097Z Uploaded bytes 260046848
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:08.8162403Z Uploaded bytes 268435456
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:08.9917145Z Uploaded bytes 276824064
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:09.2417876Z Uploaded bytes 285212672
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:09.4339070Z Uploaded bytes 293601280
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:09.7464543Z Uploaded bytes 301989888
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:09.8669796Z Uploaded bytes 310378496
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.0606090Z Uploaded bytes 318767104
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.3377454Z Uploaded bytes 327155712
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.4590320Z Uploaded bytes 327769768
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.4758384Z Finished uploading artifact content to blob storage!
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.4759474Z SHA256 digest of uploaded artifact zip is e9f95e3cab27147d6507584e0822e3af770156834991ea0c229d56ec0042f159
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.4761053Z Finalizing artifact upload
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.7975042Z Artifact browser-validation-4-of-16.zip successfully finalized. Artifact ID 14708220228
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.7976209Z Artifact browser-validation-4-of-16 has been successfully uploaded! Final size is 327769768 bytes. Artifact ID is 14708220228
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.7979558Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44891899918/artifacts/14708220228
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8146988Z Post job cleanup.
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8778912Z [command]/usr/bin/git version
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8807871Z git version 2.56.1
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8831688Z Temporarily overriding HOME='/home/runner/work/_temp/4ca4ebbd-6fef-4988-97d4-416965eb5c81' before making global git config changes
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8832787Z Adding repository directory to the temporary git global config as a safe directory
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8834945Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8864077Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.8887768Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9072171Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9092415Z http.https://github.com/.extraheader
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9099306Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9121980Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9293179Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9318117Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9608900Z Cleaning up orphan processes
+browser (4)	UNKNOWN STEP	2026-11-21T12:56:10.9861415Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
