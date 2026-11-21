@@ -1,5 +1,6 @@
 import { clamp } from '../../core/math.ts';
 import type { RoadEdge, RoadNetwork } from './road-network.ts';
+import { townCrossings, type TownCrossing } from './town-crossings.ts';
 import { planRoute, snapToNetwork } from './route-path.ts';
 
 /** Metre-scale circuit paint shared by the road mesh and tyre contacts.
@@ -55,8 +56,12 @@ function roadLines(network: RoadNetwork, edge: RoadEdge): FestivalPaintLine[] {
   const lines: FestivalPaintLine[] = [];
   const { halfWidth: half, markings } = edge.spec;
   const mouth = half + 9;
-  const from = network.nodes[edge.from].edges.length >= 3 ? mouth : 0;
-  const to = edge.length - (network.nodes[edge.to].edges.length >= 3 ? mouth : 0);
+  let from = network.nodes[edge.from].edges.length >= 3 ? mouth : 0;
+  let to = edge.length - (network.nodes[edge.to].edges.length >= 3 ? mouth : 0);
+  for (const crossing of townCrossings(network, edge)) {
+    if (crossing.from < edge.length / 2) from = Math.max(from, crossing.maxPaint + 0.45);
+    else to = Math.min(to, crossing.minPaint - 0.45);
+  }
   const strip = (
     lateral: number,
     width: number,
@@ -238,11 +243,13 @@ function contains(quad: PaintFootprint, x: number, z: number) {
 export class FestivalMarkings {
   readonly grids: readonly FestivalCircuitGrid[];
   readonly lines: readonly (readonly FestivalPaintLine[])[];
+  readonly crossings: readonly (readonly TownCrossing[])[];
   private readonly apronEdges = new Map<number, readonly FestivalCircuitApron[]>();
   private readonly apronFootprints = new Map<number, PaintFootprint>();
   private readonly gridEdges = new Map<number, FestivalCircuitGrid[]>();
 
   constructor(private readonly network: RoadNetwork) {
+    this.crossings = network.edges.map((edge) => townCrossings(network, edge));
     this.lines = network.edges.map((edge) => roadLines(network, edge));
     for (const edge of network.edges) {
       if (edge.roadClass !== 'circuit') continue;
@@ -342,6 +349,10 @@ export class FestivalMarkings {
     let fraction = 0;
     const local = station - this.network.edges[edgeIndex].offset;
     for (const line of this.lines[edgeIndex]) fraction += treadOnLine(line, local, lateral, ds, dl);
+    for (const site of this.crossings[edgeIndex]) {
+      if (local < site.minPaint - Math.abs(ds) || local > site.maxPaint + Math.abs(ds)) continue;
+      for (const line of site.lines) fraction += treadOnLine(line, local, lateral, ds, dl);
+    }
     return clamp(fraction, 0, 1);
   }
 
@@ -369,6 +380,12 @@ export class FestivalMarkings {
         (!line.period || local % line.period < line.dash)
       )
         return true;
+    }
+    for (const site of this.crossings[edgeIndex]) {
+      if (local < site.minPaint || local > site.maxPaint) continue;
+      for (const line of site.lines)
+        if (local >= line.from && local <= line.to && Math.abs(lateral - line.lateral) <= line.width / 2)
+          return true;
     }
     if (edge.roadClass !== 'circuit') return false;
 

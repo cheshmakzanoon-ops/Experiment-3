@@ -3,6 +3,8 @@ import * as T from 'three';
 import { Vec3 } from '../src/core/math.ts';
 import { RoadMeshes } from '../src/rendering/open-world/roads.ts';
 import { OpenWorldTrack } from '../src/simulation/open-world/open-world-track.ts';
+import { townCrossings } from '../src/simulation/open-world/town-crossings.ts';
+import { townFootways } from '../src/simulation/open-world/town-footways.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
 import { makeTire, peakGrip } from '../src/simulation/tire.ts';
 import { SURFACE, surfaceSample, trackPoint } from '../src/simulation/track.ts';
@@ -122,6 +124,52 @@ describe('Circuit paint agrees with rendered contact footprints', () => {
     check(country, 93.3, 0, false);
     check(runway, 126, 0, true);
     check(runway, 134, 0, false);
+  });
+
+  it('aligns urban crossing paint, wet tyre coverage and dropped kerbs in both approach directions', () => {
+    const road = network.edges.find(
+      (e) => e.road.id === 'harbour' && townCrossings(network, e).length === 2,
+    )!;
+    const layout = townFootways(network);
+    for (const site of townCrossings(network, road)) {
+      for (const side of [-1, 1]) expect(layout.strength(road, site.first, 0.5, side)).toBe(0);
+      const p = network.at(road.offset + (site.from + site.to) / 2, trackPoint());
+      const testPoint = (station: typeof p, lateral: number) =>
+        new T.Vector3(
+          station.x + station.nx * lateral,
+          network.surfaceHeight(station, lateral, road.spec.halfWidth, road.spec.crown),
+          station.z + station.nz * lateral,
+        );
+      for (const [lateral, painted] of [
+        [0.44, true],
+        [0.88, false],
+        [-0.44, true],
+        [-0.88, false],
+      ] as const) {
+        const point = testPoint(p, lateral);
+        expect(visiblePaint(point)).toBe(painted);
+        expect(sample(point, rain).surface).toBe(painted ? SURFACE.PAINT : SURFACE.ASPHALT);
+      }
+      const edgePoint = testPoint(p, 0.44 + 0.23);
+      const tyre = surfaceSample();
+      rain.castTire(
+        new Vec3(edgePoint.x, edgePoint.y + 0.7, edgePoint.z),
+        new Vec3(0, -1, 0),
+        1.5,
+        0.32,
+        0.11,
+        new Vec3(p.nx, 0, p.nz),
+        tyre,
+        new Vec3(),
+      );
+      expect(tyre.paintCoverage).toBeCloseTo(0.5, 2);
+      const line = site.lines.at(-1)!;
+      const stop = network.at(road.offset + (line.from + line.to) / 2, trackPoint());
+      expect(visiblePaint(testPoint(stop, line.lateral))).toBe(true);
+      expect(visiblePaint(testPoint(stop, -line.lateral))).toBe(false);
+    }
+    for (const road of network.edges.filter((e) => e.roadClass !== 'town'))
+      expect(townCrossings(network, road)).toHaveLength(0);
   });
 
   it('integrates the visible paint across the physical tread and preserves wet grip at a dash tip', () => {

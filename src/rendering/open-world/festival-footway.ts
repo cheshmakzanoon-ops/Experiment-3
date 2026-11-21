@@ -3,9 +3,11 @@ import type { StreetTree } from '../../simulation/open-world/street-trees.ts';
 import type { RoadEdge, RoadNetwork } from '../../simulation/open-world/road-network.ts';
 import {
   FOOTWAY_OFFSETS,
+  footwayHeight,
   footwayVertex,
   townFootways,
 } from '../../simulation/open-world/town-footways.ts';
+import type { TownCrossing } from '../../simulation/open-world/town-crossings.ts';
 import { trackPoint, type TrackPoint } from '../../simulation/track.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
 
@@ -146,6 +148,32 @@ export function addTownFootway(
   }
 }
 
+/** Ochre warning tiles sit flush with the two lowered pavement landings.
+ * Their UV chart is in metres, independent of city coordinates and chunk origin. */
+export function addCrossingLanding(
+  batch: PavingBatch, net: RoadNetwork, edge: RoadEdge, site: TownCrossing, side: number,
+) {
+  const length = site.to - site.from;
+  const inset = Math.max(0.12, (length - 3.2) * 0.5);
+  const a = net.pointOnSegment(site.first, inset / length, trackPoint());
+  const b = net.pointOnSegment(site.first, 1 - inset / length, trackPoint());
+  const at = (p: TrackPoint, across: number) => {
+    const l = side * (edge.spec.halfWidth + across);
+    return new T.Vector3(p.x + p.nx * l,
+      net.surfaceHeight(p, side * edge.spec.halfWidth, edge.spec.halfWidth, edge.spec.crown)
+        + footwayHeight(across, 0) + 0.004, p.z + p.nz * l);
+  };
+  const a0 = at(a, 0.48), a1 = at(a, 1.28), b0 = at(b, 0.48), b1 = at(b, 1.28);
+  const normal = new T.Vector3().subVectors(b0, a0).cross(new T.Vector3().subVectors(a1, a0)).normalize();
+  if (normal.y < 0) normal.negate();
+  const vertex = (p: T.Vector3, u: number, v: number) =>
+    batch.vertex(p.x, p.y, p.z, u - 8, v, normal.x, normal.y, normal.z);
+  const near0 = vertex(a0, 0, 0), near1 = vertex(a1, 0.8, 0);
+  const far0 = vertex(b0, 0, length - 2 * inset), far1 = vertex(b1, 0.8, length - 2 * inset);
+  if (side > 0) batch.quad(near0, near1, far0, far1);
+  else batch.quad(near1, near0, far1, far0);
+}
+
 /** Flush cast-iron surrounds occupy the flat flagstone band. Their UVs are
  * metres from the trunk in a reserved chart of the same paving draw. */
 export function addStreetTreeGrate(batch: PavingBatch, site: StreetTree) {
@@ -190,6 +218,7 @@ ${OW_NOISE_GLSL}
 float owPavingJoint;
 float owDrainMetal;
 float owKerbStone;
+float owStudRelief = 0.0;
 // Coverage falls to the area average once a pixel spans an entire period.
 float owStoneJoint(float cell, float halfWidth) {
   float footprint = max(fwidth(cell), 0.0001);
@@ -203,7 +232,21 @@ float owStoneJoint(float cell, float halfWidth) {
         `#include <color_fragment>
 {
   vec2 p=vUv; // Metres out from the road and metres along it.
-  if (p.x < -2.0) {
+  if (p.x < -6.0) {
+    vec2 local = p + vec2(8.0, 0.0);
+    float px = max(max(fwidth(local.x), fwidth(local.y)), 0.0001);
+    vec2 stud = (fract(local / 0.05) - 0.5) * 0.05;
+    float r = length(stud);
+    float resolve = 1.0 - smoothstep(0.012, 0.05, px);
+    float cap = 1.0 - smoothstep(max(0.0,0.010-px*0.5),0.014+px*0.5,r);
+    owStudRelief = 0.004 * cap * resolve;
+    float joint = max(owStoneJoint(local.x / 0.4, 0.006),owStoneJoint(local.y / 0.4, 0.006));
+    vec3 aggregate = vec3(0.43,0.264,0.083) * (0.94 + 0.1 * owNoise(local * 18.0));
+    diffuseColor.rgb = mix(aggregate * (0.98 + 0.08 * cap * resolve),vec3(0.12,0.107,0.082),joint)
+      * (1.0 - 0.25 * owPavingWet);
+    owPavingJoint = joint;
+    owDrainMetal = owKerbStone = 0.0;
+  } else if (p.x < -2.0) {
     vec2 local = p + vec2(4.0, 0.0);
     vec2 aa = max(fwidth(local), vec2(0.0002));
     float r = length(local), pixel = max(aa.x, aa.y);
@@ -259,10 +302,21 @@ float owStoneJoint(float cell, float halfWidth) {
     mix(0.59,0.31,owPavingWet),owDrainMetal);`,
       )
       .replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
+if (vUv.x < -6.0) {
+  vec3 dx = dFdx(-vViewPosition), dy = dFdy(-vViewPosition);
+  vec3 rx = cross(dy, normal), ry = cross(normal, dx);
+  float det = dot(dx, rx);
+  if (abs(det) > 1.0e-12)
+    normal = normalize(normal - (dFdx(owStudRelief)*rx + dFdy(owStudRelief)*ry) / det);
+}`,
+      )
+      .replace(
         '#include <metalnessmap_fragment>',
         '#include <metalnessmap_fragment>\nmetalnessFactor = 0.67*owDrainMetal;',
       );
   };
-  material.customProgramCacheKey = () => 'festival-port-footway-v2';
+  material.customProgramCacheKey = () => 'festival-port-footway-crossings-v3';
   return material;
 }

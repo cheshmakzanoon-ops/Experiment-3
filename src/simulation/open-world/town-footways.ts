@@ -1,6 +1,7 @@
 import { clamp } from '../../core/math.ts';
 import type { TrackPoint } from '../track.ts';
 import { ROAD_CLASSES } from './region-data.ts';
+import { townCrossings } from './town-crossings.ts';
 import { ROAD_FLAG, roadCandidates, type RoadEdge, type RoadNetwork } from './road-network.ts';
 
 /** Section of the Port Ilse footway measured out from the asphalt edge.
@@ -68,6 +69,7 @@ export class TownFootways {
       if (e.roadClass !== 'town') continue;
       const values = new Float32Array((e.last - e.first + 1) * 2);
       this.strengths.set(e, values);
+      const crossings = townCrossings(network, e);
       for (const side of [-1, 1]) {
         const slot = side > 0 ? 1 : 0;
         let lastClear = network.s[e.first];
@@ -81,6 +83,7 @@ export class TownFootways {
           let open = i === e.first || i === e.last || !!(network.flags[i] & ROAD_FLAG.BRIDGE);
           for (let k = 0; k < count && !open; k++)
             open = network.edgeOf[near.segment[k]] !== e.index;
+          if (crossings.some((site) => i === site.first || i === site.last)) open = true;
           if (open) lastClear = network.s[i];
           values[index] = network.s[i] - lastClear;
         }

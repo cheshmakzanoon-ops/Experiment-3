@@ -5,7 +5,7 @@ import {
   installScannedMaps,
   libraryAlbedo,
 } from '../ground/scanned-ground.ts';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildTownLamps } from './town-lamps.ts';
 import {
   ROAD_FLAG,
   roadCandidates,
@@ -30,6 +30,7 @@ import {
 import { townFootways, footwayHeight } from '../../simulation/open-world/town-footways.ts';
 import {
   addTownFootway,
+  addCrossingLanding,
   addStreetTreeGrate,
   footwayStations,
   pavingMaterial,
@@ -458,7 +459,7 @@ export class RoadMeshes {
       concrete: Object.assign(materials.concrete({ variant: 'rough', horizontal: 0 }), {
         side: T.DoubleSide,
       }),
-      post: materials.metal({ kind: 'cast', metal: 'steel', color: 0x8a8d90 }),
+      post: new T.MeshStandardMaterial({ vertexColors: true, metalness: 0.52, roughness: 0.48 }),
     };
     this.build();
   }
@@ -634,6 +635,11 @@ export class RoadMeshes {
             );
           }
         }
+        for (const site of festivalMarkings(net).crossings[e.index]) {
+          const mid = net.pointOnSegment(site.first, 0.5, p);
+          const paving = builder(mid.x, mid.z, 'paving');
+          for (const side of [-1, 1]) addCrossingLanding(paving, net, e, site, side);
+        }
         this.townLamps(e, lamps);
       }
       this.piers(e, builder);
@@ -663,31 +669,9 @@ export class RoadMeshes {
       }
       this.root.add(group);
     }
-    // Town lamps retain their shared geometry and instance transforms.
-    if (lamps.length) {
-      const pole = new T.CylinderGeometry(0.07, 0.1, 7, 6).translate(0, 3.5, 0);
-      const arm = new T.BoxGeometry(1.4, 0.08, 0.08).translate(0.6, 7, 0);
-      const head = new T.BoxGeometry(0.6, 0.14, 0.32).translate(1.25, 6.92, 0);
-      const metal = mergeGeometries([pole, arm], false)!;
-      pole.dispose();
-      arm.dispose();
-      const poles = new T.InstancedMesh(metal, this.materials.post, lamps.length);
-      const heads = new T.InstancedMesh(head, this.lampMaterial, lamps.length);
-      lamps.forEach((m, i) => {
-        poles.setMatrixAt(i, m);
-        heads.setMatrixAt(i, m);
-        this.lampSockets.push({
-          position: new T.Vector3(1.25, 6.82, 0).applyMatrix4(m),
-          target: new T.Vector3(2.3, 0.08, 0).applyMatrix4(m),
-        });
-      });
-      poles.name = 'Town lamp posts';
-      heads.name = 'Town lamp heads';
-      poles.castShadow = true;
-      poles.computeBoundingSphere();
-      heads.computeBoundingSphere();
-      this.root.add(poles, heads);
-    }
+    const townLamps = buildTownLamps(lamps, this.materials.post, this.lampMaterial);
+    this.root.add(townLamps.root);
+    this.lampSockets.push(...townLamps.sockets);
     const grids = this.circuitStartGrids();
     const cues = buildFestivalCircuitCues(net, this.field, this.circuitCueMaterial);
     this.root.add(cues.root);
@@ -777,7 +761,9 @@ export class RoadMeshes {
     let a = roadPoint(),
       b = roadPoint();
     const step = FESTIVAL_CIRCUIT_PAINT.lineStep;
-    for (const line of festivalMarkings(net).lines[e.index]) {
+    const layout = festivalMarkings(net);
+    const lines = [...layout.lines[e.index], ...layout.crossings[e.index].flatMap((site) => site.lines)];
+    for (const line of lines) {
       forEachPaintSpan(line, (from, to) => {
         // Each dash or continuous line owns its ends. A new span can have
         // a different width, material or a visible gap before it.
@@ -939,9 +925,12 @@ export class RoadMeshes {
     this.pavingWet.value = T.MathUtils.clamp(wet, 0, 1);
   }
   dispose() {
+    const geometries = new Set<T.BufferGeometry>();
     this.root.traverse((o) => {
-      if (o instanceof T.Mesh) o.geometry.dispose();
+      if (o instanceof T.InstancedMesh) o.dispose();
+      if (o instanceof T.Mesh) geometries.add(o.geometry);
     });
+    for (const geometry of geometries) geometry.dispose();
     for (const m of Object.values(this.materials)) m.dispose();
     this.lampMaterial.dispose();
     this.reflectorMaterial.dispose();

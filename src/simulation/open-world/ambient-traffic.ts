@@ -9,6 +9,7 @@ import { setupFor, vehicleIndex, type VehicleDefinition } from '../vehicles.ts';
 import { festivalCars } from './festival-machines.ts';
 import { SPEED_CLASS_KMH, type RoadClass } from './region-data.ts';
 import type { RoadEdge, RoadNetwork } from './road-network.ts';
+import { townCrossings } from './town-crossings.ts';
 import { TILE_SIZE } from './terrain-tiles.ts';
 
 /** Ambient traffic tuning (festival free roam). */
@@ -550,7 +551,15 @@ export class AmbientTraffic {
     c.waiting = false;
     const node = c.dir > 0 ? e.to : e.from;
     if (this.junctions.has(node) && !c.ending) {
-      const reach = Math.max(TRAFFIC.claimMetres, c.speed * TRAFFIC.claimSeconds);
+      const crossing = townCrossings(this.network, e).find((site) =>
+        c.dir > 0 ? site.to > e.length / 2 : site.from < e.length / 2,
+      );
+      const pad = c.dir > 0 ? e.pads[1] : e.pads[0];
+      const setback = crossing
+        ? (c.dir > 0 ? e.length - crossing.minPaint : crossing.maxPaint)
+        : Math.max(6, pad);
+      const reach = Math.max(TRAFFIC.claimMetres, c.speed * TRAFFIC.claimSeconds,
+        crossing ? setback + c.half[2] + TRAFFIC.standstill + c.speed * TRAFFIC.headway : 0);
       // Only the first car of a queue claims (no claim from behind a waiting car).
       if (remaining < reach && c.claim !== node && !queued) {
         if (this.mayClaim(c, node, player)) {
@@ -559,8 +568,7 @@ export class AmbientTraffic {
           c.claim = node;
         } else {
           c.waiting = true;
-          const pad = c.dir > 0 ? e.pads[1] : e.pads[0];
-          const stop = Math.max(0.1, remaining - Math.max(6, pad) - c.half[2]);
+          const stop = Math.max(0.1, remaining - setback - c.half[2]);
           if (stop < gap) {
             gap = stop;
             leaderSpeed = 0;
