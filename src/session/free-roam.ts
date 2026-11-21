@@ -297,8 +297,14 @@ export class FestivalSession {
       },
     });
     await ready;
-    // Stream the terrain around the spawn before the first frame.
-    host.loading('Streaming terrain around Port Ilse…');
+    // The worker is paused from init onward. A selected event supplies its
+    // post-travel snapshot before we allocate tiles or warm the first view.
+    const destination = options.travel ? events.find((event) => event.spec.id === options.travel) : undefined;
+    if (destination) {
+      host.loading(`Travelling to ${destination.spec.name}…`);
+      await this.commandAndWait({ type: 'travel', event: destination.spec.id });
+    }
+    host.loading(destination ? `Streaming terrain at ${destination.spec.name}…` : 'Streaming terrain around Port Ilse…');
     const frame = this.current!;
     const x = frame[carBase(0) + F.X],
       z = frame[carBase(0) + F.Z];
@@ -327,10 +333,10 @@ export class FestivalSession {
     );
     await host.audio?.start().catch(() => undefined);
     host.loaded();
-    this.post({ type: 'pause', value: false });
-    // Any selected festival route is reachable on a fresh save. Race cards
-    // open on arrival; skill challenges still start at their entry gates.
-    if (options.travel) await this.travel(options.travel);
+    if (destination && !renderer.ready(x, z)) {
+      this.setPaused(true);
+      host.toast('The destination is still loading. Try again from the pause menu.');
+    } else this.post({ type: 'pause', value: false });
   }
   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
     if (this.disposed) return;
