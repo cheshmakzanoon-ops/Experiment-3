@@ -390,16 +390,14 @@ export function addMotocrossPowertrain(
   }
 }
 
-/** The MX250's two-stroke pipe: header, diverging cones, broad belly,
- * converging cones and stinger are one continuous surface. Radius changes
- * follow the welded stations instead of scaling a constant-width tube.
- * The last straight section enters the existing silencer along its actual
- * rotated axis. Only construction allocates; it uses the shared titanium
- * vertex-colour material and joins the normal rigid/mud batches. */
+type PipeStation = readonly [number, number, number, number];
+const silencerInlet = (z: number, radius: number): PipeStation =>
+  [-0.177, -0.005 - Math.sin(0.22) * z, -0.615 + Math.cos(0.22) * z, radius];
+
+/** The two-stroke header, diverging cones, belly, converging cones and
+ * stinger form one surface. Both engines use the same silencer axis. */
 export function motocrossExpansionChamber(detail: RiderDetail) {
-  const inlet = (z: number, radius: number) =>
-      [-0.177, -0.005 - Math.sin(0.22) * z, -0.615 + Math.cos(0.22) * z, radius] as const,
-    stations = [
+  return sweptExhaust([
       [0, -0.225, 0.096, 0.022],
       [-0.025, -0.241, 0.153, 0.022],
       [-0.073, -0.275, 0.218, 0.028],
@@ -410,11 +408,44 @@ export function motocrossExpansionChamber(detail: RiderDetail) {
       [-0.211, -0.271, -0.096, 0.064],
       [-0.19, -0.17, -0.226, 0.033],
       [-0.177, -0.071, -0.351, 0.018],
-      inlet(0.26, 0.018),
-      inlet(0.22, 0.018),
-      inlet(0.151, 0.018),
-    ] as const,
-    curve = new T.CatmullRomCurve3(stations.map(([x, y, z]) => new T.Vector3(x, y, z))),
+      silencerInlet(0.26, 0.018),
+      silencerInlet(0.22, 0.018),
+      silencerInlet(0.151, 0.018),
+    ], [2, 3, 4, 5, 6, 7, 8], detail, false);
+}
+
+/** The four-stroke exits the front of the cylinder head. A swaged primary
+ * wraps around the front cradle, broadens at its collector and slips into
+ * the silencer. Both ends overlap the receiving hardware. */
+export function motocrossFourStrokeHeader(detail: RiderDetail) {
+  return sweptExhaust([
+    [0, -0.117, 0.053, 0.0205], [0, -0.117, 0.092, 0.0205],
+    [-0.011, -0.132, 0.149, 0.0205], [-0.065, -0.176, 0.207, 0.0215],
+    [-0.13, -0.252, 0.218, 0.0215], [-0.162, -0.296, 0.153, 0.0235],
+    [-0.162, -0.297, 0.065, 0.0235], [-0.163, -0.252, -0.067, 0.0255],
+    [-0.166, -0.18, -0.195, 0.0265], [-0.173, -0.086, -0.326, 0.024],
+    silencerInlet(0.26, 0.021), silencerInlet(0.205, 0.0182), silencerInlet(0.151, 0.0182),
+  ], [3, 6, 9], detail, true);
+}
+
+export function motocrossHeaderFlange(detail: RiderDetail) {
+  const shape = new T.Shape();
+  shape.absellipse(0, 0, 0.049, 0.031, 0, Math.PI * 2, false, 0);
+  for (const [x, r] of [[0, 0.0213], [-0.037, 0.0045], [0.037, 0.0045]]) {
+    const hole = new T.Path();
+    hole.absarc(x, 0, r, 0, Math.PI * 2, true);
+    shape.holes.push(hole);
+  }
+  return new T.ExtrudeGeometry(shape, {
+    depth: 0.007, bevelEnabled: false, curveSegments: detail === 'high' ? 10 : 6,
+  });
+}
+
+function sweptExhaust(stations: readonly PipeStation[], joints: number[], detail: RiderDetail, slim: boolean) {
+  const tessellation = slim ? { high: [42, 14], mid: [24, 10], far: [14, 8] }
+    : { high: [64, 18], mid: [36, 12], far: [20, 8] };
+  const [segments, sides] = tessellation[detail];
+  const curve = new T.CatmullRomCurve3(stations.map(([x, y, z]) => new T.Vector3(x, y, z))),
     lengths = curve.getLengths(512),
     length = lengths[lengths.length - 1],
     profile = stations.map((station, i) => {
@@ -427,9 +458,7 @@ export function motocrossExpansionChamber(detail: RiderDetail) {
         );
       return { t: distance / length, radius: station[3] };
     }),
-    segments = detail === 'high' ? 64 : detail === 'mid' ? 36 : 20,
-    sides = detail === 'high' ? 18 : detail === 'mid' ? 12 : 8,
-    welds = profile.slice(2, 9).map((station) => station.t),
+    welds = joints.map(i => profile[i].t),
     rings = new Set(Array.from({ length: segments + 1 }, (_, i) => i / segments));
   if (detail !== 'far')
     for (const weld of welds)

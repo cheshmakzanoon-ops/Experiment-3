@@ -35,6 +35,8 @@ import {
   addMotocrossPowertrain,
   motocrossAxleLug,
   motocrossExpansionChamber,
+  motocrossFourStrokeHeader,
+  motocrossHeaderFlange,
   motocrossFrameSpar,
   motocrossSilencerOutlet,
   motocrossSumpGuard,
@@ -869,13 +871,12 @@ export class DirtBikeModel {
     }
     this.rearFender = add(this.sprung, kitFender(false), shroudMaterial);
     this.rearFender.name = 'Motocross rear mudguard';
-    // MX250 carries a formed two-stroke expansion chamber. MX450 and SM450
-    // retain their four-stroke header.
+    // Each dirt engine has its own gas path into the common silencer mount.
     add(
       this.sprung,
       lightFrame
         ? motocrossExpansionChamber(detail)
-        : exhaustGeometry(
+        : !supermoto ? motocrossFourStrokeHeader(detail) : exhaustGeometry(
             [
               [0, -0.16, 0.14],
               [-0.098, -0.2, 0.23],
@@ -889,6 +890,13 @@ export class DirtBikeModel {
           ),
       this.m.titanium,
     );
+    if (!lightFrame && !supermoto && detail !== 'far') {
+      add(this.sprung, motocrossHeaderFlange(detail), this.m.steel, 0, -0.117, 0.07);
+      for (const x of [-0.037, 0.037]) {
+        const nut = new T.CylinderGeometry(0.0062, 0.0062, 0.009, 6).rotateX(Math.PI / 2);
+        add(this.sprung, nut, this.m.steel, x, -0.117, 0.08);
+      }
+    }
     const silencer = new T.Group();
     silencer.name = 'Motocross tapered open exhaust silencer';
     silencer.position.set(-0.177, -0.005, -0.615);

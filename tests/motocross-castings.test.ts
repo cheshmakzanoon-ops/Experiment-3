@@ -6,6 +6,8 @@ import {
   addMotocrossPowertrain,
   motocrossAxleLug,
   motocrossExpansionChamber,
+  motocrossFourStrokeHeader,
+  motocrossHeaderFlange,
   motocrossSilencerOutlet,
   motocrossSumpGuard,
   motocrossSwingarmRail,
@@ -84,10 +86,11 @@ describe('motocross cast components', () => {
     }
   });
 
-  it.each(['high', 'mid', 'far'] as const)(
-    '%s two-stroke chamber has continuous open ends, a broad belly and a connected silencer stinger',
-    (detail) => {
-      const geometry = motocrossExpansionChamber(detail);
+  it.each((['high', 'mid', 'far'] as const).flatMap(detail =>
+    [true, false].map(twoStroke => ({ detail, twoStroke }))))(
+    '$detail formed exhaust, two-stroke=$twoStroke, connects two open ends to the cylinder and silencer',
+    ({ detail, twoStroke }) => {
+      const geometry = twoStroke ? motocrossExpansionChamber(detail) : motocrossFourStrokeHeader(detail);
       try {
         const position = geometry.getAttribute('position'),
           uv = geometry.getAttribute('uv'),
@@ -110,13 +113,14 @@ describe('motocross cast components', () => {
             .add(new T.Vector3(-0.177, -0.005, -0.615)),
           outletDirection = new T.Vector3(0, 0, -1).applyAxisAngle(new T.Vector3(1, 0, 0), 0.22),
           lastDirection = centres.at(-1)!.clone().sub(centres.at(-2)!).normalize();
-        expect(centres[0].distanceTo(new T.Vector3(0, -0.225, 0.096))).toBeLessThan(0.000001);
         expect(centres.at(-1)!.distanceTo(inlet)).toBeLessThan(0.000001);
         expect(lastDirection.dot(outletDirection)).toBeGreaterThan(0.999);
-        expect(radii[0]).toBeCloseTo(0.022, 5);
-        expect(radii.at(-1)!).toBeCloseTo(0.018, 5);
-        expect(Math.max(...radii)).toBeGreaterThan(0.078);
-        expect(Math.max(...radii)).toBeLessThan(0.085);
+        expect(centres[0].distanceTo(twoStroke ? new T.Vector3(0, -0.225, 0.096)
+          : new T.Vector3(0, -0.117, 0.053))).toBeLessThan(1e-6);
+        expect(radii[0]).toBeCloseTo(twoStroke ? 0.022 : 0.0205, 5);
+        expect(radii.at(-1)!).toBeCloseTo(twoStroke ? 0.018 : 0.0182, 5);
+        expect(Math.max(...radii)).toBeGreaterThan(twoStroke ? 0.078 : 0.025);
+        expect(Math.max(...radii)).toBeLessThan(twoStroke ? 0.085 : 0.028);
         expect(geometry.boundingBox!.min.y).toBeGreaterThan(-0.47);
         expect(geometry.boundingBox!.max.z).toBeLessThan(0.32);
         expect(geometry.index!.count / 3).toBeLessThan(4000);
@@ -156,6 +160,21 @@ describe('motocross cast components', () => {
           expect(Array.from(attribute.array).every(Number.isFinite)).toBe(true);
       } finally {
         geometry.dispose();
+      }
+    },
+  );
+
+  it.each(['high', 'mid'] as const)(
+    '%s four-stroke flange has clearance for the primary and both studs',
+    (detail) => {
+      const view = inspect(motocrossHeaderFlange(detail)), toward = new T.Vector3(0, 0, -1);
+      try {
+        for (const x of [-0.037, 0, 0.037])
+          expect(view.cast(new T.Vector3(x, 0, 1), toward)).toHaveLength(0);
+        for (const x of [-0.027, 0.027])
+          expect(view.cast(new T.Vector3(x, 0, 1), toward).length).toBeGreaterThan(0);
+      } finally {
+        view.dispose();
       }
     },
   );
