@@ -160,6 +160,8 @@ export class Vegetation {
       conifer: boolean;
     }[] = [];
     const shrubs: PhotoPlant[] = [];
+    const street: PhotoPlant[] = [];
+    const avenueSpecies = library.get(SPECIES.linden) ?? library.get(SPECIES.rowan);
     const shrub = library.get(SPECIES.shrub);
     for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE) {
       const kind = trees[i + 3],
@@ -167,6 +169,14 @@ export class Vegetation {
       const x = trees[i],
         z = trees[i + 1],
         y = trees[i + 6];
+      if (kind === TREE_SPECIES.STREET && avenueSpecies) {
+        street.push({
+          species: avenueSpecies.id, x, y: y - 0.04, z,
+          scale: h / avenueSpecies.info.height, yaw: trees[i + 4],
+          tint: plantTint(plantHash(x, z, 79), 'city'),
+        });
+        continue;
+      }
       if (kind === TREE_SPECIES.SHRUB) {
         if (shrub)
           shrubs.push({
@@ -197,6 +207,7 @@ export class Vegetation {
       ),
       { label: 'Festival', shadows: true, chunk: 128, ground: this.ground },
     );
+    forest.add(street, { label: 'Port Ilse lindens', shadows: true, chunk: 128 });
     forest.add(shrubs, { label: 'Festival shrubs', shadows: false, chunk: 128 });
     forest.root.userData.instances = forest.plants;
     forest.root.name = 'Photographic vegetation tile';
@@ -208,7 +219,10 @@ export class Vegetation {
       trees = data.trees,
       near = level === 0,
       buckets: number[][] = [[], [], []];
-    for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE) buckets[trees[i + 3]]?.push(i);
+    for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE) {
+      const kind = trees[i + 3];
+      buckets[kind === TREE_SPECIES.STREET ? TREE_SPECIES.BROADLEAF : kind]?.push(i);
+    }
     const transform = new T.Object3D(),
       color = new T.Color();
     const add = (

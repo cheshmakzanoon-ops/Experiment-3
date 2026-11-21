@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { StreetTree } from '../../simulation/open-world/street-trees.ts';
 import type { RoadEdge, RoadNetwork } from '../../simulation/open-world/road-network.ts';
 import {
   FOOTWAY_OFFSETS,
@@ -145,6 +146,30 @@ export function addTownFootway(
   }
 }
 
+/** Flush cast-iron surrounds occupy the flat flagstone band. Their UVs are
+ * metres from the trunk in a reserved chart of the same paving draw. */
+export function addStreetTreeGrate(batch: PavingBatch, site: StreetTree) {
+  const nx = site.tz,
+    nz = -site.tx;
+  const normal = new T.Vector3(
+    -site.grade * site.tx - site.crossfall * nx,
+    1,
+    -site.grade * site.tz - site.crossfall * nz,
+  ).normalize();
+  const vertex = (across: number, along: number) =>
+    batch.vertex(
+      site.x + across * nx + along * site.tx,
+      site.y + across * site.crossfall + along * site.grade + 0.006,
+      site.z + across * nz + along * site.tz,
+      across - 4,
+      along,
+      normal.x,
+      normal.y,
+      normal.z,
+    );
+  batch.quad(vertex(-0.47, -0.66), vertex(0.47, -0.66), vertex(-0.47, 0.66), vertex(0.47, 0.66));
+}
+
 export function pavingMaterial(wet: { value: number }) {
   const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.87 });
   material.name = 'Port Ilse cut-stone footways';
@@ -178,6 +203,25 @@ float owStoneJoint(float cell, float halfWidth) {
         `#include <color_fragment>
 {
   vec2 p=vUv; // Metres out from the road and metres along it.
+  if (p.x < -2.0) {
+    vec2 local = p + vec2(4.0, 0.0);
+    vec2 aa = max(fwidth(local), vec2(0.0002));
+    float r = length(local), pixel = max(aa.x, aa.y);
+    float rim = 1.0 - smoothstep(-pixel, pixel, min(0.445-abs(local.x), 0.635-abs(local.y)));
+    float rings = owStoneJoint(r/0.07, 0.2);
+    // Four radial cross braces support the casting. The central opening
+    // exposes soil and leaves room for the independently streamed trunk.
+    float brace = min(min(abs(local.x), abs(local.y)),
+      min(abs(local.x+local.y), abs(local.x-local.y)) * 0.7071);
+    float ribs = max(rings, 1.0-smoothstep(0.009-pixel, 0.009+pixel, brace));
+    float hole = smoothstep(0.19-pixel, 0.19+pixel, r);
+    owDrainMetal = max(rim, ribs) * hole;
+    owPavingJoint = 0.0;
+    owKerbStone = 0.0;
+    vec3 soil = vec3(0.053,0.040,0.028) * (0.88+0.24*owNoise(local*29.0));
+    diffuseColor.rgb = mix(soil*(1.0-0.4*hole), vec3(0.125,0.115,0.094), owDrainMetal)
+      * (1.0-owPavingWet*0.30);
+  } else {
   float along=p.y/0.82, across=p.x/0.49+mod(floor(along),2.0)*0.5;
   float stone=owHash(vec2(floor(across),floor(along)));
   float grain=owNoise(p*12.0)-0.5;
@@ -205,6 +249,7 @@ float owStoneJoint(float cell, float halfWidth) {
   color=mix(color,vec3(0.025,0.027,0.025),inlet);
   color=mix(color,vec3(0.155,0.17,0.165),owDrainMetal);
   diffuseColor.rgb=color*(1.0-owPavingWet*0.26);
+  }
 }`,
       )
       .replace(
@@ -218,6 +263,6 @@ float owStoneJoint(float cell, float halfWidth) {
         '#include <metalnessmap_fragment>\nmetalnessFactor = 0.67*owDrainMetal;',
       );
   };
-  material.customProgramCacheKey = () => 'festival-port-footway-v1';
+  material.customProgramCacheKey = () => 'festival-port-footway-v2';
   return material;
 }

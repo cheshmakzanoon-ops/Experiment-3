@@ -66,8 +66,10 @@ import {
   treesForTile,
   trunkRadius,
   TREE_STRIDE,
+  TREE_SPECIES,
   type Structure,
 } from './placement.ts';
+import { streetTrees } from './street-trees.ts';
 import { StaticFootprintContact } from './static-footprint.ts';
 import { SOLVANE, SPEED_CLASS_KMH, type RegionDefinition } from './region-data.ts';
 import { RouteDriver, type RouteObstacle } from './route-driver.ts';
@@ -1224,9 +1226,11 @@ export class OpenWorldSimulation {
             ez = lz - cz,
             d = Math.hypot(ex, ez);
           if (d >= r) continue;
-          // The same carved LOD0 ground anchors the rendered near tree. Query
-          // only horizontally touching trunks so the broad phase loads no ground.
-          const base = this.track.tiles.height(trees[i], trees[i + 1]);
+          // Resolve the planting surface only after horizontal overlap. Street
+          // trunks start at the iron grate above the underlying carved roadbed.
+          const base = trees[i + 3] === TREE_SPECIES.STREET
+            ? streetTrees(this.world.network).rootHeight(trees[i], trees[i + 1])
+            : this.track.tiles.height(trees[i], trees[i + 1]);
           if (bottom > base + trees[i + 2] || top < base) continue;
           let nx: number, nz: number, depth: number;
           if (d > 1e-4) {

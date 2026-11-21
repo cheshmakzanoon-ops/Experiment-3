@@ -1,6 +1,7 @@
 import { gridHeight } from '../../simulation/open-world/terrain-tiles.ts';
+import { streetTrees } from '../../simulation/open-world/street-trees.ts';
 import { smoothstep } from '../../simulation/open-world/noise.ts';
-import { treesForTile, TREE_STRIDE, type StructureGrid } from '../../simulation/open-world/placement.ts';
+import { treesForTile, TREE_SPECIES, TREE_STRIDE, type StructureGrid } from '../../simulation/open-world/placement.ts';
 import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import type { TileMeshData, TileRequest } from '../../workers/open-world-protocol.ts';
@@ -98,7 +99,9 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
     for (const part of parts)
       for (let k = 0; k < part.length; k += TREE_STRIDE) {
         for (let f = 0; f < TREE_STRIDE; f++) trees[o + f] = part[k + f];
-        trees[o + TREE_STRIDE] = gridHeight(heights, side, (part[k] - x0) / step, (part[k + 1] - z0) / step, step);
+        trees[o + TREE_STRIDE] = part[k + 3] === TREE_SPECIES.STREET
+          ? streetTrees(world.network).rootHeight(part[k], part[k + 1])
+          : gridHeight(heights, side, (part[k] - x0) / step, (part[k + 1] - z0) / step, step);
         o += TILE_TREE_STRIDE;
       }
   }

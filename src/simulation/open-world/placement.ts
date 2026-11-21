@@ -4,6 +4,7 @@ import { hash01, hash2, subSeed } from './noise.ts';
 import type { LandmarkSpec } from './region-data.ts';
 import { BIOME } from './terrain-field.ts';
 import { carvedGroundHeight } from './ground-height.ts';
+import { streetTrees } from './street-trees.ts';
 import { TILE_SIZE } from './terrain-tiles.ts';
 import type { OpenWorld } from './world.ts';
 
@@ -272,7 +273,7 @@ function boxesOverlap(a: Structure, b: Structure) {
 /** Packed tree instances: x, z, height (m), species (0 broadleaf, 1 conifer,
  * 2 shrub), rotation (rad), tint (0..1). */
 export const TREE_STRIDE = 6;
-export const TREE_SPECIES = Object.freeze({ BROADLEAF: 0, CONIFER: 1, SHRUB: 2 });
+export const TREE_SPECIES = Object.freeze({ BROADLEAF: 0, CONIFER: 1, SHRUB: 2, STREET: 3 });
 /** Shared broad-phase bound; changing the trunk model cannot leave a stale
  * neighbour-tile query radius in the collision owner. */
 export const MAX_TRUNK_RADIUS = 0.55;
@@ -354,5 +355,8 @@ export function treesForTile(
       if (thinned && trunkRadius(species, size) <= 0) continue;
       out.push(x, z, size, species, ((r2 >>> 14) % 628) / 100, ((r2 >>> 22) % 100) / 100);
     }
+  if (density > 0 || keepColliders)
+    for (const site of streetTrees(world.network).inTile(ix, iz))
+      out.push(site.x, site.z, site.height, TREE_SPECIES.STREET, site.yaw, site.tint);
   return Float32Array.from(out);
 }

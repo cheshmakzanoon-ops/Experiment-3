@@ -28,8 +28,9 @@ import {
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
 import { townFootways, footwayHeight } from '../../simulation/open-world/town-footways.ts';
-import { addTownFootway, footwayStations, pavingMaterial } from './festival-footway.ts';
+import { addTownFootway, addStreetTreeGrate, footwayStations, pavingMaterial } from './festival-footway.ts';
 import { festivalBridgePier, festivalBridgeSection } from './festival-bridges.ts';
+import { streetTrees } from '../../simulation/open-world/street-trees.ts';
 import { buildFestivalGuardrails } from './festival-guardrails.ts';
 import { buildFestivalCircuitCues } from './festival-circuit-cues.ts';
 
@@ -446,6 +447,8 @@ export class RoadMeshes {
     const p = roadPoint(),
       q = roadPoint();
     const footways = townFootways(net);
+    for (const site of streetTrees(net).sites)
+      addStreetTreeGrate(builder(site.x, site.z, 'paving'), site);
     const lamps: T.Matrix4[] = [];
     for (const e of net.edges) {
       const spec = e.spec,

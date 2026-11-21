@@ -49,9 +49,13 @@ class GeometryBatch {
       let u = uvs?.getX(i) ?? 0,
         v = uvs?.getY(i) ?? 0;
       if (tile !== undefined) {
-        // Two-pixel guard band inside each original sign atlas tile.
-        u = ((tile % 4) + 0.008 + u * 0.984) / 4;
-        v = (3 - Math.floor(tile / 4) + 0.016 + v * 0.968) / 4;
+        // Frontage panels occupy the upper 384 rows. Sixteen narrow blade
+        // signs share the bottom strip, all inside the original 1024x512 atlas.
+        const blade = tile >= SHOP_NAMES.length;
+        const x = blade ? (tile - SHOP_NAMES.length) * 64 : (tile % 4) * 256;
+        const y = blade ? 384 : Math.floor(tile / 4) * 96;
+        u = (x + 2 + u * ((blade ? 64 : 256) - 4)) / 1024;
+        v = 1 - (y + 2 + (1 - v) * ((blade ? 128 : 96) - 4)) / 512;
       }
       this.uv.push(u, v);
       this.color.push(
@@ -99,6 +103,25 @@ const SHOP_NAMES = [
 
 // Pale integrated hues of the original atlas backgrounds and warm lettering.
 // The lights are restrained practical spill, not a replacement sign texture.
+const SHOP_BLADES = [
+  'CLUB',
+  'CAFE',
+  'LIVE',
+  'AUTO',
+  'VINYL',
+  'BAKE',
+  'SALT',
+  'INFO',
+  'HIKE',
+  'INN',
+  'CYCLE',
+  'MOTOR',
+  'FISH',
+  'ART',
+  'GUIDE',
+  'CLUB',
+] as const;
+
 const SHOP_LIGHT_COLORS = [
   0xb1d8cb, 0xffe5b9, 0xffbca2, 0xbdd4e8, 0xd1dfb8, 0xffd3a0, 0xffe9cb, 0xb4dbe3,
 ] as const;
@@ -126,6 +149,8 @@ function signAtlas() {
     '#e4ded0',
     '#274f60',
   ];
+  ctx.save();
+  ctx.scale(1, 0.75);
   SHOP_NAMES.forEach(([name, sub], i) => {
     const x = (i % 4) * 256,
       y = Math.floor(i / 4) * 128;
@@ -148,6 +173,22 @@ function signAtlas() {
     ctx.fillText(sub, x + 128, y + 83);
     ctx.globalAlpha = 1;
     ctx.fillRect(x + 107, y + 100, 42, 2);
+  });
+  ctx.restore();
+  SHOP_BLADES.forEach((word, i) => {
+    const x = i * 64,
+      y = 384;
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(x, y, 64, 128);
+    ctx.strokeStyle = ctx.fillStyle = i % 8 === 1 || i % 8 === 6 ? '#233e39' : '#fff1c9';
+    ctx.strokeRect(x + 5, y + 5, 54, 118);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 23px sans-serif';
+    const spacing = 91 / word.length;
+    for (let j = 0; j < word.length; j++)
+      ctx.fillText(word[j], x + 32, y + 15 + (j + 0.5) * spacing);
+    ctx.fillRect(x + 24, y + 111, 16, 2);
   });
   const texture = new T.CanvasTexture(canvas);
   texture.name = 'Original Solvane commercial sign atlas';
@@ -412,6 +453,51 @@ export class HorizonDressing {
         s.style % SHOP_NAMES.length,
       );
       this.stats.shopSigns++;
+      // Blades are perpendicular to the shopfront, so both approaches can
+      // read them. Two brackets return to the pier between frontage bays.
+      if (s.frontSide !== undefined && (s.style >>> 9) % 5 < 2) {
+        const column = (s.hx - 0.29) * (s.style & 1 ? 1 : -1);
+        const height = 1.65 + ((s.style >>> 15) % 5) * 0.24;
+        const bottom = s.base + 3.64,
+          width = height * 0.41;
+        const standOff = 0.28,
+          depth = side * (s.hz + standOff + width / 2);
+        const centre = at(column, bottom + height / 2, depth);
+        this.box('metal', centre.x, centre.y, centre.z, 0.114, height, width, 0x414849, -s.heading);
+        for (const level of [0.16, 0.86]) {
+          const y = bottom + height * level;
+          const foot = at(column, y, side * (s.hz + 0.04));
+          this.box('metal', foot.x, foot.y, foot.z, 0.19, 0.23, 0.09, 0x59615e, -s.heading);
+          const arm = at(column, y, side * (s.hz + standOff * 0.57));
+          this.box(
+            'metal',
+            arm.x,
+            arm.y,
+            arm.z,
+            0.065,
+            0.075,
+            standOff + 0.04,
+            0x384046,
+            -s.heading,
+          );
+        }
+        for (const face of [-1, 1]) {
+          const panel = at(column + face * 0.059, centre.y, depth);
+          this.part(
+            'sign',
+            this.primitives.plane,
+            panel.x,
+            panel.y,
+            panel.z,
+            width - 0.032,
+            height - 0.045,
+            1,
+            0xffffff,
+            (face * Math.PI) / 2 - s.heading,
+            SHOP_NAMES.length + (s.style % SHOP_NAMES.length),
+          );
+        }
+      }
       // Position the light on the upper part of the actual sign, just beyond
       // its plane. Aiming outward/down clears its own wall and shallow canopy;
       // the destination uses the same carved ground as the visible forecourt.
