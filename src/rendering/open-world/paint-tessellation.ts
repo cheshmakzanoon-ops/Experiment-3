@@ -6,13 +6,14 @@ import { trackPoint } from '../../simulation/track.ts';
 export const PAINT_TOLERANCE = Object.freeze({ horizontal: 0.0085, vertical: 0.0020, span: 32 });
 
 /** Resolve a single painted span into stations. Test both sides of the ribbon
- * on every underlying road segment and at quarter-metre intervals between them.
+ * on every underlying road segment, including its camber breakpoints.
  * Preserve dash ends while allowing a level straight to share one quad. */
 export function paintStations(net: RoadNetwork, edge: RoadEdge, from: number, to: number, left: number, right: number) {
   const out = [from];
   if (to <= from) return out;
   const point = trackPoint(), row: number[] = [];
   const low = [left, right];
+  const extent = Math.max(Math.abs(left), Math.abs(right));
   let first = edge.first, last = edge.last;
   while (last - first > 1) {
     const mid = (first + last) >> 1;
@@ -21,7 +22,9 @@ export function paintStations(net: RoadNetwork, edge: RoadEdge, from: number, to
   }
   let boundary = first + 1;
   const setRow = (i: number, station: number) => {
-    net.at(edge.offset + station, point);
+    const i0 = boundary - 1;
+    const t = (edge.offset + station - net.s[i0]) / (net.s[boundary] - net.s[i0]);
+    net.pointOnSegment(i0, Math.min(1, Math.max(0, t)), point);
     const offset = i * 7;
     row[offset] = station;
     for (let side = 0; side < 2; side++) {
@@ -53,14 +56,39 @@ export function paintStations(net: RoadNetwork, edge: RoadEdge, from: number, to
   };
   for (let start = from; start < to;) {
     const end = Math.min(start + PAINT_TOLERANCE.span, to);
+    while (boundary < edge.last && net.s[boundary] - edge.offset <= start + 1e-9) boundary++;
     setRow(0, start);
-    let count = 1, probe = start + 0.25, s = start;
+    let count = 1, s = start;
     while (s < end) {
-      while (boundary < edge.last && net.s[boundary] - edge.offset <= s + 1e-8) boundary++;
-      if (probe <= s + 1e-8) probe += 0.25;
-      const nextRoad = boundary < edge.last ? net.s[boundary] - edge.offset : Infinity;
-      s = Math.min(end, probe, nextRoad);
-      setRow(count++, s);
+      const i0 = boundary - 1, segmentStart = net.s[i0] - edge.offset;
+      const segmentEnd = net.s[boundary] - edge.offset;
+      const stop = boundary === edge.last ? end : Math.min(end, segmentEnd);
+      const span = segmentEnd - segmentStart;
+      // The centreline is affine. Only normalization bends its offset:
+      // a normalized lerp differs from its chord by at most 1-cos(arc/2).
+      const dot = Math.min(1, Math.max(-1, net.tx[i0] * net.tx[boundary] + net.tz[i0] * net.tz[boundary]));
+      const deviation = extent * (1 - Math.sqrt(0.5 + 0.5 * dot));
+      const divisions = Math.max(1, Math.ceil(Math.sqrt(deviation / 0.00036) * (stop - s) / span));
+      const db = net.bank[boundary] - net.bank[i0], crown = edge.spec.crown;
+      // Crown/absolute camber makes the vertical profile piecewise affine.
+      // Include those exact stations even if an entire bend is only a metre long.
+      const knots: number[] = [];
+      if (Math.abs(db) > 1e-10) {
+        for (const bank of crown > 0 ? [-crown, 0, crown] : [0]) {
+          const knot = segmentStart + (bank - net.bank[i0]) * span / db;
+          if (knot > s + 1e-8 && knot < stop - 1e-8) knots.push(knot);
+        }
+        if (db < 0) knots.reverse();
+      }
+      let k = 0;
+      for (let d = 1; d <= divisions; d++) {
+        const at = d === divisions ? stop : s + (stop - s) * d / divisions;
+        while (k < knots.length && knots[k] < at - 1e-8) setRow(count++, knots[k++]);
+        if (k < knots.length && knots[k] <= at + 1e-8) k++;
+        setRow(count++, at);
+      }
+      s = stop;
+      if (boundary < edge.last && segmentEnd <= s + 1e-9) boundary++;
     }
     simplify(0, count - 1);
     start = end;
