@@ -342,7 +342,7 @@ export class OffroadCourse {
    * gap) — from a standstill on 30° of loose soil the drive the knobby tyre
    * and the wheelie balance allow barely carries the grade — then the flat
    * ground just past the feature's end. */
-  restartS(s: number, frontReach = 0) {
+  restartS(s: number, frontReach = 0, rearReach = 0) {
     const L = this.length, at = mod(s, L);
     // The front tyre can already meet a face while the frame is still on
     // its approach. A remount at that same spot cannot build any momentum.
@@ -350,6 +350,12 @@ export class OffroadCourse {
       ? this.jumps.find((jump) => mod(jump.start - at, L) <= frontReach)
       : undefined);
     if (!j) return at;
+    // On a tabletop the chassis may already be level while its driven tyre
+    // remains on the steep face. A stranded-bike recovery considers the
+    // ground under the wheelbase as well as the remaining course ahead.
+    for (let back = rearReach; back > 0; back -= 0.25)
+      if (this.profile.evaluate(mod(at - back, L), this.scratch).dh > RESTART_CLIMB)
+        return mod(j.end + RESTART_CLEARANCE, L);
     const span = mod(j.end - at + L / 2, L) - L / 2;
     for (let x = 0; x <= span; x += 0.5)
       if (this.profile.evaluate(mod(at + x, L), this.scratch).dh > RESTART_CLIMB)

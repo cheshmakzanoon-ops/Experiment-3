@@ -256,6 +256,34 @@ describe('motocross AI rejoining', () => {
     expect(bike.airborne).toBe(true);
   });
 
+  it('pushes a stranded drive tyre over Ridge Table when the chassis has just cleared the lip', () => {
+    const { sim, bike: other, traffic: bike } = wetBeachedRider();
+    other.place(sim.track, 50);
+    sim.autoPlayer = false;
+    const course = offroadCourse(sim.track.circuit)!;
+    const ridge = course.jumps.find(j => j.name === 'RIDGE TABLE')!;
+    // This recorded wet-moto stall is 12 cm beyond the takeoff station.
+    const station = ridge.takeoff + 0.12;
+    bike.place(sim.track, station, -0.91);
+    expect(course.restartS(station)).toBeCloseTo(station, 6);
+    bike.restart(sim.track, 'stranded');
+    expect(bike.dynamics.state).toBe('remount');
+    let previous = bike.s;
+    for (let i=0;i<6*120;i++) {
+      sim.step(1/120);
+      expect(Math.abs(bike.s-previous)).toBeLessThan(0.15);
+      previous = bike.s;
+      if (bike.riding) break;
+    }
+    expect(bike.riding).toBe(true);
+    expect(bike.s).toBeGreaterThan(ridge.end);
+    const onTop = ridge.takeoff + bike.bikeSpec.cgToRear + bike.bikeSpec.rearWheelRadius + 1;
+    bike.place(sim.track,onTop,-0.91);
+    bike.restart(sim.track,'stranded');
+    expect(bike.riding).toBe(true);
+    expect(bike.s).toBeCloseTo(onTop,1);
+  });
+
   it.each(['BARN DOUBLE', 'SUMMIT TABLE'])('pushes a beached front tyre off the %s approach', (name) => {
     const { sim, bike: other, traffic: bike } = wetBeachedRider();
     other.place(sim.track, 50);

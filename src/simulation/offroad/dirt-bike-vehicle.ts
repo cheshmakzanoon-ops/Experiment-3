@@ -1705,7 +1705,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     // immediately below a face repeats the stall. Even an ideal level
     // run-up needs v² / (2a) to reach the surveyed rolling entry speed.
     const runup = next ? rollSpeed(next.jump.lipHeight) ** 2 / (2 * RUNUP_TRACTION_ACCELERATION) : 0;
-    const s = course.restartS(p.s, Math.max(rim, runup));
+    const rearReach = stranded ? this.bikeSpec.cgToRear + this.bikeSpec.rearWheelRadius : 0;
+    const s = course.restartS(p.s, Math.max(rim, runup), rearReach);
     if (s === mod(p.s, track.length)) return;
     const lateral = (this.remount.x - p.x) * p.nx + (this.remount.z - p.z) * p.nz;
     track.at(s, p);
