@@ -224,7 +224,9 @@ describe('Festival surfacing integration', () => {
     const point = trackPoint();
     try {
       const quarry = roads.root.getObjectByProperty('material', roads.materials.gravel) as T.Mesh;
-      expect(quarry.geometry.getAttribute('position').count).toBeGreaterThan(0);
+      const quarryVertices = quarry.geometry.getAttribute('position').count;
+      expect(quarryVertices).toBeGreaterThan(0);
+      expect(quarryVertices).toBeLessThan(quarry.geometry.getIndex()!.count / 3);
       const gravel = compile(roads.materials.gravel);
       expect(gravel.uniforms.festivalRolledGravel.value).toBe(1);
       expect(compile(roads.materials.dirt).uniforms.festivalRolledGravel.value).toBe(0);
@@ -247,6 +249,7 @@ describe('Festival surfacing integration', () => {
           object.material === roads.materials.apron;
         const verge = object.material === roads.materials.verge;
         if (!surface && !paint && !verge) return;
+        expect(geometry.getAttribute('uv1')).toBe(uv);
         expect(context).toBeDefined();
         expect(context.count).toBe(geometry.getAttribute('position').count);
         if (surface) {

@@ -303,7 +303,7 @@ describe('Festival circuit rendering', () => {
     const materials = new Set<T.Material>();
     let apronVertices = 0,
       whiteVertices = 0,
-      asphaltVertices = 0,
+      asphaltTriangles = 0,
       error = 0,
       smallestWidth = Infinity,
       greatestWidth = 0;
@@ -317,10 +317,8 @@ describe('Festival circuit rendering', () => {
         const uv = object.geometry.getAttribute('uv');
         if (object.material === roads.materials.asphaltMajor) {
           const profile = object.geometry.getAttribute('festivalRoadData');
-          for (let i = 0; i < profile.count; i++) {
-            expect(profile.getY(i)).toBe(0);
-            asphaltVertices++;
-          }
+          for (let i = 0; i < profile.count; i++) expect(profile.getY(i)).toBe(0);
+          asphaltTriangles += object.geometry.index!.count / 3;
         }
         if (object.material === roads.materials.paint)
           for (let i = 0; i < uv.count; i++) {
@@ -352,7 +350,7 @@ describe('Festival circuit rendering', () => {
       });
       expect(apronVertices).toBeGreaterThan(300);
       expect(whiteVertices).toBeGreaterThan(500);
-      expect(asphaltVertices).toBeGreaterThan(2000);
+      expect(asphaltTriangles).toBe((edge.last - edge.first) * 8);
       expect(smallestWidth).toBeCloseTo(0, 4);
       expect(greatestWidth).toBeGreaterThan(0.45);
       expect(error).toBeLessThan(0.0001);

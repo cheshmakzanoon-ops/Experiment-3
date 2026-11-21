@@ -97,8 +97,10 @@ class Builder {
     const g = new T.BufferGeometry();
     g.setAttribute('position', new T.Float32BufferAttribute(this.positions, 3));
     g.setAttribute('normal', new T.Float32BufferAttribute(this.normals, 3));
-    g.setAttribute('uv', new T.Float32BufferAttribute(this.uvs, 2));
-    g.setAttribute('uv1', new T.Float32BufferAttribute(this.uvs, 2));
+    // The colour and ambient-occlusion maps use the same road-metre coordinates.
+    const uv = new T.Float32BufferAttribute(this.uvs, 2);
+    g.setAttribute('uv', uv);
+    g.setAttribute('uv1', uv);
     if (this.roadData.length) {
       if (this.roadData.length !== this.count * 4)
         throw new Error('Festival road metadata must cover every vertex of its material batch');
@@ -493,6 +495,10 @@ export class RoadMeshes {
         height: SurfaceHeight = (pt, l) => net.surfaceHeight(pt, l, hw, crown);
       const frame = new FestivalRoadFrame(net, e);
       const across = [-hw, -hw * 0.5, 0, hw * 0.5, hw];
+      let previousBuilder: Builder | undefined;
+      let previousEndRow: number[] = [];
+      let previousShoulder: Builder | undefined;
+      const shoulderEnds: number[][] = [[], []];
       // Running surface and verges, segment by segment.
       for (let i = e.first; i < e.last; i++) {
         net.pointOnSegment(i, 0, p);
@@ -521,9 +527,13 @@ export class RoadMeshes {
             );
           });
         };
-        const r0 = row(p, v0),
+        // Connected spans meet at the same authored station. Share that
+        // cross-section inside a batch and start a fresh one at culling seams.
+        const r0 = previousBuilder === b ? previousEndRow : row(p, v0),
           r1 = row(q, v1);
         for (let k = 0; k < across.length - 1; k++) b.quad(r0[k], r0[k + 1], r1[k], r1[k + 1]);
+        previousBuilder = b;
+        previousEndRow = r1;
         // Carry the supported shoulder through bridge spans to the parapet face.
         const bridge =
           (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0;
@@ -574,11 +584,15 @@ export class RoadMeshes {
               );
               return [inner, outer];
             };
-            const [a0, a1] = edge(p, v0),
-              [c0, c1] = edge(q, v1);
+            const sideIndex = side < 0 ? 0 : 1;
+            const [a0, a1] = previousShoulder === vb ? shoulderEnds[sideIndex] : edge(p, v0);
+            const next = edge(q, v1);
+            const [c0, c1] = next;
             if (side > 0) vb.quad(a0, a1, c0, c1);
             else vb.quad(a1, a0, c1, c0);
+            shoulderEnds[sideIndex] = next;
           }
+          previousShoulder = vb;
         }
         if (bridge) {
           const rails = net.flags[i] & net.flags[i + 1];
@@ -760,17 +774,21 @@ export class RoadMeshes {
       spec = e.spec,
       hw = spec.halfWidth;
     if (spec.markings === 'none') return;
-    const p = roadPoint();
+    let a = roadPoint(),
+      b = roadPoint();
     const step = FESTIVAL_CIRCUIT_PAINT.lineStep;
     for (const line of festivalMarkings(net).lines[e.index]) {
       forEachPaintSpan(line, (from, to) => {
+        // Each dash or continuous line owns its ends. A new span can have
+        // a different width, material or a visible gap before it.
+        let previousPaint: Builder | undefined;
+        let endLeft = -1,
+          endRight = -1;
+        net.at(e.offset + from, a);
         for (let s = from; s < to; s += step) {
           const end = Math.min(to, s + step);
-          net.at(e.offset + s, p);
-          const a = { ...p };
-          net.at(e.offset + end, p);
-          const b = { ...p },
-            builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
+          net.at(e.offset + end, b);
+          const builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
           const corner = (pt: TrackPoint, l: number, v: number) => {
             const n = frame.normal(pt, l);
             return builderAt.vertex(
@@ -787,11 +805,15 @@ export class RoadMeshes {
             );
           };
           const w = line.width / 2;
-          const a0 = corner(a, line.lateral - w, s),
-            a1 = corner(a, line.lateral + w, s),
-            b0 = corner(b, line.lateral - w, end),
-            b1 = corner(b, line.lateral + w, end);
-          builderAt.quad(a0, a1, b0, b1);
+          const a0 = previousPaint === builderAt ? endLeft : corner(a, line.lateral - w, s),
+            a1 = previousPaint === builderAt ? endRight : corner(a, line.lateral + w, s);
+          endLeft = corner(b, line.lateral - w, end);
+          endRight = corner(b, line.lateral + w, end);
+          builderAt.quad(a0, a1, endLeft, endRight);
+          previousPaint = builderAt;
+          const swap = a;
+          a = b;
+          b = swap;
         }
       });
     }
