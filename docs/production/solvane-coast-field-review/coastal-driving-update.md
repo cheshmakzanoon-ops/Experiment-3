@@ -10,6 +10,10 @@ On Harbour Front, the zebra bars lead into dropped kerbs with tactile paving. St
 
 Each of the ten road cars carries two convex wing mirrors and a flat interior mirror. Their views are rendered from the seated eye through the individual glass planes. The centre display follows the car along the road network and shows the current street and speed limit. The reversing lights follow the selected gear, including when the car is rolling in the opposite direction. The camera follows the sprung car and respects the reduced-motion setting.
 
+![All ten original Solvane road cars, with forward- and reverse-gear close-ups of the hatchback, pickup and supercar](festival-road-cars.webp)
+
+The car plate uses the highest-detail production bodies under one studio light rig. The lower pairs keep the camera fixed and change the gearbox snapshot. The white reverse cells brighten independently of the red brake circuits. The geometry check also covers the intermediate and distant bodies for all ten cars.
+
 ![Gameplay captures of the cockpit, Saltmarsh fields, Kestrel runway and Port Ilse harbour](festival-gameplay.webp)
 
 At Saltmarsh, planted rows, cut stubble, headlands and tractor wheelways sit on the same terrain sampled by the wheels. The distant rows follow the same bearings as the individual plants. At Port Ilse, three working launches follow the harbour swell. Each boat swings from its bow eye to a moving buoy on a 3.87 m line. A three-minute test checks both ends, rope length and the pose after seeking backward in time. On the steep quay bank, masonry courses run horizontally from the sea-level datum. The tide band stays damp above the waterline.
