@@ -449,6 +449,7 @@ export const SOLVANE: RegionDefinition = Object.freeze({
     { kind: 'granary', x: 2974, z: -850, heading: 0.2, width: 7.35, length: 10.6, height: 15.4 },
     { kind: 'warehouse', x: 2350, z: -2600, heading: 0, width: 30, length: 70, height: 12 },
     { kind: 'warehouse', x: 2350, z: -2480, heading: 0, width: 30, length: 70, height: 12 },
+    { kind: 'warehouse', x: 576, z: -2628, heading: 0, width: 15, length: 24, height: 6.8 },
   ],
   roads: [
     {

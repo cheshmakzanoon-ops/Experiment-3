@@ -13,6 +13,7 @@ import {
 import { FACADE_ATLAS_GLSL, FacadeAtlas } from './facade-atlas.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
 import { addFarmGable } from './farm-gable.ts';
+import { addQuayWarehouse } from './quay-warehouse.ts';
 import { HeadlandLantern } from './headland-lantern.ts';
 import type { QualityPreset } from '../options.ts';
 import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
@@ -744,6 +745,22 @@ export class Buildings {
         w,
       );
     };
+    if (s.kind === 'warehouse') {
+      // These panes form the roof and the walls. Keep them in the shared
+      // silhouette index at every distance, including the shadow pass.
+      addQuayWarehouse(
+        {
+          quad: (points, normal, uv, colour, finish) =>
+            m.quad(points, normal, uv, colour, finish, m.index),
+          tri: (points, normal, colour, finish) => m.tri(points, normal, colour, finish),
+        },
+        s,
+        local,
+        box,
+        style,
+      );
+      return;
+    }
     if (s.kind === 'granary') {
       const { hx, hz } = s,
         eave = top - 0.85,
