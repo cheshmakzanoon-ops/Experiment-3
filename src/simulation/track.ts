@@ -235,7 +235,7 @@ export class Track {
     else this.laneIndex = isGpCourse(this) ? new TrackLaneIndex(this.points, 2048) : null;
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
-    this.sampleWeather(0);
+    this.#sampleWeather(0);
     this.cold =
       keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) ||
       (weatherSurfaceStart(preset).frozenMm ?? 0) > 0;
@@ -630,7 +630,7 @@ export class Track {
   }
   /** The forecast remains observable outside the building. The race frame,
    * tyre physics and effects read the air and precipitation over the floor. */
-  private sampleWeather(time: number) {
+  #sampleWeather(time: number) {
     this.weather.sample(time, this);
     if (!this.circuit.offroad?.indoor) return;
     this.rain = 0;
@@ -651,7 +651,7 @@ export class Track {
     // Long calls visit the same weather endpoints as ordinary worker ticks.
     const step = 0.5;
     while (this.surfaceClock >= step - 1e-9) {
-      this.sampleWeather(time - this.surfaceClock + step);
+      this.#sampleWeather(time - this.surfaceClock + step);
       // The pavement sees the fog's shade as well as the sky's cloud.
       const ground: SurfaceWeather =
         this.fogCover > 0
@@ -724,7 +724,7 @@ export class Track {
         }
       this.surfaceClock = Math.max(0, this.surfaceClock - step);
     }
-    this.sampleWeather(time);
+    this.#sampleWeather(time);
   }
   interact(
     cell: number,
