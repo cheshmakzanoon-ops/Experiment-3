@@ -86,6 +86,14 @@ The SC-7 recording follows two four-second sections of a wet, six-entrant Port I
 
 [Watch the SC-7 brake and corner in Port Ilse (8 seconds)](port-ilse-sc7.mp4)
 
+All ten Festival road cars also completed a wet, six-car Port Ilse Street Loop with zero pilot resets and zero time off course. The production wheel presentation functions returned finite hub, steering, angular-speed and rotation values in 2,354,584 wheel evaluations. Each evaluation sampled the midpoint between adjacent 120 Hz racing snapshots. Hub travel across the 40 wheels ranged from 38.3 to 83.5 mm over a complete race. The maximum inside/outside steering difference ranged from 6.17° to 8.15° across the ten cars. Per-wheel results and race times are in the measurements file.
+
+Run the fleet measurement from the repository root after installing dependencies. Appending a vehicle ID such as `eh3` restricts it to that car.
+
+```sh
+node --experimental-transform-types docs/production/solvane-coast-field-review/wheel-motion.mjs
+```
+
 A wet four-car Ashvale Sprint replay fed identical recorded SC-7 commands to the production 120 Hz stepper. The visual clock ran at 30, 60 and 144 Hz, then alternated between 6.94 and 37.50 ms per update. Each run finished in 82.10 seconds. All 13,200 player-and-rival snapshots matched at every physics tick, covering 71,174,400 bytes per run. These measurements concern simulation timing and state. Display frame times require a hardware capture.
 
 To repeat the replay from the repository root, install the project dependencies and run the included check.
