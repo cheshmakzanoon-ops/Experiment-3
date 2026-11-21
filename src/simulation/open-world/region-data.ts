@@ -231,7 +231,7 @@ export interface TownSpec {
   density: number;
 }
 export interface LandmarkSpec {
-  kind: 'hangar' | 'tower' | 'terminal' | 'lighthouse' | 'farm' | 'chapel' | 'warehouse';
+  kind: 'hangar' | 'tower' | 'terminal' | 'lighthouse' | 'farm' | 'granary' | 'chapel' | 'warehouse';
   x: number;
   z: number;
   /** Heading of the long axis (rad). */
@@ -443,6 +443,8 @@ export const SOLVANE: RegionDefinition = Object.freeze({
     { kind: 'farm', x: 1520, z: 120, heading: 1.1, width: 14, length: 24, height: 8 },
     { kind: 'farm', x: 2950, z: -860, heading: 0.2, width: 12, length: 30, height: 8 },
     { kind: 'chapel', x: -780, z: 830, heading: 0.2, width: 10, length: 22, height: 14 },
+    { kind: 'granary', x: -1701, z: -328, heading: -0.3, width: 6.8, length: 9.8, height: 13.6 },
+    { kind: 'granary', x: 2974, z: -850, heading: 0.2, width: 7.35, length: 10.6, height: 15.4 },
     { kind: 'warehouse', x: 2350, z: -2600, heading: 0, width: 30, length: 70, height: 12 },
     { kind: 'warehouse', x: 2350, z: -2480, heading: 0, width: 30, length: 70, height: 12 },
   ],

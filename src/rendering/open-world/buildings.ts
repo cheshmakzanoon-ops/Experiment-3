@@ -30,6 +30,7 @@ const KIND_CODE: Record<Structure['kind'], number> = {
   tower: 7,
   lighthouse: 8,
   warehouse: 9,
+  granary: 10,
 };
 /** Linear-ish wall albedos: limewash, ochre, pale blue, terracotta, brick,
  * concrete, stone; corrugated metal for sheds. */
@@ -310,6 +311,20 @@ vec2 owPaneTilt;`,
     diffuseColor.rgb *= mix(vec3(1.0), vec3(0.47, 0.074, 0.047), stripe);
     diffuseColor.rgb *= (0.91 + 0.1 * grain) * (1.0 - 0.16 * toe) * (1.0 - 0.085 * max(mortar.x, mortar.y) * close);
     owWallRoughness = 0.88 + 0.07 * grain;
+  } else if (kind > 9.5) {
+    // Broad vertical sheets, raised fastener laps and dirt under the eaves.
+    float ribPhase = q.x * 6.2832 / 0.185;
+    float ridgeResolve = 1.0 - smoothstep(0.85, 3.0, fwidth(ribPhase));
+    float rib = sin(ribPhase) * ridgeResolve;
+    vec2 sheet = q / vec2(1.12, 3.2);
+    vec2 seam = min(fract(sheet), 1.0-fract(sheet));
+    vec2 seamAA = max(fwidth(sheet),vec2(0.001));
+    vec2 lap = (1.0-smoothstep(vec2(0.004),vec2(0.018)+seamAA,seam)) *
+      (1.0-smoothstep(vec2(0.05),vec2(0.66),seamAA));
+    float stain = owNoise(q*vec2(0.92,0.17) + style * 13.0);
+    diffuseColor.rgb *= 0.92 + 0.08 * stain + 0.037 * rib - max(lap.x,lap.y) * 0.13;
+    owWallRelief = 0.009 * rib + 0.003 * max(lap.x,lap.y);
+    owWallRoughness = 0.59 + 0.17 * stain;
   } else if (shed) {
     owRib = sin(q.x * 6.2832 / 0.6);
     diffuseColor.rgb *= 0.92 + 0.08 * owRib;
@@ -500,7 +515,10 @@ export class Buildings {
       let block = chunks.get(key);
       if (!block) chunks.set(key, (block = []));
       block.push(s);
-      if (s.kind === 'lighthouse') this.headlands.push(new HeadlandLantern(s, this.headlands.length ? this.lantern.clone() : this.lantern));
+      if (s.kind === 'lighthouse')
+        this.headlands.push(
+          new HeadlandLantern(s, this.headlands.length ? this.lantern.clone() : this.lantern),
+        );
     }
     let triangles = 0;
     for (const [key, block] of chunks) {
@@ -694,6 +712,113 @@ export class Buildings {
         w,
       );
     };
+    if (s.kind === 'granary') {
+      const { hx, hz } = s,
+        eave = top - 0.85,
+        concrete = 0xa39b89;
+      const cladding = pick([0xabb4ad, 0xa9aba2, 0x929f96], 4),
+        iron = 0x515b58;
+      const steelFace = [style, kind, 0, s.height] as const;
+      const rotateNormal = (x: number, y: number, z: number) =>
+        [c * x - n * z, y, n * x + c * z] as const;
+      box(0, base + 0.52, 0, 2 * hx + 0.08, 1.04, 2 * hz + 0.08, concrete);
+      const lower = base + 0.95;
+      for (const [x0, z0, x1, z1, nx, nz] of [
+        [-hx, -hz, hx, -hz, 0, -1],
+        [hx, -hz, hx, hz, 1, 0],
+        [hx, hz, -hx, hz, 0, 1],
+        [-hx, hz, -hx, -hz, -1, 0],
+      ]) {
+        const width = Math.hypot(x1 - x0, z1 - z0);
+        m.quad(
+          [local(x1, lower, z1), local(x0, lower, z0), local(x0, eave, z0), local(x1, eave, z1)],
+          rotateNormal(nx, 0, nz),
+          [
+            [width, 0],
+            [0, 0],
+            [0, eave - lower],
+            [width, eave - lower],
+          ],
+          cladding,
+          steelFace,
+        );
+      }
+      const slope = Math.atan2(top - eave, hz);
+      for (const side of [-1, 1]) {
+        const a = local(-hx - 0.16, eave, side * (hz + 0.16));
+        const b = local(hx + 0.16, eave, side * (hz + 0.16));
+        const r0 = local(-hx - 0.16, top, 0),
+          r1 = local(hx + 0.16, top, 0);
+        m.quad(
+          side > 0 ? [a, b, r1, r0] : [b, a, r0, r1],
+          rotateNormal(0, Math.cos(slope), side * Math.sin(slope)),
+          [
+            [0, 0],
+            [hx * 2, 0],
+            [hx * 2, hz],
+            [0, hz],
+          ],
+          0x606b68,
+          detailFacade,
+        );
+        const x = side * hx;
+        const g0 = local(x, eave, -hz),
+          g1 = local(x, eave, hz),
+          apex = local(x, top, 0);
+        m.tri(
+          side > 0 ? [g1, g0, apex] : [g0, g1, apex],
+          rotateNormal(side, 0, 0),
+          cladding,
+          detailFacade,
+        );
+        box(0, eave - 0.16, side * hz, 2 * hx + 0.18, 0.3, 0.16, iron);
+        for (const end of [-1, 1])
+          box(
+            end * (hx - 0.045),
+            (lower + eave) / 2,
+            side * (hz - 0.045),
+            0.17,
+            eave - lower,
+            0.17,
+            iron,
+          );
+        // Gravity vents sit above the grain line on both long elevations.
+        const vy = eave - 1.35,
+          vz = side * (hz + 0.045);
+        for (const station of [-0.51, 0.51]) {
+          const vx = hx * station;
+          box(vx, vy, vz, 1.48, 0.98, 0.085, 0x36403e);
+          for (let i = -2; i <= 2; i++)
+            box(vx, vy + i * 0.161, vz + side * 0.06, 1.37, 0.054, 0.1, 0x8b938b);
+          box(vx, vy + 0.51, vz + side * 0.06, 1.64, 0.1, 0.28, iron);
+        }
+      }
+      box(0, top + 0.01, 0, 2 * hx + 0.36, 0.09, 0.23, iron);
+      // The projecting threshold and rails sit on the loading elevation.
+      const doorX = -hx * 0.24,
+        doorZ = hz + 0.07;
+      box(doorX, base + 2.36, doorZ, 3.35, 3.1, 0.12, 0x4d5752);
+      for (let k = 0; k < 10; k++)
+        box(doorX, base + 1.12 + k * 0.27, doorZ + 0.075, 3.05, 0.075, 0.045, 0x737d74);
+      for (const side of [-1, 1])
+        box(doorX + 1.7 * side, base + 2.32, doorZ, 0.14, 3.3, 0.24, iron);
+      box(doorX, base + 3.99, doorZ + 0.03, 3.68, 0.16, 0.35, iron);
+      const ladderX = hx + 0.19,
+        ladderZ = -hz * 0.42;
+      for (const side of [-1, 1])
+        box(
+          ladderX,
+          (base + 1 + top) / 2,
+          ladderZ + side * 0.27,
+          0.065,
+          top - base - 1,
+          0.062,
+          iron,
+        );
+      for (let y = base + 1.35; y < eave + 0.15; y += 0.31)
+        box(ladderX, y, ladderZ, 0.056, 0.042, 0.56, 0x88918b);
+      return;
+    }
     if (s.kind === 'tower' || s.kind === 'lighthouse') {
       // Round shaft (16 sides), lighthouse white with a red band.
       const r = Math.min(s.hx, s.hz),
@@ -925,6 +1050,32 @@ export class Buildings {
           wall,
           [style, kind, -3, s.height],
         );
+      }
+      if (s.kind === 'farm') {
+        // Ventilated hay lofts face each gable, clear of the windows below.
+        const rise = ridge - top;
+        for (const side of [-1, 1]) {
+          const x = side * (hx + 0.055),
+            y = top + rise * 0.39;
+          const width = Math.min(1.84, hz * 0.32),
+            height = rise * 0.43;
+          box(x, y, 0, 0.13, height, width, 0x40423b);
+          for (let k = 0; k < 6; k++)
+            box(
+              x + side * 0.07,
+              y + ((k + 0.5) / 6 - 0.5) * height,
+              0,
+              0.12,
+              height * 0.074,
+              width - 0.12,
+              0x937b62,
+            );
+          for (const hand of [-1, 1])
+            box(x + side * 0.07, y, (hand * width) / 2, 0.15, height + 0.19, 0.11, 0xb3a18b);
+          box(x + side * 0.11, y + height / 2 + 0.07, 0, 0.39, 0.12, width + 0.34, 0x66594c);
+        }
+        for (const side of [-1, 1])
+          box(0, top - 0.18, side * (hz + o - 0.08), 2 * (hx + o), 0.18, 0.14, 0x766758);
       }
       if (s.kind === 'chapel') {
         // Bell tower at the west end.
