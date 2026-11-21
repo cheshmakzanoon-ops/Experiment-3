@@ -17,3 +17,10 @@ export function bikeSlipstreamDragScale(tuck: number, tuckDrag: number, tow: num
   const following = 1 - GP_MAX_TOW_DRAG_REDUCTION * clamp(finite(tow), 0, 1);
   return rider * following;
 }
+
+/** Fraction of the prototype's clean-air wing load in the leader's wake.
+ * This is the existing GP approach-planner calibration. Apply it to the same
+ * force that loads the fork and rear shock, independently of drag reduction. */
+export function gpWingAirflow(wake: number) {
+  return 1 - 0.3 * (Number.isFinite(wake) ? clamp(wake, 0, 1) : 0);
+}

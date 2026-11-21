@@ -56,6 +56,27 @@ function machine(definition: VehicleDefinition, track: ProfileTrack, speed = 0, 
 }
 
 describe('production road/GP sprung chassis and unilateral contacts', () => {
+  it.each([GP_R1, GP_R2])('$id loads both axles with the wing force reported in and out of a wake', (definition) => {
+    const track = new ProfileTrack(flat);
+    const clean = machine(definition, track, 55);
+    const following = machine(definition, track, 55);
+    following.wake = 1;
+    for (let step = 0; step < 120; step++) {
+      clean.step(DT, track);
+      following.step(DT, track);
+    }
+    const coefficient = definition.bike!.downforce;
+    expect(clean.dynamics.p.downforce).toBe(coefficient);
+    expect(following.dynamics.p.downforce).toBeCloseTo(0.7 * coefficient, 10);
+    expect(following.aero.front + following.aero.rear)
+      .toBeCloseTo(0.7 * coefficient * following.speed ** 2, 8);
+    expect(following.roadSuspension.frontCompression).toBeLessThan(clean.roadSuspension.frontCompression);
+    expect(following.roadSuspension.rearCompression).toBeLessThan(clean.roadSuspension.rearCompression);
+    following.wake = 0;
+    following.step(DT, track);
+    expect(following.dynamics.p.downforce).toBe(coefficient);
+  });
+
   it.each([GP_R1, GP_R2, SS_600])(
     '$id settles at static sag with weight supported once',
     (definition) => {

@@ -6,6 +6,7 @@ import {
   gpLiveryMaterial,
   gpRaceBodywork,
 } from '../src/rendering/gp-race-bodywork.ts';
+import { gpAerofoil } from '../src/rendering/gp-aerofoil.ts';
 import { shellPanelGeometry, type P3 } from '../src/rendering/gp-race-shell.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { meshColumnsFor, meshSurfaceIntrusion } from './gp-mesh-clearance.ts';
@@ -30,6 +31,29 @@ const release = (root: T.Object3D) =>
   });
 
 describe('GP race shell control-net surfaces', () => {
+  it('faces the painted exterior outward and closes the ends of a tapered aerofoil', () => {
+    const foil = gpAerofoil([[0, 0, 0], [0.15, 0, 0], [0.3, 0, 0]], 0.18, 0.12, 6, 16, 0.08);
+    const surface = new T.Mesh(foil, new T.MeshBasicMaterial({ side: T.FrontSide }));
+    const down = new T.Vector3(0, -1, 0);
+    const cast = (x: number, z: number) =>
+      new T.Raycaster(new T.Vector3(x, 0.1, z), down).intersectObject(surface)[0];
+    // At the same distance from each end of the chord a NACA section is
+    // fuller at its nose. A reversed section still passes a bounds test.
+    const chord = 0.13;
+    const nose = cast(0.15, (0.65 - 0.15) * chord);
+    const tail = cast(0.15, (0.65 - 0.85) * chord);
+    expect(nose.point.y).toBeGreaterThan(tail.point.y * 1.9);
+    expect(nose.face!.normal.y).toBeGreaterThan(0.9);
+    for (const [x, direction] of [[-0.01, 1], [0.31, -1]]) {
+      const hit = new T.Raycaster(new T.Vector3(x, 0.0005, 0.002), new T.Vector3(direction, 0, 0))
+        .intersectObject(surface)[0];
+      expect(hit.distance).toBeCloseTo(0.01);
+      expect(hit.face!.normal.x).toBeCloseTo(-direction);
+    }
+    foil.dispose();
+    surface.material.dispose();
+  });
+
   it('passes through its control points and mirrors a closed centre seam smoothly', () => {
     const net: P3[][] = [
       [

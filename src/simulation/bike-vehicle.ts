@@ -24,7 +24,7 @@ import {
 } from './bike-definitions.ts';
 import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from './config.ts';
 import { MARSHAL } from './marshal.ts';
-import { bikeSlipstreamDragScale } from './bike-slipstream.ts';
+import { bikeSlipstreamDragScale, gpWingAirflow } from './bike-slipstream.ts';
 import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
 import { peakGrip } from './tire.ts';
@@ -441,6 +441,9 @@ export class BikeVehicle extends Vehicle {
       rearGrip = this.surfaceGrip(2) * this.bumpGrip(2, this.setup.rearDamping);
     d.grip = Math.min(frontGrip, rearGrip);
     if (gpPrototype) {
+      // Parameters belong to this entrant. Start from its clean-air spec on
+      // every step, so leaving the wake restores the full wing coefficient.
+      d.p.downforce = spec.downforce * gpWingAirflow(this.wake);
       // Each GP tyre retains its own surface, temperature, wear and damping
       // response. The lower value still bounds the rider's lean intent; it
       // no longer replaces the clean wheel's longitudinal friction circle.
@@ -627,7 +630,7 @@ export class BikeVehicle extends Vehicle {
         frontForce: -d.frontBrakeForce,
         rearForce: d.driveForce - d.rearBrakeForce,
         cgHeight: d.p.cgHeight * Math.cos(roll),
-        downforce: s.downforce * d.speed * d.speed,
+        downforce: (d.p.downforce ?? 0) * d.speed * d.speed,
         downforceFront: s.downforceFront,
       },
       dt,
@@ -1165,7 +1168,7 @@ export class BikeVehicle extends Vehicle {
     this.gLong = d.longitudinal / G;
     this.gLat = lateralAccel / G;
     this.gVert = vertical ? (d.frontLoad + d.rearLoad) / (d.mass * G) : Math.hypot(1, this.gLat);
-    const downforce = spec.downforce * d.speed * d.speed;
+    const downforce = (d.p.downforce ?? 0) * d.speed * d.speed;
     this.aero.front = downforce * spec.downforceFront;
     this.aero.rear = downforce - this.aero.front;
     this.aero.floor = 0;

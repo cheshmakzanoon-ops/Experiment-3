@@ -1,3 +1,4 @@
+import { gpWingAirflow } from './bike-slipstream.ts';
 import { clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { AIDriver, ENVELOPE_SAMPLES, ENVELOPE_STEP, envelopeCornerSpeed } from './ai.ts';
 import { GP_ASSIST, leanAuthority } from './bike.ts';
@@ -547,7 +548,7 @@ export class BikeAIDriver extends AIDriver {
       aero =
         ((0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth)) *
           env.downforceReference *
-          (1 - 0.3 * c.wake)) /
+          gpWingAirflow(c.wake)) /
         (c.spec.dryMass + c.fuel),
       count = gpApproachSampleCount(
         d.speed,

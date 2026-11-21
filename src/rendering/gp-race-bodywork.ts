@@ -1,3 +1,4 @@
+import { gpAerofoil } from './gp-aerofoil.ts';
 import { gpFairingOutlet } from './gp-fairing-outlet.ts';
 import * as T from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
@@ -645,66 +646,6 @@ export function gpInnerFairingGeometry(rows: number, cols: number) {
   return merged;
 }
 
-/** A closed aerofoil swept along a path; the chord follows +Z. */
-function sweptFoil(
-  path: readonly P3[],
-  chord: number,
-  thickness: number,
-  segments: number,
-  sides: number,
-): T.BufferGeometry {
-  const curve = new T.CatmullRomCurve3(
-    path.map((p) => new T.Vector3(...p)),
-    false,
-    'centripetal',
-  );
-  const position: number[] = [],
-    index: number[] = [];
-  const tangent = new T.Vector3(),
-    normal = new T.Vector3(),
-    forward = new T.Vector3(0, 0, 1);
-  // Section: NACA-like symmetric foil around the path, leading edge forward.
-  const section: [number, number][] = [];
-  for (let k = 0; k < sides; k++) {
-    const a = (k / sides) * Math.PI * 2;
-    const u = (Math.cos(a) + 1) / 2; // 0 trailing .. 1 leading
-    const half =
-      5 *
-      thickness *
-      (0.2969 * Math.sqrt(u) - 0.126 * u - 0.3516 * u * u + 0.2843 * u ** 3 - 0.1036 * u ** 4);
-    section.push([(u - 0.35) * chord, Math.sign(Math.sin(a)) * half * chord]);
-  }
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments,
-      p = curve.getPointAt(t);
-    curve.getTangentAt(t, tangent);
-    // Thickness direction is perpendicular to both the path and the chord.
-    normal.crossVectors(tangent, forward).normalize();
-    if (normal.lengthSq() < 0.5) normal.set(0, 1, 0);
-    const chordDir = new T.Vector3().crossVectors(normal, tangent).normalize();
-    if (chordDir.z < 0) chordDir.negate();
-    for (const [c, h] of section)
-      position.push(
-        p.x + chordDir.x * c + normal.x * h,
-        p.y + chordDir.y * c + normal.y * h,
-        p.z + chordDir.z * c + normal.z * h,
-      );
-  }
-  for (let i = 0; i < segments; i++)
-    for (let k = 0; k < sides; k++) {
-      const a = i * sides + k,
-        b = i * sides + ((k + 1) % sides),
-        c = a + sides,
-        d = b + sides;
-      index.push(a, c, b, b, c, d);
-    }
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
-  g.setIndex(index);
-  g.computeVertexNormals();
-  return g;
-}
-
 function mirrorGeometry(g: T.BufferGeometry) {
   const m = g.clone();
   m.scale(-1, 1, 1);
@@ -718,9 +659,24 @@ function mirrorGeometry(g: T.BufferGeometry) {
   return m;
 }
 function pair(g: T.BufferGeometry) {
-  const merged = mergeGeometries([g, mirrorGeometry(g)], false)!;
+  const opposite = mirrorGeometry(g);
+  const merged = mergeGeometries([g, opposite], false)!;
+  opposite.dispose();
   g.dispose();
   return merged;
+}
+
+/** The GP-R1 carries two swept upright tail strakes. The wider, lower GP-R2
+ * uses a shallow outboard shelf on each tail shoulder. Roots enter the tail
+ * mould behind the saddle; the tapered tips remain clear of the rider. */
+function tailFoils(variant: 'gpr1' | 'gpr2', detail: RiderDetail) {
+  const upright = variant === 'gpr1';
+  const path: P3[] = upright
+    ? [[0.045, 0.373, -0.774], [0.060, 0.395, -0.798], [0.086, 0.443, -0.849], [0.091, 0.458, -0.875]]
+    : [[0.058, 0.314, -0.778], [0.087, 0.328, -0.784], [0.122, 0.33, -0.809], [0.139, 0.319, -0.841]];
+  const segments = detail === 'high' ? 6 : detail === 'mid' ? 4 : 2;
+  const sides = detail === 'high' ? 8 : detail === 'mid' ? 6 : 4;
+  return pair(gpAerofoil(path, upright ? 0.19 : 0.18, 0.105, segments, sides, upright ? 0.068 : 0.082));
 }
 
 /** Nose box wings: an upper blade from the cheek out to an end plate that
@@ -749,7 +705,7 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
         [0.179, 0.029, z - 0.058],
       ];
   const far = detail === 'far';
-  const wing = sweptFoil(
+  const wing = gpAerofoil(
     loop,
     r2 ? 0.15 : 0.135,
     0.12,
@@ -758,7 +714,7 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
   );
   if (far) return pair(wing);
   // Inner slat: a short third element between the blades (REF 056, 060).
-  const slat = sweptFoil(
+  const slat = gpAerofoil(
     r2
       ? [
           [0.182, 0.05, z - 0.012],
@@ -785,7 +741,7 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
 function lowerScoops(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometry {
   const high = detail === 'high';
   const r2 = variant === 'gpr2';
-  const g = sweptFoil(
+  const g = gpAerofoil(
     [
       [0.238, -0.12, 0.395],
       [0.262, -0.175, 0.38],
@@ -1677,8 +1633,7 @@ export function gpRaceBodywork(
       }),
     ),
   );
-  const tailGeometry = liveryUv(
-    hemmed(
+  const tailSkin = hemmed(
       shellPanelGeometry({
         name: 'GP tail',
         net: tailNet(variant),
@@ -1687,8 +1642,8 @@ export function gpRaceBodywork(
         cols,
         caps: { start: true },
       }),
-    ),
-  );
+    );
+  const tailGeometry = variant === 'sport' ? liveryUv(tailSkin) : painted([tailSkin, tailFoils(variant, detail)]);
   const outlet =
     variant !== 'sport' && !far
       ? gpFairingOutlet(bodyGeometry, variant === 'gpr2', high)
