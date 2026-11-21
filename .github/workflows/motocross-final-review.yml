@@ -40,7 +40,8 @@ permissions:
   contents: read
 concurrency:
   group: motocross-final-review-${{ github.ref }}
-  cancel-in-progress: true
+  # Let the active races finish. The newest pending main revision runs next.
+  cancel-in-progress: false
 # This is an additional focused review, not a publication path. The full unit,
 # physics, offroad, browser and wet-presentation release gates remain in ci.yml.
 # All inputs now come from this checkout, not expiring candidate artifacts.
