@@ -6,6 +6,8 @@ import { canvasTexture } from '../geometry.ts';
 type Rect = readonly [x: number, y: number, width: number, height: number];
 const HEADER: Rect = [0, 0, 1024, 64];
 const LABELS: Rect = [448, 72, 576, 48];
+const DIVIDER: Rect = [962, 416, 40, 82];
+const TILES_PER_END = 14;
 const STATUS = ['AT THE GATE', 'STAND BY', 'RACING', 'FINISH'] as const;
 const INKS = ['#a9c6bd', '#ffc260', '#6ce8b2', '#e9eced'] as const;
 const statusTile = (phase: number): Rect => [0, 72 + phase * 108, 432, 104];
@@ -46,6 +48,10 @@ function makeAtlas() {
     c.fillStyle = '#a6bbb5';
     c.fillText('LAP', 463, 97);
     c.fillText('RACE TIME', 634, 97);
+    // This rule continues through the static gutter below the clock heading.
+    c.fillStyle = '#48615d';
+    c.fillRect(603, 78, 3, 42);
+    c.fillRect(980, 416, 4, 82);
     STATUS.forEach((title, phase) => {
       const [x, y, w, h] = statusTile(phase);
       c.fillStyle = INKS[phase];
@@ -76,7 +82,7 @@ export class MxTimingBoard {
     const positions: number[] = [],
       indices: number[] = [],
       uvs: number[] = [];
-    // Each end has thirteen non-overlapping tiles. All geometry faces the floor.
+    // Each end has fourteen non-overlapping tiles. All geometry faces the floor.
     for (const [end, centre] of centres.entries()) {
       const facing = end === 0 ? 1 : -1;
       const quad = (x: number, y: number, w: number, h: number) => {
@@ -99,8 +105,9 @@ export class MxTimingBoard {
       quad(0, 0, 1024, 68);
       quad(0, 68, 448, 188);
       quad(448, 68, 576, 52);
-      for (let i = 0; i < 2; i++) quad(448 + i * 86, 120, 86, 136);
+      for (let i = 0; i < 2; i++) quad(448 + i * 71, 120, 71, 136);
       for (let i = 0; i < 8; i++) quad(620 + i * 50.5, 120, 50.5, 136);
+      quad(590, 120, 30, 136);
     }
     const geometry = new T.BufferGeometry();
     geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
@@ -114,6 +121,7 @@ export class MxTimingBoard {
     this.mesh.name = 'Arena Nord live timing boards';
     this.setTile(0, HEADER);
     this.setTile(2, LABELS);
+    this.setTile(13, DIVIDER);
     this.display(PHASE.GRID, 1, 0);
   }
 
@@ -123,7 +131,7 @@ export class MxTimingBoard {
       right = (x + w - 1) / 1024;
     const top = 1 - (y + 1) / 512,
       bottom = 1 - (y + h - 1) / 512;
-    for (let vertex = slot * 4; vertex < this.uv.count; vertex += 13 * 4) {
+    for (let vertex = slot * 4; vertex < this.uv.count; vertex += TILES_PER_END * 4) {
       this.uv.setXY(vertex, left, bottom);
       this.uv.setXY(vertex + 1, right, bottom);
       this.uv.setXY(vertex + 2, left, top);
@@ -157,8 +165,10 @@ export class MxTimingBoard {
     const mins = Math.floor(seconds / 60) % 60;
     const secs = seconds % 60;
     const digits = this.digits;
-    digits[0] = lap >= 10 ? Math.floor(lap / 10) % 10 : BLANK;
-    digits[1] = lap % 10;
+    // Left align the lap under its label. At race distance a lone lap digit
+    // immediately beside the hour digits otherwise reads as part of the clock.
+    digits[0] = lap >= 10 ? Math.floor(lap / 10) % 10 : lap;
+    digits[1] = lap >= 10 ? lap % 10 : BLANK;
     digits[2] = Math.floor(hours / 10);
     digits[3] = hours % 10;
     digits[4] = COLON;

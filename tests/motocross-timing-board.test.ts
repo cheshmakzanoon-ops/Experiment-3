@@ -21,6 +21,11 @@ it('both arena ends follow the official leader, hold the winning time and rewind
       return ((y - 144) / 128) * 8 + (x - 448) / 72;
     });
   const gate = snapshot();
+  expect(readDigits().slice(0, 2)).toEqual([1, 11]);
+  const points = board.mesh.geometry.getAttribute('position');
+  // Each single-digit lap starts under its heading. For two-digit laps,
+  // the physical gutter between the last glyph and the clock is 0.59 m.
+  expect(points.getX(5 * 4) - points.getX(4 * 4 + 1)).toBeCloseTo(20 * 30 / 1024, 5);
   const atlasVersion = board.atlas.version;
   frame[H.PHASE] = PHASE.RACING;
   frame[H.RACE_TIME] = 3661.02;
