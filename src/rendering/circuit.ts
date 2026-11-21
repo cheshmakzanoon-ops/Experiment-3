@@ -76,6 +76,7 @@ import {
   surfaceGridFor,
 } from './studio/road-detail.ts';
 import { installWetDetail } from './studio/wet-detail.ts';
+import { installGpKerbDetail } from './gp-kerb-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { apronWidth, GP_KERB_WIDTH } from '../simulation/gp-course-edges.ts';
 import { Track, CELL_ROWS, CELL_COLS, SURFACE, trackPoint } from '../simulation/track.ts';
@@ -896,6 +897,7 @@ export class CircuitScene {
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);
     o.castShadow = false;
+    if (options.stripes && this.track.gpEdges) installGpKerbDetail(o, indices, rows, cols, ascending);
     // Narrow ribbons (painted lines, kerbs) record their measured width and a
     // centreline sampled about every 4 m for the probe detail survey.
     let width = 0;
