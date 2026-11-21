@@ -24,13 +24,21 @@ Two suspended boards show the official lap, race clock and finish state. This cl
 
 ## Outside at Valley Ridge
 
-The quarry cutting has exposed strata, broken turf and fallen rock at its base. The mechanics area and spectator group in this course-detail camera give the bank its scale. Both circuits have open steel launch grates set into the concrete. The outdoor grid uses a wider diamond pitch with the loam visible through the webs.
+The quarry cutting has exposed strata, broken turf and fallen rock at its base. The mechanics area and spectator group in this course-detail camera give the bank its scale.
 
 ![Valley Ridge quarry, exposed rock beds and spectators at track level](quarry.webp)
 
 Two wooded ridges frame the course about 0.8 and 1.25 km from its centre. This landscape study isolates the production terrain and trees. During a race, flags, grass and fine dust respond to the recorded outdoor wind. The heavy clods retain their ballistic arc. Spectators near the leaders turn as the riders pass.
 
 ![Valley Ridge hardwoods and spruce along the quarry ridge](ridge.webp)
+
+## At the starting gate
+
+Valley Ridge uses a wider steel diamond than Arena Nord. These close-ups show the production start gates from the same camera over a plain soil backdrop. Each cassette sits flush in its own concrete opening. At trackside distance the grate changes to a mipmapped surface with the same diamond pitch. A ten- or twelve-rider grid still uses one draw for the complete row of cassettes.
+
+![Matching close-ups of Valley Ridge on the left and Arena Nord on the right, showing the open steel pads on the riders’ side of the closed gate](launch-grates.webp)
+
+The [race camera gallery](../../motocross-race-review/README.md) also has both starting grids and on-track helmet views captured through the paddock in earlier builds.
 
 ## Verified in the game
 
@@ -41,6 +49,7 @@ Two wooded ridges frame the course about 0.8 and 1.25 km from its centre. This l
 | Twelve-rider Arena Nord hairpin | Seed 50206, two laps on MX450s. An outside-line restart under double yellow previously held the queue for 20.83 seconds. The revised rider inputs reduced the longest stop to 15.22 seconds. All twelve classified. |
 | Full race fields | All 56 entrants classified over six two-lap races with 2,444 landings. The longest stop across the six fields was 15.67 s. The [individual race results](race-results.json) identify each seed, weather setting and field. |
 | Event distances | The six motocross cases in the off-road race suite also finished. These included both four-lap Valley Ridge motos and the six-lap Arena Nord event with ten riders each. The longest stop in the stadium event was 13.34 s. [Race times and rider results](event-races.json) |
+| Player starts and braking | Both race bikes stayed stationary until green and stopped without a fall in eight dry and rainy tests. With the same throttle and brake inputs, the stadium MX250 stopped in 16.12 m on the clear day and 16.13 m during rain. The outdoor bikes retained the loss of traction on wet loam. [Eight measured launches](player-launches.json) |
 | Covered race during outdoor rain | In the final ten-rider test, seed 50204, the race finished in 208.94 s with 519 landings. The longest stop was 12.90 s. The same seed on the exposed stadium floor took 428.79 s with a 30.59 s stop. |
 | Helmet-camera framing | The pad, number plate and grips were checked across MX250, MX450 and SM450 at 4:3, 16:10 and 21:9. |
 | Animation playback | Recorded jumps on both race bikes at both venues produced identical helmet, torso, hand, boot, wheel and suspension transforms in 6,080 comparisons at 30, 60, 120, 144 and 240 Hz. The checks include fractional frames and camera detail changes. |

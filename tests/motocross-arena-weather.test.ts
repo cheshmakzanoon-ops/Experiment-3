@@ -1,12 +1,82 @@
 import { describe, expect, it } from 'vitest';
 import { circuitDefinition } from '../src/simulation/circuits.ts';
-import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
+import { controls, DEFAULT_OPTIONS } from '../src/simulation/config.ts';
+import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
+import { PHASE } from '../src/simulation/race.ts';
 import { H } from '../src/simulation/protocol.ts';
 import { Track, surfaceSample, trackPoint } from '../src/simulation/track.ts';
 import { CLEAR_VISIBILITY_M } from '../src/simulation/weather.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
+function manualStartAndStop(
+  circuit: 'arena-nord-sx' | 'valley-ridge-mx',
+  machine: 'mx250' | 'mx450',
+  weather: 'clear' | 'rain',
+) {
+  const sim = new Simulation({
+    ...DEFAULT_OPTIONS,
+    circuit,
+    vehicles: [machine],
+    opponents: 0,
+    laps: 2,
+    mode: 'race',
+    ruleset: 'motocross-moto',
+    assist: 'sport',
+    seed: 60117,
+    weather,
+  });
+  const rider = sim.cars[0];
+  if (!(rider instanceof DirtBikeVehicle)) throw new Error('Expected a dirt bike at the gate');
+  const input = controls();
+  let green: number | undefined, brakePoint: { x: number; z: number } | undefined;
+  let peak = 0,
+    beforeGreen = 0;
+  for (let tick = 0; tick < 120 * 20; tick++) {
+    if (sim.race.phase === PHASE.RACING) green ??= tick;
+    const elapsed = green === undefined ? -1 : (tick - green) / 120;
+    input.throttle = elapsed >= 0 && elapsed < 2.4 ? Math.min(1, elapsed / 0.3) : 0;
+    input.riderLean = elapsed >= 0 && elapsed < 1.2 ? 0.24 : 0;
+    input.brake = elapsed >= 2.6 ? Math.min(0.86, (elapsed - 2.6) * 2.4) : 0;
+    if (elapsed >= 2.6 && !brakePoint) brakePoint = { x: rider.dynamics.x, z: rider.dynamics.z };
+    sim.setInput(input);
+    sim.step(1 / 120);
+    if (elapsed < 0) beforeGreen = Math.max(beforeGreen, rider.speed);
+    peak = Math.max(peak, rider.speed);
+    if (brakePoint && elapsed >= 2.8 && rider.speed < 0.8) {
+      expect(beforeGreen).toBe(0);
+      expect(sim.autoPlayer).toBe(false);
+      expect(sim.race.laps[0].jumped).toBe(false);
+      expect(rider.riding).toBe(true);
+      expect(rider.dynamics.crashes).toBe(0);
+      return {
+        peak,
+        distance: Math.hypot(rider.dynamics.x - brakePoint.x, rider.dynamics.z - brakePoint.z),
+      };
+    }
+  }
+  throw new Error('The player did not clear the gate and stop on the approach');
+}
+
 describe('Arena Nord roof over the racing surface', () => {
+  it.each(['mx250', 'mx450'] as const)(
+    'keeps the manual %s launch and braking distance consistent under the roof during rain',
+    (bike) => {
+      const dry = manualStartAndStop('arena-nord-sx', bike, 'clear');
+      const rain = manualStartAndStop('arena-nord-sx', bike, 'rain');
+      expect(dry.peak).toBeGreaterThan(10);
+      expect(dry.distance).toBeGreaterThan(8);
+      expect(Math.abs(rain.peak - dry.peak)).toBeLessThan(0.2);
+      expect(Math.abs(rain.distance - dry.distance)).toBeLessThan(0.3);
+
+      const outdoors = manualStartAndStop('valley-ridge-mx', bike, 'clear');
+      const wet = manualStartAndStop('valley-ridge-mx', bike, 'rain');
+      expect(wet.peak).toBeGreaterThan(1);
+      expect(wet.peak).toBeLessThan(outdoors.peak);
+      expect(wet.distance).toBeGreaterThan(0);
+      expect(wet.distance).toBeLessThan(outdoors.distance);
+    },
+  );
+
   it('keeps atmospheric rain out of every wheel contact and the displayed race, including after the gate', () => {
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,
