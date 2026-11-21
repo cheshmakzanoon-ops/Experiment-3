@@ -78,5 +78,49 @@
     "venue": "arena-nord-sx",
     "preset": "Low",
     "result": "An earlier cold-start run reached circuit and vehicle material compilation but did not reach the eight-rider briefing within 600 seconds."
+  },
+  "focusedRegression": {
+    "testFiles": 15,
+    "passing": 98,
+    "suites": {
+      "motocross-arena-lighting.test.ts": 6,
+      "motocross-arena-weather.test.ts": 4,
+      "motocross-body-input.test.ts": 10,
+      "motocross-braking-bumps.test.ts": 9,
+      "motocross-cockpit-view.test.ts": 5,
+      "motocross-course-landmarks.test.ts": 6,
+      "motocross-course-sites.test.ts": 4,
+      "motocross-dust-ground.test.ts": 2,
+      "motocross-environment.test.ts": 15,
+      "motocross-grass-tufts.test.ts": 3,
+      "motocross-grid-preparation.test.ts": 12,
+      "motocross-rider-motion.test.ts": 14,
+      "motocross-snapshot-cadence.test.ts": 2,
+      "motocross-spectators.test.ts": 5,
+      "motocross-timing-board.test.ts": 1
+    }
+  },
+  "coldHighPresetChecks": {
+    "preset": "High",
+    "viewportPixels": [
+      848,
+      530
+    ],
+    "backend": "Chromium ANGLE/Vulkan SwiftShader",
+    "valleyRidge": "Prepared four riders and reached the wait for the chase GPU submission. The browser test ended before the grid briefing was observed.",
+    "secondFreshLaunch": "A separate cold launch still had the showroom hidden after 300 seconds, before the stadium could be selected."
+  },
+  "activeRaceHighPreset": {
+    "circuit": "valley-ridge-mx",
+    "motorcycle": "mx450",
+    "riders": 4,
+    "viewportPixels": [
+      704,
+      440
+    ],
+    "raceEntryPreset": "Low",
+    "gateReleased": true,
+    "keyboardThrottleMps": 9.0394,
+    "result": "Chromium reported a page crash during the in-race High settings check, before a High chase or helmet frame was confirmed."
   }
 }
