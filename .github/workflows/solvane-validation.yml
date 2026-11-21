@@ -20,6 +20,8 @@ jobs:
   contracts:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
+    outputs:
+      fingerprint: ${{ steps.product.outputs.fingerprint }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,6 +31,7 @@ jobs:
           node-version: '22.16.0'
       - run: npm ci --no-audit --no-fund
       - name: Source-guarded focused contracts and production build
+        id: product
         env:
           HORIZON_GAMEPLAY_OUTPUT: ${{ runner.temp }}/solvane-driving.json
         run: |
@@ -37,6 +40,10 @@ jobs:
           node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content
           node --experimental-transform-types scripts/source-stability.ts -- node --experimental-transform-types scripts/horizon-gameplay-validation.ts
           node --experimental-transform-types scripts/source-stability.ts -- npm run build
+          fingerprint=$(jq -er --arg commit "$GITHUB_SHA" \
+            'select(.commit == $commit and .variant == "product") | .fingerprint | select(test("^[0-9a-f]{64}$"))' \
+            dist/BUILD_IDENTITY.json)
+          printf 'fingerprint=%s\n' "$fingerprint" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -75,6 +82,7 @@ jobs:
       HORIZON_REVIEW_URL: http://127.0.0.1:5173
       HORIZON_REVIEW_OUTPUT: test-results/solvane-${{ matrix.view }}
       HORIZON_REVIEW_IDENTITY: /tmp/solvane-identity.json
+      SOLVANE_BUILD_FINGERPRINT: ${{ needs.contracts.outputs.fingerprint }}
       SOLVANE_REVIEW_VIEW: ${{ matrix.view }}
     steps:
       - uses: actions/checkout@v4
@@ -96,7 +104,13 @@ jobs:
           for folder in ['src','public','e2e','scripts']:
               for p in sorted(Path(folder).rglob('*')):
                   if p.is_file() and p.name!='supplied-player-lods.bin.gz': files[p.as_posix()]=hashlib.sha256(p.read_bytes()).hexdigest()
-          identity={'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'workingTreeChanges':subprocess.check_output(['git','status','--porcelain'],text=True),'sourceAndAssetSHA256':files,'notHardwarePerformance':True}
+          identity={
+              'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'fingerprint':os.environ['SOLVANE_BUILD_FINGERPRINT'],
+              'workingTreeChanges':subprocess.check_output(['git','status','--porcelain'],text=True),
+              'sourceAndAssetSHA256':files,
+              'notHardwarePerformance':True,
+          }
           Path(os.environ['HORIZON_REVIEW_IDENTITY']).write_text(json.dumps(identity,indent=2)+'\n')
           PY
           node scripts/solvane-review-server.mjs > "$RUNNER_TEMP/solvane-server.log" 2>&1 &
