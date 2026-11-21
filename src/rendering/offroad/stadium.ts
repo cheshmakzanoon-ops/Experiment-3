@@ -4,6 +4,7 @@ import { MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mxRoofDeck } from './mx-roof-deck.ts';
+import { MxTimingBoard } from './mx-timing-board.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
@@ -96,6 +97,7 @@ export class Stadium {
   readonly crowd: T.InstancedMesh;
   readonly nearCrowd: T.InstancedMesh;
   readonly audience: MxStadiumAudience;
+  readonly timing: MxTimingBoard;
   /** The roof's regular floodlight grid (world metres): lamp (i, k) hangs at
    * (minX + (i + 0.5) * spanX / columns, y, minZ + (k + 0.5) * spanZ / rows). */
   readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
@@ -157,21 +159,6 @@ export class Stadium {
       emissiveIntensity: 1.15,
       roughness: 0.62,
       name: 'MOTOBOUND arena ribbon boards',
-    });
-    const event = new T.MeshStandardMaterial({
-      map: atlas,
-      emissiveMap: atlas,
-      emissive: 0xffffff,
-      emissiveIntensity: 1.7,
-      roughness: 0.7,
-      side: T.DoubleSide,
-      name: 'MOTOBOUND main event board',
-    });
-    const accent = new T.MeshStandardMaterial({
-      color: 0xe3a268,
-      emissive: 0xef8d3d,
-      emissiveIntensity: 3.5,
-      name: 'Warm event board accents',
     });
     const r = new Random(7151);
     const tiers: T.BufferGeometry[] = [],
@@ -602,9 +589,6 @@ export class Stadium {
         );
       }
     }
-    this.batch(rigging, steel, 'Merged open-web roof trusses and columns');
-    this.batch(cases, housing, 'Merged arena lamp housings');
-    this.batch(lights, lamp, 'Merged arena round floodlight lenses');
     const shafts = mergeGeometries(beams, false);
     for (const g of beams) g.dispose();
     if (shafts) {
@@ -619,51 +603,28 @@ export class Stadium {
         haze.visible = enabled;
       });
     }
-    // Opposite the main event board: a big video wall over the far end,
-    // its four programme panels stacked in the ribbon batch and its frame
-    // with the lamp housings (no extra draw).
-    {
-      const cx = (min.x + max.x) / 2,
-        z = min.z - outer * 0.65,
-        y = floor + 22;
-      for (let row = 0; row < 4; row++)
-        ribbons.push(
-          mxAtlasRow(
-            new T.PlaneGeometry(16, 1.12).translate(cx, y + 1.74 - row * 1.16, z + 0.27),
-            row,
-          ),
-        );
-      cases.push(new T.BoxGeometry(16.8, 5.2, 0.45).translate(cx, y, z));
-      for (const dx of [-6, 6])
-        rigging.push(
-          member(
-            new T.Vector3(cx + dx, y + 2.6, z),
-            new T.Vector3(cx + dx, floor + STADIUM.roof - 0.6, z),
-            0.05,
-          ),
-        );
-    }
+    const cx = (min.x + max.x) * 0.5;
+    const screens = [-1, 1].map((end) => {
+      const z = end < 0 ? min.z - outer * 0.65 : max.z + outer * 0.65;
+      const y = floor + 22;
+      cases.push(new T.BoxGeometry(20.6, 5.32, 0.5).translate(cx, y, z));
+      for (const dx of [-7.4, 7.4]) {
+        for (const side of [-1, 1]) {
+          rigging.push(member(new T.Vector3(cx + dx, y + 2.55, z),
+            new T.Vector3(cx + dx + side * 1.18, floor + STADIUM.roof - 0.48, z), 0.058));
+        }
+      }
+      return new T.Vector3(cx, y, z - end * 0.265);
+    });
+    this.timing = new MxTimingBoard(screens);
+    this.textures.add(this.timing.atlas);
+    this.root.add(this.timing.mesh);
+    // Both board cases and their hangers must be present before these
+    // geometry lists are merged and their source buffers are released.
+    this.batch(rigging, steel, 'Merged open-web roof trusses and columns');
+    this.batch(cases, housing, 'Merged arena lamp housings');
+    this.batch(lights, lamp, 'Merged arena round floodlight lenses');
     this.batch(ribbons, ribbon, 'Arena concourse ribbon boards');
-    const main = new T.Group();
-    main.name = 'Suspended MOTOBOUND main event board';
-    main.position.set((min.x + max.x) / 2, floor + 23, max.z + outer * 0.65);
-    main.rotation.y = Math.PI;
-    for (let row = 0; row < 2; row++)
-      main.add(
-        new T.Mesh(
-          mxAtlasRow(new T.PlaneGeometry(20, 1.5).translate(0, row === 0 ? 0.8 : -0.8, 0), row),
-          event,
-        ),
-      );
-    main.add(new T.Mesh(new T.BoxGeometry(20.6, 3.6, 0.45).translate(0, 0, -0.26), housing));
-    // Both accent bars share one draw, leaving the arena batch budget intact.
-    const bars = mergeGeometries(
-      [-1, 1].map((side) => new T.BoxGeometry(0.16, 3.5, 0.09).translate(side * 10.2, 0, 0.05)),
-      false,
-    );
-    if (!bars) throw new Error('Arena event board accents contain incompatible geometry');
-    main.add(new T.Mesh(bars, accent));
-    this.root.add(main);
   }
   /** Absolute simulation time only: a held frame freezes the entire crowd,
    * and revisiting a timestamp restores exactly the same unsynchronised pose. */

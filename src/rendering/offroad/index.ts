@@ -185,7 +185,10 @@ export class OffroadScene {
   update(frame: Float32Array, measured = frame) {
     if (this.disposed) return;
     this.gate?.update(frame, measured);
-    this.stadium?.update(frame[H.TIME]);
+    if (this.stadium) {
+      this.stadium.update(frame[H.TIME]);
+      this.stadium.timing.update(frame);
+    }
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
     this.dressing?.update(time);
