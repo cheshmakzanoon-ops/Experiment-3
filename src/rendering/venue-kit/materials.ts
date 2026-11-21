@@ -319,7 +319,7 @@ export function venueKitMaterials(style: VenueThemeStyle, gp = false) {
   // Photographed ground (ground/scanned-ground.ts): verge, trap, run-off, rock.
   if (groundKind === 'grass') {
     installScannedTurf(ground);
-    installVergeFinish(ground);
+    installVergeFinish(ground, gp);
   } else if (groundKind === 'gravel') installScannedGravel(ground);
   else installScannedConcrete(ground);
   installScannedGravel(gravel);

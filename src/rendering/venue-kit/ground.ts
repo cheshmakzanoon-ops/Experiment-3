@@ -70,14 +70,16 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
       (surfaceAt(s, lateral) === kind ||
         (scattered(kind) &&
           (surfaceAt(s - 4, lateral) === kind || surfaceAt(s + 4, lateral) === kind))),
-    ...(scattered(kind)
-      ? {
-          attributes: {
-            gravelCover: (s: number, lateral: number) =>
-              surfaceAt(s, lateral) === SURFACE.GRAVEL ? 1 : 0,
-          },
-        }
-      : {}),
+    ...(gp && kind === SURFACE.GRASS
+      ? { attributes: { gpVergeInset: (s: number, lateral: number) => 4 - shoulder(s, lateral) } }
+      : scattered(kind)
+        ? {
+            attributes: {
+              gravelCover: (s: number, lateral: number) =>
+                surfaceAt(s, lateral) === SURFACE.GRAVEL ? 1 : 0,
+            },
+          }
+        : {}),
   });
   const skirt = (side: 1 | -1) => ({
     step: 4,

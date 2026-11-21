@@ -229,7 +229,7 @@ export function installRunoffFinish(
 ) {
   material.color.setHex(0xffffff);
   if (gp) material.userData.gpEdgeDesign = gp.id;
-  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v3` : RUNOFF_HOOK, (shader) => {
+  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v4` : RUNOFF_HOOK, (shader) => {
     installTrackEdgeHelpers(shader, lapLength);
     if (gp) {
       injectDeclarations(
@@ -280,7 +280,8 @@ export function installRunoffFinish(
 	// Derivatives are evaluated before the per-style branch. The same paths
 	// on the adjacent kerb continue through the painted apron without a seam.
 	float crossingScuffs = apexEdgeScuffs( e, vFinishMetres.y, sign( vFinishMetres.x ) );
-	float vergeWear = apexVergeWear( vFinishWorld.xz, e );
+	float turfEdge = e${gp ? ' + 3.6 * ( 1.0 - vGpKerbAmount )' : ''};
+	float vergeWear = apexVergeWear( vFinishWorld.xz, turfEdge );
 	vec3 vergeSoil = apexVergeSoil( vFinishWorld.xz );
 	vec3 base = ${v3(RUNOFF.base)} * ( .9 + .2 * grain ) * clamp( tex, .75, 1.25 );
 	int style = int( vRunoffStyle + .5 );
@@ -347,7 +348,7 @@ ${
 	// Worn soil where the run-off meets the kerb and the grass.
 	float seam = 1.0 - smoothstep( 0.0, ${f(RUNOFF.seam)}, abs( e - ${f(RUNOFF.from)} - .1 ) );
 	surface = mix( surface, ${v3(RUNOFF.soil)} * ( .8 + .4 * grain ), seam * .55 );
-	float grassJoin = smoothstep( 3.62, 4.0, e ) * vergeWear${gp ? ' * ( 1.0 - vGpVergeGravel )' : ''};
+	float grassJoin = smoothstep( 3.62, 4.0, turfEdge ) * vergeWear${gp ? ' * ( 1.0 - vGpVergeGravel )' : ''};
 	surface = mix( surface, vergeSoil, grassJoin * .78 );${
     gp
       ? `
@@ -357,7 +358,7 @@ ${
 		vec2 stoneCell = vFinishWorld.xz * 26.0;
 		float stoneAA = 1.0 - smoothstep( .35, 1.1, length( fwidth( stoneCell ) ) );
 		float stone = step( .62, finishHash( floor( stoneCell ) ) ) * smoothstep( .45, .2, length( fract( stoneCell ) - .5 ) );
-		float reach = smoothstep( ${f(GP_KERB.litter)}, 3.98, e + ( finishFilteredNoise( vFinishWorld.xz * .9 ) - .5 ) * .5 ) * vGpVergeGravel;
+		float reach = smoothstep( ${f(GP_KERB.litter)}, 3.98, turfEdge + ( finishFilteredNoise( vFinishWorld.xz * .9 ) - .5 ) * .5 ) * vGpVergeGravel;
 		float litter = reach * mix( .45, stone, stoneAA );
 		surface = mix( surface, ${v3(GP_KERB.litterColour)} * ( .75 + .5 * finishHash( floor( stoneCell ) + 7.0 ) ), litter * .7 );
 	}`

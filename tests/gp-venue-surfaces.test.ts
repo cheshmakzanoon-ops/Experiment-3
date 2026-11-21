@@ -157,6 +157,8 @@ describe('GP verge turf and gravel', () => {
     // The discard is gated on the extension cover: inside the trap nothing is cut.
     expect(f.indexOf('vGravelCover < 0.999')).toBeLessThan(f.indexOf('discard'));
     expect(compile(gp.ground).fragmentShader).toContain(GP_TURF.saturation.toFixed(4));
+    expect(compile(gp.ground).vertexShader).toContain('edgeMetres + gpVergeInset');
+    expect(compile(plain.ground).vertexShader).not.toContain('gpVergeInset');
     expect(GP_GRAVEL.tint[0]).toBeGreaterThan(1);
   });
 
@@ -188,6 +190,19 @@ describe('GP verge turf and gravel', () => {
         continue;
       }
       expect(covered).toHaveLength(gravel.length);
+      const turf = meshes.filter(m => m.material === kit.materials.ground && m.geometry.hasAttribute('gpVergeInset'));
+      expect(turf.length).toBeGreaterThan(0);
+      let bareStraight = false, fullApron = false;
+      for (const {geometry} of turf) {
+        const inset = geometry.getAttribute('gpVergeInset'), uv = geometry.getAttribute('uv');
+        for (let i=0; i < inset.count; i+=7) {
+          const amount = t.gpEdges!.at(uv.getY(i)*5,uv.getX(i));
+          expect(inset.getX(i)).toBeCloseTo(3.6*(1-amount),3);
+          if (amount === 0) bareStraight = true;
+          if (amount === 1) fullApron = true;
+        }
+      }
+      expect(bareStraight && fullApron).toBe(true);
       const p = trackPoint();
       let partial = 0;
       for (const { geometry } of covered) {

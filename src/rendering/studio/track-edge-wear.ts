@@ -60,17 +60,22 @@ export function installTrackEdgeHelpers(
 
 /** Only grass ribbons have the edgeMetres attribute. The far terrain keeps
  * its existing treatment rather than assuming it is a circuit verge. */
-export function installVergeFinish(material: T.MeshStandardMaterial) {
+export function installVergeFinish(material: T.MeshStandardMaterial, gp = false) {
   return (
-    chainShaderHook(material, 'track-verge-wear-v1', (shader) => {
+    chainShaderHook(material, gp ? 'gp-verge-wear-v2' : 'track-verge-wear-v1', (shader) => {
       installTrackEdgeHelpers(shader, 1);
       injectDeclarations(
         shader,
         'common',
-        'attribute float edgeMetres; varying float vVergeEdge;',
+        `attribute float edgeMetres; ${gp ? 'attribute float gpVergeInset;' : ''} varying float vVergeEdge;`,
         'vertex',
       );
-      injectAfter(shader, 'begin_vertex', 'vVergeEdge = edgeMetres;', 'vertex');
+      injectAfter(
+        shader,
+        'begin_vertex',
+        gp ? 'vVergeEdge = edgeMetres + gpVergeInset;' : 'vVergeEdge = edgeMetres;',
+        'vertex',
+      );
       injectDeclarations(shader, 'common', 'varying float vVergeEdge;', 'fragment');
       // After the photographed turf: keep the original scan's fine structure,
       // while the actual material boundary becomes worn soil instead of a ruler.
