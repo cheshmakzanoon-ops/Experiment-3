@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { add, tube, type BikeMaterials } from '../bike.ts';
 import type { RiderDetail } from '../rider.ts';
+import { motocrossChainLoop } from './motocross-chain-drive.ts';
 
 type Point = readonly [z: number, y: number];
 
@@ -663,6 +664,160 @@ export function motocrossSwingarmRail(length: number, side: number, detail: Ride
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
+}
+
+/** The side plates of the rear guide have an inspection window. The moving
+ * return run passes between them, above a replaceable nylon shoe. Register
+ * every part to the same two tangents used to place the individual rollers. */
+export function addMotocrossChainGuides(
+  armGroup: T.Group,
+  length: number,
+  detail: 'high' | 'mid',
+  dark: T.Material,
+  alloy: T.Material,
+  steel: T.Material,
+) {
+  const loop = motocrossChainLoop(length);
+  const frame = new T.Matrix4();
+  const mount = (geometry: T.BufferGeometry, material: T.Material, name: string) => {
+    add(armGroup, geometry.applyMatrix4(frame), material).name = name;
+  };
+  const position = new T.Vector3();
+  // The upper chain runs on the crest of the slider. Its rolled nose and
+  // shallow guides sit either side of the plates on the taut drive run.
+  loop.sample(0.29 * loop.straightLength, position);
+  frame.makeRotationX(loop.tangentAngle).setPosition(position);
+  mount(
+    castProfile(
+      [
+        [-0.112, -0.011],
+        [-0.088, -0.007],
+        [0.075, -0.007],
+        [0.112, -0.013],
+        [0.102, -0.024],
+        [-0.099, -0.025],
+      ],
+      0.027,
+      detail,
+      [],
+      0.001,
+    ),
+    dark,
+    'MX upper chain wear runner',
+  );
+  for (const side of [-1, 1]) {
+    mount(
+      castProfile(
+        [
+          [-0.108, -0.009],
+          [-0.065, 0.002],
+          [0.066, 0.002],
+          [0.103, -0.009],
+          [0.094, -0.014],
+          [-0.092, -0.015],
+        ],
+        0.003,
+        detail,
+        [],
+        0.0008,
+      ).translate(side * 0.0157, 0, 0),
+      dark,
+      'MX upper chain slider lip',
+    );
+  }
+  const centre = (2 - 0.79) * loop.straightLength + loop.rearArcLength;
+  loop.sample(centre, position);
+  frame.makeRotationX(-loop.tangentAngle).setPosition(position);
+  for (const side of [-1, 1]) {
+    const port = new T.Path();
+    port.absellipse(0.001, 0.001, 0.033, 0.0095, 0, 2 * Math.PI, true);
+    const cheek = castProfile(
+      [
+        [-0.058, -0.012],
+        [-0.052, 0.025],
+        [-0.032, 0.073],
+        [0.026, 0.074],
+        [0.044, 0.049],
+        [0.06, -0.001],
+        [0.042, -0.019],
+        [-0.023, -0.021],
+      ],
+      0.004,
+      detail,
+      [port],
+      0.001,
+    );
+    mount(cheek.translate(side * 0.02, 0, 0), alloy, 'MX ventilated chain guide cheek');
+    for (const z of [-0.025, 0.02]) {
+      const bolt = new T.CylinderGeometry(0.0051, 0.0051, 0.004, 6)
+        .rotateZ(Math.PI / 2)
+        .translate(side * 0.024, 0.059, z);
+      mount(bolt, steel, 'MX chain guide mount bolt');
+    }
+  }
+  mount(
+    castProfile(
+      [
+        [-0.055, -0.012],
+        [-0.035, -0.008],
+        [0.036, -0.008],
+        [0.056, -0.014],
+        [0.043, -0.021],
+        [-0.03, -0.025],
+      ],
+      0.036,
+      detail,
+      [],
+      0.0013,
+    ),
+    dark,
+    'MX replaceable return chain shoe',
+  );
+  mount(
+    new T.BoxGeometry(0.04, 0.008, 0.067).translate(0, 0.055, 0),
+    alloy,
+    'MX chain guide mount bridge',
+  );
+}
+
+/** Billet axle block bearing on the slotted dropout. A long adjuster and
+ * its locknut bear against the end of each arm. The circular bore seats the
+ * spindle and washer; all fittings follow the rigid arm throughout travel. */
+export function addMotocrossAxleAdjusters(
+  armGroup: T.Group,
+  length: number,
+  detail: 'high' | 'mid',
+  alloy: T.Material,
+  steel: T.Material,
+) {
+  for (const side of [-1, 1]) {
+    const hole = new T.Path();
+    hole.absarc(0, 0, 0.0105, 0, 2 * Math.PI, true);
+    const block = castProfile(
+      [
+        [-0.027, -0.015],
+        [-0.027, 0.012],
+        [-0.019, 0.018],
+        [0.022, 0.018],
+        [0.029, 0.01],
+        [0.026, -0.013],
+        [0.017, -0.018],
+        [-0.019, -0.018],
+      ],
+      0.004,
+      detail,
+      [hole],
+      0.0009,
+    );
+    add(armGroup, block, alloy, side * 0.1183, 0, -length).name = 'MX slotted axle bearing block';
+    const shaft = new T.CylinderGeometry(0.003, 0.003, 0.031, 8).rotateX(Math.PI / 2);
+    add(armGroup, shaft, steel, side * 0.105, -0.009, -length - 0.042).name =
+      'MX chain tension adjuster';
+    for (const z of [-0.053, -0.041]) {
+      const nut = new T.CylinderGeometry(0.0058, 0.0058, 0.004, 6).rotateX(Math.PI / 2);
+      add(armGroup, nut, steel, side * 0.105, -0.009, -length + z).name = 'MX adjuster locknut';
+    }
+  }
 }
 
 /** Rolled outlet lip, tapered end cap and recessed bore. There is no flat

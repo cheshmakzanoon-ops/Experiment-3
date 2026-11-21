@@ -5,8 +5,10 @@ import { motocrossRotor } from '../src/rendering/offroad/motocross-detail.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import {
   distantMotocrossChain,
+  motocrossChainLoop,
   MotocrossChainDrive,
 } from '../src/rendering/offroad/motocross-chain-drive.ts';
+import { addMotocrossChainGuides, addMotocrossAxleAdjusters } from '../src/rendering/offroad/motocross-castings.ts';
 import { installMudOn, mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
@@ -47,6 +49,71 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('MX chain geometry, snapshot motion and ownership', () => {
+  it.each(['high', 'mid'] as const)(
+    '%s wear runners leave a continuous open channel around the working plates',
+    (detail) => {
+      const material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+      const group = new T.Group(),
+        length = 0.55,
+        loop = motocrossChainLoop(length);
+      const p = new T.Vector3(),
+        end = new T.Vector3(),
+        ray = new T.Raycaster();
+      addMotocrossChainGuides(group, length, detail, material, material, material);
+      group.updateMatrixWorld(true);
+      try {
+        for (const lower of [false, true]) {
+          const start = lower ? loop.straightLength + loop.rearArcLength : 0;
+          loop.sample(start + loop.straightLength * 0.03, p);
+          loop.sample(start + loop.straightLength * 0.97, end);
+          const direction = end.clone().sub(p).normalize();
+          for (const x of [-0.012, 0, 0.012])
+            for (const y of [-0.005, 0, 0.005]) {
+              ray.set(p.clone().add(new T.Vector3(x, y, 0)), direction);
+              ray.far = p.distanceTo(end);
+              expect(ray.intersectObjects(group.children)).toHaveLength(0);
+            }
+        }
+        const centre = (2 - 0.79) * loop.straightLength + loop.rearArcLength;
+        loop.sample(centre, p);
+        ray.set(p, new T.Vector3(0, -1, 0));
+        const shoe = ray.intersectObjects(group.children)[0];
+        expect(shoe.object.name).toBe('MX replaceable return chain shoe');
+        expect(shoe.distance).toBeGreaterThan(0.005);
+        expect(shoe.distance).toBeLessThan(0.012);
+        ray.set(p, new T.Vector3(1, 0, 0));
+        expect(ray.intersectObjects(group.children)).toHaveLength(0);
+        ray.set(p.clone().add(new T.Vector3(0, 0.025, 0)), new T.Vector3(1, 0, 0));
+        expect(ray.intersectObjects(group.children)[0].object.name).toBe(
+          'MX ventilated chain guide cheek',
+        );
+      } finally {
+        for (const o of group.children as T.Mesh[]) o.geometry.dispose();
+        material.dispose();
+      }
+    },
+  );
+
+  it('seats the dropout blocks around the spindle and keeps the rear locknuts outside the casting', () => {
+    const length = 0.55,
+      group = new T.Group(),
+      material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+    addMotocrossAxleAdjusters(group, length, 'high', material, material);
+    group.updateMatrixWorld(true);
+    try {
+      const blocks = group.children.filter((o) => o.name === 'MX slotted axle bearing block');
+      expect(blocks).toHaveLength(2);
+      const ray = new T.Raycaster(new T.Vector3(0.2, 0, -length), new T.Vector3(-1, 0, 0));
+      expect(ray.intersectObjects(blocks)).toHaveLength(0);
+      ray.ray.origin.y = 0.014;
+      expect(ray.intersectObjects(blocks).length).toBeGreaterThan(1);
+      expect(group.children.filter((o) => o.name === 'MX adjuster locknut')).toHaveLength(4);
+    } finally {
+      for (const o of group.children as T.Mesh[]) o.geometry.dispose();
+      material.dispose();
+    }
+  });
+
   it.each(['high', 'mid'] as const)(
     '%s uses two bounded draws with all repeated triangles counted',
     (detail) => {

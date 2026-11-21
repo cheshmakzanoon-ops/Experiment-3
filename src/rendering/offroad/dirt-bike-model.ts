@@ -41,6 +41,8 @@ import {
   motocrossSilencerOutlet,
   motocrossSumpGuard,
   motocrossSwingarmRail,
+  addMotocrossChainGuides,
+  addMotocrossAxleAdjusters,
 } from './motocross-castings.ts';
 import {
   addMotocrossBrakeCaliper,
@@ -1000,7 +1002,7 @@ export class DirtBikeModel {
     // removing the old solid arm ends must not leave a floating rear wheel.
     add(
       this.swingarm,
-      new T.CylinderGeometry(0.0095, 0.0095, 0.252, detail === 'far' ? 8 : 12),
+      new T.CylinderGeometry(0.0095, 0.0095, detail === 'far' ? 0.252 : 0.264, detail === 'far' ? 8 : 12),
       this.m.steel,
       0,
       0,
@@ -1015,7 +1017,7 @@ export class DirtBikeModel {
           this.swingarm,
           new T.CylinderGeometry(0.015, 0.015, 0.006, 6),
           this.m.steel,
-          side * 0.123,
+          side * 0.128,
           0,
           -arm,
         ).rotation.z = Math.PI / 2;
@@ -1023,7 +1025,7 @@ export class DirtBikeModel {
           this.swingarm,
           new T.TorusGeometry(0.017, 0.0025, 4, 12),
           this.m.aluminium,
-          side * 0.118,
+          side * 0.123,
           0,
           -arm,
         ).rotation.y = Math.PI / 2;
@@ -1067,22 +1069,8 @@ export class DirtBikeModel {
       );
       this.chain = new MotocrossChainDrive(arm, detail, chainMaterial, this.mud);
       this.swingarm.add(this.chain.root);
-      add(
-        this.swingarm,
-        new RoundedBoxGeometry(0.018, 0.027, 0.26, 1, 0.007),
-        dark,
-        0.102,
-        0.047,
-        -arm * 0.35,
-      );
-      add(
-        this.swingarm,
-        new RoundedBoxGeometry(0.038, 0.085, 0.084, 1, 0.012),
-        dark,
-        0.095,
-        -0.074,
-        -arm * 0.8,
-      );
+      addMotocrossChainGuides(this.swingarm, arm, detail, dark, this.m.aluminium, this.m.steel);
+      addMotocrossAxleAdjusters(this.swingarm, arm, detail, this.m.aluminium, this.m.steel);
     }
     this.root.add(this.swingarm);
     this.rearWheel.name = 'Motocross rear suspension hub';

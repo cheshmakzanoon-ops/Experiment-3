@@ -10,10 +10,14 @@ const FRONT_RADIUS = 0.036;
 const REAR_TEETH = 40;
 const X = 0.095;
 
+export function motocrossChainLoop(arm: number) {
+  return new ChainLoop(arm, REAR_RADIUS, FRONT_RADIUS, X);
+}
+
 /** At racing distance the alternating side plates fit inside a pixel. Retain
  * their continuous upper and return runs on the same two sprocket tangents. */
 export function distantMotocrossChain(arm: number) {
-  const loop = new ChainLoop(arm, REAR_RADIUS, FRONT_RADIUS, X);
+  const loop = motocrossChainLoop(arm);
   const s = loop.straightLength,
     end = s + loop.rearArcLength;
   const stations = [0, s];
@@ -96,7 +100,7 @@ export class MotocrossChainDrive {
   ) {
     if (!Number.isFinite(arm) || arm < 0.3 || arm > 1.1)
       throw new Error('Invalid motocross swingarm length');
-    this.loop = new ChainLoop(arm, REAR_RADIUS, FRONT_RADIUS, X);
+    this.loop = motocrossChainLoop(arm);
     this.root.name = 'Motocross wheel-driven articulated chain';
     this.root.userData.referenceRevision = 'motocross-followup-chain';
     this.rollers = new T.InstancedMesh(
