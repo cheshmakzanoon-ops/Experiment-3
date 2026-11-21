@@ -18,6 +18,36 @@ interface SoilCaptureOptions {
   evidenceImagesOnly?: boolean;
 }
 
+function soilPhotoEncoder(width: number, height: number) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d')!;
+  const photo = context.createImageData(width, height);
+  const rowBytes = width * 4;
+  return (pixels: Uint8Array) => {
+    // The real WebGL readback begins at the lower left. Copy those same
+    // bytes into the photograph without another multisampled GPU readback.
+    for (let y = 0; y < height; y++) {
+      const start = (height - 1 - y) * rowBytes;
+      photo.data.set(pixels.subarray(start, start + rowBytes), y * rowBytes);
+    }
+    context.putImageData(photo, 0, 0);
+    // toBlob snapshots the canvas now, so the next colour pass can start
+    // while the browser encodes this PNG.
+    return new Promise<string>((resolve, reject) => canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error('Could not encode the soil photograph'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    }, 'image/png'));
+  };
+}
+
 // Remove only the zero-contribution exits from the assembled production shader.
 // Both programs still execute the same relief, scan, light and shadow equations.
 const zeroSoilExits = [
@@ -135,6 +165,8 @@ export async function captureMotocrossWorkedSoil(
     p = trackPoint(),
     q = trackPoint();
   let shadowRevision = -1, shadowRefreshes = 0;
+  let encodePhoto: ReturnType<typeof soilPhotoEncoder> | undefined;
+  let readback: Uint8Array<ArrayBuffer> | undefined;
   const position = (kind: 'approach' | 'berm' | 'jump') => {
     const berm = surface.course.spec.berms[0],
       jump = surface.course.jumps.find((jump) => jump.kind === 'double') ?? surface.course.jumps[0],
@@ -195,14 +227,19 @@ export async function captureMotocrossWorkedSoil(
       shadowRevision = view.geometryRevision;
       shadowRefreshes++;
     }
-    const gl = renderer.getContext(),
-      pixels = new Uint8Array(width * height * 4);
+    const gl = renderer.getContext();
+    const pixels = readback ??= new Uint8Array(width * height * 4);
     gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     let hash = 2166136261;
     for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+    let image: string | Promise<string> = '';
+    if (retainImage) {
+      encodePhoto ??= soilPhotoEncoder(width, height);
+      image = encodePhoto(pixels);
+    }
     return {
       label,
-      image: retainImage ? renderer.domElement.toDataURL('image/png') : '',
+      image,
       hash,
       glError: gl.getError(),
       calls: renderer.info.render.calls,
@@ -256,10 +293,14 @@ export async function captureMotocrossWorkedSoil(
         attribute.needsUpdate = true;
       }
       const featureRestored = capture(`${angle}-course-wear-restored`, retainRepeatImages);
+      const samples = await Promise.all(
+        [prepared, wet, held, restored, generic, featureRestored].map(async sample =>
+          ({ ...sample, image: await sample.image })),
+      );
       results.push({
         angle,
         cameraPose,
-        samples: [prepared, wet, held, restored, generic, featureRestored],
+        samples,
       });
     }
     return {
