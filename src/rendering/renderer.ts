@@ -1158,6 +1158,7 @@ export class RacingRenderer {
           const ready = await this.bikeShells.prepareDirtField(
             () => this.disposed || cancelled(),
             yieldFrame,
+            (id, level) => progress(`Preparing motocross rider ${id + 1} / ${total} · ${level} detail…`),
           );
           if (!ready) return false;
         }

@@ -2436,11 +2436,16 @@ export class BikeShells {
   /** Construct the other race-camera levels while the worker is paused.
    * Prepare weather, material and texture registrations here too. Detached
    * levels stay outside the scene except for one representative per shader layout. */
-  async prepareDirtField(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
+  async prepareDirtField(
+    cancelled: () => boolean,
+    yieldFrame: () => Promise<void>,
+    report?: (id: number, detail: (typeof BIKE_DETAILS)[number]) => void,
+  ) {
     for (const [id, entry] of this.entries) {
       if (!entry.dirtMud) continue;
       for (let level = 0; level < BIKE_DETAILS.length; level++) {
         if (entry.levels[level]) continue;
+        report?.(id, BIKE_DETAILS[level]);
         await yieldFrame();
         if (cancelled() || this.entries.get(id) !== entry) return false;
         this.buildDirtLevel(entry, id, level, this.entries.size > 1);

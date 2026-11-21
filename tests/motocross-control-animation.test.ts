@@ -633,7 +633,11 @@ it('prepares camera cuts during loading, shares rigid vertex data and keeps susp
     expect(await shells.prepareDirtField(() => yields === 2, yieldFrame)).toBe(false);
     expect(yields).toBe(2);
     expect(attached()).toHaveLength(2);
-    expect(await shells.prepareDirtField(() => false, yieldFrame)).toBe(true);
+    const prepared: string[] = [];
+    expect(await shells.prepareDirtField(() => false, yieldFrame, (id, level) => {
+      prepared.push(`${id}/${level}`);
+    })).toBe(true);
+    expect(prepared.sort()).toEqual(['0/far', '0/mid', '1/far']);
     expect(yields).toBe(5);
     expect(attached().every((root) => root.visible)).toBe(true);
     expect(attached()).toHaveLength(2);
