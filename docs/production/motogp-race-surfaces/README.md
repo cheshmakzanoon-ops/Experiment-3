@@ -31,7 +31,11 @@ The studio views use the production bike and rider in controlled lighting. The d
 
 The dry chase frame shows 157 km/h on the approach to Prima. The cockpit frame shows 100 km/h at corner entry. The same session loaded the pit crew’s axle gun and skipped the 5,793,632-byte car-jack model. Motorcycle service uses a front and rear paddock stand, with one gun operator per axle. Selecting a car field on the same circuit prepares its full equipment.
 
-GP entry carries the showroom’s decoded APX-01 shell, driver and three rival detail levels into the circuit. The five compressed exports total 3,131,210 bytes. Car previews can still use those parts when the rider returns to the menus.
+GP entry carries the showroom’s decoded APX-01 shell, driver and three rival detail levels into the circuit. The five compressed exports total 3,131,210 bytes. All five remained available in the loaded practice session, and a browser network trace recorded zero repeat requests for them at circuit entry. Car previews can still use those parts when the rider returns to the menus.
+
+![Recorded onboard view at 198 km/h on the approach to Prima, with the replay timeline visible](recorded-cockpit.webp)
+
+The four-rider dry practice check drove with manual throttle and rear brake, recorded the chase and cockpit views, then sought backward with the replay slider. Returning to the same corner restored its guidance and displayed time. The cockpit capture above shows 198 km/h in third gear. A separate single-rider run returned to exactly 10.974108 s at worker tick 877 and continued recording after resuming.
 
 Four GP-R1 riders run on wet tyres in the second session. The chase camera records a rider ahead in spray at 51 km/h. The cockpit view shows the real instrument display and race HUD at 126 km/h. Both tyres reported water contact and all four bikes were upright in the chase sample.
 

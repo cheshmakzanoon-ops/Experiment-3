@@ -66,7 +66,7 @@ export function compileSceneTarget(
   camera: T.Camera,
   target: T.WebGLRenderTarget,
   hiddenRoots?: readonly T.Object3D[],
-  preparation?: { cancelled: () => boolean; beforeMetadata?: () => void },
+  preparation?: { cancelled: () => boolean; beforeMetadata?: () => void; requireLinkedPrograms?: boolean },
 ) {
   const previous = renderer.getRenderTarget();
   const face = renderer.getActiveCubeFace(),
@@ -106,8 +106,15 @@ export function compileSceneTarget(
       preparation?.beforeMetadata?.();
       if (preparation?.cancelled()) return compiled;
       const retained = new Set(renderer.info.programs ?? []);
-      for (const program of programs)
-        if (retained.has(program) && program.usedTimes > 0) program.getUniforms();
+      const gl = preparation?.requireLinkedPrograms ? renderer.getContext() : null;
+      for (const program of programs) {
+        if (!retained.has(program) || program.usedTimes <= 0) continue;
+        // Three reports a failed link to the console and still resolves compileAsync.
+        // An interactive preset change needs a usable program before it can be saved.
+        if (gl && !gl.getProgramParameter(program.program, gl.LINK_STATUS))
+          throw new Error(`The graphics device could not link the ${program.name || 'circuit'} shader for this preset.`);
+        program.getUniforms();
+      }
       return compiled;
     });
   } finally {

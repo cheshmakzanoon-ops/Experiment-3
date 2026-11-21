@@ -2515,6 +2515,9 @@ export class GameApp {
   /** The machine whose setup the garage shows: the session's own machine
    * while one runs, else (undefined) the menu's MACHINE choice. */
   private action(name: string) {
+    // The worker is terminated after a fatal graphics error. A native dialog
+    // cancel or a queued resume must leave the recovery button accessible.
+    if (this.errorStopped && name !== 'reload') return;
     if (name.startsWith('firstrun:')) {
       this.firstRunAction(name);
       return;

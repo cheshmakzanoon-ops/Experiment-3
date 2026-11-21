@@ -23,6 +23,9 @@ import { buildScatter } from '../src/rendering/venue-kit/scatter.ts';
 import { Track } from '../src/simulation/track.ts';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
+import { scannedGround } from '../src/rendering/ground/scan-store.ts';
+import { menuPreview } from '../src/rendering/menu-preview.ts';
+import { H } from '../src/simulation/protocol.ts';
 
 vi.mock('../src/rendering/vegetation/index.ts', async (original) => ({
   ...(await original<typeof import('../src/rendering/vegetation/index.ts')>()),
@@ -97,7 +100,7 @@ function simplePlanting(): CircuitPlanting {
 
 /** Real renderer preparation, circuit planting builders, ownership and probes;
  * only WebGL, image downloading and unrelated quality passes are substituted. */
-function fixture(id: 'vellamar' | 'aurel' | 'alpine-pass' | 'valley-ridge-mx' = 'vellamar') {
+function fixture(id: 'vellamar' | 'aurel' | 'alpine-pass' | 'valley-ridge-mx' | 'poggio-alto' = 'vellamar') {
   const track = new Track('clear', false, undefined, CIRCUITS[id]);
   const circuit = new CircuitScene(track, true);
   const initial = simplePlanting();
@@ -174,6 +177,48 @@ afterEach(async () => {
 });
 
 describe('live circuit vegetation quality', () => {
+  it.each(['healthy', 'lost during compile', 'lost before GPU completion'] as const)(
+    'waits for photographed GP surfaces and shader completion when the context is %s',
+    async (outcome) => {
+      const { renderer, state, backend, change } = fixture('poggio-alto');
+      const frame = menuPreview(state.track, 20, 'gpr1');
+      const stages: string[] = [];
+      let lost = false;
+      const sky = vi.fn(async () => { stages.push('sky'); });
+      const submittedFrame = vi.fn(() => { stages.push('submit'); });
+      const previous = renderer.graphics;
+      Object.assign(renderer, {
+        presented: { value: frame }, lighting: 'day', photoSky: { enabled: true, ready: sky },
+        gpuFrames: { submittedFrame },
+        preparePlanting: async () => null,
+      });
+      Object.assign(backend, { getContext: () => ({ isContextLost: () => lost }) });
+      vi.spyOn(scannedGround, 'enabled', 'get').mockReturnValue(true);
+      vi.spyOn(scannedGround, 'ready').mockImplementation(async () => {
+        stages.push('ground');
+        return true;
+      });
+      backend.compileAsync.mockImplementation(async () => {
+        stages.push('compile');
+        lost = outcome === 'lost during compile';
+      });
+      state.waitForPreparedFrame.mockImplementation(async () => {
+        if (submittedFrame.mock.calls.length) {
+          stages.push('completion');
+          lost = outcome === 'lost before GPU completion';
+        }
+        return true;
+      });
+      expect(await change('high')).toBe(outcome === 'healthy');
+      expect(sky).toHaveBeenCalledWith(frame[H.CLOUD], 'day');
+      expect(stages).toEqual(outcome === 'lost during compile'
+        ? ['sky', 'ground', 'compile']
+        : ['sky', 'ground', 'compile', 'submit', 'completion']);
+      expect(state.setQuality).toHaveBeenCalledOnce();
+      expect(renderer.preset).toBe(outcome === 'healthy' ? 'high' : 'medium');
+      if (outcome !== 'healthy') expect(renderer.graphics).toBe(previous);
+    },
+  );
   it.each(['cancel during meadow preparation', 'compile error'] as const)(
     'restores both planting and meadow owners after %s',
     async (failure) => {

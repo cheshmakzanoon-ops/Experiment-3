@@ -406,4 +406,20 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
     ),
     contentType: 'application/json',
   });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();
+  const lostContext = await page.locator('#world').evaluate((element) => {
+    const gl = (element as HTMLCanvasElement).getContext('webgl2');
+    const loss = gl?.getExtension('WEBGL_lose_context');
+    if (!loss) return false;
+    loss.loseContext();
+    return true;
+  });
+  if (lostContext) {
+    const reload = page.getByRole('button', { name: 'RELOAD GAME', exact: true });
+    await expect(reload).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(reload).toBeVisible();
+    expect((await diag()).state).toBe('paused');
+  }
 });

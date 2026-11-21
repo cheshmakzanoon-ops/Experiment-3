@@ -402,6 +402,28 @@ describe('grid preparation diagnostics and target ownership', () => {
     harness.dispose();
     fixture.dispose();
   });
+  it.each([true, false])('checks driver link status before a GP preset collects uniforms (linked %s)', async (linked) => {
+    const harness = compilerHarness(async (scene) => scene);
+    const geometry = new T.BoxGeometry(), material = new T.MeshStandardMaterial();
+    const scene = new T.Scene().add(new T.Mesh(geometry, material));
+    const program = { name: 'GP fairing', program: {}, usedTimes: 1, getUniforms: vi.fn() };
+    const gl = { LINK_STATUS: 0x8b82, getProgramParameter: vi.fn(() => linked) };
+    Object.assign(harness.renderer, {
+      getContext: () => gl,
+      info: { programs: [program] },
+      properties: { get: () => ({ programs: new Map([['fairing', program]]) }) },
+    });
+    const prepared = compileSceneTarget(harness.renderer, scene, new T.Camera(), harness.target,
+      undefined, { cancelled: () => false, requireLinkedPrograms: true });
+    if (linked) await expect(prepared).resolves.toBe(scene);
+    else await expect(prepared).rejects.toThrow('could not link the GP fairing shader');
+    expect(gl.getProgramParameter).toHaveBeenCalledWith(program.program, gl.LINK_STATUS);
+    expect(program.getUniforms).toHaveBeenCalledTimes(linked ? 1 : 0);
+    harness.restored();
+    harness.dispose();
+    material.dispose();
+    geometry.dispose();
+  });
   it('keeps the original two-argument compilation path when no hidden roots are supplied', async () => {
     const fixture = gpCompilationFixture();
     const compile = vi.fn<T.WebGLRenderer['compileAsync']>(async (scene) => scene);

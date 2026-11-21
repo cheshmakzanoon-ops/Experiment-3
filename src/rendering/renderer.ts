@@ -1401,8 +1401,13 @@ export class RacingRenderer {
     cancelled: () => boolean,
     yieldControl: () => Promise<void>,
   ): Promise<boolean> {
-    const stopped = () => this.disposed || cancelled();
-    if (stopped()) return false;
+    if (this.disposed || cancelled()) return false;
+    const gpField = !this.showroomOnly && isGpCourse(this.circuit.track) &&
+      gpGridForFrame(this.presented.value);
+    const warmGpSurfaces = gpField && quality !== 'low';
+    const lostGpContext = () => gpField && this.renderer.getContext().isContextLost();
+    const stopped = () => this.disposed || cancelled() || lostGpContext();
+    if (lostGpContext()) return false;
     await this.waitForPreparedFrame(stopped, yieldControl);
     if (stopped()) return false;
     const previousQuality = this.preset,
@@ -1449,6 +1454,15 @@ export class RacingRenderer {
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
       if (stopped()) return false;
+      if (warmGpSurfaces) {
+        // The photographed sky and scanned surfaces change the programs used on the first riding frame.
+        // Resolve their normal loading budgets before warming those programs on a live preset change.
+        if (this.photoSky.enabled)
+          await this.photoSky.ready(this.presented.value[H.CLOUD], this.lighting);
+        if (stopped()) return false;
+        if (scannedGround.enabled) await scannedGround.ready();
+        if (stopped()) return false;
+      }
       await this.bikeShells.warmFieldDetails(() =>
         compileSceneTarget(
           this.renderer,
@@ -1456,9 +1470,13 @@ export class RacingRenderer {
           this.camera,
           this.composer.readBuffer,
           undefined,
-          { cancelled: stopped },
+          { cancelled: stopped, requireLinkedPrograms: warmGpSurfaces },
         ),
       );
+      if (warmGpSurfaces && !stopped()) {
+        this.gpuFrames.submittedFrame();
+        await this.waitForPreparedFrame(stopped, yieldControl);
+      }
       complete = !stopped();
       return complete;
     } catch (error) {
@@ -1475,7 +1493,16 @@ export class RacingRenderer {
           if (previous) this.releasePlanting(previous);
         } else {
           if (installed) this.circuit.installPlanting(previous);
-          if (applied) this.setQuality(previousQuality, previousGraphics);
+          if (applied) {
+            if (lostGpContext()) {
+              // Preserve the last working selection without uploading to a lost device.
+              this.preset = previousQuality;
+              this.quality = detailTier(previousQuality);
+              this.graphics = previousGraphics;
+            } else {
+              this.setQuality(previousQuality, previousGraphics);
+            }
+          }
           if (installed) this.invalidatePlanting();
         }
         if (next) this.releasePlanting(next);
