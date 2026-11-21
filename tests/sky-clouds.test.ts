@@ -303,6 +303,32 @@ describe('baked cumulus panorama', () => {
     expect(clouds.diagnostics().bakes).toBe(1);
     clouds.dispose();
   });
+  it('keeps Festival shadow motion without baking invisible cloud volumes and restores the live fallback', () => {
+    const sky = new Sky();
+    configureSky(sky);
+    const { renderer } = bakeDouble();
+    const clouds = SkyClouds.forSky(sky.material, lightingDirection);
+    const photos = {
+      key: 'photo', fogPalette: () => null,
+      bind: () => sky.material.uniforms.photoAmount.value === 1,
+    };
+    const environment = new SkyEnvironment(sky, clouds, photos, true);
+    vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementation(() => new T.WebGLRenderTarget(8, 8));
+    vi.spyOn(T.PMREMGenerator.prototype, 'dispose');
+    const scene = new T.Scene();
+    sky.material.uniforms.photoAmount.value = 1;
+    environment.update(renderer, scene, .3, 'day');
+    expect(clouds.diagnostics()).toMatchObject({ bakes: 0, fieldBakes: 1 });
+    expect(clouds.fieldTexture).toBeTruthy();
+    expect(scene.environment).toBeTruthy();
+    sky.material.uniforms.photoAmount.value = 0;
+    photos.key = 'loading';
+    environment.update(renderer, scene, .3, 'night');
+    expect(clouds.diagnostics()).toMatchObject({ bakes: 2, fieldBakes: 1 });
+    expect(sky.material.uniforms.cloudReady.value).toBe(1);
+    environment.dispose(); sky.geometry.dispose(); sky.material.dispose();
+  });
+
   it('captures each PMREM bin with that bin panorama and restores the dome blend', () => {
     const sky = new Sky();
     configureSky(sky);

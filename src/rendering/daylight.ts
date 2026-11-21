@@ -834,6 +834,7 @@ export class SkyEnvironment {
     private sky: Sky,
     private clouds?: SkyClouds,
     private photo?: PhotoSkyBinding,
+    private readonly skipHiddenCloudBakes = false,
   ) {
     this.environmentScene.add(sky.clone());
   }
@@ -860,7 +861,7 @@ export class SkyEnvironment {
       // This bin's sky view, deck and cloud lighting.
       bindSkyAtmosphere(this.sky.material, bin / 8, mode);
       // This bin's photographed sky (restored with the binding below).
-      this.photo?.bind(this.sky.material, bin / 8, mode, true);
+      const photographed = this.photo?.bind(this.sky.material, bin / 8, mode, true);
       // The directional light carries the sun; the capture holds only sky.
       if (uniforms.sunDiscAmount) uniforms.sunDiscAmount.value = 0;
       // The lower hemisphere is ground, lit by this bin's sun and sky, not
@@ -870,7 +871,8 @@ export class SkyEnvironment {
         groundIrradiance(groundLightState(bin / 8, mode), uniforms.groundIrradiance.value);
       }
       // This bin's cloud panorama, not the visible dome's blend.
-      unbindClouds = this.clouds?.bind(renderer, bin, mode);
+      if (!this.skipHiddenCloudBakes || !photographed)
+        unbindClouds = this.clouds?.bind(renderer, bin, mode);
       // Paid only on a cloud-bin, lighting or tier change.
       const target = generator.fromScene(this.environmentScene, 0.04, 0.1, 700000, { size });
       this.captures++;
@@ -958,7 +960,10 @@ export class SkyEnvironment {
       throw new Error('Invalid sky PMREM size');
     // The visible dome's clouds (bakes only a missing bin panorama) and the
     // aerial perspective's sun-side glow for this cover and lighting.
-    this.clouds?.prepare(renderer, plan.cover, mode);
+    if (this.skipHiddenCloudBakes && this.sky.material.uniforms.photoAmount?.value === 1) {
+      // A resident photo supplies the visible sky. The moving shadows on the ground still need their field.
+      if (plan.cover > 0) this.clouds?.shadowField(renderer);
+    } else this.clouds?.prepare(renderer, plan.cover, mode);
     // The visible dome's sky view, sun disc, deck and cloud light (cached).
     if (this.sky.material.uniforms.skyViewLow)
       bindSkyAtmosphere(this.sky.material, plan.cover, mode);

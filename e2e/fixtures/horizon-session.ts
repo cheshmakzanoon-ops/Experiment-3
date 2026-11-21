@@ -89,6 +89,7 @@ const state = () => {
     contacts: internal?.renderer?.contacts.stats ?? null,
     roads: internal?.renderer?.roads.stats ?? null,
     water: internal?.renderer?.water.coast.stats ?? null,
+    sky: internal?.renderer?.photoSky.diagnostics() ?? null,
     atmosphere: internal?.renderer
       ? {
           falloff: internal.renderer.atmosphere.uniforms.apexAerialFalloff.value.toArray(),

@@ -30,7 +30,13 @@ export function gainMapSupported() {
   );
 }
 
-async function decode(bytes: Uint8Array): Promise<ImageBitmap | HTMLImageElement> {
+type DecodedSky = ImageBitmap | HTMLImageElement | HTMLCanvasElement;
+interface DecodeSize {
+  width: number;
+  height: number;
+}
+
+async function decode(bytes: Uint8Array, size?: DecodeSize): Promise<DecodedSky> {
   const blob = new Blob([bytes as Uint8Array<ArrayBuffer>], { type: 'image/jpeg' });
   if (typeof createImageBitmap === 'function') {
     try {
@@ -38,6 +44,7 @@ async function decode(bytes: Uint8Array): Promise<ImageBitmap | HTMLImageElement
         colorSpaceConversion: 'none',
         premultiplyAlpha: 'none',
         imageOrientation: 'none',
+        ...(size && { resizeWidth: size.width, resizeHeight: size.height, resizeQuality: 'high' }),
       });
     } catch {
       /* fall through to an image element */
@@ -49,13 +56,21 @@ async function decode(bytes: Uint8Array): Promise<ImageBitmap | HTMLImageElement
     image.decoding = 'async';
     image.src = url;
     await image.decode();
-    return image;
+    if (!size) return image;
+    const canvas = document.createElement('canvas');
+    canvas.width = size.width;
+    canvas.height = size.height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('No image resampler available');
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas;
   } finally {
     URL.revokeObjectURL(url);
   }
 }
 
-function texture(image: ImageBitmap | HTMLImageElement, name: string, srgb: boolean) {
+function texture(image: DecodedSky, name: string, srgb: boolean) {
   const t = new T.Texture(image as unknown as HTMLImageElement);
   t.name = name;
   t.flipY = false;
@@ -75,6 +90,7 @@ function texture(image: ImageBitmap | HTMLImageElement, name: string, srgb: bool
 export async function loadGainMapTextures(
   file: ShippedFile,
   signal?: AbortSignal,
+  maxBaseWidth?: number,
 ): Promise<GainMapTextures> {
   const layout = file.gainMap;
   if (!layout) throw new Error(`${file.path} has no gain-map layout`);
@@ -84,18 +100,34 @@ export async function loadGainMapTextures(
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (bytes.length !== file.bytes)
     throw new Error(`${file.path}: ${bytes.length} bytes, expected ${file.bytes}`);
-  const [baseImage, gainImage] = await Promise.all([
-    decode(bytes.subarray(0, layout.offset)),
-    decode(bytes.subarray(layout.offset)),
+  // Scale both JPEGs by the same factor: the gain map samples the same rays as the base.
+  const ratio = maxBaseWidth && file.width ? Math.min(1, maxBaseWidth / file.width) : 1;
+  const size = (width?: number, height?: number) =>
+    ratio < 1 && width && height
+      ? {
+          width: Math.max(1, Math.round(width * ratio)),
+          height: Math.max(1, Math.round(height * ratio)),
+        }
+      : undefined;
+  const [a, b] = await Promise.allSettled([
+    decode(bytes.subarray(0, layout.offset), size(file.width, file.height)),
+    decode(bytes.subarray(layout.offset), size(layout.width, layout.height)),
   ]);
+  if (a.status === 'rejected' || b.status === 'rejected') {
+    for (const part of [a, b])
+      if (part.status === 'fulfilled' && 'close' in part.value) part.value.close();
+    throw a.status === 'rejected' ? a.reason : (b as PromiseRejectedResult).reason;
+  }
+  const baseImage = a.value,
+    gainImage = b.value;
   const base = texture(baseImage, `${file.path} base`, true),
     gain = texture(gainImage, `${file.path} gain`, false);
   return {
     base,
     gain,
     gainMax: layout.gainMax,
-    width: file.width ?? baseImage.width,
-    height: file.height ?? baseImage.height,
+    width: baseImage.width,
+    height: baseImage.height,
     bytes: bytes.length,
     dispose() {
       base.dispose();

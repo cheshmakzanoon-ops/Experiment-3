@@ -30,11 +30,14 @@ export const PHOTO_CAPTURE_CLAMP = 16;
 /** Decoded skies kept resident (two crossfading plus one in flight). */
 const RESIDENT = 4;
 
+type PhotoVariant = '4k' | '2k' | '1k';
+
 interface Entry {
   id: string;
   asset: ShippedAsset;
   info: HdriInfo;
-  variant: '4k' | '2k';
+  variant: PhotoVariant;
+  request: AbortController;
   textures: GainMapTextures | null;
   promise: Promise<GainMapTextures | null>;
   failed: boolean;
@@ -68,7 +71,7 @@ const Y = (c: readonly number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2
  */
 export class PhotoSky implements PhotoSkyBinding {
   private entries = new Map<string, Entry>();
-  private variant: '4k' | '2k' | null = null;
+  private variant: PhotoVariant | null = null;
   private clock = 0;
   private version = 0;
   private disposed = false;
@@ -87,6 +90,7 @@ export class PhotoSky implements PhotoSkyBinding {
 
   /** Free an entry's textures and unbind them from every dome first. */
   private release(entry: Entry) {
+    entry.request.abort();
     const textures = entry.textures;
     if (!textures) return;
     for (const material of this.bound) {
@@ -103,8 +107,10 @@ export class PhotoSky implements PhotoSkyBinding {
   }
 
   /** Preset change: the variant to load (null = procedural only). */
-  setQuality(preset: QualityPreset) {
-    const variant = PHOTO_SKY_VARIANT[preset] ?? (detailTier(preset) === 'low' ? null : '2k');
+  setQuality(preset: QualityPreset, compactLandscape = false) {
+    const variant =
+      PHOTO_SKY_VARIANT[preset] ??
+      (detailTier(preset) === 'low' ? (compactLandscape ? '1k' : null) : '2k');
     if (variant === this.variant) return;
     this.variant = variant;
     // Another variant is a different texture: drop decoded skies.
@@ -138,7 +144,8 @@ export class PhotoSky implements PhotoSkyBinding {
       return existing;
     }
     const asset = thirdPartyAsset(id);
-    const file = asset?.files.find((f) => f.role === this.variant) ?? asset?.files[0];
+    const fileRole = this.variant === '1k' ? '2k' : this.variant;
+    const file = asset?.files.find((f) => f.role === fileRole) ?? asset?.files[0];
     if (!asset || !asset.hdri || !file) return null;
     const variant = this.variant;
     const entry: Entry = {
@@ -146,12 +153,17 @@ export class PhotoSky implements PhotoSkyBinding {
       asset,
       info: asset.hdri,
       variant,
+      request: new AbortController(),
       textures: null,
       failed: false,
       used: ++this.clock,
       promise: Promise.resolve(null),
     };
-    entry.promise = loadGainMapTextures(file).then(
+    entry.promise = loadGainMapTextures(
+      file,
+      entry.request.signal,
+      variant === '1k' ? 1024 : undefined,
+    ).then(
       (textures) => {
         if (this.disposed || this.entries.get(id) !== entry) {
           textures.dispose();
@@ -164,6 +176,7 @@ export class PhotoSky implements PhotoSkyBinding {
         return textures;
       },
       (error: unknown) => {
+        if (entry.request.signal.aborted) return null;
         entry.failed = true;
         console.warn(`Photographed sky ${id} unavailable, keeping the physical sky:`, error);
         return null;
@@ -343,6 +356,8 @@ export class PhotoSky implements PhotoSkyBinding {
         loaded: !!e.textures,
         failed: e.failed,
         bytes: e.textures?.bytes ?? 0,
+        width: e.textures?.width ?? 0,
+        height: e.textures?.height ?? 0,
       })),
     };
   }

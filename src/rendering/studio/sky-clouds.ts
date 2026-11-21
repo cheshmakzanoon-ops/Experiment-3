@@ -831,9 +831,19 @@ export class SkyClouds {
       generateMipmaps: false,
     });
     target.texture.name = 'Sky cloud field';
-    this.draw(renderer, target, this.fieldMaterial);
+    try {
+      this.draw(renderer, target, this.fieldMaterial);
+    } catch (error) {
+      target.dispose();
+      throw error;
+    }
     this.fieldBakes++;
     return target;
+  }
+  /** Ground shadows sample the field even when a photograph covers the entire dome. */
+  shadowField(renderer: T.WebGLRenderer) {
+    this.field ??= this.bakeField(renderer);
+    return this.field.texture;
   }
   private draw(renderer: T.WebGLRenderer, target: T.WebGLRenderTarget, material: T.Material) {
     const restore = preserve(renderer);
@@ -860,7 +870,7 @@ export class SkyClouds {
       this.touch(key);
       return cached.texture;
     }
-    if (!this.field) this.field = this.bakeField(renderer);
+    const field = this.shadowField(renderer);
     const target = new T.WebGLRenderTarget(SKY_CLOUDS.panoramaWidth, SKY_CLOUDS.panoramaHeight, {
       type: T.HalfFloatType,
       format: T.RGBAFormat,
@@ -874,7 +884,7 @@ export class SkyClouds {
     });
     target.texture.name = `Sky cloud panorama ${key}`;
     const u = this.panoramaMaterial.uniforms;
-    u.cloudField.value = this.field.texture;
+    u.cloudField.value = field;
     u.cloudDetail.value = this.detail ??= cloudDetailVolume();
     (u.sunDirection.value as T.Vector3).copy(this.sunDirection(mode)).normalize();
     u.threshold.value = layer.threshold;

@@ -263,8 +263,8 @@ export class FestivalRenderer {
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
     const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
-    this.photoSky.setQuality(this.preset);
-    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
+    this.photoSky.setQuality(this.preset, true);
+    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky, true);
     scene.add(this.sky);
     scene.environmentIntensity = 0.7;
     scene.fog = new T.FogExp2(0xb9c7c1, 0.00012);
@@ -540,7 +540,7 @@ export class FestivalRenderer {
     this.water.setDetail(tier === 'high');
     festivalRoadDetail.value = tier === 'high' ? 1 : 0;
     this.terrain.material.userData.ow.owGrassDetail.value = tier === 'high' ? 1 : 0;
-    this.photoSky.setQuality(preset);
+    this.photoSky.setQuality(preset, true);
     scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
     this.resize();
@@ -1102,6 +1102,7 @@ export class FestivalRenderer {
       ...this.imagePipeline.diagnostics(),
       shadows: this.shadows.diagnostics(),
       localShadows: this.streetLights.diagnostics(),
+      sky: this.photoSky.diagnostics(),
       reflectionProbe: this.reflection.probeDiagnostics,
       mirrorUpdates: this.reflection.mirrorUpdates,
       ultra: this.ultra.diagnostics(),
