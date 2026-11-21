@@ -66,6 +66,31 @@ function ridgeTree(conifer: boolean) {
   colours.push(high.r, high.g, high.b);
   const last = (rings.length - 1) * sides;
   for (let i = 0; i < sides; i++) ix.push(last + i, top, last + ((i + 1) % sides));
+  if (!conifer) {
+    // Lateral scaffold limbs break the single round crown on the skyline.
+    // The two asymmetric leaf masses meet the main crown along their backs.
+    for (const [azimuth, spread, mid, breadth] of [[0.45, 0.64, 0.57, 0.55], [3.31, 0.77, 0.65, 0.48]]) {
+      const base = pos.length / 3;
+      const dx = Math.cos(azimuth), dz = Math.sin(azimuth);
+      pos.push(dx * 0.39, mid - 0.19, dz * 0.39);
+      colours.push(low.r, low.g, low.b);
+      for (const ring of [0, 1]) {
+        for (let j = 0; j < 5; j++) {
+          const a = azimuth + (j + ring * 0.41) * Math.PI * 2 / 5;
+          const r = breadth * (ring ? 0.82 : 1) * (1 + 0.1 * Math.sin(3 * a));
+          pos.push(dx * spread + r * Math.cos(a), mid + 0.14 * ring + 0.022 * Math.sin(2 * a), dz * spread + r * Math.sin(a));
+          tint.copy(low).lerp(high, 0.23 + ring * 0.43 + 0.08 * Math.cos(a));
+          colours.push(tint.r, tint.g, tint.b);
+        }
+      }
+      pos.push(dx * (spread + 0.06), mid + 0.25, dz * (spread + 0.06));
+      colours.push(high.r, high.g, high.b);
+      for (let j = 0; j < 5; j++) {
+        const k = base + 1 + j, n = base + 1 + (j + 1) % 5;
+        ix.push(base, k, n, k, k + 5, n, n, k + 5, n + 5, k + 5, base + 11, n + 5);
+      }
+    }
+  }
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
   geometry.setAttribute('color', new T.Float32BufferAttribute(colours, 3));
