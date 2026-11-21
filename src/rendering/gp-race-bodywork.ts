@@ -1,3 +1,4 @@
+import { GP_FENDER_ISLAND } from './gp-appearance.ts';
 import { gpAerofoil } from './gp-aerofoil.ts';
 import { gpFairingOutlet } from './gp-fairing-outlet.ts';
 import { installGpFairingWear } from './gp-fairing-wear.ts';
@@ -1431,6 +1432,49 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
   );
 }
 
+/** One longitudinal UV island in the clearance above the fairing side view.
+ * Paint and raw composite receive their own clearcoat/roughness in the same
+ * draw. The graphics follow the curved fork moulding through its full travel. */
+function drawFender(c: CanvasRenderingContext2D, entrant: number, variant: GpShellVariant, layer: LiveryLayer) {
+  if (variant === 'sport') return;
+  const { x, y, length, width } = GP_FENDER_ISLAND, scheme = liveryScheme(entrant);
+  const colour = layer === 'colour', finish = layer === 'finish';
+  c.save();
+  c.translate(x, y);
+  c.fillStyle = colour ? '#232729' : finish ? FINISH.satin : RELIEF_VALUE(128);
+  c.fillRect(-5, -5, length + 10, width + 21);
+  // Author both shoulders in a single half-width coordinate frame.
+  for (const sign of [-1, 1]) {
+    c.save();
+    c.translate(0, width * 0.5);
+    c.scale(length, sign * width * 0.5);
+    c.fillStyle = colour ? scheme.primary : finish ? FINISH.gloss : RELIEF_VALUE(130);
+    c.beginPath();
+    c.moveTo(-0.015, -0.04); c.lineTo(1.01, -0.04); c.lineTo(1.01, 0.22);
+    if (variant === 'gpr2') {
+      c.bezierCurveTo(0.81, 0.34, 0.78, 0.76, 0.67, 0.79);
+      c.lineTo(0.33, 0.58); c.lineTo(0.13, 0.9);
+    } else {
+      c.bezierCurveTo(0.71, 0.34, 0.57, 0.99, 0.39, 0.93);
+      c.lineTo(0.10, 0.79);
+    }
+    c.lineTo(-0.015, 0.67); c.closePath(); c.fill();
+    c.beginPath();
+    if (variant === 'gpr2') {
+      c.moveTo(-0.01, 0.39); c.lineTo(0.22, 0.40); c.lineTo(0.39, 0.55);
+      c.lineTo(0.68, 0.73); c.lineTo(0.34, 0.57); c.lineTo(0.16, 0.47); c.lineTo(-0.01, 0.49);
+    } else {
+      c.moveTo(-0.01, 0.48); c.bezierCurveTo(0.23, 0.51, 0.40, 0.85, 0.80, 0.35);
+      c.bezierCurveTo(0.42, 0.97, 0.23, 0.62, -0.01, 0.59);
+    }
+    c.closePath();
+    c.fillStyle = colour ? scheme.accent : finish ? FINISH.gloss : RELIEF_VALUE(132);
+    c.fill();
+    c.restore();
+  }
+  c.restore();
+}
+
 /** Colour and finish atlases for one entrant. */
 export function gpLiveryTextures(entrant: number, variant: GpShellVariant) {
   const scheme = liveryScheme(entrant);
@@ -1439,6 +1483,7 @@ export function gpLiveryTextures(entrant: number, variant: GpShellVariant) {
     c.fillRect(0, 0, ATLAS.w, ATLAS.h);
     for (const side of [1, -1] as const)
       drawLivery(pen(c, side, layer, scheme.accent), entrant, variant);
+    drawFender(c, entrant, variant, layer);
   };
   const map = canvasTexture(ATLAS.w, ATLAS.h, draw('colour'));
   const finish = canvasTexture(ATLAS.w / 2, ATLAS.h / 2, (c) => {
@@ -1461,6 +1506,7 @@ function acquireRelief(variant: GpShellVariant) {
       c.fillRect(0, 0, ATLAS.w, ATLAS.h);
       for (const side of [1, -1] as const)
         drawLivery(pen(c, side, 'relief', '#000000'), 0, variant);
+      drawFender(c, 0, variant, 'relief');
     });
     texture.name = 'GP livery panel relief (height)';
     texture.colorSpace = T.NoColorSpace;

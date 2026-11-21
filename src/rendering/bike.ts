@@ -1330,22 +1330,21 @@ export class BikeModel {
       FORK_OFFSET,
     ).rotation.z = Math.PI / 2;
     // Front mudguard over the tyre.
-    const guardMaterial = (wings ? m.carbon : classic ? m.steel : m.secondary).clone();
-    guardMaterial.side = T.DoubleSide;
-    m.list.push(guardMaterial);
-    const guard = add(
-      this.forkLower,
-      gpPrototype && detail !== 'far'
-        ? gpFrontFender(frontR, detail)
-        : new T.CylinderGeometry(frontR + 0.03, frontR + 0.03, 0.13, sides, 1, true, 0.87, 1.75),
-      guardMaterial,
-      0,
-      0,
-      FORK_OFFSET,
-    );
-    // Undo the rake so the guard arcs over the top of the tyre.
-    guard.rotation.set(RAKE, 0, gpPrototype && detail !== 'far' ? 0 : Math.PI / 2);
-    if (gpPrototype && detail !== 'far') guard.name = 'Crowned carbon front fender';
+    if (gpPrototype) {
+      const variant = definition.id === 'gpr2' ? 'gpr2' : 'gpr1';
+      const guard = add(this.forkLower, gpFrontFender(frontR, detail, variant),
+        gpLiveryMaterial(m, id, variant), 0, 0, FORK_OFFSET);
+      guard.name = 'GP painted composite front mudguard';
+      guard.rotation.x = RAKE;
+    } else {
+      const guardMaterial = (wings ? m.carbon : classic ? m.steel : m.secondary).clone();
+      guardMaterial.side = T.DoubleSide;
+      m.list.push(guardMaterial);
+      const guard = add(this.forkLower,
+        new T.CylinderGeometry(frontR + 0.03, frontR + 0.03, 0.13, sides, 1, true, 0.87, 1.75),
+        guardMaterial, 0, 0, FORK_OFFSET);
+      guard.rotation.set(RAKE, 0, Math.PI / 2);
+    }
     if (gpPrototype) this.frontSpin.name = 'GP front wheel spin';
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, FORK_OFFSET);

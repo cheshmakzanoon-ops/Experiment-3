@@ -11,6 +11,7 @@ import {
   bindGpBareMetal,
   calibrateGpMaterials,
   gpFrontFender,
+  GP_FENDER_ISLAND,
   gpBellyOutlet,
   gpScreenAlpha,
   gpSilencer,
@@ -21,6 +22,7 @@ import {
   installGpTitaniumOxideGloss,
   setGpMetalAnisotropy,
 } from '../src/rendering/gp-appearance.ts';
+import { gpLiveryMaterial } from '../src/rendering/gp-race-bodywork.ts';
 import { gpRainLenses } from '../src/rendering/gp-rear-chassis.ts';
 import { gpReservoirBody, gpReservoirCap } from '../src/rendering/gp-brake-reservoir.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
@@ -254,6 +256,33 @@ describe('GP refined surface and mechanical contracts', () => {
       }
     },
   );
+  it('keeps the painted crowns off the front tyre across both shapes and all mesh densities', () => {
+    const radius = 0.31, crown = 0.083;
+    for (const detail of ['high', 'mid', 'far'] as const) {
+      const tips: number[] = [];
+      for (const variant of ['gpr1', 'gpr2'] as const) {
+        const g = gpFrontFender(radius, detail, variant), pos = g.getAttribute('position');
+        const index = g.index!;
+        let gap = Infinity;
+        for (let i = 0; i < index.count; i += 3) {
+          const a = new T.Vector3().fromBufferAttribute(pos, index.getX(i));
+          const b = new T.Vector3().fromBufferAttribute(pos, index.getX(i + 1));
+          const c = new T.Vector3().fromBufferAttribute(pos, index.getX(i + 2));
+          for (const p of [a, a.clone().add(b).add(c).multiplyScalar(1 / 3)]) {
+            if (Math.abs(p.x) > 0.060) continue;
+            const tyre = radius - crown + Math.sqrt(crown ** 2 - p.x ** 2);
+            gap = Math.min(gap, Math.hypot(p.y, p.z) - tyre);
+          }
+        }
+        expect(gap).toBeGreaterThan(0.016);
+        g.computeBoundingBox();
+        tips.push(g.boundingBox!.min.z);
+        g.dispose();
+      }
+      expect(tips[1] - tips[0]).toBeGreaterThan(0.02);
+    }
+  });
+
   it('rejects malformed fender radii', () => {
     for (const r of [NaN, Infinity, 0, -1, 0.7]) expect(() => gpFrontFender(r, 'high')).toThrow();
   });
@@ -329,19 +358,24 @@ describe('GP refined surface and mechanical contracts', () => {
       const m = new BikeMaterials(0),
         model = new BikeModel(VEHICLES[id], 0, 'high', m, true);
       try {
-        // Static batching legitimately removes individual mesh names. Locate
-        // the separate returned-edge carbon material and its actual geometry.
-        const fenders: T.Mesh[] = [];
+        // Identify the actual painted island after rigid batching, and verify
+        // that no other shell draws over the mudguard art on the atlas.
+        const fenders: T.Mesh[] = [], island = GP_FENDER_ISLAND;
+        const paint = gpLiveryMaterial(m, 0, id === 'gpr2' ? 'gpr2' : 'gpr1');
         model.root.traverse((o) => {
-          if (
-            o instanceof T.Mesh &&
-            o.material instanceof T.Material &&
-            o.material !== m.carbon &&
-            o.material.name === m.carbon.name &&
-            o.material.side === T.DoubleSide &&
-            o.geometry.getAttribute('position').count === 406
-          )
+          if (!(o instanceof T.Mesh) || o.material !== paint) return;
+          const uv = o.geometry.getAttribute('uv');
+          let inIsland = 0;
+          for (let v = 0; v < uv.count; v++) {
+            const x = uv.getX(v) * 2048, y = (1 - uv.getY(v)) * 1024;
+            if (x >= island.x - 0.01 && x <= island.x + island.length + 0.01 &&
+              y >= island.y - 0.01 && y <= island.y + island.width + 11.01) inIsland++;
+          }
+          if (inIsland) {
+            expect(inIsland).toBe(uv.count);
+            expect(paint.side).toBe(T.DoubleSide);
             fenders.push(o);
+          }
         });
         expect(fenders).toHaveLength(1);
         if (id === 'gpr1')

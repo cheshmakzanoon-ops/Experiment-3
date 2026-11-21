@@ -198,27 +198,40 @@ function gpScreenBorderMap() {
   return texture;
 }
 
-/** Carbon front fender with a transverse crown, tapered nose and returned
- * 2 mm edges. Axle along X, up along Y; the fork owns all articulation. */
-export function gpFrontFender(radius: number, detail: RiderDetail): T.BufferGeometry {
+/** Empty portion above the front flank of the 2048×1024 shell atlas. Long
+ * coordinate runs from the leading lip to the trailing lip, width across
+ * the tyre. The narrower strip beneath it belongs to the raw underside. */
+export const GP_FENDER_ISLAND = Object.freeze({ x: 22, y: 12, length: 246, width: 54 });
+
+/** A closed two-millimetre moulding, supported by the telescopic lower fork.
+ * The R1 has one leading tongue and a long skirt. The R2 has a shallow
+ * centre scallop, shorter tail and two raised shoulders. */
+export function gpFrontFender(radius: number, detail: RiderDetail, variant: 'gpr1' | 'gpr2' = 'gpr1'): T.BufferGeometry {
   if (!Number.isFinite(radius) || radius < 0.2 || radius > 0.45)
     throw new Error('Invalid GP front tyre radius');
-  const rows = detail === 'high' ? 28 : detail === 'mid' ? 14 : 8;
+  const rows = detail === 'high' ? 26 : detail === 'mid' ? 14 : 6;
   const cols = detail === 'high' ? 6 : 4;
   const positions: number[] = [],
     uvs: number[] = [],
     indices: number[] = [];
   const count = (rows + 1) * (cols + 1);
+  const island = GP_FENDER_ISLAND, r2 = variant === 'gpr2';
   for (let inner = 0; inner < 2; inner++) {
     for (let i = 0; i <= rows; i++) {
       const t = i / rows;
-      const angle = T.MathUtils.lerp(0.74, 2.64, t);
-      const width = 0.067 + Math.sin(Math.PI * t) * 0.014;
+      const width = 0.064 + 0.017 * Math.sin(Math.PI * t) - (r2 ? 0.006 : 0.002) * t;
+      const sideStay = Math.sin(Math.PI * t) ** 3;
       for (let j = 0; j <= cols; j++) {
         const u = (j / cols) * 2 - 1;
-        const r = radius + 0.029 + 0.012 * (1 - u * u) - 0.011 * u * u - inner * 0.002;
+        const side = Math.abs(u), shoulder = Math.sin(Math.PI * side);
+        const leading = r2 ? 0.79 - 0.11 * shoulder + 0.08 * side ** 2 : 0.70 + 0.17 * side ** 2;
+        const trailing = (r2 ? 2.50 : 2.63) - 0.17 * side ** 2 + 0.045 * shoulder;
+        const angle = T.MathUtils.lerp(leading, trailing, t);
+        const rib = (r2 ? 0.004 * shoulder : 0.0015 * (1 - side)) * sideStay;
+        const r = radius + 0.041 - 0.023 * u * u - 0.023 * side ** 3 * sideStay + rib - inner * 0.002;
         positions.push(u * width, Math.sin(angle) * r, Math.cos(angle) * r);
-        uvs.push(j / cols, t);
+        const across = inner ? island.y + island.width + 7 + 4 * j / cols : island.y + island.width * j / cols;
+        uvs.push((island.x + island.length * t) / 2048, 1 - across / 1024);
       }
     }
   }
