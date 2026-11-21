@@ -138,8 +138,16 @@ export class GpRiderPosture {
     // Body into the corner (REF_056): the chest yaws to the inside, which
     // carries a pitched spine laterally, and rolls the inside shoulder down.
     const into = T.MathUtils.clamp(hang * 0.48 + lean * 0.1, -0.48, 0.48) * (1 - plant),
-      chestYaw = into * 0.2 + finite(pose.steer) * 0.25 * (1 - corner),
-      chestRoll = -into * 0.12;
+      // Once the slider is down the shoulder cannot keep dropping with
+      // increasing bank. The knee and elbow take over the remaining reach.
+      loadedBank = T.MathUtils.smoothstep(bank, .19, .78)
+        * (1 - T.MathUtils.smoothstep(bank, .94, 1.14)) * crouch * (1 - plant),
+      // The chest turns around the pelvis as the inside elbow opens. A rider
+      // under braking starts looking through the turn before the hips move.
+      glance = finite(pose.sight?.yaw) * finite(pose.sight?.weight),
+      chestYaw = into * (.20 + .20 * loadedBank) + finite(pose.steer) * .25 * (1 - corner)
+        + glance * .16 * sitUp,
+      chestRoll = -into * (.12 + .20 * loadedBank);
     this.chestAngles.set(chestPitch, chestYaw, chestRoll, 'ZYX');
     // The pelvis bends less than the chest and turns its inside knee out.
     const flex = 0.07 + tuck * 0.19 + corner * 0.04 - sitUp * 0.05;

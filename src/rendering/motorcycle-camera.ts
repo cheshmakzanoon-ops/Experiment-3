@@ -1,5 +1,12 @@
-import { angleDifference, clamp, smooth } from '../core/math.ts';
+import { angleDifference, clamp, mod, smooth } from '../core/math.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
+
+/** Rider's sightline relative to the chassis heading and the road under it. */
+export interface GpRiderSight {
+  yaw: number;
+  gradeChange: number;
+  weight: number;
+}
 
 /** GP chase looks down the approaching road before the rider begins to lean.
  * The pitch follows road grade rather than fork dive or a wheelie. Bounded
@@ -9,6 +16,31 @@ export class MotorcycleRoadPreview {
   private readonly here = trackPoint();
   private readonly ahead = trackPoint();
   private readonly view = { yaw: 0, pitch: 0 };
+  private readonly sight: GpRiderSight = { yaw: 0, gradeChange: 0, weight: 0 };
+
+  /** Aim at a point the bike will pass, offset by its current lane. A
+   * tangent at a hairpin can point away from the actual road. Looking along
+   * the chord also lets the head anticipate the next turn in a chicane.
+   * Stored station wraps across the finish, including when scrubbing replay. */
+  rider(track: Track, from: number, to: number, alpha: number, lateral: number, speed: number, heading: number) {
+    if (!(speed > 4) || !Number.isFinite(from + to + alpha + lateral + speed + heading)) return undefined;
+    const lap = track.length;
+    const s = from + alpha * (mod(to - from + lap / 2, lap) - lap / 2);
+    track.at(s, this.here);
+    const alignment = Math.cos(angleDifference(Math.atan2(this.here.tx, this.here.tz), heading));
+    const weight = smooth(4, 16, speed) * smooth(.62, .90, alignment)
+      * (1 - smooth(this.here.width - .8, this.here.width + 1.1, Math.abs(lateral)));
+    if (weight <= 0) return undefined;
+    track.at(s + clamp(12 + speed * .62, 16, 63), this.ahead);
+    const dx = this.ahead.x - this.here.x + (this.ahead.nx - this.here.nx) * lateral;
+    const dz = this.ahead.z - this.here.z + (this.ahead.nz - this.here.nz) * lateral;
+    this.sight.yaw = clamp(angleDifference(Math.atan2(dx, dz), heading), -.53, .53);
+    this.sight.gradeChange = clamp(Math.atan2(this.ahead.y - this.here.y, Math.max(1, Math.hypot(dx, dz)))
+      - Math.atan(this.here.gradient), -.15, .15);
+    this.sight.weight = weight;
+    return this.sight;
+  }
+
 
   read(
     track: Track,

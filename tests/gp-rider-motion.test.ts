@@ -99,6 +99,27 @@ describe('GP riding motion on the actual articulated rider', () => {
     }
   });
 
+  it('turns the helmet toward the oncoming line before roll-in and restores the pose on a seek', () => {
+    const rider = new Rider(colours, 'mid', 'leathers', 2, true);
+    const head = rider.root.getObjectByName('Rider head and helmet')!;
+    const direction = new T.Vector3();
+    try {
+      for (const side of [-1, 1]) {
+        rider.ride({ ...base, sight: { yaw: side * .48, weight: 1, gradeChange: .08 } });
+        rider.root.updateMatrixWorld(true);
+        direction.set(0, 0, 1).transformDirection(head.matrixWorld);
+        expect(direction.x * side).toBeGreaterThan(.26);
+        expect(direction.y).toBeGreaterThan(-.10);
+        const muscles = transforms(rider.root);
+        rider.ride(base);
+        rider.ride({ ...base, sight: { yaw: side * .48, weight: 1, gradeChange: .08 } });
+        expect(transforms(rider.root)).toEqual(muscles);
+      }
+    } finally {
+      rider.dispose();
+    }
+  });
+
   it('uses slow-speed steering to look into manoeuvres and closes/reopens the knees continuously', () => {
     const rider = new Rider(colours, 'mid', 'leathers', 2, true),
       head = rider.root.getObjectByName('Rider head and helmet')!,

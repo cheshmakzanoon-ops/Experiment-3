@@ -342,7 +342,7 @@ export class RacingRenderer {
   /** Procedural exteriors of non-Formula definitions (WP30). */
   readonly vehicleBodies = new VehicleBodies();
   /** Motorcycle entrants (WP34): procedural bikes and riders over the snapshot pose. */
-  readonly bikeShells = new BikeShells();
+  readonly bikeShells: BikeShells;
   private readonly gpRoadPreview = new MotorcycleRoadPreview();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
   reducedMotion = false;
@@ -548,6 +548,7 @@ export class RacingRenderer {
     this.gpuTimer = new GpuTimer(context);
     this.drawLedger = attachDrawLedger(this.renderer);
     this.gpuFrames = new GpuFrameGate(context);
+    this.bikeShells = new BikeShells(track);
     this.atmosphere = new LocalAtmosphere(track);
     this.guide = new DrivingGuide(track);
     const lighting = buildVenueLighting(track);

@@ -31,12 +31,14 @@ export function gpHeadFrame(pose: RiderPose, torso: T.Quaternion, target: T.Quat
     // At racing speed the bars can countersteer away from the next apex.
     // Follow hang-off/lean there; retain steering-led sight in slow manoeuvres.
     steerWeight = 0.6 * (1 - T.MathUtils.smoothstep(speed, 6, 28)),
-    look = T.MathUtils.clamp(
+    balanceLook = T.MathUtils.clamp(
       lean * 0.27 + offset * 0.72 + finite(pose.steer) * steerWeight,
       -0.5,
       0.5,
     ),
-    pitch = 0.075 + tuck * 0.065 - braking * 0.025;
+    weight = T.MathUtils.clamp(finite(pose.sight?.weight), 0, 1),
+    look = T.MathUtils.clamp(balanceLook * (1 - .32 * weight) + finite(pose.sight?.yaw) * .64 * weight, -.57, .57),
+    pitch = .075 + tuck * .065 - braking * .025 - finite(pose.sight?.gradeChange) * .68 * weight;
   sightAngles.set(pitch, look, -lean * 0.55, 'YXZ');
   sight.setFromEuler(sightAngles);
   suspension.setFromAxisAngle(X, -finite(pose.suspensionPitch));

@@ -95,6 +95,8 @@ import {
 import { BIKE_STATES } from '../simulation/bike.ts';
 import { chassisLean } from '../simulation/bike-definitions.ts';
 import { vehicleAt, type VehicleDefinition } from '../simulation/vehicles.ts';
+import type { Track } from '../simulation/track.ts';
+import { MotorcycleRoadPreview, type GpRiderSight } from './motorcycle-camera.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
@@ -2113,6 +2115,7 @@ export class BikeModel {
         gLong: v.gLong,
         leanRate: v.leanRate,
         gpBody: v.gpBody,
+        sight: v.sight,
       });
       this.poseSparks(v);
     } else if (this.sliderSparks) this.sliderSparks.points.visible = false;
@@ -2150,6 +2153,7 @@ export class BikeModel {
   }
 }
 export interface BikePoseValues extends GpTyreAppearance {
+  sight?: GpRiderSight;
   /** Explicit measured road pose; absent for legacy, stands and dirt bikes. */
   roadContact?: RoadBikeContactPose;
   /** Snapshot values for the near cockpit; metres/second and protocol gear index. */
@@ -2313,6 +2317,8 @@ export class BikeShells {
   /** A motocross moto has no wheel service. Road and inspection sessions prefit their stands. */
   prefitDirtService = true;
   private readonly roadContact = new RoadBikeContactPose();
+  private readonly roadPreview = new MotorcycleRoadPreview();
+  private readonly riderForward = new T.Vector3();
   private readonly mxRecoveryPose = new MxRecoveryPose();
   private readonly helmetUp = new T.Vector3();
   private readonly fieldGeometry = new MxGeometryPool();
@@ -2341,7 +2347,7 @@ export class BikeShells {
   private readonly service = new BikeServicePose();
   private readonly serviceTask = new BikeWheelTask();
   private readonly lift = new T.Vector3();
-  constructor() {
+  constructor(private readonly track?: Track) {
     this.root.name = 'Motorcycles (procedural)';
   }
   /** Is entrant `id` a motorcycle in this snapshot? */
@@ -2774,6 +2780,12 @@ export class BikeShells {
     v.roadSupportG = v.roadContact?.valid ? sampleValue(a, b, o + F.G_VERT, t) : undefined;
     v.leanRate = sampleBikeField(a, b, o, B.LEAN_RATE, t);
     v.gpBody = riderBody?.sample(a, b, t, o, v.riding);
+    v.sight = undefined;
+    if (this.track && model.rider.gp && v.riding && !source[o + F.IN_PIT]) {
+      this.riderForward.set(0, 0, 1).applyQuaternion(model.root.quaternion);
+      v.sight = this.roadPreview.rider(this.track, a[o + F.S], b[o + F.S], t,
+        sampleValue(a, b, o + F.LATERAL, t), v.speed, Math.atan2(this.riderForward.x, this.riderForward.z));
+    }
     const rider = model.rider;
     if (v.riding && rider.root.parent !== model.sprung) {
       model.sprung.add(rider.root);

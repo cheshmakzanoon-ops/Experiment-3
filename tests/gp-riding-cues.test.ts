@@ -150,6 +150,27 @@ describe('GP road-aware chase', () => {
     expect(preview.read(track, s, 0, 45, heading, true)?.yaw).toBe(0);
   });
 
+  it('aims the rider through a corner, fades toward the verge and interpolates a wrapped finish', () => {
+    const preview = new MotorcycleRoadPreview(), point = trackPoint();
+    const station = track.circuit.corners[0].s - 27;
+    track.at(station, point);
+    const heading = Math.atan2(point.tx, point.tz);
+    const sight = { ...preview.rider(track, station - 2, station + 2, .5, 0, 47, heading)! };
+    expect(Math.abs(sight.yaw)).toBeGreaterThan(.025);
+    expect(sight.weight).toBe(1);
+    expect(preview.rider(track, station, station, 0, point.width + .3, 47, heading)!.weight).toBeLessThan(.65);
+    expect(preview.rider(track, station, station, 0, point.width + 2, 47, heading)).toBeUndefined();
+    expect(preview.rider(track, station, station, 0, 0, 47, heading + Math.PI)).toBeUndefined();
+    expect(preview.rider(track, station, station, 0, 0, 0, heading)).toBeUndefined();
+    track.at(0, point);
+    const zero = Math.atan2(point.tx, point.tz);
+    const finish = { ...preview.rider(track, track.length - 2, 2, .5, 0, 47, zero)! };
+    const start = preview.rider(track, 0, 0, 1, 0, 47, zero)!;
+    expect(finish.yaw).toBeCloseTo(start.yaw, 12);
+    expect(finish.gradeChange).toBeCloseTo(start.gradeChange, 12);
+    expect(preview.rider(track, station - 2, station + 2, .5, 0, 47, heading)).toEqual(sight);
+  });
+
   it('uses the road grade on crests, independent of suspension pitch', () => {
     const preview = new MotorcycleRoadPreview();
     let greatestPitch = 0;

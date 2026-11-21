@@ -1,3 +1,4 @@
+import type { GpRiderSight } from './motorcycle-camera.ts';
 import { installGpOpticalRain, type GpOpticalRain } from './gp-optics-rain.ts';
 import { paintDistantGpRider } from './gp-distant-rider.ts';
 import type { LiveryScheme } from './car-livery.ts';
@@ -109,6 +110,7 @@ export interface RiderColours {
   team?: Pick<LiveryScheme, 'pattern' | 'title'>;
 }
 export interface RiderPose extends MotocrossRiderMotionInput {
+  sight?: GpRiderSight;
   /** Chassis lean (rad, + left) and hang-off offset (m, + left). */
   lean: number;
   offset: number;
