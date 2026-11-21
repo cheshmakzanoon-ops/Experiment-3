@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js';
+import { bikeSurfaceMaps } from '../bike-surface-detail.ts';
 import { canvasTexture } from '../geometry.ts';
 import type { RiderColours, RiderDetail } from '../rider.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
@@ -991,7 +992,9 @@ export function motocrossGraphics(
         );
       }
     }
-  });
+  }, { willReadFrequently: true });
+  // These are painted once and resampled by TextureBudget for the race.
+  // CPU-backed 2D copies keep the raster work separate from the final texture upload.
   texture.name = `Motocross original ${kind} graphics ${number}`;
   texture.anisotropy = 4;
   return texture;
@@ -1025,6 +1028,21 @@ export function motocrossFabricMaps() {
     return t;
   };
   return { normalMap: texture(normal, 'normal'), roughnessMap: texture(roughness, 'roughness') };
+}
+
+type EquipmentGrain = 'weave' | 'glove' | 'boot';
+const equipmentGrains = new Map<EquipmentGrain, ReturnType<typeof motocrossFabricMaps>>();
+
+/** Every rider owns its two sampler handles. The six unchanging grain images
+ * can back all near and middle riders, including several WebGL contexts.
+ * Team prints, mud uniforms, UV transforms and disposal stay with the rider. */
+export function motocrossEquipmentGrain(part: EquipmentGrain) {
+  let grain = equipmentGrains.get(part);
+  if (!grain) {
+    grain = part === 'weave' ? motocrossFabricMaps() : bikeSurfaceMaps(part === 'glove' ? 'seat' : 'paint');
+    equipmentGrains.set(part, grain);
+  }
+  return { normalMap: grain.normalMap.clone(), roughnessMap: grain.roughnessMap.clone() };
 }
 
 /** A closed, softly bevelled moulded panel in XY, with useful planar decal UVs. */

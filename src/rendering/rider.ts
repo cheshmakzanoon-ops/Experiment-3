@@ -53,7 +53,7 @@ import {
 } from './gp-rider-suit.ts';
 import {
   installMotocrossFabricFinish,
-  motocrossFabricMaps,
+  motocrossEquipmentGrain,
   MX_PRINT_SCALE,
   motocrossGraphics,
 } from './offroad/motocross-detail.ts';
@@ -771,7 +771,7 @@ export class Rider {
       tagMudExposure(torsoLeather, 0.72);
     }
     if (mx && detail !== 'far') {
-      const weave = motocrossFabricMaps();
+      const weave = motocrossEquipmentGrain('weave');
       const sleeve = motocrossGraphics(colours, 'sleeve', raceNumber, MX_PRINT_SCALE[detail]);
       for (const material of [leather, panel, torsoLeather]) {
         Object.assign(material, weave);
@@ -784,10 +784,10 @@ export class Rider {
       installMotocrossFabricFinish(panel, 'limb');
       Object.assign(mxGloveBack!, weave);
       mxGloveBack!.normalScale.set(0.18, 0.18);
-      Object.assign(glove, bikeSurfaceMaps('seat'));
+      Object.assign(glove, motocrossEquipmentGrain('glove'));
       glove.normalScale.set(0.16, 0.16);
       glove.roughness = 0.78;
-      Object.assign(mxBoot!, bikeSurfaceMaps('paint'));
+      Object.assign(mxBoot!, motocrossEquipmentGrain('boot'));
       mxBoot!.normalScale.set(0.15, 0.15);
     }
     if (mx) {

@@ -7,9 +7,12 @@ import {
   motocrossHelmetShell,
 } from '../src/rendering/offroad/motocross-gear.ts';
 import {
+  motocrossEquipmentGrain,
+  motocrossGraphics,
   motocrossRadiatorShroud,
   motocrossTread,
 } from '../src/rendering/offroad/motocross-detail.ts';
+import { mxKitTexture } from '../src/rendering/offroad/motocross-graphics-kit.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
@@ -28,6 +31,44 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('motocross equipment surface and ownership', () => {
+  it('keeps each immutable print CPU-backed through grid resampling', () => {
+    const colours = { primary: 0x353986, secondary: 0x171624, accent: 0xfff4df };
+    for (const detail of ['high', 'mid', 'far'] as const) {
+      const kit = mxKitTexture(colours, 'mx250', detail);
+      const number = motocrossGraphics(colours, 'number', 5, 0.5);
+      try {
+        expect(kit.userData.cpuReadback).toBe(true);
+        expect(number.userData.cpuReadback).toBe(true);
+      } finally {
+        kit.dispose();
+        number.dispose();
+      }
+    }
+  });
+  it('keeps private samplers for an eight-rider field over six immutable equipment images', () => {
+    const handles = Array.from({ length: 16 }, () =>
+      (['weave', 'glove', 'boot'] as const).flatMap(part => {
+        const { normalMap, roughnessMap } = motocrossEquipmentGrain(part);
+        return [normalMap, roughnessMap];
+      }),
+    );
+    try {
+      const sources = new Set(handles.flat().map(map => map.source));
+      expect(sources.size).toBe(6);
+      expect(new Set(handles.flat()).size).toBe(96);
+      const bytes = [...sources].reduce((sum, source) => sum + source.data.data.byteLength, 0);
+      expect(bytes).toBe(294912);
+      for (let i = 0; i < handles[0].length; i++) {
+        const first = handles[0][i], next = handles[1][i];
+        expect(first.source).toBe(next.source);
+        first.repeat.set(0.5, 0.5);
+        expect(next.repeat.x).toBeGreaterThan(1);
+      }
+    } finally {
+      for (const map of handles.flat()) map.dispose();
+    }
+  });
+
   it.each(['high', 'mid'] as const)(
     '%s rear helmet exhausts have an open shell, recessed backings and solid adjacent crown',
     (detail) => {

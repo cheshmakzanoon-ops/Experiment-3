@@ -159,7 +159,7 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       c.font = 'italic 900 33px "Saira Variable", sans-serif';
       c.fillText(teamName, 0, 12, 252);
     });
-  });
+  }, { willReadFrequently: true });
   texture.name = `${model} die-cut racing plastics (${detail})`;
   return texture;
 }
