@@ -48,7 +48,7 @@ import { flagLabel } from '../simulation/marshal.ts';
 import { presentationControls, bindPresentation, weatherReadout } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
 import { developerMode } from './dev-mode.ts';
-import { LOADING_TIPS, loadingStage } from './loading-copy.ts';
+import { LOADING_TIPS, loadingStage, motocrossLoadingStage } from './loading-copy.ts';
 import { loadingTipsFor, type TipDiscipline } from './loading-tips.ts';
 import { circuitArt, circuitArtSvg, regionArtSvg } from './track-art.ts';
 import type { WildcardEntry } from '../career/wildcard-series.ts';
@@ -339,6 +339,7 @@ export class Interface {
   /** Latest presented frame, for the pause menu's session summary. */
   private lastFrame: Float32Array | null = null;
   private loadingProgress = 0;
+  private loadingMotocross = false;
   /** The lap in the pause menu's short form, kept beside the HUD's lap label. */
   private lapSummary = '';
   private loadingTipIndex = 0;
@@ -708,7 +709,9 @@ export class Interface {
       this.get('loadingTip').innerHTML =
         `<b>${th('TIP')}</b> ${th(LOADING_TIPS[this.loadingTipIndex])}`;
     }
-    const stage = loadingStage(text, this.loadingProgress);
+    const stage = this.loadingMotocross
+      ? motocrossLoadingStage(text, this.loadingProgress)
+      : loadingStage(text, this.loadingProgress);
     this.loadingProgress = Math.max(this.loadingProgress, stage.fraction);
     const percent = Math.round(this.loadingProgress * 100);
     this.setText('loadingStage', stage.title);
@@ -782,6 +785,7 @@ export class Interface {
       ? regionArtSvg(SOLVANE)
       : circuitArtSvg(def.id, { numbers: true, className: 'ta loading-map-art' });
     const offroad = def.offroad?.kind;
+    this.loadingMotocross = !festival && (offroad === 'motocross' || offroad === 'supercross');
     const bike = gpGridForVehicles(options.vehicles);
     const discipline: TipDiscipline = festival
       ? 'festival'
@@ -818,6 +822,7 @@ export class Interface {
     }
   }
   ready() {
+    this.loadingMotocross = false;
     const screen = this.get('loading');
     screen.hidden = true;
     screen.setAttribute('aria-busy', 'false');

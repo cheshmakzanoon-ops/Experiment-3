@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { developerMode } from '../src/ui/dev-mode.ts';
-import { LOADING_TIPS, loadingStage } from '../src/ui/loading-copy.ts';
+import { LOADING_TIPS, loadingStage, motocrossLoadingStage } from '../src/ui/loading-copy.ts';
 import { conditions, circuitTitle, Interface, SESSION_TITLES } from '../src/ui/interface.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 
@@ -59,6 +59,43 @@ describe('retail front end', () => {
       fraction: 0.9,
     });
     expect(LOADING_TIPS.length).toBeGreaterThan(3);
+  });
+
+  it('reports the eight real motocross entrants after the venue and before both cameras', () => {
+    const messages = [
+      '7% · Preparing venue ground…',
+      '100% · Scene ready…',
+      'Preparing motorcycle 1 / 8…',
+      'Preparing motorcycle 8 / 8…',
+      'Building motocross grid 1 / 8…',
+      'Building motocross grid 8 / 8…',
+      'Preparing motocross rider detail for race cameras…',
+      'Preparing motocross rider 1 / 8 · mid detail…',
+      'Preparing motocross rider 1 / 8 · far detail…',
+      'Preparing motocross rider 8 / 8 · high detail…',
+      'Loading the photographed sky…',
+      'Loading photographed ground…',
+      'Compiling circuit and vehicle materials…',
+      'Preparing circuit and vehicle materials…',
+      'Compiling shadow casters around the circuit…',
+      'Warming shadows and scene reflections…',
+      'Waiting for completed chase GPU work…',
+      'Warming cockpit, mirrors and post-processing…',
+      'Waiting for completed cockpit GPU work…',
+    ];
+    const stages = messages.map((message) => motocrossLoadingStage(message));
+    expect(stages.map((stage) => stage.fraction)).toEqual(
+      stages.map((stage) => stage.fraction).sort((a, b) => a - b),
+    );
+    expect(stages[1].fraction).toBeLessThan(0.4);
+    expect(stages[4].title).toBe('Preparing motorcycles · 1 / 8');
+    expect(stages[9].title).toBe('Preparing motorcycles · 8 / 8');
+    expect(stages[8].fraction).toBeGreaterThan(stages[7].fraction);
+    expect(stages.at(-1)!.fraction).toBeGreaterThan(0.95);
+    expect(stages.at(-1)!.fraction).toBeLessThan(1);
+    expect(motocrossLoadingStage('Preparing motorcycle 1 / 1…').title).toBe(
+      'Preparing motorcycles · 1 / 1',
+    );
   });
 
   it('moves the festival loading bar through every stage the Solvane session reports', () => {

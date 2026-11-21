@@ -91,6 +91,62 @@ export function loadingStage(raw: string, previous = 0): LoadingStage {
   return { title: t('Loading'), fraction: previous };
 }
 
+/** Circuit construction is only the first part of an MX load. The start grid,
+ * individual riders, graphics programs and both camera views follow it. */
+export function motocrossLoadingStage(raw: string, previous = 0): LoadingStage {
+  const text = raw.replace(/…$/, '').trim();
+  const stage = loadingStage(raw, previous);
+  const percent = /^(\d{1,3})%\s*·/.exec(text);
+  if (percent) {
+    const built = Math.min(1, Number(percent[1]) / 100);
+    let title = stage.title;
+    if (/scene ready/i.test(text)) title = t('Building the circuit');
+    else if (/bodywork/i.test(text)) title = t('Preparing motorcycles');
+    return { title, fraction: 0.05 + built * 0.29 };
+  }
+
+  const grid =
+    /^(Preparing motorcycle|Building motocross grid|Preparing motocross rider) (\d+)\s*\/\s*(\d+)(?:\s*·\s*(high|mid|far) detail)?$/i.exec(
+      text,
+    );
+  if (grid) {
+    const total = Math.max(1, Number(grid[3]));
+    const rider = Math.max(1, Math.min(total, Number(grid[2])));
+    let start = 0.34,
+      span = 0.08,
+      detail = 0;
+    if (/^building/i.test(grid[1])) {
+      start = 0.42;
+      span = 0.14;
+    } else if (grid[4]) {
+      start = 0.56;
+      span = 0.16;
+      detail = grid[4] === 'mid' ? 1 / 3 : grid[4] === 'far' ? 2 / 3 : 0;
+    }
+    return {
+      title: `${t('Preparing motorcycles')} · ${rider} / ${total}`,
+      fraction: start + span * ((rider - 1 + detail) / total),
+    };
+  }
+  if (/^Preparing motocross rider detail/i.test(text))
+    return { title: t('Preparing motorcycles'), fraction: 0.56 };
+  if (/^Loading the photographed sky/i.test(text))
+    return { title: t('Painting the sky'), fraction: 0.72 };
+  if (/^Loading photographed ground/i.test(text))
+    return { title: t('Laying the ground'), fraction: 0.74 };
+  if (/^(Compiling|Preparing) circuit and vehicle materials/i.test(text))
+    return { title: t('Preparing graphics'), fraction: 0.76 };
+  // The common camera stages span 0.55 (shadow programs) to 0.94 (last
+  // completed camera submission). Reserve the final portion of the MX bar for them.
+  if (
+    /shadow casters|shadows and scene reflections|capturing motocross|rendering motocross|pit.service materials|completed (chase|cockpit)|cockpit, mirrors/i.test(
+      text,
+    )
+  )
+    return { title: stage.title, fraction: 0.8 + (stage.fraction - 0.55) * 0.48 };
+  return { title: stage.title, fraction: previous };
+}
+
 /** Rotating racing tips shown under the loading bar. */
 export const LOADING_TIPS: readonly string[] = [
   N_('Brake in a straight line, then release smoothly as you turn in.'),
