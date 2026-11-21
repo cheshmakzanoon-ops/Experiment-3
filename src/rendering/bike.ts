@@ -40,6 +40,7 @@ import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpRearBrakeCaliper, gpRearRotor, GP_REAR_DISC } from './gp-rear-brake.ts';
 import { gpDiscGlow, gpSteelDiscGlow } from './gp-disc-glow.ts';
 import { GpSliderSparks, SLIDER_SPARKS } from './gp-slider-sparks.ts';
+import { gpAxleCarrier, gpAxleFasteners } from './gp-axle-carrier.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
 import { motorcycleWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
@@ -1270,14 +1271,15 @@ export class BikeModel {
         0.2,
         FORK_OFFSET,
       );
-      add(
-        this.forkLower,
-        new T.BoxGeometry(0.045, 0.11, 0.07),
-        gpPrototype && detail === 'high' ? m.forkUpper : m.dark,
-        side * 0.105,
-        0.0,
-        FORK_OFFSET,
-      );
+      if (gpPrototype) {
+        const carrier = add(this.forkLower, gpAxleCarrier(side, detail),
+          detail === 'high' ? m.forkUpper : m.dark, side * .105, 0, FORK_OFFSET);
+        carrier.name = 'GP front axle carrier';
+        if (detail === 'high')
+          add(this.forkLower, gpAxleFasteners(side), m.steel, side * .105, 0, FORK_OFFSET);
+      } else {
+        add(this.forkLower, new T.BoxGeometry(.045,.11,.07), m.dark, side * .105, 0, FORK_OFFSET);
+      }
       if (detail !== 'far' && (!classic || side > 0)) {
         if (detail === 'high' && (authored || definition.id === 'gpr2')) {
           // The four-piston forged monobloc moves with the fork lower; the
