@@ -44,6 +44,8 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
   const paper = '#ebe9dc',
     charcoal = '#212329';
   const size = model === 'mx250' ? '250' : '450';
+  const pattern = colours.team?.pattern ?? 'sweep',
+    teamName = colours.team?.title ?? 'MOTOBOUND';
   const texture = canvasTexture(1024 * scale, 512 * scale, (c) => {
     c.scale(scale, scale);
     c.fillStyle = base;
@@ -67,9 +69,23 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       c.restore();
     };
     tile('shroud', () => {
-      polygon(paper, [0, 265, 174, 262, 369, 110, 512, 85, 512, 266, 273, 329, 158, 409, 0, 407]);
-      polygon(dark, [0, 289, 178, 279, 370, 134, 512, 113, 512, 233, 305, 286, 158, 385, 0, 381]);
-      polygon(accent, [80, 304, 196, 284, 386, 153, 509, 135, 447, 164, 370, 177, 190, 300]);
+      if (pattern === 'arrow') {
+        polygon(paper, [0, 183, 175, 120, 278, 167, 512, 42, 512, 304, 243, 379, 113, 328, 0, 376]);
+        polygon(dark, [0, 220, 173, 147, 273, 193, 512, 65, 512, 246, 238, 347, 112, 299, 0, 351]);
+        polygon(accent, [0, 237, 107, 191, 154, 212, 72, 210, 0, 252]);
+        polygon(accent, [304, 178, 449, 93, 412, 143, 512, 102, 405, 165, 422, 132]);
+      } else if (pattern === 'split') {
+        polygon(paper, [0, 73, 184, 132, 0, 472]);
+        polygon(dark, [0, 477, 185, 126, 512, 129, 512, 261, 205, 337, 86, 512, 0, 512]);
+        polygon(accent, [47, 487, 205, 158, 512, 153, 512, 171, 216, 177, 73, 481]);
+      } else if (pattern === 'minimal') {
+        polygon(dark, [55, 221, 424, 126, 441, 244, 77, 350]);
+        polygon(accent, [61, 350, 441, 245, 441, 255, 60, 361]);
+      } else {
+        polygon(paper, [0, 265, 174, 262, 369, 110, 512, 85, 512, 266, 273, 329, 158, 409, 0, 407]);
+        polygon(dark, [0, 289, 178, 279, 370, 134, 512, 113, 512, 233, 305, 286, 158, 385, 0, 381]);
+        polygon(accent, [80, 304, 196, 284, 386, 153, 509, 135, 447, 164, 370, 177, 190, 300]);
+      }
       c.save();
       c.translate(267, 251);
       c.rotate(-0.29);
@@ -79,7 +95,7 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       c.fillText('MX', -67, 0, 94);
       c.fillText(size, 31, 0, 125);
       c.font = '800 18px "Saira Variable", sans-serif';
-      c.fillText('M O T O B O U N D', 2, 24, 184);
+      c.fillText(teamName, 2, 24, 184);
       c.restore();
     });
     tile('fender', () => {
@@ -99,6 +115,13 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       polygon(dark, [15, 8, 57, 12, 128, 63, 199, 12, 241, 8, 160, 81, 128, 107, 97, 81]);
       polygon(paper, [41, 13, 62, 15, 128, 67, 194, 15, 215, 13, 128, 81]);
       polygon(accent, [67, 25, 93, 41, 128, 68, 163, 41, 189, 25, 128, 76]);
+      if (pattern === 'arrow') {
+        for (const y of [255, 310, 359])
+          polygon(paper, [36, y, 128, y + 38, 220, y, 204, y + 21, 128, y + 55, 52, y + 21]);
+      } else if (pattern === 'split') {
+        polygon(paper, [141, 112, 168, 129, 143, 482, 121, 473]);
+        polygon(accent, [132, 184, 139, 175, 119, 450, 112, 467]);
+      }
       c.fillStyle = paper;
       c.font = 'italic 900 27px "Saira Variable", sans-serif';
       c.textAlign = 'center';
@@ -113,7 +136,7 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       c.font = 'italic 900 25px "Saira Variable", sans-serif';
       c.textAlign = 'center';
       c.fillStyle = paper;
-      c.fillText('MOTOBOUND', 0, 0, 170);
+      c.fillText(teamName, 0, 0, 170);
     });
     tile('handguard', () => {
       polygon(paper, [0, 58, 34, 66, 88, 45, 126, 20, 128, 28, 87, 62, 37, 81, 0, 76]);
@@ -134,7 +157,7 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       c.fillStyle = paper;
       c.textAlign = 'center';
       c.font = 'italic 900 33px "Saira Variable", sans-serif';
-      c.fillText('MOTOBOUND', 0, 12, 252);
+      c.fillText(teamName, 0, 12, 252);
     });
   });
   texture.name = `${model} die-cut racing plastics (${detail})`;

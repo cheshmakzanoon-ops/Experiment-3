@@ -432,7 +432,9 @@ export function motocrossGraphics(
   const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
   const primary = hex(colours.primary),
     secondary = hex(colours.secondary),
-    accent = hex(colours.accent);
+    accent = hex(colours.accent),
+    pattern = colours.team?.pattern ?? 'sweep',
+    teamName = colours.team?.title ?? 'MOTOBOUND';
   const texture = canvasTexture(width * scale, 512 * scale, (c) => {
     c.scale(scale, scale);
     c.fillStyle = kind === 'number' ? '#eeeae1' : primary;
@@ -466,7 +468,7 @@ export function motocrossGraphics(
       c.fillStyle = '#ffffff';
       c.font = '800 29px "Saira Variable", sans-serif';
       c.textAlign = 'center';
-      c.fillText('MOTOBOUND', 256, 48, 380);
+      c.fillText(teamName, 256, 48, 380);
       c.fillStyle = '#171a1d';
       c.font = 'italic 950 334px "Saira Variable", sans-serif';
       c.textBaseline = 'middle';
@@ -476,33 +478,103 @@ export function motocrossGraphics(
       c.fillText('FACTORY  /  MX', 256, 477, 300);
     } else if (kind === 'jersey') {
       for (const centre of [256, 768]) {
-        polygon(
-          [
-            [centre - 198, 0],
-            [centre - 156, 512],
-            [centre + 174, 512],
-            [centre + 196, 0],
-          ],
-          secondary,
-        );
-        polygon(
-          [
-            [centre - 204, 128],
-            [centre - 156, 164],
-            [centre - 130, 462],
-            [centre - 151, 492],
-          ],
-          accent,
-        );
-        polygon(
-          [
-            [centre + 202, 123],
-            [centre + 156, 163],
-            [centre + 127, 462],
-            [centre + 149, 492],
-          ],
-          accent,
-        );
+        // Both the back and chest share the construction of the jersey.
+        // Leave an uninterrupted dark field for timing-camera identification.
+        if (pattern === 'arrow') {
+          polygon(
+            [
+              [centre - 252, 0],
+              [centre + 252, 0],
+              [centre + 228, 160],
+              [centre + 138, 290],
+              [centre + 142, 475],
+              [centre - 149, 475],
+              [centre - 134, 291],
+              [centre - 234, 153],
+            ],
+            secondary,
+          );
+          for (const d of [-1, 1]) {
+            const chevron = (inset: number, ink: string) =>
+              polygon(
+                [
+                  [centre + d * 238, 78 + inset],
+                  [centre + d * 149, 163 + inset],
+                  [centre + d * 156, 204 + inset],
+                  [centre + d * 246, 110 + inset],
+                ],
+                ink,
+              );
+            chevron(0, '#e8e6df');
+            chevron(47, accent);
+          }
+        } else if (pattern === 'split') {
+          polygon(
+            [
+              [centre - 211, 0],
+              [centre + 238, 0],
+              [centre + 162, 201],
+              [centre + 139, 512],
+              [centre - 116, 512],
+              [centre - 117, 286],
+            ],
+            secondary,
+          );
+          polygon(
+            [
+              [centre - 159, 0],
+              [centre - 128, 0],
+              [centre - 75, 110],
+              [centre + 186, 109],
+              [centre + 178, 131],
+              [centre - 95, 132],
+            ],
+            accent,
+          );
+          polygon(
+            [
+              [centre + 164, 269],
+              [centre + 202, 196],
+              [centre + 191, 423],
+              [centre + 131, 490],
+            ],
+            '#e8e6df',
+          );
+        } else if (pattern === 'minimal') {
+          c.fillStyle = secondary;
+          c.fillRect(centre - 157, 0, 314, 512);
+          c.fillStyle = accent;
+          c.fillRect(centre - 166, 0, 5, 512);
+          c.fillRect(centre + 161, 0, 5, 512);
+        } else {
+          polygon(
+            [
+              [centre - 198, 0],
+              [centre - 156, 512],
+              [centre + 174, 512],
+              [centre + 196, 0],
+            ],
+            secondary,
+          );
+          polygon(
+            [
+              [centre - 204, 128],
+              [centre - 156, 164],
+              [centre - 130, 462],
+              [centre - 151, 492],
+            ],
+            accent,
+          );
+          polygon(
+            [
+              [centre + 202, 123],
+              [centre + 156, 163],
+              [centre + 127, 462],
+              [centre + 149, 492],
+            ],
+            accent,
+          );
+        }
       }
       c.textAlign = 'center';
       // The loft wraps U clockwise, so each chest/back panel needs its text
@@ -516,14 +588,14 @@ export function motocrossGraphics(
       };
       c.fillStyle = '#f0ede6';
       c.font = '800 42px "Saira Variable", sans-serif';
-      print('MOTOBOUND', 256, 206, 292);
+      print(teamName, 256, 206, 292);
       c.font = '700 23px "Saira Variable", sans-serif';
       print('OFFROAD RACING', 256, 244, 246);
       print('FACTORY RIDER', 768, 121, 272);
       c.font = 'italic 950 225px "Saira Variable", sans-serif';
       print(String(number), 758, 359, 274);
       c.font = '800 24px "Saira Variable", sans-serif';
-      print('MOTOBOUND', 768, 405, 270);
+      print(teamName, 768, 405, 270);
       c.fillStyle = accent;
       c.fillRect(166, 273, 180, 6);
       c.fillRect(674, 425, 188, 6);
@@ -724,6 +796,82 @@ export function motocrossGraphics(
         ],
         accent,
       );
+      if (pattern === 'arrow') {
+        for (const y of [156, 185])
+          wings(
+            [
+              [58, y + 10],
+              [117, y + 16],
+              [191, y - 12],
+              [218, y - 7],
+              [125, y + 36],
+              [69, y + 31],
+            ],
+            accent,
+          );
+      } else if (pattern === 'split') {
+        polygon(
+          [
+            [175, 0],
+            [219, 0],
+            [293, 91],
+            [476, 113],
+            [494, 130],
+            [281, 109],
+          ],
+          '#eeeae1',
+        );
+        polygon(
+          [
+            [192, 0],
+            [205, 0],
+            [285, 94],
+            [452, 116],
+            [284, 102],
+          ],
+          accent,
+        );
+      }
+      // The beaded lower rim climbs around the nape and carries the kit's
+      // edge stripe. The front remains clear for the chin intake and goggles.
+      polygon(
+        [
+          [0, 449],
+          [89, 468],
+          [128, 486],
+          [181, 463],
+          [239, 437],
+          [304, 426],
+          [377, 418],
+          [450, 427],
+          [512, 449],
+          [512, 512],
+          [0, 512],
+        ],
+        secondary,
+      );
+      polygon(
+        [
+          [0, 452],
+          [82, 468],
+          [46, 469],
+          [0, 462],
+        ],
+        accent,
+      );
+      polygon(
+        [
+          [245, 442],
+          [330, 425],
+          [385, 423],
+          [459, 432],
+          [508, 448],
+          [461, 438],
+          [383, 431],
+          [326, 432],
+        ],
+        accent,
+      );
       // A separate rear race mark stays on the crown above the goggle strap.
       polygon(
         [
@@ -767,6 +915,39 @@ export function motocrossGraphics(
         ],
         '#eeeae1',
       );
+      if (pattern === 'arrow') {
+        for (const y of [268, 341]) {
+          polygon(
+            [
+              [0, y],
+              [128, y + 51],
+              [256, y],
+              [384, y + 51],
+              [512, y],
+              [512, y + 27],
+              [384, y + 78],
+              [256, y + 27],
+              [128, y + 78],
+              [0, y + 27],
+            ],
+            accent,
+          );
+        }
+      } else if (pattern === 'split') {
+        polygon(
+          [
+            [0, 121],
+            [152, 90],
+            [268, 168],
+            [512, 133],
+            [512, 155],
+            [258, 199],
+            [146, 119],
+            [0, 155],
+          ],
+          '#eeeae1',
+        );
+      }
       // The wrist lies at the top of the print. A continuous cuff and two
       // forearm panels remain visible from the rider's eye when hands turn.
       c.fillStyle = '#24252a';

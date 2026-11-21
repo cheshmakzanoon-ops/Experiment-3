@@ -106,6 +106,7 @@ export function captureMotocrossBike(
   view = 'three-quarter',
   samples: readonly MotocrossPoseSample[] = [{}],
   groundSurvey?: { vertices: number[]; indices: number[] },
+  entrant = 0,
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1280, 800);
@@ -144,9 +145,9 @@ export function captureMotocrossBike(
   ground.receiveShadow = true;
   scene.add(ground);
   const def = VEHICLES[id],
-    materials = new BikeMaterials(0),
+    materials = new BikeMaterials(entrant),
     mud = mudUniforms();
-  const model = new DirtBikeModel(def, 0, detail, materials, mud),
+  const model = new DirtBikeModel(def, entrant, detail, materials, mud),
     sag = staticSag(def);
   scene.add(model.root);
   const arenaLight = samples.some((s) => s.arenaPosition) ? new MxArenaBikeLight() : undefined;
@@ -356,9 +357,10 @@ export function captureMotocrossBike(
         image: renderer.domElement.toDataURL('image/png'),
         instance: model.root.uuid,
         hash,
-        wheelPixels: view === 'side' && (sample.frontOmega !== undefined || sample.rearOmega !== undefined)
-          ? sideWheelHashes(pixels, renderer.domElement.width)
-          : null,
+        wheelPixels:
+          view === 'side' && (sample.frontOmega !== undefined || sample.rearOmega !== undefined)
+            ? sideWheelHashes(pixels, renderer.domElement.width)
+            : null,
         triangles,
         submittedTriangles: renderer.info.render.triangles,
         finiteGeometry,

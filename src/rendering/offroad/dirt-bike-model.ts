@@ -48,6 +48,7 @@ import {
 import { addMotocrossHandguards } from './motocross-handguard.ts';
 import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
 import { mxCrossbarPad } from './motocross-bar-pad.ts';
+import { mxSilencerHanger, mxSilencerSleeve } from './mx-silencer.ts';
 import { mxNumberBoard, mxNumberBoardBack, mxSideNumberPlate, mxSidePlateMounts } from './motocross-number-board.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
 import {
@@ -63,6 +64,7 @@ import {
   motocrossAirbox,
   motocrossMudFlap,
   motocrossSeat,
+  motocrossSeatPleats,
   motocrossTankShell,
   motocrossTankTop,
 } from './motocross-bodywork.ts';
@@ -151,6 +153,7 @@ export class DirtBikeModel {
       primary: new T.Color(scheme.primary).getHex(),
       secondary: new T.Color(scheme.secondary).getHex(),
       accent: new T.Color(scheme.accent).getHex(),
+      team: scheme,
     };
     this.axles = MotocrossAxles.of(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
@@ -843,15 +846,7 @@ export class DirtBikeModel {
     }
     add(this.sprung, motocrossSeat(detail), this.m.seat).name = 'Motocross one-piece seat';
     if (detail !== 'far')
-      for (let i = 0; i < 6; i++)
-        add(
-          this.sprung,
-          new RoundedBoxGeometry(0.17 - i * 0.01, 0.008, 0.015, 1, 0.003),
-          dark,
-          0,
-          0.134 - i * 0.002,
-          -0.23 - i * 0.062,
-        );
+      add(this.sprung, motocrossSeatPleats(detail), dark).name = 'Stitched anti-slip saddle pleats';
     // Side number boards and the long, upswept rear fender.
     for (const side of [1, -1]) {
       add(this.sprung, mxSideNumberPlate(detail, side, lightFrame), board).name =
@@ -893,11 +888,8 @@ export class DirtBikeModel {
     silencer.position.set(-0.177, -0.005, -0.615);
     silencer.rotation.x = 0.22;
     this.sprung.add(silencer);
-    add(
-      silencer,
-      new T.CylinderGeometry(0.049, 0.044, 0.342, sides / 2, 1, true),
-      this.m.aluminium,
-    ).rotation.x = Math.PI / 2;
+    add(silencer, mxSilencerSleeve(detail, lightFrame), this.m.aluminium).name =
+      'Swaged exhaust sleeve';
     add(silencer, motocrossSilencerOutlet(detail), this.m.dark).name =
       'Motocross recessed open silencer outlet';
     const bore = new T.LatheGeometry(
@@ -916,9 +908,27 @@ export class DirtBikeModel {
     // An annular inlet leaves the real header connection open as well.
     const inlet = new T.RingGeometry(0.022, 0.049, sides / 2);
     add(silencer, inlet, this.m.aluminium, 0, 0, 0.171);
-    if (detail !== 'far')
-      for (const z of [-0.115, 0.11])
-        add(silencer, new T.TorusGeometry(0.049, 0.004, 5, sides / 2), this.m.steel, 0, 0, z);
+    if (detail !== 'far') {
+      for (const z of [-0.065, 0.11]) {
+        add(
+          silencer,
+          mxSilencerSleeve(detail, lightFrame, { centre: z, width: 0.016 }),
+          this.m.steel,
+        );
+        const rivet = new T.CylinderGeometry(
+          0.0045,
+          0.0045,
+          0.004,
+          detail === 'high' ? 10 : 6,
+        ).rotateZ(Math.PI / 2);
+        add(silencer, rivet, this.m.steel, -0.044, 0, z);
+      }
+      add(silencer, mxSilencerHanger(), this.m.aluminium, 0, 0, -0.065);
+      const bush = new T.TorusGeometry(0.007, 0.002, 5, 12);
+      add(silencer, bush, this.m.dark, 0.105, 0.055, -0.059);
+      const fastener = new T.CylinderGeometry(0.0054, 0.0054, 0.012, 6).rotateX(Math.PI / 2);
+      add(silencer, fastener, this.m.steel, 0.105, 0.055, -0.062);
+    }
     // Serrated hollow pegs retain the rider's authored contact points.
     for (const side of [-1, 1]) {
       for (const z of [-0.125, -0.075])

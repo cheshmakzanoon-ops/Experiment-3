@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { superLoft, type Section } from '../bike.ts';
+import { sampleProfile } from '../profile-sampling.ts';
 import type { RiderDetail } from '../rider.ts';
 
 /** Sprung-frame bodywork volumes (m; origin at the CG, +Z forward, +Y up).
@@ -56,6 +57,59 @@ const SEAT: readonly Section[] = [
 ];
 export function motocrossSeat(detail: RiderDetail) {
   return superLoft(SEAT, sidesFor(detail), 3);
+}
+
+/** Sewn traction pleats wrap down the actual seat shoulders. Their edges
+ * enter the foam, so only the upper rubber crown needs triangles. */
+export function motocrossSeatPleats(detail: RiderDetail) {
+  const stations = SEAT.map((s) => s.z),
+    centre = SEAT.map((s) => s.y),
+    top = SEAT.map((s) => s.top),
+    width = SEAT.map((s) => s.w),
+    taper = SEAT.map((s) => s.topWidth ?? 1);
+  const columns = detail === 'high' ? 8 : 6;
+  const pos: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  const profile = [
+    [-0.0075, -0.0012],
+    [-0.0035, 0.0036],
+    [0.0028, 0.0041],
+    [0.0075, -0.0012],
+  ];
+  for (let rib = 0; rib < 6; rib++) {
+    for (let i = 0; i <= columns; i++) {
+      const u = i / columns,
+        a = Math.PI * (0.15 + u * 0.7);
+      const c = Math.cos(a),
+        s = Math.sin(a);
+      const z0 = -0.215 - rib * 0.066 - 0.014 * Math.abs(c);
+      for (let row = 0; row < profile.length; row++) {
+        const [offset, lift] = profile[row],
+          z = z0 + offset;
+        const x =
+          Math.sign(c) *
+          Math.abs(c) ** (2 / 3) *
+          sampleProfile(stations, width, z) *
+          (1 - (1 - sampleProfile(stations, taper, z)) * s);
+        const y =
+          sampleProfile(stations, centre, z) + s ** (2 / 3) * sampleProfile(stations, top, z);
+        pos.push(x, y + lift, z);
+        uv.push(u, row / (profile.length - 1));
+        if (i && row) {
+          const d = pos.length / 3 - 1,
+            b = d - profile.length;
+          indices.push(b - 1, d - 1, b, b, d - 1, d);
+        }
+      }
+    }
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
 }
 
 /** Airbox and seat base behind the frame: closes the space between the side

@@ -1,5 +1,6 @@
 import { installGpOpticalRain, type GpOpticalRain } from './gp-optics-rain.ts';
 import { paintDistantGpRider } from './gp-distant-rider.ts';
+import type { LiveryScheme } from './car-livery.ts';
 import * as T from 'three';
 import { MotocrossDab, type MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -106,6 +107,7 @@ export interface RiderColours {
   primary: number;
   secondary: number;
   accent: number;
+  team?: Pick<LiveryScheme, 'pattern' | 'title'>;
 }
 export interface RiderPose extends MotocrossRiderMotionInput {
   /** Chassis lean (rad, + left) and hang-off offset (m, + left). */
@@ -748,7 +750,8 @@ export class Rider {
       // A coated polycarbonate goggle lens has a dark eye cavity behind it.
       // The old pale, mostly metallic visor turned into an opaque cyan slab.
       // Keep the clear surface reflection while the smoke tint stays dark.
-      visor.color.setHex(0x123034);
+      const optic = colours.team?.pattern;
+      visor.color.setHex(optic === 'arrow' ? 0x38291c : optic === 'split' ? 0x25283d : 0x123034);
       visor.metalness = 0.12;
       visor.roughness = 0.12;
       visor.clearcoat = 0.95;

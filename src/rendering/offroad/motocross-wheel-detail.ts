@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { RiderDetail } from '../rider.ts';
 
 /** An annular stepped hub with bearing shoulders and spoke flanges. Its open
@@ -47,6 +47,18 @@ export function motocrossWheelSpokes(rim: number, detail: RiderDetail, exposureH
     cross = detail === 'high' ? 2 : 1,
     parts: T.BufferGeometry[] = [],
     axis = new T.Vector3(0, 1, 0);
+  let nippleTemplate: T.BufferGeometry | undefined;
+  if (!distant) {
+    const blank = new T.CylinderGeometry(0.0031, 0.0027, 0.012, detail === 'high' ? 6 : 4);
+    // The outer cap is buried in the rim. Compact the remaining flats and
+    // the inboard shoulder once, before orienting copies on the actual shafts.
+    const ix = blank.index!,
+      cap = blank.groups[1];
+    blank.setIndex([...ix.array.slice(0, cap.start), ...ix.array.slice(cap.start + cap.count)]);
+    blank.clearGroups();
+    nippleTemplate = mergeVertices(blank, 1e-6);
+    blank.dispose();
+  }
   for (let k = 0; k < count; k++) {
     const side = k % 2 === 0 ? 1 : -1,
       direction = Math.floor(k / 2) % 2 === 0 ? 1 : -1,
@@ -72,14 +84,15 @@ export function motocrossWheelSpokes(rim: number, detail: RiderDetail, exposureH
     spoke.applyQuaternion(orientation);
     spoke.translate(centre.x, centre.y, centre.z);
     parts.push(spoke);
-    if (distant) continue;
+    if (!nippleTemplate) continue;
     const nippleCentre = to.clone().addScaledVector(vector, -0.006),
-      nipple = new T.CylinderGeometry(0.0031, 0.0027, 0.012, detail === 'high' ? 6 : 4);
+      nipple = nippleTemplate.clone();
     nipple.applyQuaternion(orientation);
     nipple.translate(nippleCentre.x, nippleCentre.y, nippleCentre.z);
     parts.push(nipple);
   }
   const geometry = mergeGeometries(parts, false)!;
+  nippleTemplate?.dispose();
   for (const part of parts) part.dispose();
   if (exposureHalfWidth !== undefined) {
     // Both shafts and nipples contribute to photographed coverage. The

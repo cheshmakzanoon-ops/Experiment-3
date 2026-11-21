@@ -28,6 +28,43 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('motocross equipment surface and ownership', () => {
+  it.each(['high', 'mid'] as const)(
+    '%s rear helmet exhausts have an open shell, recessed backings and solid adjacent crown',
+    (detail) => {
+      const head = new T.Group(),
+        material = new T.MeshBasicMaterial();
+      const shell = new T.Mesh(motocrossHelmetShell(detail), material);
+      shell.position.set(0, 0.15, 0.02);
+      head.add(shell);
+      addMotocrossHelmet(head, detail, material, material, material, material);
+      head.updateMatrixWorld(true);
+      const cast = (u: number, target: T.Object3D) => {
+        const phi = u * Math.PI * 2,
+          radial = new T.Vector3(-Math.cos(phi), 0, Math.sin(phi));
+        const origin = radial
+          .clone()
+          .multiplyScalar(0.45)
+          .add(new T.Vector3(0, 0.23, 0.02));
+        return new T.Raycaster(origin, radial.negate(), 0, 0.41).intersectObject(target, false);
+      };
+      try {
+        const ducts = head.children.filter(
+          (o) => o.name === 'Motocross recessed rear helmet exhaust',
+        );
+        expect(ducts).toHaveLength(2);
+        for (const [i, u] of [10.5 / 16, 13.5 / 16].entries()) {
+          expect(cast(u, shell)).toHaveLength(0);
+          expect(cast(u, ducts[i]).length).toBeGreaterThan(0);
+        }
+        expect(cast(0.75, shell).length).toBeGreaterThan(0);
+      } finally {
+        head.traverse((o) => {
+          if (o instanceof T.Mesh) o.geometry.dispose();
+        });
+        material.dispose();
+      }
+    },
+  );
   it('fits the toric lens and folded film tab to the same clutch-side rim', () => {
     const head = new T.Group(),
       material = new T.MeshStandardMaterial();

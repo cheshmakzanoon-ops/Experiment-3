@@ -653,6 +653,50 @@ function motocrossEyePortReturn(detail: RiderDetail) {
   return geometry;
 }
 
+const REAR_VENTS = [10 / 16, 13 / 16] as const;
+const VENT_SPAN = 1 / 16,
+  VENT_BOTTOM = 0.065,
+  VENT_TOP = 0.094;
+
+/** The return follows the cut shell's exact perimeter. The lip and recessed
+ * backing catch separate highlights when a rider turns under the lights. */
+function motocrossRearDuct(detail: RiderDetail, start: number) {
+  const cols = detail === 'high' ? 3 : 2,
+    rows = detail === 'high' ? 4 : 2;
+  const ring: [number, number][] = [];
+  for (let i = 0; i < cols; i++) ring.push([i / cols, 0]);
+  for (let i = 0; i < rows; i++) ring.push([1, i / rows]);
+  for (let i = cols; i > 0; i--) ring.push([i / cols, 1]);
+  for (let i = rows; i > 0; i--) ring.push([0, i / rows]);
+  const pos: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  const vertex = (u: number, v: number, offset: number) => {
+    const p = motocrossHelmetPoint(
+      T.MathUtils.lerp(VENT_BOTTOM, VENT_TOP, v),
+      (start + u * VENT_SPAN) * Math.PI * 2,
+      offset,
+    );
+    pos.push(p.x, p.y, p.z);
+    uv.push(u, v);
+  };
+  for (const [u, v] of ring) vertex(u, v, 0);
+  for (const [u, v] of ring) vertex(0.1 + u * 0.8, 0.15 + v * 0.7, -0.008);
+  const n = ring.length,
+    centre = 2 * n;
+  vertex(0.5, 0.5, -0.01);
+  for (let i = 0; i < n; i++) {
+    const next = (i + 1) % n;
+    indices.push(i, next, next + n, i, next + n, i + n, i + n, next + n, centre);
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
+}
+
 /** Dedicated MX silhouette at all LODs. The eye port is an actual opening in
  * the outer shell, backed by a recessed dark liner in addMotocrossHelmet;
  * race graphics therefore cannot show through the gap around the goggles. */
@@ -677,7 +721,14 @@ export function motocrossHelmetShell(detail: RiderDetail = 'high') {
           ys[row + 1] <= 0.065 + 1e-9 &&
           column >= columns / 16 &&
           column < (columns * 7) / 16;
-        if (inEyePort) continue;
+        const inRearDuct =
+          detail !== 'far' &&
+          ys[row] >= VENT_BOTTOM - 1e-9 &&
+          ys[row + 1] <= VENT_TOP + 1e-9 &&
+          REAR_VENTS.some(
+            (start) => column >= start * columns && column < (start + VENT_SPAN) * columns,
+          );
+        if (inEyePort || inRearDuct) continue;
         const a = row * (columns + 1) + column,
           b = a + columns + 1;
         indices.push(a, a + 1, b, a + 1, b + 1, b);
@@ -897,6 +948,10 @@ export function addMotocrossHelmet(
   );
   strap.name = 'Motocross woven goggle strap';
   if (detail === 'far') return;
+  for (const start of REAR_VENTS) {
+    const duct = part(head, motocrossRearDuct(detail, start), trim, 0, 0.15, 0.02);
+    duct.name = 'Motocross recessed rear helmet exhaust';
+  }
   const rim = part(
     head,
     new T.TubeGeometry(

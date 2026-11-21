@@ -13,6 +13,7 @@ type CaptureOptions = {
   detail: 'high' | 'mid' | 'far';
   view?: string;
   samples?: Parameters<typeof captureMotocrossBike>[3];
+  entrant?: number;
 };
 type CaptureResult = ReturnType<typeof captureMotocrossBike>[number];
 type Review = {
@@ -62,7 +63,14 @@ const test = base.extend<{ review: Review }>({
             window as unknown as {
               MotocrossReview: { captureMotocrossBike: typeof captureMotocrossBike };
             }
-          ).MotocrossReview.captureMotocrossBike(c.id, c.detail, c.view, c.samples),
+          ).MotocrossReview.captureMotocrossBike(
+            c.id,
+            c.detail,
+            c.view,
+            c.samples,
+            undefined,
+            c.entrant,
+          ),
         options,
       );
     const attach = async (name: string, result: CaptureResult) => {
@@ -133,6 +141,25 @@ for (const id of ['mx450', 'mx250', 'sm450'])
     expect(triangles[0]).toBeGreaterThan(triangles[1]);
     expect(triangles[1]).toBeGreaterThan(triangles[2]);
   });
+
+test('different motocross teams keep their race colours, printed kit and hardware budgets in the chase view', async ({
+  review,
+}) => {
+  const hashes = new Set<number>();
+  let firstTriangles = 0;
+  for (const [entrant, title] of [
+    [0, 'voltex'],
+    [1, 'northline'],
+    [3, 'orbitel'],
+  ] as const) {
+    const [result] = await review.capture({ id: 'mx450', detail: 'high', view: 'rear', entrant });
+    await review.attach(`mx450-${title}-rear`, result);
+    hashes.add(result.hash);
+    firstTriangles ||= result.triangles;
+    expect(result.triangles).toBe(firstTriangles);
+  }
+  expect(hashes.size).toBe(3);
+});
 
 test('the indoor roof light reaches real rider and bike materials and restores the outdoor image on a seek', async ({
   review,
