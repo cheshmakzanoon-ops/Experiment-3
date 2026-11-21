@@ -778,7 +778,7 @@
     ]
   },
   "drivingCadence": {
-    "method": "Same recorded tick-indexed steering, brakes and throttle in seeded, wet four-car Valley Sprint. Full vehicle snapshots sampled every simulation second at three clock update rates.",
+    "method": "Same recorded tick-indexed steering, brakes and throttle in seeded, wet four-car Ashvale Sprint. Full vehicle snapshots sampled every simulation second at three clock update rates.",
     "source": "997080f1b5a2e6d485f7cb76775feb20aa1cac0d",
     "runs": [
       {
@@ -812,5 +812,161 @@
         "digest": "8e09964e701015ff10012b6749d818d8eeb059232c935a7ae00c120613eb5e73"
       }
     ]
+  },
+  "quarryCarriageway": {
+    "source": "80e8dc69d6b7209a69422369709a948642e63e40",
+    "eventName": "Quarry Track Drift Zone",
+    "method": "Normal travel run-up, real tyres and steering, slide controller, traffic enabled. Finish time starts at the entry gate.",
+    "runs": [
+      {
+        "event": "quarry-drift",
+        "vehicle": "rm8",
+        "weather": "clear",
+        "seed": 713225,
+        "startedBy": "gate",
+        "arrivalSeconds": 13.124999999999895,
+        "time": 41.97,
+        "score": 0,
+        "offRouteSeconds": 0,
+        "pilotResets": 0,
+        "autoResets": 0,
+        "legalDistance": 1463.4,
+        "outcome": "completed"
+      },
+      {
+        "event": "quarry-drift",
+        "vehicle": "rh3",
+        "weather": "clear",
+        "seed": 713225,
+        "startedBy": "gate",
+        "arrivalSeconds": 12.708333333333252,
+        "time": 41.97,
+        "score": 0,
+        "offRouteSeconds": 0,
+        "pilotResets": 0,
+        "autoResets": 0,
+        "legalDistance": 1464,
+        "outcome": "completed"
+      },
+      {
+        "event": "quarry-drift",
+        "vehicle": "sc7",
+        "weather": "clear",
+        "seed": 713225,
+        "startedBy": "gate",
+        "arrivalSeconds": 10.833333333333359,
+        "time": 40.57,
+        "score": 0,
+        "offRouteSeconds": 0,
+        "pilotResets": 0,
+        "autoResets": 0,
+        "legalDistance": 1464.2,
+        "outcome": "completed"
+      },
+      {
+        "event": "quarry-drift",
+        "vehicle": "rm8",
+        "weather": "rain",
+        "seed": 713225,
+        "startedBy": "gate",
+        "arrivalSeconds": 22.291666666666043,
+        "time": 73.33,
+        "score": 0,
+        "offRouteSeconds": 0,
+        "pilotResets": 0,
+        "autoResets": 0,
+        "legalDistance": 1466.9,
+        "outcome": "completed"
+      },
+      {
+        "event": "quarry-drift",
+        "vehicle": "rh3",
+        "weather": "rain",
+        "seed": 713225,
+        "startedBy": "gate",
+        "arrivalSeconds": 20.41666666666615,
+        "time": 62.7,
+        "score": 0,
+        "offRouteSeconds": 0,
+        "pilotResets": 0,
+        "autoResets": 0,
+        "legalDistance": 1466.9,
+        "outcome": "completed"
+      },
+      {
+        "event": "quarry-drift",
+        "vehicle": "sc7",
+        "weather": "rain",
+        "seed": 713225,
+        "startedBy": "gate",
+        "arrivalSeconds": 17.49999999999965,
+        "time": 52.4,
+        "score": 0,
+        "offRouteSeconds": 0,
+        "pilotResets": 0,
+        "autoResets": 0,
+        "legalDistance": 1465.5,
+        "outcome": "completed"
+      }
+    ]
+  },
+  "portIlseReplay": {
+    "commit": "997080f1b5a2e6d485f7cb76775feb20aa1cac0d",
+    "event": "port-ilse-loop",
+    "seed": 41271,
+    "vehicle": "sc7",
+    "weather": "rain",
+    "frames": 192,
+    "frameLength": 2010,
+    "fps": 24,
+    "shotTimes": [
+      [
+        55.375,
+        59.333333333333336
+      ],
+      [
+        66.875,
+        70.83333333333333
+      ]
+    ],
+    "speedKmh": [
+      11.085967254638673,
+      112.35343551635742
+    ],
+    "brakePeak": 0.31135812401771545,
+    "steerRange": [
+      -0.453995019197464,
+      0.006871630437672138
+    ],
+    "resets": 0,
+    "encoding": "800 × 450 WebGL picture with a 50-pixel telemetry band, H.264, 192 distinct captured frames.",
+    "method": "Two four-second excerpts from the wet six-entrant race. Production player rig and snapshot motion, local road and nearby building meshes under fixed review lighting."
+  },
+  "roadBuffers": {
+    "beforeCommit": "80e8dc69d6b7209a69422369709a948642e63e40",
+    "updatedCommit": "630fca733e90001c38ba824eb6d4c8fd9a01a2a8",
+    "method": "All indexed sections under the road-chunk groups in the production Solvane RoadMeshes. Byte counts cover unique vertex attributes and index buffers. Hashes cover each named attribute expanded in the same triangle and batch order, with signed zero canonicalized.",
+    "before": {
+      "pieces": 443,
+      "points": 982936,
+      "triangles": 551764,
+      "bytes": 51932456,
+      "coords": 15726976
+    },
+    "after": {
+      "pieces": 443,
+      "points": 621146,
+      "triangles": 551764,
+      "bytes": 27991960,
+      "coords": 4969168
+    },
+    "expandedSha256": {
+      "normal": "63826b8a72ace26401c60c73b09b866908b8aa3f64330ce6cf919ee253abcabb",
+      "position": "535dadffd3834679ba04fd73096bf183bad8766154676cb1565833f31bc0c3d2",
+      "uv": "43e3e1a0ddbb631343b461a28011ea4b6db6127995119aaf8a01613ca32f0d96",
+      "uv1": "43e3e1a0ddbb631343b461a28011ea4b6db6127995119aaf8a01613ca32f0d96",
+      "festivalRoadData": "ce9fe9a1fc29b37cd443b1ad4a6093d69aca322f2ced70b855c560e469e8108b",
+      "festivalSurfaceData": "5603c2c2a9556c920a9ad74c19bad5922706568e50a5cd8f707b9982d7b6cc03"
+    }
   }
 }
