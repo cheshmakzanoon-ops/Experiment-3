@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { markItems } from '../attribute-ranges.ts';
+import type { TerrainView } from './terrain-view.ts';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp, mod, Random } from '../../core/math.ts';
@@ -61,6 +63,16 @@ export function looseClodGeometry(seed: number, angular: number, flat: number) {
 interface Pose {
   matrix: T.Matrix4;
   colour: T.Color;
+  station: number;
+  lateral: number;
+  lift: number;
+}
+type Ground = Pick<TerrainView, 'heightAt' | 'heightCellAt' | 'heightRevisions' | 'geometryRevision'>;
+interface SoilChunk {
+  mesh: T.InstancedMesh;
+  total: number;
+  anchors: Float64Array;
+  cells: Int32Array;
 }
 
 export class MxLooseSoil {
@@ -68,7 +80,9 @@ export class MxLooseSoil {
   readonly stats: MxLooseSoilStats = { clods: 0, stones: 0, chunks: 0 };
   private readonly clodMaterial: T.MeshStandardMaterial;
   private stoneMaterial: T.MeshStandardMaterial | null = null;
-  private readonly meshes: { mesh: T.InstancedMesh; total: number }[] = [];
+  private readonly meshes: SoilChunk[] = [];
+  private receiver: Ground | null = null;
+  private revision = -1;
   private readonly geometries: T.BufferGeometry[] = [];
   private readonly clodBase: T.Color;
   private readonly unsubscribe: () => void;
@@ -83,7 +97,7 @@ export class MxLooseSoil {
       throw new Error('Loose soil needs a motocross or supercross course');
     this.root.name = 'MX loose soil: clods and pebbles';
     const indoor = surface.kind === 'supercross';
-    this.clodBase = new T.Color(indoor ? 0x6e5238 : 0x8f6d4b).convertSRGBToLinear();
+    this.clodBase = new T.Color(indoor ? 0x6e5238 : 0x8f6d4b);
     this.clodMaterial = new T.MeshStandardMaterial({
       name: 'MX loose clods',
       color: this.clodBase.clone(),
@@ -179,7 +193,8 @@ export class MxLooseSoil {
         z = point.z + point.nz * lateral;
       const y = terrain.baseHeight(s, lateral);
       // Sit slightly sunk; a squat crumb, a rounder pebble.
-      object.position.set(x, y + radius * (stone ? 0.2 : 0.12), z);
+      const lift = radius * (stone ? 0.2 : 0.12);
+      object.position.set(x, y + lift, z);
       object.rotation.set(
         (random.next() - 0.5) * 0.5,
         random.next() * Math.PI * 2,
@@ -192,7 +207,7 @@ export class MxLooseSoil {
       // A drier crumb is paler; a freshly turned one is darker and redder.
       c.r *= 1 + (random.next() - 0.5) * 0.12;
       c.b *= 1 - (random.next() - 0.5) * 0.12;
-      list.push({ matrix: object.matrix.clone(), colour: c });
+      list.push({ matrix: object.matrix.clone(), colour: c, station: s, lateral, lift });
       return true;
     };
     const step = 0.55,
@@ -271,7 +286,10 @@ export class MxLooseSoil {
           [poses[i], poses[j]] = [poses[j], poses[i]];
         }
         const mesh = new T.InstancedMesh(geometry, material ?? this.pebbles(), poses.length);
+        const anchors = new Float64Array(poses.length * 3);
+        mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);
         poses.forEach((pose, i) => {
+          anchors.set([pose.station, pose.lateral, pose.lift], i * 3);
           mesh.setMatrixAt(i, pose.matrix);
           mesh.setColorAt(i, pose.colour);
         });
@@ -280,12 +298,44 @@ export class MxLooseSoil {
         mesh.castShadow = false;
         mesh.computeBoundingSphere();
         this.root.add(mesh);
-        this.meshes.push({ mesh, total: poses.length });
+        this.meshes.push({ mesh, total: poses.length, anchors, cells: new Int32Array(poses.length) });
         if (label === 'clods') this.stats.clods += poses.length;
         else this.stats.stones += poses.length;
       }
     }
     this.stats.chunks = this.meshes.length;
+  }
+  /** Settle the same scatter on the triangles currently shown by the race
+   * or replay. Quality changes only the draw count: a hidden crumb will
+   * already be at the correct height when the full field comes back. */
+  conform(ground: Ground) {
+    if (this.disposed) return;
+    const fresh = ground !== this.receiver;
+    if (!fresh && this.revision === ground.geometryRevision) return;
+    for (const { mesh, total, cells, anchors } of this.meshes) {
+      const attr = mesh.instanceMatrix, matrices = attr.array;
+      const bound = mesh.boundingSphere!;
+      let first = total, last = -1;
+      for (let i = 0; i < total; i++) {
+        const a = i * 3;
+        if (fresh) cells[i] = ground.heightCellAt(anchors[a], anchors[a + 1]);
+        else if (cells[i] < 0 || ground.heightRevisions[cells[i]] <= this.revision) continue;
+        const y = Math.fround(ground.heightAt(anchors[a], anchors[a + 1]) + anchors[a + 2]);
+        const m = i * 16;
+        if (y === matrices[m + 13]) continue;
+        matrices[m + 13] = y;
+        if (i < first) first = i;
+        last = i;
+        // Conservatively expand the existing full-density chunk bound only
+        // when a moved crumb reaches its edge (all clods fit in 10 cm).
+        const dx = matrices[m + 12] - bound.center.x, dz = matrices[m + 14] - bound.center.z;
+        const d2 = dx * dx + (y - bound.center.y) ** 2 + dz * dz;
+        if (d2 > (bound.radius - 0.1) ** 2) bound.radius = Math.max(bound.radius, Math.sqrt(d2) + 0.1);
+      }
+      markItems(attr, first, last);
+    }
+    this.receiver = ground;
+    this.revision = ground.geometryRevision;
   }
   /** Damp ground darkens and glosses its loose crumbs (session wetness 0..1). */
   setWetness(wetness: number) {
@@ -304,5 +354,6 @@ export class MxLooseSoil {
     );
     this.geometries.length = 0;
     this.meshes.length = 0;
+    this.receiver = null;
   }
 }

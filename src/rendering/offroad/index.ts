@@ -107,6 +107,7 @@ export class OffroadScene {
           this.group.add(this.tyreTraces.mesh);
         }
         for (const p of this.pending.splice(0)) this.terrain.record(p.delta, p.time, p.live);
+        this.syncLooseSoil();
       });
       if (course.spec.gate)
         this.queue(construction, 'Off-road start gate', 1, () => {
@@ -136,6 +137,7 @@ export class OffroadScene {
         this.queue(construction, 'MX loose soil', 1, () => {
           this.looseSoil = new MxLooseSoil(track);
           this.group.add(this.looseSoil.root);
+          this.syncLooseSoil();
         });
         if (course.kind === 'motocross')
           // After the furniture: onlookers keep clear of its service bays and posts.
@@ -193,14 +195,22 @@ export class OffroadScene {
   /** A worker surface keyframe's terrain export. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
     if (this.disposed || !delta) return;
-    if (this.terrain) this.terrain.record(delta, time, live);
-    else this.pending.push({ delta, time, live });
+    if (this.terrain) {
+      this.terrain.record(delta, time, live);
+      if (live) this.syncLooseSoil();
+    } else this.pending.push({ delta, time, live });
   }
   /** Replay: show the terrain as it was at `time`; null returns to live. */
   showAt(time: number | null) {
     if (this.disposed) return;
     if (time === null) this.terrain?.showLive();
     else this.terrain?.showAt(time);
+    this.syncLooseSoil();
+  }
+  private syncLooseSoil() {
+    if (!this.terrain || !this.looseSoil) return;
+    this.looseSoil.conform(this.terrain);
+    this.looseSoil.setWetness(this.terrain.soilWetness);
   }
   update(frame: Float32Array, measured = frame) {
     if (this.disposed) return;
@@ -215,7 +225,6 @@ export class OffroadScene {
     this.dressing?.update(time);
     this.spectators?.update(time, frame);
     this.meadow?.update(time);
-    if (this.terrain) this.looseSoil?.setWetness(this.terrain.soilWetness);
     // Even a sub-frame reverse seek can cross a takeoff/contact edge.
     // Drop particles and edge history before reading that earlier snapshot.
     if (time < this.lastTime) this.roost.clear();
