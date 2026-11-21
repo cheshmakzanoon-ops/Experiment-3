@@ -180,6 +180,45 @@ describe('Festival road wheel construction', () => {
         }
   });
 
+  it('keeps the cast brake silhouette under five hundred triangles per mid-distance road wheel', () => {
+    for (const id of ['rh3', 'sc7', 'rp6'])
+      for (const side of [-1, 1]) {
+        const spec = VEHICLES[id],
+          sheet = bodySheetFor(spec)!.wheels;
+        const builds = ([0, 1] as const).map(
+          (detail) =>
+            new WheelAssembly(
+              spec.spec.wheelRadius,
+              side,
+              true,
+              sheet,
+              detail,
+              true,
+              undefined,
+              true,
+            ),
+        );
+        owned.push(...builds);
+        const [hero, road] = builds.map((w) => mesh(w, 'Brake caliper').geometry);
+        const points = road.getAttribute('position');
+        expect((road.index?.count ?? points.count) / 3).toBeLessThanOrEqual(500);
+        expect(road.groups).toHaveLength(0);
+        hero.computeBoundingBox();
+        road.computeBoundingBox();
+        for (const axis of ['x', 'y', 'z'] as const)
+          for (const edge of ['min', 'max'] as const)
+            expect(
+              Math.abs(hero.boundingBox![edge][axis] - road.boundingBox![edge][axis]),
+            ).toBeLessThan(0.018);
+        const r = sheet.rimRadius,
+          half = sheet.width[0] / 2;
+        for (let i = 0; i < points.count; i++) {
+          expect(Math.hypot(points.getY(i), points.getZ(i))).toBeLessThan(r);
+          expect(points.getX(i) * side).toBeLessThan(half * 0.63);
+        }
+      }
+  });
+
   it('bounds near/mid cost and preserves far and specialist wheels exactly', () => {
     for (const id of ['rh3', 'sc7']) {
       const near = wheel(id).assembly,

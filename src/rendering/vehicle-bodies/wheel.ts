@@ -419,6 +419,22 @@ function discGeometry(
     ).translate(x, 0, 0),
   ]);
 }
+/** Mid-distance road brake castings. The eight-sided radial/tangential
+ * profile keeps the pad throat and bridges, with one bevel on the axial faces. */
+function castBrakeBlock(width: number, height: number, depth: number, radius: number) {
+  const edge = Math.min(0.0024, width * 0.17, height * 0.14, depth * 0.14);
+  const z = depth / 2 - edge, y = height / 2 - edge;
+  const corner = Math.min(radius, z * 0.7, y * 0.7);
+  const outline = new T.Shape([
+    new T.Vector2(-z + corner, -y), new T.Vector2(z - corner, -y),
+    new T.Vector2(z, -y + corner), new T.Vector2(z, y - corner),
+    new T.Vector2(z - corner, y), new T.Vector2(-z + corner, y),
+    new T.Vector2(-z, y - corner), new T.Vector2(-z, -y + corner),
+  ]);
+  return new T.ExtrudeGeometry(outline, { depth: width - 2 * edge, steps: 1,
+    bevelEnabled: true, bevelSegments: 1, bevelThickness: edge, bevelSize: edge })
+    .translate(0, 0, edge - width / 2).rotateY(Math.PI / 2);
+}
 function caliperGeometry(
   sheet: WheelSheet,
   half: number,
@@ -433,13 +449,14 @@ function caliperGeometry(
       parts: T.BufferGeometry[] = [],
       bridgeHeight = Math.min(R * 0.11, (sheet.rimRadius - R) * 0.5),
       angle = -0.55;
+    const casting = roadHardware && detail === 1 ? castBrakeBlock : roundedBox;
     // Opposed piston housings and two bridges straddle the rotor. The centre
     // stays open for the rotating disc; the caliper remains on the upright.
     for (const axial of [-1, 1]) {
       for (const offset of [-0.16, 0.16]) {
         const a = angle + offset;
         parts.push(
-          roundedBox(0.019, R * 0.3, R * 0.36, 0.009, detail === 0 ? 2 : 1)
+          casting(0.019, R * 0.3, R * 0.36, 0.009, detail === 0 ? 2 : 1)
             .translate(x + axial * 0.027, R * 0.86, 0)
             .rotateX(a),
         );
@@ -447,7 +464,7 @@ function caliperGeometry(
     }
     for (const offset of [-0.29, 0.29])
       parts.push(
-        roundedBox(0.071, bridgeHeight, R * 0.11, Math.min(0.005, bridgeHeight * 0.3), 1)
+        casting(0.071, bridgeHeight, R * 0.11, Math.min(0.005, bridgeHeight * 0.3), 1)
           .translate(x, R + bridgeHeight * 0.55, 0)
           .rotateX(angle + offset),
       );
@@ -465,7 +482,7 @@ function caliperGeometry(
         parts.push(
           caliperTint(g.translate(x + side * axial, radial, tangential).rotateX(angle), hex),
         );
-      part(roundedBox(0.012, 0.033, R * 0.63, 0.005, 1), 0.038, R * 0.86, 0, sheet.caliperColor);
+      part(casting(0.012, 0.033, R * 0.63, 0.005, 1), 0.038, R * 0.86, 0, sheet.caliperColor);
       part(new T.BoxGeometry(0.003, R * 0.16, R * 0.56), 0.018, R * 0.82, 0, 0x484c4c);
       if (detail === 0) {
         for (const offset of [-0.2, 0.2]) {
