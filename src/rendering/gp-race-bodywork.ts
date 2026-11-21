@@ -363,59 +363,32 @@ function tankNet(variant: GpShellVariant): P3[][] {
  * shoulder, upper fold, side, lower fold, underside, keel. */
 function tailNet(variant: GpShellVariant): P3[][] {
   const r2 = variant === 'gpr2';
-  // GP-R2 keeps a shallower, flatter tail; GP-R1 a tall stepped hump. Both
-  // have flat flanks between two folds and a squared rear face (REF 018, 046).
   const hump = r2 ? 0.78 : 1;
   const top = (y: number) => 0.262 + (y - 0.262) * hump;
+  const road: Section[] = [
+    { z: -.955, c: [[0,.384],[.034,.383],[.05,.374],[.052,.33],[.049,.286],[.03,.272],[0,.27]] },
+    { z: -.905, c: [[0,.405],[.042,.404],[.061,.394],[.064,.335],[.06,.264],[.038,.25],[0,.247]] },
+    { z: -.78, c: [[0,.416],[.049,.415],[.072,.402],[.076,.33],[.073,.244],[.046,.225],[0,.221]] },
+    { z: -.63, c: [[0,.39],[.055,.388],[.084,.374],[.087,.305],[.084,.221],[.055,.196],[0,.192]] },
+  ];
+  // Across the aft edge the shoulders sweep behind the chin. The negative
+  // space below this lip is visible from a following rider's eye height.
+  const width = r2 ? 1.11 : 1;
+  const sculpt = (z: number, points: ReadonlyArray<readonly [number, number, number]>): Section => ({
+    z, c: points.map(([x, y, sweep]) => [x * width, top(y), sweep] as const),
+  });
+  const prototype: Section[] = [
+    sculpt(-.958, [[0,.376,-.012],[.030,.374,-.016],[.048,.361,-.011],
+      [.051,.348,-.002],[.043,.332,.003],[.026,.326,.005],[0,.324,.005]]),
+    sculpt(-.895, [[0,.401,-.010],[.041,.395,-.014],[.061,.379,-.005],
+      [.063,.356,.008],[.051,.321,.013],[.030,.301,.018],[0,.298,.020]]),
+    sculpt(-.775, [[0,.419,0],[.052,.410,-.004],[.073,.386,-.009],
+      [.076,.347,-.001],[.065,.298,.010],[.039,.267,.017],[0,.260,.020]]),
+    sculpt(-.63, [[0,.389,0],[.057,.383,-.002],[.083,.368,-.007],
+      [.087,.312,-.006],[.079,.261,0],[.049,.216,.006],[0,.203,.009]]),
+  ];
   return net([
-    {
-      z: -0.955,
-      c: [
-        [0, top(0.384)],
-        [0.034, top(0.383)],
-        [0.05, top(0.374)],
-        [0.052, 0.33],
-        [0.049, 0.286],
-        [0.03, 0.272],
-        [0, 0.27],
-      ],
-    },
-    {
-      z: -0.905,
-      c: [
-        [0, top(0.405)],
-        [0.042, top(0.404)],
-        [0.061, top(0.394)],
-        [0.064, 0.335],
-        [0.06, 0.264],
-        [0.038, 0.25],
-        [0, 0.247],
-      ],
-    },
-    {
-      z: -0.78,
-      c: [
-        [0, top(0.416)],
-        [0.049, top(0.415)],
-        [0.072, top(0.402)],
-        [0.076, 0.33],
-        [0.073, 0.244],
-        [0.046, 0.225],
-        [0, 0.221],
-      ],
-    },
-    {
-      z: -0.63,
-      c: [
-        [0, top(0.39)],
-        [0.055, top(0.388)],
-        [0.084, top(0.374)],
-        [0.087, 0.305],
-        [0.084, 0.221],
-        [0.055, 0.196],
-        [0, 0.192],
-      ],
-    },
+    ...(variant === 'sport' ? road : prototype),
     {
       z: -0.53,
       c: [
@@ -453,6 +426,25 @@ function tailNet(variant: GpShellVariant): P3[][] {
       ],
     },
   ]);
+}
+
+/** The rear wall carries the lamp. Its face is inside the fairing on both
+ * machines; placing the lenses in world-aligned boxes on the lip hides the
+ * depth of the opening at chase distance. */
+export const GP_TAIL_LAMP_Z = -.928;
+export function gpTailLampY(r2: boolean) {
+  return r2 ? .262 + (.348 - .262) * .78 : .348;
+}
+
+function tailLampPocket(rim: P3[], r2: boolean, cols: number) {
+  const lampY = gpTailLampY(r2);
+  const back = rim.map(([x, y]): P3 => [x * .82, lampY + (y - lampY) * .73, GP_TAIL_LAMP_Z]);
+  const roll = rim.map(([x, y, z]): P3 => [x * .96, lampY + (y - lampY) * .92, z + .0028]);
+  // From the back wall toward the rim, so the visible normals face inward.
+  return shellPanelGeometry({
+    name: 'GP tail lamp recess', net: [back, roll, rim],
+    creases: [2, 4], rows: 1, cols, caps: { start: true },
+  });
 }
 
 /** Thin padded seat on the tail crown. */
@@ -683,11 +675,11 @@ function pair(g: T.BufferGeometry) {
 function tailFoils(variant: 'gpr1' | 'gpr2', detail: RiderDetail) {
   const upright = variant === 'gpr1';
   const path: P3[] = upright
-    ? [[0.045, 0.373, -0.774], [0.060, 0.395, -0.798], [0.086, 0.443, -0.849], [0.091, 0.458, -0.875]]
-    : [[0.058, 0.314, -0.778], [0.087, 0.328, -0.784], [0.122, 0.33, -0.809], [0.139, 0.319, -0.841]];
+    ? [[.041,.389,-.754],[.063,.400,-.789],[.082,.433,-.849],[.085,.445,-.891]]
+    : [[.052,.324,-.761],[.082,.340,-.787],[.116,.342,-.823],[.135,.332,-.862]];
   const segments = detail === 'high' ? 6 : detail === 'mid' ? 4 : 2;
   const sides = detail === 'high' ? 8 : detail === 'mid' ? 6 : 4;
-  return pair(gpAerofoil(path, upright ? 0.19 : 0.18, 0.105, segments, sides, upright ? 0.068 : 0.082));
+  return pair(gpAerofoil(path, upright ? .153 : .147, .091, segments, sides, upright ? .031 : .046));
 }
 
 /** Nose box wings: an upper blade from the cheek out to an end plate that
@@ -1751,16 +1743,15 @@ export function gpRaceBodywork(
       }),
     ),
   );
-  const tailSkin = hemmed(
-      shellPanelGeometry({
-        name: 'GP tail',
-        net: tailNet(variant),
-        creases: [2, 4],
-        rows,
-        cols,
-        caps: { start: true },
-      }),
-    );
+  const tailSections = tailNet(variant);
+  const tailSurface = shellPanelGeometry({
+    name: 'GP tail', net: tailSections, creases: [2, 4],
+    rows: high && variant !== 'sport' ? 3 : rows, cols,
+    caps: { start: variant === 'sport' },
+  });
+  // The GP tail has a continuous liner sewn onto its rear ring. Only the
+  // base meets the seat mould. Neither edge is a free, rolled sheet edge.
+  const tailSkin = variant === 'sport' ? hemmed(tailSurface) : tailSurface;
   const tailGeometry = variant === 'sport' ? liveryUv(tailSkin) : painted([tailSkin, tailFoils(variant, detail)]);
   const outlet =
     variant !== 'sport' && !far
@@ -1778,7 +1769,10 @@ export function gpRaceBodywork(
   }
   const mouth = variant === 'sport' ? (!far && intakeMouth(variant, detail)) : prototypeIntake(variant, cols);
   if (mouth) {
-    mesh(outlet ? painted([mouth, outlet.liner]) : mouth, materials.dark,
+    const liners = variant === 'sport' ? mouth : painted([
+      mouth, tailLampPocket(tailSections[0], variant === 'gpr2', cols), ...(outlet ? [outlet.liner] : []),
+    ]);
+    mesh(liners, materials.dark,
       'GP race shell / ram-air mouth', false);
   }
   if (!far) {

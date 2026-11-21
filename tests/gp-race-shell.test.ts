@@ -2,12 +2,14 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
 import {
+  GP_TAIL_LAMP_Z,
+  gpTailLampY,
   gpFrontTyreExclusion,
   gpLiveryMaterial,
   gpRaceBodywork,
 } from '../src/rendering/gp-race-bodywork.ts';
 import { gpAerofoil } from '../src/rendering/gp-aerofoil.ts';
-import { shellPanelGeometry, type P3 } from '../src/rendering/gp-race-shell.ts';
+import { liveryUv, shellPanelGeometry, type P3 } from '../src/rendering/gp-race-shell.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { meshColumnsFor, meshSurfaceIntrusion } from './gp-mesh-clearance.ts';
 
@@ -31,6 +33,24 @@ const release = (root: T.Object3D) =>
   });
 
 describe('GP race shell control-net surfaces', () => {
+  it('keeps mirrored atlas charts separate across a smooth welded crown', () => {
+    const g = new T.BufferGeometry();
+    g.setAttribute('position', new T.Float32BufferAttribute([
+      0, .3, -.4, .06, .28, -.28, 0, .3, -.2, -.06, .28, -.28,
+    ], 3));
+    g.setIndex([0, 1, 2, 0, 2, 3]);
+    g.computeVertexNormals();
+    const n = new T.Vector3().fromBufferAttribute(g.getAttribute('normal'), 0);
+    liveryUv(g);
+    const index = g.index!, uv = g.getAttribute('uv'), normal = g.getAttribute('normal');
+    expect(index.count).toBe(6);
+    for (let k = 0; k < 3; k++) expect(uv.getX(index.getX(k))).toBeLessThan(.5);
+    for (let k = 3; k < 6; k++) expect(uv.getX(index.getX(k))).toBeGreaterThan(.5);
+    expect(new T.Vector3().fromBufferAttribute(normal, index.getX(3)).distanceTo(n)).toBe(0);
+    expect(uv.getX(index.getX(0)) + uv.getX(index.getX(3))).toBeCloseTo(1);
+    g.dispose();
+  });
+
   it('faces the painted exterior outward and closes the ends of a tapered aerofoil', () => {
     const foil = gpAerofoil([[0, 0, 0], [0.15, 0, 0], [0.3, 0, 0]], 0.18, 0.12, 6, 16, 0.08);
     const surface = new T.Mesh(foil, new T.MeshBasicMaterial({ side: T.FrontSide }));
@@ -129,6 +149,31 @@ describe('GP race shell control-net surfaces', () => {
 });
 
 describe('GP race shell R6 on the production models', () => {
+  it.each(['gpr1', 'gpr2'] as const)('%s exposes the recessed rear lamp seat at every LOD', (id) => {
+    const m = new BikeMaterials(0);
+    try {
+      for (const detail of ['high', 'mid', 'far'] as const) {
+        const shell = gpRaceBodywork(m, detail, id, 0);
+        try {
+          const lining = shell.root.getObjectByName('GP race shell / ram-air mouth')!;
+          for (const x of [-.027, .027]) {
+            const ray = new T.Raycaster(new T.Vector3(x, gpTailLampY(id === 'gpr2'), -1.1), new T.Vector3(0, 0, 1));
+            const wall = ray.intersectObject(lining)[0];
+            expect(wall.point.z).toBeCloseTo(GP_TAIL_LAMP_Z, 4);
+            expect(wall.face!.normal.z).toBeLessThan(-.9);
+            expect(ray.intersectObject(shell.tail)[0]?.point.z ?? 0).toBeGreaterThan(wall.point.z);
+          }
+          shell.tail.geometry.computeBoundingBox();
+          expect(GP_TAIL_LAMP_Z - shell.tail.geometry.boundingBox!.min.z).toBeGreaterThan(.035);
+        } finally {
+          release(shell.root);
+        }
+      }
+    } finally {
+      m.dispose();
+    }
+  });
+
   it.each(['gpr1', 'gpr2'] as const)('%s keeps the nose inlet open through its drawn LODs', (id) => {
     const m = new BikeMaterials(0);
     try {

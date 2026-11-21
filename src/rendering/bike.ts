@@ -26,6 +26,8 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import {
   gpLiveryMaterial,
+  GP_TAIL_LAMP_Z,
+  gpTailLampY,
   gpRaceBodywork,
   gpRaceNumber,
   gpSatinCarbon,
@@ -1690,18 +1692,8 @@ export class BikeModel {
         }
       }
       const r2 = definition.id === 'gpr2';
-      const lampY = r2 ? 0.318 : 0.33;
+      const lampY = gpPrototype ? gpTailLampY(r2) : .33;
       const nearRainLamp = gpPrototype && detail !== 'far';
-      if (nearRainLamp) {
-        add(
-          this.sprung,
-          new RoundedBoxGeometry(0.077, 0.024, 0.008, 1, 0.003),
-          m.dark,
-          0,
-          lampY,
-          -0.956,
-        );
-      }
       const lamp = add(
         this.sprung,
         nearRainLamp
@@ -1710,7 +1702,7 @@ export class BikeModel {
         m.lamp,
         0,
         lampY,
-        nearRainLamp ? -0.9565 : -0.955,
+        gpPrototype ? GP_TAIL_LAMP_Z : -.955,
         false,
       );
       lamp.name = 'GP tail rain light';

@@ -190,8 +190,8 @@ function closedSkinIndices(rows: number, cols: number) {
   return index;
 }
 
-/** Pigmented red lens cells with a domed rear face. The black bezel fits
- * flush over the squared tail end. Both parts use the existing material
+/** Pigmented red lens cells with a domed rear face. The domes stand proud
+ * of the dark wall inside the tail aperture. Both parts use the existing material
  * batches and the lamp emits only through the actual optical surfaces. */
 export function gpRainLenses(r2: boolean, detail: RiderDetail) {
   const count = r2 ? 6 : 7,
@@ -245,16 +245,16 @@ export function gpRainLenses(r2: boolean, detail: RiderDetail) {
  * section follows the rounded tyre shoulders. The leading edge wraps further
  * down the flanks and the trailing tongue tapers away above the wheel. */
 export function gpRearHugger(radius: number, crown: number, arm: number, detail: RiderDetail) {
-  const rows = detail === 'high' ? 22 : detail === 'mid' ? 12 : 6,
+  const rows = detail === 'high' ? 16 : detail === 'mid' ? 10 : 6,
     cols = detail === 'high' ? 10 : detail === 'mid' ? 6 : 4,
     p: number[] = [],
     uv: number[] = [];
   const point = new T.Vector3();
   const skin = (t: number, u: number, inner: number) => {
-    const width = 0.068 + 0.032 * Math.sin(Math.PI * t) + 0.006 * t,
+    const width = 0.046 + 0.050 * Math.sin(Math.PI * t) + 0.018 * t,
       edge = u * u,
       x = u * width,
-      angle = T.MathUtils.lerp(2.54 - 0.18 * edge, 0.73 - 0.2 * edge, t),
+      angle = T.MathUtils.lerp(1.94 - 0.27 * edge, 0.73 - 0.2 * edge, t),
       shoulder = crown - Math.sqrt(Math.max(0, crown * crown - x * x)),
       ridge = 0.003 * (1 - edge) * Math.sin(Math.PI * t),
       r = radius + 0.021 - shoulder + ridge - inner * 0.0024;

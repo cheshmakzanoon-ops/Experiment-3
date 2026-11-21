@@ -313,16 +313,57 @@ export const GP_LIVERY_FRAME: LiveryFrame = Object.freeze({
 });
 
 export function liveryUv(geometry: T.BufferGeometry, frame: LiveryFrame = GP_LIVERY_FRAME) {
-  const pos = geometry.getAttribute('position'),
-    nor = geometry.getAttribute('normal');
-  const uv = new Float32Array(pos.count * 2);
-  for (let i = 0; i < pos.count; i++) {
-    const z = (pos.getZ(i) - frame.zMin) / (frame.zMax - frame.zMin),
-      y = (pos.getY(i) - frame.yMin) / (frame.yMax - frame.yMin);
-    // Right flank (+X) is viewed with the nose to the left of the atlas half.
-    const right = pos.getX(i) > 1e-5 || (Math.abs(pos.getX(i)) <= 1e-5 && nor.getX(i) >= 0);
+  const pos = geometry.getAttribute('position');
+  const original = geometry.index;
+  const corners = original?.count ?? pos.count;
+  const side = new Int8Array(pos.count);
+  const copies: number[] = [];
+  const twins = new Map<number, number>();
+  let indices: number[] | undefined;
+  // The side projection is a UV chart boundary even on a perfectly smooth
+  // crown. Both copies of the centre line have a zero X normal. Classifying
+  // its vertices by that normal pulled the opposite flank’s atlas half across
+  // the tank, tail and nose. Pick a chart for the triangle before projection.
+  for (let i = 0; i < corners; i += 3) {
+    const a = original?.getX(i) ?? i;
+    const b = original?.getX(i + 1) ?? i + 1;
+    const c = original?.getX(i + 2) ?? i + 2;
+    const chart = pos.getX(a) + pos.getX(b) + pos.getX(c) >= 0 ? 1 : -1;
+    for (let k = i; k < i + 3; k++) {
+      const vertex = original?.getX(k) ?? k;
+      if (side[vertex] === 0) side[vertex] = chart;
+      if (side[vertex] === chart) continue;
+      // Hemmed edges can share a vertex across the mirror plane. Duplicate
+      // only that seam, retaining the existing normals and triangle order.
+      let twin = twins.get(vertex);
+      if (twin === undefined) {
+        twin = pos.count + copies.length;
+        twins.set(vertex, twin);
+        copies.push(vertex);
+      }
+      indices ??= Array.from(original!.array);
+      indices[k] = twin;
+    }
+  }
+  if (indices) {
+    for (const [name, attr] of Object.entries(geometry.attributes)) {
+      if (name === 'uv') continue;
+      const extended = new Float32Array((pos.count + copies.length) * attr.itemSize);
+      for (let i = 0; i < pos.count + copies.length; i++) {
+        const from = i < pos.count ? i : copies[i - pos.count];
+        for (let k = 0; k < attr.itemSize; k++) extended[i * attr.itemSize + k] = attr.getComponent(from, k);
+      }
+      geometry.setAttribute(name, new T.BufferAttribute(extended, attr.itemSize));
+    }
+    geometry.setIndex(indices);
+  }
+  const uv = new Float32Array((pos.count + copies.length) * 2);
+  for (let i = 0; i < uv.length / 2; i++) {
+    const from = i < pos.count ? i : copies[i - pos.count];
+    const right = i < pos.count ? side[from] >= 0 : side[from] < 0;
+    const z = (pos.getZ(from) - frame.zMin) / (frame.zMax - frame.zMin);
     uv[i * 2] = right ? 0.5 * (1 - z) : 0.5 + 0.5 * z;
-    uv[i * 2 + 1] = y;
+    uv[i * 2 + 1] = (pos.getY(from) - frame.yMin) / (frame.yMax - frame.yMin);
   }
   geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
   return geometry;
