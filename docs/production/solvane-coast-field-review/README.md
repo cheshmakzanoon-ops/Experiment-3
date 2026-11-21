@@ -8,6 +8,10 @@ The two columns use the same cameras. Street trees have matching trunk collision
 
 ![Matched chase and street views in Port Ilse](port-ilse.jpg)
 
+The EH-3 below is the default Harbour Front arrival in High. The 960 × 540 capture is from the final reflection build on Mesa llvmpipe. The live HUD shows the Harbour Opening Run ahead. The renderer submitted 681 draw calls and 1,702,501 triangles for this frame.
+
+![High-preset EH-3 chase view in Port Ilse](harbour-high.jpg)
+
 The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The full-size frames and pixel comparisons are in the hosted run.
 
 ![Port Ilse storefront and festoon lighting on wet streets at night](port-ilse-night.jpg)
