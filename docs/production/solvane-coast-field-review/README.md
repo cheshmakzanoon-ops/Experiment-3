@@ -68,9 +68,11 @@ The original wet RM-8 missed the gate on its uphill run-up. Moving the approach 
 | RH-3 | 41.97 s | 62.70 s | 0 s | 0 |
 | SC-7 | 40.57 s | 52.40 s | 0 s | 0 |
 
-These six assisted runs used seed 713225 and active traffic. The wet RM-8 crossed the entry gate in 22.29 seconds. Each run finished the zone with zero points under the standard slide controller. The material study uses the production shaders on the same section of the measured, crowned road.
+These six assisted runs used seed 713225 and active traffic. The wet RM-8 crossed the entry gate in 22.29 seconds. Each run finished the zone with zero points under the standard slide controller. In a separate dry RM-8 run, a steering flick and countersteer held a credited slide for 1.175 seconds. The game awarded 28 points and recorded a 43.40-second finish with zero off-route time and zero resets. The steering sequence is exercised in the Festival QA regressions.
 
-![Material study showing native dirt, dry quarry gravel and rain-darkened wheel paths](quarry-road.jpg)
+The full chase capture uses the shipping road renderer. The three material close-ups below it use the same crowned road section, camera and lighting.
+
+![In-game wet quarry chase view above three comparable road-material close-ups](quarry-road.jpg)
 
 ![Production session showing the map, photo mode, an active race and the result](festival-session.jpg)
 

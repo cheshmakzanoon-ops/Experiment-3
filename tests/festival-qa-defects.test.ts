@@ -203,6 +203,39 @@ describe('festival TRY AGAIN on a skill challenge', () => {
     expect(sim.results.find((result) => result.eventId === event.spec.id)?.completed).toBe(true);
     expect(pilot.resets).toBe(0);
   }, 90_000);
+  it('banks a controlled RM-8 slide on compacted gravel and finishes the quarry on course', () => {
+    const sim = newSim({ vehicle: 'rm8', weather: 'clear', seed: 713225, traffic: true });
+    const event = sim.events.find((e) => e.spec.id === 'quarry-drift')!;
+    const approach = approachPath(event)!;
+    sim.command({ type: 'travel', event: event.spec.id, runUp: true });
+    const car = sim.player;
+    const pilot = new Pilot(sim, approach.path, 0.92, -1.6);
+    pilot.horizon = approach.entry + event.distance;
+    let slideStart: number | undefined;
+    for (let i = 0; i < 95 / DT && !sim.results.length; i++) {
+      pilot.step(DT);
+      if (sim.mode === 'running' && pilot.d - approach.entry > 320 && car.speed > 9)
+        slideStart ??= sim.time;
+      if (slideStart !== undefined) {
+        const elapsed = sim.time - slideStart;
+        // Shift weight to the front, turn under power and catch the rear.
+        // Between the manoeuvre and the finish the route driver has full control.
+        if (elapsed < 0.18)
+          sim.setInput({ ...car.input, steer: -0.38, brake: 0.17, throttle: 0 });
+        else if (elapsed < 1.14)
+          sim.setInput({ ...car.input, steer: 0.9, brake: 0, throttle: 0.94 });
+        else if (elapsed < 2.2)
+          sim.setInput({ ...car.input, steer: -1, brake: 0, throttle: 0.68 });
+      }
+      sim.step(DT);
+    }
+    const result = sim.results.find((run) => run.eventId === event.spec.id);
+    expect(result).toMatchObject({ completed: true, offRouteSeconds: 0 });
+    expect(result?.driftScore ?? 0).toBeGreaterThan(0);
+    expect(result?.driftLines.some((line) => line.kind === 'drift' && line.points > 0)).toBe(true);
+    expect(sim.player).toBe(car);
+    expect(pilot.resets).toBe(0);
+  }, 90_000);
   it('has a run-up for skill challenges only', () => {
     const sim = newSim(defaultRun('', { vehicle: 'eh3' }));
     for (const e of sim.events) {
