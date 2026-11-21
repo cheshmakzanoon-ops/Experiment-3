@@ -95,6 +95,7 @@ import { isMotocrossVenue } from './offroad/mx-boundary.ts';
 import { MX_FURNITURE_LIMITS } from './offroad/mx-trackside-furniture.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
 export const START_LAMP_EMISSIVE = 25;
+const STRIPE_COLOURS = [new T.Color(0xdc553b), new T.Color(0xe8e3cf)] as const;
 /** Same pit-lane membership as TrackContactMesh and Track.sample, including
  * left-side pit lanes. Rendering must never show a kerb across a flat merge. */
 export function circuitKerbHeight(track: Track, s: number, lateral: number, across: number) {
@@ -779,29 +780,47 @@ export class CircuitScene {
       end = options.end ?? this.track.length,
       rows = Math.ceil((end - start) / (options.step ?? 2)),
       cols = options.columns ?? 1;
+    const vertexCount = (rows + 1) * (cols + 1);
     const vertices: number[] = [],
       uv: number[] = [],
       state: number[] = [],
-      colors: number[] = [],
       edge: number[] = [],
-      apex: number[] = [],
-      bikeBrake: number[] = [],
-      kerb: number[] = [],
-      runoff: number[] = [],
-      gpPaint: number[] = [],
-      gpGravel: number[] = [],
+      colors = options.stripes ? new Float32Array(vertexCount * 3) : null,
+      apex = options.road ? new Float32Array(vertexCount * 2) : null,
+      bikeBrake = options.road ? new Float32Array(vertexCount) : null,
+      kerbStyle = options.stripes ? new Float32Array(vertexCount) : null,
+      runoffStyle = options.runoff ? new Float32Array(vertexCount) : null,
+      usage = options.stripes || options.runoff ? new Float32Array(vertexCount) : null,
+      gpRunoff = options.runoff && gpEdgeDesign(this.track),
+      gpPaint = gpRunoff ? new Float32Array(vertexCount) : null,
+      gpGravel = gpRunoff ? new Float32Array(vertexCount) : null,
       custom = Object.entries(options.attributes ?? {}).map(
         ([name, value]) => [name, value, [] as number[]] as const,
       ),
       indices: number[] = [];
-    const gpDesign = gpEdgeDesign(this.track);
     const p = trackPoint(),
       line: [number, number] = [0, 0];
     for (let i = 0; i <= rows; i++) {
       const s = start + ((end - start) * i) / rows;
       this.track.at(s, p);
+      // One cross-section shares its line offset, brake load and paint scheme.
+      // Sample the two verges separately so asymmetric corners and pit merges survive.
+      const motorcycleBrake = bikeBrake ? apexLineAt(this.track, s, 0, line, true)[1] : 0;
+      if (apex || usage) apexLineAt(this.track, s, 0, line);
+      const leftUse = usage ? kerbUsage(Math.abs(-p.width + line[0])) : 0;
+      const rightUse = usage ? kerbUsage(Math.abs(p.width + line[0])) : 0;
+      const stripe = STRIPE_COLOURS[Math.floor(s / 3) % 2 === 0 ? 0 : 1];
+      const kerbScheme = kerbStyle ? kerbStyleAt(this.track, s) : 0;
+      const apronScheme = runoffStyle ? runoffStyleAt(this.track, s) : 0;
+      const leftPaint = gpPaint ? gpCornerPaint(this.track, s, -1) : 0;
+      const rightPaint = gpPaint ? gpCornerPaint(this.track, s, 1) : 0;
+      const leftGravel =
+        gpGravel && this.track.runoffSurface(p, -p.width - 5.5) === SURFACE.GRAVEL ? 1 : 0;
+      const rightGravel =
+        gpGravel && this.track.runoffSurface(p, p.width + 5.5) === SURFACE.GRAVEL ? 1 : 0;
       for (let j = 0; j <= cols; j++) {
-        const t = j / cols,
+        const index = i * (cols + 1) + j,
+          t = j / cols,
           l = options.offset(s, t),
           extra = options.height?.(s, l, t) ?? 0;
         vertices.push(p.x + p.nx * l, p.y + p.bank * clamp(l, -12, 12) + extra, p.z + p.nz * l);
@@ -811,29 +830,17 @@ export class CircuitScene {
         // by the kerb, verge and terrain shaders.
         edge.push(Math.abs(l) - p.width);
         for (const [, value, out] of custom) out.push(value(s, l));
-        if (options.road) {
-          apex.push(...apexLineAt(this.track, s, l, line));
-          bikeBrake.push(apexLineAt(this.track, s, l, line, true)[1]);
+        if (apex) {
+          apex[index * 2] = l + line[0];
+          apex[index * 2 + 1] = line[1];
         }
-        const c = Math.floor(s / 3) % 2 === 0 ? new T.Color(0xdc553b) : new T.Color(0xe8e3cf);
-        colors.push(c.r, c.g, c.b);
-        if (options.stripes) {
-          // D15: kerb scheme and how much the racing line uses this kerb.
-          kerb.push(kerbStyleAt(this.track, s));
-          const side = Math.sign(l) || 1;
-          kerb.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
-        }
-        if (options.runoff) {
-          runoff.push(runoffStyleAt(this.track, s));
-          const side = Math.sign(l) || 1;
-          runoff.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
-          gpPaint.push(gpCornerPaint(this.track, s, l));
-          // GP: is the verge beyond this apron edge a gravel trap? (litter)
-          if (gpDesign)
-            gpGravel.push(
-              this.track.runoffSurface(p, side * (p.width + 5.5)) === SURFACE.GRAVEL ? 1 : 0,
-            );
-        }
+        if (bikeBrake) bikeBrake[index] = motorcycleBrake;
+        if (colors) stripe.toArray(colors, index * 3);
+        if (kerbStyle) kerbStyle[index] = kerbScheme;
+        if (runoffStyle) runoffStyle[index] = apronScheme;
+        if (usage) usage[index] = l < 0 ? leftUse : rightUse;
+        if (gpPaint) gpPaint[index] = l === 0 ? 0 : l < 0 ? leftPaint : rightPaint;
+        if (gpGravel) gpGravel[index] = l < 0 ? leftGravel : rightGravel;
       }
     }
     const ascending = options.offset(start, 1) >= options.offset(start, 0);
@@ -853,47 +860,14 @@ export class CircuitScene {
     g.setAttribute('trackUV', new T.Float32BufferAttribute(state, 2));
     g.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
     for (const [name, , out] of custom) g.setAttribute(name, new T.Float32BufferAttribute(out, 1));
-    if (options.road) {
-      g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
-      g.setAttribute('apexBikeBrake', new T.Float32BufferAttribute(bikeBrake, 1));
-    }
-    if (options.stripes) {
-      g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
-      g.setAttribute(
-        'kerbStyle',
-        new T.Float32BufferAttribute(
-          kerb.filter((_, i) => i % 2 === 0),
-          1,
-        ),
-      );
-      g.setAttribute(
-        'kerbUsage',
-        new T.Float32BufferAttribute(
-          kerb.filter((_, i) => i % 2 === 1),
-          1,
-        ),
-      );
-    }
-    if (options.runoff) {
-      if (gpDesign) {
-        g.setAttribute('gpCornerPaint', new T.Float32BufferAttribute(gpPaint, 1));
-        g.setAttribute('gpVergeGravel', new T.Float32BufferAttribute(gpGravel, 1));
-      }
-      g.setAttribute(
-        'runoffStyle',
-        new T.Float32BufferAttribute(
-          runoff.filter((_, i) => i % 2 === 0),
-          1,
-        ),
-      );
-      g.setAttribute(
-        'kerbUsage',
-        new T.Float32BufferAttribute(
-          runoff.filter((_, i) => i % 2 === 1),
-          1,
-        ),
-      );
-    }
+    if (apex) g.setAttribute('apexLine', new T.BufferAttribute(apex, 2));
+    if (bikeBrake) g.setAttribute('apexBikeBrake', new T.BufferAttribute(bikeBrake, 1));
+    if (colors) g.setAttribute('color', new T.BufferAttribute(colors, 3));
+    if (kerbStyle) g.setAttribute('kerbStyle', new T.BufferAttribute(kerbStyle, 1));
+    if (runoffStyle) g.setAttribute('runoffStyle', new T.BufferAttribute(runoffStyle, 1));
+    if (usage) g.setAttribute('kerbUsage', new T.BufferAttribute(usage, 1));
+    if (gpPaint) g.setAttribute('gpCornerPaint', new T.BufferAttribute(gpPaint, 1));
+    if (gpGravel) g.setAttribute('gpVergeGravel', new T.BufferAttribute(gpGravel, 1));
     g.setIndex(indices);
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);

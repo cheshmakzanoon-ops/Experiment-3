@@ -1,3 +1,4 @@
+import { smooth } from '../core/math.ts';
 import { GP_CLEAR_SKY } from './assets/sky-catalogue.ts';
 import type { GradeProfile } from './broadcast-grade.ts';
 import type { LightingMode } from './daylight.ts';
@@ -108,6 +109,13 @@ export function gpPhotographicActive(
   lighting: LightingMode,
 ) {
   return classId === 'gp-bike' && !studio && lighting !== 'night';
+}
+
+/** For a GP day without a resident photograph, keep only a trace of the first
+ * cumulus panorama at the clear preset (0.12). The full physical cloud field
+ * joins continuously by 0.35 cover as weather develops. */
+export function gpProceduralDayCover(cover: number) {
+  return cover * smooth(0.08, 0.35, cover);
 }
 
 /** The daylight terms the look rebalances (daylight.ts circuitLightState). */

@@ -171,6 +171,7 @@ import {
   applyGpDaylight,
   gpGradeProfile,
   gpPhotographicActive,
+  gpProceduralDayCover,
   tintGpSun,
   type GpPhotographicLook,
 } from './gp-photographic-light.ts';
@@ -1805,12 +1806,22 @@ export class RacingRenderer {
           : null;
     if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
     const liquidRain = frameLiquidRain(presented);
-    const daylight = circuitLightState(presented[H.CLOUD], liquidRain, illumination);
-    // Distant haze takes the horizon colours of the photographed sky.
+    const weatherCover = clamp(presented[H.CLOUD], 0, 1);
+    // A resident photograph supplies its own cloud distribution and horizon.
     const photoPalette =
       illumination === 'night' || studio
         ? null
-        : (this.photoSky?.fogPalette(daylight.cover, illumination) ?? null);
+        : (this.photoSky?.fogPalette(weatherCover, illumination) ?? null);
+    const openGpSky =
+      followedDefinition.classId === 'gp-bike' &&
+      gpLook?.clearSky &&
+      illumination === 'day' &&
+      !photoPalette;
+    const daylight = circuitLightState(
+      openGpSky ? gpProceduralDayCover(weatherCover) : weatherCover,
+      liquidRain,
+      illumination,
+    );
     if (photoPalette)
       [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(
         daylight.cover,
@@ -1888,7 +1899,7 @@ export class RacingRenderer {
     // Moon, stars and twilight: the live ephemeris or the preset's fixed sky.
     bindSkyCelestial(this.sky.material, illumination);
     // The photographed sky over the dome (procedural where none is resident).
-    this.photoSky?.bind(this.sky.material, daylight.cover, illumination, false);
+    this.photoSky?.bind(this.sky.material, weatherCover, illumination, false);
     // Clouds drift with presented simulation time: held by pause and replay.
     this.sky.material.uniforms.cloudDrift.value =
       (presented[H.TIME] * SKY_CLOUDS.driftPerSecond) % 1;

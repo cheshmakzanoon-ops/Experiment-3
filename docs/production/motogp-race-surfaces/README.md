@@ -41,6 +41,12 @@ From left to right, the towers belong to Poggio Alto, Cape Wrenna, Haarveld and 
 
 The GP tree roots and outer verge now follow the triangles of the displayed landscape. A detailed height function can put a tree metres above a cliff after that cliff has been triangulated. The Cape Wrenna survey found an outer verge 16.83 m above the mesh. The new outer edge overlaps it by 8 cm at the sampled cross-sections. The four venues also use their own woodland, meadow and exposed-rock colours, with distance filtering on narrow rock bands. The catch fence has formed posts, angled returns and tension cables.
 
+Poggio Alto’s asphalt, kerbs, run-off and edge markings now sample each cross-section once for its racing line and paint scheme. A before-and-after comparison covered 530,046 vertices in 396 meshes at Poggio Alto and 300,352 vertices in 228 meshes at Aurel. All vertex attributes, indices and reflection-strip measurements matched byte for byte.
+
+![Clear-day physical sky before and after, with the same camera and weather](clear-sky.webp)
+
+The left panel shows the earlier Low clear preset. The right panel shows the same weather after matching the open daylight in the references. Cloud cover now builds gradually from a trace of cumulus when the GP sky uses the procedural renderer. The same cover drives the daylight, cloud shadows and sky reflections. All seven 720 × 320 sky captures rendered without WebGL errors. The intermediate and overcast skies each produced identical pixels before and after the change. Returning to clear conditions reproduced the right-hand frame exactly.
+
 ## Race verification
 
 Sixteen three-lap races ran across the four circuits, with eight entrants alternating between the prototypes. The physics step was 1/120 second. Clear races used medium tyres and rain races used wet tyres. All 128 race entries finished, giving 384 classified rider-laps and zero falls. The longest stationary spell before finishing was 0.79 s. The table gives matched dry and wet times on the same seed at each circuit. [Results for all 16 races](race-results.json)

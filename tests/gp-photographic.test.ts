@@ -5,6 +5,7 @@ import {
   applyGpDaylight,
   gpGradeProfile,
   gpPhotographicActive,
+  gpProceduralDayCover,
   tintGpSun,
 } from '../src/rendering/gp-photographic-light.ts';
 import {
@@ -62,6 +63,21 @@ import {
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 
 describe('GP photographic light', () => {
+  it('keeps the procedural clear sky open and blends back continuously as cloud builds', () => {
+    const clear = gpProceduralDayCover(0.12);
+    // The visible sky and its two PMREM bins interpolate at eight steps per unit cover.
+    expect(clear * 8).toBeGreaterThan(0);
+    expect(clear * 8).toBeLessThan(0.08);
+    let previous = 0;
+    for (let i = 0; i <= 1000; i++) {
+      const cover = i / 1000;
+      const displayed = gpProceduralDayCover(cover);
+      expect(displayed).toBeGreaterThanOrEqual(previous);
+      expect(displayed - previous).toBeLessThan(0.003);
+      if (cover >= 0.35) expect(displayed).toBe(cover);
+      previous = displayed;
+    }
+  });
   it('applies only to a followed GP prototype on a live circuit view by day or golden hour', () => {
     expect(gpPhotographicActive('gp-bike', false, 'day')).toBe(true);
     expect(gpPhotographicActive('gp-bike', false, 'sunset')).toBe(true);
