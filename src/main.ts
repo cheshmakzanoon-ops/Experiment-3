@@ -2560,15 +2560,13 @@ export class GameApp {
     // Names are application action identifiers, not typed widget contents.
     this.sessionReview.event(performance.now(), 'action', name);
     this.tabEvidence.observe('action', name);
-    // Team transactions only change modal DOM and next-session data. They must
-    // not restart the expensive covered backdrop after every saved transaction.
-    if (
-      !(
-        this.state === 'menu' &&
-        this.ui.modal.open &&
-        (name.startsWith('team:') || name.startsWith('career:'))
-      )
-    )
+    // The pause dialog covers the last dirt frame. Keep its identity so the
+    // frame loop can hold it while that submission finishes on the GPU.
+    const openingDirtPause = this.state === 'driving' && this.renderer?.circuit.offroad &&
+      (name === 'pause' || name === 'blur' || name === 'deviceLost');
+    const editingTeam = this.state === 'menu' && this.ui.modal.open &&
+      (name.startsWith('team:') || name.startsWith('career:'));
+    if (!openingDirtPause && !editingTeam)
       this.renderedState = null;
     if (this.state === 'photo') {
       if (name === 'pause') this.closePhoto();

@@ -423,6 +423,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await expect.poll(async () => (await diag()).workerPause.pending).toBe(false);
     const paused = await diag();
     expect(paused.frame![H.SC_PHASE]).toBe(0);
+    expect(paused.presentation?.renderedState, 'pause retains the submitted driving image').toBe('driving');
+    expect(paused.renderer?.presentedCamera).toBe('cockpit');
     const pausePixels = await resumeButton.evaluate(button => {
       const rect = button.getBoundingClientRect();
       const rgb = getComputedStyle(button).backgroundColor.match(/\d+(?:\.\d+)?/g)?.slice(0, 3).map(Number);
