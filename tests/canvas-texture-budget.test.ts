@@ -108,7 +108,7 @@ describe('generated canvas source ownership', () => {
   });
 
   it('keeps distinct resolution claims and CPU-readback backing separate', () => {
-    environment();
+    const copies = environment();
     const canvas = new Canvas() as unknown as HTMLCanvasElement;
     const map = new T.CanvasTexture(canvas),
       hero = map.clone(),
@@ -124,6 +124,14 @@ describe('generated canvas source ownership', () => {
     expect(map.source).not.toBe(hero.source);
     expect(map.source).not.toBe(readback.source);
     expect(readback.image.getContext).toHaveBeenCalledWith('2d', { willReadFrequently: true });
+    for (const copy of copies) {
+      expect(copy.context.drawImage).toHaveBeenCalledTimes(1);
+      expect(copy.context.clearRect).not.toHaveBeenCalled();
+    }
+    budget.refresh(readback);
+    const ink = readback.image as unknown as Canvas;
+    expect(ink.context.clearRect).toHaveBeenCalledTimes(1);
+    expect(ink.context.drawImage).toHaveBeenCalledTimes(2);
     budget.dispose();
   });
 });

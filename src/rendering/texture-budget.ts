@@ -163,14 +163,13 @@ export class TextureBudget {
       // shared Source.data changes dimensions, including differently wrapped UVs.
       for (const texture of asset.textures) texture.dispose();
       asset.owned.data = image;
-    }
-    // A same-size budget canvas still needs the new source pixels after editing.
-    const image = asset.owned.data as HTMLCanvasElement;
-    if (image !== source) {
-      const context = image.getContext('2d');
+    } else if (current !== source) {
+      // Only an existing copy needs clearing. A freshly resized image already
+      // contains this print, including its transparent cutouts.
+      const context = current.getContext('2d');
       if (!context) throw new Error('Texture repaint requires Canvas 2D');
-      context.clearRect(0, 0, image.width, image.height);
-      context.drawImage(source, 0, 0, image.width, image.height);
+      context.clearRect(0, 0, width, height);
+      context.drawImage(source, 0, 0, width, height);
     }
     for (const texture of asset.textures) {
       texture.anisotropy = this.anisotropy;
