@@ -154,6 +154,14 @@ describe('GP verge turf and gravel', () => {
     const f = compile(gp.gravel).fragmentShader;
     expect(compile(gp.gravel).vertexShader).toContain('attribute float gravelCover');
     expect(f).toContain('discard');
+    expect(f).toContain('#define APEX_GP_GRAVEL');
+    expect(compile(plain.gravel).fragmentShader).not.toContain('#define APEX_GP_GRAVEL');
+    expect(f).toMatch(/if \( resolve > 0\.0 \)\s*#endif\s*for/);
+    expect(f).toMatch(/if \( qResolve > 0\.0 \)\s*#endif\s*for/);
+    expect(f.indexOf('float gpGravelPixel')).toBeLessThan(f.indexOf('vGravelCover < 0.999'));
+    const fringe = f.slice(f.indexOf('vGravelCover < 0.999'), f.indexOf('discard'));
+    expect(fringe).toContain('apexGravelNoiseAt');
+    expect(fringe).not.toContain('apexGravelNoise(');
     // The discard is gated on the extension cover: inside the trap nothing is cut.
     expect(f.indexOf('vGravelCover < 0.999')).toBeLessThan(f.indexOf('discard'));
     expect(compile(gp.ground).fragmentShader).toContain(GP_TURF.saturation.toFixed(4));

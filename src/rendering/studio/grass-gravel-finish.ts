@@ -114,6 +114,11 @@ const GRAVEL_GLSL = /* glsl */ `{
 	vec2 cell = floor( p ), local = fract( p );
 	float nearest = 8.0, second = 8.0;
 	vec2 pick = vec2( 0.5 );
+	float footprint = max( length( dFdx( p ) ), length( dFdy( p ) ) );
+	float resolve = 1.0 - smoothstep( 0.35, 1.2, footprint );
+	#ifdef APEX_GP_GRAVEL
+	if ( resolve > 0.0 )
+	#endif
 	for ( int j = -1; j <= 1; j ++ )
 		for ( int i = -1; i <= 1; i ++ ) {
 			vec2 o = vec2( float( i ), float( j ) );
@@ -123,12 +128,14 @@ const GRAVEL_GLSL = /* glsl */ `{
 			else if ( d < second ) second = d;
 		}
 	float edge = second - nearest;
-	float footprint = max( length( dFdx( p ) ), length( dFdy( p ) ) );
-	float resolve = 1.0 - smoothstep( 0.35, 1.2, footprint );
 	// Larger stones (one class up) break the uniform pebble carpet.
 	vec2 q = p * 0.37 + vec2( 17.3, 5.1 );
 	vec2 qc = floor( q ), ql = fract( q );
 	float qNear = 8.0; float qPick = 0.5;
+	float qResolve = 1.0 - smoothstep( 0.35, 1.2, footprint * 0.37 );
+	#ifdef APEX_GP_GRAVEL
+	if ( qResolve > 0.0 )
+	#endif
 	for ( int j = -1; j <= 1; j ++ )
 		for ( int i = -1; i <= 1; i ++ ) {
 			vec2 o = vec2( float( i ), float( j ) );
@@ -136,7 +143,6 @@ const GRAVEL_GLSL = /* glsl */ `{
 			float d = length( o + h - ql );
 			if ( d < qNear ) { qNear = d; qPick = h.x; }
 		}
-	float qResolve = 1.0 - smoothstep( 0.35, 1.2, footprint * 0.37 );
 	float bigStone = ( 1.0 - smoothstep( 0.28, 0.36, qNear ) ) * step( 0.55, qPick ) * qResolve;
 	float cavity = mix( 0.8, 1.0 - ${f(GRAVEL.cavity)} * ( 1.0 - smoothstep( 0.0, 0.2, edge ) ), resolve );
 	// Mineral tone per stone: limestone, sandstone, darker basalt.
@@ -185,12 +191,14 @@ float apexGravelHash( vec2 p ) {
 	p3 += dot( p3, p3.yzx + 33.33 );
 	return fract( ( p3.x + p3.y ) * p3.z );
 }
-float apexGravelNoise( vec2 p ) {
-	float footprint = max( length( dFdx( p ) ), length( dFdy( p ) ) );
+float apexGravelNoiseAt( vec2 p, float footprint ) {
 	vec2 i = floor( p ), f = fract( p ), u = f * f * ( 3.0 - 2.0 * f );
 	float n = mix( mix( apexGravelHash( i ), apexGravelHash( i + vec2( 1.0, 0.0 ) ), u.x ),
 		mix( apexGravelHash( i + vec2( 0.0, 1.0 ) ), apexGravelHash( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
 	return mix( 0.5, n, 1.0 - smoothstep( 0.35, 1.25, footprint ) );
+}
+float apexGravelNoise( vec2 p ) {
+	return apexGravelNoiseAt( p, max( length( dFdx( p ) ), length( dFdy( p ) ) ) );
 }
 vec3 apexGravelRelief( vec3 n, float h ) {
 	vec3 sx = dFdx( - vViewPosition ), sy = dFdy( - vViewPosition );

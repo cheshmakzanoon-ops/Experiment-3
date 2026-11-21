@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
-import type { captureGpEdges } from './fixtures/gp-edge-review.ts';
+import type { captureGpEdges, compareGpGravelPixels } from './fixtures/gp-edge-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('four GP venue edge schemes render through dry, wet and restored production materials', async ({
@@ -59,5 +59,19 @@ test('four GP venue edge schemes render through dry, wet and restored production
     contentType: 'application/json',
   });
   expect(new Set(reports.map((r) => r.design)).size).toBe(4);
+  const gravel = await page.evaluate(() =>
+    (
+      window as unknown as { GpEdges: { compareGpGravelPixels: typeof compareGpGravelPixels } }
+    ).GpEdges.compareGpGravelPixels(),
+  );
+  for (const sample of gravel.samples) {
+    expect(sample.levels).toBeGreaterThan(12);
+    expect(sample.maximumDifference).toBeLessThanOrEqual(1);
+  }
+  expect(gravel.error).toBe(0);
+  await info.attach('gp-gravel-resolution.json', {
+    body: JSON.stringify(gravel),
+    contentType: 'application/json',
+  });
   expect(errors).toEqual([]);
 });

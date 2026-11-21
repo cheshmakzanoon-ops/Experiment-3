@@ -55,15 +55,25 @@ export function installGpGravel(material: T.MeshStandardMaterial) {
       'vertex',
     );
     injectAfter(shader, 'begin_vertex', 'vGravelCover = gravelCover;', 'vertex');
-    injectDeclarations(shader, 'common', 'varying float vGravelCover;', 'fragment');
+    // A GP trap's two stone sizes only need a neighbourhood search while their
+    // filtered contribution is nonzero. The sky and a telephoto camera can put
+    // very different footprints on the same part of the trap.
+    injectDeclarations(
+      shader,
+      'common',
+      '#define APEX_GP_GRAVEL\nvarying float vGravelCover;',
+      'fragment',
+    );
     injectAfter(
       shader,
       'color_fragment',
       `{
-	// Drifts of stones over the grass beyond the physical trap.
+	// Neighbouring fragments can straddle the edge. Take derivatives before
+	// branching on coverage, including at grazing angles in an onboard view.
+	float gpGravelPixel = max( length( dFdx( vGravelWorld.xz ) ), length( dFdy( vGravelWorld.xz ) ) );
 	if ( vGravelCover < 0.999 ) {
-		float drift = apexGravelNoise( vGravelWorld.xz / ${f(G.drift)} + vec2( 5.3, 1.9 ) );
-		float stones = apexGravelNoise( vGravelWorld.xz / ${f(G.scatter)} + vec2( 2.1, 8.7 ) );
+		float drift = apexGravelNoiseAt( vGravelWorld.xz / ${f(G.drift)} + vec2( 5.3, 1.9 ), gpGravelPixel / ${f(G.drift)} );
+		float stones = apexGravelNoiseAt( vGravelWorld.xz / ${f(G.scatter)} + vec2( 2.1, 8.7 ), gpGravelPixel / ${f(G.scatter)} );
 		if ( vGravelCover < 0.12 + 0.62 * drift + 0.3 * ( stones - 0.5 ) ) discard;
 	}
 	diffuseColor.rgb *= ${v3(G.tint)};

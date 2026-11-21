@@ -11,9 +11,76 @@ import {
   installRunoffFinish,
 } from '../../src/rendering/studio/kerb-runoff-finish.ts';
 import { installGravelFinish } from '../../src/rendering/studio/grass-gravel-finish.ts';
+import { installGpGravel } from '../../src/rendering/ground/gp-ground.ts';
 import { gpEdgeDesign } from '../../src/rendering/venue-kit/gp-edge-design.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { disposePhase27Scene } from './phase27c-resources.ts';
+
+/** Render the GP trap with and without the two neighbourhood-search gates.
+ * Camera footprints cover resolved stones, the two transitions and the far
+ * mean. Include the grass fringe where adjacent pixels disagree on coverage. */
+export function compareGpGravelPixels() {
+  const size = 128;
+  const renderer = new T.WebGLRenderer();
+  renderer.setSize(size, size);
+  const gl = renderer.getContext();
+  const scene = new T.Scene();
+  const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+  camera.up.set(0, 0, -1);
+  camera.position.set(0, 10, 0);
+  camera.lookAt(0, 0, 0);
+  scene.background = new T.Color(0x334024);
+  const light = new T.DirectionalLight(0xffedda, 2);
+  light.position.set(0.5, 1.0, 0.3);
+  scene.add(light, new T.HemisphereLight(0xe4efff, 0x7d705a, 1));
+  const material = () => {
+    const m = new T.MeshStandardMaterial({ roughness: 0.88 });
+    installGravelFinish(m);
+    installGpGravel(m);
+    return m;
+  };
+  const filtered = material(),
+    reference = material();
+  const hook = reference.onBeforeCompile.bind(reference);
+  reference.onBeforeCompile = (shader, device) => {
+    hook(shader, device);
+    shader.fragmentShader = shader.fragmentShader.replace('#define APEX_GP_GRAVEL', '');
+  };
+  reference.customProgramCacheKey = () => 'gp-gravel-unconditional-search';
+  const geo = new T.PlaneGeometry(2, 2, 4, 1).rotateX(-Math.PI / 2);
+  geo.setAttribute(
+    'gravelCover',
+    new T.Float32BufferAttribute([0, 0.5, 1, 1, 1, 0, 0.5, 1, 1, 1], 1),
+  );
+  const patch = new T.Mesh(geo, filtered);
+  scene.add(patch);
+  const read = (m: T.MeshStandardMaterial) => {
+    patch.material = m;
+    renderer.render(scene, camera);
+    const pixels = new Uint8Array(size * size * 4);
+    gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    return pixels;
+  };
+  try {
+    const samples = [0.6, 2.4, 5, 12, 70].map((metres) => {
+      patch.scale.set(metres / 2, 1, metres / 2);
+      camera.zoom = 2 / metres;
+      camera.updateProjectionMatrix();
+      const a = read(reference),
+        b = read(filtered);
+      let maximumDifference = 0;
+      for (let i = 0; i < a.length; i++)
+        maximumDifference = Math.max(maximumDifference, Math.abs(a[i] - b[i]));
+      return { metres, maximumDifference, levels: new Set(b).size };
+    });
+    return { samples, error: gl.getError() };
+  } finally {
+    geo.dispose();
+    reference.dispose();
+    filtered.dispose();
+    renderer.dispose();
+  }
+}
 
 /** Bounded actual GP road geometry and production material chain. No backdrop
  * replaces the new feature; this fixture checks edge rendering, not full-scene
