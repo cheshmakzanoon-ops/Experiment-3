@@ -35,6 +35,17 @@ const JERSEY_SECTIONS: readonly ClothSection[] = [
   [0.522, 0.026, 0.1, 0.063, 0.058],
   [0.542, 0.028, 0.064, 0.054, 0.052],
 ];
+const jerseyStations = JERSEY_SECTIONS.map(s => s[0]);
+const jerseyAxes = [1, 2, 3, 4].map(axis => JERSEY_SECTIONS.map(s => s[axis]));
+
+/** Fitting surface shared with the hard-shell roost deflector. The jersey
+ * has a superelliptic cross-section over the ribs and separate cloth folds. */
+export function motocrossJerseyPoint(angle: number, y: number, clearance: number) {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const axis = (i: number) => sampleProfile(jerseyStations, jerseyAxes[i], y);
+  return new T.Vector3(Math.sign(c) * Math.abs(c) ** 0.86 * (axis(1) + clearance), y,
+    axis(0) + Math.sign(s) * Math.abs(s) ** 0.86 * (axis(s > 0 ? 2 : 3) + clearance));
+}
 const SEAT_SECTIONS: readonly ClothSection[] = [
   [-0.078, -0.006, 0.03, 0.025, 0.034],
   [-0.044, -0.005, 0.132, 0.094, 0.1],
@@ -122,7 +133,7 @@ export function motocrossGarmentGeometry(
             ? 10
             : 6
         : detail === 'high'
-          ? 64
+          ? (kind === 'jersey' ? 48 : 64)
           : detail === 'mid'
             ? 36
             : 18,
@@ -660,31 +671,33 @@ const VENT_SPAN = 1 / 16,
 
 /** The return follows the cut shell's exact perimeter. The lip and recessed
  * backing catch separate highlights when a rider turns under the lights. */
-function motocrossRearDuct(detail: RiderDetail, start: number) {
-  const cols = detail === 'high' ? 3 : 2,
-    rows = detail === 'high' ? 4 : 2;
+function motocrossHelmetDuct(detail: RiderDetail, start: number, span: number,
+  bottom: number, top: number, depth: number) {
+  const columns = Math.round(span * (detail === 'high' ? 48 : 32));
+  const heights = helmetHeights(detail).filter(y => y >= bottom - 1e-9 && y <= top + 1e-9);
+  const v = heights.map(y => (y - bottom) / (top - bottom));
   const ring: [number, number][] = [];
-  for (let i = 0; i < cols; i++) ring.push([i / cols, 0]);
-  for (let i = 0; i < rows; i++) ring.push([1, i / rows]);
-  for (let i = cols; i > 0; i--) ring.push([i / cols, 1]);
-  for (let i = rows; i > 0; i--) ring.push([0, i / rows]);
+  for (let i = 0; i < columns; i++) ring.push([i / columns, 0]);
+  for (let i = 0; i < v.length - 1; i++) ring.push([1, v[i]]);
+  for (let i = columns; i > 0; i--) ring.push([i / columns, 1]);
+  for (let i = v.length - 1; i > 0; i--) ring.push([0, v[i]]);
   const pos: number[] = [],
     uv: number[] = [],
     indices: number[] = [];
   const vertex = (u: number, v: number, offset: number) => {
     const p = motocrossHelmetPoint(
-      T.MathUtils.lerp(VENT_BOTTOM, VENT_TOP, v),
-      (start + u * VENT_SPAN) * Math.PI * 2,
+      T.MathUtils.lerp(bottom, top, v),
+      (start + u * span) * Math.PI * 2,
       offset,
     );
     pos.push(p.x, p.y, p.z);
     uv.push(u, v);
   };
   for (const [u, v] of ring) vertex(u, v, 0);
-  for (const [u, v] of ring) vertex(0.1 + u * 0.8, 0.15 + v * 0.7, -0.008);
+  for (const [u, v] of ring) vertex(0.1 + u * 0.8, 0.15 + v * 0.7, -depth * 0.82);
   const n = ring.length,
     centre = 2 * n;
-  vertex(0.5, 0.5, -0.01);
+  vertex(0.5, 0.5, -depth);
   for (let i = 0; i < n; i++) {
     const next = (i + 1) % n;
     indices.push(i, next, next + n, i, next + n, i + n, i + n, next + n, centre);
@@ -697,19 +710,27 @@ function motocrossRearDuct(detail: RiderDetail, start: number) {
   return g;
 }
 
+function helmetHeights(detail: RiderDetail) {
+  const subdivisions = detail === 'high' ? 3 : detail === 'mid' ? 2 : 1;
+  const ys: number[] = [];
+  for (let i = 0; i < MX_HEIGHTS.length - 1; i++)
+    for (let j = 0; j < subdivisions; j++)
+      ys.push(T.MathUtils.lerp(MX_HEIGHTS[i], MX_HEIGHTS[i + 1], j / subdivisions));
+  return ys;
+}
+
+const CHIN_START = 3 / 16, CHIN_SPAN = 2 / 16;
+const CHIN_BOTTOM = -0.127, CHIN_TOP = -0.067;
+
 /** Dedicated MX silhouette at all LODs. The eye port is an actual opening in
  * the outer shell, backed by a recessed dark liner in addMotocrossHelmet;
  * race graphics therefore cannot show through the gap around the goggles. */
 export function motocrossHelmetShell(detail: RiderDetail = 'high') {
   const columns = detail === 'high' ? 48 : detail === 'mid' ? 32 : 16,
-    subdivisions = detail === 'high' ? 4 : detail === 'mid' ? 2 : 1,
-    ys: number[] = [],
+    ys = helmetHeights(detail),
     positions: number[] = [],
     uv: number[] = [],
     indices: number[] = [];
-  for (let i = 0; i < MX_HEIGHTS.length - 1; i++)
-    for (let step = 0; step < subdivisions; step++)
-      ys.push(T.MathUtils.lerp(MX_HEIGHTS[i], MX_HEIGHTS[i + 1], step / subdivisions));
   for (let row = 0; row < ys.length; row++)
     for (let column = 0; column <= columns; column++) {
       const p = motocrossHelmetPoint(ys[row], (column / columns) * Math.PI * 2);
@@ -728,7 +749,10 @@ export function motocrossHelmetShell(detail: RiderDetail = 'high') {
           REAR_VENTS.some(
             (start) => column >= start * columns && column < (start + VENT_SPAN) * columns,
           );
-        if (inEyePort || inRearDuct) continue;
+        const inChinIntake = detail !== 'far' && ys[row] >= CHIN_BOTTOM - 1e-9
+          && ys[row + 1] <= CHIN_TOP + 1e-9
+          && column >= CHIN_START * columns && column < (CHIN_START + CHIN_SPAN) * columns;
+        if (inEyePort || inRearDuct || inChinIntake) continue;
         const a = row * (columns + 1) + column,
           b = a + columns + 1;
         indices.push(a, a + 1, b, a + 1, b + 1, b);
@@ -743,6 +767,26 @@ export function motocrossHelmetShell(detail: RiderDetail = 'high') {
   positions.push(0, ys[0], 0);
   uv.push(0.5, 0);
   for (let i = 0; i < columns; i++) indices.push(bottom, i + 1, i);
+  if (detail !== 'far') {
+    // The recessed intake is split by a moulded central strut. Its splayed
+    // ends meet the uncut shell and its bevel has real depth at grazing angles.
+    const start = positions.length / 3;
+    const rows = ys.filter(y => y >= CHIN_BOTTOM - 1e-9 && y <= CHIN_TOP + 1e-9);
+    for (const [j, y] of rows.entries()) {
+      const v = (y - CHIN_BOTTOM) / (CHIN_TOP - CHIN_BOTTOM);
+      const width = 0.053 + 0.043 * (2 * v - 1) ** 2;
+      for (const [k, w] of [-1, -0.72, 0.72, 1].entries()) {
+        const phi = Math.PI / 2 + w * width;
+        const p = motocrossHelmetPoint(y, phi, k === 0 || k === 3 ? -0.008 : 0.0035);
+        positions.push(p.x, p.y, p.z);
+        uv.push(phi / (2 * Math.PI), helmetV(y));
+        if (j + 1 < rows.length && k < 3) {
+          const a = start + j * 4 + k;
+          indices.push(a, a + 1, a + 4, a + 1, a + 5, a + 4);
+        }
+      }
+    }
+  }
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
@@ -949,7 +993,7 @@ export function addMotocrossHelmet(
   strap.name = 'Motocross woven goggle strap';
   if (detail === 'far') return;
   for (const start of REAR_VENTS) {
-    const duct = part(head, motocrossRearDuct(detail, start), trim, 0, 0.15, 0.02);
+    const duct = part(head, motocrossHelmetDuct(detail, start, VENT_SPAN, VENT_BOTTOM, VENT_TOP, 0.01), trim, 0, 0.15, 0.02);
     duct.name = 'Motocross recessed rear helmet exhaust';
   }
   const rim = part(
@@ -993,7 +1037,7 @@ export function addMotocrossHelmet(
   }
   const vent = part(
     head,
-    motocrossHelmetPatch(-0.13, -0.076, 1.05, Math.PI - 1.05, 0.002),
+    motocrossHelmetDuct(detail, CHIN_START, CHIN_SPAN, CHIN_BOTTOM, CHIN_TOP, 0.020),
     trim,
     0,
     0.15,
@@ -1001,22 +1045,13 @@ export function addMotocrossHelmet(
   );
   vent.name = 'Motocross integrated chin intake';
   {
-    // Mouthpiece (near LODs only reach here): a raised centre spine down
-    // the chin bar and vertical louvres either side of it over the intake.
-    part(
-      head,
-      motocrossHelmetPatch(-0.142, -0.064, Math.PI / 2 - 0.07, Math.PI / 2 + 0.07, 0.0075, 3, 4),
-      shell,
-      0,
-      0.15,
-      0.02,
-    ).name = 'Motocross chin-bar mouthpiece spine';
+    // Recessed louvres sit behind the shell's load-bearing centre strut.
     for (const side of [-1, 1])
       for (let k = 0; k < 3; k++) {
-        const phi = Math.PI / 2 + side * (0.15 + k * 0.11);
+        const phi = Math.PI / 2 + side * (0.115 + k * 0.105);
         part(
           head,
-          motocrossHelmetPatch(-0.128, -0.079, phi - 0.016, phi + 0.016, 0.0058, 1, 2),
+          motocrossHelmetPatch(-0.128, -0.079, phi - 0.016, phi + 0.016, -0.004, 4, 1),
           accent,
           0,
           0.15,
@@ -1028,7 +1063,7 @@ export function addMotocrossHelmet(
     const y = -0.121 + i * 0.015;
     part(
       head,
-      motocrossHelmetPatch(y, y + 0.003, 1.05, Math.PI - 1.05, 0.005, 1, 16),
+      motocrossHelmetPatch(y, y + 0.0025, CHIN_START * Math.PI * 2, (CHIN_START + CHIN_SPAN) * Math.PI * 2, -0.010, 1, 8),
       accent,
       0,
       0.15,

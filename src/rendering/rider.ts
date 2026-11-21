@@ -57,6 +57,7 @@ import {
   MX_PRINT_SCALE,
   motocrossGraphics,
 } from './offroad/motocross-detail.ts';
+import { motocrossTorsoProtection } from './offroad/mx-roost-deflector.ts';
 import type { MotocrossBootSkin } from './offroad/motocross-boot-skin.ts';
 import {
   MX_BOOT_ANKLE,
@@ -82,7 +83,6 @@ import {
   addMotocrossHelmet,
   motocrossGarmentGeometry,
   motocrossHelmetShell,
-  motocrossNeckBrace,
   type MotocrossGarmentMesh,
 } from './offroad/motocross-gear.ts';
 import {
@@ -976,8 +976,11 @@ export class Rider {
       // The neck opening follows the upper jersey through spine flexion.
       // Keep the skin under the torso's first-person visibility boundary.
       this.motocrossSpine!.bind(collar);
-      const brace = part(this.torso, motocrossNeckBrace(detail), mxBrace!);
-      brace.name = 'Motocross neck brace';
+    }
+    if (mx) {
+      const gear = motocrossTorsoProtection(detail, colours.accent, colours.team?.pattern === 'split');
+      const brace = part(this.torso, gear, mxBrace!);
+      brace.name = 'Motocross roost deflector and neck protection';
       this.motocrossSpine!.bind(brace);
     }
     if (detail !== 'far' && !mx) {

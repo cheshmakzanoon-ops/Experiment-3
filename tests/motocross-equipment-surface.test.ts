@@ -137,6 +137,29 @@ describe('motocross equipment surface and ownership', () => {
     }
   });
 
+  it.each(['high', 'mid'] as const)('keeps the %s chin vents open beside the moulded bridge', detail => {
+    const material = new T.MeshBasicMaterial();
+    const shell = new T.Mesh(motocrossHelmetShell(detail), material);
+    const assembly = new T.Group();
+    addMotocrossHelmet(assembly, detail, material, material, material, material);
+    assembly.updateMatrixWorld(true);
+    const duct = assembly.getObjectByName('Motocross integrated chin intake')!;
+    try {
+      for (const x of [-0.021, 0.021]) {
+        const ray = new T.Raycaster(new T.Vector3(x, -0.105, 0.32), new T.Vector3(0, 0, -1), 0, 0.15);
+        expect(ray.intersectObject(shell, false)).toHaveLength(0);
+        ray.ray.origin.add(new T.Vector3(0, 0.15, 0.02));
+        const hits = ray.intersectObject(duct, false);
+        expect(hits.length).toBeGreaterThan(0);
+        expect(hits[0].point.z).toBeGreaterThan(0.20);
+      }
+    } finally {
+      shell.geometry.dispose();
+      assembly.traverse(o => { if (o instanceof T.Mesh) o.geometry.dispose(); });
+      material.dispose();
+    }
+  });
+
   it.each(['high', 'mid', 'far'] as const)(
     '%s helmet has a real open eye port, supported temples and a projected chin',
     (detail) => {
