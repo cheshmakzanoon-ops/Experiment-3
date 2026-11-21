@@ -267,6 +267,7 @@ export class MotoGPChassis {
   private rearElasticStiffness = 0;
   private sideLimit = 0;
   private lastSpeed = 0;
+  private rearRollingRadius: number;
   private readonly front = slipState();
   private readonly rear = slipState();
   private readonly force = { fx: 0, fy: 0 };
@@ -280,6 +281,21 @@ export class MotoGPChassis {
   constructor(readonly geometry: MotoGPGeometry) {
     if (!(geometry.yawInertia > 0 && geometry.frontRadius > 0 && geometry.rearRadius > 0))
       throw new Error('Invalid GP bike geometry');
+    this.rearRollingRadius = geometry.rearRadius;
+  }
+
+  private repositioned(speed: number) {
+    return Math.abs(Math.max(0, speed) - this.lastSpeed) > 5;
+  }
+
+  /** The gearbox consumes the previous solved contact at the start of the
+   * next fixed tick. A new grid or recovery speed seeds it like the tyres. */
+  drivenOmegaAt(speed: number) {
+    return this.repositioned(speed) ? Math.max(0, speed) / this.geometry.rearRadius : this.rearOmega;
+  }
+
+  drivenRadiusAt(speed: number) {
+    return this.repositioned(speed) ? this.geometry.rearRadius : this.rearRollingRadius;
   }
 
   reset(speed = 0) {
@@ -293,7 +309,8 @@ export class MotoGPChassis {
     this.frontSlidingPower = this.rearSlidingPower = 0;
     this.groundSteer = this.steerTrim = this.leanTarget = this.lateralDemand = 0;
     this.frontOmega = speed / this.geometry.frontRadius;
-    this.rearOmega = speed / this.geometry.rearRadius;
+    this.rearRollingRadius = this.geometry.rearRadius;
+    this.rearOmega = speed / this.rearRollingRadius;
     this.lastSpeed = speed;
   }
 
@@ -306,7 +323,7 @@ export class MotoGPChassis {
     if (!(dt > 0 && dt <= 0.05)) throw new Error('Invalid GP bike timestep');
     // Grid placement, teleportation and tests that set speed explicitly are
     // not dual-wheel lockups: reinitialize the contact rotations.
-    if (Math.abs(v - this.lastSpeed) > 5) {
+    if (this.repositioned(v)) {
       this.frontOmega = v / g.frontRadius;
       this.rearOmega = v / g.rearRadius;
       this.lateralSpeed = this.yawRate = this.steerTrim = 0;
@@ -567,6 +584,7 @@ export class MotoGPChassis {
     const v = Math.max(0, q.speed);
     const frontRadius = q.frontRadius ?? g.frontRadius;
     const rearRadius = q.rearRadius ?? g.rearRadius;
+    this.rearRollingRadius = rearRadius;
     const forward = q.inertialContacts ? this.forwardSpeed : v;
     const frontSide = this.lateralSpeed + g.frontArm * this.yawRate;
     const cs = Math.cos(this.groundSteer),
@@ -603,12 +621,12 @@ export class MotoGPChassis {
       this.rearOmega += (targetRear - this.rearOmega) * (1 - Math.exp(-q.dt / rearTau));
     this.frontOmega = Math.max(
       0,
-      this.frontOmega - (q.frontBrakeExcess * g.frontRadius * q.dt) / g.frontWheelInertia,
+      this.frontOmega - (q.frontBrakeExcess * frontRadius * q.dt) / g.frontWheelInertia,
     );
     this.rearOmega = Math.max(
       0,
       this.rearOmega +
-        ((q.rearDriveExcess - q.rearBrakeExcess) * g.rearRadius * q.dt) / g.rearWheelInertia,
+        ((q.rearDriveExcess - q.rearBrakeExcess) * rearRadius * q.dt) / g.rearWheelInertia,
     );
     this.frontOmega = Math.min(500, this.frontOmega);
     this.rearOmega = Math.min(500, this.rearOmega);

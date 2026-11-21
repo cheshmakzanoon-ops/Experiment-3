@@ -11,7 +11,7 @@ import {
 } from './motorcycle-thermal.ts';
 import { advanceWheelTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
 import { GP_ENGINE_BRAKE_RELEASE_THROTTLE, gpEngineBrakingGain } from './gp-engine-braking.ts';
-import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
+import { approach, clamp, G, lerp, mod, Quat, smooth, Vec3 } from '../core/math.ts';
 import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
 import {
   ENGINE_BRAKE_MAPS,
@@ -63,6 +63,15 @@ export const BIKE_RECOVERY = Object.freeze({
  * running near-peak slip on its light load, which yawed the chassis into a
  * spin from 10 deg of lean at 200 km/h (scripted AI pass at Poggio Alto). */
 export const GP_RIDE_BY_WIRE = Object.freeze({ closeRate: 10 });
+
+/** Fore/aft crouch command shared by the GP rider pose and the aero model. */
+export function gpRiderTuck(speed: number, lean: number, throttle: number, brake: number) {
+  const pace = smooth(10, 34, speed);
+  const bank = smooth(0.08, 1.04, Math.abs(lean));
+  const drive = 0.5 + 0.5 * smooth(0.07, 0.85, throttle);
+  return pace * (1 - smooth(0.035, 0.62, brake)) * drive * (1 - 0.44 * bank);
+}
+
 /** q = yaw(heading) · pitch(nose-up) · roll(lean + left), body-first order. */
 export function bikeOrientation(q: Quat, heading: number, pitch: number, lean: number) {
   const hy = heading / 2,
@@ -272,7 +281,7 @@ export class BikeVehicle extends Vehicle {
     d.heading = Math.atan2(p.tx, p.tz);
     d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
     d.motoGP?.reset();
-    this.slide = this.yawKick = this.gpThrottle = 0;
+    this.slide = this.yawKick = this.gpThrottle = this.tuck = 0;
     this.groundY = p.y;
     this.writeBody(track, 0);
   }
@@ -287,7 +296,7 @@ export class BikeVehicle extends Vehicle {
     d.heading = heading;
     d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
     d.motoGP?.reset();
-    this.slide = this.yawKick = this.gpThrottle = 0;
+    this.slide = this.yawKick = this.gpThrottle = this.tuck = 0;
     this.stuckClock = 0;
     this.groundY = groundY;
     this.writeBody(track, 0);
@@ -298,14 +307,13 @@ export class BikeVehicle extends Vehicle {
     const spec = this.spec,
       next = clamp(this.gear + Math.sign(direction), 1, spec.gearRatios.length - 2);
     if (next === this.gear) return;
-    const predicted =
-      ((this.dynamics.speed / spec.wheelRadius) *
-        spec.gearRatios[next + 1] *
-        spec.finalDrive *
-        this.gearing *
-        30) /
-      Math.PI;
-    if (predicted > spec.limiterRPM) return;
+    const d = this.dynamics, gp = d.motoGP;
+    const roadOmega = d.speed / (gp?.drivenRadiusAt(d.speed) ?? spec.wheelRadius);
+    // A locked rear can regain grip on release. Protect the lower gear at
+    // both the current shaft speed and the speed it will reach at regrip.
+    const omega = gp ? Math.max(roadOmega, gp.drivenOmegaAt(d.speed)) : roadOmega;
+    const predicted = omega * spec.gearRatios[next + 1] * spec.finalDrive * this.gearing * 30 / Math.PI;
+    if (predicted > spec.limiterRPM && (!gp || next < this.gear)) return;
     this.gear = next;
     this.shiftClock =
       this.bikeSpec.gearbox === 'seamless' ? 0.02 : Math.max(0.02, this.bikeSpec.shiftCut);
@@ -360,7 +368,8 @@ export class BikeVehicle extends Vehicle {
     // coast torque off at a 2% threshold. The blend is stateless, so replay,
     // controller polling rate and AI/player handovers cannot retain a delay.
     const gain = d.p.engineBrakeReleaseThrottle === undefined ? 1 : gpEngineBrakingGain(throttle);
-    return (gain * this.engineBrake * engineTorque(this.rpm, spec) * ratio) / spec.wheelRadius;
+    const radius = d.motoGP?.drivenRadiusAt(d.speed) ?? spec.wheelRadius;
+    return (gain * this.engineBrake * engineTorque(this.rpm, spec) * ratio) / radius;
   }
   /** Grip multiplier of a contact patch relative to a fresh dry slick. */
   protected surfaceGrip(i: number) {
@@ -379,14 +388,21 @@ export class BikeVehicle extends Vehicle {
       this.autoShift = false;
     }
     this.shiftClock = Math.max(0, this.shiftClock - dt);
-    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
-      coupled = ((d.speed / spec.wheelRadius) * ratio * 30) / Math.PI;
+    const gp = d.motoGP;
+    const radius = gp?.drivenRadiusAt(d.speed) ?? spec.wheelRadius;
+    const roadOmega = d.speed / radius;
+    const shaftOmega = gp?.drivenOmegaAt(d.speed) ?? roadOmega;
+    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
     if (this.autoShift) {
-      if (coupled > spec.shiftRPM && this.gear < spec.gearRatios.length - 2) this.shift(1);
-      else if (coupled < spec.downshiftRPM && this.gear > 1) this.shift(-1);
+      // A momentary spin or rear lift should change the engine note and reach
+      // the limiter, but should not run the automatic box through the gears.
+      const bothHigh = Math.min(shaftOmega, roadOmega) * ratio * 30 / Math.PI;
+      const bothLow = Math.max(shaftOmega, roadOmega) * ratio * 30 / Math.PI;
+      if (bothHigh > spec.shiftRPM && this.gear < spec.gearRatios.length - 2) this.shift(1);
+      else if (bothLow < spec.downshiftRPM && this.gear > 1) this.shift(-1);
     }
     const current = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
-      wheelRPM = ((d.speed / spec.wheelRadius) * current * 30) / Math.PI;
+      wheelRPM = shaftOmega * current * 30 / Math.PI;
     // First-gear launch: the clutch slips at the launch speed under throttle.
     const slip = this.gear === 1 ? lerp(spec.idleRPM, b.launchRPM, throttle) : spec.idleRPM;
     const target = this.riding ? Math.max(wheelRPM, slip) : spec.idleRPM;
@@ -398,7 +414,7 @@ export class BikeVehicle extends Vehicle {
     if (this.shiftClock > 0 && b.gearbox !== 'seamless') torque = 0;
     this.engineOutputTorque = torque;
     this.clutch.engineOmega = (this.rpm * Math.PI) / 30;
-    return (torque * current * b.drivelineEfficiency) / spec.wheelRadius;
+    return (torque * current * b.drivelineEfficiency) / radius;
   }
   override step(dt: number, track: Track) {
     const d = this.dynamics,
@@ -449,15 +465,25 @@ export class BikeVehicle extends Vehicle {
       d.rearGrip = rearGrip;
     }
     d.slope = Math.sin(this.roadPitch);
-    // Rider: tuck on straights, hang off toward the corner.
-    const fast = d.speed > 25 && Math.abs(d.lean) < 0.2 && throttle > 0.6 && brake < 0.05;
-    this.tuck = approach(this.tuck, fast && this.riding ? 1 : 0, dt * 2.5);
-    // Wake fields already account for the leader's speed, separation, offset
-    // and heading. Apply the tow to the actual motorcycle dynamics core, not
-    // just the presentation aero readout, so overtakes gain real acceleration.
+    let hang: number;
+    if (gpPrototype) {
+      // The fore/aft crouch and the lateral move have independent supports.
+      // Carry an aerodynamic tuck through a fast sweeper; brake pressure
+      // brings the chest up while the hips can stay on the inside.
+      const target = this.riding ? gpRiderTuck(d.speed, d.lean, throttle, brake) : 0;
+      this.tuck = approach(this.tuck, target, dt * (target < this.tuck ? 3.4 : 1.8));
+      // The pelvis follows the loaded motorcycle through a direction change.
+      // Hands can request the next corner before the tyre force reverses;
+      // weighting actual roll here prevents throwing the hips across first.
+      const bodyIntent = clamp(0.72 * this.input.steer + 1.28 * d.lean, -1, 1);
+      hang = this.riding ? bodyIntent * smooth(6, 15, d.speed) : 0;
+    } else {
+      const fast = d.speed > 25 && Math.abs(d.lean) < 0.2 && throttle > 0.6 && brake < 0.05;
+      this.tuck = approach(this.tuck, fast && this.riding ? 1 : 0, dt * 2.5);
+      const intent = clamp(1.3 * this.input.steer + 1.1 * d.lean, -1, 1);
+      hang = d.speed > 10 ? intent * (1 - this.tuck) : 0;
+    }
     d.dragScale = bikeSlipstreamDragScale(this.tuck, spec.tuckDrag, this.slipstream);
-    const hang =
-      d.speed > 10 ? clamp(1.3 * this.input.steer + 1.1 * d.lean, -1, 1) * (1 - this.tuck) : 0;
     const force = this.drive(dt, throttle);
     const was = this.lastState;
     d.riderReady = this.riderReady();
