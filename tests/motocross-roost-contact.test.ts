@@ -119,15 +119,75 @@ describe('lit motocross soil and independent touchdown contacts', () => {
     expect([...mesh.instanceMatrix.array].every(Number.isFinite)).toBe(true);
     expect(mesh.instanceColor).not.toBeNull();
     expect(mesh.receiveShadow).toBe(true);
+    const geometry = h.roost.points.geometry;
+    const count = geometry.drawRange.count;
+    expect(count).toBe(h.roost.active - mesh.count);
+    const liveFines = new Set<number>();
+    for (let i = 0; i < count; i++) {
+      const slot = geometry.index!.getX(i);
+      expect(geometry.getAttribute('mxParticleShape').getX(slot)).toBe(1);
+      expect(geometry.getAttribute('mxParticleAlpha').getX(slot)).toBeGreaterThan(0);
+      liveFines.add(slot);
+    }
+    expect(liveFines.size).toBe(count);
+    const position = geometry.getAttribute('position') as T.BufferAttribute;
+    const versions = [position.version, geometry.index!.version, mesh.instanceMatrix.version];
     const matrix = [...mesh.instanceMatrix.array];
     const particles = [...h.roost.points.geometry.getAttribute('position').array];
     h.roost.update(h.frame, 0);
     expect([...mesh.instanceMatrix.array]).toEqual(matrix);
+    expect([position.version, geometry.index!.version, mesh.instanceMatrix.version]).toEqual(versions);
     expect([...h.roost.points.geometry.getAttribute('position').array]).toEqual(particles);
     h.roost.clear();
     expect(mesh.count).toBe(0);
+    expect(geometry.drawRange.count).toBe(0);
     expect(h.roost.active).toBe(0);
     expect(h.roost.contactShadows!.count).toBe(0);
+  });
+
+  it('throws wet earth behind a spinning rear and ahead of a locked rear in the same contact plane', () => {
+    const direction = (treadSpeed: number) => {
+      const h = harness(), wheel = h.b + WHEEL_BASE + 2 * WHEEL_STRIDE;
+      h.load(0, 800);
+      h.frame[h.o + O.MOISTURE] = 0.8;
+      h.frame[wheel + W.RADIUS] = 0.34;
+      h.frame[wheel + W.OMEGA] = treadSpeed / 0.34;
+      h.roost.update(h.frame, 1 / 30);
+      const geometry = h.roost.points.geometry, positions = geometry.getAttribute('position');
+      const origin = h.roost.wheelPatch(0, false)!.position.clone();
+      h.load(0, 0);
+      h.roost.update(h.frame, 1 / 30);
+      const outward = new T.Vector3();
+      for (let i = 0; i < h.roost.clods!.count; i++) {
+        outward.x += positions.getX(i) - origin.x;
+        outward.z += positions.getZ(i) - origin.z;
+      }
+      expect(h.roost.clods!.count).toBeGreaterThan(2);
+      return (outward.x * h.p.tx + outward.z * h.p.tz) / h.roost.clods!.count;
+    };
+    expect(direction(31)).toBeLessThan(-0.2);
+    expect(direction(0)).toBeGreaterThan(0.12);
+  });
+
+  it('spreads roost over a moving tyre path and restarts emission at a discontinuous position', () => {
+    const h = harness(), wheel = h.b + WHEEL_BASE + 2 * WHEEL_STRIDE;
+    h.load(0, 850);
+    h.frame[wheel + W.RADIUS] = 0.34;
+    h.frame[wheel + W.OMEGA] = 35 / 0.34;
+    h.frame[h.o + O.MOISTURE] = 0.8;
+    const move = (metres: number) => {
+      h.frame[h.b + F.X] += h.p.tx * metres;
+      h.frame[h.b + F.Z] += h.p.tz * metres;
+      const first = h.roost.active;
+      h.roost.update(h.frame, 1 / 30);
+      const pos = h.roost.points.geometry.getAttribute('position');
+      const result: number[] = [];
+      for (let i = first; i < h.roost.active; i++) result.push(pos.getX(i) * h.p.tx + pos.getZ(i) * h.p.tz);
+      return Math.max(...result) - Math.min(...result);
+    };
+    expect(move(0)).toBe(0);
+    expect(move(0.5)).toBeGreaterThan(0.28);
+    expect(move(8)).toBeLessThan(0.001);
   });
 
   it('emits a front-first landing at the front tyre and waits for actual rear contact', () => {

@@ -24,6 +24,7 @@ import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts'
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MxDustMaterial } from './mx-dust-material.ts';
+import { markItems } from '../attribute-ranges.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 export interface MxWheelPatch {
@@ -233,11 +234,15 @@ export class Roost {
   private readonly dust = new Uint8Array(ROOST_CAPACITY);
   private readonly emission = new Float64Array(64 * 4);
   private readonly wasAirborne = new Uint8Array(64);
+  private readonly lastEmitter = new Float32Array(128 * 3);
+  private readonly lastMachine = new Uint16Array(128);
+  private readonly patchVelocity = new T.Vector3();
+  private readonly angular = new T.Vector3();
   /** Each end consumes its own contact edge after a jump. */
   private readonly pendingImpact = new Uint8Array(64);
   private readonly impactSpeed = new Float32Array(64);
   private readonly impactAge = new Float32Array(64);
-  private readonly random = new Random(40817);
+  private random = new Random(40817);
   private readonly q = new T.Quaternion();
   private readonly v = new T.Vector3();
   private readonly back = new T.Vector3();
@@ -283,6 +288,10 @@ export class Roost {
         'mxParticleShape',
         new T.BufferAttribute(this.shapes, 2).setUsage(T.DynamicDrawUsage),
       );
+      // Indices address the simulation ring directly. Only live fines enter
+      // the transparent draw; solid fragments have their own opaque mesh.
+      g.setIndex(new T.BufferAttribute(new Uint16Array(ROOST_CAPACITY), 1).setUsage(T.DynamicDrawUsage));
+      g.setDrawRange(0, 0);
       // Birth floor of each particle: the dust shader fades a puff into it.
       g.setAttribute(
         'mxParticleFloor',
@@ -532,26 +541,94 @@ export class Roost {
       }
     }
     mesh.count = count;
-    mesh.instanceMatrix.needsUpdate = true;
+    markItems(mesh.instanceMatrix, 0, count - 1);
+  }
+  /** A driven knobby cuts backwards, a locked wheel ploughs forward, and a
+   * sliding rear pushes earth across the racing line. Resolve all three in
+   * the tyre's actual contact plane, including yaw at this end of the bike. */
+  private throwFromTyre(
+    frame: Float32Array, body: number, wheel: number, id: number,
+    patch: MxWheelPatch, step: number, wet: number,
+  ) {
+    const p = body + WHEEL_BASE + wheel * WHEEL_STRIDE;
+    const rear = wheel === 2, slot = id * 4 + wheel, end = id * 2 + Number(rear);
+    const speed = frame[body + F.SPEED], radius = frame[p + W.RADIUS];
+    const treadSpeed = frame[p + W.OMEGA] * radius;
+    if (Math.max(speed, treadSpeed) < 1.5) {
+      this.emission[slot] = this.lastMachine[end] = 0;
+      return;
+    }
+    const normal = patch.normal, forward = patch.forward, side = this.side.crossVectors(normal, forward);
+    const velocity = this.patchVelocity.fromArray(frame, body + F.VX);
+    this.v.fromArray(frame, body + F.X).sub(patch.position).negate();
+    this.angular.fromArray(frame, body + F.WX).cross(this.v);
+    velocity.add(this.angular);
+    const along = velocity.dot(forward), across = clamp(velocity.dot(side), -12, 12);
+    // Older/sparse frames without radius still carry a rear wheel-slip estimate.
+    const mismatch = radius > 0 ? treadSpeed - along : rear ? Math.abs(frame[p + W.SLIP]) * speed : 0;
+    const drive = rear ? clamp(mismatch - 0.6, 0, 24) : 0;
+    const plough = clamp(-mismatch - 0.8, 0, 22);
+    const scrub = clamp(Math.abs(across) - 0.55, 0, 10);
+    const shear = clamp((drive + 0.63 * plough + 0.7 * scrub) / 3, 0, 1.5);
+    const pressure = clamp(frame[p + W.LOAD] / 650, 0.15, 1.4);
+    const rate = pressure * this.density * (shear * (48 + 5 * speed) +
+      (1 - wet) * speed * (rear ? 1.32 : 0.4));
+    const carry = this.emission[slot], quota = rate * step;
+    const births = Math.floor(carry + quota);
+    this.emission[slot] = carry + quota - births;
+    const k = end * 3, previous = this.lastEmitter;
+    const { x, y, z } = patch.position, machine = Math.round(frame[body + RACE_BASE + R.VEHICLE]) + 1;
+    const dx = x - previous[k], dy = y - previous[k + 1], dz = z - previous[k + 2];
+    // A seek, remount or replacement rider cannot lay a bridge of particles.
+    const contiguous = this.lastMachine[end] === machine &&
+      dx * dx + dy * dy + dz * dz <= (0.35 + 1.8 * speed * step) ** 2;
+    const rng = this.random;
+    for (let b = 0; b < Math.min(40, births); b++) {
+      const t = contiguous ? clamp((b + 1 - carry) / quota, 0, 1) : 1;
+      const dust = shear < 0.12 || rng.next() < (1 - wet) * (0.31 + 0.14 * Math.min(1, scrub));
+      const sweep = across * (dust ? 0.18 : 0.48) + (rng.next() - 0.5) * (1.2 + 0.13 * plough);
+      const fling = (0.09 * along + 0.28 * plough - 0.85 * drive) * (0.7 + 0.5 * rng.next());
+      const lift = (dust ? 0.48 + shear * 0.7 : 1.2 + 0.23 * drive + 0.08 * plough + 0.16 * scrub) *
+        (0.7 + 0.65 * rng.next());
+      this.spawn(
+        x - (1 - t) * dx, y - (1 - t) * dy + 0.045, z - (1 - t) * dz,
+        forward.x * fling + side.x * sweep + normal.x * lift,
+        forward.y * fling + side.y * sweep + normal.y * lift,
+        forward.z * fling + side.z * sweep + normal.z * lift, wet, dust,
+      );
+    }
+    previous[k] = x;
+    previous[k + 1] = y;
+    previous[k + 2] = z;
+    this.lastMachine[end] = machine;
   }
   private publish() {
     const g = this.points.geometry;
-    g.getAttribute('position').needsUpdate = true;
-    g.getAttribute('color').needsUpdate = true;
-    g.getAttribute('mxParticleSize').needsUpdate = true;
-    g.getAttribute('mxParticleAlpha').needsUpdate = true;
-    if (this.motocross) {
-      g.getAttribute('mxParticleShape').needsUpdate = true;
-      g.getAttribute('mxParticleFloor').needsUpdate = true;
-    }
     const mesh = this.clods;
-    if (!mesh) return;
+    if (!mesh) {
+      for (const name of ['position', 'color', 'mxParticleSize', 'mxParticleAlpha'])
+        g.getAttribute(name).needsUpdate = true;
+      return;
+    }
     mesh.visible = this.enabled;
-    let count = 0;
+    const index = g.index!;
+    let dustCount = 0, firstDust = ROOST_CAPACITY, lastDust = -1;
+    let firstIndex = ROOST_CAPACITY, lastIndex = -1, count = 0;
     const pose = this.clodPose,
       clodWet = mesh.geometry.getAttribute('mxClodWet') as T.InstancedBufferAttribute;
     for (let i = 0; i < ROOST_CAPACITY; i++) {
-      if (this.life[i] <= 0 || this.dust[i]) continue;
+      if (this.life[i] <= 0) continue;
+      if (this.dust[i]) {
+        if (index.getX(dustCount) !== i) {
+          index.setX(dustCount, i);
+          firstIndex = Math.min(firstIndex, dustCount);
+          lastIndex = dustCount;
+        }
+        firstDust = Math.min(firstDust, i);
+        lastDust = i;
+        dustCount++;
+        continue;
+      }
       const k = i * 3,
         seed = this.shapes[i * 2 + 1];
       // Rotating lit faces preserve depth as the camera moves. Contract into
@@ -568,16 +645,26 @@ export class Roost {
       clodWet.setX(count, this.particleWet[i]);
       mesh.setColorAt(count++, this.clodColour);
     }
+    g.setDrawRange(0, dustCount);
+    markItems(index, firstIndex, lastIndex);
+    for (const attribute of Object.values(g.attributes))
+      markItems(attribute as T.BufferAttribute, firstDust, lastDust);
     mesh.count = count;
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.instanceColor!.needsUpdate = true;
-    clodWet.needsUpdate = true;
+    markItems(mesh.instanceMatrix, 0, count - 1);
+    markItems(mesh.instanceColor!, 0, count - 1);
+    markItems(clodWet, 0, count - 1);
   }
   update(frame: Float32Array, dt: number) {
     if (this.disposed) return;
     if (!Number.isFinite(dt) || dt < 0) return;
     this.points.visible = this.enabled;
     this.shadows(frame);
+    if (this.clods) {
+      this.clods.visible = this.enabled;
+      // A camera move or a held race snapshot can change the contact shadow
+      // projection above. The debris itself has no elapsed time to advance.
+      if (dt === 0) return;
+    }
     const step = Math.min(dt, 0.05);
     const windX = this.windExposed ? renderWind(frame[H.WIND_X]) : 0,
       windZ = this.windExposed ? renderWind(frame[H.WIND_Z]) : 0;
@@ -691,11 +778,13 @@ export class Roost {
     if (step > 0)
       this.collisionCursor = (this.collisionCursor + ROOST_GROUND_SAMPLES) % ROOST_CAPACITY;
     if (!this.enabled || dt === 0) {
+      this.lastMachine.fill(0);
       this.publish();
       return;
     }
     const r = this.random,
       cars = Math.min(64, frame[H.CARS]);
+    this.lastMachine.fill(0, cars * 2);
     for (let id = 0; id < cars; id++) {
       const o = carBase(id),
         def = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])),
@@ -785,7 +874,15 @@ export class Roost {
             );
           }
         }
-        if (!loose || load < 50 || speed < 1.5 || (this.motocross && bike && airborne)) {
+        if (this.motocross && bike) {
+          if (patch && loose && load >= 50 && !airborne) {
+            this.throwFromTyre(frame, o, wheel, id, patch, step, wet);
+          } else {
+            this.lastMachine[id * 2 + Number(wheel === 2)] = this.emission[slot] = 0;
+          }
+          continue;
+        }
+        if (!loose || load < 50 || speed < 1.5) {
           this.emission[slot] = 0;
           continue;
         }
@@ -794,7 +891,7 @@ export class Roost {
         const spin = driven ? clamp((slip - 0.04) * 6, 0, 1.5) : 0,
           rate =
             (spin * (40 + speed * 6) +
-              (1 - wet) * speed * (driven ? 0.6 : 0.18) * (this.motocross && bike ? 2.2 : 1)) *
+              (1 - wet) * speed * (driven ? 0.6 : 0.18)) *
             (bike ? 1 : 0.7) *
             this.density;
         const sideKick = this.motocross ? clamp(frame[p + W.ANGLE], -0.5, 0.5) * speed * 0.35 : 0;
@@ -830,13 +927,16 @@ export class Roost {
     this.life.fill(0);
     for (let i = 0; i < ROOST_CAPACITY; i++) this.positions[i * 3 + 1] = -1e4;
     this.emission.fill(0);
+    this.lastMachine.fill(0);
     this.opacity.fill(0);
     this.wasAirborne.fill(0);
     this.loaded.fill(0);
     this.pendingImpact.fill(0);
     this.impactAge.fill(0);
     this.impactSpeed.fill(0);
-    this.collisionCursor = 0;
+    this.cursor = this.collisionCursor = 0;
+    this.random = new Random(40817);
+    if (this.motocross) this.points.geometry.setDrawRange(0, 0);
     this.points.geometry.getAttribute('position').needsUpdate = true;
     this.points.geometry.getAttribute('mxParticleAlpha').needsUpdate = true;
     if (this.contactShadows) this.contactShadows.count = 0;
