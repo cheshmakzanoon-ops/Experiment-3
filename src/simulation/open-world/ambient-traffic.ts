@@ -9,6 +9,7 @@ import { setupFor, vehicleIndex, type VehicleDefinition } from '../vehicles.ts';
 import { festivalCars } from './festival-machines.ts';
 import { SPEED_CLASS_KMH, type RoadClass } from './region-data.ts';
 import type { RoadEdge, RoadNetwork } from './road-network.ts';
+import { TrafficTurn, trafficLaneOffset } from './traffic-turn.ts';
 import { townCrossings } from './town-crossings.ts';
 import { TILE_SIZE } from './terrain-tiles.ts';
 
@@ -69,7 +70,7 @@ export const TF = Object.freeze({
   QW: 8,
   SPEED: 9,
   BRAKE: 10,
-  /** 1 hazard lights (after a collision), 2 waiting at a junction. */
+  /** Hazard, waiting and directional indicator bits from TRAFFIC_FLAG. */
   FLAGS: 11,
   /** Cumulative signed longitudinal travel (m), independent of edge changes. */
   DISTANCE: 12,
@@ -77,7 +78,7 @@ export const TF = Object.freeze({
   PITCH: 14,
   ROLL: 15,
 });
-export const TRAFFIC_FLAG = Object.freeze({ HAZARD: 1, WAITING: 2 });
+export const TRAFFIC_FLAG = Object.freeze({ HAZARD: 1, WAITING: 2, LEFT: 4, RIGHT: 8 });
 
 /** Deterministic hash of integers to [0, 1). */
 function hash01(...values: number[]) {
@@ -138,6 +139,10 @@ export class TrafficCar {
   stunned = 0;
   shove = 0;
   waiting = false;
+  signal: -1 | 0 | 1 = 0;
+  signalUntil = 0;
+  turn: TrafficTurn | null = null;
+  turnChoice = -1;
   /** Next edge at the end node (planned on entering an edge). */
   next: { edge: number; dir: 1 | -1 } | null = null;
   /** Junction node this car holds the claim on (-1 none). */
@@ -331,17 +336,12 @@ export class AmbientTraffic {
         c.stunned = Math.max(0, c.stunned - dt);
         c.speed = Math.max(0, c.speed - 6 * dt);
       }
-      c.s += c.speed * dt;
       // Lane keeping: back toward the lane centre after a shove.
       c.lateral += c.shove * dt;
       c.shove *= Math.exp(-2.5 * dt);
       const target = this.laneOffset(c);
       c.lateral += clamp(target - c.lateral, -1.2 * dt, 1.2 * dt);
-      const e = this.network.edges[c.edge];
-      if (c.s > e.length && !this.advance(c)) {
-        this.remove(i);
-        continue;
-      }
+      this.move(c, c.speed * dt);
       this.pose(c, dt);
       c.settleChassis(oldSpeed, oldYaw, dt);
       const q = c.body.orientation;
@@ -354,15 +354,41 @@ export class AmbientTraffic {
           ((c.position.x - oldX) * forwardX +
             (c.position.y - oldY) * forwardY +
             (c.position.z - oldZ) * forwardZ) / norm;
+      if (c.signal && c.distance >= c.signalUntil) c.signal = 0;
       c.stopped = c.speed < 0.3 ? c.stopped + dt : 0;
     }
   }
   /** Lane centre offset in the travel frame (right-hand traffic). */
   private laneOffset(c: TrafficCar) {
-    const half = this.network.edges[c.edge].spec.halfWidth,
-      lanes = half >= 6 ? 2 : 1,
-      width = half / lanes;
-    return -(Math.min(c.lane, lanes - 1) + 0.5) * width;
+    return trafficLaneOffset(this.network.edges[c.edge], c.lane);
+  }
+  private move(c: TrafficCar, metres: number) {
+    const e = this.network.edges[c.edge], turn = c.turn;
+    if (turn && c.next && (turn.travelled >= 0 || c.s + metres >= turn.entry)) {
+      turn.travelled = turn.travelled < 0 ? c.s + metres - turn.entry : turn.travelled + metres;
+      if (turn.travelled < turn.length) {
+        c.s = turn.entry + (e.length - turn.entry) * turn.travelled / turn.length;
+        return;
+      }
+      const extra = c.lateral - this.laneOffset(c);
+      const station = turn.exit + turn.travelled - turn.length;
+      this.enterNext(c, station, trafficLaneOffset(this.network.edges[c.next.edge], c.lane) + extra);
+      return;
+    }
+    c.s += metres;
+    if (c.s > e.length) this.advance(c);
+  }
+  private enterNext(c: TrafficCar, station: number, lateral: number) {
+    const next = c.next!;
+    c.edge = next.edge;
+    c.dir = next.dir;
+    c.sample = this.network.edges[c.edge].first;
+    c.s = station;
+    c.lateral = lateral;
+    c.ending = false;
+    if (c.signal) c.signalUntil = c.distance + Math.max(7, 2 * c.half[2]);
+    // The claim remains until the rear of this vehicle has cleared the node.
+    this.chooseNext(c);
   }
   /** Move onto the planned next edge, keeping the world position continuous. */
   private advance(c: TrafficCar) {
@@ -370,30 +396,19 @@ export class AmbientTraffic {
     if (!c.next) {
       c.s = e.length;
       c.speed = 0;
-      return true;
+      return;
     }
-    const over = c.s - e.length;
-    const x = c.position.x,
-      z = c.position.z;
-    const next = this.network.edges[c.next.edge];
-    // (The junction claim is kept until the car is clear of the node: pass().)
-    c.edge = next.index;
-    c.dir = c.next.dir;
-    c.sample = next.first;
-    c.next = null;
-    c.ending = false;
-    // Project the current position on the new edge's start frame.
-    const p = this.locate(c, 0),
-      tx = p.tx * c.dir,
-      tz = p.tz * c.dir;
-    c.s = Math.max(-6, (x - p.x) * tx + (z - p.z) * tz) + Math.max(0, over);
-    // Travel-left of (tx, tz) is (tz, -tx) (Track convention).
-    c.lateral = clamp((x - p.x) * tz - (z - p.z) * tx, -next.spec.halfWidth, next.spec.halfWidth);
-    this.chooseNext(c);
-    return true;
+    const over = Math.max(0, c.s - e.length), next = this.network.edges[c.next.edge], dir = c.next.dir;
+    const p = this.network.at(next.offset + (dir > 0 ? 0 : next.length), this.point);
+    const dx = c.position.x - p.x, dz = c.position.z - p.z;
+    const along = dir * (dx * p.tx + dz * p.tz);
+    const lateral = dir * (dx * p.nx + dz * p.nz);
+    this.enterNext(c, Math.max(-6, along) + over, clamp(lateral, -next.spec.halfWidth, next.spec.halfWidth));
   }
   /** Pick the edge after the current one at its end node (deterministic). */
   private chooseNext(c: TrafficCar) {
+    c.turn = null;
+    c.turnChoice = -1;
     const e = this.network.edges[c.edge],
       node = c.dir > 0 ? e.to : e.from;
     const options = this.network
@@ -426,33 +441,42 @@ export class AmbientTraffic {
     return net.pointOnSegment(i, span > 0 ? clamp((station - net.s[i]) / span, 0, 1) : 0, this.point);
   }
   private pose(c: TrafficCar, dt: number) {
-    const e = this.network.edges[c.edge],
-      p = this.locate(c, c.s),
-      dir = c.dir,
-      tx = p.tx * dir,
-      tz = p.tz * dir,
-      // Beyond either end of the edge (a junction): straight on along it.
-      beyond = c.s < 0 ? c.s : c.s > e.length ? c.s - e.length : 0,
-      lateralEdge = c.lateral * dir;
-    const spec = e.spec,
-      ground = this.network.surfaceHeight(p, lateralEdge, spec.halfWidth, spec.crown);
-    const x = p.x + p.nx * lateralEdge + tx * beyond,
-      z = p.z + p.nz * lateralEdge + tz * beyond;
+    const e = this.network.edges[c.edge], dir = c.dir, turn = c.turn;
+    let x: number, z: number, tx: number, tz: number, ground: number, grade: number, cross: number;
+    if (turn && turn.travelled >= 0) {
+      turn.sample(turn.travelled);
+      const extra = c.lateral - this.laneOffset(c);
+      tx = turn.tx;
+      tz = turn.tz;
+      x = turn.x + tz * extra;
+      z = turn.z - tx * extra;
+      ground = turn.ground + turn.cross * extra;
+      grade = turn.grade;
+      cross = turn.cross;
+    } else {
+      const p = this.locate(c, c.s);
+      const beyond = c.s < 0 ? c.s : Math.max(0, c.s - e.length);
+      const lateral = c.lateral * dir;
+      tx = p.tx * dir;
+      tz = p.tz * dir;
+      grade = p.gradient * dir;
+      x = p.x + p.nx * lateral + tx * beyond;
+      z = p.z + p.nz * lateral + tz * beyond;
+      ground = this.network.surfaceHeight(p, lateral, e.spec.halfWidth, e.spec.crown) + grade * beyond;
+      cross = dir * (p.bank - Math.max(0, e.spec.crown - Math.abs(p.bank)) * Math.sign(lateral));
+    }
     const heading = Math.atan2(tx, tz);
     if (dt <= 0) c.yaw = heading;
     else {
-      const turn = mod(heading - c.yaw + Math.PI, Math.PI * 2) - Math.PI,
-        rate = Math.max(1.4, c.speed / 5) * dt;
-      c.yaw += clamp(turn, -rate, rate);
+      const delta = mod(heading - c.yaw + Math.PI, Math.PI * 2) - Math.PI;
+      const rate = Math.max(1.4, c.speed / 5) * dt;
+      c.yaw += turn && turn.travelled >= 0 ? delta : clamp(delta, -rate, rate);
     }
-    const crownLeft = Math.max(0, spec.crown - Math.abs(p.bank)),
-      cross = dir * (p.bank - crownLeft * Math.sign(lateralEdge));
     const b = c.body;
-    bikeOrientation(b.orientation, c.yaw, Math.atan(p.gradient * dir), -Math.atan(cross));
-    b.position.set(x, ground + c.half[1] + p.gradient * dir * beyond, z);
-    const sy = Math.sin(c.yaw),
-      cy = Math.cos(c.yaw);
-    b.velocity.set(sy * c.speed + cy * c.shove, 0, cy * c.speed - sy * c.shove);
+    bikeOrientation(b.orientation, c.yaw, Math.atan(grade), -Math.atan(cross));
+    b.position.set(x, ground + c.half[1], z);
+    const sy = Math.sin(c.yaw), cy = Math.cos(c.yaw);
+    b.velocity.set(sy * c.speed + cy * c.shove, grade * c.speed + cross * c.shove, cy * c.speed - sy * c.shove);
     b.omega.set(0, 0, 0);
   }
   /** Car-following and junction yielding (planner rate). */
@@ -491,9 +515,24 @@ export class AmbientTraffic {
       const bx = this.point.tx * c.next.dir,
         bz = this.point.tz * c.next.dir,
         angle = Math.acos(clamp(ax * bx + az * bz, -1, 1));
+      const choice = n.index * 2 + Number(c.next.dir > 0);
+      if (c.turnChoice !== choice) {
+        const minRadius = c.definition.spec.wheelbase / Math.tan(c.definition.spec.maxSteer) +
+          Math.abs(c.definition.wheelPositions[0][0]);
+        const curve = angle > 0.3 ? TrafficTurn.between(net, e, c.dir, n, c.next.dir, c.lane, minRadius) : null;
+        // Cars placed in the junction cannot rewind onto an earlier join.
+        c.turn = curve && c.s <= curve.entry ? curve : null;
+        c.turnChoice = choice;
+      }
       if (angle > 0.35) {
-        const turn = clamp(13 - 8 * (angle / (Math.PI / 2)), 4, 13);
-        desired = Math.min(desired, Math.sqrt(turn * turn + 2 * TRAFFIC.comfortBrake * Math.max(0, remaining - 6)));
+        const limit = c.turn?.speedLimit ?? clamp(13 - 8 * (angle / (Math.PI / 2)), 4, 13);
+        const toTurn = c.turn ? c.turn.entry - c.s : remaining - 6;
+        desired = Math.min(desired, Math.sqrt(limit * limit + 2 * TRAFFIC.comfortBrake * Math.max(0, toTurn)));
+        if (angle > 0.45 && this.junctions.has(c.dir > 0 ? e.to : e.from) &&
+          remaining < clamp(c.speed * 3.2 + 8, 24, 65)) {
+          c.signal = az * bx - ax * bz > 0 ? 1 : -1;
+          c.signalUntil = Infinity;
+        }
       }
       this.locate(c, c.s);
     }
@@ -788,7 +827,9 @@ export class AmbientTraffic {
       out[o + TF.QW] = q.w;
       out[o + TF.SPEED] = c.speed;
       out[o + TF.BRAKE] = c.brake;
-      out[o + TF.FLAGS] = (c.stunned > 0 ? TRAFFIC_FLAG.HAZARD : 0) | (c.waiting ? TRAFFIC_FLAG.WAITING : 0);
+      out[o + TF.FLAGS] = (c.stunned > 0 ? TRAFFIC_FLAG.HAZARD : 0) |
+        (c.waiting ? TRAFFIC_FLAG.WAITING : 0) |
+        (c.signal > 0 ? TRAFFIC_FLAG.LEFT : c.signal < 0 ? TRAFFIC_FLAG.RIGHT : 0);
       out[o + TF.DISTANCE] = c.distance;
       out[o + TF.CURVATURE] = c.curvature;
       out[o + TF.PITCH] = c.pitch.angle;

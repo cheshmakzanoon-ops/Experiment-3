@@ -245,6 +245,34 @@ describe('festival traffic visual geometry', () => {
     expect(roofLengths.get('rd2')).toBe(0);
   });
 
+  it('selects each turning car’s front and rear amber lenses independently and gives hazards both sides', () => {
+    const cars = new TrafficCars();
+    const frame = block([
+      { id: 1, machine: machines[0], x: 0, z: 0, flags: TRAFFIC_FLAG.LEFT },
+      { id: 2, machine: machines[1], x: 4, z: 0, flags: TRAFFIC_FLAG.RIGHT },
+      { id: 3, machine: machines[0], x: 8, z: 0, flags: TRAFFIC_FLAG.RIGHT | TRAFFIC_FLAG.HAZARD },
+    ]);
+    cars.update(null, frame, 1, 0, 96);
+    const side = cars.lamps.geometry.getAttribute('trafficSignalSide');
+    expect([0, 1, 2].map((i) => side.getX(i))).toEqual([1, -1, 0]);
+    const colour = new T.Color();
+    for (let i = 0; i < 3; i++) {
+      cars.lamps.getColorAt(i, colour);
+      expect(colour.b).toBe(3);
+    }
+    const optics = cars.lamps.geometry;
+    const position = optics.getAttribute('position'), circuit = optics.getAttribute('trafficLampCircuit');
+    const sites = new Set<string>();
+    for (let i = 0; i < circuit.count; i++) {
+      if (circuit.getX(i) === 2) sites.add([Math.sign(position.getX(i)), Math.sign(position.getZ(i))].join(','));
+    }
+    expect(sites.size).toBe(4);
+    const shader = { vertexShader: T.ShaderLib.basic.vertexShader } as T.WebGLProgramParametersWithUniforms;
+    (cars.lamps.material as T.Material).onBeforeCompile(shader, {} as T.WebGLRenderer);
+    expect(shader.vertexShader).toContain('position.x * trafficSignalSide < 0.0');
+    cars.dispose();
+  });
+
   it('poses each body batch from the same id-matched snapshot and retains brake/hazard mapping', () => {
     const cars = new TrafficCars();
     const older = block([

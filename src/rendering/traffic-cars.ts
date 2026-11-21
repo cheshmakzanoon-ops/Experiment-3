@@ -32,18 +32,19 @@ function trafficLampMaterial() {
   const material = new T.MeshBasicMaterial({ vertexColors: true });
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float trafficLampCircuit;')
+      .replace('#include <common>', '#include <common>\nattribute float trafficLampCircuit;\nattribute float trafficSignalSide;')
       .replace(
         '#include <color_vertex>',
         `#include <color_vertex>
 #ifdef USE_INSTANCING_COLOR
   float drive = trafficLampCircuit < 0.5 ? instanceColor.r
               : trafficLampCircuit < 1.5 ? instanceColor.g : instanceColor.b;
+  if (trafficLampCircuit > 1.5 && position.x * trafficSignalSide < 0.0) drive = 0.12;
   vColor.xyz = color * drive;
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-traffic-optics-v1';
+  material.customProgramCacheKey = () => 'festival-traffic-optics-v2';
   return material;
 }
 
@@ -71,6 +72,7 @@ export class TrafficCars {
   readonly bodies: T.InstancedMesh;
   readonly lamps: T.InstancedMesh;
   readonly wheels: T.InstancedMesh;
+  private readonly signalSide = new T.InstancedBufferAttribute(new Float32Array(TRAFFIC_CAPACITY), 1).setUsage(T.DynamicDrawUsage);
   private readonly nearWheel = trafficWheelGeometry();
   private readonly farWheel = distantTrafficWheelGeometry();
   private readonly bodyBatches: readonly T.InstancedMesh[];
@@ -140,6 +142,7 @@ export class TrafficCars {
     );
     fixtures.name = 'Ambient traffic trim (instanced)';
     fixtures.castShadow = fixtures.receiveShadow = true;
+    geometry.lamps.setAttribute('trafficSignalSide', this.signalSide);
     this.lamps = new T.InstancedMesh(geometry.lamps, trafficLampMaterial(), TRAFFIC_CAPACITY);
     this.lamps.name = 'Ambient traffic lamps (instanced)';
     this.wheels = new T.InstancedMesh(
@@ -300,10 +303,17 @@ export class TrafficCars {
         this.colour.setHex(PAINT[Math.abs(Math.round(id) * 7919) % PAINT.length]),
       );
       const flags = b[o + TF.FLAGS],
-        hazard = (flags & TRAFFIC_FLAG.HAZARD) !== 0 && Math.floor(signalTime * 2.5) % 2 === 0;
+        hazard = (flags & TRAFFIC_FLAG.HAZARD) !== 0;
+      const side = hazard ? 0 : flags & TRAFFIC_FLAG.LEFT ? 1 : flags & TRAFFIC_FLAG.RIGHT ? -1 : 0;
+      // The hazard circuit drives both sides. Ordinary signals have a stable
+      // per-vehicle phase and continue blinking during a stationary queue.
+      const flash = hazard
+        ? Math.floor(signalTime * 2.5) % 2 === 0
+        : side !== 0 && Math.floor(signalTime * 2.5 + (id * 0.377) % 2) % 2 === 0;
+      this.signalSide.setX(k, side);
       const head = 0.38 + night * 2.15;
       const tail = b[o + TF.BRAKE] > 0.05 ? 2.6 : 0.28 + night * 0.58;
-      this.lamps.setColorAt(k, this.colour.setRGB(head, tail, hazard ? 3 : 0.12));
+      this.lamps.setColorAt(k, this.colour.setRGB(head, tail, flash ? 3 : 0.12));
       const wheelDef = profile.vehicle,
         radius = wheelDef.spec.wheelRadius;
       if (!close && camera) {
@@ -349,6 +359,7 @@ export class TrafficCars {
     for (const mesh of this.batches) mesh.instanceMatrix.needsUpdate = true;
     this.bodies.instanceColor!.needsUpdate = true;
     this.lamps.instanceColor!.needsUpdate = true;
+    this.signalSide.needsUpdate = true;
   }
 
   /** Auditable upper bounds, independent of traffic density or frame time. */
