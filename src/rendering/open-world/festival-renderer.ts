@@ -857,7 +857,7 @@ export class FestivalRenderer {
     this.effectPlayback.update(presented, true, true);
     this.effects.setSignalLights(presented, true);
     this.trails.update(presented, this.heightAt);
-    this.roads.setNight(night, this.camera.position);
+    this.roads.setNight(night, this.camera.position, this.preset);
     this.buildings.setNight(night, time, this.camera.position);
     this.dressing.update(time, night, this.camera, this.preset);
     this.details?.update(

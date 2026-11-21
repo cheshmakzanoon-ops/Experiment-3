@@ -1,3 +1,4 @@
+import type { QualityPreset } from '../options.ts';
 import { StreetIronwork } from './street-ironwork.ts';
 import { paintStations } from './paint-tessellation.ts';
 import { AirfieldLights } from './airfield-lights.ts';
@@ -369,6 +370,7 @@ export class RoadMeshes {
   readonly airfieldLights: AirfieldLights;
   readonly ironwork: StreetIronwork;
   readonly lampSockets: StreetLightSocket[] = [];
+  private townLamps?: ReturnType<typeof buildTownLamps>;
   readonly materials: Record<Layer, T.Material>;
   readonly lampMaterial: T.MeshStandardMaterial;
   readonly reflectorMaterial = new T.MeshStandardMaterial({
@@ -687,6 +689,7 @@ export class RoadMeshes {
       this.root.add(group);
     }
     const townLamps = buildTownLamps(lamps, this.materials.post, this.lampMaterial);
+    this.townLamps = townLamps;
     this.root.add(townLamps.root);
     this.lampSockets.push(...townLamps.sockets);
     const grids = this.circuitStartGrids();
@@ -962,9 +965,12 @@ export class RoadMeshes {
     }
   }
   /** Night: street lamps glow (bloom carries them). */
-  setNight(night: number, eye?: T.Vector3) {
+  setNight(night: number, eye?: T.Vector3, quality: QualityPreset = 'medium') {
     this.airfieldLights.setNight(night, eye);
-    if (eye) this.ironwork.update(eye);
+    if (eye) {
+      this.ironwork.update(eye);
+      this.townLamps?.update(eye,quality);
+    }
     this.lampMaterial.emissiveIntensity = 0.05 + night * 9;
     this.reflectorMaterial.emissiveIntensity = 0.02 + night * 0.72;
   }
