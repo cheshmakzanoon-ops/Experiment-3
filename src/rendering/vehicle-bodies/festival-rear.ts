@@ -285,6 +285,123 @@ function rearPane(pocket: FestivalTailPocket, z: number, scale: number) {
   return geometry;
 }
 
+/** Short flutes behind a common clear outer lens. Five vertices per facet keep
+ * the alternating highlights visible under sky light with the bulb switched off. */
+export function addReversingOptic(
+  parts: Parts,
+  material: T.Material,
+  x: number,
+  y: number,
+  z: number,
+  width: number,
+  height: number,
+  detail: Detail,
+) {
+  const columns =
+    detail === 0 ? Math.max(3, Math.min(9, Math.round(width / 0.018))) : detail === 1 ? 3 : 1;
+  const positions: number[] = [],
+    indices: number[] = [];
+  for (let column = 0; column < columns; column++) {
+    const left = x + width * (column / columns - 0.5),
+      right = left + width / columns;
+    const base = positions.length / 3,
+      half = height * 0.5;
+    positions.push(
+      left,
+      y - half,
+      z,
+      left,
+      y + half,
+      z,
+      right,
+      y + half,
+      z,
+      right,
+      y - half,
+      z,
+      (left + right) * 0.5,
+      y,
+      z - Math.min(0.0028, height * 0.14),
+    );
+    for (let k = 0; k < 4; k++) indices.push(base + k, base + ((k + 1) % 4), base + 4);
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  g.setIndex(indices);
+  const facets = g.toNonIndexed();
+  g.dispose();
+  facets.computeVertexNormals();
+  parts.add(facets, material);
+}
+
+function addPocketReverseOptic(
+  parts: Parts,
+  p: FestivalTailPocket,
+  housing: ClosedBodyModel['s']['tailHousing'],
+  z: number,
+  detail: Detail,
+  material: T.Material,
+) {
+  if (housing === 'circle') {
+    // The near lens is domed inside the red annulus. At distance its visible area
+    // and attachment centre survive on a single outward-facing disc.
+    if (detail === 2 && p.width < 0.12)
+      parts.add(
+        new T.CircleGeometry(p.width * 0.235, 8).rotateY(Math.PI),
+        material,
+        placed(p.x, p.y, z),
+      );
+    return;
+  }
+  if (housing) {
+    for (const side of p.side ? [p.side] : [-1, 1])
+      addReversingOptic(
+        parts,
+        material,
+        p.x - side * p.width * 0.26,
+        p.y - p.height * 0.33,
+        z,
+        p.width * (p.side ? 0.22 : 0.12),
+        p.height * 0.13,
+        detail,
+      );
+  } else
+    addReversingOptic(
+      parts,
+      material,
+      p.x - p.side * p.width * 0.27,
+      p.y - 0.016,
+      z,
+      p.width * 0.18,
+      0.014,
+      detail,
+    );
+}
+
+/** Far body shells have a closed rear cap. Locate their small white lenses at
+ * the corresponding near optic centres and bring them onto the cap face. */
+export function addFarReversingOptics(parts: Parts, model: ClosedBodyModel, material: T.Material) {
+  const z = model.zRear - 0.019;
+  if (model.s.loadFloor !== undefined) {
+    const y = model.f.y(model.s.tail - 0.255),
+      x = model.sideX(model.zRear - 0.006, y) * 0.85;
+    for (const side of [-1, 1])
+      addReversingOptic(
+        parts,
+        material,
+        side * x,
+        y,
+        z,
+        model.halfWidth(model.zRear) * 0.085,
+        0.028,
+        2,
+      );
+    return;
+  }
+  for (const p of festivalTailPockets(model))
+    addPocketReverseOptic(parts, p, model.s.tailHousing, z, 2, material);
+}
+
 /** Lenses, internal light guides and reflector partitions sit at separate
  * depths within the cap. All emitters follow the existing per-car brake state. */
 function addRoadLightElements(
@@ -309,7 +426,7 @@ function addRoadLightElements(
     );
     parts.add(
       new T.SphereGeometry(p.width * 0.235, count, 6).scale(1, 1, 0.26),
-      mats.tail,
+      p.width < 0.12 && mats.reverse ? mats.reverse : mats.tail,
       placed(p.x, p.y, z + 0.028),
     );
     return;
@@ -377,6 +494,8 @@ export function addFestivalTailLights(
     const housing = model.s.tailHousing;
     if (housing) {
       addRoadLightElements(parts, pocket, housing, z, mats, detail);
+      if (mats.reverse)
+        addPocketReverseOptic(parts, pocket, housing, z + 0.025, detail, mats.reverse);
       parts.add(rearPane(pocket, z + 0.003, 0.96), cover);
       continue;
     }
@@ -404,11 +523,13 @@ export function addFestivalTailLights(
           z + 0.032,
         ),
       );
-    // Separate clear reverse-light segment, still under the shared cover.
-    parts.add(
-      roundedBox(pocket.width * 0.18, 0.008, 0.006, 0.002, 1),
-      sharedMaterials.chrome(),
-      placed(pocket.x - pocket.side * pocket.width * 0.27, pocket.y - 0.014, z + 0.027),
+    addPocketReverseOptic(
+      parts,
+      pocket,
+      undefined,
+      z + 0.026,
+      detail,
+      mats.reverse ?? sharedMaterials.chrome(),
     );
     parts.add(rearPane(pocket, z + 0.003, 0.96), cover);
   }

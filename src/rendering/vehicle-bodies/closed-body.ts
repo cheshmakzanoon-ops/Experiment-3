@@ -42,7 +42,7 @@ import {
 } from './festival-detail.ts';
 import { cutFestivalBodyPockets, warpFestivalNose } from './festival-nose.ts';
 import { roadSplitter, addRoadUndertray, addHatchVisor } from './road-underbody.ts';
-import { warpFestivalRear } from './festival-rear.ts';
+import { addFarReversingOptics, warpFestivalRear } from './festival-rear.ts';
 import { cutFestivalDoorJoints, shapeFestivalSide } from './festival-side.ts';
 
 /** Closed-wheel bodies (GT, prototype, saloon, roadster, rally, truck, road
@@ -1340,6 +1340,7 @@ export function buildClosedBody(
   }
   extraFurniture(parts, model, mats, detail, lod);
   if (detailedFestival) buildFestivalDetail(parts, model, mats, detail, lod, gh, glazing);
+  if (detail === 2 && mats.reverse) addFarReversingOptics(parts, model, mats.reverse);
   if (cabin) addFestivalRegistration(parts, model, cabin.def.id, detail);
   // Interior (near LOD): the cabin shell merges into this LOD's draws; its
   // detail, helmet and turning wheel are groups of their own (interior.ts).

@@ -1,3 +1,4 @@
+import { lampMaterial } from './materials.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lerp } from '../../core/math.ts';
@@ -133,6 +134,11 @@ export function buildVehicleBody(
     bodyLook(definition.id, id, sheet, livery),
     model ? layerFrameFor(frame, model) : null,
   );
+  if (definition.classId === 'road' && closed?.mirrorForm) {
+    materials.reverse = lampMaterial(0x9ca8a7, 0xfff1d6);
+    materials.reverse.name = 'Clear reversing optic';
+    materials.reverse.roughness = 0.21;
+  }
   const root = new T.Group();
   root.name = `${definition.name} ${id + 1} (procedural body)`;
   const fine = new T.Group();
@@ -387,6 +393,8 @@ export class VehicleBodies {
       const brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], t);
       body.materials.tail.emissiveIntensity = brake > 0.05 ? 3.2 : headlights ? 1.1 : 0.55;
       body.materials.head.emissiveIntensity = headlights ? 2.6 : 0.35;
+      if (body.materials.reverse)
+        body.materials.reverse.emissiveIntensity = source[o + F.GEAR] < 0 ? 3.8 : 0;
       const positions = body.definition.wheelPositions;
       // Keep the cheap merged shadow's wheels on the same physical hubs.
       // A bounded round-cylinder envelope is sufficient at shadow-map detail.
@@ -605,6 +613,7 @@ export class VehicleBodies {
     // traversing and disposing every material would invalidate other cars.
     const { paint, accent, helmet, suit, head, tail, board } = body.materials;
     const materials = new Set<T.Material>([paint, accent, helmet, suit, head, tail, board]);
+    if (body.materials.reverse) materials.add(body.materials.reverse);
     for (const wheels of body.wheels)
       for (const wheel of wheels) {
         if (wheel.tyre.customDepthMaterial) materials.add(wheel.tyre.customDepthMaterial);

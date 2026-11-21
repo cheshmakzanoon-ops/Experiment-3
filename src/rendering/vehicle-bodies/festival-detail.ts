@@ -24,6 +24,7 @@ import {
   addFestivalSideDucts,
   addFestivalTailLights,
   addFestivalRearBodywork,
+  addReversingOptic,
   festivalRegistrationPocket,
   festivalTailPockets,
 } from './festival-rear.ts';
@@ -741,8 +742,8 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
     return;
   }
   if (s.loadFloor !== undefined) {
-    // Outboard lamp stacks leave room for the full-width tailgate. Two
-    // reverse reflectors are unlit; the red optics use the live brake channel.
+    // The outboard stacks frame the tailgate. Clear fluted reversing cells
+    // sit between the upper and lower red stop/tail elements.
     const height = 0.31,
       width = half * 0.175;
     const centreY = f.y(s.tail - 0.255);
@@ -766,11 +767,7 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
           placed(x + side * width * 0.35, cy - row * 0.027, z - 0.017),
         );
       }
-      parts.add(
-        roundedBox(width * 0.61, 0.028, 0.012, 0.006, 2),
-        sharedMaterials.steel(),
-        placed(x, centreY, z - 0.015),
-      );
+      addReversingOptic(parts, mats.reverse ?? sharedMaterials.steel(),x,centreY,z-.020,width*.61,.028,detail);
       parts.add(
         roundedBox(width, height, 0.009, 0.016, 2),
         opticalCover,

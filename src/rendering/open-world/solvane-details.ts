@@ -331,7 +331,6 @@ export class SolvaneDetails {
       const nearDistance = medium ? 100 : 170;
       boat.near.visible = !low && d < nearDistance * (boat.near.visible ? 1.1 : 1);
       boat.far.visible = !boat.near.visible;
-      const p = boat.root.position;
       boat.mooring.update(time, d, low);
     }
     const wet = Number.isFinite(dampness) ? T.MathUtils.clamp(dampness, 0, 1) : 0;

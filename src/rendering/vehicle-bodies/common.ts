@@ -25,6 +25,7 @@ export interface CarMaterials {
   helmet: T.MeshPhysicalMaterial;
   head: T.MeshStandardMaterial;
   tail: T.MeshStandardMaterial;
+  reverse?: T.MeshStandardMaterial;
   board: T.MeshStandardMaterial;
   suit: T.MeshStandardMaterial;
   /** The two-tone layer handle on the paint (the player's body only). */
