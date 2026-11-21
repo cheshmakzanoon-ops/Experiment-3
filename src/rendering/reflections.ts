@@ -310,15 +310,15 @@ export class ReflectionSystem {
       sceneryPending: this.capturedSceneryRevision !== this.sceneryRevision,
     };
   }
-  beginFrame(time: number, cockpit: boolean, liveMotorcycle = false) {
+  beginFrame(time: number, cockpit: boolean, continuousDriving = false) {
     if (!Number.isFinite(time)) throw new Error('Invalid reflection presentation time');
     if (
       !Number.isFinite(this.clock) ||
       time < this.clock ||
-      // A late live race frame still follows the same rider. Restarting all
-      // six faces here makes every long frame pay for another complete cube.
-      // Replay cuts retain their immediate capture at the requested instant.
-      (!liveMotorcycle && time - this.clock > 2) ||
+      // A late driving frame still follows the same vehicle. Keep refreshing
+      // individual faces until the next full map is ready. Photo and replay
+      // seeks need a complete map at their requested instant.
+      (!continuousDriving && time - this.clock > 2) ||
       cockpit !== this.enabled
     )
       this.invalidate();

@@ -797,9 +797,6 @@ export class FestivalRenderer {
       this.effectPlayback.reset();
       this.practicalLights.reset();
       this.streetLights.invalidate();
-      // Travel/recovery may keep time and the current car's material identity.
-      // Capture the destination even if the player immediately pauses for a photo.
-      this.reflection.invalidate();
     }
     this.effectPlayback.update(presented, true, true);
     this.effects.setSignalLights(presented, true);
@@ -960,23 +957,7 @@ export class FestivalRenderer {
       this.reflectionVersion = this.cars.paintVersion;
       this.reflectedVehicleVersion = this.vehiclePaintVersion;
     }
-    this.reflection.beginFrame(time, false);
-    this.reflection.setSceneryRevision(this.terrain.shadowRevision);
-    this.reflection.setSkyIntensity(
-      this.reflectionMaterials,
-      daylight.environment,
-      iblUniforms.apexSpecularIBL.value,
-    );
-    if (subject)
-      this.reflection.updateProbe(
-        this.renderer,
-        this.scene,
-        subject,
-        this.reflectionMaterials,
-        this.graphics.reflections === 'local',
-        wet > 0.15 ? 0.8 : 2,
-        this.sky.material.uniforms.probeSkyIntensity,
-      );
+    this.updateLocalReflection(subject, time, wet, daylight.environment, discontinuity);
     this.audioView.update(this.camera, time, 0, onboard, 0);
     postLensFrame(
       this.grade,
@@ -1015,6 +996,33 @@ export class FestivalRenderer {
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;
     this.stats.renderMs = this.stats.renderMs * 0.9 + (performance.now() - start) * 0.1;
+  }
+  private updateLocalReflection(
+    subject: T.Object3D | null,
+    time: number,
+    wet: number,
+    environmentIntensity: number,
+    discontinuity: boolean,
+  ) {
+    // Fast travel and recovery can replace the view at the same simulation instant.
+    if (discontinuity) this.reflection.invalidate();
+    this.reflection.beginFrame(time, false, !this.photo);
+    this.reflection.setSceneryRevision(this.terrain.shadowRevision);
+    this.reflection.setSkyIntensity(
+      this.reflectionMaterials,
+      environmentIntensity,
+      iblUniforms.apexSpecularIBL.value,
+    );
+    if (subject)
+      this.reflection.updateProbe(
+        this.renderer,
+        this.scene,
+        subject,
+        this.reflectionMaterials,
+        this.graphics.reflections === 'local',
+        wet > 0.15 ? 0.8 : 2,
+        this.sky.material.uniforms.probeSkyIntensity,
+      );
   }
   /** Snapshot length check for the session controller. */
   static frameLength(cars: number) {

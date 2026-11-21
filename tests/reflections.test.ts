@@ -10,6 +10,7 @@ import {
   ownEnvMapUniform,
 } from '../src/rendering/studio/ibl-energy.ts';
 import { PhotoStage, STUDIO_REFLECTION_LAYER } from '../src/rendering/photo-stage.ts';
+import { FestivalRenderer } from '../src/rendering/open-world/festival-renderer.ts';
 
 afterEach(() => vi.restoreAllMocks());
 function fixture() {
@@ -641,6 +642,62 @@ it('keeps one reflection face per late live motocross frame and immediately reso
   } finally {
     reflection.dispose();
     metal.dispose();
+  }
+});
+
+it('keeps Festival paint coherent after delayed live frames and captures the destination on travel', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture(),
+    scene = new T.Scene(),
+    car = new T.Group(),
+    paint = new T.MeshPhysicalMaterial();
+  reflection.probeFacesPerFrame = 1;
+  scene.add(car);
+  const festival = Object.assign(Object.create(FestivalRenderer.prototype), {
+    reflection,
+    scene,
+    renderer: gl,
+    photo: false,
+    terrain: { shadowRevision: 0 },
+    reflectionMaterials: [paint],
+    graphics: { reflections: 'local' },
+    sky: { material: { uniforms: { probeSkyIntensity: { value: 1 } } } },
+  }) as {
+    photo: boolean;
+    updateLocalReflection(
+      subject: T.Object3D, time: number, wet: number, environment: number, cut: boolean,
+    ): void;
+  };
+  const present = (time: number, cut = false) =>
+    festival.updateLocalReflection(car, time, 0.4, 1, cut);
+  try {
+    present(0, true);
+    expect(faces).toHaveLength(6);
+    const startingPaint = paint.envMap;
+    for (let step = 1; step <= 6; step++) {
+      car.position.x = step * 28;
+      present(step * 3);
+      expect(faces).toHaveLength(6 + step);
+      expect(faces.at(-1)!.face).toBe(step - 1);
+      if (step < 6) expect(paint.envMap).toBe(startingPaint);
+    }
+    expect(paint.envMap).not.toBe(startingPaint);
+    expect(faces.slice(6).map((face) => face.x)).toEqual(Array(6).fill(28));
+    // The travel menu can replace a held snapshot with another at the same time.
+    car.position.x = 1800;
+    present(18, true);
+    expect(faces).toHaveLength(18);
+    expect(reflection.probeDiagnostics.origin?.[0]).toBe(1800);
+    festival.photo = true;
+    present(42);
+    expect(faces).toHaveLength(24);
+    present(42);
+    expect(faces).toHaveLength(24);
+    present(9);
+    expect(faces).toHaveLength(30);
+  } finally {
+    reflection.dispose();
+    paint.dispose();
   }
 });
 
