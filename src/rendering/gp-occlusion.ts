@@ -289,8 +289,9 @@ varying vec3 vGpOccPos;
 // Sphere occlusion at the closest point of each capsule axis: the share of the
 // cosine-weighted hemisphere about dir that a ball of radius r at distance
 // d covers is about cos * r^2 / d^2; fragments inside the skin saturate.
-float gpCapsules( vec3 p, vec3 dir ) {
-  float open = 1.0;
+// The diffuse and mirror rays see the same closest point and solid angle.
+vec2 gpCapsules( vec3 p, vec3 diffuseDir, vec3 mirrorDir ) {
+  vec2 open = vec2( 1.0 );
   for ( int i = 0; i < ${GP_CAPSULES}; i ++ ) {
     float r = gpCapA[ i ].w;
     if ( r <= 0.0 ) continue;
@@ -299,8 +300,8 @@ float gpCapsules( vec3 p, vec3 dir ) {
     float t = clamp( dot( p - a, ab ) / max( dot( ab, ab ), 1e-6 ), 0.0, 1.0 );
     vec3 d = a + ab * t - p;
     float dd = max( dot( d, d ), r * r );
-    float facing = clamp( dot( dir, d ) * inversesqrt( dd ), 0.0, 1.0 );
-    open *= 1.0 - gpCapStrength * facing * ( r * r ) / dd;
+    vec2 facing = clamp( vec2( dot( diffuseDir, d ), dot( mirrorDir, d ) ) * inversesqrt( dd ), 0.0, 1.0 );
+    open *= 1.0 - facing * ( gpCapStrength * r * r / dd );
   }
   return 1.0 - open;
 }
@@ -315,7 +316,13 @@ float gpOccCone( vec3 p, vec3 n, vec3 dir, int taps ) {
     // also for the tilted cones, so an open panel never samples itself.
     vec3 q = p + dir * d + n * max( 0.0, 1.5 * cell - along * d );
     float rho = textureLod( gpOccVolume, ( q - gpOccMin ) * gpOccInvSize, float( i ) ).r;
-    open *= pow( max( 1.0 - rho, 0.0 ), exp2( float( i ) ) );
+    // Mip steps span exactly 1, 2, 4 or 8 cells. Repeated squaring gives
+    // the same transmittance without a general logarithm and exponential.
+    float transmit = max( 1.0 - rho, 0.0 );
+    if ( i >= 1 ) transmit *= transmit;
+    if ( i >= 2 ) transmit *= transmit;
+    if ( i >= 3 ) transmit *= transmit;
+    open *= transmit;
     d *= 2.0;
     cell *= 2.0;
   }
@@ -347,8 +354,9 @@ if ( gpOccParams.x + gpOccParams.y > 0.0 ) {
   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN - 1.4 * gpOccT ), 3 );
   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN + 1.4 * gpOccB ), 3 );
   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN - 1.4 * gpOccB ), 3 );
-  float gpOccCap = gpCapStrength > 0.0 ? gpCapsules( vGpOccPos, gpOccN ) : 0.0;
-  gpOcc = 1.0 - ( 1.0 - gpOcc ) * ( 1.0 - gpOccCap );
+  vec3 gpOccRefl = reflect( - gpOccV, gpOccN );
+  vec2 gpOccCaps = gpCapStrength > 0.0 ? gpCapsules( vGpOccPos, gpOccN, gpOccRefl ) : vec2( 0.0 );
+  gpOcc = 1.0 - ( 1.0 - gpOcc ) * ( 1.0 - gpOccCaps.x );
   gpOccDiffuse = 1.0 - gpOccParams.x * gpOcc;
   reflectedLight.indirectDiffuse *= gpOccDiffuse;
   #ifdef USE_SHEEN
@@ -356,9 +364,8 @@ if ( gpOccParams.x + gpOccParams.y > 0.0 ) {
   #endif
   // Specular occlusion along the mirror direction; rough lobes widen toward
   // the hemisphere estimate.
-  vec3 gpOccRefl = reflect( - gpOccV, gpOccN );
   float gpOccR = gpOccCone( vGpOccPos, gpOccN, gpOccRefl, 4 );
-  if ( gpCapStrength > 0.0 ) gpOccR = 1.0 - ( 1.0 - gpOccR ) * ( 1.0 - gpCapsules( vGpOccPos, gpOccRefl ) );
+  gpOccR = 1.0 - ( 1.0 - gpOccR ) * ( 1.0 - gpOccCaps.y );
   gpOccMirror = 1.0 - gpOccParams.y * gpOccR;
   reflectedLight.indirectSpecular *= 1.0 - gpOccParams.y * mix( gpOccR, gpOcc, material.roughness );
   #ifdef USE_CLEARCOAT

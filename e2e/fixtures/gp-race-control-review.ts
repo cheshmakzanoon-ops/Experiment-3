@@ -2,6 +2,10 @@ import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { requireBrowserBackend, type BrowserBackend } from '../../scripts/browser-backend.ts';
 import { CIRCUITS } from '../../src/simulation/circuits.ts';
+import { Simulation } from '../../src/simulation/world.ts';
+import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+import { gpBoardGlyphAtlas } from '../../src/rendering/venue-kit/gp-pit-boards.ts';
+import { GpClassification } from '../../src/rendering/venue-kit/gp-classification.ts';
 import { Track } from '../../src/simulation/track.ts';
 import { paddockMaterials } from '../../src/rendering/paddock-detail.ts';
 import { buildGpRaceControl } from '../../src/rendering/venue-kit/gp-race-control.ts';
@@ -24,6 +28,8 @@ export interface GpControlCapture {
 export async function captureGpRaceControls(
   options: {
     backend?: BrowserBackend;
+    /** Fit the live classification module and drive it with a six-rider race snapshot. */
+    classification?: boolean;
     venues?: readonly Venue[];
     onCapture?: (capture: GpControlCapture) => Promise<void>;
     onStage?: (stage: string) => Promise<void>;
@@ -89,6 +95,25 @@ export async function captureGpRaceControls(
       // production left-pit frame, preserving the correct printed face.
       building.position.set(0, 0, 0);
       building.rotation.set(0, 0, 0);
+      if (options.classification) {
+        const sim = new Simulation({
+          ...DEFAULT_OPTIONS,
+          mode: 'race',
+          circuit: venue,
+          ruleset: 'gp-motorcycle',
+          opponents: 5,
+          laps: 3,
+          vehicles: ['gpr1', 'gpr2', 'gpr1', 'gpr2', 'gpr1', 'gpr2'],
+          seed: 32220,
+        });
+        sim.autoPlayer = true;
+        for (let i = 0; i < 1200; i++) sim.step(1 / 120);
+        const board = new GpClassification(track, gpBoardGlyphAtlas());
+        board.update(sim.makeFrame());
+        board.root.position.set(0, 0, 0);
+        board.root.rotation.set(0, 0, 0);
+        building.add(board.root);
+      }
       scene.add(building);
       // The taller folded roof needs a little more margin in this inspection
       // camera. Production cameras and all model geometry remain unchanged.

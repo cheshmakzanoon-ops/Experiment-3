@@ -41,7 +41,7 @@ const marks = [
 ];
 const tile = 48,
   atlasSize = tile * 4;
-function cardAtlas() {
+export function gpBoardGlyphAtlas() {
   const bytes = new Uint8Array(atlasSize * atlasSize * 4);
   for (let code = 0; code < glyphs.length; code++) {
     const segments = [...marks[code]].map((k) => strokes[parseInt(k, 16)]);
@@ -231,7 +231,7 @@ class PitBoard {
 export class GpPitBoards {
   readonly root = new T.Group();
   readonly boards: PitBoard[];
-  readonly glyphs = cardAtlas();
+  readonly glyphs = gpBoardGlyphAtlas();
   constructor(readonly track: Track) {
     const steel = new T.MeshStandardMaterial({ color: 0x71828a, roughness: 0.35, metalness: 0.74 });
     const tray = new T.MeshStandardMaterial({ color: 0x20262a, roughness: 0.71, metalness: 0.19 });

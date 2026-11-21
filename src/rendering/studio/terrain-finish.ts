@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { VenueThemeStyle } from '../venue-kit/theme.ts';
 import type { Track } from '../../simulation/track.ts';
 import { TrackDistanceField } from '../track-field.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
@@ -85,10 +86,39 @@ export const GP_FAR = Object.freeze({
   glade: Object.freeze([0.16, 0.3] as const),
 });
 
+/** The far material meets the authored venue planting: taller woodland at
+ * Poggio and Haarveld, lower shelter belts on the coast and open dry scrub
+ * in the sierra. Values stay in linear light throughout. */
+function gpLandColours(style?: VenueThemeStyle) {
+  const dense = style?.forestBelts ?? true;
+  const ground = new T.Color(style?.groundTint ?? 0x667a3a);
+  const reference = new T.Color(0x667a3a);
+  const ratio = (a: number, b: number) => T.MathUtils.clamp(a / b, 0.7, 1.44);
+  return {
+    gpCanopyLow: {
+      value: new T.Color(FAR.canopy[0]).lerp(ground.clone().multiplyScalar(0.36), 0.42),
+    },
+    gpCanopyHigh: {
+      value: new T.Color(FAR.canopy[1]).lerp(ground.clone().multiplyScalar(0.64), 0.55),
+    },
+    gpMeadowTint: {
+      value: new T.Vector3(
+        ratio(ground.r, reference.r),
+        ratio(ground.g, reference.g),
+        ratio(ground.b, reference.b),
+      ),
+    },
+    gpRockColour: { value: new T.Color(style?.rockTint ?? FAR.rock) },
+    gpGlade: { value: new T.Vector2(...(dense ? GP_FAR.glade : ([0.36, 0.64] as const))) },
+    gpCrownHeight: { value: dense ? 7 : style?.cliffs ? 3 : 4 },
+  };
+}
+
 const finishGlsl = (
   forestFrom: number,
   forestFull: number,
   glade: readonly [number, number],
+  gp = false,
 ) => /* glsl */ `{
 	// D17 far landscape: canopy carpet, strata rock, dry south meadows.
 	float slope = 1.0 - clamp( normalize( vFinishNormal ).y, 0.0, 1.0 );
@@ -100,34 +130,53 @@ const finishGlsl = (
 	apexLandGrad *= 1.0 + ${f(LANDFORM.steepGain)} * smoothstep( 0.15, 0.5, slope );
 	diffuseColor.rgb *= 1.0 + ${f(LANDFORM.tone)} * landTone;
 	float far = smoothstep( ${f(forestFrom)}, ${f(forestFull)}, vTrackDistance );
-	float glade = smoothstep( ${glade[0].toFixed(2)}, ${glade[1].toFixed(2)}, finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) ) );
+	float glade = smoothstep( ${gp ? 'gpGlade.x, gpGlade.y' : `${glade[0].toFixed(2)}, ${glade[1].toFixed(2)}`}, finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) ) );
 	float flatEnough = 1.0 - smoothstep( ${f(FAR.maxForestSlope - 0.1)}, ${f(FAR.maxForestSlope)}, slope );
 	float forest = far * glade * flatEnough;
 	float crownA = finishFilteredNoise( vFinishWorld.xz / ${f(FAR.crownMetres[1])} );
 	float crownB = finishFilteredNoise( vFinishWorld.xz / ${f(FAR.crownMetres[0])} + vec2( 3.7, 9.1 ) );
 	float crowns = 0.6 * crownA + 0.4 * crownB;
-	vec3 canopy = mix( ${v3(FAR.canopy[0])}, ${v3(FAR.canopy[1])}, smoothstep( 0.3, 0.75, crowns ) );
+	vec3 canopy = mix( ${gp ? 'gpCanopyLow' : v3(FAR.canopy[0])}, ${gp ? 'gpCanopyHigh' : v3(FAR.canopy[1])}, smoothstep( 0.3, 0.75, crowns ) );
 	canopy *= mix( 0.55, 1.08, smoothstep( 0.22, 0.62, crowns ) );
 	apexCanopy = forest;
-	apexCanopyHeight = 7.0 * crowns * forest;
+	apexCanopyHeight = ${gp ? 'gpCrownHeight' : '7.0'} * crowns * forest;
 	// South-facing open land dries out (warm, paler grass).
-	float south = smoothstep( 0.0, -900.0, vFinishWorld.z ) * far * ( 1.0 - forest );
+	float south = ${
+    gp
+      ? 'smoothstep( 0.02, 0.46, -normalize( vFinishNormal ).z )'
+      : '( 1.0 - smoothstep( -900.0, 0.0, vFinishWorld.z ) )'
+  } * far * ( 1.0 - forest );
+  ${gp ? 'diffuseColor.rgb *= mix( vec3(1.0), gpMeadowTint, far * (1.0 - forest) * 0.82 );' : ''}
 	diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 1.18, 1.06, 0.74 ), south * 0.7 );
 	diffuseColor.rgb = mix( diffuseColor.rgb, canopy, forest );
 	// Exposed strata on steep faces.
 	float rock = smoothstep( ${f(FAR.rockSlope - 0.05)}, ${f(FAR.rockSlope + 0.08)}, slope );
-	float strata = 0.82 + 0.18 * sin( vFinishWorld.y * 1.7 + finishFilteredNoise( vFinishWorld.xz * 0.05 ) * 6.0 );
-	diffuseColor.rgb = mix( diffuseColor.rgb, ${v3(FAR.rock)} * strata * ( 0.85 + 0.3 * crownB ), rock );
+	float strataPhase = vFinishWorld.y * 1.7 + finishFilteredNoise( vFinishWorld.xz * 0.05 ) * 6.0;
+  float strata = 0.82 + 0.18 * sin( strataPhase )${gp ? ' * (1.0 - smoothstep(0.9, 3.1, fwidth(strataPhase)))' : ''};
+	diffuseColor.rgb = mix( diffuseColor.rgb, ${gp ? 'gpRockColour' : v3(FAR.rock)} * strata * ( 0.85 + 0.3 * crownB ), rock );
 }`;
 
 export const TERRAIN_FINISH_HOOK = 'terrain-finish-v1';
 /** Chain the far-landscape finish onto the terrain material (`gp`: the
  * motorcycle-GP venues' nearer, denser canopy, GP_FAR). */
-export function installTerrainFinish(material: T.Material, gp = false) {
+export function installTerrainFinish(material: T.Material, gp = false, style?: VenueThemeStyle) {
   const FINISH = gp
-    ? finishGlsl(GP_FAR.forestFrom, GP_FAR.forestFull, GP_FAR.glade)
+    ? finishGlsl(GP_FAR.forestFrom, GP_FAR.forestFull, GP_FAR.glade, true)
     : finishGlsl(FAR.forestFrom, FAR.forestFull, [0.28, 0.42]);
+  const colours = gp ? gpLandColours(style) : null;
   return chainShaderHook(material, gp ? 'terrain-finish-gp-v1' : TERRAIN_FINISH_HOOK, (shader) => {
+    if (colours) {
+      Object.assign(shader.uniforms, colours);
+      injectDeclarations(
+        shader,
+        'common',
+        `
+uniform vec3 gpCanopyLow, gpCanopyHigh, gpMeadowTint, gpRockColour;
+uniform vec2 gpGlade;
+uniform float gpCrownHeight;`,
+        'fragment',
+      );
+    }
     injectDeclarations(
       shader,
       'common',

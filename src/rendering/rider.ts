@@ -1371,6 +1371,30 @@ export class Rider {
   helmetCentre(out: T.Vector3) {
     return this.head.localToWorld(this.gp ? out.fromArray(GP_HELMET_CENTRE) : out.set(0, 0.15, 0.02));
   }
+  /** Orient the GP cockpit from the same posed helmet seen by other riders.
+   * The screen socket keeps a small forward bias so the instrument remains
+   * readable while the rider looks towards the exit. */
+  gpCockpitSight(direction: T.Vector3, up: T.Vector3, reducedMotion: boolean) {
+    if (!this.gp) return;
+    const head = this.head.getWorldQuaternion(this.gpChestInverse),
+      forward = this.gpScratch[0].set(0, 0, 1).applyQuaternion(head);
+    up.set(0, 1, 0).applyQuaternion(head);
+    if (!reducedMotion) {
+      direction.lerp(forward, 0.64).normalize();
+      // At deep bank the lower, outside corner of the rectangular display
+      // moves down in the helmet frame. Keep it inside the riding lens.
+      const bank = Math.abs(direction.z * up.x - direction.x * up.z);
+      direction.addScaledVector(up, -0.136 * T.MathUtils.smoothstep(bank, 0.08, 0.5)).normalize();
+    }
+    if (reducedMotion) {
+      // Project world up at normal racing attitudes. Fade at a vertical
+      // sightline, where the horizon has no defined roll.
+      const level = 1 - T.MathUtils.smoothstep(Math.abs(direction.y), 0.75, 0.95);
+      up.lerp(this.gpScratch[1].set(0, 1, 0), level);
+    }
+    up.addScaledVector(direction, -up.dot(direction)).normalize();
+  }
+
   /** Exclude the followed rider's own helmet from the first-person lens.
    * A stable MX eye needs its own arm presentation: sleeves enter from below
    * the camera, with the same wrists on the actual steered bar grips. */

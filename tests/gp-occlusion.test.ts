@@ -176,8 +176,9 @@ describe('GP bike-space occlusion', () => {
     expect(bound.gpCapB).toBe(uniforms.gpCapB);
     expect(bound.gpCapStrength).toBe(uniforms.gpCapStrength);
     expect(shader.fragmentShader).toContain(`uniform vec4 gpCapA[ ${GP_CAPSULES} ];`);
-    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccN )');
-    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccRefl )');
+    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccN, gpOccRefl )');
+    expect(shader.fragmentShader).toContain('1.0 - gpOccCaps.x');
+    expect(shader.fragmentShader).toContain('1.0 - gpOccCaps.y');
     // No volume: enabling it is refused, so the shader branch stays skipped.
     setGpOcclusionStrength(uniforms, true);
     expect(uniforms.gpOccParams.value.x).toBe(0);

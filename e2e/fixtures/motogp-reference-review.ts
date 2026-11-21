@@ -80,14 +80,15 @@ export function captureBikeSequence(
   const bike = new BikeModel(def, entrant, detail, materials, true);
   const productionScreenThickness = materials.screen.thickness;
   const sag = staticSag(def);
+  const corner = view === 'corner' || view === 'rider-corner' || view === 'onboard-corner';
   const pose: BikePoseValues = {
     fork: sag.fork,
     shock: sag.shock,
     steer: 0,
     frontRotation: 0,
     rearRotation: 0,
-    chassisLean: view === 'corner' || view === 'rider-corner' ? 0.88 : 0,
-    riderOffset: view === 'corner' || view === 'rider-corner' ? 0.18 : 0,
+    chassisLean: corner ? 0.88 : 0,
+    riderOffset: corner ? 0.18 : 0,
     tuck: 0.75,
     brake: 0.05,
     rearBrake: 0,
@@ -112,7 +113,7 @@ export function captureBikeSequence(
   }
   bike.pose(pose);
   bike.root.position.y = def.bike!.cgHeight;
-  if (view === 'corner' || view === 'rider-corner') {
+  if (corner) {
     bike.root.rotation.z = -0.88;
     bike.root.position.y *= Math.cos(0.88);
   }
@@ -209,10 +210,11 @@ export function captureBikeSequence(
     camera.fov = 42;
     camera.updateProjectionMatrix();
   }
-  if (view === 'onboard') {
+  if (view === 'onboard' || view === 'onboard-corner') {
     bike.rider.setFirstPerson(true);
     const direction = new T.Vector3();
-    new BikeShells().onboard(bike.root, camera.position, direction, false, def);
+    new BikeShells().onboard(bike.root, camera.position, direction, false, def, camera.up);
+    bike.rider.gpCockpitSight(direction, camera.up, false);
     camera.fov = bikeOnboardFov(42, def);
     camera.lookAt(camera.position.clone().add(direction));
     camera.updateProjectionMatrix();

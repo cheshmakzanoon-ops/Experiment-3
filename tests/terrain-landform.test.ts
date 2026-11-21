@@ -23,6 +23,7 @@ import {
   installTerrainFinish,
   terrainTrackDistance,
 } from '../src/rendering/studio/terrain-finish.ts';
+import { VENUE_THEMES } from '../src/rendering/venue-kit/theme.ts';
 import { installCircuitFinish } from '../src/rendering/circuit-finish.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 
@@ -131,4 +132,36 @@ describe('far landscape finish', () => {
     expect(f).toContain('normal = apexTerrainRelief( normal, apexCanopyHeight );');
     expect(FAR.forestFrom).toBe(350);
   });
+});
+
+it('uses the authored GP terrain palettes behind one shader program and fades distant strata', () => {
+  const keys = new Set<string>(),
+    rocks = new Set<number>(),
+    heights: number[] = [];
+  for (const theme of ['tuscan-hills', 'island-coast', 'heath', 'sierra'] as const) {
+    const material = new T.MeshStandardMaterial();
+    try {
+      installCircuitFinish(material, 'terrain');
+      installTerrainFinish(material, true, VENUE_THEMES[theme]);
+      const shader = {
+        uniforms: T.UniformsUtils.clone(T.ShaderLib.standard.uniforms),
+        vertexShader: T.ShaderLib.standard.vertexShader,
+        fragmentShader: T.ShaderLib.standard.fragmentShader,
+      } as unknown as StudioShader;
+      material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+      const rock = shader.uniforms.gpRockColour.value as T.Color;
+      rocks.add(rock.getHex());
+      expect(rock.getHex()).toBe(VENUE_THEMES[theme].rockTint);
+      heights.push(shader.uniforms.gpCrownHeight.value);
+      keys.add(material.customProgramCacheKey());
+      expect(shader.fragmentShader).toContain('fwidth(strataPhase)');
+      expect(shader.fragmentShader).toContain('-normalize( vFinishNormal ).z');
+      expect(shader.fragmentShader).toContain('gpMeadowTint, far * (1.0 - forest)');
+    } finally {
+      material.dispose();
+    }
+  }
+  expect(heights).toEqual([7, 3, 7, 4]);
+  expect(rocks.size).toBe(4);
+  expect(keys.size).toBe(1);
 });

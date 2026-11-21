@@ -2840,6 +2840,11 @@ export class BikeShells {
       if (yaw !== 0) direction.applyAxisAngle(up, yaw);
     } else {
       direction.set(0, Math.sin(pitch), Math.cos(pitch)).applyQuaternion(root.quaternion);
+      if (!tail && definition?.classId === 'gp-bike' && presented?.[slot + BIKE_BASE + B.STATE] === 0) {
+        const seated = this.gpPresentation(follow);
+        if (seated && seated.rider.root.parent === seated.sprung)
+          seated.rider.gpCockpitSight(direction, up, reducedMotion);
+      }
     }
   }
   /** Bikes currently drawn (diagnostics). */

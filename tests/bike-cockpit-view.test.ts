@@ -1,4 +1,4 @@
-import { H } from '../src/simulation/protocol.ts';
+import { B, BIKE_BASE, H, carBase } from '../src/simulation/protocol.ts';
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
@@ -113,6 +113,26 @@ describe('GP cockpit real-camera contract', () => {
       cars[0].root.rotation.set(-0.1, 0.9, 0.4);
       shells.update(frame, frame, 1, cars, camera, 'high', 0, 0);
       const bike = shells.gpPresentation(0)!;
+      const sight = vi.spyOn(bike.rider, 'gpCockpitSight');
+      const onboard = (tail: boolean, snapshot = frame) =>
+        shells.onboard(
+          cars[0].root,
+          new T.Vector3(),
+          new T.Vector3(),
+          tail,
+          VEHICLES.gpr1,
+          new T.Vector3(),
+          false,
+          snapshot,
+          0,
+        );
+      onboard(false);
+      expect(sight).toHaveBeenCalledTimes(1);
+      onboard(true);
+      const separated = frame.slice();
+      separated[carBase(0) + BIKE_BASE + B.STATE] = 1;
+      onboard(false, separated);
+      expect(sight).toHaveBeenCalledTimes(1);
       const sample = () => [0, 1, 2, 3, 4, 5, 6].map((s) => bike.photoAnchor(s, new T.Vector3()));
       const [whole, head, screen, hub, front, tail] = sample();
       expect(head.distanceTo(bike.rider.helmetCentre(new T.Vector3()))).toBeLessThan(1e-7);
@@ -254,8 +274,26 @@ describe('GP cockpit real-camera contract', () => {
               });
               model.root.position.set(17, 0.62, -11);
               model.root.rotation.set(0.06, 0.7, -lean, 'YXZ');
-              shells.onboard(model.root, camera.position, direction, false, definition);
-              camera.up.set(0, 1, 0).applyQuaternion(model.root.quaternion);
+              shells.onboard(model.root, camera.position, direction, false, definition, camera.up);
+              model.rider.gpCockpitSight(direction, camera.up, false);
+              if (definition.classId === 'gp-bike' && lean !== 0) {
+                const up = new T.Vector3(0, 1, 0).applyQuaternion(model.root.quaternion);
+                expect(camera.up.y).toBeGreaterThan(up.y + 0.15);
+                expect(Math.abs(camera.up.dot(direction))).toBeLessThan(1e-5);
+                const reducedUp = new T.Vector3(),
+                  reducedDirection = new T.Vector3();
+                shells.onboard(
+                  model.root,
+                  new T.Vector3(),
+                  reducedDirection,
+                  false,
+                  definition,
+                  reducedUp,
+                  true,
+                );
+                model.rider.gpCockpitSight(reducedDirection, reducedUp, true);
+                expect(reducedUp.y).toBeGreaterThan(0.98);
+              }
               camera.lookAt(camera.position.clone().add(direction));
               camera.aspect = aspect;
               camera.fov = bikeOnboardFov(load > 0 ? 0 : 90, definition);
@@ -264,7 +302,9 @@ describe('GP cockpit real-camera contract', () => {
               expect(result.facing).toBeGreaterThan(0.7);
               for (const [x, y, z] of result.corners) {
                 expect(Math.abs(x)).toBeLessThan(0.95);
-                expect(Math.abs(y)).toBeLessThan(0.95);
+                expect(Math.abs(y), JSON.stringify({ id, aspect, lean, load, y })).toBeLessThan(
+                  0.95,
+                );
                 expect(z).toBeGreaterThan(-1);
                 expect(z).toBeLessThan(1);
               }
