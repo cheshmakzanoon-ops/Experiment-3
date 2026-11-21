@@ -32,6 +32,8 @@ The Ashvale river now carries ripples in the direction of the channel. Its surfa
 
 ![Fixed component views of the farms, headland lantern and river material](headland-and-valley.jpg)
 
+[Watch the harbour pennant and rotating lighthouse optic in motion (8 seconds)](harbour-motion.mp4)
+
 The landmark images use production meshes in an isolated daylight or night setup. The river uses the production terrain height field and water mesh with a neutral bank material. The Port Ilse streets and the session images below are full gameplay captures.
 
 ## Driving
