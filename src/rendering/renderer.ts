@@ -1057,6 +1057,7 @@ export class RacingRenderer {
   private warmupRoadColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private warmupDirtCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private preparedDirtProbeStarts: number | null = null;
+  private preparedGPProbeStarts: number | null = null;
   preparationTimeoutMs = 90000;
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const timeoutMs = this.preparationTimeoutMs ?? 45000;
@@ -1101,6 +1102,7 @@ export class RacingRenderer {
   ) {
     return this.preparation.run(progress, async (progress) => {
       this.preparedDirtProbeStarts = null;
+      this.preparedGPProbeStarts = null;
       this.warmupRoadColour = null;
       this.warmupDirtCockpitColour = null;
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
@@ -1232,7 +1234,7 @@ export class RacingRenderer {
       const camera = this.mode;
       const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
       const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
-      let retainDirtProbe = false;
+      let retainGridProbe = false;
       try {
         for (const mode of ['chase', 'cockpit'] as const) {
           progress(
@@ -1300,18 +1302,25 @@ export class RacingRenderer {
           await this.waitForPreparedFrame(cancelled, yieldFrame);
           if (cancelled()) return false;
         }
-        // The six venue faces have completed at this same rider, time and
-        // weather. The dirt probe excludes the bikes, crew and chase camera.
-        if (splitMotorcycleViews && !roadField && frame[H.TICK] === 0 && this.follow === 0 &&
-            this.reflection.localProbeActive && this.bikeShells.motocrossPresentation(0)) {
+        // The grid capture excludes the bikes and crew. A mirrorless rider's
+        // cockpit and chase views sample the same six world-space faces.
+        if (splitMotorcycleViews && frame[H.TICK] === 0 && this.follow === 0 &&
+            (gpGrid || !roadField) && this.reflection.localProbeActive) {
           const probe = this.reflection.probeDiagnostics;
-          retainDirtProbe = probe.capturedAt === frame[H.TIME];
-          if (retainDirtProbe) this.preparedDirtProbeStarts = probe.starts.immediate;
+          if (probe.capturedAt === frame[H.TIME]) {
+            if (gpGrid && this.bikeShells.gpPresentation(0)?.rearViews.length === 0) {
+              this.preparedGPProbeStarts = probe.starts.immediate;
+              retainGridProbe = true;
+            } else if (!roadField && this.bikeShells.motocrossPresentation(0)) {
+              this.preparedDirtProbeStarts = probe.starts.immediate;
+              retainGridProbe = true;
+            }
+          }
         }
       } finally {
         if (!cancelled()) {
           this.changeCamera(camera);
-          if (retainDirtProbe) this.resetPresentationState();
+          if (retainGridProbe) this.resetPresentationState();
           else this.reset();
         }
       }
@@ -1527,9 +1536,11 @@ export class RacingRenderer {
     car.setLivery(this.teamLivery);
     for (const material of car.reflectivePaint)
       if (material.map) this.textures.refresh(material.map);
-    // Retain the car paint for a later vehicle change. Its hidden Formula
-    // body cannot change the scenery captured for the player's dirt bike.
-    if (!this.bikeShells.motocrossPresentation(0)) this.reflection.invalidate();
+    // The Formula livery still belongs to its car when a motorcycle is using
+    // the slot. That hidden paint is excluded from the bike's venue capture.
+    if (!this.bikeShells.motocrossPresentation(0) &&
+        this.bikeShells.gpPresentation(0)?.definition.classId !== 'gp-bike')
+      this.reflection.invalidate();
   }
   setPhoto(value: PhotoSettings | null, cars = this.cars.length) {
     const previous = this.photo;
@@ -2421,13 +2432,16 @@ export class RacingRenderer {
     this.guide.update(presented, !menu && !this.photo && !pregame, this.colorblind);
     this.replayView = replay;
     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
+    // A GP prototype has no rear-view glass. Switching to its cockpit cannot
+    // reveal a mirror feed or move the venue cubemap off the followed bike.
+    const racingMotorcycle = motocrossFollow || followedDefinition.classId === 'gp-bike';
     this.reflection.beginFrame(
       menu ? this.orbitTime : presented[H.TIME],
-      (!motocrossFollow || surfaces.length > 0) &&
+      (!racingMotorcycle || surfaces.length > 0) &&
         (!this.photo || this.photo.view === 'cockpit') &&
         (!menu || !!this.photo) &&
         cameraMode === 'cockpit',
-      motocrossFollow && !menu && !this.photo && !replay,
+      racingMotorcycle && !menu && !this.photo && !replay,
     );
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);
@@ -3119,6 +3133,7 @@ export class RacingRenderer {
       warmupRoadColour: this.warmupRoadColour,
       warmupDirtCockpitColour: this.warmupDirtCockpitColour,
       preparedDirtProbeStarts: this.preparedDirtProbeStarts,
+      preparedGPProbeStarts: this.preparedGPProbeStarts,
       warmupPitPasses: this.warmupPitPasses,
       preparation: this.preparation.snapshot(),
       graphics: { ...this.graphics },

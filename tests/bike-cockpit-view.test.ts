@@ -251,6 +251,7 @@ describe('GP cockpit real-camera contract', () => {
       const direction = new T.Vector3();
       let samples = 0;
       try {
+        expect(model.rearViews).toHaveLength(id === 'ss600' ? 2 : 0);
         for (const aspect of [4 / 3, 16 / 10, 16 / 9, 21 / 9])
           for (const lean of [-1, 0, 1])
             for (const load of [-1, 0, 1]) {

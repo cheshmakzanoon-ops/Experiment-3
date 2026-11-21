@@ -308,7 +308,7 @@ export class ReflectionSystem {
       sceneryPending: this.capturedSceneryRevision !== this.sceneryRevision,
     };
   }
-  beginFrame(time: number, cockpit: boolean, liveMotocross = false) {
+  beginFrame(time: number, cockpit: boolean, liveMotorcycle = false) {
     if (!Number.isFinite(time)) throw new Error('Invalid reflection presentation time');
     if (
       !Number.isFinite(this.clock) ||
@@ -316,7 +316,7 @@ export class ReflectionSystem {
       // A late live race frame still follows the same rider. Restarting all
       // six faces here makes every long frame pay for another complete cube.
       // Replay cuts retain their immediate capture at the requested instant.
-      (!liveMotocross && time - this.clock > 2) ||
+      (!liveMotorcycle && time - this.clock > 2) ||
       cockpit !== this.enabled
     )
       this.invalidate();

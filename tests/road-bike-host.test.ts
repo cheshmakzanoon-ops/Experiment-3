@@ -133,6 +133,25 @@ it.each([
   },
 );
 
+it('edits a retained Formula player without discarding the visible GP rider’s scenery capture', () => {
+  const renderer = Object.create(RacingRenderer.prototype) as RacingRenderer;
+  const car = { setLivery: vi.fn(), reflectivePaint: [] };
+  const invalidate = vi.fn();
+  const gpPresentation = vi.fn<() => object | null>(() => ({ definition: { classId: 'gp-bike' } }));
+  Object.assign(renderer, {
+    cars: [car],
+    vehicleBodies: { setPlayerLivery: vi.fn() },
+    bikeShells: { gpPresentation, motocrossPresentation: () => undefined },
+    reflection: { invalidate },
+  });
+  renderer.setLivery(DEFAULT_LIVERY);
+  expect(car.setLivery).toHaveBeenCalledWith(DEFAULT_LIVERY);
+  expect(invalidate).not.toHaveBeenCalled();
+  gpPresentation.mockReturnValue(null);
+  renderer.setLivery(DEFAULT_LIVERY);
+  expect(invalidate).toHaveBeenCalledOnce();
+});
+
 it('reconstructs the chassis pose at each interpolation, hold, seek and vehicle cut', () => {
   const host = new RoadBikeHost(1),
     offset = carBase(1);

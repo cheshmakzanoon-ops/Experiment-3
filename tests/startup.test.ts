@@ -656,6 +656,37 @@ it('warms both hidden MX views on the full target and retains the finished probe
     colour.dispose();
   }
 });
+it.each([
+  { vehicle: 'gpr1', time: 0, capturedAt: 0, tick: 0, follow: 0, retain: true },
+  { vehicle: 'gpr2', time: 0, capturedAt: 0, tick: 0, follow: 0, retain: true },
+  { vehicle: 'gpr1', time: 0, capturedAt: null, tick: 0, follow: 0, retain: false },
+  { vehicle: 'gpr2', time: 2, capturedAt: 0, tick: 0, follow: 0, retain: false },
+  { vehicle: 'gpr1', time: 0, capturedAt: 0, tick: 1, follow: 0, retain: false },
+  { vehicle: 'gpr2', time: 0, capturedAt: 0, tick: 0, follow: 1, retain: false },
+  { vehicle: 'ss600', time: 0, capturedAt: 0, tick: 0, follow: 0, retain: false },
+])('keeps only a completed player GP grid reflection for $vehicle at $tick / $capturedAt / $follow', async (row) => {
+  const { sample, target, typed } = fixture(row.vehicle);
+  for (let id = 0; id < sample[H.CARS]; id++) {
+    sample[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex(row.vehicle);
+  }
+  sample[H.TICK] = row.tick;
+  sample[H.TIME] = row.time;
+  const rig = Object.assign(target, {
+    follow: row.follow,
+    graphics: { reflections: 'local' },
+    reflection: { localProbeActive: true, probeDiagnostics: { capturedAt: row.capturedAt, starts: { immediate: 1 } } },
+    resetPresentationState: vi.fn(),
+    preparedGPProbeStarts: null as number | null,
+  });
+  Object.assign(target.bikeShells, { gpPresentation: () => ({ rearViews: [] }) });
+  // This case also exercises a non-grid snapshot at a different time.
+  target.draw.mockImplementation(() => {});
+  expect(await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, async () => {}, false)).toBe(true);
+  expect(rig.preparedGPProbeStarts).toBe(row.retain ? 1 : null);
+  expect(rig.resetPresentationState).toHaveBeenCalledTimes(row.retain ? 1 : 0);
+  expect(rig.reset).toHaveBeenCalledTimes(row.retain ? 0 : 1);
+});
+
 it.each([null, 'venue-probe', 'venue-shadows', 'held-colour'] as const)(
   'finishes the GP environment and chase submissions before pit service, stopped at %s',
   async (stopAt) => {
