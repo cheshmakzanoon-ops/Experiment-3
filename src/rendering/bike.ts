@@ -40,6 +40,7 @@ import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpRearBrakeCaliper, gpRearRotor, GP_REAR_DISC } from './gp-rear-brake.ts';
 import { gpDiscGlow, gpSteelDiscGlow } from './gp-disc-glow.ts';
 import { GpSliderSparks, SLIDER_SPARKS } from './gp-slider-sparks.ts';
+import { GpSteeringDamper } from './gp-steering-damper.ts';
 import { gpAxleCarrier, gpAxleFasteners } from './gp-axle-carrier.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
@@ -891,6 +892,7 @@ export class BikeModel {
   /** GP prototypes, near detail: the knee sliders' sparks at full lean (gp-slider-sparks.ts). */
   private readonly sliderSparks?: GpSliderSparks;
   private readonly sparkOrigins: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
+  private readonly steeringDamper?: GpSteeringDamper;
   private readonly gpFrontBrakeLever?: T.Group;
   private readonly gpThrottleSleeve?: T.Group;
   private readonly gpFrontHydraulics?: GPFrontHydraulics;
@@ -1028,6 +1030,16 @@ export class BikeModel {
     this.steerMount.rotation.x = -RAKE;
     this.sprung.add(this.steerMount);
     this.steerMount.add(this.steer);
+    if (gpPrototype && detail === 'high') {
+      this.steeringDamper = new GpSteeringDamper(m);
+      this.steerMount.add(this.steeringDamper.root);
+      // Mounts join the original rigid material batches. Only the two moving
+      // pieces of the damper get their own submissions.
+      this.steerMount.updateMatrix();
+      this.steeringDamper.frameMount.applyMatrix4(this.steerMount.matrix);
+      this.sprung.add(this.steeringDamper.frameMount);
+      this.steer.add(this.steeringDamper.yokeMount);
+    }
     // Upper (outer) fork tubes and triple clamps. GP tubes stop 12 mm above
     // the top clamp under a low machined cap (gp-fork-crown.ts).
     const tubeTop = gpPrototype ? GP_FORK_TUBE_TOP : 0.05;
@@ -2035,6 +2047,7 @@ export class BikeModel {
     this.sprung.position.y = road ? 0 : -(dr + ((df - dr) * b.cgToRear) / L);
     this.rider.ground.plane = road?.localGround;
     this.steer.rotation.y = v.steer;
+    this.steeringDamper?.update(this.steer.rotation.y);
     if (this.gpThrottleSleeve) this.gpThrottleSleeve.rotation.y = -gpThrottleAngle(v.throttle);
     // Presented front-brake input only: rear pedal, wheel speed and elapsed
     // display time do not pull the hand lever. An absolute pose restores on seek.
