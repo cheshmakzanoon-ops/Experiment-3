@@ -100,6 +100,7 @@ function venue(spec: CircuitSpec, kind: OffroadCourseSpec['kind'], author: Autho
   );
   const offroad: OffroadVenue = Object.freeze({
     kind,
+    indoor: data.indoor,
     course,
     createSurface: (track: Track) => new TrackTerrainSurface(track, course),
   });

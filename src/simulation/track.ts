@@ -235,7 +235,7 @@ export class Track {
     else this.laneIndex = isGpCourse(this) ? new TrackLaneIndex(this.points, 2048) : null;
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
-    this.weather.sample(0, this);
+    this.sampleWeather(0);
     this.cold =
       keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) ||
       (weatherSurfaceStart(preset).frozenMm ?? 0) > 0;
@@ -337,7 +337,8 @@ export class Track {
     }
     // Race-day rubber was laid by earlier sessions where cars drive: along the
     // racing line (a band about a car wide), over a light general coating.
-    if (circuit.covered)
+    if (circuit.offroad?.indoor) this.sheltered.fill(1);
+    else if (circuit.covered)
       for (let row = 0; row < CELL_ROWS; row++)
         this.sheltered[row] = circuit.covered(((row + 0.5) / CELL_ROWS) * this.length) ? 1 : 0;
     const line = racingLineFor(this),
@@ -627,6 +628,20 @@ export class Track {
     out.temp = this.temperature[cell];
     return out;
   }
+  /** The forecast remains observable outside the building. The race frame,
+   * tyre physics and effects read the air and precipitation over the floor. */
+  private sampleWeather(time: number) {
+    this.weather.sample(time, this);
+    if (!this.circuit.offroad?.indoor) return;
+    this.rain = 0;
+    this.windX = 0;
+    this.windZ = 0;
+    this.gust = 0;
+    this.moisture = 0;
+    this.fogCover = 0;
+    this.dust = 0;
+    this.visibility = CLEAR_VISIBILITY_M;
+  }
   evolve(dt: number, time: number) {
     if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid weather timestep');
     if (!Number.isFinite(time)) throw new Error('Invalid weather sample time');
@@ -636,7 +651,7 @@ export class Track {
     // Long calls visit the same weather endpoints as ordinary worker ticks.
     const step = 0.5;
     while (this.surfaceClock >= step - 1e-9) {
-      this.weather.sample(time - this.surfaceClock + step, this);
+      this.sampleWeather(time - this.surfaceClock + step);
       // The pavement sees the fog's shade as well as the sky's cloud.
       const ground: SurfaceWeather =
         this.fogCover > 0
@@ -709,7 +724,7 @@ export class Track {
         }
       this.surfaceClock = Math.max(0, this.surfaceClock - step);
     }
-    this.weather.sample(time, this);
+    this.sampleWeather(time);
   }
   interact(
     cell: number,

@@ -18,6 +18,8 @@ export interface OffroadSurface {
 /** What a circuit definition carries for a terrain venue. */
 export interface OffroadVenueData {
   readonly kind: OffroadKind;
+  /** The entire competitive surface and mechanics lane sit inside a closed stadium. */
+  readonly indoor?: boolean;
   /** Build the session's authoritative surface for a Track of this venue. */
   createSurface(track: Track): OffroadSurface;
 }
