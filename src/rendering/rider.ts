@@ -132,11 +132,8 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   dab?: number;
   /** Body fore/aft over the bike: -1 back (throttle) .. +1 forward. */
   body?: number;
-  /** Presented throttle 0..1, longitudinal acceleration (g, +forward) and
-   * chassis roll rate (rad/s, +left). */
+  /** Presented throttle from zero to full. */
   throttle?: number;
-  gLong?: number;
-  leanRate?: number;
   /** GP only: spring-damped body state from `GpRiderBody`; omitted, the
    * posture uses its equilibrium, so `ride()` stays a pure function. */
   gpBody?: GpRiderBodyState;
@@ -465,6 +462,8 @@ export class Rider {
   private readonly motocrossMotion: MotocrossRiderMotion = {
     pelvisDrop: 0,
     pelvisBack: 0,
+    pelvisSide: 0,
+    counterRoll: 0,
     torsoPitch: 0,
     elbowLift: 0,
     gazePitch: 0,
@@ -1524,13 +1523,14 @@ export class Rider {
     pelvis.y += standing * (mx ? 0.17 : 0.3);
     pelvis.z += mx ? standing * 0.055 + body * 0.085 : standing * 0.04 - body * 0.1;
     if (motion) {
+      pelvis.x += motion.pelvisSide;
       pelvis.y -= motion.pelvisDrop;
       pelvis.z -= motion.pelvisBack;
     }
     // The body leans further into the corner than the bike; tucks on the
     // straight; sits up and braces under braking.
     const into = T.MathUtils.clamp(
-      mx ? -lean * 0.3 + offset * 0.2 : lean * 0.22 + offset * 0.5,
+      mx ? -lean * 0.3 + offset * 0.2 - motion!.counterRoll : lean * 0.22 + offset * 0.5,
       -0.32,
       0.32,
     );

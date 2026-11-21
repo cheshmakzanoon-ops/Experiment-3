@@ -1208,6 +1208,8 @@ export class DirtBikeModel {
       const chassisPitch = -Math.asin(T.MathUtils.clamp(this.scratch.y, -1, 1));
       this.rider.ride({
         lean: v.chassisLean,
+        leanRate: v.leanRate,
+        gLong: v.gLong,
         offset: v.riderOffset * 0.4,
         tuck: 0,
         braking: v.brake,

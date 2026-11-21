@@ -94,6 +94,33 @@ function land(
 }
 
 describe('motocross first-tyre landing prediction', () => {
+  it('keeps a midair sideswipe in ballistic motion while the motorcycle yaws independently', () => {
+    const plain = launch(MX_450), hit = launch(MX_450);
+    const a = plain.bike, b = hit.bike;
+    for (let i = 0; i < 18; i++) {
+      a.step(DT, plain.track);
+      b.step(DT, hit.track);
+    }
+    const heading = b.dynamics.heading, sh = Math.sin(heading), ch = Math.cos(heading);
+    b.body.velocity.x -= 0.7 * ch;
+    b.body.velocity.z += 0.7 * sh;
+    b.body.omega.y += 1.5;
+    a.step(DT, plain.track);
+    b.step(DT, hit.track);
+    expect(b.dynamics.speed).toBeCloseTo(a.dynamics.speed, 7);
+    expect(b.slide - a.slide).toBeCloseTo(-0.7, 7);
+    expect(b.vy).toBeCloseTo(a.vy, 7);
+    for (let i = 0; i < 10; i++) {
+      a.step(DT, plain.track);
+      b.step(DT, hit.track);
+    }
+    expect(b.airborne).toBe(true);
+    expect(b.dynamics.heading).toBeCloseTo(heading, 10);
+    expect(b.airYaw - a.airYaw).toBeGreaterThan(0.035);
+    expect(b.cgY).toBeCloseTo(a.cgY, 5);
+    expect(b.dynamics.speed).toBeCloseTo(a.dynamics.speed, 7);
+  });
+
   it.each(
     [MX_250, MX_450].flatMap((definition) =>
       [1 / 120, 1 / 240].map((dt) => ({ id: definition.id, definition, dt })),

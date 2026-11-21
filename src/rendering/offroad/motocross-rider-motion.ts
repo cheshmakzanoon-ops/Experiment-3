@@ -7,6 +7,9 @@ import { MX_RECOVERY } from '../../simulation/offroad/rider-recovery.ts';
  * These are pose signals, not a second physics simulation. */
 export interface MotocrossRiderMotionInput {
   standing?: number;
+  /** Recorded acceleration in g, positive forward, and chassis roll rate in rad/s. */
+  gLong?: number;
+  leanRate?: number;
   compression?: number;
   /** Differential wheel stroke. Positive is a fork-first landing. */
   compressionBias?: number;
@@ -24,6 +27,8 @@ export interface MotocrossRiderMotionInput {
 export interface MotocrossRiderMotion {
   pelvisDrop: number;
   pelvisBack: number;
+  pelvisSide: number;
+  counterRoll: number;
   torsoPitch: number;
   elbowLift: number;
   gazePitch: number;
@@ -77,6 +82,21 @@ export function sampleMotocrossRiderMotion(
   // suspension unloads naturally in flight, avoiding a take-off pose pop.
   out.gazePitch = -pitch * 0.78;
   const ready = clamp(finite(pose.startBrace), 0, 1);
+  // The visual rider braces against actual traction. A revving engine at
+  // the gate or a locked brake in flight carries no fore/aft tyre force.
+  const supported = pose.supportG === undefined ? 1 : smooth(0.05, 0.75, finite(pose.supportG));
+  const effort = supported * (1 - ready);
+  const acceleration = clamp(finite(pose.gLong), -1.15, 0.95) * effort;
+  const drive = Math.max(0, acceleration), braking = Math.max(0, -acceleration);
+  const mobility = 0.5 + 0.5 * standing;
+  out.pelvisBack += (0.052 * braking - 0.033 * drive) * mobility;
+  out.torsoPitch += 0.13 * drive - 0.095 * braking;
+  out.elbowLift += 0.032 * braking + 0.015 * drive;
+  // Let the machine roll under the rider during a direction change. The
+  // slide and counter-roll go to zero in a steady turn at the same lean.
+  const roll = Math.tanh(finite(pose.leanRate) * 0.7) * effort;
+  out.pelvisSide = -0.027 * roll * mobility;
+  out.counterRoll = 0.11 * roll * mobility;
   if (ready > 0) {
     // Riders set their weight over the bars before the gate drops. The race
     // number keeps each rider's elbow carriage and breathing phase the same

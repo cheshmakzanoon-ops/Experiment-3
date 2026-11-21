@@ -80,6 +80,38 @@ describe('motocross suspension-driven rider motion', () => {
       materials.dispose();
     }
   });
+  it('braces against measured traction and keeps a replayed direction change identical across bike LODs', () => {
+    const definition = VEHICLES.mx450, materials = new BikeMaterials(0);
+    const base: BikePoseValues = {
+      ...staticSag(definition), steer: 0, frontRotation: 0, rearRotation: 0, chassisLean: 0,
+      riderOffset: 0, tuck: 0, brake: 0, rearBrake: 0, discTemp: 0,
+      compoundColour: 0xffffff, riding: true, standing: 0.8, speed: 16, dirtSupportG: 1,
+    };
+    const sample = (model: DirtBikeModel, values: Partial<BikePoseValues>) => {
+      model.pose({ ...base, ...values });
+      const pelvis = model.rider.root.getObjectByName('Rider torso')!;
+      const chest = model.rider.root.getObjectByName('Motocross upper chest')!;
+      return [...pelvis.position.toArray(), ...chest.quaternion.toArray()];
+    };
+    const mid = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+    const far = new DirtBikeModel(definition, 0, 'far', materials, mudUniforms());
+    try {
+      const coasting = sample(mid, {});
+      const driving = sample(mid, { gLong: 0.85 });
+      const braking = sample(mid, { gLong: -1 });
+      expect(driving[2] - braking[2]).toBeGreaterThan(0.06);
+      expect(sample(mid, { gLong: 0.85, leanRate: 1.8, dirtSupportG: 0 })).toEqual(coasting);
+      const left = sample(mid, { leanRate: 1.8 });
+      expect(sample(mid, { leanRate: -1.8 })[0] - left[0]).toBeGreaterThan(0.035);
+      expect(sample(mid, { leanRate: 1.8 })).toEqual(left);
+      expect(sample(far, { leanRate: 1.8 })).toEqual(left);
+    } finally {
+      mid.dispose();
+      far.dispose();
+      materials.dispose();
+    }
+  });
+
   it('runs with the wrists beside the ribs and each hand opposing the boot on its own side', () => {
     const rider = new Rider(colours, 'mid', 'motocross');
     const point = new T.Vector3();

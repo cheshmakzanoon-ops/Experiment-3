@@ -380,6 +380,13 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.rearBrake = rear;
     const course = offroadCourse(track.circuit),
       motocross = course?.kind === 'motocross' || course?.kind === 'supercross';
+    if (motocross && this.airborne) {
+      // The inherited absorber sends a transverse impulse to slide. Its
+      // angular impulse belongs to the chassis while both wheels are free:
+      // rotating the ballistic heading would curve the path after contact.
+      this.airYawRate += this.yawKick;
+      this.yawKick = 0;
+    }
     this.pickupFrontForce = this.pickupRearForce = 0;
     this.mxFrontBrakePower = this.mxRearBrakePower = undefined;
     this.playerMotocross =
@@ -942,9 +949,6 @@ export class DirtBikeVehicle extends BikeVehicle {
       track = this.lastTrack!,
       sh = Math.sin(d.heading),
       ch = Math.cos(d.heading),
-      wheelHeading = d.heading + this.airYaw,
-      wheelSin = Math.sin(wheelHeading),
-      wheelCos = Math.cos(wheelHeading),
       HF = spec.cgHeight + this.referenceSag.fork,
       HR = spec.cgHeight + this.referenceSag.shock,
       drag = d.p.drag / d.mass,
@@ -962,7 +966,13 @@ export class DirtBikeVehicle extends BikeVehicle {
           1.2,
         ),
         sin = Math.sin(pitch),
-        cos = Math.cos(pitch);
+        cos = Math.cos(pitch),
+        // A moving wheel sweeps across a cambered landing. Extrapolate the
+        // current whip rate over its short control-response time. The bound
+        // is the same mechanical/rider envelope used by the actual flight.
+        yaw = clamp(this.airYaw + this.airYawRate * -Math.expm1(-7 * t) / 7, -0.6, 0.6),
+        wheelSin = Math.sin(d.heading + yaw),
+        wheelCos = Math.cos(d.heading + yaw);
       let lowest = Infinity;
       for (let end = 0; end < 2; end++) {
         const front = end === 0,
@@ -1540,7 +1550,13 @@ export class DirtBikeVehicle extends BikeVehicle {
       t.slip = grounded
         ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip)
         : 0;
-      t.angle = front ? d.steer : 0;
+      if (this.playerMotocross) {
+        // The lean-coupled brush already accounts for rolling-cone curvature.
+        // Its residual cross-patch velocity changes sign between the axles
+        // during a yaw impulse. Steering is published separately below.
+        const crossSpeed = this.slide + (front ? spec.cgToFront : -spec.cgToRear) * this.mxYawRate;
+        t.angle = grounded && t.load > 0 ? Math.atan2(crossSpeed, Math.max(1, d.speed)) : 0;
+      } else t.angle = front ? d.steer : 0;
       t.compression = front ? this.fork : this.shock;
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
       t.water = c.water;
