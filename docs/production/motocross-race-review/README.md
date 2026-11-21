@@ -36,7 +36,7 @@ The player entered each eight-rider event through the normal paddock, released t
 
 [Race results, geometry counts and WebGL measurements](suspension-and-clay-verification.json)
 
-The photographs show the browser renderer. The race simulation ran at a fixed 120 Hz. Physical GPU frame pacing and end-to-end input latency need measurements on the target device.
+Verification covered 873 motocross tests across 94 files, plus the 59 startup tests. The complete project passed TypeScript checking and lint. The photographs show the browser renderer. The race simulation ran at a fixed 120 Hz. Physical GPU frame pacing and end-to-end input latency need measurements on the target device.
 
 ## MX250 and MX450 race refinement
 
