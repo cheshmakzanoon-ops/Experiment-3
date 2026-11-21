@@ -203,6 +203,9 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.options.circuit).toBe(circuit);
     expect(initialized.options.laps).toBe(10);
     expect(initialized.frame?.[H.CARS]).toBe(8);
+    expect(
+      initialized.renderer!.rivalCars.slice(0, 8).map((entrant) => entrant.representation),
+    ).toEqual(Array(8).fill('motorcycle-frame'));
     expect(initialized.frame?.[H.TICK]).toBe(0);
     expect(initialized.frame?.[H.SC_PHASE]).toBe(0);
     expect(initialized.auto).toBe(false);

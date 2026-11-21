@@ -977,7 +977,8 @@ export class RacingRenderer {
   setCars(n: number, frame?: Float32Array) {
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
-    const unassignedDirtSlot = !frame && isMotocrossVenue(this.circuit.track);
+    const mxVenue = isMotocrossVenue(this.circuit.track);
+    const unassignedDirtSlot = !frame && mxVenue;
     const unassignedGpSlot = !frame && !this.showroomOnly && isGpCourse(this.circuit.track);
     // Motorcycle rivals supply all their own geometry. A replay can replace that
     // entrant with a car, so promote the slot on the first actual car frame.
@@ -987,14 +988,22 @@ export class RacingRenderer {
       const definition = frame
         ? vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]))
         : undefined;
-      const motorcycleFrame = definition?.dynamicsKind === 'bike' &&
-        (!definition.bike?.offroad || definition.classId === 'motocross');
+      const dirtFrame =
+        definition?.classId === 'motocross' || (mxVenue && definition?.classId === 'supermoto');
+      const motorcycleFrame =
+        definition?.dynamicsKind === 'bike' && (!definition.bike?.offroad || dirtFrame);
       if (prior && (!definition || motorcycleFrame)) continue;
-      // A GP venue first needs a pose for its player. The first labelled
-      // snapshot can still select a Formula body, including from a replay.
-      const gpPlayer = id === 0 && !this.showroomOnly && (unassignedGpSlot || definition?.classId === 'gp-bike');
-      if ((id > 0 && motorcycleFrame) || gpPlayer) {
-        const host = new RoadBikeHost(id, definition?.classId === 'motocross' ? 'Motocross' : 'Road');
+      // A motorcycle grid's camera follows the pose of its own articulated
+      // model. A later car snapshot still assembles its Formula body on demand.
+      const motorcyclePlayer =
+        id === 0 &&
+        !this.showroomOnly &&
+        (unassignedGpSlot ||
+          definition?.classId === 'gp-bike' ||
+          unassignedDirtSlot ||
+          (mxVenue && dirtFrame));
+      if ((id > 0 && motorcycleFrame) || motorcyclePlayer) {
+        const host = new RoadBikeHost(id, unassignedDirtSlot || dirtFrame ? 'Motocross' : 'Road');
         this.cars[id] = host;
         this.scene.add(host.root);
         this.reflectionMaterials[id] = [this.circuit.roadMaterial];
