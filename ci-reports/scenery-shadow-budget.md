@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44882878607
-- commit: `4ca8481064` · Seat GP woodland and field shelter belts on each circuit's visible landforms
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44884198094
+- commit: `9ee397ad66` · Animate the free jersey panels around the motocross rider harness
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-21T08:01:06Z · updated: 2026-11-21T08:33:59Z
+- started: 2026-11-21T08:17:42Z · updated: 2026-11-21T09:02:14Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
-| browser (sunset) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
-| browser (day) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (day) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (sunset) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (night) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
