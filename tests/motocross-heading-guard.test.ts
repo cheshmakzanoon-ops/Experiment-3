@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { EVENTS, eventSession } from '../src/simulation/events.ts';
+import { FLAG } from '../src/simulation/marshal.ts';
 import { headingGuardLimit } from '../src/simulation/offroad/ai.ts';
 import { PHASE } from '../src/simulation/race.ts';
 import { Simulation } from '../src/simulation/world.ts';
@@ -42,13 +43,17 @@ describe('heading guard of the off-road riders', () => {
     expect(1.2).toBeGreaterThan(headingGuardLimit(1.2, HAIRPIN, 7));
   });
 
-  it('does not park the field in turn one of the arena-nord-supercross event', () => {
+  it.each(['stadium event', 'twelve MX450s'] as const)('releases a cautioned turn-one queue with %s', async (field) => {
     const event = EVENTS.find((e) => e.id === 'arena-nord-supercross')!;
-    const sim = new Simulation(eventSession(event, DEFAULT_OPTIONS));
+    const sim = new Simulation(field === 'stadium event' ? eventSession(event, DEFAULT_OPTIONS) : {
+      ...DEFAULT_OPTIONS,
+      mode: 'race', ruleset: 'motocross-moto', circuit: 'arena-nord-sx',
+      laps: 2, opponents: 11, seed: 50206, weather: 'clear', vehicles: Array(12).fill('mx450'),
+    });
     sim.autoPlayer = true;
     const session = sim.offroad!;
     const stopped = new Float64Array(sim.cars.length);
-    let longest = 0;
+    let longest = 0, heldUnderCaution = false;
     const dt = 1 / 120;
     // The seeded pile-up ran from 10 s to 40 s of race time (21.1 s for car 0 at s=108 m).
     for (
@@ -56,6 +61,7 @@ describe('heading guard of the off-road riders', () => {
       i < 120 * 90 && sim.race.raceTime < 50 && sim.race.phase !== PHASE.FINISHED;
       i++
     ) {
+      if (i % 240 === 0) await new Promise<void>((resolve) => setImmediate(resolve));
       sim.step(dt);
       if (sim.race.phase !== PHASE.RACING) continue;
       sim.cars.forEach((c, id) => {
@@ -63,10 +69,13 @@ describe('heading guard of the off-road riders', () => {
         const waiting = e.start <= 1 || e.parked || c.finishTime > 0 || c.inPit;
         stopped[id] = c.speed < 1 && !waiting ? stopped[id] + dt : 0;
         longest = Math.max(longest, stopped[id]);
+        if (sim.race.control.flags[id] === FLAG.DOUBLE_YELLOW && stopped[id] > 0.5 &&
+            c.input.brake > 0.9 && c.input.throttle === 0) heldUnderCaution = true;
       });
     }
     expect(sim.race.raceTime).toBeGreaterThan(49);
     // scripts/offroad-races.ts PARKED_LIMIT is 20 s; a crash and its remount alone take 9-10 s.
     expect(longest).toBeLessThan(18);
+    if (field === 'twelve MX450s') expect(heldUnderCaution).toBe(true);
   }, 120_000);
 });

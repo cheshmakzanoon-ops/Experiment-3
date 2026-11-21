@@ -142,7 +142,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.governJump(track);
     this.alignRhythmRunup(track, race);
     this.climbFace();
-    this.headingGuard(track);
+    this.headingGuard(track, race);
     this.gateLaunch(track, race);
     this.turnContactReserve(track, race);
     this.unstick(dt, track, race);
@@ -219,14 +219,35 @@ export class DirtBikeAIDriver extends BikeAIDriver {
    * the course. Steering alone is insufficient: a leaned bike takes time to
    * stand up, and a normal racing target accelerates it across the next wall
    * before it can point down the lane. */
-  private headingGuard(track: Track) {
+  private headingGuard(track: Track, race: RaceDirector) {
     const c = this.rider,
       d = c.dynamics;
-    if (!c.riding || c.airborne || c.speed < 2) return;
+    if (!c.riding || c.airborne) return;
     track.at(c.s, squarePoint);
     const error =
       mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
-    if (Math.abs(error) < headingGuardLimit(error, squarePoint.curvature, c.speed)) return;
+    // In a slow caution queue the rider can be relaunched across a banked
+    // hairpin with the front tyre almost unloaded. Allowing normal corner yaw
+    // lag there can put the axle in the outside barrier before the lean builds.
+    // Preserve every stop requested by race control and the traffic planner.
+    const outside = Math.sign(c.lateral);
+    if (
+      race.control.flags[c.id] === FLAG.DOUBLE_YELLOW &&
+      c.speed < 7 &&
+      outside * squarePoint.curvature < -0.08 &&
+      outside * error < -0.35
+    ) {
+      const outwardTravel = Math.sin(-outside * error) * (1.5 + 0.8 * c.speed);
+      if (Math.abs(c.lateral) + outwardTravel > squarePoint.width - 0.8) {
+        const inward = clamp(2.2 * error - 0.4 * d.lean, -1, 1);
+        c.input.steer = outside > 0 ? Math.min(c.input.steer, inward) : Math.max(c.input.steer, inward);
+        // Leave enough drive to turn uphill while keeping weight on the front.
+        const frontShare = clamp(c.forceFront / (d.mass * G), 0, 1);
+        c.input.throttle = Math.min(c.input.throttle, 0.24 + 0.3 * frontShare);
+        return;
+      }
+    }
+    if (c.speed < 2 || Math.abs(error) < headingGuardLimit(error, squarePoint.curvature, c.speed)) return;
     c.input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.6, 0.6);
     const rejoin = Math.max(2.8, 5.5 - 2 * Math.abs(error));
     // This rejoin limit runs after the jump planner. A committed clear
