@@ -12,6 +12,7 @@ import {
 } from './facade-layout.ts';
 import { FACADE_ATLAS_GLSL, FacadeAtlas } from './facade-atlas.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
+import { HeadlandLantern } from './headland-lantern.ts';
 import type { QualityPreset } from '../options.ts';
 import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
 
@@ -293,6 +294,22 @@ vec2 owPaneTilt;`,
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.105, 0.11, 0.068) * (0.8 + 0.4 * owNoise(q * 9.0)), lichen * 0.42);
     owWallRelief = smoothstep(0.0, 0.88, f.y) * (1.0 - smoothstep(0.9, 1.0, f.y)) * 0.009 * roofResolve;
     owWallRoughness = 0.76 + 0.12 * owHash(floor(tile) + 3.1) + 0.08 * lichen;
+  } else if (kind > 7.5 && kind < 8.5) {
+    // Weathered lime render, a daymark band and water-darkened lower courses.
+    float verticalAA = max(0.025, fwidth(q.y));
+    float stripe = smoothstep(height * 0.48 - verticalAA, height * 0.48 + verticalAA, q.y)
+                 - smoothstep(height * 0.65 - verticalAA, height * 0.65 + verticalAA, q.y);
+    vec2 brick = vec2(q.x * 2.1, q.y * 3.65);
+    brick.x += 0.5 * mod(floor(brick.y), 2.0);
+    vec2 joint = min(fract(brick), 1.0 - fract(brick));
+    vec2 aa = max(fwidth(brick), vec2(0.008));
+    vec2 mortar = 1.0 - smoothstep(vec2(0.008), vec2(0.032) + aa, joint);
+    float close = 1.0 - smoothstep(0.08, 0.7, max(aa.x, aa.y));
+    float grain = owNoise(q * vec2(1.4, 0.58) + style);
+    float toe = 1.0 - smoothstep(0.45, 3.3 + grain, q.y);
+    diffuseColor.rgb *= mix(vec3(1.0), vec3(0.47, 0.074, 0.047), stripe);
+    diffuseColor.rgb *= (0.91 + 0.1 * grain) * (1.0 - 0.16 * toe) * (1.0 - 0.085 * max(mortar.x, mortar.y) * close);
+    owWallRoughness = 0.88 + 0.07 * grain;
   } else if (shed) {
     owRib = sin(q.x * 6.2832 / 0.6);
     diffuseColor.rgb *= 0.92 + 0.08 * owRib;
@@ -445,6 +462,7 @@ export class Buildings {
   readonly lantern: T.MeshStandardMaterial;
   readonly joinery: FacadeJoinery;
   private readonly openings: FacadePlacement[] = [];
+  private readonly headlands: HeadlandLantern[] = [];
   private readonly atlas = new FacadeAtlas();
   private readonly atlasMap: { value: T.DataTexture | null } = { value: null };
   private readonly blocks: {
@@ -477,13 +495,12 @@ export class Buildings {
     // Bucket compact structure references first. Finalise one block at a time
     // so city-wide JS vertex arrays never coexist with all the GPU buffers.
     const chunks = new Map<string, Structure[]>();
-    const lanterns: T.Vector3[] = [];
     for (const s of structures) {
       const key = `${Math.floor(s.x / BUILDING_BLOCK)},${Math.floor(s.z / BUILDING_BLOCK)}`;
       let block = chunks.get(key);
       if (!block) chunks.set(key, (block = []));
       block.push(s);
-      if (s.kind === 'lighthouse') lanterns.push(new T.Vector3(s.x, s.base + s.height + 1.6, s.z));
+      if (s.kind === 'lighthouse') this.headlands.push(new HeadlandLantern(s, this.headlands.length ? this.lantern.clone() : this.lantern));
     }
     let triangles = 0;
     for (const [key, block] of chunks) {
@@ -538,12 +555,7 @@ export class Buildings {
       mesh.matrixAutoUpdate = false;
       this.root.add(mesh);
     }
-    for (const p of lanterns) {
-      const lamp = new T.Mesh(new T.CylinderGeometry(2.2, 2.2, 3.2, 12), this.lantern);
-      lamp.position.copy(p);
-      lamp.name = 'Lighthouse lantern';
-      this.root.add(lamp);
-    }
+    for (const headland of this.headlands) this.root.add(headland.group);
     this.atlasMap.value = this.atlas.texture();
     this.joinery = new FacadeJoinery(this.openings);
     this.root.add(this.joinery.root);
@@ -695,6 +707,9 @@ export class Buildings {
           t0 = [s.x + Math.cos(a0) * r * taper, s.z + Math.sin(a0) * r * taper],
           t1 = [s.x + Math.cos(a1) * r * taper, s.z + Math.sin(a1) * r * taper];
         const am = (a0 + a1) / 2;
+        const coastal = s.kind === 'lighthouse';
+        const u0 = coastal ? a0 * r : (k + 1) * 2.5;
+        const u1 = coastal ? a1 * r : k * 2.5;
         const color = s.kind === 'lighthouse' ? 0xe8e6e0 : 0xb9b6ae;
         m.quad(
           [
@@ -705,13 +720,13 @@ export class Buildings {
           ],
           [Math.cos(am), 0, Math.sin(am)],
           [
-            [k * 2.5, 0],
-            [(k + 1) * 2.5, 0],
-            [(k + 1) * 2.5, s.height],
-            [k * 2.5, s.height],
+            [u1, 0],
+            [u0, 0],
+            [u0, s.height],
+            [u1, s.height],
           ],
           color,
-          [style, 9, 0, s.height],
+          [style, coastal ? 8 : 9, 0, s.height],
         );
         if (s.kind === 'tower') {
           // Glazed control cab on top.
@@ -1078,17 +1093,18 @@ export class Buildings {
       block.geometry.setDrawRange(start, count);
     }
   }
-  setNight(night: number) {
+  setNight(night: number, time = 0, eye?: T.Vector3) {
     this.night.value = night;
-    this.lantern.emissiveIntensity = 0.2 + night * 30;
+    for (const headland of this.headlands) headland.update(time, night, eye);
   }
   dispose() {
     this.joinery.dispose();
+    for (const headland of this.headlands) headland.dispose();
     this.atlasMap.value?.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
     this.material.dispose();
-    this.lantern.dispose();
+    if (!this.headlands.length) this.lantern.dispose();
   }
 }
