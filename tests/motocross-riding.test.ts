@@ -424,6 +424,24 @@ describe('motocross whip and tyre alignment', () => {
     expect(landing.outcome).not.toBe('crash-side');
   });
 
+  it('keeps a yaw-only contact out of the airborne demonstration rider’s bank controller', () => {
+    const free = launch('sport', true), hit = launch('sport', true);
+    for (const run of [free, hit]) {
+      // Give both bikes the same transverse bank through the collision body.
+      const heading = run.bike.heading;
+      run.bike.body.omega.x += Math.sin(heading) * 0.8;
+      run.bike.body.omega.z += Math.cos(heading) * 0.8;
+      fly(run, 0.05);
+    }
+    hit.bike.body.omega.y += 2.2;
+    fly(free, 0.1);
+    fly(hit, 0.1);
+    expect(hit.bike.airborne && free.bike.airborne).toBe(true);
+    expect(hit.bike.airYaw - free.bike.airYaw).toBeGreaterThan(0.07);
+    expect(hit.bike.dynamics.leanRate).toBeCloseTo(free.bike.dynamics.leanRate, 8);
+    expect(hit.bike.dynamics.lean).toBeCloseTo(free.bike.dynamics.lean, 8);
+  });
+
   it('lets an AI demonstration take over an active player whip without holding its bank', () => {
     const run = launch();
     run.bike.input.steer = 1;

@@ -130,6 +130,7 @@ export class DirtBikeVehicle extends BikeVehicle {
    * Published through the ordinary body quaternion, not a new input channel. */
   airYaw = 0;
   airYawRate = 0;
+  private riderBankInFlight = false;
   /** Suspension compressions (m) and the forces they carry (N). */
   compressionFront = 0;
   compressionRear = 0;
@@ -282,6 +283,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.settlePose();
     this.vy = this.pitchRate = 0;
     this.airYaw = this.airYawRate = 0;
+    this.riderBankInFlight = false;
     this.riderWeight.reset();
     this.riderAirRate = 0;
     this.riderBody = this.automaticBody;
@@ -823,9 +825,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     // Forward body (+) pitches the bike nose-down.
     const bodyTorque = -this.automaticBody * a.bodyTorque;
     this.airTorque = spinTorque + frontBrakeTorque + bodyTorque;
-    // Handing a player whip to the demonstration rider must recover its
-    // bank as well as its yaw. Ordinary AI flights keep their calibration.
-    if (!ai || this.airYaw !== 0 || this.airYawRate !== 0) this.airLean(dt, ai);
+    // The demonstration rider levels a bank commanded by the player in this
+    // flight. A yaw-only collision rotates the machine about a different axis.
+    if (!ai) this.riderBankInFlight = true;
+    if (this.riderBankInFlight) this.airLean(dt, ai);
     this.airWhip(dt, ai);
     d.steer = approach(d.steer, 0, dt * 2);
     d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
@@ -1418,6 +1421,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       else if (this.freeSteps > 2) {
         this.airborne = true;
         this.airTime = 0;
+        this.riderBankInFlight = false;
         // Initialise composite momentum from the real take-off rate; any
         // rider movement already begun on the ground is not applied twice.
         this.riderAirRate = -coupling * this.riderWeight.velocity;
