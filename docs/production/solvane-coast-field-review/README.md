@@ -8,9 +8,13 @@ The two columns use the same cameras. Street trees have matching trunk collision
 
 ![Matched chase and street views in Port Ilse](port-ilse.jpg)
 
-The EH-3 below is the default Harbour Front arrival in High. The 960 × 540 capture is from the final reflection build on Mesa llvmpipe. The live HUD shows the Harbour Opening Run ahead. The renderer submitted 681 draw calls and 1,702,501 triangles for this frame.
+A net loft now occupies the open quay yard beside the default Harbour Front start. Its two-bay sawtooth roof has sloped glass and standing-seam metal panels. Recessed sliding doors and high side windows share the same district mesh. The two larger waterfront warehouses use seven roof bays each. The net loft has 580 triangles, a 24 × 15 m collision footprint and at least 13.5 m clearance from the usable road edge at the measured corners and side midpoints. All 650 earlier structures kept their positions and dimensions. Together the three warehouse changes added 3,456 near-view triangles and 355,908 bytes to the regional building meshes. The three affected districts still use one building mesh each.
 
-![High-preset EH-3 chase view in Port Ilse](harbour-high.jpg)
+The chase views use the EH-3, High preset, 960 × 540 viewport, default spawn and clear daylight on the same Mesa renderer. Camera positions differed by 0.25 mm. The lower two panels show the production net-loft mesh under fixed studio lighting.
+
+![Harbour Front before and after, with net loft construction details](quay-warehouse.jpg)
+
+[Full-size original High capture](harbour-high.jpg) · [Full-size updated High capture](harbour-quay-high.jpg) · [70-metre waterfront warehouse](east-quay-warehouse.jpg)
 
 The Medium-preset night captures show a harbour storefront and the overhead festival lights in rain. In each pair the camera, exposure, geometry and physics state stay fixed while two nearby lights switch on. The full-size frames and pixel comparisons are in the hosted run.
 
@@ -98,16 +102,20 @@ From the paddock, choose **Festival** and **Enter Festival**. The packaged game 
 
 ## Verification
 
-The gameplay build at `336fb587` passed 637 local regression tests across 81 files, TypeScript and Vite, lint, content validation and the bundle budget. The initial JavaScript was 3.66 MB gzipped against a 4 MB budget.
+| Build on `main` | Local regression results | Browser coverage |
+| --- | --- | --- |
+| `89fe9739` · quay buildings | 680 passed across 84 files | High harbour chase and HUD on Mesa. All 12 Low driving checks on SwiftShader. |
+| `726babfc` · reflection continuity | 678 passed across 83 files | High harbour chase and HUD on Mesa. All 12 Low driving checks on SwiftShader. |
+| `336fb587` · wet quarry and scoring | 637 passed across 81 files | All 12 Low driving checks on SwiftShader and hosted Mesa. Smoke, dust, water and both Medium night scenes passed on hosted Mesa. |
 
-All 12 driving checks passed on the same build with Chromium and SwiftShader at 960 × 540 in Low. Keyboard input moved the car 32.49 m and braked it from 65.47 km/h to a stop. The three-entrant Harbour Opening Run finished in 105.37 seconds with assistance and zero off-route time. Retry started a distinct run, and exiting released the Festival scene. The session plate above comes from this run. Three recorded frames each of tyre smoke, quarry dust and water spray passed their image checks.
+The quay build passed TypeScript, Vite, lint, content validation and the bundle check. Its initial JavaScript was 3.67 MB gzipped against a 4 MB budget. The High harbour frame submitted 677 draw calls and 1,676,329 triangles at 960 × 540. The image and full driving checks both recorded zero page errors and zero failed asset requests. The assisted Harbour Opening Run finished in 105.37 seconds with zero off-route time. Retry started a distinct run, and exit released the Festival scene.
 
-The hosted Mesa run passed 153 focused tests and all 12 driving checks on the same source. Keyboard input moved the car 57.44 m and braked it from 65.63 to 0.75 km/h. The Harbour Opening Run finished in 105.37 seconds. Smoke, quarry dust, water spray and both Medium-preset night compositions passed without reported graphics errors. A separate local SwiftShader attempt timed out on the first Medium storefront capture.
+On the same quay build all 26 assisted races and six quarry-zone runs completed without resets or off-route time. All eight speed challenges scored. The wet four-car replay also matched all 13,200 physics snapshots from the earlier builds at each of the four presentation cadences.
 
-The later reflection change at `726babfc` passed 678 tests across 83 files, the production build, lint, content validation and the bundle budget. Initial JavaScript was 3.67 MB gzipped against a 4 MB budget. Its 960 × 540 Low-preset driving session passed all 12 checks on SwiftShader. The three-car Harbour Opening Run finished in 105.37 seconds with zero off-route time. The run reported zero page errors and zero failed asset requests. All 13,200 physics snapshots also matched the earlier build at each of the four presentation cadences.
+The four-panel gameplay plate comes from `336fb587`. On that build, keyboard input moved the car 32.49 m on SwiftShader and 57.44 m on hosted Mesa. Its hosted run passed an additional 153 focused tests. A separate local SwiftShader night run timed out on the storefront capture. The paired Medium night plate above comes from the completed hosted run.
 
 Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
 
-On the local Mesa software renderer, an earlier long race closed at 62% progress. Two early High attempts closed during loading. A subsequent Mesa run reached the first High-preset harbour frame at 960 × 540 with 1,916 draw calls and 6,894,556 submitted triangles. Its compositor capture exceeded 90 seconds. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
+An earlier local Mesa race closed at 62% progress. Two early High attempts closed during loading, and an additional High capture after fast travel exceeded its compositor deadline. The two default-arrival High captures above completed. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
 
-[Final hosted driving and optics run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760) · [Earlier hosted Mesa driving and optics run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44859158969) · [Per-car, per-event, mesh and validation measurements](measurements.json)
+[Quay-build driving and optics workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44872329454) · [Hosted optics and driving at 336fb587](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44863196760) · [Per-car, per-event, mesh and validation measurements](measurements.json)
