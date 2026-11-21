@@ -1125,17 +1125,18 @@ export class CircuitScene {
     });
   }
   private grid() {
+    // Dirt races use the mechanical gate and the venue's timing equipment.
+    // A paved finish overlay would hover above ruts or cut into the start hill.
+    if (isMotocrossVenue(this.track)) return;
     // Grid boxes use the same lit, slightly worn line paint as the edges.
     const paint = new T.MeshStandardMaterial({
       color: 0xe9e7e0,
       roughness: 0.55,
     });
     installCircuitFinish(paint, 'paint');
-    if (!isMotocrossVenue(this.track)) {
-      this.gridPaint = new GridPaintPresentation(this.track, paint);
-      this.gridPaint.setGrandPrix(this.grandPrixGrid.value > 0);
-      this.gridPaint.build(this.props);
-    }
+    this.gridPaint = new GridPaintPresentation(this.track, paint);
+    this.gridPaint.setGrandPrix(this.grandPrixGrid.value > 0);
+    this.gridPaint.build(this.props);
     const finish = canvasTexture(128, 32, (c) => {
       for (let y = 0; y < 2; y++)
         for (let x = 0; x < 16; x++) {

@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { mxAtlasRow, mxEventAtlas } from './mx-event-graphics.ts';
+import { mxOutdoorFinish } from './mx-finish-line.ts';
 import { MxVenueWind } from './mx-venue-wind.ts';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
@@ -23,68 +25,6 @@ import {
   mxShoulderPlantMaterial,
   MX_SHOULDER_WIND_RADIUS,
 } from './mx-shoulder-plants.ts';
-
-/** Original event graphics, shared by the course/stadium. Four horizontal
- * rows, individually mapped onto cloth/signs. No source-image pixels, real
- * sponsor marks or extra downloaded assets are used. */
-export function mxEventAtlas(indoor: boolean): T.Texture {
-  if (typeof document === 'undefined') {
-    const t = new T.DataTexture(new Uint8Array([230, 220, 190, 255]), 1, 1);
-    t.needsUpdate = true;
-    return t;
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 512;
-  const c = canvas.getContext('2d');
-  if (!c) throw new Error('MX event graphics require a 2D canvas');
-  const labels = [
-    'MOTOBOUND  /  ' + (indoor ? 'SUPERCROSS' : 'MX NATIONAL'),
-    indoor ? 'ARENA NORD  //  MAIN EVENT' : 'VALLEY RIDGE  //  NATIONAL',
-    'HOLESHOT  /  MOTOBOUND',
-    'TRACK CREW     //     RIDE THE LINE',
-  ];
-  const backgrounds = ['#1b2527', '#d3d7bb', '#e8ddbd', '#b7c644'];
-  const foregrounds = ['#f1e9d6', '#263b37', '#27332f', '#25352d'];
-  for (let row = 0; row < 4; row++) {
-    const y = row * 128;
-    c.fillStyle = backgrounds[row];
-    c.fillRect(0, y, 2048, 128);
-    c.fillStyle = foregrounds[row];
-    c.font = 'italic 800 70px Saira, Arial, sans-serif';
-    c.textBaseline = 'middle';
-    c.fillText(labels[row], 104, y + 64, 1810);
-    c.fillStyle = row === 0 ? '#e17c40' : '#5c7253';
-    c.fillRect(0, y + 118, 2048, 10);
-    for (let k = 0; k < 3; k++) {
-      c.beginPath();
-      c.moveTo(24 + k * 18, y + 32);
-      c.lineTo(34 + k * 18, y + 32);
-      c.lineTo(18 + k * 18, y + 96);
-      c.lineTo(8 + k * 18, y + 96);
-      c.fill();
-    }
-  }
-  // A little real-scale handling wear remains below the lettering.
-  const r = new Random(71268);
-  c.globalAlpha = 0.1;
-  for (let i = 0; i < 3400; i++) {
-    c.fillStyle = i % 2 ? '#34291d' : '#ffffff';
-    c.fillRect(r.next() * 2048, r.next() * 512, 1 + r.next() * 3, 1 + r.next() * 2);
-  }
-  const texture = new T.CanvasTexture(canvas);
-  texture.colorSpace = T.SRGBColorSpace;
-  texture.wrapS = T.RepeatWrapping;
-  texture.anisotropy = 8;
-  return texture;
-}
-
-/** Assign an atlas row to a normalised-UV geometry. */
-export function mxAtlasRow(g: T.BufferGeometry, row: number) {
-  const uv = g.getAttribute('uv');
-  for (let i = 0; i < uv.count; i++) uv.setY(i, (3 - row + uv.getY(i)) / 4);
-  return g;
-}
 
 /** Thin, gently bowed plastic blades catch the light like the flexible
  * course markers in the reference banks. The complete silhouette stays
@@ -269,11 +209,7 @@ export class MxCourseDressing {
           side *
           Math.max(this.point.width + 3.6, course.legalWidth(this.point.width, s, side) + 0.75);
         if (!this.clear(s - 4, l, 0.2) || !this.clear(s + 4, l, 0.2)) continue;
-        this.banner(s, l, cloth, Math.floor(s / 24) % 2);
-        for (const ds of [-4, 4]) {
-          this.pose(s + ds, l);
-          this.part(new T.CylinderGeometry(0.022, 0.025, 0.96, 6).translate(0, 0.48, 0), steel);
-        }
+        this.banner(s, l, cloth, steel, Math.floor(s / 24) % 2);
         this.stats.banners++;
       }
       this.shoulders(r);
@@ -284,6 +220,13 @@ export class MxCourseDressing {
     if (!indoor) {
       this.featherFlags(cloth, steel);
       this.paddockLife();
+    }
+    if (!indoor) {
+      this.frame.identity();
+      const finish = mxOutdoorFinish(track);
+      for (const g of finish.metal) this.part(g, steel);
+      for (const g of finish.print) this.part(g, cloth);
+      for (const g of finish.padding) this.part(g, pad);
     }
     // The arch is a sporting landmark at the actual holeshot timing line.
     if (course.spec.gate) {
@@ -676,30 +619,51 @@ export class MxCourseDressing {
     mesh.computeBoundingSphere();
     parent.add(mesh);
   }
-  private banner(s: number, lateral: number, material: T.Material, row: number) {
-    const g = new T.PlaneGeometry(8, 0.6, 16, 2);
-    const p = g.getAttribute('position');
+  private banner(s: number, lateral: number, material: T.Material, hardware: T.Material, row: number) {
+    // Pegs are plumb and the fabric spans their two measured heights. Draping
+    // every vertex over the terrain made a bank or gully look stamped into it.
+    this.frame.identity();
+    const ends = [-4, 4].map((ds) => {
+      const at = this.track.at(s + ds, this.point);
+      const x = at.x + at.nx * lateral, z = at.z + at.nz * lateral;
+      const y = mxFurnitureGround(this.track, x, z);
+      this.part(new T.CylinderGeometry(0.024, 0.031, 1.12, 7).translate(x, y + 0.50, z), hardware);
+      return new T.Vector3(x, y, z);
+    });
+    const along = ends[1].clone().sub(ends[0]);
+    const normal = new T.Vector3(along.z, 0, -along.x).normalize();
+    // Present the correctly printed face to the active racing lane on each
+    // side. The reverse of a single-layer trackside banner transmits its ink.
+    const g = new T.PlaneGeometry(1, 1, 24, 5);
+    const p = g.getAttribute('position'), uv = g.getAttribute('uv');
     const wind = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i),
-        fraction = (x + 4) / 8;
-      const station = s + x,
-        at = this.track.at(station, this.point);
-      const y =
-        this.surface.terrain.baseHeight(station, lateral) +
-        0.55 +
-        p.getY(i) -
-        0.075 * Math.sin(fraction * Math.PI);
-      const deflection = 0.085 * Math.sin(Math.PI * fraction) ** 2 * (0.72 - p.getY(i) * 0.8);
-      wind.set([at.nx * deflection, at.nz * deflection, s * 0.21 + x * 1.55 + 2.1 * y], i * 3);
-      const flutter = 0.035 * Math.sin(fraction * Math.PI * 6);
-      p.setXYZ(i, at.x + at.nx * (lateral + flutter), y, at.z + at.nz * (lateral + flutter));
+      const u = uv.getX(i), v = uv.getY(i);
+      const t = lateral < 0 ? 1 - u : u;
+      const belly = 4 * t * (1 - t), hem = Math.sin(Math.PI * v);
+      const y = T.MathUtils.lerp(ends[0].y, ends[1].y, t) + 0.25 + 0.72 * v
+        - belly * (0.095 - 0.035 * hem);
+      const crease = Math.sin((t * 5.4 + v * 0.48) * Math.PI * 2)
+        + 0.32 * Math.sin((t * 10.8 - v * 0.65) * Math.PI * 2);
+      const fold = belly * (0.036 + 0.062 * hem) * crease;
+      // Ties hold each corner off the pole so the hems don't pass through it.
+      const chordT = 0.004 + 0.992 * t;
+      p.setXYZ(i, ends[0].x + along.x * chordT + normal.x * fold, y,
+        ends[0].z + along.z * chordT + normal.z * fold);
+      const deflection = belly * (0.030 + 0.041 * hem);
+      wind.set([normal.x * deflection, normal.z * deflection, s * 0.21 + t * 12.4 + 2.1 * y], i * 3);
     }
     g.setAttribute('mxCloth', new T.Float32BufferAttribute(wind, 3));
     g.computeVertexNormals();
-    mxAtlasRow(g, row);
-    this.frame.identity();
-    this.part(g, material);
+    this.part(mxAtlasRow(g, row), material);
+    for (const t of [0, 1]) {
+      const end = ends[t];
+      for (const y of [0.26, 0.96]) {
+        const ring = new T.TorusGeometry(0.039, 0.009, 4, 9).rotateX(Math.PI / 2);
+        ring.translate(end.x, end.y + y, end.z);
+        this.part(ring, hardware);
+      }
+    }
   }
   private shoulders(random: Random) {
     const track = this.track,

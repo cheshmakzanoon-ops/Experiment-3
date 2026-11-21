@@ -13,7 +13,8 @@ import { installCrowdShader, spectatorGeometry, spectatorVariation } from '../cr
 import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-impostor.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
-import { mxAtlasRow, mxEventAtlas } from './mx-course-dressing.ts';
+import { mxAtlasRow, mxEventAtlas } from './mx-event-graphics.ts';
+import { mxArenaFinish } from './mx-finish-line.ts';
 import { onMxAtmosphere, onMxDetail } from './mx-quality.ts';
 import { STADIUM } from './stadium-dimensions.ts';
 import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
@@ -616,6 +617,14 @@ export class Stadium {
         haze.visible = enabled;
       });
     }
+    // The finish hangs from the lower chords of the same five roof trusses.
+    // No floor support is needed between the two racing lanes at lap zero.
+    const finish = mxArenaFinish(track, {
+      minZ: min.z, spanZ: span.z, chordY: floor + STADIUM.roof - 2.8,
+    });
+    rigging.push(...finish.metal);
+    cases.push(...finish.housing);
+    ribbons.push(...finish.print);
     const cx = (min.x + max.x) * 0.5;
     const screens = [-1, 1].map((end) => {
       const z = end < 0 ? min.z - outer * 0.65 : max.z + outer * 0.65;
