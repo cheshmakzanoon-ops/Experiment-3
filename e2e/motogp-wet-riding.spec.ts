@@ -63,6 +63,7 @@ test('GP wet practice renders live two-tyre spray, advances normally and holds o
   });
   expect(entered.renderer?.graphics.particleDensity).toBe(1);
   expect(entered.frame![H.CARS]).toBe(4);
+  expect(entered.renderer?.environmentAssets.tyreEquipment).toBeNull();
   expect(entered.renderer?.startingGrid).toMatchObject({
     mode: 'gp',
     slots: 12,

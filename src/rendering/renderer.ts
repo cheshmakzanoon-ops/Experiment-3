@@ -869,13 +869,14 @@ export class RacingRenderer {
         renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
       }
       if (!isMotocrossVenue(track)) {
-        // A35 owns its instancing/LODs outside destructive static prop batching.
-        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
-        renderer.tyreEquipment = await loadTyreEquipment(cancelled);
-        installTyreEquipment(renderer.tyreEquipment, track);
-        // The dedicated GP paddock has its own racks during venue preparation too.
-        renderer.tyreEquipment.root.visible = !gpPitStandsOnly;
-        renderer.circuit.group.add(renderer.tyreEquipment.root);
+        // A dedicated GP grid has its own stands and spare wheels. Hosting
+        // cars later constructs a car-capable renderer through canPrepareGrid.
+        if (!gpPitStandsOnly) {
+          progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
+          renderer.tyreEquipment = await loadTyreEquipment(cancelled);
+          installTyreEquipment(renderer.tyreEquipment, track);
+          renderer.circuit.group.add(renderer.tyreEquipment.root);
+        }
         // Both the car and the two motorcycle axle crews use the authored wheel gun.
         progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
         renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
