@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
+import { mxTeamVanGeometry } from '../src/rendering/offroad/mx-paddock-models.ts';
 import { MxVenueWind } from '../src/rendering/offroad/mx-venue-wind.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -36,6 +37,28 @@ describe('motocross event feather flags', () => {
       ).toBe(true);
     } finally {
       dressing.dispose();
+    }
+  });
+
+  it('leaves the fleet headlamps and amber indicators visible ahead of the bevelled metal', () => {
+    const g = mxTeamVanGeometry(), van = new T.Mesh(g, new T.MeshBasicMaterial());
+    const finish = g.getAttribute('mxFinish'), colours = g.getAttribute('color');
+    try {
+      for (const sign of [-1, 1]) {
+        for (const [x, y, expected] of [[0.65, 0.99, 0xd5dbd5], [0.82, 0.99, 0xc18139], [0.72, 1.098, 0x879da2]]) {
+          const hits = new T.Raycaster(new T.Vector3(sign * x, y, 4), new T.Vector3(0, 0, -1)).intersectObject(van);
+          const front = hits[0], paint = hits.find(hit => finish.getX(hit.face!.a) > 0.9)!;
+          const tone = new T.Color(expected), vertex = front.face!.a;
+          expect(colours.getX(vertex)).toBeCloseTo(tone.r, 2);
+          expect(colours.getY(vertex)).toBeCloseTo(tone.g, 2);
+          expect(colours.getZ(vertex)).toBeCloseTo(tone.b, 2);
+          expect(paint.distance - front.distance).toBeGreaterThan(0.004);
+          expect(paint.distance - front.distance).toBeLessThan(0.012);
+        }
+      }
+    } finally {
+      van.material.dispose();
+      g.dispose();
     }
   });
 

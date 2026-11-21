@@ -9,7 +9,7 @@ export function mxTeamVanMaterial() {
   const material = new T.MeshStandardMaterial({ name: 'MX team vans', vertexColors: true });
   const print = mxVanPrint();
   material.addEventListener('dispose', () => print.dispose());
-  chainShaderHook(material, 'mx-service-van-finish-v2', (s) => {
+  chainShaderHook(material, 'mx-service-van-finish-v3', (s) => {
     s.uniforms.mxVanPrint = { value: print };
     injectDeclarations(
       s,
@@ -20,7 +20,12 @@ export function mxTeamVanMaterial() {
        varying vec3 vMxVanPrint;`,
       'vertex',
     );
-    injectDeclarations(s, 'common', 'uniform sampler2D mxVanPrint; varying vec3 vMxVanFinish; varying vec3 vMxVanPrint;', 'fragment');
+    injectDeclarations(
+      s,
+      'common',
+      'uniform sampler2D mxVanPrint; varying vec3 vMxVanFinish; varying vec3 vMxVanPrint;',
+      'fragment',
+    );
     injectAfter(
       s,
       'color_vertex',
@@ -32,15 +37,21 @@ export function mxTeamVanMaterial() {
       #endif`,
       'vertex',
     );
-    injectAfter(s, 'color_fragment', `{
+    injectAfter(
+      s,
+      'color_fragment',
+      `{
       vec2 uv = vMxVanPrint.xy;
-      vec2 page = vec2(uv.x, (3.0 - vMxVanPrint.z + uv.y) * .25);
-      vec2 dx = dFdx(page), dy = dFdy(page);
-      if (vMxVanFinish.z > .0 && all(greaterThan(uv,vec2(0.))) && all(lessThan(uv,vec2(1.)))) {
-        vec4 print = textureGrad(mxVanPrint, page, dx, dy);
-        diffuseColor.rgb = mix(diffuseColor.rgb, print.rgb, print.a * vMxVanFinish.z);
-      }
-    }`, 'fragment');
+      vec2 panel = clamp(uv, 0., 1.);
+      vec2 page = vec2(panel.x, (3.0 - vMxVanPrint.z + panel.y) * .25);
+      // Sample coherently across the whole fragment quad, including where
+      // a side panel meets a wheel arch or a differently finished mesh.
+      vec4 print = texture2D(mxVanPrint, page);
+      vec2 onPanel = step(vec2(0.), uv) * step(uv, vec2(1.));
+      diffuseColor.rgb = mix(diffuseColor.rgb, print.rgb, print.a * vMxVanFinish.z * onPanel.x * onPanel.y);
+    }`,
+      'fragment',
+    );
     injectAfter(s, 'roughnessmap_fragment', 'roughnessFactor = vMxVanFinish.x;', 'fragment');
     injectAfter(s, 'metalnessmap_fragment', 'metalnessFactor = vMxVanFinish.y;', 'fragment');
   });
@@ -54,6 +65,8 @@ const TRIM: Surface = [0x32383a, 0, 0.61, 0.02];
 const GLASS: Surface = [0x293e47, 0, 0.15, 0.11];
 const ALLOY: Surface = [0xa8acac, 0, 0.36, 0.84];
 const LAMP: Surface = [0xd5dbd5, 0, 0.21, 0.48];
+const LENS: Surface = [0x879da2, 0, 0.17, 0.32];
+const INDICATOR: Surface = [0xc18139, 0, 0.3, 0.26];
 const REFLECTOR: Surface = [0x983b2d, 0, 0.24, 0.13];
 const STRIPE: Surface = [0xcccabe, 0, 0.43, 0.14];
 type Point = readonly [number, number, number];
@@ -121,6 +134,7 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
   shell.lineTo(-2.41, 2.42);
   shell.quadraticCurveTo(-2.59, 2.4, -2.59, 2.24);
   shell.closePath();
+  const bodyBevel = 0.033;
   put(
     new T.ExtrudeGeometry(shell, {
       depth: 1.83,
@@ -128,7 +142,7 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
       curveSegments: 8,
       bevelEnabled: true,
       bevelThickness: 0.052,
-      bevelSize: 0.033,
+      bevelSize: bodyBevel,
       bevelSegments: 2,
     })
       .translate(0, 0, -0.915)
@@ -150,6 +164,34 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
   };
   glazing(0.885, 0, TRIM, 0.006);
   glazing(0.854, 0.035, GLASS, 0.015);
+  // Two parked wipers follow the same raked plane as the windscreen.
+  const glassPoint = (x: number, y: number, gap: number): Point => [
+    x,
+    y,
+    1.845 - (y - 1.484) * (0.797 / 0.825) + gap,
+  ];
+  for (const x of [-0.39, 0.36]) {
+    quad(
+      [
+        glassPoint(x - 0.18, 1.49, 0.028),
+        glassPoint(x - 0.15, 1.49, 0.028),
+        glassPoint(x + 0.09, 1.565, 0.028),
+        glassPoint(x + 0.064, 1.57, 0.028),
+      ],
+      TRIM,
+      [0, 1, 1],
+    );
+    quad(
+      [
+        glassPoint(x - 0.29, 1.539, 0.036),
+        glassPoint(x + 0.36, 1.598, 0.036),
+        glassPoint(x + 0.36, 1.616, 0.036),
+        glassPoint(x - 0.29, 1.556, 0.036),
+      ],
+      RUBBER,
+      [0, 1, 1],
+    );
+  }
   box(1.97, 0.17, 0.16, TRIM, 0, 0.47, 2.59);
   box(1.94, 0.15, 0.14, TRIM, 0, 0.46, -2.63);
   box(1.32, 0.23, 0.055, TRIM, 0, 0.77, 2.65);
@@ -223,8 +265,45 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
     box(0.115, 0.032, 0.052, TRIM, side * 1.006, 1.47, 1.48);
     box(0.085, 0.126, 0.186, TRIM, side * 1.067, 1.49, 1.47);
     box(0.016, 0.102, 0.139, GLASS, side * 1.105, 1.49, 1.47);
-    box(0.215, 0.091, 0.06, LAMP, side * 0.797, 0.967, 2.609);
+    // Extrusion offsets each nose segment along its normal. The crease in
+    // the bevelled body is above the original 1.07 m profile vertex.
+    const lowerSlope = 0.09 / 0.22, upperSlope = 0.69 / 0.36;
+    const lowerOffset = bodyBevel * Math.hypot(1, lowerSlope);
+    const upperOffset = bodyBevel * Math.hypot(1, upperSlope);
+    const creaseY = 1.07 + (upperOffset - lowerOffset) / (upperSlope - lowerSlope);
+    const lampPoint = (x: number, y: number, gap: number): Point => [
+      side * x,
+      y,
+      2.54 + Math.min((1.07 - y) * lowerSlope + lowerOffset, (1.07 - y) * upperSlope + upperOffset) + gap,
+    ];
+    const lampBand = (
+      lo: number,
+      hi: number,
+      y0: number,
+      y1: number,
+      gap: number,
+      surface: Surface,
+    ) => {
+      quad(
+        [
+          lampPoint(lo, y0, gap),
+          lampPoint(hi, y0, gap),
+          lampPoint(hi, y1, gap),
+          lampPoint(lo, y1, gap),
+        ],
+        surface,
+        [0, 1, 1],
+      );
+    };
+    lampBand(0.48, 0.89, 0.926, creaseY, 0.003, TRIM);
+    lampBand(0.48, 0.89, creaseY, 1.12, 0.003, TRIM);
+    lampBand(0.502, 0.864, 0.946, creaseY, 0.006, LENS);
+    lampBand(0.502, 0.864, creaseY, 1.105, 0.006, LENS);
+    lampBand(0.519, 0.779, 0.971, 1.037, 0.008, LAMP);
+    lampBand(0.794, 0.85, 0.971, 1.037, 0.008, INDICATOR);
     box(0.102, 0.33, 0.049, REFLECTOR, side * 0.842, 1.09, -2.636);
+    box(0.084, 0.065, 0.013, INDICATOR, side * 0.842, 1.09, -2.664);
+    box(0.084, 0.047, 0.013, LENS, side * 0.842, 0.985, -2.664);
     for (const z of [-1.7, 1.66]) {
       put(
         new T.LatheGeometry(wheelProfile, 20).rotateZ(Math.PI / 2),
