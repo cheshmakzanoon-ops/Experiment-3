@@ -176,6 +176,25 @@ describe('festival world surface (physics adapter)', () => {
     expect(surfaceMaterial(s.surface).loose).toBe(true);
     expect(s.grip).toBeLessThan(0.75);
   });
+  it('uses rolled gravel only on the maintained quarry carriageway, with a draining surface and loose verge', () => {
+    const wet = new OpenWorldTrack(world);
+    wet.wetness = 1.2;
+    const quarry = sampleOn('quarry', (i) => net.s[i] - net.edges[net.edgeOf[i]].offset > 60);
+    const p = trackPoint();
+    net.pointOnSegment(quarry, 0, p);
+    wet.sample(p.x, p.z, s, p.y + 0.5);
+    const gravel = surfaceMaterial(MATERIAL.GRAVEL_ROAD);
+    expect(wet.query.surface).toBe(WORLD_SURFACE.DIRT_ROAD);
+    expect(s.surface).toBe(gravel.id);
+    expect(s.grip).toBe(gravel.grip);
+    expect(s.resistance).toBe(gravel.rolling);
+    expect(s.water).toBeCloseTo(1.2);
+    const verge = net.edges[net.edgeOf[quarry]].spec.halfWidth + 0.35;
+    wet.sample(p.x + p.nx * verge, p.z + p.nz * verge, s, p.y + 0.5);
+    expect(wet.query.surface).toBe(WORLD_SURFACE.SHOULDER);
+    expect(s.surface).toBe(MATERIAL.DIRT);
+    expect(s.water).toBeGreaterThan(1.2);
+  });
   it('reads natural ground off the road: grass, sea water, town paving', () => {
     track.sample(2600, 600, s);
     expect(track.query.onRoad).toBe(false);

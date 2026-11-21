@@ -177,7 +177,7 @@ describe('festival TRY AGAIN on a skill challenge', () => {
     expect(standing).toBeLessThan(250);
     expect(driven).toBeGreaterThan(270);
   }, 90_000);
-  it('lets the road-going RM-8 enter the wet quarry drift zone from its normal travel position', () => {
+  it('lets the road-going RM-8 enter and climb through the wet quarry from its normal travel position', () => {
     const sim = newSim({ vehicle: 'rm8', weather: 'rain', seed: 713225, traffic: true });
     const event = sim.events.find((e) => e.spec.id === 'quarry-drift')!;
     const approach = approachPath(event)!;
@@ -196,6 +196,12 @@ describe('festival TRY AGAIN on a skill challenge', () => {
     expect(sim.mode).toBe('running');
     expect(pilot.resets).toBe(0);
     expect(sim.player.speed).toBeGreaterThan(5);
+    for (let i = 0; i < 150 / DT && !sim.results.length; i++) {
+      pilot.step(DT);
+      sim.step(DT);
+    }
+    expect(sim.results.find((result) => result.eventId === event.spec.id)?.completed).toBe(true);
+    expect(pilot.resets).toBe(0);
   }, 90_000);
   it('has a run-up for skill challenges only', () => {
     const sim = newSim(defaultRun('', { vehicle: 'eh3' }));

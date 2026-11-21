@@ -4,7 +4,7 @@ import { FootwayContact } from './footway-contact.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition } from '../circuits.ts';
 import type { WeatherPreset } from '../config.ts';
 import { SURFACE, trackPoint, type SurfaceSample, type Track, type TrackPoint } from '../track.ts';
-import { MATERIAL } from '../surface-material.ts';
+import { MATERIAL, surfaceMaterial } from '../surface-material.ts';
 import { SURFACE_THERMAL, SurfaceThermalStep } from '../surface-thermal.ts';
 import {
   CLEAR_VISIBILITY_M,
@@ -93,6 +93,15 @@ export const SURFACE_PHYSICS: Readonly<
   [WORLD_SURFACE.WATER]: { code: MATERIAL.MUD, grip: 0.3, resistance: 0.4, water: 3 },
   [WORLD_SURFACE.AIRFIELD]: { code: SURFACE.GRASS, grip: 0.58, resistance: 0.07, water: 0.7 },
 });
+const gravelRoad = surfaceMaterial(MATERIAL.GRAVEL_ROAD);
+// A crowned and rolled quarry carriageway drains to its verges. Its loose
+// aggregate still shears and sinks according to the shared gravel-road model.
+const compactedGravel = {
+  code: gravelRoad.id,
+  grip: gravelRoad.grip,
+  resistance: gravelRoad.rolling,
+  water: 1,
+};
 const BIOME_SURFACE: Readonly<Record<Biome, WorldSurface>> = Object.freeze({
   [BIOME.SEA]: WORLD_SURFACE.WATER,
   [BIOME.BEACH]: WORLD_SURFACE.SAND,
@@ -617,12 +626,16 @@ export class OpenWorldTrack {
         surface = WORLD_SURFACE.WATER;
       }
     }
-    const spec = net.edges[edge].spec;
+    const road = net.edges[edge];
+    const spec = road.spec;
     out.width = spec.halfWidth;
     q.edge = edge;
     q.onRoad = onRoad;
     q.surface = surface;
-    const physics = SURFACE_PHYSICS[surface];
+    const physics =
+      surface === WORLD_SURFACE.DIRT_ROAD && road.road.surfacing === 'compacted-gravel'
+        ? compactedGravel
+        : SURFACE_PHYSICS[surface];
     out.surface = physics.code;
     // The class grip (public asphalt by age and use) scales paved surfaces;
     // loose surfaces carry their own absolute grip.

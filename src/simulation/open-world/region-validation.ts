@@ -26,6 +26,8 @@ export function validateRegionDefinition(region: RegionDefinition): string[] {
     if (roads.has(road.id)) errors.push(`${r}: duplicate id`);
     roads.add(road.id);
     if (!ROAD_CLASSES[road.roadClass]) errors.push(`${r}: unknown class ${road.roadClass}`);
+    if (road.surfacing !== undefined && (road.surfacing !== 'compacted-gravel' || road.roadClass !== 'dirt'))
+      errors.push(`${r}: compacted gravel requires an unsealed road`);
     if (road.points.length < (road.closed ? 3 : 2)) errors.push(`${r}: too few points`);
     road.points.forEach((p, i) => {
       if (!inside(p)) errors.push(`${r}: point ${i} outside the region`);

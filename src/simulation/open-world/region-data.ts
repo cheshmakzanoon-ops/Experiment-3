@@ -171,6 +171,8 @@ export interface RoadSpec {
   id: string;
   name: string;
   roadClass: RoadClass;
+  /** Wearing course of an unsealed road. Ordinary tracks use the native soil. */
+  surfacing?: 'compacted-gravel';
   /** Catmull-Rom control points (m). */
   points: readonly XZ[];
   /** A closed loop (runway/taxiway circuits). */
@@ -683,6 +685,7 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       id: 'quarry',
       name: 'Quarry Track',
       roadClass: 'dirt',
+      surfacing: 'compacted-gravel',
       points: [
         [-1450, 1560],
         [-1950, 1350],

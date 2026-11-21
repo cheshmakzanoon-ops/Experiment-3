@@ -28,7 +28,12 @@ import {
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
 import { townFootways, footwayHeight } from '../../simulation/open-world/town-footways.ts';
-import { addTownFootway, addStreetTreeGrate, footwayStations, pavingMaterial } from './festival-footway.ts';
+import {
+  addTownFootway,
+  addStreetTreeGrate,
+  footwayStations,
+  pavingMaterial,
+} from './festival-footway.ts';
 import { festivalBridgePier, festivalBridgeSection } from './festival-bridges.ts';
 import { streetTrees } from '../../simulation/open-world/street-trees.ts';
 import { buildFestivalGuardrails } from './festival-guardrails.ts';
@@ -115,6 +120,7 @@ type Layer =
   | 'asphalt'
   | 'town'
   | 'dirt'
+  | 'gravel'
   | 'verge'
   | 'paving'
   | 'paint'
@@ -230,34 +236,56 @@ float festivalApronWear = festivalPaintWearAt(vUv, vFestivalSurfaceData);
   return material;
 }
 
-/** Dirt track: compacted gravel with wheel ruts, world-space noise, no texture. */
-function dirtMaterial() {
+/** Road-metre wheel paths over either soil or a rolled mineral wearing course. */
+function dirtMaterial(compacted: boolean, wet: { value: number }) {
   const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0 });
-  material.name = 'Festival dirt track';
+  material.name = compacted ? 'Festival rolled quarry gravel' : 'Festival dirt track';
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
   material.polygonOffset = true;
   material.polygonOffsetFactor = -1;
   material.polygonOffsetUnits = -2;
   material.onBeforeCompile = (shader) => {
+    shader.uniforms.festivalRolledGravel = { value: compacted ? 1 : 0 };
+    shader.uniforms.festivalGravelWet = wet;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\n${OW_NOISE_GLSL}`)
+      .replace(
+        '#include <common>',
+        `#include <common>\nuniform float festivalRolledGravel;\nuniform float festivalGravelWet;\n${OW_NOISE_GLSL}`,
+      )
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
+float festivalGravelPolish = 0.0;
 {
   vec2 q = vUv;
   float lane = abs(q.x);
-  float rut = smoothstep(0.35, 0.0, abs(lane - 0.85));
+  float rut = 1.0 - smoothstep(0.0, 0.35, abs(lane - 0.85));
   float grain = owFbm(vec2(q.x * 3.1, q.y * 0.9), 1.0);
   vec3 dirt = mix(vec3(0.20, 0.155, 0.105), vec3(0.30, 0.25, 0.18), grain);
   dirt = mix(dirt, vec3(0.13, 0.10, 0.07), rut * 0.55);
   // Grass creeping in at the crown and the edges.
-  float grassy = smoothstep(0.55, 0.85, owFbm(q * vec2(0.6, 0.25), 1.0)) * (smoothstep(0.4, 0.0, lane) + smoothstep(2.2, 2.9, lane));
+  float grassy = smoothstep(0.55, 0.85, owFbm(q * vec2(0.6, 0.25), 1.0)) * (1.0 - smoothstep(0.0, 0.4, lane) + smoothstep(2.2, 2.9, lane));
   diffuseColor.rgb = mix(dirt, vec3(0.07, 0.11, 0.035), grassy * 0.8);
+  if (festivalRolledGravel > 0.5) {
+    float wander = 0.20 * (owNoise(vec2(q.y * 0.047, 1.8)) - 0.5);
+    float path = 1.0 - smoothstep(0.14, 0.53, abs(abs(q.x + wander) - 0.86));
+    vec2 chips = q * 24.0;
+    vec2 pixel = fwidth(chips);
+    float resolveChips = 1.0 - smoothstep(0.32, 1.15, max(pixel.x, pixel.y));
+    float aggregate = (owNoise(chips) - 0.5) * resolveChips;
+    vec3 gravel = mix(vec3(0.128, 0.123, 0.108), vec3(0.283, 0.262, 0.217), grain);
+    gravel += vec3(aggregate * 0.12 * (1.0 - path * 0.62));
+    festivalGravelPolish = (0.38 + 0.62 * path) * festivalGravelWet;
+    diffuseColor.rgb = gravel * (1.0 - 0.14 * path - 0.29 * festivalGravelPolish);
+  }
 }`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\nroughnessFactor *= 1.0 - 0.34 * festivalGravelPolish;',
       );
   };
-  material.customProgramCacheKey = () => 'festival-dirt-v1';
+  material.customProgramCacheKey = () => 'festival-dirt-v2';
   return material;
 }
 /** Gravel verge strip beside the asphalt. */
@@ -305,9 +333,14 @@ float festivalShoulderGrowth = 0.0;
   return material;
 }
 
-/** Photographed loam under the dirt tracks and meadow on the verges (Medium and above). */
-function installScannedDirt(material: T.MeshStandardMaterial) {
-  installScannedDetail(material, 'forest', { strength: 1, chroma: 0.5, relief: 1.2 });
+/** Forest soil and quarry aggregate have separate photographed surfaces on Medium and above. */
+export function festivalUnsealedMaterial(compacted: boolean, wet: { value: number }) {
+  const material = dirtMaterial(compacted, wet);
+  installScannedDetail(material, compacted ? 'gravel' : 'forest', {
+    strength: 1,
+    chroma: 0.5,
+    relief: 1.2,
+  });
   return material;
 }
 function installScannedVerge(material: T.MeshStandardMaterial) {
@@ -410,7 +443,8 @@ export class RoadMeshes {
       asphaltMajor,
       asphalt,
       town,
-      dirt: installScannedDirt(dirtMaterial()),
+      dirt: festivalUnsealedMaterial(false, this.pavingWet),
+      gravel: festivalUnsealedMaterial(true, this.pavingWet),
       verge: installScannedVerge(vergeMaterial(this.pavingWet)),
       paving: pavingMaterial(this.pavingWet),
       paint,
@@ -427,7 +461,8 @@ export class RoadMeshes {
     this.build();
   }
   private layerOf(e: RoadEdge): Layer {
-    if (e.spec.surface === 'dirt') return 'dirt';
+    if (e.spec.surface === 'dirt')
+      return e.road.surfacing === 'compacted-gravel' ? 'gravel' : 'dirt';
     if (e.roadClass === 'town') return 'town';
     if (e.roadClass === 'highway' || e.roadClass === 'runway' || e.roadClass === 'circuit')
       return 'asphaltMajor';

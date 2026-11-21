@@ -223,6 +223,13 @@ describe('Festival surfacing integration', () => {
       largestWidthError = 0;
     const point = trackPoint();
     try {
+      const quarry = roads.root.getObjectByProperty('material', roads.materials.gravel) as T.Mesh;
+      expect(quarry.geometry.getAttribute('position').count).toBeGreaterThan(0);
+      const gravel = compile(roads.materials.gravel);
+      expect(gravel.uniforms.festivalRolledGravel.value).toBe(1);
+      expect(compile(roads.materials.dirt).uniforms.festivalRolledGravel.value).toBe(0);
+      roads.setWet(0.68);
+      expect(gravel.uniforms.festivalGravelWet.value).toBe(0.68);
       roads.root.traverse((object) => {
         if (!(object instanceof T.Mesh) || object instanceof T.InstancedMesh) return;
         const geometry = object.geometry;
