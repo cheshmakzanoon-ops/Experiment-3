@@ -12,6 +12,13 @@ on:
       - src/rendering/open-world/festival-practical-lights.ts
       - src/rendering/open-world/festival-renderer.ts
       - src/rendering/open-world/horizon-dressing.ts
+      - src/rendering/open-world/terrain*.ts
+      - src/rendering/open-world/water.ts
+      - src/rendering/open-world/river-current.ts
+      - src/rendering/open-world/headland-lantern.ts
+      - src/rendering/open-world/harbour-pennants.ts
+      - src/rendering/open-world/festival-start-board.ts
+      - src/rendering/vehicle-bodies/festival-*.ts
       - src/session/free-roam.ts
       - src/rendering/frame-state.ts
       - src/rendering/live-frame-clock.ts
@@ -24,10 +31,20 @@ on:
       - src/simulation/wheel-momentum.ts
       - src/simulation/open-world/skill-chain.ts
       - src/simulation/open-world/session.ts
+      - src/simulation/open-world/festival-events.ts
+      - src/simulation/open-world/open-world-track.ts
       - src/ui/festival-hud.ts
       - tests/festival-airtime.test.ts
       - tests/festival-dry-clouds.test.ts
       - tests/festival-practical-lights.test.ts
+      - tests/festival-terrain-transitions.test.ts
+      - tests/festival-coastal-water.test.ts
+      - tests/festival-headland-lantern.test.ts
+      - tests/festival-harbour-pennants.test.ts
+      - tests/festival-start-boards.test.ts
+      - tests/festival-rear-construction.test.ts
+      - tests/festival-qa-defects.test.ts
+      - tests/festival-shoulder-contact.test.ts
       - e2e/fixtures/horizon-r6-effects.*
       - e2e/fixtures/horizon-session.ts
       - scripts/horizon-r6-browser-review.mjs
@@ -82,6 +99,10 @@ jobs:
             tests/festival-dry-clouds.test.ts tests/festival-effects-integration.test.ts \
             tests/spray-lighting.test.ts tests/effects-upload.test.ts tests/gp-contact-effects.test.ts \
             tests/festival-practical-lights.test.ts tests/solvane-street-light-pools.test.ts \
+            tests/festival-terrain-transitions.test.ts tests/festival-coastal-water.test.ts \
+            tests/festival-headland-lantern.test.ts tests/festival-harbour-pennants.test.ts \
+            tests/festival-start-boards.test.ts tests/festival-rear-construction.test.ts \
+            tests/festival-qa-defects.test.ts tests/festival-shoulder-contact.test.ts \
             --maxWorkers=1 --reporter=default --reporter=json --outputFile="$HORIZON_R6_OUT/tests.json" \
             2>&1 | tee "$HORIZON_R6_OUT/tests.log"
       - name: Lint and content validation
