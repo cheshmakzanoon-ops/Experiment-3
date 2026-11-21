@@ -2010,7 +2010,7 @@ export class BikeModel {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
     if (this.definition.classId === 'gp-bike') {
-      this.m.opticalRain.set(v.time, v.liquidRain, v.speed);
+      this.m.opticalRain.set(v.time, v.liquidRain, v.speed, v.chassisLean, v.lateralG);
       this.m.fairingWear.value = gpFairingWear(v.frontFairingHealth);
     }
     this.cockpit?.update(v);
@@ -2208,6 +2208,7 @@ export interface BikePoseValues extends GpTyreAppearance {
    * (rad/s) and the spring-damped body state (gp-rider-dynamics.ts). */
   throttle?: number;
   gLong?: number;
+  lateralG?: number;
   roadSupportG?: number;
   leanRate?: number;
   gpBody?: GpRiderBodyState;
@@ -2786,6 +2787,7 @@ export class BikeShells {
     // plus the entrant's spring-damped body state on the simulation clock.
     v.throttle = sampleValue(a, b, o + F.THROTTLE, t);
     v.gLong = sampleValue(a, b, o + F.G_LONG, t);
+    v.lateralG = sampleValue(a, b, o + F.G_LAT, t);
     v.roadSupportG = v.roadContact?.valid ? sampleValue(a, b, o + F.G_VERT, t) : undefined;
     v.leanRate = sampleBikeField(a, b, o, B.LEAN_RATE, t);
     v.gpBody = riderBody?.sample(a, b, t, o, v.riding);

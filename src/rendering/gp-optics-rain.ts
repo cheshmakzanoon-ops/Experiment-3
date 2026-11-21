@@ -4,12 +4,24 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shade
 /** Shared by the GP entrant's cockpit screen and iridium shield at every LOD. */
 export class GpOpticalRain {
   readonly state = { value: new T.Vector3() };
+  readonly flow = { value: new T.Vector2() };
 
-  set(time = 0, rainMmH = 0, speed = 0) {
+  set(time = 0, rainMmH = 0, speed = 0, lean = 0, lateralG = 0) {
     this.state.value.set(
       Number.isFinite(time) ? time : 0,
       T.MathUtils.smoothstep(Number.isFinite(rainMmH) ? rainMmH : 0, 0, 7),
       T.MathUtils.smoothstep(Number.isFinite(speed) ? Math.abs(speed) : 0, 6, 60),
+    );
+    const air = this.state.value.z;
+    const bank = T.MathUtils.clamp(Number.isFinite(lean) ? lean : 0, -1.5, 1.5);
+    const acceleration = Number.isFinite(lateralG) ? lateralG : 0;
+    // A stationary tilted screen drains toward its low side. At steady lean,
+    // the apparent lateral force tends to zero. Air sweeps water up the screen
+    // at racing speed, overtaking gravity progressively on pit exit.
+    const across = T.MathUtils.clamp(Math.sin(bank) - acceleration * Math.cos(bank), -1, 1);
+    this.flow.value.set(
+      0.16 * across * (1 - 0.76 * air),
+      T.MathUtils.lerp(-0.14 * Math.cos(bank), 0.19, air),
     );
   }
 }
@@ -17,6 +29,7 @@ export class GpOpticalRain {
 const WATER = /* glsl */ `
 varying vec2 gpOpticMetres;
 uniform vec3 gpOpticWeather;
+uniform vec2 gpOpticFlow;
 
 float gpOpticHash( vec2 p ) {
   vec3 q = fract( vec3( p.xyx ) * vec3( 0.1031, 0.1030, 0.0973 ) );
@@ -34,10 +47,14 @@ float gpBeadHeight( vec2 metres ) {
   float phase = fract( gpOpticWeather.x * ( 0.14 + seed * 0.13 ) + size );
   float growth = smoothstep( 0.0, 0.16, phase ) * ( 1.0 - smoothstep( 0.77, 1.0, phase ) );
   float density = smoothstep( seed - 0.04, seed + 0.04, gpOpticWeather.y * 0.82 );
-  float travel = smoothstep( 0.35, 1.0, phase ) * ( 0.03 + gpOpticWeather.z * 0.23 );
-  vec2 centre = vec2( 0.25 + 0.5 * size, 0.32 + 0.27 * gpOpticHash( cell + 6.2 ) + travel );
+  float mobile = smoothstep( 0.20, 0.87, size ) * smoothstep( 0.28, 1.0, phase );
+  vec2 centre = vec2( 0.31 + 0.37 * size, 0.39 + 0.16 * gpOpticHash( cell + 6.2 ) );
+  centre += mobile * gpOpticFlow;
   vec2 d = fract( grid ) - centre;
-  d.y /= 1.0 + 1.7 * gpOpticWeather.z * phase;
+  // A pinned bead is round. A moving one lengthens along its drainage path.
+  vec2 direction = gpOpticFlow * inversesqrt( max( dot(gpOpticFlow,gpOpticFlow), 0.000001 ) );
+  float stretch = (0.25 + 1.0 * gpOpticWeather.z) * mobile;
+  d -= direction * dot(d,direction) * (stretch / (1.0 + stretch));
   float radius = 0.045 + 0.08 * size;
   float dome = max( 0.0, 1.0 - dot( d, d ) / ( radius * radius ) );
   return growth * density * dome * dome * ( 0.00032 + 0.00085 * size );
@@ -54,8 +71,9 @@ export function installGpOpticalRain(
   rain: GpOpticalRain,
   visor = false,
 ) {
-  chainShaderHook(material, 'gp-optical-rain-' + (visor ? 'visor-v1' : 'screen-v1'), (shader) => {
+  chainShaderHook(material, 'gp-optical-rain-' + (visor ? 'visor-v2' : 'screen-v2'), (shader) => {
     shader.uniforms.gpOpticWeather = rain.state;
+    shader.uniforms.gpOpticFlow = rain.flow;
     injectDeclarations(shader, 'common', 'varying vec2 gpOpticMetres;', 'vertex');
     // Screen positions are in bike space. Visor U follows the curved eye port
     // continuously from temple to temple. Both share a metric vertical scale.
