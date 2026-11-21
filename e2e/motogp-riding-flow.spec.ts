@@ -25,6 +25,8 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   const errors: string[] = [];
   const requestErrors: string[] = [];
   const pitAssets = new Set<string>();
+  let pageCrashed = false;
+  page.on('crash', () => { pageCrashed = true; });
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -285,7 +287,23 @@ test('GP practice rides through named corner guidance, cockpit, pause and record
   await expect(page.locator('#hud')).toHaveAttribute('data-camera', 'cockpit');
   const cockpitLayout = await readableGuide();
   await capture('03-gp-moving-cockpit-guide');
-  await expect.poll(async () => (await diag()).replaySamples).toBeGreaterThan(30);
+  await expect.poll(async () => {
+    if (pageCrashed) throw new Error('The GP practice page crashed before the replay check');
+    const recording = await page.evaluate((tick) => {
+      const state = window.apexDiagnostics();
+      return {
+        ready: state.replaySamples > 30,
+        samples: state.replaySamples,
+        error: state.replayError,
+        warnings: state.recordingWarnings,
+        state: state.state,
+        tick: state.frame?.[tick],
+      };
+    }, H.TICK);
+    if (recording.error || recording.warnings.length)
+      throw new Error(`GP practice recording failed ${JSON.stringify(recording)}`);
+    return recording;
+  }).toMatchObject({ ready: true });
 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();

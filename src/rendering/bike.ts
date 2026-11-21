@@ -2376,14 +2376,14 @@ export class BikeShells {
     const dirtMud = isDirtBike(definition) ? mudUniforms() : undefined;
     const levels = dirtMud
       ? []
-      : BIKE_DETAILS.map(
-          (detail) => new BikeModel(definition, scheme, detail, materials, detail === 'high'),
-        );
+      : BIKE_DETAILS.map((detail) => {
+          const model = new BikeModel(definition, scheme, detail, materials, detail === 'high');
+          // Release duplicate vertex arrays before constructing the next level of this entrant.
+          if (field) this.fieldGeometry.share(definition.id + '/' + detail, model.root);
+          model.root.visible = false;
+          return model;
+        });
     const gp = definition.classId === 'gp-bike';
-    for (const level of levels) {
-      if (field) this.fieldGeometry.share(definition.id + '/' + level.detail, level.root);
-      level.root.visible = false;
-    }
     // One spring-damped rider body per GP entrant, shared by its LODs.
     const riderBody = gp ? new GpRiderBody() : undefined;
     // Capture the opaque rest pose before a presentation hook can replace its

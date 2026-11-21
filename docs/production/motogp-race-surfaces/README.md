@@ -29,6 +29,8 @@ The studio views use the production bike and rider in controlled lighting. The t
 
 ![Poggio Alto in practice, chase view followed by cockpit view](practice.webp)
 
+The dry chase frame shows 157 km/h on the approach to Prima. The cockpit frame shows 100 km/h at corner entry. The same session loaded the pit crew’s axle gun and skipped the 5,793,632-byte car-jack model. Motorcycle service uses a front and rear paddock stand, with one gun operator per axle. Selecting a car field on the same circuit prepares its full equipment.
+
 Four GP-R1 riders run on wet tyres in the second session. The chase camera records a rider ahead in spray at 51 km/h. The cockpit view shows the real instrument display and race HUD at 126 km/h. Both tyres reported water contact and all four bikes were upright in the chase sample.
 
 ![Four-rider wet practice at Poggio Alto, chase view and onboard at speed](wet-practice.webp)
