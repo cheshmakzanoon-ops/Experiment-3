@@ -47,6 +47,8 @@ The single-rider wet practice shows 202 km/h on both dashboard and HUD. On pause
 
 Changing graphics while a GP race or replay is held now submits the displayed motorcycle pose through the new shadows, materials and post-processing. The preference waits for the GPU to finish that frame. The renderer also checks the shader link results and waits for the requested photographed sky and track surfaces within their loading budgets.
 
+In a live Poggio Alto settings check, changing the cockpit field of view from 54° to 55° retained worker tick 120, all 15 recorded samples and the displayed time of 6.907441 s. The display advanced from five frames to eight while the race stayed paused. Trying High on the Mesa software renderer then lost the WebGL context before a High riding view appeared. The session stayed paused, and pressing Escape kept the reload button available. Opening the same profile in a fresh Chromium process confirmed that it still held Low with the 55° field of view. [Recorded settings and circuit camera measurements](browser-results.json)
+
 ## Circuits
 
 ![Live chase and onboard pairs at Cape Wrenna, Haarveld and Montejaral](circuit-practice.webp)
