@@ -33,10 +33,9 @@ export interface FestivalEvent {
 }
 /** Road behind a skill challenge's entry for a run at speed. */
 export const RUN_UP_METRES = 260;
-/** A path that starts `back` metres of road behind the event's entry (the
- * closest it can find: a shorter run-up where the road is short) and follows
- * the event's own waypoints. `entry` is the route distance of the gate on it.
- * Null where no road runs up to the entry. */
+/** Approach the gate in its forward direction and follow the event waypoints.
+ * Prefer the requested run-up distance. Shorter aligned approaches can clear
+ * a steep loose launch or fit a short road. Entry is the gate station in metres. */
 export function approachRoute(
   world: OpenWorld,
   spec: FestivalEventSpec,
@@ -44,6 +43,8 @@ export function approachRoute(
   back = RUN_UP_METRES,
 ): { path: RoutePath; entry: number } | null {
   const p0 = path.at(0, pathPoint());
+  let fallback: { path: RoutePath; entry: number } | null = null;
+  let lowestLaunchGrade = Infinity;
   for (const b of [back, back * 0.7, back * 0.45, 70]) {
     const q: XZ = [p0.x - p0.tx * b, p0.z - p0.tz * b];
     try {
@@ -60,13 +61,25 @@ export function approachRoute(
         entry < b * 1.7 &&
         approach.length < entry + path.length * 1.2 + 40 &&
         at.tx * p0.tx + at.tz * p0.tz > 0.95
-      )
-        return { path: approach, entry };
+      ) {
+        const candidate = { path: approach, entry };
+        const start = approach.at(0, pathPoint());
+        if (world.network.edges[start.edge].spec.surface !== 'dirt') return candidate;
+        // A wet loose incline can consume the available tractive force before
+        // a rear-drive road car has rolling speed. Give the launch the gentler
+        // valid run-up, retaining the same gate and the same measured course.
+        const grade = (approach.at(16, pathPoint()).y - start.y) / 16;
+        if (grade <= 0.065) return candidate;
+        if (grade < lowestLaunchGrade) {
+          lowestLaunchGrade = grade;
+          fallback = candidate;
+        }
+      }
     } catch {
       /* no road there: try a shorter run-up */
     }
   }
-  return null;
+  return fallback;
 }
 /** Resolve every authored event: plan its route through the network,
  * validate the RouteGraph spec, place the marker. Throws on invalid data. */
