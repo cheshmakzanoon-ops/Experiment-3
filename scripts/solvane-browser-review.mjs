@@ -13,6 +13,7 @@ const candidate = process.env.SOLVANE_CANDIDATE === "1";
 const selectedView = process.env.SOLVANE_REVIEW_VIEW;
 const viewIds = [
   "day-drive",
+  "high-drive",
   "day-shopfront",
   "night-rain-street",
   "coastal-launch",
@@ -48,6 +49,7 @@ const report = {
 try {
   for (const test of [
     { id: "day-drive", lighting: "day", weather: "clear", quality: "medium" },
+    { id: "high-drive", lighting: "day", weather: "clear", quality: "high" },
     {
       id: "day-shopfront",
       lighting: "day",

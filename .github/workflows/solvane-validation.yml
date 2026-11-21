@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/solvane-validation.yml
+      - scripts/solvane-browser-review.mjs
       - src/rendering/open-world/solvane-details.ts
       - public/models/solvane/**
       - authoring/solvane/build_detail_kit.py
@@ -68,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        view: [day-drive, day-shopfront, night-rain-street, coastal-launch, low-drive, input-journey]
+        view: [day-drive, high-drive, day-shopfront, night-rain-street, coastal-launch, low-drive, input-journey]
     env:
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
@@ -103,7 +104,7 @@ jobs:
           node scripts/solvane-review-server.mjs > "$RUNNER_TEMP/solvane-server.log" 2>&1 &
           for i in $(seq 1 30); do curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null && break; sleep 1; done
           curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
-      - name: Actual medium/low compositions and loaded-asset assertions
+      - name: Gameplay compositions and loaded-asset assertions
         if: matrix.view != 'input-journey'
         env:
           SOLVANE_CANDIDATE: '1'
