@@ -16,6 +16,10 @@ The eight entrant liveries use three original patterns. Voltex, Northline and Or
 
 The helmet and chest follow the landing direction through a whip. The helmet camera responds to standing and fore-aft load transfer. A gear change cuts rear-wheel drive in flight, and an empty tank stops delivering drive torque. The hands stay registered on the controls and the boots follow the pegs.
 
+This tracking-camera study follows a Valley Ridge MX450 from takeoff through touchdown. It uses 66 consecutive frames from the race simulation at 30 samples per second, the high-detail race rig and a surveyed strip of the landing. The rider touches down at 22.91 seconds on the simulation clock.
+
+![Animated side view of the MX450 taking off, pitching in flight and settling onto the Valley Ridge landing](mx450-valley-jump.webp)
+
 ## Inside Arena Nord
 
 Two suspended boards show the official lap, race clock and finish state. This close-up uses a real eight-rider session ten seconds into racing. The roof’s two lighting banks reflect independently in metal, plastic and goggles. Sheltered clay keeps its groomed moisture while the outdoor weather continues.
