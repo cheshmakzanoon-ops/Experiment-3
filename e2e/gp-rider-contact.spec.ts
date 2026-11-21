@@ -4,21 +4,11 @@ import { resolve } from 'node:path';
 import type { captureBikeSequence } from './fixtures/motogp-reference-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
-/**
- * Exact production triangle totals of the isolated GP bikes (every link of an instanced mesh
- * counted, the procedural R6 race shell and the w3 GP rider with the elongated helmet). The
- * earlier pins (GP-R1 95,029 / GP-R2 94,250) were never true in this repository: the root commit
- * 395d7df and ebf691d (measured locally) already build 95,916 for GP-R2, CI run 41719338961 (main
- * 3ae3842) reports the same 95,916, and CI run 41915850034 (main eab1d91) reports 96,695 for
- * GP-R1; pre-hem main built 96,695 / 95,916 locally. Round-3 `hemShellEdges` (2.8 mm physical
- * thickness, 1.6 mm rolled radius, 2 arc segments on high-LOD exposed nose/flank, tank and tail
- * boundaries) adds +2,322 triangles on GP-R1 (+1,440 flank/nose, +600 tank, +216 tail, +66 nose
- * number decal across the hemmed brow) -> 99,017, and +2,178 triangles on GP-R2 (+1,296
- * flank/nose, +600 tank, +216 tail, +66 nose number decal) -> 98,094. The knee-slider sparks of
- * vehicle art 3 add no mesh triangles (a Points object). A change in these numbers is a change in
- * the model: update the pin together with the model, with the reason.
- */
-const TRIANGLES = { gpr1: 99017, gpr2: 98094 } as const;
+/** High-detail complete bike and rider, including every instanced link. The
+ * measured pre-pass models had 109,659 / 109,075 triangles. The recessed
+ * tail, fork ends and working steering damper bring the net additions to
+ * 318 / 280. Keep the exact counts alongside the overall 110k ceiling. */
+const TRIANGLES = { gpr1: 109_977, gpr2: 109_355 } as const;
 
 let fixtureScript: string;
 test.beforeAll(async () => {
@@ -86,6 +76,7 @@ for (const id of ['gpr1', 'gpr2']) {
         expect(result.sourceFrameUnchanged).toBe(true);
         expect(result.instance).toBe(sequence[0].instance);
         expect(result.triangles).toBe(TRIANGLES[id as keyof typeof TRIANGLES]);
+        expect(result.triangles).toBeLessThan(110_000);
         expect(result.calls).toBeLessThan(220);
         if (i > 1) expect(result.resources).toEqual(sequence[1].resources);
         if (i < 2)
