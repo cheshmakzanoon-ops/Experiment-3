@@ -680,7 +680,7 @@ export function buildClosedCabin(input: {
     );
     detailParts.add(roundedBox(0.26, 0.155, 0.022, 0.012, 2), plastic, stack);
     detailParts.add(roundedBox(0.242, 0.134, 0.004, 0.008, 2), sharedMaterials.visor(), fitting(0, 0, -0.0125));
-    if (input.def.classId === 'road' || input.def.classId === 'street') {
+    if (input.def.classId === 'road') {
       navigationPane = new T.Mesh(new T.PlaneGeometry(0.226, 0.1271).rotateY(Math.PI), trim);
       navigationPane.name = 'In-dash navigation glass';
       navigationPane.applyMatrix4(fitting(0, 0, -0.0155));
