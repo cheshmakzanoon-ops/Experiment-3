@@ -172,6 +172,19 @@ export function captureBikeSequence(
     camera.fov = 35;
     camera.updateProjectionMatrix();
   }
+  if (view === 'exhaust') {
+    const side = id === 'gpr1';
+    const mouth = side
+      ? new T.Vector3(-0.165, -0.08 - 0.157 * Math.sin(0.35), -0.74 - 0.157 * Math.cos(0.35))
+      : new T.Vector3(-0.148, -0.358, -0.3);
+    const eye = mouth
+      .clone()
+      .add(side ? new T.Vector3(-0.13, -0.045, -0.43) : new T.Vector3(-0.41, 0.15, -0.08));
+    bike.sprung.localToWorld(camera.position.copy(eye));
+    camera.lookAt(bike.sprung.localToWorld(mouth));
+    camera.fov = 30;
+    camera.updateProjectionMatrix();
+  }
   if (view === 'rear-chassis') {
     // Same production model and lighting; a mechanical camera that exposes
     // the undertray, rear arm, axle and damper without a detached display rig.

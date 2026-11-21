@@ -10,7 +10,7 @@ import {
 } from '../landscape.ts';
 import { plantingClearance, treeSeed, type PlantingExclusion } from '../aurel-vegetation-plan.ts';
 import { serviceSitePlan, type ServiceSite } from '../venue-service-plan.ts';
-import { plantingTerrain } from '../terrain.ts';
+import { drawnTerrain } from '../terrain.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { installFoliageShading, installFoliageWind } from './foliage-shading.ts';
 import { beltTreeStream, installBeltTrees } from './belt-trees.ts';
@@ -103,7 +103,7 @@ export function forestBeltPlan(
   seed = 0x6a09,
 ): BeltTree[] {
   const clear = plantingClearance(track, services, extraExclusion),
-    ground = plantingTerrain(track),
+    ground = drawnTerrain(track),
     anchor = trackPoint(),
     nearest = trackPoint(),
     trees: BeltTree[] = [];

@@ -82,9 +82,9 @@ export function terrainFor(track: Track): Terrain {
   return terrain;
 }
 
-/** Ground under groves well outside the verge. GP tracks use the submitted
- * triangles, including the steep coastal cuts. */
-export function plantingTerrain(track: Track): Pick<Terrain, 'height'> {
+/** Solid ground beneath trackside skirts and planting. On GP courses this is
+ * the submitted triangle surface, including the steep coastal cuts. */
+export function drawnTerrain(track: Track): Pick<Terrain, 'height'> {
   const terrain = terrainFor(track);
   return isGpCourse(track) ? terrainSurface(terrain) : terrain;
 }

@@ -291,20 +291,158 @@ export function gpSilencerHeatSoak(geometry: T.BufferGeometry): T.BufferGeometry
   return geometry;
 }
 
-/** Hollow, tapered silencer with a recessed bore and rolled outlet, rather
- * than the former two sealed black cylinders. Local -Y is the outlet. */
-export function gpSilencer(detail: RiderDetail, materials: BikeMaterials): T.Group {
+/** A cut steel liner. The faces and normals point into the gas passage.
+ * Each punched hole has its own aperture and reveals the darker bore behind. */
+function perforatedLiner(radius: number, length: number): T.BufferGeometry {
+  const positions: number[] = [],
+    normals: number[] = [],
+    uvs: number[] = [],
+    colours: number[] = [],
+    indices: number[] = [];
+  const cells = 12,
+    rows = 2;
+  const perimeter = [
+    [0, 0],
+    [0.5, 0],
+    [1, 0],
+    [1, 0.5],
+    [1, 1],
+    [0.5, 1],
+    [0, 1],
+    [0, 0.5],
+  ];
+  for (let row = 0; row < rows; row++) {
+    for (let cell = 0; cell < cells; cell++) {
+      const base = positions.length / 3;
+      for (let ring = 0; ring < 2; ring++) {
+        for (let corner = 0; corner < 8; corner++) {
+          const angle = ((corner - 3) * Math.PI) / 4;
+          const u = ring ? 0.5 + (row ? 0.1 : -0.1) + 0.23 * Math.cos(angle) : perimeter[corner][0];
+          const v = ring ? 0.5 + 0.265 * Math.sin(angle) : perimeter[corner][1];
+          const arc = (cell + u) / cells,
+            depth = (row + v) / rows;
+          const phi = arc * Math.PI * 2,
+            sin = Math.sin(phi),
+            cos = Math.cos(phi);
+          positions.push(radius * sin, depth * length, radius * cos);
+          normals.push(-sin, 0, -cos);
+          uvs.push(arc, depth);
+          const patina = (0.63 - 0.33 * depth) * (ring ? 0.78 : 1);
+          colours.push(patina, patina * 0.81, patina * 0.65);
+        }
+      }
+      for (let i = 0; i < 8; i++) {
+        const next = (i + 1) % 8;
+        indices.push(
+          base + i,
+          base + i + 8,
+          base + next,
+          base + i + 8,
+          base + next + 8,
+          base + next,
+        );
+      }
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute('color', new T.Float32BufferAttribute(colours, 3));
+  geometry.setIndex(indices);
+  return geometry;
+}
+
+function exhaustMesh(
+  root: T.Group,
+  geometry: T.BufferGeometry,
+  material: T.Material,
+  name: string,
+) {
+  bindGpBareMetal(geometry, material);
+  const mesh = new T.Mesh(geometry, material);
+  mesh.name = name;
+  mesh.castShadow = mesh.receiveShadow = true;
+  root.add(mesh);
+  return mesh;
+}
+
+/** Local +Y goes into the pipe. The rolled rim is open; only the deeply
+ * recessed end and the wall behind the perforations close the line of sight. */
+function addExhaustThroat(
+  root: T.Group,
+  materials: BikeMaterials,
+  lip: number,
+  radius: number,
+  depth: number,
+  segments: number,
+  perforated: boolean,
+) {
+  const endRadius = radius * 0.93;
+  exhaustMesh(
+    root,
+    new T.LatheGeometry(
+      [new T.Vector2(endRadius, lip + depth), new T.Vector2(radius, lip)],
+      segments,
+    ),
+    materials.dark,
+    'Recessed silencer bore',
+  );
+  const end = exhaustMesh(
+    root,
+    new T.CircleGeometry(endRadius, segments),
+    materials.dark,
+    'Recessed exhaust baffle',
+  );
+  end.rotation.x = Math.PI / 2;
+  end.position.y = lip + depth;
+  if (perforated) {
+    const core = exhaustMesh(
+      root,
+      perforatedLiner(radius * 0.925, depth * 0.4),
+      materials.titanium,
+      'Perforated exhaust liner',
+    );
+    core.position.y = lip + depth * 0.1;
+  }
+}
+
+/** Rolled termination of the GP-R2's lateral under-engine exit. */
+export function gpBellyOutlet(detail: RiderDetail, materials: BikeMaterials): T.Group {
+  const root = new T.Group();
+  root.name = 'GP lateral exhaust outlet';
+  const segments = detail === 'high' ? 24 : 12;
+  const profile = [
+    [0.0235, 0.011],
+    [0.0236, -0.001],
+    [0.0244, -0.003],
+    [0.0265, -0.0025],
+    [0.027, 0.001],
+    [0.0265, 0.009],
+    [0.026, 0.014],
+  ];
+  exhaustMesh(
+    root,
+    new T.LatheGeometry(
+      profile.map(([r, y]) => new T.Vector2(r, y)),
+      segments,
+    ),
+    materials.titanium,
+    'Rolled lateral exhaust mouth',
+  );
+  addExhaustThroat(root, materials, 0, 0.0232, 0.046, segments, detail === 'high');
+  return root;
+}
+
+/** Hollow, tapered side silencer. Local -Y is the outlet. */
+export function gpSilencer(
+  detail: RiderDetail,
+  materials: BikeMaterials,
+  prototype = true,
+): T.Group {
   const root = new T.Group();
   root.name = 'GP formed titanium silencer';
   const segments = detail === 'high' ? 28 : 16;
-  const mesh = (geometry: T.BufferGeometry, material: T.Material, name: string) => {
-    bindGpBareMetal(geometry, material);
-    const m = new T.Mesh(geometry, material);
-    m.name = name;
-    m.castShadow = m.receiveShadow = true;
-    root.add(m);
-    return m;
-  };
   const profile = [
     [0.03, -0.108],
     [0.03, -0.153],
@@ -316,7 +454,8 @@ export function gpSilencer(detail: RiderDetail, materials: BikeMaterials): T.Gro
     [0.053, 0.128],
     [0.034, 0.15],
   ];
-  mesh(
+  exhaustMesh(
+    root,
     gpSilencerHeatSoak(
       new T.LatheGeometry(
         profile.map(([r, y]) => new T.Vector2(r, y)),
@@ -326,19 +465,9 @@ export function gpSilencer(detail: RiderDetail, materials: BikeMaterials): T.Gro
     materials.titanium,
     'Rolled titanium shell and open outlet',
   );
-  mesh(
-    new T.LatheGeometry([new T.Vector2(0.029, -0.152), new T.Vector2(0.027, -0.072)], segments),
-    materials.dark,
-    'Recessed silencer bore',
-  );
-  const end = mesh(
-    new T.CircleGeometry(0.027, segments),
-    materials.dark,
-    'Recessed exhaust baffle',
-  );
-  end.rotation.x = Math.PI / 2;
-  end.position.y = -0.072;
-  const band = mesh(
+  addExhaustThroat(root, materials, -0.152, 0.029, 0.08, segments, prototype && detail === 'high');
+  const band = exhaustMesh(
+    root,
     new T.CylinderGeometry(0.0565, 0.0565, 0.026, segments, 1, true),
     materials.carbon,
     'Carbon retention strap',

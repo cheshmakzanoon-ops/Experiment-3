@@ -11,6 +11,7 @@ import {
   bindGpBareMetal,
   calibrateGpMaterials,
   gpFrontFender,
+  gpBellyOutlet,
   gpScreenAlpha,
   gpSilencer,
   gpSilencerHeatSoak,
@@ -261,7 +262,7 @@ describe('GP refined surface and mechanical contracts', () => {
     calibrateGpMaterials(m, 'gpr1');
     const root = gpSilencer('high', m);
     try {
-      expect(root.children).toHaveLength(4);
+      expect(root.children).toHaveLength(5);
       const baffle = root.getObjectByName('Recessed exhaust baffle')!;
       expect(baffle.position.y).toBeGreaterThan(-0.153);
       const shell = root.getObjectByName('Rolled titanium shell and open outlet') as T.Mesh;
@@ -272,6 +273,56 @@ describe('GP refined surface and mechanical contracts', () => {
       m.dispose();
     }
   });
+  it.each([
+    ['side', -0.152, 0.08],
+    ['belly', 0, 0.046],
+  ] as const)(
+    'the %s outlet has open perforations, front-facing bore walls and a recessed end',
+    (type, lip, depth) => {
+      const materials = new BikeMaterials(0);
+      calibrateGpMaterials(materials, type === 'side' ? 'gpr1' : 'gpr2');
+      const make = (level: 'high' | 'mid') =>
+        type === 'side' ? gpSilencer(level, materials) : gpBellyOutlet(level, materials);
+      const high = make('high'),
+        mid = make('mid');
+      try {
+        high.updateMatrixWorld(true);
+        mid.updateMatrixWorld(true);
+        const core = high.getObjectByName('Perforated exhaust liner') as T.Mesh;
+        expect(core.material).toBe(materials.titanium);
+        expect(core.geometry.getIndex()!.count / 3).toBe(384);
+        expect(mid.getObjectByName('Perforated exhaust liner')).toBeUndefined();
+        const radial = (u: number, v: number) => {
+          const phi = (u / 12) * Math.PI * 2;
+          return new T.Raycaster(
+            new T.Vector3(0, lip + depth * (0.1 + 0.2 * v), 0),
+            new T.Vector3(Math.sin(phi), 0, Math.cos(phi)),
+          );
+        };
+        for (let cell = 0; cell < 12; cell++) {
+          for (let row = 0; row < 2; row++) {
+            const aperture = radial(cell + (row ? 0.6 : 0.4), row + 0.5);
+            expect(aperture.intersectObject(core)).toHaveLength(0);
+            for (const root of [high, mid])
+              expect(
+                aperture.intersectObject(root.getObjectByName('Recessed silencer bore')!).length,
+              ).toBeGreaterThan(0);
+            const metal = radial(cell + 0.1, row + 0.15).intersectObject(core)[0];
+            expect(metal).toBeDefined();
+            expect(metal.face!.normal.dot(aperture.ray.direction)).toBeLessThan(-0.8);
+          }
+        }
+        const axial = new T.Raycaster(new T.Vector3(0, lip - 0.01, 0), new T.Vector3(0, 1, 0));
+        const first = axial.intersectObjects(high.children)[0];
+        expect(first.object.name).toBe('Recessed exhaust baffle');
+        expect(first.point.y).toBeCloseTo(lip + depth, 5);
+      } finally {
+        release(high);
+        release(mid);
+        materials.dispose();
+      }
+    },
+  );
   it.each(['gpr1', 'gpr2'])(
     '%s integrates the fender and silencer without exceeding the original complete-model gate',
     (id) => {

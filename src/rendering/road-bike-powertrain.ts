@@ -8,7 +8,7 @@ import {
   type BikeMaterials,
 } from './bike.ts';
 import { addClassicInduction } from './road-bike-classic-induction.ts';
-import { gpSilencer } from './gp-appearance.ts';
+import { gpBellyOutlet, gpSilencer } from './gp-appearance.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import type { BikeSheet } from './bike-sheet.ts';
 import type { RiderDetail } from './rider.ts';
@@ -416,6 +416,13 @@ export function addRoadPowertrain(
       [-0.148, -0.358, -0.3],
     ];
     add(body, exhaustGeometry(exit, 0.026, near ? 10 : 6, sides), m.titanium);
+    if (prototype && !far) {
+      const outlet = gpBellyOutlet(detail, m);
+      outlet.position.set(...exit[2]);
+      const inward = new T.Vector3(...exit[1]).sub(outlet.position).normalize();
+      outlet.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), inward);
+      addGpRigidFinish(body, outlet, [m.titanium, m.dark]);
+    }
     return;
   }
   const short = look.exhaust === 'stubby',
@@ -464,7 +471,7 @@ export function addRoadPowertrain(
     add(body, casing, m.titanium, centre.x, centre.y, centre.z);
     return;
   }
-  const silencer = gpSilencer(detail, m);
+  const silencer = gpSilencer(detail, m, prototype);
   silencer.scale.set(short ? 1.09 : 1, lengthScale, short ? 0.91 : 1);
   silencer.position.copy(centre);
   silencer.rotation.x = rotation;

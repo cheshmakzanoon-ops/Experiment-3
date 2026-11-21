@@ -2216,6 +2216,8 @@ interface Entry {
   riderBody?: GpRiderBody;
   /** GP prototypes: key of the shared bike-space occlusion volume. */
   occlusion?: string;
+  /** GP material switches belong to the entrant and survive model LOD changes. */
+  highGpFinish?: boolean;
 }
 const COMPOUND_COLOURS = Object.values(COMPOUNDS).map((c) => c.color);
 /** Chase-camera roll as a fraction of the followed bike's lean. */
@@ -2644,19 +2646,25 @@ export class BikeShells {
       if (entry.occlusion) {
         // Bike-space occlusion follows the presented sprung frame; High/ULTRA only.
         const occlusion = entry.materials.occlusion;
-        setGpOcclusionStrength(occlusion, quality === 'high');
-        setGpMetalAnisotropy(entry.materials, quality === 'high');
-        setGpPanelRelief(entry.materials, quality === 'high');
-        const rider = (model as BikeModel).rider;
-        // The seated rider as capsule occluders; none while he is thrown clear.
-        const seated =
-          quality === 'high' && rider.root.parent === (model as BikeModel).sprung
-            ? rider.gpOccluders((slot, a, b, r) => setGpCapsule(occlusion, slot, a, b, r))
-            : 0;
-        for (let slot = seated; slot < GP_CAPSULES; slot++) occlusion.gpCapA.value[slot].w = 0;
-        const sprung = (model as BikeModel).sprung;
-        sprung.updateWorldMatrix(true, false);
-        occlusion.gpOccFromWorld.value.copy(sprung.matrixWorld).invert();
+        const high = quality === 'high';
+        if (entry.highGpFinish !== high) {
+          entry.highGpFinish = high;
+          setGpOcclusionStrength(occlusion, high);
+          setGpMetalAnisotropy(entry.materials, high);
+          setGpPanelRelief(entry.materials, high);
+          if (!high) for (const capsule of occlusion.gpCapA.value) capsule.w = 0;
+        }
+        if (high) {
+          const { rider, sprung } = model as BikeModel;
+          // The seated rider casts contact shadows; a separated rider does not.
+          const seated =
+            rider.root.parent === sprung
+              ? rider.gpOccluders((slot, a, b, r) => setGpCapsule(occlusion, slot, a, b, r))
+              : 0;
+          for (let slot = seated; slot < GP_CAPSULES; slot++) occlusion.gpCapA.value[slot].w = 0;
+          sprung.updateWorldMatrix(true, false);
+          occlusion.gpOccFromWorld.value.copy(sprung.matrixWorld).invert();
+        }
       }
     }
   }

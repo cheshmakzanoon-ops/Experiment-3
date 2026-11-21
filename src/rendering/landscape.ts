@@ -2,7 +2,7 @@ import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { cataloguePlantingGround } from './venue-kit/planting-ground.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { landmarkSitePlan, inLandmarkFootprint } from './venue-landmark.ts';
-import { plantingTerrain, terrainFor } from './terrain.ts';
+import { drawnTerrain, terrainFor } from './terrain.ts';
 import { AUREL_VENUE, venuePlan, type PlantingZoneSpec } from './venue-plan.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
@@ -137,7 +137,7 @@ export function grovePlan(
     nearest = trackPoint();
   const districts = districtPlan(track, services);
   const landmark = landmarkSitePlan(track, services, districts);
-  const terrain = terrainFor(track), planted = plantingTerrain(track);
+  const terrain = terrainFor(track), planted = drawnTerrain(track);
   const blocked = (x: number, z: number, margin: number) => {
     // Nothing grows below the waterline on a coastal venue.
     if (terrain.seaLevel !== null && planted.height(x, z) < terrain.seaLevel + 0.6) return true;

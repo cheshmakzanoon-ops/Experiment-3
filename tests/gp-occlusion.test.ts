@@ -367,6 +367,15 @@ describe('GP bike-space occlusion', () => {
       expect(occlusion.gpOccParams.value.y).toBe(0);
       expect(occlusion.gpCapStrength.value).toBe(0);
       expect(occlusion.gpCapA.value.every((c) => c.w === 0)).toBe(true);
+      // A moving bike on a cheaper tier skips the inactive inverse and capsule work.
+      const inactiveInverse = occlusion.gpOccFromWorld.value.clone();
+      host.root.position.x += 9;
+      shells.update(frame, frame, 1, [host], camera, 'low', 0);
+      expect(occlusion.gpOccFromWorld.value.equals(inactiveInverse)).toBe(true);
+      shells.update(frame, frame, 1, [host], camera, 'high', 0);
+      expect(occlusion.gpOccFromWorld.value.equals(inactiveInverse)).toBe(false);
+      expect(occlusion.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
+      expect(occlusion.gpCapA.value.filter((c) => c.w > 0)).toHaveLength(GP_CAPSULES);
     } finally {
       shells.disposeAll();
     }

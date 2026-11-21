@@ -14,7 +14,7 @@ import { grovePlan, plantingCharacter, vegetationPlan, type TreePlacement } from
 import { venuePlan } from '../venue-plan.ts';
 import type { QualityPreset } from '../options.ts';
 import { forestBeltPlan, FOREST_BELTS } from '../studio/forest-belts.ts';
-import { plantingTerrain, terrainFor } from '../terrain.ts';
+import { drawnTerrain, terrainFor } from '../terrain.ts';
 import { inServiceFootprint, type ServiceSite } from '../venue-service-plan.ts';
 import { PhotoForest, type PhotoPlant } from './forest.ts';
 import { grassPlan, TrackGrass } from './grass.ts';
@@ -150,7 +150,7 @@ export class PhotoPlanting {
   private build(group: T.Object3D) {
     const options = this.options;
     const { track, library, palette, services, exclusion } = options;
-    const planted = plantingTerrain(track);
+    const planted = drawnTerrain(track);
     const ground = (x: number, z: number) => planted.height(x, z);
     let trees = 0;
     if (options.aurel) {

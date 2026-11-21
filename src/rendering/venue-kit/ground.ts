@@ -1,9 +1,9 @@
 import type * as T from 'three';
 import { clamp } from '../../core/math.ts';
-import { SURFACE, trackPoint } from '../../simulation/track.ts';
+import { SURFACE, trackPoint, type TrackPoint } from '../../simulation/track.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import type { BuildQueue } from '../build-queue.ts';
-import { terrainFor } from '../terrain.ts';
+import { drawnTerrain, type Terrain } from '../terrain.ts';
 import type { VenueKitContext } from './context.ts';
 
 /** The CircuitScene surface API the kit reuses, so verges and skirts carry
@@ -25,6 +25,19 @@ export interface RibbonHost {
   ): T.Mesh;
 }
 
+/** Offset from the road cross-section to a skirt knot. A small embed at
+ * the far edge prevents light leaking through the join on a bank. */
+export function catalogueSkirtOffset(
+  p: TrackPoint,
+  ground: Pick<Terrain, 'height'>,
+  lateral: number,
+  t: number,
+) {
+  const road = p.y + p.bank * clamp(lateral, -12, 12);
+  const target = ground.height(p.x + p.nx * lateral, p.z + p.nz * lateral) - 0.08;
+  return -0.05 + (target - road + 0.05) * t * t * (3 - 2 * t);
+}
+
 /** Verge between the run-off paint and the barrier (grass, sand, gravel trap
  * or asphalt run-off exactly where physics reads them), then a skirt beyond
  * the barrier that eases onto the venue terrain. Quads over another section
@@ -34,7 +47,7 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
     gp = isGpCourse(track),
     p = trackPoint(),
     m = kit.materials,
-    terrain = terrainFor(track);
+    terrain = drawnTerrain(track);
   const inner = (s: number) => track.at(s, p).width + 4;
   const surfaceAt = (s: number, lateral: number) => track.runoffSurface(track.at(s, p), lateral);
   // GP venues: a gravel trap's ribbon reaches one quad into the grass either
@@ -75,10 +88,7 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
     },
     height: (s: number, l: number, t: number) => {
       track.at(s, p);
-      const road = p.y + p.bank * clamp(l, -12, 12),
-        ground = terrain.height(p.x + p.nx * l, p.z + p.nz * l) - 0.08 - road,
-        k = t * t * (3 - 2 * t);
-      return -0.05 + (ground + 0.05) * k;
+      return catalogueSkirtOffset(p, terrain, l, t);
     },
     include: (s: number, lateral: number) => {
       track.at(s, p);

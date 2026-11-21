@@ -1,6 +1,6 @@
 import { Track, trackPoint } from '../simulation/track.ts';
 import { vegetationPlan, grovePlan, plantingCharacter, type TreePlacement } from './landscape.ts';
-import { plantingTerrain, terrainFor } from './terrain.ts';
+import { drawnTerrain, terrainFor } from './terrain.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { districtPlan, inDistrictFootprint } from './venue-districts.ts';
@@ -55,7 +55,7 @@ export function plantingClearance(
   const nearest = trackPoint(),
     districts = districtPlan(track, services),
     landmark = landmarkSitePlan(track, services, districts),
-    ground = terrainFor(track), planted = plantingTerrain(track);
+    ground = terrainFor(track), planted = drawnTerrain(track);
   return (tree: AuthoredTree) => {
     const l = track.nearest(tree.x, tree.z, nearest),
       radius = crownRadius(tree),

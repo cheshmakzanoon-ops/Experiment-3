@@ -17,6 +17,9 @@ on:
       - 'src/rendering/mirrors.ts'
       - 'src/rendering/reflections.ts'
       - 'src/rendering/circuit.ts'
+      - 'src/rendering/terrain-surface.ts'
+      - 'src/rendering/venue-kit/ground.ts'
+      - 'src/rendering/venue-kit/planting-ground.ts'
       - 'src/rendering/venue-kit/gp-*'
       - 'src/rendering/venue-kit/barriers.ts'
       - 'src/rendering/venue-kit/structures.ts'
@@ -45,6 +48,7 @@ on:
       - 'e2e/*motogp*'
       - 'e2e/motorcycle-presentation.spec.ts'
       - 'e2e/gp-rear-chassis.spec.ts'
+      - 'e2e/gp-optical-rain.spec.ts'
       - 'e2e/gp-front-brake.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
       - 'e2e/gp-fork-crown.spec.ts'
@@ -175,7 +179,9 @@ jobs:
           tests/gp-proximity.test.ts tests/proximity.test.ts
           tests/gp-r5-materials.test.ts tests/preparation.test.ts
           tests/gp-race-shell.test.ts tests/gp-course-boards.test.ts
-          tests/gp-safety-padding.test.ts
+          tests/gp-safety-padding.test.ts tests/gp-terrain-surface.test.ts
+          tests/gp-appearance.test.ts tests/gp-occlusion.test.ts
+          tests/wing-surface.test.ts tests/bike-slipstream.test.ts
           tests/gp-fork-crown.test.ts tests/bike-cockpit-view.test.ts
           tests/gp-front-contact-steering.test.ts
           tests/gp-steering-inverse.test.ts tests/gp-input-cadence.test.ts
@@ -242,7 +248,7 @@ jobs:
           - scene: dry-riding
             specs: e2e/motogp-riding-flow.spec.ts
           - scene: wet-riding
-            specs: e2e/motogp-wet-riding.spec.ts
+            specs: e2e/motogp-wet-riding.spec.ts e2e/gp-optical-rain.spec.ts
           - scene: menu-entry
             specs: e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts e2e/gpu-context-reuse.spec.ts
     env:

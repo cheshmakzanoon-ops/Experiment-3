@@ -1,10 +1,11 @@
 import { expect, it } from 'vitest';
 import * as T from 'three';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
-import { Track } from '../src/simulation/track.ts';
+import { Track, trackPoint } from '../src/simulation/track.ts';
 import { grovePlan } from '../src/rendering/landscape.ts';
 import { TERRAIN_SIZE, terrainSegments, terrainSurface } from '../src/rendering/terrain-surface.ts';
-import { terrainFor } from '../src/rendering/terrain.ts';
+import { catalogueSkirtOffset } from '../src/rendering/venue-kit/ground.ts';
+import { drawnTerrain, terrainFor } from '../src/rendering/terrain.ts';
 
 it('seats coastal trees on the visible triangle on either side of its diagonal', () => {
   const track = new Track('clear', false, undefined, CIRCUITS['cape-wrenna']);
@@ -46,4 +47,28 @@ it('seats coastal trees on the visible triangle on either side of its diagonal',
   }
   geometry.dispose();
   patch.material.dispose();
+});
+
+it('embeds the outer edge of the GP verge into the actual hillside across both pit sides', () => {
+  for (const id of ['cape-wrenna', 'poggio-alto', 'haarveld', 'montejaral'] as const) {
+    const track = new Track('clear', false, undefined, CIRCUITS[id]),
+      ground = drawnTerrain(track),
+      visible = terrainSurface(terrainFor(track)),
+      p = trackPoint();
+    let highest = -Infinity,
+      lowest = Infinity;
+    for (let s = 0; s < track.length; s += 2) {
+      track.at(s, p);
+      for (const side of [-1, 1]) {
+        const lat = side * (Math.max(p.width + 4, track.boundaryAt(p, side) + 1) + 26);
+        const road = p.y + p.bank * Math.max(-12, Math.min(12, lat));
+        const edge = road + catalogueSkirtOffset(p, ground, lat, 1);
+        const gap = edge - visible.height(p.x + p.nx * lat, p.z + p.nz * lat);
+        highest = Math.max(highest, gap);
+        lowest = Math.min(lowest, gap);
+      }
+    }
+    expect(highest).toBeCloseTo(-0.08, 6);
+    expect(lowest).toBeCloseTo(-0.08, 6);
+  }
 });

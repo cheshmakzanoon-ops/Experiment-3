@@ -84,7 +84,7 @@ export function installGpPanelRelief(
   return uniforms;
 }
 
-/** Switch the entrant's livery relief with the graphics tier (per frame, idempotent). */
+/** Switch the entrant's livery relief with the graphics tier (shared by every model LOD). */
 export function setGpPanelRelief(materials: Pick<BikeMaterials, 'list'>, enabled: boolean) {
   for (const material of materials.list) {
     const uniforms = material.userData.gpRelief as GpPanelReliefUniforms | undefined;
