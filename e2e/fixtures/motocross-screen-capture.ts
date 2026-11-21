@@ -1,11 +1,49 @@
 import type { CDPSession, Page } from '@playwright/test';
+import { createHash } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { PNG } from 'pngjs';
 
 const run = promisify(execFile);
 const inset = 32;
 const size = 12;
+
+/** These two points lie inside the existing Resume button, clear of its text and border. */
+export interface PauseButtonPixels {
+  x: number[];
+  y: number;
+  rgb: number[];
+}
+
+export function screenImageDigest(
+  bytes: Buffer,
+  viewport: { width: number; height: number },
+  pauseButton?: PauseButtonPixels,
+) {
+  const { width, height, data } = PNG.sync.read(bytes);
+  if (width !== viewport.width || height !== viewport.height)
+    throw new Error(`Expected a ${viewport.width}×${viewport.height} viewport, received ${width}×${height}`);
+  let dark = 255, light = 0;
+  for (let row = 0; row < 16; row++) {
+    const y = Math.floor((row + 0.5) * height / 16);
+    for (let column = 0; column < 16; column++) {
+      const x = Math.floor((column + 0.5) * width / 16);
+      const i = (y * width + x) * 4;
+      const brightness = (data[i] + 2 * data[i + 1] + data[i + 2]) / 4;
+      dark = Math.min(dark, brightness);
+      light = Math.max(light, brightness);
+    }
+  }
+  if (light - dark < 32) return null;
+  if (pauseButton) {
+    const { x, y, rgb } = pauseButton;
+    if (y < 0 || y >= height || x.some(point => point < 0 || point >= width)) return null;
+    if (!x.every(point => rgb.every((value, channel) =>
+      Math.abs(data[(y * width + point) * 4 + channel] - value) <= 8))) return null;
+  }
+  return createHash('sha256').update(data).digest('hex');
+}
 
 function findMarker(pixels: Buffer, width: number, height: number, green: boolean) {
   const matches = (i: number) => {

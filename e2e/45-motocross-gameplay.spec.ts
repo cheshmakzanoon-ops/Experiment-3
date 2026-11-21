@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { motocrossScreenCapture } from './fixtures/motocross-screen-capture.ts';
+import {
+  motocrossScreenCapture, screenImageDigest, type PauseButtonPixels,
+} from './fixtures/motocross-screen-capture.ts';
 import { mod } from '../src/core/math.ts';
 import { F, H, O, R, OFFROAD_BASE, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
@@ -49,21 +50,33 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   const diag = () => page.evaluate(() => window.apexDiagnostics());
   const screenshot = await motocrossScreenCapture(page);
   const images = new Set<string>();
-  const capture = async (name: string) => {
+  const capture = async (
+    name: string,
+    matchesFrame?: (value: Awaited<ReturnType<typeof diag>>) => boolean,
+    pauseButton?: PauseButtonPixels,
+  ) => {
     const path = info.outputPath(name);
     let digest = '';
-    // The worker can acknowledge pause while X11 still displays the last
-    // onboard frame. Read the presented screen until the new pixels arrive.
-    // A frozen or repeated view must still fail this transition.
+    let submission: number | undefined, paintObserved = false;
+    // A submitted camera/pose can precede its visible X11 image by a whole
+    // frame. Wait for that submission's fence and a browser paint opportunity.
     await expect
       .poll(
         async () => {
+          if (errors.length) throw new Error(errors[0]);
+          if (matchesFrame && !paintObserved) {
+            const current = await diag();
+            if (!matchesFrame(current) || !current.renderer) return false;
+            const queue = current.renderer.gpuFrameQueue;
+            submission ??= queue.submitted;
+            if (!submission || queue.completed < submission) return false;
+            await page.evaluate(() => new Promise<void>(resolve =>
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+            paintObserved = true;
+          }
           await screenshot(path);
-          const pixels = await readFile(path);
-          expect(pixels.readUInt32BE(16)).toBe(page.viewportSize()!.width);
-          expect(pixels.readUInt32BE(20)).toBe(page.viewportSize()!.height);
-          digest = createHash('sha256').update(pixels).digest('hex');
-          return !images.has(digest);
+          digest = screenImageDigest(await readFile(path), page.viewportSize()!, pauseButton) ?? '';
+          return digest !== '' && !images.has(digest);
         },
         {
           timeout: 45000,
@@ -279,7 +292,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     const bodyBack = await diag();
     console.info(`[MX journey] ${circuit} reused its completed gate for ${bodyBack.gridPresentation.reusedDirtGateFrames} display callbacks`);
     expect(bodyBack.frame![o + F.SPEED]).toBeLessThan(1);
-    await capture(`${circuit}-actual-weight-back.png`);
+    await capture(`${circuit}-actual-weight-back.png`,
+      d => (d.presentation?.car.riderWeight ?? 0) < -0.55);
     await page.keyboard.up('z');
     await page.keyboard.up('s');
     // Exercise the real player throttle before handing the observed run to
@@ -389,7 +403,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(ridden.options.vehicles?.every((id) => id === machine)).toBe(true);
     expect(ridden.presentation!.frames).toBeGreaterThan(initialized.presentation!.frames);
     console.info(`[MX journey] ${circuit} has real course progress, flight and touchdown`);
-    await capture(`${circuit}-actual-chase.png`);
+    await capture(`${circuit}-actual-chase.png`,
+      d => d.renderer?.presentedCamera === 'chase' && (d.presentation?.time ?? 0) >= aiStartedAt + 10);
     expect((await diag()).state, `${circuit} is live before switching cameras`).toBe('driving');
     await page.keyboard.press('c');
     await expect
@@ -398,16 +413,27 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
         return { state: state.state, camera: state.renderer?.camera };
       })
       .toEqual({ state: 'driving', camera: 'cockpit' });
-    await capture(`${circuit}-actual-onboard.png`);
+    await capture(`${circuit}-actual-onboard.png`, d => d.renderer?.presentedCamera === 'cockpit');
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();
+    const resumeButton = page.getByRole('button', { name: 'RESUME SESSION', exact: true });
+    await expect(resumeButton).toBeVisible();
     await expect.poll(async () => (await diag()).workerPause.pending).toBe(false);
     const paused = await diag();
     expect(paused.frame![H.SC_PHASE]).toBe(0);
-    await capture(`${circuit}-actual-pause.png`);
+    const pausePixels = await resumeButton.evaluate(button => {
+      const rect = button.getBoundingClientRect();
+      const rgb = getComputedStyle(button).backgroundColor.match(/\d+(?:\.\d+)?/g)?.slice(0, 3).map(Number);
+      if (rgb?.length !== 3) throw new Error('Cannot sample the painted Resume button colour');
+      return {
+        x: [0.2, 0.8].map(fraction => Math.floor(rect.left + fraction * rect.width)),
+        y: Math.floor(rect.top + rect.height * 0.18), rgb,
+      };
+    });
+    await capture(`${circuit}-actual-pause.png`, undefined, pausePixels);
     const held = await diag();
     expect(held.workerPause.paused).toBe(true);
     expect(held.frame![H.TICK]).toBe(paused.frame![H.TICK]);
+    expect(held.presentation?.frames).toBe(paused.presentation?.frames);
     reports.push({
       circuit,
       machine,

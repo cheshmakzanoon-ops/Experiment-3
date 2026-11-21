@@ -172,6 +172,7 @@ function presentedCar(frame: Float32Array) {
     z: frame[o + F.Z] ?? 0,
     speed: frame[o + F.SPEED] ?? 0,
     lean: frame[o + BIKE_BASE + B.LEAN] ?? 0,
+    riderWeight: frame[o + OFFROAD_BASE + O.BODY] ?? 0,
     airborne: frame[o + OFFROAD_BASE + O.AIRBORNE] ?? 0,
     airTime: frame[o + OFFROAD_BASE + O.AIR_TIME] ?? 0,
   };
@@ -1587,15 +1588,14 @@ export class GameApp {
         return;
       }
     }
-    // A motocross briefing holds the worker at the start gate. Poll its real
-    // GPU fence above, then leave the completed chase image with the compositor
-    // until the rider starts, the viewport changes or the briefing closes.
+    // A motocross pause covers a still race image with a DOM dialog. Keep
+    // polling the last real GPU fence, but let the compositor retain that image.
+    // A fresh briefing, camera choice or resize can still request its own draw.
     if (
       this.state === 'paused' &&
-      this.gridBriefingOpen &&
-      this.ui.modal.open &&
       this.renderer.circuit.offroad &&
-      this.renderedState === this.state &&
+      (this.ui.pauseMenuOpen || (this.gridBriefingOpen && this.ui.modal.open)) &&
+      (this.renderedState === 'paused' || this.renderedState === 'driving') &&
       !this.viewportRedrawPending
     )
       return;
@@ -2862,6 +2862,7 @@ export class GameApp {
         this.performanceCapture.interrupt('Camera changed');
         this.interruptReview('Camera changed');
         this.renderer?.changeCamera();
+        if (this.state === 'paused' && this.renderer?.circuit.offroad) this.renderedState = null;
         break;
       case 'pit':
         if (this.state === 'driving') {
