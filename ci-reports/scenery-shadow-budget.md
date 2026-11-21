@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44890820955
-- commit: `62fd5d2e3e` · Resolve the carbon tow pattern on bare GP wing skins
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-21T09:42:11Z · updated: 2026-11-21T12:22:12Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44891208021
+- commit: `43d53102a3` · Skip subpixel GP leather relief work at race-camera distances
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-21T09:47:06Z · updated: 2026-11-21T12:39:50Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
+| browser (day) | success | 7 |  |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
 | browser (sunset) | success | 7 |  |
-| browser (day) | success | 6 |  |
-| browser (night) | success | 6 |  |
