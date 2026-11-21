@@ -89,7 +89,7 @@ export function facadeLayout(
       // above the stone plinth, not below the ground like the old shader grid.
       const entrance = shop && streetFront && bay === entranceBay(bays) && width >= 1.5;
       const v0 = row0 + (farm ? floorH * 0.58 : entrance ? 0.515 : shop ? 0.66 : floorH * 0.3);
-      const v1 = farm ? v0 + Math.min(0.95, 0.23 * floorH) : row0 + floorH * (shop ? 0.86 : 0.84);
+      const v1 = farm ? v0 + Math.min(1.16, 0.25 * floorH) : row0 + floorH * (shop ? 0.86 : 0.84);
       const kind = shop ? 'shop' : shuttered ? 'shuttered' : 'casement';
       openings.push({ u0, u1, v0, v1, cell0, cell1, row0, row1, kind, room, entrance });
     }

@@ -63,7 +63,11 @@ it('recesses the closed carriage doors on both gables and places the barn window
       expect(layout.floors).toBe(1);
       expect(layout.openings.length).toBeGreaterThan(0);
       expect(layout.openings.length).toBeLessThanOrEqual(Math.floor((2 * s.hx) / 5.2));
-      expect(layout.openings.every((pane) => pane.v0 > 3 && pane.v1 - pane.v0 <= 0.96)).toBe(true);
+      expect(
+        layout.openings.every(
+          (pane) => pane.v0 > 3 && pane.v1 - pane.v0 > 1 && pane.v1 - pane.v0 < 1.17,
+        ),
+      ).toBe(true);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
       for (const side of [-1, 1]) {
