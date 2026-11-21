@@ -1228,5 +1228,147 @@
       "rendererHeapLimitMB": 660,
       "outcome": "The browser process closed while entering Festival after the quality change."
     }
+  },
+  "verification": {
+    "commit": "336fb587aa672f436f0d22cd8b8d8c7a48c3b9fe",
+    "fingerprint": "7ee8cb9bd3da9f2156bb454b31efe4a5dcf5c445962f48fc4da62e982935d617",
+    "local": {
+      "testFiles": 81,
+      "testsPassed": 637,
+      "typecheckAndBuild": "passed",
+      "lint": "passed",
+      "content": "passed",
+      "bundleBudget": "passed",
+      "initialGzipMB": 3.66,
+      "initialGzipBudgetMB": 4,
+      "productMB": 129.1
+    },
+    "localSwiftShader": {
+      "browser": "140.0.7339.186",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "quality": "low",
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "journeyChecksPassed": 12,
+      "errors": [],
+      "failedAssets": [],
+      "playerKeyboard": {
+        "distanceM": 32.48719820060229,
+        "movingKmh": 65.46896730934849,
+        "stoppedKmh": 2.9943933363829306e-07
+      },
+      "race": {
+        "eventName": "Harbour Opening Run",
+        "vehicleId": "tc1",
+        "assisted": true,
+        "entrants": 3,
+        "position": 3,
+        "time": 105.36666666670234,
+        "offRouteSeconds": 0
+      },
+      "teardown": {
+        "before": {
+          "geometries": 624,
+          "textures": 101
+        },
+        "after": {
+          "geometries": 1,
+          "textures": 16
+        }
+      },
+      "effects": [
+        {
+          "scenario": "smoke",
+          "peakParticles": 85,
+          "captures": 3
+        },
+        {
+          "scenario": "dust",
+          "peakParticles": 210,
+          "captures": 3
+        },
+        {
+          "scenario": "water",
+          "peakParticles": 397,
+          "captures": 3
+        }
+      ]
+    },
+    "nativeExports": {
+      "blender": "5.2.2 LTS",
+      "archiveSha256": "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168",
+      "comparison": [
+        {
+          "file": "public/models/solvane/detail-kit.glb",
+          "bytes": 1794216,
+          "matches": true,
+          "sha256": "aa9da4d19a73889affaf59a5e10ff1d5d8f18f8dbb3195f7d87f4e22734fbb1c"
+        },
+        {
+          "file": "public/models/solvane/street-kit.glb",
+          "bytes": 166988,
+          "matches": true,
+          "sha256": "3dbf14c8a2e476ee1e426026e950aaf97de4c905b425accbc4a62bcf94869ca7"
+        },
+        {
+          "file": "public/models/solvane/street-kit.manifest.json",
+          "bytes": 2717,
+          "matches": true,
+          "sha256": "71be45fdbd6a9f0d996d7dc8ebdfb1043739d76182e5dedfa5dac7c171440508"
+        },
+        {
+          "file": "public/models/solvane/detail-kit.manifest.json",
+          "bytes": 5310,
+          "matches": true,
+          "sha256": "ad74212b1b213f9c3ec17445daad52514b85d010054d67ce1202c3f69837ffa8"
+        },
+        {
+          "file": "public/models/solvane/facade-joinery.manifest.json",
+          "bytes": 759,
+          "matches": true,
+          "sha256": "a805dbc8bef497e30f8bf25d06a4c4492dc5e1536f26f31709a6f62730462c82"
+        },
+        {
+          "file": "public/models/solvane/street-kit.bin",
+          "bytes": 50019,
+          "matches": true,
+          "sha256": "2d55c24083a2ffe3150465e76256271cccb75e5a77e39da378e1baab44210906"
+        },
+        {
+          "file": "public/models/solvane/facade-joinery.glb",
+          "bytes": 326536,
+          "matches": true,
+          "sha256": "21de11d983773bc8b77ba5e579d4fe50d9d69aae52233548f8595cff5d158074"
+        },
+        {
+          "file": "src/rendering/assets/solvane-joinery.mesh.json",
+          "bytes": 475429,
+          "matches": true,
+          "sha256": "af6efbdbfcb0a42a7cd376fbde9b0764805c823eb625fc87aec03d28257b370c"
+        }
+      ]
+    },
+    "localLongRace": {
+      "source": "630fca733e90001c38ba824eb6d4c8fd9a01a2a8",
+      "renderer": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL ES 3.2)",
+      "passedSteps": 8,
+      "lastSampleRaceSeconds": 64.375,
+      "lastSampleRaceProgress": 0.61944618,
+      "outcome": "Chromium closed during the race to the results screen."
+    },
+    "highPresetLocal": {
+      "source": "336fb587aa672f436f0d22cd8b8d8c7a48c3b9fe",
+      "viewport": [
+        960,
+        540
+      ],
+      "backends": [
+        "Mesa llvmpipe through the public paddock",
+        "SwiftShader through the production session fixture"
+      ],
+      "outcome": "Both renderer processes closed before a High-preset capture."
+    }
   }
 }

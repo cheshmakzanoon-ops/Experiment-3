@@ -86,6 +86,14 @@ The full chase capture uses the shipping road renderer. The three material close
 
 From the paddock, choose **Festival** and **Enter Festival**. The packaged game opened Harbour Front in the EH-3 with a saved Low preset. Keyboard throttle took the car to 40 km/h and Escape opened the Festival pause menu. A fresh launch at 960 × 600 also entered Harbour Front, accelerated to 30 km/h and returned to the public paddock through Exit Festival. Both runs reported zero failed requests and zero page errors. An earlier local attempt with a constrained Chromium heap closed during the transition. Fifteen separate browser checks covered keyboard and controller navigation, retry, map and photo modes, and the rival display on desktop and phone layouts.
 
-A published Chromium run at `2782f81f` completed all 12 driving-session checks. Keyboard input moved the car 57.38 m and slowed it from 65.63 to 0.54 km/h. The same run exercised map travel, photo orbit, garage changes, live rivals, an assisted race finish, retry and exit. Its water, dust, smoke and night-light reviews all passed. The run used Mesa software rendering at 960 × 540 in Low. Console and competition frame times still require measurements on the target hardware.
+## Verification
 
-[First full browser run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44851763841) · [Second full browser run with weather-driven scenery](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44854448764) · [Per-car, per-event and mesh measurements](measurements.json)
+The gameplay build at `336fb587` passed 637 local regression tests across 81 files, TypeScript and Vite, lint, content validation and the bundle budget. The initial JavaScript was 3.66 MB gzipped against a 4 MB budget.
+
+All 12 driving checks passed on the same build with Chromium and SwiftShader at 960 × 540 in Low. Keyboard input moved the car 32.49 m and braked it from 65.47 km/h to a stop. The three-entrant Harbour Opening Run finished in 105.37 seconds with assistance and zero off-route time. Retry started a distinct run, and exiting released the Festival scene. The session plate above comes from this run. Three recorded frames each of tyre smoke, quarry dust and water spray passed their image checks.
+
+Blender 5.2.2 LTS reopened the coastal detail, street and façade-joinery sources. All eight outputs matched the files shipped to the game byte for byte, including the three GLBs.
+
+On the local Mesa software renderer, an earlier long race closed at 62% progress. Local attempts to capture the High preset on Mesa and SwiftShader also closed during loading. Native PS5 image quality and sustained competitive frame times require target-hardware measurements.
+
+[Earlier hosted Mesa driving and optics run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44859158969) · [Per-car, per-event, mesh and validation measurements](measurements.json)
