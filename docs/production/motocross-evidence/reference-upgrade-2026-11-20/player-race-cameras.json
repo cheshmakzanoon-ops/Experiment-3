@@ -122,5 +122,94 @@
     "gateReleased": true,
     "keyboardThrottleMps": 9.0394,
     "result": "Chromium reported a page crash during the in-race High settings check, before a High chase or helmet frame was confirmed."
+  },
+  "postReflectionBuild": {
+    "productBuild": {
+      "version": 1,
+      "commit": "569ecbf29298bc291c8187c5d82086fde655d25b",
+      "fingerprint": "a0ab742cec10c7957ab3381664daf90343c6389d689b308171a51e5a4a8cce82",
+      "variant": "product",
+      "edition": "full"
+    },
+    "backend": "ANGLE/Vulkan SwiftShader",
+    "conditions": [
+      {
+        "run": "Both venues in one browser",
+        "preset": "Low",
+        "viewportPixels": [
+          800,
+          500
+        ],
+        "selectedRidersPerVenue": 8,
+        "result": "observer stopped after a stall",
+        "browserPageCrashed": false,
+        "observation": {
+          "result": "stopped-after-stall",
+          "lastEventUtc": "2026-11-21T04:40:28.340124+00:00",
+          "stopUtc": "2026-11-21T04:45:55Z",
+          "lastEvent": "Arena Nord manual keyboard throttle observed. No new stadium camera was captured before the observer was stopped.",
+          "exitCode": 130
+        },
+        "races": [
+          {
+            "circuit": "valley-ridge-mx",
+            "riders": 8,
+            "gateReleased": true,
+            "rendererPreparationSeconds": 160.54,
+            "keyboardThrottleMps": 7.216,
+            "automaticRidingDuringMeasurement": false,
+            "chaseRaceSeconds": 33.5,
+            "helmetRaceSeconds": 50.9,
+            "returnedToPaddock": true
+          },
+          {
+            "circuit": "arena-nord-sx",
+            "riders": 8,
+            "gateReleased": true,
+            "rendererPreparationSeconds": 40.2,
+            "keyboardThrottleMps": 6.1313,
+            "automaticRidingDuringMeasurement": false,
+            "returnedToPaddock": false
+          }
+        ]
+      },
+      {
+        "run": "Fresh Medium profile",
+        "preset": "Medium",
+        "viewportPixels": [
+          640,
+          400
+        ],
+        "selectedRidersPerVenue": 4,
+        "result": "incomplete",
+        "browserPageCrashed": true,
+        "races": [],
+        "lastReportedLoadingStage": "0% Loading circuit | 0% · Preparing vehicle showroom…"
+      },
+      {
+        "run": "Fresh Arena Nord profile",
+        "preset": "Low",
+        "viewportPixels": [
+          800,
+          500
+        ],
+        "selectedRidersPerVenue": 8,
+        "result": "passed",
+        "browserPageCrashed": false,
+        "races": [
+          {
+            "circuit": "arena-nord-sx",
+            "riders": 8,
+            "gateReleased": true,
+            "rendererPreparationSeconds": 37.87,
+            "keyboardThrottleMps": 6.8774,
+            "automaticRidingDuringMeasurement": false,
+            "chaseRaceSeconds": 16.8156,
+            "helmetRaceSeconds": 23.25,
+            "returnedToPaddock": true
+          }
+        ]
+      }
+    ]
   }
 }

@@ -6,11 +6,13 @@ Choose **DIRT** in the paddock, select **OUTDOOR MX** or **STADIUM SX**, choose 
 
 ## From the race cameras
 
-The top row follows an MX450 over the jumps at Valley Ridge. The bottom row follows an MX250 through the Arena Nord field. The left column is the chase camera and the right is the helmet camera. All four frames come from regular eight-rider races entered through the paddock. Each frame keeps the native 600 × 375 image from the Low preset in an 800 × 500 browser viewport.
+The top row follows an MX450 past the Valley Ridge timber shed and onto the rutted straight. The bottom row follows an MX250 through the Arena Nord field. The left column shows the chase camera and the right shows the helmet camera. All four frames come from eight-rider races entered through the paddock on the final build. Each frame keeps the native 600 × 375 game image from the Low preset in an 800 × 500 browser viewport.
 
-![Chase and helmet views of eight-rider races outdoors at Valley Ridge and indoors at Arena Nord](race-cameras.webp)
+![Valley Ridge riders approach a wooded turn and follow the ruts, above Arena Nord riders crossing the stadium floor, seen from the chase and helmet cameras](final-race-cameras.webp)
 
-With automatic riding off, keyboard throttle took the outdoor bike to 29.78 km/h and the stadium bike to 30.13 km/h. Automatic riding took over for the pictures. Both sessions returned to the paddock from the pause menu. An earlier Arena Nord cold start on Mesa llvmpipe reached material compilation and timed out after ten minutes. [Build, graphics adapter and race-clock readings](player-race-cameras.json)
+Keyboard throttle took the outdoor bike to 25.98 km/h and the stadium bike to 24.76 km/h with automatic riding off. Automatic riding took over for the pictures. The Valley Ridge frames were taken at 33.50 and 50.90 seconds on the race clock. The Arena Nord frames were taken at 16.82 and 23.25 seconds in a fresh browser after the first stadium run stalled. Both pictured rides returned to the paddock. [Build, graphics adapter and race-clock readings](player-race-cameras.json)
+
+An earlier uninterrupted session ran both eight-rider races in the same browser. The outdoor and indoor bikes reached 29.78 and 30.13 km/h under keyboard throttle. [Four frames from that session](race-cameras.webp)
 
 ## Bikes and riders
 
@@ -75,6 +77,8 @@ The [race camera gallery](../../motocross-race-review/README.md) also has both s
 | High starting-grid reflections | Each of the six 256 × 256 HDR cubemap faces now completes on the GPU before the next is submitted. On the WebGL2 comparison scene, the largest submission fell from 32 draws to six, with 32 draws in total and all six faces identical bit for bit. [Pixel hashes and individual submission sizes](starting-grid-reflection.json) |
 | Rider removal in WebGL2 | One high-detail MX450 used 31 textures and 91 geometries. Two riders used 56 and 110. Removing one restored the first image pixel for pixel and its original resource counts. Removing both released all textures and geometries. The four draws reported zero WebGL errors. [Frame measurements](field-resources.json) |
 
-On this product build, all 98 focused regression checks passed across 15 suites covering the two venues, tyre contact over braking bumps, rider motion, the helmet camera, weather, lighting and start preparation. The main race-camera check above completed using SwiftShader on Low. On High, the Valley Ridge four-rider run reached the chase GPU wait without presenting the briefing. A separate cold launch remained in the showroom for five minutes. Chromium also reported a page crash during an in-race High settings check. [Test breakdown and observed graphics states](player-race-cameras.json)
+The earlier race-camera build passed 98 checks across 15 suites covering both venues, tyre contact over braking bumps, rider motion, the helmet camera, weather, lighting and start preparation. After the change to starting-grid reflections, 101 checks passed across reflection rendering, renderer startup and race preparation. [Motocross test breakdown](player-race-cameras.json) · [Reflection and startup results](starting-grid-reflection.json)
+
+The game-camera captures above used Chromium with SwiftShader. A cold Medium launch crashed in the showroom before venue selection. A High Valley Ridge start progressed through five reflection-face submissions before the page crashed, without reaching the grid briefing. On Mesa llvmpipe, an earlier Low eight-rider Arena Nord start reached material compilation and timed out after ten minutes. [Preset and adapter observations](player-race-cameras.json) · [High run observations](starting-grid-reflection.json)
 
 The race results use the production simulation at 120 Hz. The model captures use software WebGL2. Console frame time, input latency and human competitive play require separate hardware testing.
