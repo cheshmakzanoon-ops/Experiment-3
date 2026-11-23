@@ -12,6 +12,10 @@ The Vellamar cockpit follows a rival at the start. Its steering wheel shows the 
 
 The chase comparison shows the distance from the lens to the tyres and the visible road ahead. The lower pair shows the finish-line change in a wet three-car start. The car silhouettes can be compared against the grass, fence and track edge.
 
+![A dry High-preset Vellamar practice lap with the roll-hoop camera and the in-car wheel display showing seventh gear at 280 kilometres per hour](high-practice.webp)
+
+These two 640 × 400 frames were captured from the High preset through the normal practice menus, with the HUD visible. The roll-hoop view shows a left-hand kerb at 99 km/h. In the cockpit the steering-wheel LCD and HUD both show seventh gear as the car passes the pits. The High preset uses local scene reflections, a photographed sky and dynamic sun shadows.
+
 ## Car hardware
 
 ![The APX-01 rear flap and hydraulic drive in two positions, a helmet under lateral load and the open rear assembly](apx-hardware.webp)
@@ -24,7 +28,11 @@ The three other Formula cars have their own front-wing spans, sweep, element pro
 
 ![The recessed radiator screen inside the FX26 inlet and an outlined FR3 race number following the engine cover](cooling-and-numbers.webp)
 
-The sidepod lips turn into recessed carbon ducts with honeycomb radiator faces. Both openings are visible head-on at all three levels of detail. The entrant’s number follows the curved nose and both sides of the engine cover. A dark outline keeps the same number design legible across light and dark paint.
+The sidepod lips turn into recessed carbon ducts with honeycomb radiator faces. Both openings are visible head-on at all three levels of detail. The entrant’s number follows the curved nose and both sides of the engine cover. A dark outline keeps the same number design legible across light and dark paint. The FR3 close-up shows a number-only change to 27 on its original blue paint.
+
+![FX26 at Vellamar during rain, seen from the chase car and through the halo](fx26-wet-lap.webp)
+
+These shots follow the silver FX26 on Medium in the rain. Its visible paint and accent are the reflection surfaces for this car. The lower presets use the sky environment. High can also capture the local circuit around the followed car, including the pit building and stands.
 
 ## Geometry submitted by two Vellamar cameras
 
@@ -36,3 +44,9 @@ Both runs in each row use the same car count, weather, race position, camera and
 | Wet grid, three cars, finish-line camera | 624 × 390 | 1,457,101 | 1,090,553 | −25.2% | 931 | 797 |
 
 The surface detail budget accounts for the first reduction. In the second view the followed car retains its nearest detail level while the two rivals use the middle level. Resolution and focal length determine when a rival changes level. These readings measure geometry and draw submissions. Console frame time and input latency require a hardware capture.
+
+## Race verification
+
+A full field of twelve cars ran a two-minute wet Vellamar start twice with the same seed and three entrants in each of the four Formula models. All 120 one-second snapshots matched byte for byte across the two runs, including the wheel and aero telemetry. Every entrant reached at least 228 km/h. Both runs used the production 120 Hz simulation.
+
+A separate six-car, eight-lap changing-weather race finished and passed four replay seeks. The ten-car wet-pit scenarios and the dry, changeable and rain driving checks also passed.
