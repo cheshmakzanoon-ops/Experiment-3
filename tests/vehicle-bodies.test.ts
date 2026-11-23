@@ -311,7 +311,9 @@ it('fits wet compounds and per-wheel damage to every Formula feed level and read
       frame[w + W.SURFACE_TEMP] = 101;
     }
     bodies.update(frame, frame, 1, hosts);
-    const built = bodies.bodies.get(0)!;
+    const built = (
+      bodies as unknown as { bodies: Map<number, ReturnType<typeof buildVehicleBody>> }
+    ).bodies.get(0)!;
     for (const [i, state] of built.formulaTyres!.entries()) {
       expect(state.surface.value.toArray().slice(0, 2)).toEqual([1, 2]);
       expect(state.heat.value).toBe(1);
