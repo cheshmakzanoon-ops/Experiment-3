@@ -35,6 +35,8 @@ export interface GpTyreAppearance {
   compound?: number;
   frontWear?: number;
   rearWear?: number;
+  frontDirt?: number;
+  rearDirt?: number;
   frontSurfaceTemp?: number;
   rearSurfaceTemp?: number;
   frontWater?: number;
@@ -121,22 +123,25 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
   const front = { value: new T.Vector4(0, 80, 0, 0) };
   const rear = { value: new T.Vector4(0, 80, 0, 0) };
   const style = { value: new T.Vector2(0, 0) };
+  const pickup = { value: new T.Vector2() };
   // x/y: front/rear contact across the tread; z/w: front/rear spin blur.
   const motion = { value: new T.Vector4(0, 0, 0, 0) };
   const letters = { value: gpTyreLetteringAtlas() };
   const hasLetters = !!letters.value;
   const f = GP_TYRE_SIDEWALL.front,
     r = GP_TYRE_SIDEWALL.rear;
-  let section = roadTyreSection('gp-bike'),
+  let gpPrototype = true,
+    section = roadTyreSection('gp-bike'),
     frontCrown: number = f.crown,
     frontRadius = 0.3,
     rearRadius = 0.32;
   // Threshold between the two authored widths and the permanent tread design
   // (race slick, road sport, period rib). Shared by the three LODs of one bike.
   const sectionUniform = { value: new T.Vector2((f.halfWidth + r.halfWidth) / 2, 0) };
-  chainShaderHook(material, 'gp-tyre-drainage-v4', (shader) => {
+  chainShaderHook(material, 'gp-tyre-drainage-v5', (shader) => {
     Object.assign(shader.uniforms, {
       gpTyreFront: front,
+      gpTyrePickup: pickup,
       gpTyreRear: rear,
       gpTyreStyle: style,
       gpTyreSection: sectionUniform,
@@ -156,7 +161,7 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       `
       varying vec4 vGpTyreBind;
       uniform vec4 gpTyreFront, gpTyreRear, gpTyreMotion;
-      uniform vec2 gpTyreStyle, gpTyreSection;
+      uniform vec2 gpTyreStyle, gpTyreSection, gpTyrePickup;
       ${hasLetters ? 'uniform sampler2D gpTyreLetters;' : ''}
       float gpTyreRelief, gpTyreRoughness, gpTyreCoverage;
     `,
@@ -222,6 +227,27 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
         + grain*.000018*resolvedGrain*crown)*gpTyreCoverage;
       gpTyreRoughness=clamp(mix(.71,.84-.08*heat+.055*condition.x,crown)
         +.07*scrub-.2*fresh-.05*hotPatch-.20*water*crown+.12*groove,.48,.94);
+      // Loose material on a hot contact face. Each island stays with the
+      // rotating tyre. Fold the angular cell ID so both sides of atan meet.
+      float dirt=mix(gpTyrePickup.x,gpTyrePickup.y,rearTyre);
+      if(dirt>0. && gpTyreCoverage>.5) {
+        vec2 grid=vec2(theta*96.,p.x*158.);
+        vec2 cell=floor(grid);
+        cell.x=mod(cell.x,96.);
+        vec3 h=fract(vec3(cell.xyx)*vec3(.1031,.11369,.13787));
+        h+=dot(h,h.yzx+19.19);
+        vec3 seed=fract((h.xxy+h.yzz)*h.zyx);
+        vec2 piece=fract(grid)-(.32+.36*seed.xy);
+        piece.y+=piece.x*(seed.z-.5)*.8;
+        float speck=1.-smoothstep(.58,1.,length(piece/vec2(.19+.13*seed.y,.22+.19*seed.x)));
+        float selected=smoothstep(seed.z-.04,seed.z+.04,.93*dirt);
+        float spin=mix(gpTyreMotion.z,gpTyreMotion.w,rearTyre);
+        float detail=(1.-smoothstep(.0015,.009,pixel))*(1.-spin);
+        float coverage=mix(.16*dirt,speck*selected,detail)*(1.-smoothstep(.82,1.,across));
+        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.105,.090,.071)*(1.-.42*water),coverage*.80);
+        gpTyreRoughness=mix(gpTyreRoughness,.93,coverage);
+        gpTyreRelief+=.0007*coverage*detail;
+      }
       ${
         hasLetters
           ? `// Moulded sidewall lettering above the compound arcs, smeared along
@@ -274,8 +300,10 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
     rear,
     style,
     motion,
+    pickup,
     sectionUniform,
     configure(classId: VehicleClass, spec: BikeSpec) {
+      gpPrototype = classId === 'gp-bike';
       section = roadTyreSection(classId);
       frontCrown = spec.crownRadius;
       frontRadius = spec.frontWheelRadius;
@@ -287,6 +315,10 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
     },
     update(state: GpTyreAppearance, enabled = true, treadContact?: readonly number[]) {
       const speed = finite(state.speed, 0, 0, 150);
+      pickup.value.set(
+        gpPrototype ? finite(state.frontDirt, 0, 0, 1) : 0,
+        gpPrototype ? finite(state.rearDirt, 0, 0, 1) : 0,
+      );
       const lean = finite(state.chassisLean, 0, -1.5, 1.5);
       motion.value.set(
         treadContact?.[0] ??

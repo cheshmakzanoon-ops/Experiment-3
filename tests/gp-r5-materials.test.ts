@@ -84,17 +84,21 @@ describe('GP R5 recorded tyre material state', () => {
       rearSurfaceTemp: 66,
       frontWater: 0.7,
       rearWater: 0.9,
+      frontDirt: 0.04,
+      rearDirt: 0.73,
       speed: 28,
     };
     const snapshot = () => [
       ...finish.front.value.toArray(),
       ...finish.rear.value.toArray(),
       ...finish.style.value.toArray(),
+      ...finish.pickup.value.toArray(),
     ];
     finish.update(dry);
     const a = snapshot();
     finish.update(wet);
     const b = snapshot();
+    expect(finish.pickup.value.toArray()).toEqual([0.04, 0.73]);
     expect(b).not.toEqual(a);
     finish.update(wet);
     expect(snapshot()).toEqual(b);
@@ -105,7 +109,8 @@ describe('GP R5 recorded tyre material state', () => {
     const shader = shaderFor(material);
     expect(shader.uniforms.gpTyreFront).toBe(finish.front);
     expect(shader.uniforms.gpTyreRear).toBe(finish.rear);
-    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v4');
+    expect(shader.uniforms.gpTyrePickup).toBe(finish.pickup);
+    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v5');
     material.dispose();
   });
   it('selects both classic tyres correctly and presents a locked front and spinning rear independently', () => {

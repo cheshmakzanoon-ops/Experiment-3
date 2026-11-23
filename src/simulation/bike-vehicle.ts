@@ -28,6 +28,7 @@ import { bikeSlipstreamDragScale, gpWingEfficiency } from './bike-slipstream.ts'
 import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
 import { contactWaterLift, peakGrip } from './tire.ts';
+import { updateContamination } from './contamination.ts';
 import { SURFACE, surfaceSample, trackPoint, type SurfaceSample, type Track } from './track.ts';
 import { Vehicle, engineTorque } from './vehicle.ts';
 import { CROSSWIND, crosswindForce, windLoadFactor } from './weather.ts';
@@ -1074,6 +1075,15 @@ export class BikeVehicle extends Vehicle {
       input.waterMm = c.water;
       input.discTemp = t.discTemp;
       input.wear = t.wear;
+      if (d.motoGP && load > 1) {
+        // One transfer at each physical patch. The four public wheel slots
+        // include a duplicate of each axle for telemetry and replay.
+        const before = t.marblePickup;
+        updateContamination(t, c, load, d.speed, t.omega, dt);
+        track.interact(c.cell, load, slip, d.speed, dt, c.surface, t.marblePickup - before);
+        alias.dirt = t.dirt;
+        alias.marblePickup = t.marblePickup;
+      }
       const brakePower =
         (front ? frontBrakePower : rearBrakePower) ??
         (this.riding

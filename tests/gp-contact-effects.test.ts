@@ -323,6 +323,35 @@ describe('GP contact effects in the bounded production particle pool', () => {
     }
   });
 
+  it('emits collected rubber at two leaned wheel contacts and rebases a replay seek', () => {
+    const { effects, adapter } = configuredEffects();
+    try {
+      const road = onRoad(GP_R2, -0.45, 0.18);
+      road.bike.dynamics.lean = -0.55;
+      const frame = road.write(), o = carBase(0), observed: number[] = [];
+      for (let wheel = 0; wheel < 4; wheel++) frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER] = 0;
+      effects.contactOffset = (sample, id, wheel, plume, target) => {
+        const floor = adapter.contactOffset(sample, id, wheel, plume, target);
+        observed.push(wheel);
+        const expected = worldContact(adapter, sample, wheel);
+        expect(floor + sample[o + F.Y]).toBeCloseTo(expected.floor, 6);
+        expect(expected.point.y - expected.floor).toBeCloseTo(GP_CONTACT_CLEARANCE, 5);
+        return floor;
+      };
+      effects.update(frame, 1 / 60);
+      frame[H.TIME] += 1 / 60;
+      for (let wheel = 0; wheel < 4; wheel++) frame[o + F.MARBLE_PICKUP_FR + wheel] = 0.03125;
+      effects.update(frame, 1 / 60);
+      expect(observed).toEqual([0, 2]);
+      expect(effects.diagnostics().spawned[PARTICLE_KIND.MARBLE]).toBe(20);
+      frame[H.TIME] -= 1;
+      effects.update(frame, 1 / 60);
+      expect(effects.diagnostics().spawned[PARTICLE_KIND.MARBLE]).toBe(20);
+    } finally {
+      disposeEffects(effects);
+    }
+  });
+
   it.each([
     ['wet spray', 1, 0.7, 0, PARTICLE_KIND.SPRAY],
     ['gravel dust', 3, 0, 0, PARTICLE_KIND.DUST],

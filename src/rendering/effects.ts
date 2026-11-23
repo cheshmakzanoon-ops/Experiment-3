@@ -328,7 +328,8 @@ export class Effects {
           total < previous ||
           frame[p + W.LOAD] <= 1 ||
           Math.abs(frame[o + F.SPEED]) < 1 ||
-          surface > 2
+          surface > 2 ||
+          (total > previous && this.contactEnabled && !this.contactEnabled(frame, id, wheel))
         ) {
           this.marbleEmission[slot] = 0;
           continue;
@@ -341,9 +342,10 @@ export class Effects {
           0,
           this.marbleEmission[slot] - Math.floor(this.marbleEmission[slot] + 1e-6),
         );
-        this.v
-          .set(wheel % 2 === 0 ? -0.83 : 0.83, -0.37, wheel < 2 ? 1.82 : -1.62)
-          .applyQuaternion(this.q);
+        if (!births) continue;
+        if (this.contactOffset) this.contactOffset(frame, id, wheel, false, this.v);
+        else this.v.set(wheel % 2 === 0 ? -0.83 : 0.83, -0.37, wheel < 2 ? 1.82 : -1.62);
+        this.v.applyQuaternion(this.q);
         for (let i = 0; i < births; i++)
           this.spawn(
             frame[o] + this.v.x,

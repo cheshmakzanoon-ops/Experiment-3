@@ -2779,6 +2779,8 @@ export class BikeShells {
     v.compound = Math.round(source[o + F.COMPOUND]);
     v.frontWear = wheelValue(a, b, o, front, W.WEAR, t);
     v.rearWear = wheelValue(a, b, o, rear, W.WEAR, t);
+    v.frontDirt = wheelValue(a, b, o, front, W.DIRT, t);
+    v.rearDirt = wheelValue(a, b, o, rear, W.DIRT, t);
     v.frontSurfaceTemp = wheelValue(a, b, o, front, W.SURFACE_TEMP, t);
     v.rearSurfaceTemp = wheelValue(a, b, o, rear, W.SURFACE_TEMP, t);
     v.frontWater = wheelValue(a, b, o, front, W.WATER, t);

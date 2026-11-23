@@ -196,6 +196,7 @@ describe('specular IBL normalisation', () => {
       wetReflection: { value: new T.Texture() },
       wetReflectionMatrix: { value: new T.Matrix4() },
       wetReflectionState: { value: new T.Vector4() },
+      wetReflectionPlane: { value: new T.Vector4(0, 1, 0, 0) },
     });
     const root = new T.Group();
     root.add(
