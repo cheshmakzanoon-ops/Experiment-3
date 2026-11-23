@@ -172,6 +172,7 @@ import {
   gpGradeProfile,
   gpPhotographicActive,
   gpProceduralDayCover,
+  gpSunShadowSpread,
   tintGpSun,
   type GpPhotographicLook,
 } from './gp-photographic-light.ts';
@@ -1885,7 +1886,8 @@ export class RacingRenderer {
     // (gp-photographic-light.ts); every other session keeps the shared light.
     // Motocross on a terrain venue has its own daylight balance and grade
     // through the same terms (offroad/mx-photographic-light.ts).
-    const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
+    const gpDaylight = gpPhotographicActive(followedDefinition.classId, studio, illumination);
+    const gpLook = gpDaylight
       ? this.gpLook
       : mxPhotographicActive(
             followedDefinition.classId,
@@ -1906,6 +1908,8 @@ export class RacingRenderer {
     if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
     const liquidRain = frameLiquidRain(presented);
     const weatherCover = clamp(presented[H.CLOUD], 0, 1);
+    const sunSpread = gpDaylight ? gpSunShadowSpread(weatherCover, liquidRain) : 1;
+    this.sun.shadow.radius = sunPenumbraScale(this.sun.shadow.camera, sunSpread);
     // A resident photograph supplies its own cloud distribution and horizon.
     const photoPalette =
       illumination === 'night' || studio
@@ -2790,6 +2794,7 @@ export class RacingRenderer {
         lighting: illumination,
         studio,
         menu,
+        sunSpread,
         photo: !!this.photo,
         replay,
         otherDof: !!this.photoFocus?.enabled || !!this.broadcastFocus?.enabled,

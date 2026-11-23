@@ -179,6 +179,7 @@ export interface MidCascadeFrame {
   /** The near map's half extent (sun.shadow.camera.right) and size. */
   nearHalfExtent: number;
   nearSize: number;
+  sunSpread?: number;
   /** The far map's world width and size. */
   farWidth: number;
   farSize: number;
@@ -272,8 +273,8 @@ export class MidCascade {
         far: CASCADES.depthRange,
       });
       camera.updateProjectionMatrix();
-      this.light.shadow.radius = sunPenumbraScale(camera);
     }
+    this.light.shadow.radius = sunPenumbraScale(camera, frame.sunSpread);
     const texel = cascadeTexel(e, this.light.shadow.mapSize.x);
     this.light.shadow.normalBias = texel;
     this.light.shadow.bias = -texel / (camera.far - camera.near);

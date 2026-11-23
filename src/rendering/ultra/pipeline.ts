@@ -58,6 +58,8 @@ export interface UltraHost {
   roadMaterial: T.Material;
 }
 export interface UltraFrame {
+  /** Apparent spread of the directional source relative to the clear solar disc. */
+  sunSpread?: number;
   presented: Float32Array;
   cars: readonly { reflectivePaint: readonly T.Material[] }[];
   /** Followed subject (near shadow anchor, replay focus). */
@@ -255,6 +257,7 @@ export class UltraPipeline {
       lighting: frame.lighting,
       nearHalfExtent: sun.shadow.camera.right,
       nearSize: sun.shadow.mapSize.x,
+      sunSpread: frame.sunSpread,
       farWidth: this.farWidth(),
       farSize: this.host.farShadow.light.shadow.mapSize.x,
       advancing: !frame.menu && !frame.photo && p[H.TIME] !== this.lastTime,

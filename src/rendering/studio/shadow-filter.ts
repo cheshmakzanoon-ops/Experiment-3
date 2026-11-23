@@ -27,6 +27,7 @@ import * as T from 'three';
 
 /** Angular diameter of the sun, radians (0.53°). */
 export const SUN_ANGULAR_DIAMETER = (0.53 * Math.PI) / 180;
+const CLEAR_SUN_SLOPE = Math.tan(SUN_ANGULAR_DIAMETER / 2);
 /** Penumbra radius limits in shadow-map texels. */
 export const SHADOW_PENUMBRA_TEXELS = Object.freeze({ min: 1, max: 6 });
 /** Blocker-search radius in texels (covers the largest penumbra). */
@@ -41,16 +42,14 @@ export const SHADOW_FILTER_TAPS = 16;
  * times the depth range, over the frustum width. Always in (0, 1) for any
  * sensible frustum, which is what selects PCSS in the shader.
  */
-export function sunPenumbraScale(camera: {
-  left: number;
-  right: number;
-  near: number;
-  far: number;
-}) {
+export function sunPenumbraScale(
+  camera: { left: number; right: number; near: number; far: number },
+  sourceSpread = 1,
+) {
   const width = camera.right - camera.left,
     depth = camera.far - camera.near;
   if (!(width > 0 && depth > 0)) throw new Error('Invalid sun shadow camera');
-  const scale = (Math.tan(SUN_ANGULAR_DIAMETER / 2) * depth) / width;
+  const scale = (CLEAR_SUN_SLOPE * sourceSpread * depth) / width;
   return Math.min(0.999, Math.max(1e-4, scale));
 }
 

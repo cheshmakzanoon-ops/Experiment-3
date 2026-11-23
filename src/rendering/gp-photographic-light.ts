@@ -118,6 +118,15 @@ export function gpProceduralDayCover(cover: number) {
   return cover * smooth(0.08, 0.35, cover);
 }
 
+/** Effective angular spread of the remaining directional light. Overcast builds
+ * a circumsolar veil and a local shower scatters it further. The daylight rig
+ * accounts for the energy lost from the beam separately. */
+export function gpSunShadowSpread(cloudCover: number, liquidRainMmHr: number) {
+  const veil = smooth(0.28, 0.96, cloudCover);
+  const shower = smooth(0.5, 12, liquidRainMmHr);
+  return 1 + 5 * veil + 2 * shower;
+}
+
 /** The daylight terms the look rebalances (daylight.ts circuitLightState). */
 export interface GpDaylightTerms {
   sun: number;

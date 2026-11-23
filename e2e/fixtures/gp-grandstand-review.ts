@@ -8,6 +8,8 @@ import { venuePlan } from '../../src/rendering/venue-plan.ts';
 import type { CrowdCluster } from '../../src/rendering/crowd.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { studioUniforms } from '../../src/rendering/studio/studio-frame.ts';
+import { installShadowFilter, sunPenumbraScale } from '../../src/rendering/studio/shadow-filter.ts';
+import { gpSunShadowSpread } from '../../src/rendering/gp-photographic-light.ts';
 import { disposePhase27Scene } from './phase27c-resources.ts';
 
 /** Count submitted geometry after the production crowd has selected its LODs.
@@ -41,10 +43,107 @@ function geometryBudget(root: T.Object3D, staticOnly = false) {
  * fixture verifies WebGL materials, held/weather/reset frames and resources;
  * it is not a full-venue gameplay capture or device frame-rate benchmark. */
 const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+
+/** Measure the existing PCSS filter in road-space centimetres. Two edges at
+ * the same world X represent a high canopy and a plate close to the ground.
+ * Hold the incident energy fixed to isolate the change in source size. */
+export function captureGpShadowEdges() {
+  installShadowFilter();
+  const width = 640,
+    height = 320,
+    metresAcross = 3.2;
+  const renderer = new T.WebGLRenderer({ preserveDrawingBuffer: true });
+  renderer.setSize(width, height, false);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+  const scene = new T.Scene();
+  const camera = new T.OrthographicCamera(-1.6, 1.6, 0.8, -0.8, 0.02, 30);
+  camera.position.set(0, 15, 0);
+  camera.up.set(0, 0, -1);
+  camera.lookAt(0, 0, 0);
+  const sun = new T.DirectionalLight(0xffffff, 2);
+  sun.position.set(0, 20, 0);
+  sun.castShadow = true;
+  // The same 3.71 cm world texels as the production 76 m / 2048 near map.
+  sun.shadow.mapSize.set(256, 256);
+  Object.assign(sun.shadow.camera, {
+    left: -4.75,
+    right: 4.75,
+    top: 4.75,
+    bottom: -4.75,
+    near: 1,
+    far: 28,
+  });
+  sun.shadow.camera.up.set(0, 0, -1);
+  sun.shadow.bias = -0.000015;
+  const receiver = new T.Mesh(
+    new T.PlaneGeometry(4, 2).rotateX(-Math.PI / 2),
+    new T.MeshStandardMaterial({ color: 0x858585, roughness: 1 }),
+  );
+  receiver.receiveShadow = true;
+  scene.add(sun, sun.target, receiver, new T.AmbientLight(0xffffff, 0.26));
+  const beam = new T.BoxGeometry(3, 0.04, 0.72);
+  const hidden = new T.MeshStandardMaterial({ colorWrite: false, depthWrite: false });
+  for (const [y, z] of [
+    [8, -0.4],
+    [0.08, 0.4],
+  ]) {
+    const caster = new T.Mesh(beam, hidden);
+    caster.castShadow = true;
+    caster.position.set(-1.5, y, z);
+    scene.add(caster);
+  }
+  const gl = renderer.getContext();
+  const pixels = new Uint8Array(width * height * 4);
+  function edgeWidth(row: number) {
+    const profile = new Float64Array(width);
+    for (let x = 0; x < width; x++) {
+      for (let y = row - 10; y <= row + 10; y++) profile[x] += pixels[(y * width + x) * 4];
+      profile[x] /= 21;
+    }
+    const dark = profile[100],
+      range = profile[540] - dark;
+    const crossing = (fraction: number) =>
+      profile.findIndex((value) => value >= dark + range * fraction);
+    return ((crossing(0.9) - crossing(0.1)) * metresAcross) / width;
+  }
+  try {
+    const shots = [];
+    for (const [name, spread] of [
+      ['sun', gpSunShadowSpread(0.12, 0)],
+      ['thin-cloud', gpSunShadowSpread(0.55, 0)],
+      ['shower', gpSunShadowSpread(0.98, 17)],
+      ['held', gpSunShadowSpread(0.98, 17)],
+      ['rewound', gpSunShadowSpread(0.12, 0)],
+    ] as const) {
+      sun.shadow.radius = sunPenumbraScale(sun.shadow.camera, spread);
+      renderer.render(scene, camera);
+      gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      let hash = 2166136261;
+      for (let i = 0; i < pixels.length; i += 4) hash = Math.imul(hash ^ pixels[i], 16777619);
+      shots.push({
+        name,
+        canopy: edgeWidth(240),
+        foot: edgeWidth(80),
+        hash: hash >>> 0,
+        calls: renderer.info.render.calls,
+        triangles: renderer.info.render.triangles,
+        image: renderer.domElement.toDataURL('image/png'),
+      });
+    }
+    return { shots, glError: gl.getError() };
+  } finally {
+    sun.shadow.dispose();
+    disposePhase27Scene(scene);
+    renderer.dispose();
+  }
+}
+
 export async function captureGpGrandstands(
   ids: readonly (typeof venues)[number][] = venues,
   view: 'architecture' | 'trackside' = 'architecture',
 ) {
+  installShadowFilter();
   const width = 1000,
     height = 650,
     renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -136,6 +235,7 @@ export async function captureGpGrandstands(
         far: 180,
       });
       sun.shadow.normalBias = 0.025;
+      sun.shadow.radius = sunPenumbraScale(sun.shadow.camera);
       scene.add(sun);
       const stand = buildGrandstand(track, props, audience, site, materials, clusters);
       stand.updateWorldMatrix(true, true);
@@ -184,11 +284,13 @@ export async function captureGpGrandstands(
       renderer.render(scene, camera);
       states.push(read('held'));
       weather.surface.value.set(1, 12, 20, 0.8);
+      sun.shadow.radius = sunPenumbraScale(sun.shadow.camera, gpSunShadowSpread(0.98, 20));
       renderer.render(scene, camera);
       states.push(read('wet'));
       renderer.render(scene, camera);
       states.push(read('wet-held'));
       weather.surface.value.set(0, 12, 0, 0);
+      sun.shadow.radius = sunPenumbraScale(sun.shadow.camera);
       renderer.render(scene, camera);
       states.push(read('restored'));
       const architecture = stand.children.find((child) => child.userData.gpGrandstand)!,

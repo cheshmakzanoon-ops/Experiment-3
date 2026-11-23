@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
-import type { captureGpGrandstands } from './fixtures/gp-grandstand-review.ts';
+import type {
+  captureGpGrandstands,
+  captureGpShadowEdges,
+} from './fixtures/gp-grandstand-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
 let fixtureScript: string;
@@ -33,6 +36,43 @@ const inspections = [
   ['montejaral', 'architecture'],
   ['haarveld', 'trackside'],
 ] as const;
+
+test('GP cloud spreads the canopy shadow while the contact shadow holds its edge', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.setContent('<title>GP canopy shadow inspection</title>');
+  await page.addScriptTag({ content: fixtureScript });
+  const result = await page.evaluate(() =>
+    (
+      window as unknown as { GpStandReview: { captureGpShadowEdges: typeof captureGpShadowEdges } }
+    ).GpStandReview.captureGpShadowEdges(),
+  );
+  await info.attach('directional-shadow-widths.json', {
+    body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
+    contentType: 'application/json',
+  });
+  for (const shot of result.shots.slice(0, 3))
+    await info.attach(shot.name, {
+      body: Buffer.from(shot.image.split(',')[1], 'base64'),
+      contentType: 'image/png',
+    });
+  expect(errors).toEqual([]);
+  expect(result.glError).toBe(0);
+  const [sun, thin, shower, held, rewound] = result.shots;
+  expect(thin.canopy).toBeGreaterThan(sun.canopy);
+  expect(shower.canopy).toBeGreaterThan(sun.canopy * 2);
+  expect(sun.foot).toBeGreaterThan(0);
+  expect(shower.foot).toBe(sun.foot);
+  expect(shower.hash).toBe(held.hash);
+  expect(rewound.hash).toBe(sun.hash);
+  expect(shower.calls).toBe(sun.calls);
+  expect(shower.triangles).toBe(sun.triangles);
+});
 
 for (const [id, view] of inspections) {
   const title =

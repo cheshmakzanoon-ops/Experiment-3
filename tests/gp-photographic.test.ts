@@ -6,6 +6,7 @@ import {
   gpGradeProfile,
   gpPhotographicActive,
   gpProceduralDayCover,
+  gpSunShadowSpread,
   tintGpSun,
 } from '../src/rendering/gp-photographic-light.ts';
 import {
@@ -63,6 +64,19 @@ import {
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 
 describe('GP photographic light', () => {
+  it('widens the directional shadow smoothly through cloud and a local rain shower', () => {
+    expect(gpSunShadowSpread(0.12, 0)).toBe(1);
+    expect(gpSunShadowSpread(0.96, 0)).toBe(6);
+    expect(gpSunShadowSpread(1, 18)).toBe(8);
+    expect(gpSunShadowSpread(0.5, 4)).toBeGreaterThan(gpSunShadowSpread(0.5, 0));
+    let last = 1;
+    for (let i = 0; i <= 1000; i++) {
+      const spread = gpSunShadowSpread(i / 1000, i * 0.02);
+      expect(spread - last).toBeGreaterThanOrEqual(0);
+      expect(spread - last).toBeLessThan(0.02);
+      last = spread;
+    }
+  });
   it('keeps the procedural clear sky open and blends back continuously as cloud builds', () => {
     const clear = gpProceduralDayCover(0.12);
     // The visible sky and its two PMREM bins interpolate at eight steps per unit cover.
