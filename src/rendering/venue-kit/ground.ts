@@ -5,6 +5,7 @@ import { apronWidth } from '../../simulation/gp-course-edges.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import type { BuildQueue } from '../build-queue.ts';
 import { drawnTerrain, type Terrain } from '../terrain.ts';
+import { GpTrapAggregate } from './gp-trap-aggregate.ts';
 import type { VenueKitContext } from './context.ts';
 
 /** The CircuitScene surface API the kit reuses, so verges and skirts carry
@@ -46,6 +47,7 @@ export function catalogueSkirtOffset(
 export function queueGround(kit: VenueKitContext, host: RibbonHost) {
   const track = kit.track,
     gp = isGpCourse(track),
+    aggregate = gp ? new GpTrapAggregate(track.circuit.id) : null,
     p = trackPoint(),
     m = kit.materials,
     terrain = drawnTerrain(track);
@@ -79,6 +81,8 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
       : scattered(kind)
         ? {
             attributes: {
+              gpTrapInset: (s: number, lateral: number) =>
+                Math.abs(lateral) - track.at(s, p).width - shoulder(s, side),
               gravelCover: (s: number, lateral: number) =>
                 surfaceAt(s, lateral) === SURFACE.GRAVEL ? 1 : 0,
             },
@@ -123,7 +127,13 @@ export function queueGround(kit: VenueKitContext, host: RibbonHost) {
               middle = side * (inner + Math.max(0, outer - inner) / 2);
             present = outer > inner + 0.2 && track.runoffSurface(p, middle) === kind;
           }
-          if (present) host.ribbon(material, { start, end, ...verge(side, kind, lift) });
+          if (present) {
+            const bed = host.ribbon(material, { start, end, ...verge(side, kind, lift) });
+            if (kind === SURFACE.GRAVEL && aggregate) {
+              const stones = aggregate.scatter(bed.geometry, 43051 + i * 353 + side * 97);
+              if (stones) kit.detail(stones, 145);
+            }
+          }
         }
     });
     host.construction.add('Venue kit terrain skirts', 2, () => {

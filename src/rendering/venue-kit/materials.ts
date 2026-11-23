@@ -324,7 +324,7 @@ export function venueKitMaterials(style: VenueThemeStyle, gp = false) {
   else installScannedConcrete(ground);
   installScannedGravel(gravel);
   if (gp) {
-    installGpGravel(gravel);
+    installGpGravel(gravel, style.landform);
     if (groundKind === 'grass') installGpTurf(ground);
   }
   installScannedAsphalt(runoff);

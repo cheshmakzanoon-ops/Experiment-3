@@ -147,13 +147,15 @@ describe('GP verge turf and gravel', () => {
     const style = VENUE_THEMES['tuscan-hills'];
     const gp = venueKitMaterials(style, true),
       plain = venueKitMaterials(style);
-    expect(studioHookKeys(gp.gravel)).toContain('gp-gravel-v1');
+    expect(studioHookKeys(gp.gravel)).toContain('gp-gravel-v2');
     expect(studioHookKeys(gp.ground)).toContain('gp-turf-v1');
-    expect(studioHookKeys(plain.gravel)).not.toContain('gp-gravel-v1');
+    expect(studioHookKeys(plain.gravel)).not.toContain('gp-gravel-v2');
     expect(studioHookKeys(plain.ground)).not.toContain('gp-turf-v1');
     const f = compile(gp.gravel).fragmentShader;
     expect(compile(gp.gravel).vertexShader).toContain('attribute float gravelCover');
     expect(f).toContain('discard');
+    expect(f).toContain('gravelRelief += graded');
+    expect(f).toContain('uniform vec3 gpTrapMineral');
     expect(f).toContain('#define APEX_GP_GRAVEL');
     expect(compile(plain.gravel).fragmentShader).not.toContain('#define APEX_GP_GRAVEL');
     expect(f).toMatch(/if \( resolve > 0\.0 \)\s*#endif\s*for/);
@@ -198,6 +200,15 @@ describe('GP verge turf and gravel', () => {
         continue;
       }
       expect(covered).toHaveLength(gravel.length);
+      const stones = kit.cells.map(cell => cell.object).filter(o => o.name === 'GP gravel trap coarse stones');
+      expect(stones.length).toBeGreaterThan(0);
+      for (const piece of stones) {
+        const inst = piece as T.InstancedMesh;
+        expect(inst.count).toBeLessThanOrEqual(420);
+        expect(inst.count).toBeGreaterThan(0);
+        expect(inst.castShadow).toBe(false);
+        expect(inst.geometry.index!.count / 3).toBe(21);
+      }
       const turf = meshes.filter(m => m.material === kit.materials.ground && m.geometry.hasAttribute('gpVergeInset'));
       expect(turf.length).toBeGreaterThan(0);
       let bareStraight = false, fullApron = false;

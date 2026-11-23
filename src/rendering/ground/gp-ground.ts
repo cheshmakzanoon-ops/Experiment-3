@@ -1,4 +1,4 @@
-import type * as T from 'three';
+import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 /**
@@ -44,30 +44,53 @@ const f = (v: number) => v.toFixed(4);
 
 /** GP gravel trap tint and scattered edge (after `installGravelFinish` and
  * `installScannedGravel`; the ribbon must carry `gravelCover`). */
-export function installGpGravel(material: T.MeshStandardMaterial) {
+export function installGpGravel(material: T.MeshStandardMaterial, landform = 'hills') {
   const G = GP_GRAVEL;
   material.userData.gpGravel = true;
-  return chainShaderHook(material, 'gp-gravel-v1', (shader) => {
+  // One material program for the four locally dressed beds. Neutral limestone,
+  // coastal greys and the warmer sierra use the same measured grain sizes.
+  const mineral = new T.Vector3(1, 1, 1);
+  if (landform === 'coast') mineral.set(.92, .99, 1.08);
+  else if (landform === 'flat') mineral.set(.95, .99, 1.035);
+  else if (landform === 'rolling') mineral.set(1.10, .98, .90);
+  return chainShaderHook(material, 'gp-gravel-v2', (shader) => {
+    shader.uniforms.gpTrapMineral = {value: mineral};
     injectDeclarations(
       shader,
       'common',
-      'attribute float gravelCover; varying float vGravelCover;',
+      'attribute float gravelCover; attribute float gpTrapInset; varying float vGravelCover; varying float vGpTrapInset;',
       'vertex',
     );
-    injectAfter(shader, 'begin_vertex', 'vGravelCover = gravelCover;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vGravelCover = gravelCover; vGpTrapInset = gpTrapInset;', 'vertex');
     // A GP trap's two stone sizes only need a neighbourhood search while their
     // filtered contribution is nonzero. The sky and a telephoto camera can put
     // very different footprints on the same part of the trap.
     injectDeclarations(
       shader,
       'common',
-      '#define APEX_GP_GRAVEL\nvarying float vGravelCover;',
+      '#define APEX_GP_GRAVEL\nuniform vec3 gpTrapMineral; varying float vGravelCover; varying float vGpTrapInset;',
       'fragment',
     );
     injectAfter(
       shader,
       'color_fragment',
       `{
+	// Tines fan slightly with the tractor's steering. Broader overlaps stay
+	// visible after the individual teeth disappear in a grazing camera view.
+	float station = vGravelMetres.y;
+	float pass = vGpTrapInset + .26*sin(.054*station) + .12*sin(.097*station+.8);
+	float sweep = pass / 3.25;
+	float broadAA = fwidth(sweep);
+	float swath = cos(6.2831853*sweep)*(1.-smoothstep(.20,.52,broadAA));
+	float tine = pass/.16 + .15*sin(station*.65);
+	float tineAA = fwidth(tine);
+	float tines = cos(6.2831853*tine)*(1.-smoothstep(.16,.48,tineAA));
+	float graded = smoothstep(.22,.92,vGpTrapInset)*smoothstep(.82,.99,vGravelCover);
+	// A packed shoulder and a small ridge of displaced stone repeat at the
+	// edge of consecutive passes. Relief remains metric on grades and banks.
+	float shoulder = 1.-smoothstep(.05,.9,vGpTrapInset);
+	gravelRelief += graded*(.0047*tines+.009*swath);
+	diffuseColor.rgb *= gpTrapMineral * (1.+graded*(.043*swath+.023*tines)-.085*shoulder);
 	// Neighbouring fragments can straddle the edge. Take derivatives before
 	// branching on coverage, including at grazing angles in an onboard view.
 	float gpGravelPixel = max( length( dFdx( vGravelWorld.xz ) ), length( dFdy( vGravelWorld.xz ) ) );

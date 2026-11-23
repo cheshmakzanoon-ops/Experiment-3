@@ -1,6 +1,6 @@
 import type { GpRiderSight } from './motorcycle-camera.ts';
 import { installGpOpticalRain, type GpOpticalRain } from './gp-optics-rain.ts';
-import { gpEyePortFace, installGpVisorGlazing } from './gp-helmet-optics.ts';
+import { gpEyePortFace, installGpHelmetFace, installGpVisorGlazing } from './gp-helmet-optics.ts';
 import { paintDistantGpRider } from './gp-distant-rider.ts';
 import type { LiveryScheme } from './car-livery.ts';
 import * as T from 'three';
@@ -1081,12 +1081,12 @@ export class Rider {
       addMotocrossHelmet(this.head, detail, helmet, visor, flex, mxTrim!, mxStrap!);
     } else if (gpHelmet) {
       if (detail !== 'far') {
-        const face = gpEyePortFace(detail, raceNumber);
+        installGpHelmetFace(helmet);
+        const face = gpEyePortFace(detail, raceNumber, helmet);
         face.position.fromArray(GP_HELMET_CENTRE);
         face.position.y += .006;
         face.position.z += .016;
         this.head.add(face);
-        this.materials.push(face.material);
         addGpHelmetDetails(this.head, detail, {
           shell: helmet,
           trim: armour,

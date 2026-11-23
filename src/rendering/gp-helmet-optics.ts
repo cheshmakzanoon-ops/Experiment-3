@@ -1,12 +1,12 @@
 import * as T from 'three';
-import { humanHeadGeometry, installHumanHead } from './human-kit.ts';
-import { chainShaderHook, injectBefore } from './studio/shader-hooks.ts';
+import { HUMAN_FACE_GLSL, HUMAN_TONE_GLSL, humanHeadGeometry } from './human-kit.ts';
+import { chainShaderHook, injectAfter, injectBefore, injectDeclarations } from './studio/shader-hooks.ts';
 
 /** Keep the brow, eyes, nose and temples of the original head sculpt. The
  * composite shell and padded throat hide the rest. Keeping the sculpt's
  * local frame lets the existing face shader follow the eyelids. */
-export function gpEyePortFace(detail: 'high' | 'mid', entrant: number) {
-  const source = humanHeadGeometry('bare', detail === 'high' ? 0 : 1);
+export function gpEyePortFace(detail: 'high' | 'mid', entrant: number, material: T.MeshPhysicalMaterial) {
+  const source = humanHeadGeometry('bare', detail === 'high' ? 1 : 2);
   const points = source.getAttribute('position'), normals = source.getAttribute('normal');
   const sourceIndex = source.index!;
   const remap = new Int32Array(points.count).fill(-1);
@@ -29,15 +29,41 @@ export function gpEyePortFace(detail: 'high' | 'mid', entrant: number) {
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(vertices, 3));
   geometry.setAttribute('normal', new T.Float32BufferAttribute(shading, 3));
-  geometry.setAttribute('headPerson', new T.BufferAttribute(new Float32Array(vertices.length / 3).fill(entrant), 1));
+  geometry.setAttribute('gpFaceId', new T.BufferAttribute(new Float32Array(vertices.length / 3).fill(entrant + 1), 1));
   geometry.setIndex(index);
   geometry.computeBoundingSphere();
-  const material = new T.MeshStandardMaterial({ name: 'GP rider behind eye port', roughness: .7 });
-  installHumanHead(material, 'bare');
   const mesh = new T.Mesh(geometry, material);
   mesh.name = 'GP recessed brow and eyes';
   mesh.receiveShadow = true;
   return mesh;
+}
+
+/** Both shell and facial insert are opaque. The facial insert has an ID
+ * starting at one. The default scalar attribute on every lacquered part is
+ * zero, keeping the existing paint and decals on those pieces. */
+export function installGpHelmetFace(material: T.MeshPhysicalMaterial) {
+  chainShaderHook(material, 'gp-helmet-interior-v1', (shader) => {
+    injectDeclarations(shader, 'common', 'attribute float gpFaceId; varying vec4 vGpFace;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vGpFace = vec4(position,gpFaceId);', 'vertex');
+    injectDeclarations(shader, 'common', 'varying vec4 vGpFace;\n' + HUMAN_TONE_GLSL + HUMAN_FACE_GLSL, 'fragment');
+    injectAfter(shader, 'color_fragment', `
+float gpFaceRough = .62, gpFaceGlint = 0.;
+float gpFacePixel = max(length(dFdx(vGpFace.xyz)),length(dFdy(vGpFace.xyz)));
+if (vGpFace.w > .5) {
+  float who = vGpFace.w - 1.;
+  HumanFace face = humanFace(vGpFace.xyz,humanSkinTone(who),humanHairTone(who),who,0.,gpFacePixel,0.);
+  diffuseColor.rgb = face.col;
+  gpFaceRough = face.rough;
+  gpFaceGlint = face.glint;
+}`, 'fragment');
+    injectAfter(shader, 'roughnessmap_fragment', 'if (vGpFace.w > .5) roughnessFactor=gpFaceRough;', 'fragment');
+    injectAfter(shader, 'metalnessmap_fragment', 'if (vGpFace.w > .5) metalnessFactor=0.;', 'fragment');
+    injectAfter(shader, 'lights_physical_fragment', `
+#ifdef USE_CLEARCOAT
+if (vGpFace.w > .5) material.clearcoat=0.;
+#endif`, 'fragment');
+    injectBefore(shader, 'opaque_fragment', 'outgoingLight+=vec3(.17,.15,.13)*gpFaceGlint;', 'fragment');
+  });
 }
 
 /** The single-surface coated lens keeps its environment and rain highlights.
@@ -52,6 +78,6 @@ export function installGpVisorGlazing(visor: T.MeshPhysicalMaterial) {
     injectBefore(shader, 'opaque_fragment', `
 float gpViewCos=abs(dot(normalize(vViewPosition),normal));
 float gpGrazing=pow(1.-clamp(gpViewCos,0.,1.),3.);
-diffuseColor.a=mix(.59,.96,gpGrazing);`, 'fragment');
+diffuseColor.a=mix(.69,.97,gpGrazing);`, 'fragment');
   });
 }

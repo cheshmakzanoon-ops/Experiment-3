@@ -67,8 +67,8 @@ export function gpHelmetPoint(y: number, phi: number, offset = 0, out = new T.Ve
 /** The two near meshes follow the rim of a real aperture. The distant
  * helmet bakes the shield into a closed, single-material silhouette. */
 export function gpHelmetShell(detail: RiderDetail) {
-  const columns = detail === 'high' ? 56 : detail === 'mid' ? 32 : 16,
-    rows = detail === 'high' ? 26 : detail === 'mid' ? 14 : 7,
+  const columns = detail === 'high' ? 46 : detail === 'mid' ? 32 : 16,
+    rows = detail === 'high' ? 20 : detail === 'mid' ? 14 : 7,
     stride = columns + 1,
     tau = 2 * Math.PI,
     left = Math.round(columns * GP_VISOR_PHI[0] / tau),
@@ -177,8 +177,8 @@ function patch(
 
 /** Conformal iridium shield over the eye port, 3.5 mm proud of the shell. */
 export function gpVisorGeometry(detail: RiderDetail) {
-  const columns = detail === 'high' ? 36 : 18;
-  return patch(detail === 'high' ? 8 : 4, columns, (u, v, out) => {
+  const columns = detail === 'high' ? 32 : 18;
+  return patch(detail === 'high' ? 6 : 4, columns, (u, v, out) => {
     const phi = T.MathUtils.lerp(GP_VISOR_PHI[0], GP_VISOR_PHI[1], u),
       [y0, y1] = gpVisorBounds(phi);
     return gpHelmetPoint(T.MathUtils.lerp(y0, y1, v), phi, 0.0035, out);
@@ -188,12 +188,25 @@ export function gpVisorGeometry(detail: RiderDetail) {
 /** The lining rolls inward under the shell lip. Across the centre it sits
  * behind the eyes; around the temples and cheek it closes off the cavity. */
 export function gpEyePortLiner(detail: RiderDetail) {
-  return patch(detail === 'high' ? 12 : 8, detail === 'high' ? 32 : 24, (u, v, out) => {
+  return patch(detail === 'high' ? 6 : 4, detail === 'high' ? 24 : 16, (u, v, out) => {
     const phi = T.MathUtils.lerp(...GP_VISOR_PHI, u);
     const [lo, hi] = gpVisorBounds(phi);
     const temple = T.MathUtils.smoothstep(Math.min(u, 1 - u), 0, .22);
     const pad = T.MathUtils.smoothstep(Math.min(v, 1 - v), 0, .20);
     return gpHelmetPoint(T.MathUtils.lerp(lo - .0015, hi + .0015, v), phi, -.001 - .065 * temple * pad, out);
+  });
+}
+
+/** The elastomer breath deflector rises over the bridge of the nose, then
+ * returns into the lower gasket just inside the visor. */
+function gpBreathDeflector(detail: RiderDetail) {
+  return patch(3, detail === 'high' ? 22 : 14, (u, v, out) => {
+    const across = 2 * u - 1, phi = Math.PI / 2 + .98 * across;
+    const [lower] = gpVisorBounds(phi);
+    const envelope = 1 - across * across;
+    const rise = envelope * (.008 + .022 * Math.exp(-14 * across * across));
+    const roll = Math.sin(Math.PI * v) * .003;
+    return gpHelmetPoint(lower - .003 + rise * v, phi, -.004 - .014 * v + roll, out);
   });
 }
 
@@ -386,6 +399,7 @@ export function addGpHelmetDetails(
   const shield = add(gpVisorGeometry(detail), materials.visor, 'GP iridium race visor');
   shield.castShadow = false;
   add(gpEyePortLiner(detail), materials.liner, 'GP eye-port padding');
+  add(gpBreathDeflector(detail), materials.liner, 'GP breath deflector');
   add(gpHelmetSpoiler(detail), materials.shell, 'GP rear crown spoiler');
   if (detail !== 'high') return;
   add(

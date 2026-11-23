@@ -343,7 +343,7 @@ describe('GP race helmet', () => {
     const shell = new T.Mesh(gpHelmetShell(detail), material);
     const visor = new T.Mesh(gpVisorGeometry(detail), material);
     const pad = new T.Mesh(gpEyePortLiner(detail), material);
-    const face = gpEyePortFace(detail, 23);
+    const face = gpEyePortFace(detail, 23, new T.MeshPhysicalMaterial());
     face.position.fromArray(GP_HELMET_CENTRE);
     face.position.y += .006;
     face.position.z += .016;
@@ -359,7 +359,7 @@ describe('GP race helmet', () => {
         expect(faceHit.distance).toBeLessThan(shellHit?.distance ?? Infinity);
       }
       expect(face.geometry.index!.count / 3).toBeLessThan(detail === 'high' ? 3300 : 1150);
-      expect(face.geometry.getAttribute('headPerson').getX(0)).toBe(23);
+      expect(face.geometry.getAttribute('gpFaceId').getX(0)).toBe(24);
     } finally {
       for (const mesh of [shell, visor, pad, face]) mesh.geometry.dispose();
       face.material.dispose();

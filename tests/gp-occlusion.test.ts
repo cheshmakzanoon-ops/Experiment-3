@@ -301,7 +301,8 @@ describe('GP bike-space occlusion', () => {
         // the cells around the helmet are open.
         const helmet = model.rider.root.getObjectByName('GP iridium race visor');
         if (helmet) {
-          const p = helmet.getWorldPosition(new T.Vector3());
+          const positions = (helmet as T.Mesh).geometry.getAttribute('position');
+          const p = helmet.localToWorld(new T.Vector3().fromBufferAttribute(positions, Math.floor(positions.count / 2)));
           model.sprung.updateWorldMatrix(true, false);
           p.applyMatrix4(model.sprung.matrixWorld.clone().invert());
           expect(cell(grid, p.x, p.y, p.z)).toBe(0);
