@@ -94,6 +94,12 @@ The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dr
 
 ## Motorcycle and rider
 
+| GP-R1 at 50.4° of lean | GP-R2 with 94% front brake |
+| --- | --- |
+| ![The GP-R1 rider hanging off the inside of the bike, seen from above the windscreen](gpr1-rider-corner-1080.webp) | ![The GP-R2 rider sitting up behind the windscreen under heavy braking](gpr2-braking-entry-1080.webp) |
+
+These 1920 × 1080 studio renders use the production High models, rider rigs and materials. The posed GP-R1 has 180 mm of rider offset at a speed input of 151.2 km/h. The GP-R2 has 7.4° of lean and a speed input of 201.6 km/h, with the front fork compressed 45 mm beyond static sag.
+
 | GP-R1 under braking | GP-R2 rear wheel |
 | --- | --- |
 | ![GP-R1 in a leaned braking pose with articulated rider, bodywork and front brake](gp-r1-braking.jpg) | ![GP-R2 forged wheel, exposed chain, sprocket, axle and brake hardware](gp-r2-rear-wheel.jpg) |
