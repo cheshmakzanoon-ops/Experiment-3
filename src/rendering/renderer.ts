@@ -2598,7 +2598,9 @@ export class RacingRenderer {
         (!this.photo || this.photo.view === 'cockpit') &&
         (!menu || !!this.photo) &&
         cameraMode === 'cockpit',
-      racingMotorcycle && !menu && !this.photo && !replay,
+      // A delayed live Formula frame still follows the same car. Let the
+      // staged cubemap finish while its previous complete map stays bound.
+      (racingMotorcycle || followedDefinition.drs) && !menu && !this.photo && !replay,
     );
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);
