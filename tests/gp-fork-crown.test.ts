@@ -270,10 +270,19 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
         });
         expect(movingGrip).toHaveLength(1);
         expect(movingGrip[0].material).toBe(materials.dark);
+        const clutch = steering.getObjectByName('GP forged clutch lever') as T.Mesh | undefined;
+        if (detail === 'high') {
+          expect(clutch).toBeInstanceOf(T.Mesh);
+          expect(clutch?.parent?.name).toBe('GP left clutch lever pivot');
+          expect(clutch?.material).toBe(materials.aluminium);
+        } else {
+          expect(clutch).toBeUndefined();
+        }
         // High already included its fluid pot in the original 21; Mid's new
         // reservoir is the sole additional rigid-material batch.
         const hydraulicAddition = 1 + (detail === 'mid' ? reservoirs.length : 0);
-        expect(meshes.length - wheelMeshes.length - hydraulicAddition - movingGrip.length).toBe(
+        const articulatedControls = movingGrip.length + Number(!!clutch);
+        expect(meshes.length - wheelMeshes.length - hydraulicAddition - articulatedControls).toBe(
           detail === 'high' ? 21 : 9,
         );
         if (id === 'gpr1' && detail === 'high') {

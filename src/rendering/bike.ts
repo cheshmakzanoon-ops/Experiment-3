@@ -52,7 +52,7 @@ import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { GpTyreCarcass } from './gp-tyre-carcass.ts';
 import { addRoadPowertrain } from './road-bike-powertrain.ts';
-import { GPChainDrive } from './gp-chain-drive.ts';
+import { GPChainDrive, gpChainLoad } from './gp-chain-drive.ts';
 import { GPRearSuspension, gpRearBody, gpRearHugger, gpRainLenses, gpRearSwingarm } from './gp-rear-chassis.ts';
 import { GPRearsets } from './gp-rearsets.ts';
 import {
@@ -2092,7 +2092,7 @@ export class BikeModel {
     this.gpFrontHydraulics?.update(this.forkLower.position.y);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
-    this.gpChain?.update(v.rearRotation);
+    this.gpChain?.update(v.rearRotation, v.chainLoad);
     // Pit service: the rear wheel rolls back out of the swingarm and the
     // front drops out of the fork while the axles are drawn (bike-pit-service).
     this.rearWheel.position.copy(this.rearAxle);
@@ -2245,6 +2245,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   tuck: number;
   brake: number;
   rearBrake: number;
+  /** Signed drive/coast loading of the GP chain's two free spans. */
+  chainLoad?: number;
   clutch?: number;
   discTemp: number;
   /** Independently recorded rear rotor temperature for GP and MX steel brakes (°C). */
@@ -2828,6 +2830,9 @@ export class BikeShells {
     v.tuck = sampleBikeField(a, b, o, B.TUCK, t);
     v.brake = sampleValue(a, b, o + F.BRAKE, t);
     v.rearBrake = sampleBikeField(a, b, o, B.REAR_BRAKE, t);
+    v.chainLoad = model.detail === 'high' && model.definition.classId === 'gp-bike'
+      ? T.MathUtils.lerp(gpChainLoad(a, o), gpChainLoad(b, o), t)
+      : 0;
     v.discTemp = wheelValue(a, b, o, front, W.DISC_TEMP, t);
     v.rearDiscTemp = wheelValue(a, b, o, rear, W.DISC_TEMP, t);
     v.compound = Math.round(source[o + F.COMPOUND]);

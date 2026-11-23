@@ -1,11 +1,12 @@
 import * as T from 'three';
 import { ChainLoop } from '../src/rendering/chain-geometry.ts';
+import { gpChainSag } from '../src/rendering/gp-chain-drive.ts';
 
 /** Check actual closed structure against a continuous conservative chain
  * envelope: boxes join adjacent real path samples, with 16 mm axial and
  * 6 mm radial half extents plus 1 mm clearance. A nearest outward ray
  * exit also rejects a chain centre contained entirely inside a solid. */
-export function measureChainEnvelope(root: T.Object3D, arm: number) {
+export function measureChainEnvelope(root: T.Object3D, arm: number, load = 0) {
   root.updateMatrixWorld(true);
   const surfaces: {
     bounds: T.Box3;
@@ -48,9 +49,11 @@ export function measureChainEnvelope(root: T.Object3D, arm: number) {
   let intersections = 0,
     insideSamples = 0,
     testedTriangles = 0;
+  const upper = gpChainSag(load, true),
+    lower = gpChainSag(load, false);
   for (let i = 0; i < 1600; i++) {
-    loop.sample((i / 1600) * loop.length, point);
-    loop.sample(((i + 1) / 1600) * loop.length, next);
+    loop.sample((i / 1600) * loop.length, point, upper, lower);
+    loop.sample(((i + 1) / 1600) * loop.length, next, upper, lower);
     envelope.min.copy(point).min(next).sub(halfExtent);
     envelope.max.copy(point).max(next).add(halfExtent);
     for (const surface of surfaces) {

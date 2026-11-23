@@ -6,7 +6,7 @@ import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /* Complete production model, including instanced links, the optical helmet
  * and the fitted wheel hardware. Pose and recovery must retain this topology. */
-const TRIANGLES = { gpr1: 109_852, gpr2: 109_230 } as const;
+const TRIANGLES = { gpr1: 109_620, gpr2: 109_022 } as const;
 
 let fixtureScript: string;
 test.beforeAll(async () => {
@@ -44,6 +44,43 @@ async function installFixture(page: Page) {
 // Each case constructs its own production WebGL scene. Keep the complete
 // held/wet/rewind sequence together within the existing per-case deadline.
 for (const id of ['gpr1', 'gpr2']) {
+  test(`${id} chain transfers its free span on overrun at a fixed wheel angle`, async ({
+    page,
+  }, info) => {
+    const errors = await installFixture(page);
+    const samples = await page.evaluate((id) => {
+      const rig = (
+        window as unknown as { MotoGPReview: { captureBikeSequence: typeof captureBikeSequence } }
+      ).MotoGPReview;
+      return rig.captureBikeSequence(
+        'drive-chain',
+        'high',
+        id,
+        [1, 0, -1, -1, 1].map((chainLoad) => ({
+          wet: false,
+          time: 2,
+          pose: { chainLoad, rearRotation: 0.105 },
+        })),
+      );
+    }, id);
+    expect(errors).toEqual([]);
+    expect(new Set(samples.slice(0, 3).map((x) => x.hash)).size).toBe(3);
+    expect(samples[3].hash).toBe(samples[2].hash);
+    expect(samples[4].hash).toBe(samples[0].hash);
+    for (const sample of samples) {
+      expect(sample.glError).toBe(0);
+      expect(sample.sourceFrameUnchanged).toBe(true);
+      expect(sample.triangles).toBe(TRIANGLES[id as keyof typeof TRIANGLES]);
+      expect(sample.calls).toBe(samples[0].calls);
+      expect(sample.resources).toEqual(samples[0].resources);
+    }
+    for (const i of [0, 2]) {
+      await info.attach(`${id}-${i === 0 ? 'drive' : 'overrun'}.png`, {
+        body: Buffer.from(samples[i].image.split(',')[1], 'base64'),
+        contentType: 'image/png',
+      });
+    }
+  });
   for (const view of ['right-grip', 'right-peg', 'rider-corner']) {
     test(`${id} ${view} retains held, wet and rewound production-model contact poses`, async ({
       page,

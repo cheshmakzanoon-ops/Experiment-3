@@ -107,6 +107,10 @@ describe('GP rear structure on the production motorcycle', () => {
         expect(chain.intersections).toBe(0);
         expect(chain.insideSamples).toBe(0);
         if (detail === 'high') {
+          for (const load of [-1, 1]) {
+            const tensioned = measureChainEnvelope(arm, 0.575, load);
+            expect(tensioned.intersections + tensioned.insideSamples).toBe(0);
+          }
           // Positive control: a solid placed through the known upper chain
           // run must be rejected by the same occupied-space check.
           const intrusion = new T.Mesh(new T.BoxGeometry(0.04, 0.3, 0.04), materials.steel);

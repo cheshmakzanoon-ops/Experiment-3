@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { clamp, smooth } from '../core/math.ts';
+import { B, BIKE_BASE, F, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { ChainLoop, chainLinkPlateGeometry } from './chain-geometry.ts';
 
 /** Original GP prototype drivetrain, in metres, +Z forward and X along the axle.
@@ -16,19 +18,53 @@ const CHAIN_PITCH = 0.015875;
 const REAR_RADIUS = CHAIN_PITCH / (2 * Math.sin(Math.PI / REAR_TEETH));
 const FRONT_RADIUS = CHAIN_PITCH / (2 * Math.sin(Math.PI / FRONT_TEETH));
 const X = 0.115;
+const FREE_SPAN_SAG = 0.016;
+
+/** Signed presentation load, positive when the countershaft drives the wheel.
+ * A manual clutch reports signed plate torque. Automatic snapshots report crank
+ * output and tyre force separately. Use the negative rear force as evidence of
+ * engine braking only while the foot brake is released. */
+export function gpChainLoad(frame: Float32Array, car: number) {
+  const manual = frame[car + F.CLUTCH_PEDAL] > 0 || frame[car + F.CLUTCH_ENGAGEMENT] > 0;
+  let load: number;
+  if (manual) {
+    load = frame[car + F.CLUTCH_TORQUE] / 55;
+  } else {
+    const rear = car + WHEEL_BASE + 2 * WHEEL_STRIDE;
+    const rearBrake = frame[car + BIKE_BASE + B.REAR_BRAKE];
+    const overrun = Math.min(0, frame[rear + W.FX]) * (1 - smooth(0, 0.25, rearBrake));
+    load = frame[car + F.ENGINE_TORQUE] / 55 + overrun / 850;
+  }
+  return Number.isFinite(load) ? clamp(load, -1, 1) : 0;
+}
+
+/** To first order the excess arc length of a shallow free span scales with sag
+ * squared. Redistribute that fixed reserve as drive torque changes sign. */
+export function gpChainSag(load: number, upper: boolean) {
+  const share = smooth(-1, 1, upper ? -load : load);
+  return FREE_SPAN_SAG * Math.sqrt(share);
+}
 
 /** The small cold-headed steel pins have flat peened ends. Independent face
  * normals keep those ends flat and the roller cylindrical. The convex caps
  * triangulate from the perimeter, avoiding two centre fans per moving pin. */
 export function gpChainPin() {
-  const radius = .004, half = .0255 / 2, sides = 6;
-  const pos: number[] = [], normal: number[] = [], uv: number[] = [], index: number[] = [];
-  for (const sign of [-1, 1]) for (let i = 0; i <= sides; i++) {
-    const a = 2 * Math.PI * i / sides, x = Math.cos(a), z = Math.sin(a);
-    pos.push(radius * x, sign * half, radius * z);
-    normal.push(x, 0, z);
-    uv.push(i / sides, (sign + 1) / 2);
-  }
+  const radius = 0.004,
+    half = 0.0255 / 2,
+    sides = 6;
+  const pos: number[] = [],
+    normal: number[] = [],
+    uv: number[] = [],
+    index: number[] = [];
+  for (const sign of [-1, 1])
+    for (let i = 0; i <= sides; i++) {
+      const a = (2 * Math.PI * i) / sides,
+        x = Math.cos(a),
+        z = Math.sin(a);
+      pos.push(radius * x, sign * half, radius * z);
+      normal.push(x, 0, z);
+      uv.push(i / sides, (sign + 1) / 2);
+    }
   for (let i = 0; i < sides; i++) {
     const j = i + sides + 1;
     index.push(i, j, j + 1, i, j + 1, i + 1);
@@ -36,10 +72,12 @@ export function gpChainPin() {
   for (const sign of [-1, 1]) {
     const start = pos.length / 3;
     for (let i = 0; i < sides; i++) {
-      const a = 2 * Math.PI * i / sides, x = Math.cos(a), z = Math.sin(a);
+      const a = (2 * Math.PI * i) / sides,
+        x = Math.cos(a),
+        z = Math.sin(a);
       pos.push(radius * x, sign * half, radius * z);
       normal.push(0, sign, 0);
-      uv.push(.5 + .5 * x, .5 + .5 * z);
+      uv.push(0.5 + 0.5 * x, 0.5 + 0.5 * z);
     }
     for (let i = 1; i < sides - 1; i++)
       if (sign > 0) index.push(start, start + i + 1, start + i);
@@ -101,23 +139,19 @@ export class GPChainDrive {
   private readonly one = new T.Vector3(1, 1, 1);
   private readonly linkScale = new T.Vector3(1, 1, 1);
   private lastWheelPhase = Number.NaN;
+  private lastLoad = Number.NaN;
 
   constructor(arm: number, steel: T.Material, chainSide: T.Material, aluminium: T.Material) {
     if (!Number.isFinite(arm) || arm < 0.3 || arm > 1.1)
       throw new Error('Invalid GP motorcycle swingarm length');
-    // Two exact external tangents and two circular wraps. A free spline can
-    // bulge away from the teeth and wiggle along the nominally taut runs.
+    // Keep both sprocket wraps and tangent points fixed at every load.
     this.loop = new ChainLoop(arm, REAR_RADIUS, FRONT_RADIUS, X);
     // Even count closes the alternating inner/outer plate pattern at the seam.
-    // Spacing follows this visual loop; it is not a chain-tension simulation.
+    // The shallow free spans share the same excess length throughout a load reversal.
     this.links = 2 * Math.round(this.loop.length / CHAIN_PITCH / 2);
     this.spacing = this.loop.length / this.links;
     this.root.name = 'GP prototype animated steel chain (articulated with swingarm)';
-    this.rollers = new T.InstancedMesh(
-      gpChainPin(),
-      steel,
-      this.links,
-    );
+    this.rollers = new T.InstancedMesh(gpChainPin(), steel, this.links);
     this.rollers.name = 'Steel chain pins and rollers';
     this.plates = new T.InstancedMesh(
       chainLinkPlateGeometry(CHAIN_PITCH),
@@ -147,19 +181,22 @@ export class GPChainDrive {
     this.update(0);
   }
 
-  update(rearRotation: number) {
+  update(rearRotation: number, load = 0) {
     // Reduce before multiplying: even a finite MAX_VALUE must not overflow
     // to an infinite link index. A full revolution permutes 42 (even) links.
     const angle = Number.isFinite(rearRotation) ? ((rearRotation % TAU) + TAU) % TAU : 0;
-    if (angle === this.lastWheelPhase) return;
+    const tension = Number.isFinite(load) ? clamp(load, -1, 1) : 0;
+    if (angle === this.lastWheelPhase && tension === this.lastLoad) return;
     this.lastWheelPhase = angle;
+    this.lastLoad = tension;
+    const upperSag = gpChainSag(tension, true);
+    const lowerSag = gpChainSag(tension, false);
     // This loop traverses the rear sprocket clockwise in YZ; wheel.rotation.x
     // is anticlockwise. The old positive sign drove the chain backwards.
     const phase = -(angle / TAU) * REAR_TEETH;
+    this.loop.sample(phase * this.spacing, this.p, upperSag, lowerSag);
     for (let i = 0; i < this.links; i++) {
-      const distance = (i + phase) * this.spacing;
-      this.loop.sample(distance, this.p);
-      this.loop.sample(distance + this.spacing, this.next);
+      this.loop.sample((i + 1 + phase) * this.spacing, this.next, upperSag, lowerSag);
       this.tangent.subVectors(this.next, this.p);
       this.midpoint.addVectors(this.p, this.next).multiplyScalar(0.5);
       this.qLink.setFromAxisAngle(this.axis, Math.atan2(-this.tangent.y, this.tangent.z));
@@ -171,6 +208,7 @@ export class GPChainDrive {
         this.matrix.compose(this.midpoint, this.qLink, this.linkScale);
         this.plates.setMatrixAt(i * 2 + side, this.matrix);
       }
+      this.p.copy(this.next);
     }
     this.rollers.instanceMatrix.needsUpdate = true;
     this.plates.instanceMatrix.needsUpdate = true;

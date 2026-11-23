@@ -30,7 +30,7 @@ export class ChainLoop {
       this.frontRadius * (Math.PI - 2 * this.tangentAngle);
   }
 
-  sample(distance: number, out: T.Vector3) {
+  sample(distance: number, out: T.Vector3, upperSag = 0, lowerSag = 0) {
     const s = ((distance % this.length) + this.length) % this.length;
     const a = this.tangentAngle,
       c = Math.cos(a),
@@ -42,6 +42,7 @@ export class ChainLoop {
         c * (this.frontRadius + (this.rearRadius - this.frontRadius) * t),
         this.frontRadius * sn + (-this.arm + (this.rearRadius - this.frontRadius) * sn) * t,
       );
+      if (upperSag) out.y -= upperSag * freeSpan(t);
     } else if (s < this.straightLength + this.rearArcLength) {
       const angle = a - (s - this.straightLength) / this.rearRadius;
       out.set(
@@ -58,6 +59,7 @@ export class ChainLoop {
           this.rearRadius * sn +
           (this.arm + (this.frontRadius - this.rearRadius) * sn) * t,
       );
+      if (lowerSag) out.y -= lowerSag * freeSpan(t);
     } else {
       const angle =
         Math.PI - a - (s - 2 * this.straightLength - this.rearArcLength) / this.frontRadius;
@@ -65,6 +67,12 @@ export class ChainLoop {
     }
     return out;
   }
+}
+
+/** Unit deflection at midspan with zero value and slope as a roller meets a tooth. */
+function freeSpan(t: number) {
+  const shoulder = 4 * t * (1 - t);
+  return shoulder * shoulder;
 }
 
 /** Twelve outline vertices retain rounded pin lobes and a narrow waist at

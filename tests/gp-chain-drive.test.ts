@@ -1,6 +1,21 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
-import { gpChainPin, GPChainDrive } from '../src/rendering/gp-chain-drive.ts';
+import {
+  gpChainLoad,
+  gpChainPin,
+  gpChainSag,
+  GPChainDrive,
+} from '../src/rendering/gp-chain-drive.ts';
+import {
+  B,
+  BIKE_BASE,
+  CAR_STRIDE,
+  F,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+} from '../src/simulation/protocol.ts';
+import { ChainLoop } from '../src/rendering/chain-geometry.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 const material = () => new T.MeshStandardMaterial();
@@ -15,18 +30,64 @@ const positions = (mesh: T.InstancedMesh) => {
 };
 
 describe('GP-R1 high-detail instanced, replay-deterministic chain drive', () => {
+  it('puts the free length on the return span under drive and on the upper span on overrun', () => {
+    const loop = new ChainLoop(0.575, 0.106, 0.046, 0.115);
+    const sample = (d: number, load: number) =>
+      loop.sample(d, new T.Vector3(), gpChainSag(load, true), gpChainSag(load, false));
+    const U = loop.straightLength,
+      A = loop.rearArcLength;
+    expect(sample(U * 0.5, 1).y - sample(U * 0.5, -1).y).toBeCloseTo(0.016, 7);
+    expect(sample(1.5 * U + A, -1).y - sample(1.5 * U + A, 1).y).toBeCloseTo(0.016, 7);
+    for (const d of [0, U, U + 0.5 * A, U + A, 2 * U + A, loop.length - 0.01])
+      expect(sample(d, 1).distanceTo(sample(d, -1))).toBeLessThan(1e-9);
+    const pathLength = (load: number) => {
+      let length = 0,
+        previous = sample(0, load);
+      for (let i = 1; i <= 1600; i++) {
+        const next = sample((i * loop.length) / 1600, load);
+        length += previous.distanceTo(next);
+        previous = next;
+      }
+      return length;
+    };
+    expect(Math.abs(pathLength(1) - pathLength(-1))).toBeLessThan(0.000035);
+    expect(Math.abs(pathLength(1) - pathLength(0))).toBeLessThan(0.000035);
+  });
+  it('reads signed plate torque in manual mode and separates automatic overrun from the foot brake', () => {
+    const f = new Float32Array(CAR_STRIDE);
+    const rear = WHEEL_BASE + 2 * WHEEL_STRIDE;
+    f[F.ENGINE_TORQUE] = 100;
+    expect(gpChainLoad(f, 0)).toBe(1);
+    f[F.ENGINE_TORQUE] = 0;
+    f[rear + W.FX] = -850;
+    expect(gpChainLoad(f, 0)).toBe(-1);
+    f[BIKE_BASE + B.REAR_BRAKE] = 0.8;
+    expect(gpChainLoad(f, 0)).toBe(0);
+    f[F.ENGINE_TORQUE] = 120;
+    f[F.CLUTCH_PEDAL] = 1;
+    expect(gpChainLoad(f, 0)).toBe(0);
+    f[F.CLUTCH_ENGAGEMENT] = 1;
+    f[F.CLUTCH_PEDAL] = 0;
+    f[F.CLUTCH_TORQUE] = -27.5;
+    expect(gpChainLoad(f, 0)).toBe(-0.5);
+  });
   it('keeps both pin heads closed and the full barrel visible in twenty triangles', () => {
-    const geometry = gpChainPin(), m = material(), mesh = new T.Mesh(geometry, m);
+    const geometry = gpChainPin(),
+      m = material(),
+      mesh = new T.Mesh(geometry, m);
     expect(geometry.index!.count / 3).toBe(20);
     for (const side of [-1, 1]) {
-      const end = new T.Raycaster(new T.Vector3(.0003, side, .0007), new T.Vector3(0, -side, 0))
-        .intersectObject(mesh)[0];
-      expect(end?.point.y).toBeCloseTo(side * .01275, 6);
+      const end = new T.Raycaster(
+        new T.Vector3(0.0003, side, 0.0007),
+        new T.Vector3(0, -side, 0),
+      ).intersectObject(mesh)[0];
+      expect(end?.point.y).toBeCloseTo(side * 0.01275, 6);
       expect(end?.face?.normal.y).toBeCloseTo(side, 6);
     }
-    const barrel = new T.Raycaster(new T.Vector3(1, 0, 0), new T.Vector3(-1, 0, 0))
-      .intersectObject(mesh)[0];
-    expect(barrel?.point.x).toBeCloseTo(.004, 6);
+    const barrel = new T.Raycaster(new T.Vector3(1, 0, 0), new T.Vector3(-1, 0, 0)).intersectObject(
+      mesh,
+    )[0];
+    expect(barrel?.point.x).toBeCloseTo(0.004, 6);
     geometry.dispose();
     m.dispose();
   });

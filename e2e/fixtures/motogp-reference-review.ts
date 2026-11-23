@@ -44,6 +44,7 @@ export function captureBikeSequence(
         | 'frontOmega'
         | 'rearOmega'
         | 'rearRotation'
+        | 'chainLoad'
         | 'rearBrake'
         | 'clutch'
         | 'speed'
@@ -202,6 +203,15 @@ export function captureBikeSequence(
     camera.position.set(1.35, 0.8, -1.62);
     camera.lookAt(0, 0.53, -0.37);
     camera.fov = 35;
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'drive-chain') {
+    const chain = bike.root.getObjectByName('Paired articulated link plates')?.parent;
+    if (!chain) throw new Error('Missing articulated GP chain');
+    const focus = chain.localToWorld(new T.Vector3(0.115, -0.05, -0.32));
+    camera.position.copy(focus).add(new T.Vector3(0.79, -0.03, -0.095));
+    camera.lookAt(focus);
+    camera.fov = 32;
     camera.updateProjectionMatrix();
   }
   if (view === 'right-grip' || view === 'left-grip' || view === 'right-peg') {
