@@ -144,11 +144,13 @@ describe('reference-informed MX environments', () => {
       }
       if (id === 'valley-ridge-mx') {
         expect(dressing.stats.banners).toBeGreaterThan(12);
+        expect(dressing.stats.bermScrimSpans).toBeGreaterThan(8);
         expect(dressing.stats.grassClumps).toBeGreaterThan(1000);
         expect(dressing.stats.stones).toBeGreaterThan(30);
         expect(dressing.stats.canopies).toBeGreaterThan(0);
       } else {
         expect(dressing.stats.blocks).toBeGreaterThan(25);
+        expect(dressing.stats.bermScrimSpans).toBe(0);
         expect(dressing.stats.grassClumps).toBe(0);
       }
       dressing.dispose();

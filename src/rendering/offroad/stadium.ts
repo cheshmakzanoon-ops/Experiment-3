@@ -5,6 +5,7 @@ import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from './mx-floodl
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mxPressSuite } from './mx-press-suite.ts';
 import { mxRoofDeck } from './mx-roof-deck.ts';
+import { installMxLedRibbon, mxLedPanel, mxPrintedPanel } from './mx-led-ribbon.ts';
 import { MxTimingBoard } from './mx-timing-board.ts';
 import { MxCrowdPass } from './mx-crowd-pass.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -166,6 +167,7 @@ export class Stadium {
       roughness: 0.62,
       name: 'MOTOBOUND arena ribbon boards',
     });
+    installMxLedRibbon(ribbon);
     const r = new Random(7151);
     const tiers: T.BufferGeometry[] = [],
       rigging: T.BufferGeometry[] = [],
@@ -262,7 +264,7 @@ export class Stadium {
           const x = cx - (side.axis === 'x' ? side.sign * 0.56 : 0),
             z = cz - (side.axis === 'z' ? side.sign * 0.56 : 0);
           const panel = mxAtlasRow(
-            new T.PlaneGeometry(extent, 0.7).rotateY(yaw).translate(x, top + 0.32, z),
+            mxLedPanel(extent, 0.7).rotateY(yaw).translate(x, top + 0.32, z),
             k === 9 ? 0 : 1,
           );
           // Repeat readable event panels at a physical width instead of
@@ -373,7 +375,7 @@ export class Stadium {
         edgeZ =
           side.axis === 'z' ? (side.sign < 0 ? min.z - 0.04 : max.z + 0.04) : (min.z + max.z) / 2;
       const wall = mxAtlasRow(
-        new T.PlaneGeometry(along, 0.82).rotateY(yaw).translate(edgeX, floor + 0.62, edgeZ),
+        mxLedPanel(along, 0.82).rotateY(yaw).translate(edgeX, floor + 0.62, edgeZ),
         side.axis === 'x' ? 0 : 2,
       );
       const uv = wall.getAttribute('uv');
@@ -636,7 +638,7 @@ export class Stadium {
     });
     rigging.push(...finish.metal);
     cases.push(...finish.housing);
-    ribbons.push(...finish.print);
+    ribbons.push(...finish.print.map(mxPrintedPanel));
     const cx = (min.x + max.x) * 0.5;
     const screens = [-1, 1].map((end) => {
       const z = end < 0 ? min.z - outer * 0.65 : max.z + outer * 0.65;

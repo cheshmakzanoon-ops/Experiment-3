@@ -59,6 +59,7 @@ export interface MxDressingStats {
   stakes: number;
   blocks: number;
   banners: number;
+  bermScrimSpans: number;
   jumpMarkers: number;
   grassClumps: number;
   fernClumps: number;
@@ -84,6 +85,7 @@ export class MxCourseDressing {
     stakes: 0,
     blocks: 0,
     banners: 0,
+    bermScrimSpans: 0,
     jumpMarkers: 0,
     grassClumps: 0,
     fernClumps: 0,
@@ -203,16 +205,6 @@ export class MxCourseDressing {
       markers,
     );
     if (!indoor) {
-      for (let s = 136; s < track.length - 100; s += 24) {
-        const side = Math.floor(s / 24) % 2 ? 1 : -1;
-        track.at(s, this.point);
-        const l =
-          side *
-          Math.max(this.point.width + 3.6, course.legalWidth(this.point.width, s, side) + 0.75);
-        if (!this.clear(s - 4, l, 0.2) || !this.clear(s + 4, l, 0.2)) continue;
-        this.banner(s, l, cloth, steel, Math.floor(s / 24) % 2);
-        this.stats.banners++;
-      }
       this.shoulders(r);
     }
     this.trackside = new MxTracksideFurniture(track, this.venueTime, this.wind);
@@ -220,6 +212,7 @@ export class MxCourseDressing {
     this.root.add(this.trackside.root);
     this.stats.canopies = this.trackside.stats.canopy;
     if (!indoor) {
+      this.raceBanners(cloth, steel);
       this.featherFlags(cloth, steel);
       this.paddockLife();
     }
@@ -623,17 +616,68 @@ export class MxCourseDressing {
     mesh.computeBoundingSphere();
     parent.add(mesh);
   }
-  private banner(s: number, lateral: number, material: T.Material, hardware: T.Material, row: number) {
-    // Pegs are plumb and the fabric spans their two measured heights. Draping
-    // every vertex over the terrain made a bank or gully look stamped into it.
+  /** Pinned fabric follows the outside of the bank like the continuous
+   * spectator screens in references 035 and 037. Keep access gaps at both
+   * ends and beside service sites; check the full chord on tight switchbacks. */
+  private raceBanners(material: T.Material, hardware: T.Material) {
+    const track = this.track, course = this.surface.course;
+    const occupied = [...this.trackside.plan.sites, ...this.courseSites.landmarks];
+    const panels: T.Vector3[] = [];
+    const pin = (s: number, side: number, setback: number) => {
+      const p = track.at(s, this.point);
+      const l = side * Math.max(p.width + 3.6, course.legalWidth(p.width, s, side) + setback);
+      const x = p.x + p.nx * l, z = p.z + p.nz * l;
+      return new T.Vector3(x, mxFurnitureGround(track, x, z), z);
+    };
+    const point = new T.Vector3();
+    const safe = (a: T.Vector3, b: T.Vector3) => {
+      for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+        point.lerpVectors(a, b, t);
+        const { x, y, z } = point, p = this.nearby;
+        const l = track.nearest(x, z, p);
+        if (Math.abs(l) < course.legalWidth(p.width, p.s, l) + 0.65 ||
+            mxFurnitureGround(track, x, z) > y + 0.11 ||
+            inStandFootprint(track, x, z, 0.45) ||
+            occupied.some(site => Math.hypot(x - site.x, z - site.z) < site.radius + 0.9)) return false;
+      }
+      point.lerpVectors(a, b, 0.5);
+      return !panels.some(mid => mid.distanceToSquared(point) < 20);
+    };
     this.frame.identity();
-    const ends = [-4, 4].map((ds) => {
-      const at = this.track.at(s + ds, this.point);
-      const x = at.x + at.nx * lateral, z = at.z + at.nz * lateral;
-      const y = mxFurnitureGround(this.track, x, z);
+    const stake = ({ x, y, z }: T.Vector3) => {
       this.part(new T.CylinderGeometry(0.024, 0.031, 1.12, 7).translate(x, y + 0.50, z), hardware);
-      return new T.Vector3(x, y, z);
-    });
+      for (const height of [0.26, 0.96]) {
+        const tie = new T.TorusGeometry(0.039, 0.009, 4, 9).rotateX(Math.PI / 2);
+        this.part(tie.translate(x, y + height, z), hardware);
+      }
+    };
+    const run = (start: number, step: number, count: number, side: number, banked: boolean) => {
+      const setback = banked ? 3.55 : 1.45;
+      let a = pin(start, side, setback), previousMounted = false;
+      for (let i = 0; i < count; i++) {
+        const s = start + i * step, b = pin(s + step, side, setback), mounted = safe(a, b);
+        if (mounted) {
+          if (!previousMounted) stake(a);
+          stake(b);
+          this.banner(s + step / 2, side, [a, b], material, this.stats.banners % 2);
+          panels.push(new T.Vector3().lerpVectors(a, b, 0.5));
+          this.stats.banners++;
+          if (banked) this.stats.bermScrimSpans++;
+        }
+        previousMounted = mounted;
+        a = b;
+      }
+    };
+    for (const berm of course.spec.berms) {
+      if (!berm.side) continue;
+      const arc = mod(berm.to - berm.from, track.length);
+      const span = Math.min(arc * 0.8, 58), count = Math.floor(span / 8);
+      if (count >= 2) run(berm.from + (arc - span) / 2, span / count, count, berm.side, true);
+    }
+    for (let s = 136; s < track.length - 100; s += 24)
+      run(s - 4, 8, 1, Math.floor(s / 24) % 2 ? 1 : -1, false);
+  }
+  private banner(s: number, side: number, ends: [T.Vector3, T.Vector3], material: T.Material, row: number) {
     const along = ends[1].clone().sub(ends[0]);
     const normal = new T.Vector3(along.z, 0, -along.x).normalize();
     // Present the correctly printed face to the active racing lane on each
@@ -643,7 +687,7 @@ export class MxCourseDressing {
     const wind = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
       const u = uv.getX(i), v = uv.getY(i);
-      const t = lateral < 0 ? 1 - u : u;
+      const t = side < 0 ? 1 - u : u;
       const belly = 4 * t * (1 - t), hem = Math.sin(Math.PI * v);
       const y = T.MathUtils.lerp(ends[0].y, ends[1].y, t) + 0.25 + 0.72 * v
         - belly * (0.095 - 0.035 * hem);
@@ -660,14 +704,6 @@ export class MxCourseDressing {
     g.setAttribute('mxCloth', new T.Float32BufferAttribute(wind, 3));
     g.computeVertexNormals();
     this.part(mxAtlasRow(g, row), material);
-    for (const t of [0, 1]) {
-      const end = ends[t];
-      for (const y of [0.26, 0.96]) {
-        const ring = new T.TorusGeometry(0.039, 0.009, 4, 9).rotateX(Math.PI / 2);
-        ring.translate(end.x, end.y + y, end.z);
-        this.part(ring, hardware);
-      }
-    }
   }
   private shoulders(random: Random) {
     const track = this.track,

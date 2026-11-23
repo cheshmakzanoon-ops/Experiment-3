@@ -160,6 +160,12 @@ describe('supercross roof floodlight grid', () => {
       expect(grid.rows).toBe(5);
       expect(grid.spanX).toBeGreaterThan(40);
       expect(grid.spanZ).toBeGreaterThan(20);
+      const ribbons = stadium.root.getObjectByName('Arena concourse ribbon boards') as T.Mesh;
+      const cabinet = ribbons.geometry.getAttribute('mxDisplayMetres');
+      const masked = Array.from({ length: cabinet.count }, (_, i) => cabinet.getX(i) < 0);
+      expect(masked.some(Boolean)).toBe(true); // The ink on the finish bridge reflects the lamps.
+      expect(masked.filter(v => !v)).toHaveLength(4 * 4 * 3); // Wall, lower tier and upper tier on each side.
+      expect(studioHookKeys(ribbons.material as T.Material)).toContain('mx-led-cabinets-v1');
       const lenses = stadium.root.getObjectByName('Merged arena round floodlight lenses') as T.Mesh<
         T.BufferGeometry,
         T.MeshStandardMaterial
