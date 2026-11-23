@@ -1,244 +1,277 @@
-### browser (8) (job 137468135052)
+### browser (8) (job 137472167953)
 --- error digest (first 120 matching lines) ---
-194:browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:18.2515660Z ##[error]The operation was canceled.
+817:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:04:11.8700382Z   ✘   8 e2e/43-hero-garage.spec.ts:12:1 › A22 normal startup loads one authored garage and retains it through practice entry (4.2m)
+819:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:04:11.8717395Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+825:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:04:11.8719663Z - Timeout 240000ms exceeded while waiting on the predicate
+862:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:15:51.9938733Z   ✘  14 e2e/57-trackside-operations.spec.ts:11:3 › A08-A10 complete production day operations and recorded local signals (7.3m)
+866:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:15:51.9941041Z Error: page.evaluate: Test timeout of 420000ms exceeded.
+895:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:28:19.7708346Z   ✘  16 e2e/a33-spare-wheel-set.spec.ts:54:3 › A33 real service motion, replay and stored wheels render in sunset (12.3m)
+899:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:28:19.7713225Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+950:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:51:07.2555624Z   ✘  18 e2e/aurel-quarry.spec.ts:11:3 › A55-A60 day full production landscape, cockpit and stable camera cycles (21.3m)
+954:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:51:07.2557742Z Error: page.evaluate: Test timeout of 1200000ms exceeded.
+972:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:56:40.2589075Z   ✘  21 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence (5.2m)
+976:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:56:40.2592939Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+992:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7023556Z   1) e2e/43-hero-garage.spec.ts:12:1 › A22 normal startup loads one authored garage and retains it through practice entry › Expect "poll toMatch" 
+994:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7024975Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+1000:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7026759Z     - Timeout 240000ms exceeded while waiting on the predicate
+1028:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7039227Z   2) e2e/57-trackside-operations.spec.ts:11:3 › A08-A10 complete production day operations and recorded local signals 
+1032:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7040409Z     Error: page.evaluate: Test timeout of 420000ms exceeded.
+1051:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7047911Z   3) e2e/a33-spare-wheel-set.spec.ts:54:3 › A33 real service motion, replay and stored wheels render in sunset 
+1055:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7048973Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+1074:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7058227Z   4) e2e/aurel-quarry.spec.ts:11:3 › A55-A60 day full production landscape, cockpit and stable camera cycles 
+1078:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7059358Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
+1097:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7067190Z   5) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence 
+1101:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7070598Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+1133:browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:47.1529784Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-browser (8)	Set up job	﻿2026-11-23T03:38:49.0489963Z Current runner version: '2.338.2'
-browser (8)	Set up job	2026-11-23T03:38:49.0506503Z ##[group]Runner Image Provisioner
-browser (8)	Set up job	2026-11-23T03:38:49.0507201Z Hosted Compute Agent
-browser (8)	Set up job	2026-11-23T03:38:49.0507626Z Version: 20261111.635
-browser (8)	Set up job	2026-11-23T03:38:49.0508062Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
-browser (8)	Set up job	2026-11-23T03:38:49.0508587Z Build Date: 2026-11-11T01:49:01Z
-browser (8)	Set up job	2026-11-23T03:38:49.0509070Z Worker ID: {9622c3c5-2dd5-4f92-bcb9-325e6faf75f1}
-browser (8)	Set up job	2026-11-23T03:38:49.0509585Z Region: us-west-2
-browser (8)	Set up job	2026-11-23T03:38:49.0509972Z Cloud: AWS
-browser (8)	Set up job	2026-11-23T03:38:49.0510336Z ##[endgroup]
-browser (8)	Set up job	2026-11-23T03:38:49.0511193Z ##[group]Operating System
-browser (8)	Set up job	2026-11-23T03:38:49.0511634Z Ubuntu
-browser (8)	Set up job	2026-11-23T03:38:49.0512174Z 24.04.5
-browser (8)	Set up job	2026-11-23T03:38:49.0512583Z LTS
-browser (8)	Set up job	2026-11-23T03:38:49.0512939Z ##[endgroup]
-browser (8)	Set up job	2026-11-23T03:38:49.0513358Z ##[group]Runner Image
-browser (8)	Set up job	2026-11-23T03:38:49.0513817Z Image: ubuntu-24.04
-browser (8)	Set up job	2026-11-23T03:38:49.0514189Z Version: 20261116.133.1
-browser (8)	Set up job	2026-11-23T03:38:49.0514955Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
-browser (8)	Set up job	2026-11-23T03:38:49.0516149Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
-browser (8)	Set up job	2026-11-23T03:38:49.0516867Z ##[endgroup]
-browser (8)	Set up job	2026-11-23T03:38:49.0517609Z ##[group]GITHUB_TOKEN Permissions
-browser (8)	Set up job	2026-11-23T03:38:49.0519091Z Contents: read
-browser (8)	Set up job	2026-11-23T03:38:49.0519472Z Metadata: read
-browser (8)	Set up job	2026-11-23T03:38:49.0519896Z ##[endgroup]
-browser (8)	Set up job	2026-11-23T03:38:49.0521475Z Secret source: Actions
-browser (8)	Set up job	2026-11-23T03:38:49.0522467Z Cache mode: write
-browser (8)	Set up job	2026-11-23T03:38:49.0522957Z Prepare workflow directory
-browser (8)	Set up job	2026-11-23T03:38:49.0778463Z Prepare all required actions
-browser (8)	Set up job	2026-11-23T03:38:49.0813867Z Getting action download info
-browser (8)	Set up job	2026-11-23T03:38:49.4303190Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
-browser (8)	Set up job	2026-11-23T03:38:50.9624270Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-browser (8)	Set up job	2026-11-23T03:38:51.1550801Z Download action repository 'actions/download-artifact@v4' (SHA:d3f86a106a0bac45b974a628896c90dbdf5c8093)
-browser (8)	Set up job	2026-11-23T03:38:51.5738667Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
-browser (8)	Set up job	2026-11-23T03:38:51.8685577Z Complete job name: browser (8)
-browser (8)	Run actions/checkout@v4	﻿2026-11-23T03:38:51.9223754Z ##[group]Run actions/checkout@v4
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9224295Z with:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9224597Z   repository: cheshmakzanoon-ops/Experiment-3
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9226724Z   token: ***
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9227011Z   ssh-strict: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9227271Z   ssh-user: git
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9227551Z   persist-credentials: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9227836Z   clean: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9228092Z   sparse-checkout-cone-mode: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9228430Z   fetch-depth: 1
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9228680Z   fetch-tags: false
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9228950Z   show-progress: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9229213Z   lfs: false
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9229472Z   submodules: false
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9229771Z   set-safe-directory: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9230066Z   allow-unsafe-pr-checkout: false
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9230503Z env:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9230783Z   APEX_BROWSER_BACKEND: mesa
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9231073Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9231399Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9231762Z   GALLIUM_DRIVER: llvmpipe
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:51.9232234Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.0463241Z Syncing repository: cheshmakzanoon-ops/Experiment-3
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.0464535Z ##[group]Getting Git version info
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.0464911Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.0465479Z [command]/usr/bin/git version
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.3813567Z git version 2.56.1
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.3827809Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.3837980Z Temporarily overriding HOME='/home/runner/work/_temp/cd1f54aa-e793-44a1-887f-8bf205def121' before making global git config changes
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.3838902Z Adding repository directory to the temporary git global config as a safe directory
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.3841753Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.4272739Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.4275282Z ##[group]Initializing the repository
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.4277907Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5199016Z hint: Using 'master' as the name for the initial branch. This default branch name
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5199608Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5200058Z hint: to use in all of your new repositories, which will suppress this warning,
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5200433Z hint: call:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5200643Z hint:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5200931Z hint: 	git config --global init.defaultBranch <name>
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5201219Z hint:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5201541Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5202228Z hint: 'development'. The just-created branch can be renamed via this command:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5202612Z hint:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5202872Z hint: 	git branch -m <name>
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5203123Z hint:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5203430Z hint: Disable this message with "git config set advice.defaultBranchName false"
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5210347Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5218554Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5265607Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5266127Z ##[group]Disabling automatic garbage collection
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5269032Z [command]/usr/bin/git config --local gc.auto 0
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5290692Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5291413Z ##[group]Setting up auth
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5295891Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.5324209Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9086200Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9109532Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9258472Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9280985Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9427345Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9454171Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9454784Z ##[group]Fetching the repository
-browser (8)	Run actions/checkout@v4	2026-11-23T03:38:55.9466413Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d02273c9fe8a25ce55c9baa6b45734befce3fee9:refs/remotes/origin/main
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9888705Z From https://github.com/cheshmakzanoon-ops/Experiment-3
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9889467Z  * [new ref]         d02273c9fe8a25ce55c9baa6b45734befce3fee9 -> origin/main
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9892687Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9893259Z ##[group]Determining the checkout info
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9894825Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9899091Z [command]/usr/bin/git sparse-checkout disable
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9973616Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9990759Z ##[group]Checking out the ref
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:08.9995000Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0248021Z Updating files:  48% (4542/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0316952Z Updating files:  49% (4623/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0352665Z Updating files:  50% (4717/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0537320Z Updating files:  51% (4811/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0658431Z Updating files:  52% (4906/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0747353Z Updating files:  53% (5000/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0830645Z Updating files:  54% (5094/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0883015Z Updating files:  55% (5189/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0936525Z Updating files:  56% (5283/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.0986115Z Updating files:  57% (5377/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1026028Z Updating files:  58% (5472/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1129562Z Updating files:  59% (5566/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1242677Z Updating files:  60% (5660/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1312827Z Updating files:  61% (5755/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1385971Z Updating files:  62% (5849/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1567603Z Updating files:  63% (5943/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1742572Z Updating files:  64% (6038/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.1973678Z Updating files:  65% (6132/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.2335955Z Updating files:  66% (6226/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.2524214Z Updating files:  67% (6321/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.2699506Z Updating files:  68% (6415/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.2974052Z Updating files:  69% (6509/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.3269415Z Updating files:  70% (6604/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.3310037Z Updating files:  71% (6698/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.3353014Z Updating files:  72% (6792/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.3388012Z Updating files:  73% (6887/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.4010025Z Updating files:  74% (6981/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.4406167Z Updating files:  75% (7075/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.7502897Z Updating files:  76% (7170/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.8484181Z Updating files:  77% (7264/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.8589353Z Updating files:  78% (7358/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.8631502Z Updating files:  79% (7453/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.8698813Z Updating files:  80% (7547/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9079768Z Updating files:  81% (7641/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9132336Z Updating files:  82% (7736/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9292192Z Updating files:  83% (7830/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9336060Z Updating files:  84% (7924/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9392233Z Updating files:  85% (8019/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9520705Z Updating files:  86% (8113/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9572240Z Updating files:  87% (8207/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9618654Z Updating files:  88% (8302/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9664864Z Updating files:  89% (8396/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9712622Z Updating files:  90% (8490/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9756343Z Updating files:  91% (8585/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9797886Z Updating files:  92% (8679/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9838880Z Updating files:  93% (8773/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9878441Z Updating files:  94% (8868/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9920495Z Updating files:  95% (8962/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:10.9962621Z Updating files:  96% (9056/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0001713Z Updating files:  97% (9151/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0041268Z Updating files:  98% (9245/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0083035Z Updating files:  99% (9339/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0083495Z Updating files: 100% (9433/9433)
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0083970Z Updating files: 100% (9433/9433), done.
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0165451Z Switched to a new branch 'main'
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0176168Z branch 'main' set up to track 'origin/main'.
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0236540Z ##[endgroup]
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0285832Z [command]/usr/bin/git log -1 --format=%H
-browser (8)	Run actions/checkout@v4	2026-11-23T03:39:11.0307066Z d02273c9fe8a25ce55c9baa6b45734befce3fee9
-browser (8)	Run actions/setup-node@v4	﻿2026-11-23T03:39:11.0503598Z ##[group]Run actions/setup-node@v4
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0503880Z with:
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0504079Z   node-version: 22
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0504275Z   cache: npm
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0504581Z   always-auth: false
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0504838Z   check-latest: false
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0506737Z   token: ***
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0506935Z env:
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0507129Z   APEX_BROWSER_BACKEND: mesa
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0507406Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0507648Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0507998Z   GALLIUM_DRIVER: llvmpipe
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.0508237Z ##[endgroup]
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.3288523Z (node:2206) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.3289857Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.3293131Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:11.3294196Z ##[group]Environment details
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:15.5165223Z node: v22.23.5
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:15.5165632Z npm: 10.9.9
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:15.5165878Z yarn: 1.22.22
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:15.5166346Z ##[endgroup]
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:15.5176624Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:15.9308534Z /home/runner/.npm
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:16.2923617Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:16.2997976Z (node:2206) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:17.6361489Z Received 0 of 34424064 (0.0%), 0.0 MBs/sec
-browser (8)	Run actions/setup-node@v4	2026-11-23T03:39:18.2515660Z ##[error]The operation was canceled.
-browser (8)	Browser screenshots and diagnostics	﻿2026-11-23T03:39:18.2620295Z ##[group]Run actions/upload-artifact@v4
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2620569Z with:
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2620811Z   name: browser-validation-8-of-16
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2621286Z   path: test-results/
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.6132831Z MX_SOIL_EVALUATION arena-nord-sx [{"angle":"approach","wetness":0,"width":640,"height":400,"changedPixels":0,"variedPixels":255968,"optimized":{"calls":7,"triangles":45446,"error":0},"exhaustive":{"calls":7,"triangles":45446,"error":0},"optimizedMs":6822.5999999996275,"exhaustiveMs":6807.899999999907},{"angle":"berm","wetness":0.72,"width":640,"height":400,"changedPixels":0,"variedPixels":255943,"optimized":{"calls":3,"triangles":19890,"error":0},"exhaustive":{"calls":3,"triangles":19890,"error":0},"optimizedMs":1285.7999999998137,"exhaustiveMs":1278.1000000000931},{"angle":"jump","wetness":0,"width":640,"height":400,"changedPixels":0,"variedPixels":255746,"optimized":{"calls":6,"triangles":42044,"error":0},"exhaustive":{"calls":6,"triangles":42044,"error":0},"optimizedMs":5740.799999999814,"exhaustiveMs":5752.399999999907}]
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.6326435Z   ✓  24 e2e/49-motocross-worked-soil.spec.ts:116:1 › skipping zero soil contributions matches the exhaustive shader on both courses (1.8m)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7011011Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7014326Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7023556Z   1) e2e/43-hero-garage.spec.ts:12:1 › A22 normal startup loads one authored garage and retains it through practice entry › Expect "poll toMatch" 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7024266Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7024975Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7025355Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7025630Z     Expected pattern: ^[[32m/^(driving|briefing)$/^[[39m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7026076Z     Received string:  ^[[31m"loading"^[[39m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7026298Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7026400Z     Call Log:
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7026759Z     - Timeout 240000ms exceeded while waiting on the predicate
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7027027Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7027148Z        at race-entry.ts:6
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7027308Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7027591Z       4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7028446Z       5 | export async function finishRaceEntry(page: Page) {
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7028797Z     > 6 |   await expect
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7029068Z         |   ^
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7029421Z       7 |     .poll(
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7029690Z       8 |       async () => {
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7030101Z       9 |         const d = await page.evaluate(() => window.apexDiagnostics());
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7030727Z         at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7031387Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/43-hero-garage.spec.ts:29:3
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7031703Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7032174Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7032904Z     test-results/43-hero-garage-A22-normal--d869e-s-it-through-practice-entry/test-failed-1.png
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7033696Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7034018Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7034394Z     Error Context: test-results/43-hero-garage-A22-normal--d869e-s-it-through-practice-entry/error-context.md
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7035289Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7035744Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7036438Z     test-results/43-hero-garage-A22-normal--d869e-s-it-through-practice-entry/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7036906Z     Usage:
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7037027Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7037466Z         npx playwright show-trace test-results/43-hero-garage-A22-normal--d869e-s-it-through-practice-entry/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7038020Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7038419Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7038687Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7039227Z   2) e2e/57-trackside-operations.spec.ts:11:3 › A08-A10 complete production day operations and recorded local signals 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7039731Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7039963Z     ^[[31mTest timeout of 420000ms exceeded.^[[39m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7040179Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7040409Z     Error: page.evaluate: Test timeout of 420000ms exceeded.
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7040641Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7040806Z       44 |     await page.goto('/operations-survey');
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7041210Z       45 |     await page.addScriptTag({ content: chunk.code });
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7041603Z     > 46 |     const report = await page.evaluate(
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7041963Z          |                               ^
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7042258Z       47 |       (l) =>
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7042508Z       48 |         (
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7042794Z       49 |           window as unknown as {
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7043351Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/57-trackside-operations.spec.ts:46:31
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7043741Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7044181Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7045096Z     test-results/57-trackside-operations-A0-2de04--and-recorded-local-signals/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7045561Z     Usage:
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7045690Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7046142Z         npx playwright show-trace test-results/57-trackside-operations-A0-2de04--and-recorded-local-signals/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7046650Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7047062Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7047357Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7047911Z   3) e2e/a33-spare-wheel-set.spec.ts:54:3 › A33 real service motion, replay and stored wheels render in sunset 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7048332Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7048540Z     ^[[31mTest timeout of 720000ms exceeded.^[[39m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7048762Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7048973Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7049241Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7049620Z       116 |     await page.goto('/a33-survey');
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7050059Z       117 |     await page.addScriptTag({ content: chunk.code });
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7050530Z     > 118 |     const report = await page.evaluate(
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7050979Z           |                               ^
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7051337Z       119 |       async ({ samples, lighting }) =>
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7051924Z       120 |         (window as unknown as { A33Survey: { surveyA33: typeof surveyA33 } }).A33Survey.surveyA33(
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7052414Z       121 |           samples,
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7052942Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a33-spare-wheel-set.spec.ts:118:31
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7053323Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7053725Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7054385Z     test-results/a33-spare-wheel-set-A33-re-42da4-red-wheels-render-in-sunset/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7055750Z     Usage:
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7055890Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7056391Z         npx playwright show-trace test-results/a33-spare-wheel-set-A33-re-42da4-red-wheels-render-in-sunset/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7056925Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7057372Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7057706Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7058227Z   4) e2e/aurel-quarry.spec.ts:11:3 › A55-A60 day full production landscape, cockpit and stable camera cycles 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7058688Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7058905Z     ^[[31mTest timeout of 1200000ms exceeded.^[[39m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7059132Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7059358Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7059644Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7059809Z       47 |     await page.goto('/quarry-survey');
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7060247Z       48 |     await page.addScriptTag({ content: chunk.code });
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7060738Z     > 49 |     const report = await page.evaluate(
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7061149Z          |                               ^
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7061469Z       50 |       (l) =>
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7061717Z       51 |         (
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7062017Z       52 |           window as unknown as {
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7062545Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/aurel-quarry.spec.ts:49:31
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7062919Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7063377Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7064101Z     test-results/aurel-quarry-A55-A60-day-f-4e5e3-it-and-stable-camera-cycles/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7064731Z     Usage:
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7064849Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7065259Z         npx playwright show-trace test-results/aurel-quarry-A55-A60-day-f-4e5e3-it-and-stable-camera-cycles/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7065733Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7066136Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7066668Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7067190Z   5) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7069536Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7070121Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7070388Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7070598Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7070844Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7070938Z       49 |       });
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7071195Z       50 |     });
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7071520Z     > 51 |     const report = await page.evaluate((group) => {
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7071859Z          |                               ^
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7072173Z       52 |       const api = window as unknown as {
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7072645Z       53 |         CockpitSurvey: { cockpitFramingSurvey: typeof cockpitFramingSurvey };
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7073257Z       54 |         recordCockpit: (row: CockpitSurveyRow) => Promise<void>;
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7073925Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7074335Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7075134Z     attachment #7: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7075917Z     test-results/p0-cockpit-framing-P0-actu-0ba1b-and-camera-framing-evidence/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7076453Z     Usage:
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7076584Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7077089Z         npx playwright show-trace test-results/p0-cockpit-framing-P0-actu-0ba1b-and-camera-framing-evidence/trace.zip
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7077638Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7078050Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7078375Z 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7078558Z   Slow test file: e2e/aurel-quarry.spec.ts (21.3m)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7079015Z   Slow test file: e2e/a33-spare-wheel-set.spec.ts (12.3m)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7079507Z   Slow test file: e2e/57-trackside-operations.spec.ts (7.3m)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7080002Z   Slow test file: e2e/p0-cockpit-framing.spec.ts (5.2m)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7080669Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7081220Z   5 failed
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7081903Z     e2e/43-hero-garage.spec.ts:12:1 › A22 normal startup loads one authored garage and retains it through practice entry 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7082961Z     e2e/57-trackside-operations.spec.ts:11:3 › A08-A10 complete production day operations and recorded local signals 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7083846Z     e2e/a33-spare-wheel-set.spec.ts:54:3 › A33 real service motion, replay and stored wheels render in sunset 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7085050Z     e2e/aurel-quarry.spec.ts:11:3 › A55-A60 day full production landscape, cockpit and stable camera cycles 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7086185Z     e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence 
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7086869Z   1 skipped
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:46.7087206Z   18 passed (1.1h)
+browser (8)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16	2026-11-23T04:58:47.1529784Z ##[error]Process completed with exit code 1.
+browser (8)	Browser screenshots and diagnostics	﻿2026-11-23T04:58:47.1581881Z ##[group]Run actions/upload-artifact@v4
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1582124Z with:
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1582326Z   name: browser-validation-8-of-16
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1582717Z   path: test-results/
 browser (8)	Browser screenshots and diagnostics	playwright-report/
 browser (8)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (8)	Browser screenshots and diagnostics	browser-backend.json
 browser (8)	Browser screenshots and diagnostics	browser-progress.json
 browser (8)	Browser screenshots and diagnostics	
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2621739Z   retention-days: 7
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2621958Z   if-no-files-found: warn
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2622415Z   compression-level: 6
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2622660Z   overwrite: false
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2622881Z   include-hidden-files: false
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2623174Z env:
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2623379Z   APEX_BROWSER_BACKEND: mesa
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2623651Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2623938Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2624178Z   GALLIUM_DRIVER: llvmpipe
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.2624414Z ##[endgroup]
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.3830680Z (node:2251) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.3831673Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.3865432Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.3872532Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (8)	Browser screenshots and diagnostics	2026-11-23T03:39:18.3886823Z ##[warning]No files were found with the provided path: test-results/
-browser (8)	Browser screenshots and diagnostics	playwright-report/
-browser (8)	Browser screenshots and diagnostics	browser-shard-plan.json
-browser (8)	Browser screenshots and diagnostics	browser-backend.json
-browser (8)	Browser screenshots and diagnostics	browser-progress.json. No artifacts will be uploaded.
-browser (8)	Post Run actions/checkout@v4	﻿2026-11-23T03:39:18.4057779Z Post job cleanup.
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4826932Z [command]/usr/bin/git version
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4858661Z git version 2.56.1
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4889424Z Temporarily overriding HOME='/home/runner/work/_temp/659b50a5-06ce-4d88-9026-1d9db081ca54' before making global git config changes
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4890442Z Adding repository directory to the temporary git global config as a safe directory
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4902185Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4932541Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.4957280Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.5121888Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.5153932Z http.https://github.com/.extraheader
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.5156684Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.5176156Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.5341490Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (8)	Post Run actions/checkout@v4	2026-11-23T03:39:18.5365634Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (8)	Complete job	﻿2026-11-23T03:39:18.5624522Z Cleaning up orphan processes
-browser (8)	Complete job	2026-11-23T03:39:18.5816773Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1583110Z   retention-days: 7
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1583331Z   if-no-files-found: warn
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1583528Z   compression-level: 6
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1583706Z   overwrite: false
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1583880Z   include-hidden-files: false
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1584074Z env:
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1584227Z   APEX_BROWSER_BACKEND: mesa
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1584419Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1584833Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1585031Z   GALLIUM_DRIVER: llvmpipe
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.1585218Z ##[endgroup]
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.2807722Z (node:5978) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.2809009Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.2999885Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.3001483Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.3002061Z With the provided path, there will be 108 files uploaded
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.3005713Z Artifact name is valid!
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.3006137Z Root directory input is valid!
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.6191782Z Beginning upload of artifact content to blob storage
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:47.8390521Z (node:5978) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:48.0138136Z Uploaded bytes 8388608
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:48.2640355Z Uploaded bytes 16777216
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:48.5000723Z Uploaded bytes 25165824
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:48.6488645Z Uploaded bytes 33554432
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:48.9360523Z Uploaded bytes 41943040
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:49.0843644Z Uploaded bytes 50331648
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:49.3189849Z Uploaded bytes 58720256
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:49.5537382Z Uploaded bytes 67108864
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:49.7713894Z Uploaded bytes 75497472
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:49.9563648Z Uploaded bytes 83886080
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:50.2585488Z Uploaded bytes 92274688
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:50.4122864Z Uploaded bytes 100663296
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:50.6497139Z Uploaded bytes 109051904
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:50.8026315Z Uploaded bytes 117440512
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:51.0728124Z Uploaded bytes 125829120
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:51.3296074Z Uploaded bytes 134217728
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:51.5185904Z Uploaded bytes 142606336
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:51.7149213Z Uploaded bytes 150994944
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:51.9658868Z Uploaded bytes 159383552
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:52.1637345Z Uploaded bytes 167772160
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:52.3400887Z Uploaded bytes 176160768
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:52.6134748Z Uploaded bytes 184549376
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:52.7909070Z Uploaded bytes 192937984
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:53.0318935Z Uploaded bytes 201326592
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:53.2020123Z Uploaded bytes 209715200
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:53.5247807Z Uploaded bytes 218103808
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:53.7062329Z Uploaded bytes 226492416
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:53.9088735Z Uploaded bytes 234881024
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:54.1071245Z Uploaded bytes 243269632
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:54.3140823Z Uploaded bytes 251658240
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:54.6338233Z Uploaded bytes 260046848
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:54.8275471Z Uploaded bytes 268435456
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:55.0229709Z Uploaded bytes 276824064
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:55.1967893Z Uploaded bytes 285212672
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:55.4445601Z Uploaded bytes 293601280
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:55.7053520Z Uploaded bytes 301989888
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:55.8303400Z Uploaded bytes 310378496
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:56.1465442Z Uploaded bytes 318767104
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:56.3068374Z Uploaded bytes 327155712
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:56.5272047Z Uploaded bytes 335544320
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:56.7501702Z Uploaded bytes 343932928
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:56.9570247Z Uploaded bytes 352321536
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:57.1540123Z Uploaded bytes 360710144
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:57.3411980Z Uploaded bytes 369098752
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:57.6310916Z Uploaded bytes 377487360
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:57.7994264Z Uploaded bytes 385875968
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:58.0306439Z Uploaded bytes 394264576
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:58.2697808Z Uploaded bytes 402653184
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:58.4407179Z Uploaded bytes 411041792
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:58.7040410Z Uploaded bytes 419430400
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:58.8844925Z Uploaded bytes 427819008
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.1305217Z Uploaded bytes 436207616
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.3446382Z Uploaded bytes 444474763
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.3599927Z Finished uploading artifact content to blob storage!
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.3602200Z SHA256 digest of uploaded artifact zip is 6b25c3612699f2983e42123811d180abfa8e914d8dcc033a1bb41fa2386da835
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.3603374Z Finalizing artifact upload
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.7051774Z Artifact browser-validation-8-of-16.zip successfully finalized. Artifact ID 14790797647
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.7052831Z Artifact browser-validation-8-of-16 has been successfully uploaded! Final size is 444474763 bytes. Artifact ID is 14790797647
+browser (8)	Browser screenshots and diagnostics	2026-11-23T04:58:59.7056989Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45107253265/artifacts/14790797647
+browser (8)	Post Run actions/checkout@v4	﻿2026-11-23T04:58:59.7251381Z Post job cleanup.
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.7956309Z [command]/usr/bin/git version
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.7956689Z git version 2.56.1
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.7985791Z Temporarily overriding HOME='/home/runner/work/_temp/3e38d299-8e18-43f2-8004-2cc2432ef933' before making global git config changes
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8005478Z Adding repository directory to the temporary git global config as a safe directory
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8026485Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8028191Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8029940Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8276110Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8297337Z http.https://github.com/.extraheader
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8306745Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8329964Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8494920Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (8)	Post Run actions/checkout@v4	2026-11-23T04:58:59.8517047Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (8)	Complete job	﻿2026-11-23T04:58:59.8864400Z Cleaning up orphan processes
+browser (8)	Complete job	2026-11-23T04:58:59.9159344Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
