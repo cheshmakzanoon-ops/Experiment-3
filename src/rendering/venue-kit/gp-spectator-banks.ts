@@ -4,6 +4,7 @@ import { trackPoint, type Track } from '../../simulation/track.ts';
 import { CrowdCluster } from '../crowd.ts';
 import { crowdFlagMaterial } from '../grandstand.ts';
 import { buildCrowdFlags, crowdColour } from '../studio/crowd-flags.ts';
+import { gpWindMast, type GpWindSleeve } from './gp-windsock.ts';
 import { cataloguePlantingGround } from './planting-ground.ts';
 import type { GpSpectatorBank } from './gp-spectator-bank-sites.ts';
 
@@ -75,6 +76,7 @@ export function buildGpSpectatorBank(
   lawn: T.Material,
   people: T.MeshStandardMaterial,
   steel: T.Material,
+  weatherMast = false,
 ) {
   const land = new T.Group(),
     fans = new T.Group();
@@ -91,6 +93,15 @@ export function buildGpSpectatorBank(
   turf.name = 'GP viewing bank turf';
   turf.receiveShadow = true;
   land.add(turf);
+  let sleeve: GpWindSleeve | undefined;
+  if (weatherMast) {
+    // The rear service aisle is outside the standing rows and the front rail.
+    const x = site.side * site.width * .35, z = site.length * .39;
+    const mast = gpWindMast(steel);
+    mast.root.position.set(x, height(x,z),z);
+    land.add(mast.root);
+    sleeve = mast.sleeve;
+  }
   const rng = new Random(7625 + Math.round(site.station)),
     pose = new T.Object3D();
   const peopleMatrices: T.Matrix4[] = [],
@@ -166,4 +177,5 @@ export function buildGpSpectatorBank(
   rail.computeBoundingSphere();
   rail.castShadow = rail.receiveShadow = true;
   land.add(rail);
+  return sleeve;
 }

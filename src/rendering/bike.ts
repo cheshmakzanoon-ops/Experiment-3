@@ -44,6 +44,7 @@ import { GpSteeringDamper } from './gp-steering-damper.ts';
 import { gpAxleCarrier, gpAxleFasteners } from './gp-axle-carrier.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
+import { gpWheelHardware } from './gp-wheel-hardware.ts';
 import { motorcycleWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
 import { GpRiderBody } from './gp-rider-dynamics.ts';
 import type { GpRiderBodyState } from './gp-rider-posture.ts';
@@ -985,6 +986,8 @@ export class BikeModel {
         spin.add(layer);
       }
       if (!distant) add(spin, gpWheelMachinedLip(rim, halfWidth, detail), m.aluminium);
+      if (gpPrototype && detail === 'high')
+        add(spin, gpWheelHardware(rim, halfWidth, front), m.aluminium);
       if (front) {
         // GP carbon bands have a correctly scaled open carrier and floating
         // bobbins. All parts rotate with the wheel; calipers stay on the fork.

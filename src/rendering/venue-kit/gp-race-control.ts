@@ -1,3 +1,4 @@
+import { drawWordmark, fitHeight } from '../studio/brand-atlas.ts';
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
@@ -153,13 +154,11 @@ function identityMaterial(track: Track, accent: number) {
     c.fillStyle = '#' + accent.toString(16).padStart(6, '0');
     c.fillRect(0, 0, 24, 256);
     c.fillRect(1000, 0, 24, 256);
-    c.fillStyle = '#263038';
-    c.textAlign = 'center';
-    c.textBaseline = 'middle';
-    c.font = '800 102px Arial';
-    c.fillText(track.circuit.short, 512, 95, 922);
-    c.font = '600 38px Arial';
-    c.fillText('RACE CONTROL', 512, 197, 870);
+    c.strokeStyle = '#263038';
+    const title = { weight: .185, tracking: .10, width: 1.09 };
+    drawWordmark(c, track.circuit.short, 512, 95, fitHeight(track.circuit.short,922,90,title), title);
+    const label = { weight: .14, tracking: .2 };
+    drawWordmark(c, 'RACE CONTROL', 512, 197, 31, label);
   });
   map.name = 'GP race control venue identity';
   const material = new T.MeshStandardMaterial({ map, roughness: 0.74, metalness: 0.02 });

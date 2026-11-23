@@ -1,4 +1,5 @@
 import * as T from 'three';
+import * as typeface from '../src/rendering/studio/brand-atlas.ts';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { Track } from '../src/simulation/track.ts';
@@ -192,21 +193,22 @@ describe('GP spectator-side venue architecture', () => {
 });
 
 describe('GP grandstand naming and shared materials', () => {
-  const drawn: string[] = [];
   beforeAll(() =>
     vi.stubGlobal('document', {
       createElement: () => ({
         width: 0,
         height: 0,
-        getContext: () => ({ fillRect() {}, fillText: (value: string) => drawn.push(value) }),
+        getContext: () => new Proxy({}, { get: () => () => undefined }),
       }),
     }),
   );
   afterAll(() => vi.unstubAllGlobals());
   it.each(venues)('%s prints its own name once for every shared stand material', (id) => {
+    const lettering = vi.spyOn(typeface, 'drawWordmark');
     const track = new Track('clear', false, undefined, CIRCUITS[id]),
       m = standMaterials(track);
-    expect(drawn.slice(-2)).toEqual(gpGrandstandStyle(id)!.label.split('  /  '));
+    expect(lettering.mock.calls.map((call) => call[1]).slice(-2)).toEqual(gpGrandstandStyle(id)!.label.split('  /  '));
+    lettering.mockRestore();
     expect(m.sign.userData.venueLabel).toBe(gpGrandstandStyle(id)!.label);
     expect(m.sign.map!.wrapS).toBe(T.RepeatWrapping);
     expect(m.sign.map!.image.width).toBe(1024);

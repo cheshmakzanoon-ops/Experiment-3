@@ -3,6 +3,32 @@ import * as T from 'three';
 import { gpForgedWheel, gpTyreCompoundMarkings } from '../src/rendering/gp-forged-wheel.ts';
 import { tyreGeometry } from '../src/rendering/bike.ts';
 
+import { gpWheelHardware } from '../src/rendering/gp-wheel-hardware.ts';
+
+describe('GP tyre fitting hardware', () => {
+  it.each([true,false])('seats the valve and counterweights on opposite sides of the rotating barrel (front %s)', front => {
+    const rim = .2159, half = front ? .06 : .1;
+    const g=gpWheelHardware(rim,half,front), p=g.getAttribute('position');
+    const angle=front ? .56 : -.68, barrel=rim-.026;
+    let stemTip=0, valveFoot=0, weights=0;
+    for(let i=0;i<p.count;i++) {
+      const x=p.getX(i), y=p.getY(i), z=p.getZ(i), r=Math.hypot(y,z);
+      expect(r).toBeLessThan(rim-.024);
+      expect(r).toBeGreaterThan(.165);
+      expect(Math.abs(x)).toBeLessThan(half*.76);
+      if(y*Math.cos(angle)+z*Math.sin(angle)>0) {
+        if(r>=barrel) valveFoot++;
+        if(x*(front?1:-1)>.022) stemTip++;
+      } else if(r>=barrel-.0033) weights++;
+    }
+    expect(valveFoot).toBeGreaterThan(3);
+    expect(stemTip).toBeGreaterThan(4);
+    expect(weights).toBe((front ? 2 : 3)*12);
+    expect(g.index!.count/3).toBeLessThan(170);
+    g.dispose();
+  });
+});
+
 describe('GP forged wheels and painted compound arcs', () => {
   it.each(['high', 'mid', 'far'] as const)(
     '%s keeps open spoke windows and axle bore inside the existing tyre bead',

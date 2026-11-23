@@ -4,11 +4,9 @@ import { resolve } from 'node:path';
 import type { captureBikeSequence } from './fixtures/motogp-reference-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
-/** High-detail complete bike and rider, including every instanced link. The
- * measured pre-pass models had 109,659 / 109,075 triangles. The recessed
- * tail, fork ends and working steering damper bring the net additions to
- * 318 / 280. Keep the exact counts alongside the overall 110k ceiling. */
-const TRIANGLES = { gpr1: 109_977, gpr2: 109_355 } as const;
+/* Complete production model, including instanced links, the optical helmet
+ * and the fitted wheel hardware. Pose and recovery must retain this topology. */
+const TRIANGLES = { gpr1: 109_852, gpr2: 109_230 } as const;
 
 let fixtureScript: string;
 test.beforeAll(async () => {

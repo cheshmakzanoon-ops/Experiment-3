@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
+import { GpWindSleeve } from '../src/rendering/venue-kit/gp-windsock.ts';
 import {
   gpSpectatorBankPlan,
   inGpSpectatorBank,
@@ -93,5 +94,33 @@ describe('GP general-admission viewing banks', () => {
   );
   it('leaves the other championships to their authored stands', () => {
     expect(gpSpectatorBankPlan(new Track('clear', false, undefined, CIRCUITS.aurel))).toEqual([]);
+  });
+});
+
+describe('recorded wind at the GP viewing bank', () => {
+  it('suspends a circular mouth and a tapered, drooping outlet under the actual wind vector', () => {
+    const cone = new GpWindSleeve(), g=cone.mesh.geometry, p=g.getAttribute('position') as T.BufferAttribute,
+      n=g.getAttribute('normal'), point=new T.Vector3(), radius=g.boundingSphere!.radius;
+    const ring = (row:number) => {
+      const centre=new T.Vector3();
+      for(let j=0;j<14;j++) centre.add(point.fromBufferAttribute(p,row*14+j));
+      return centre.multiplyScalar(1/14);
+    };
+    const mouth=ring(0), calm=ring(19);
+    expect(calm.y).toBeLessThan(-2.1);
+    expect(calm.x).toBeCloseTo(0,5);
+    expect(mouth.length()).toBeCloseTo(.42,5);
+    cone.present(9,0,7.25,.8);
+    const east=ring(19), snapshot=p.array.slice(), version=p.version;
+    expect(east.x).toBeGreaterThan(2); expect(east.y).toBeGreaterThan(calm.y+1.2);
+    for(let i=0;i<p.count;i++) {
+      expect(point.fromBufferAttribute(p,i).length()).toBeLessThan(radius);
+      expect(point.fromBufferAttribute(n,i).length()).toBeCloseTo(1,5);
+    }
+    cone.present(9,0,7.25,.8);expect(p.version).toBe(version);
+    cone.present(-9,0,7.25,.8);expect(ring(19).x).toBeCloseTo(-east.x,4);
+    cone.present(9,0,7.25,.8);expect(p.array).toEqual(snapshot);
+    cone.present(NaN,0,NaN,NaN);expect(ring(19).distanceTo(calm)).toBeLessThan(.00001);
+    (cone.mesh.material as T.Material).dispose();g.dispose();
   });
 });

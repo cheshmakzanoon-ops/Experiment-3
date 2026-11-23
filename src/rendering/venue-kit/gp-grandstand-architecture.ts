@@ -1,3 +1,4 @@
+import { drawWordmark, fitHeight } from '../studio/brand-atlas.ts';
 import * as T from 'three';
 import type { Track } from '../../simulation/track.ts';
 import type { BroadcastSightlines } from '../broadcast-sightlines.ts';
@@ -74,14 +75,12 @@ export function gpStandFascia(venue: string) {
         c.fillStyle = '#a7afa3';
         c.fillRect(x - 1, y - 2, 2, 2);
       }
-    c.textBaseline = 'middle';
-    c.textAlign = 'left';
-    c.font = '700 62px sans-serif';
-    c.fillStyle = '#eeeae0';
-    c.fillText(name, 58, 67, 565);
+    c.strokeStyle = c.fillStyle = '#eeeae0';
+    const venue = { weight: .175, tracking: .09, width: 1.08 };
+    drawWordmark(c, name, 58, 66, fitHeight(name,565,53,venue), venue, 'left');
     c.fillRect(669, 30, 3, 66);
-    c.font = '600 29px sans-serif';
-    c.fillText(category, 701, 65, 255);
+    const label = { weight: .15, tracking: .135, width: 1.04 };
+    drawWordmark(c, category, 701, 65, fitHeight(category,255,26,label), label, 'left');
   });
   texture.wrapS = T.RepeatWrapping;
   texture.name = `${name} enamel spectator fascia`;

@@ -583,7 +583,7 @@ export class RacingRenderer {
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.shadowProxies.install(this.renderer);
     this.shadowProxies.shadowSubstitutes = () => [
-      ...this.circuit.crowdClusters.map((c) => c.shadowSubstitute()),
+      ...this.circuit.crowdClusters.flatMap((c) => c.shadowSubstitutes()),
       ...this.circuit.startFinish.shadowSubstitutes(),
       ...this.vehicleBodies.shadowSubstitutes(),
     ];
@@ -2560,6 +2560,7 @@ export class RacingRenderer {
     this.camera.updateMatrixWorld(true);
     const studioView = `${cameraMode}:${this.follow}:${this.trackside.activeId}:${menu}:${pregame}`;
     this.studioFrame.update(presented, this.camera, this.sun, studioView);
+    this.circuit.gpWindSleeve?.presentWorld(this.studioFrame.uniforms.studioWind.value);
     this.audioView.update(
       this.camera,
       this.presented.value[H.TIME],

@@ -2,7 +2,10 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import { fixtureDefine } from './fixtures/owner-build.ts';
-import type { captureGpFanSilhouettes } from './fixtures/gp-fan-silhouettes.ts';
+import type {
+  captureGpFanSilhouettes,
+  captureGpViewingBank,
+} from './fixtures/gp-fan-silhouettes.ts';
 
 test('GP distance fans retain the standing and seated sculpt silhouettes in two triangles', async ({
   page,
@@ -51,7 +54,23 @@ test('GP distance fans retain the standing and seated sculpt silhouettes in two 
   expect(stats.shape).toBeGreaterThan(stats.oldShape + 0.1);
   expect(stats.reverseShape).toBeGreaterThan(0.64);
   expect(stats.restored).toBe(0);
+  expect(stats.casterAgreement).toBeGreaterThan(.78);
   const angular = captures.find((f) => f.name === 'standing-angular')!;
   expect(angular.draws).toBe(1);
   expect(angular.triangles).toBe(8);
+  const { captures: bank, ...wind } = await page.evaluate(() =>
+    (
+      window as unknown as { GpFans: { captureGpViewingBank: typeof captureGpViewingBank } }
+    ).GpFans.captureGpViewingBank(),
+  );
+  for (const frame of bank)
+    await info.attach(frame.name, {
+      body: Buffer.from(frame.image.split(',')[1], 'base64'),
+      contentType: 'image/png',
+    });
+  expect(errors).toEqual([]);
+  expect(wind.glError).toBe(0);
+  expect(wind.windRestore).toBe(0);
+  expect(wind.windPixels).toBeGreaterThan(200);
+  expect(wind.lullPixels).toBeGreaterThan(200);
 });

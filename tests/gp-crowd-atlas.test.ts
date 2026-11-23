@@ -5,6 +5,7 @@ import {
   GP_FAN_VIEWS,
   releaseGpCrowdAtlas,
 } from '../src/rendering/gp-crowd-atlas.ts';
+import { ShadowProxies } from '../src/rendering/shadow-proxies.ts';
 import { CrowdCluster } from '../src/rendering/crowd.ts';
 describe('GP far spectator sculpts', () => {
   it('bakes every authored silhouette, garment and unit normal into adjacent, padded views', () => {
@@ -77,6 +78,26 @@ describe('GP far spectator sculpts', () => {
       expect(visible(true)).toEqual([2 * count]);
       expect(visible(false)[0]).toBeGreaterThan(600 * count);
       expect(visible(true, 12)[0]).toBeGreaterThan(1200 * count);
+      const shadows = new ShadowProxies();
+      shadows.shadowSubstitutes = () => block.shadowSubstitutes();
+      for (const metres of [20,52,100,230,408]) {
+        camera.set(0,1,metres);
+        visible(true);
+        const before = block.levels.map(o=>[o.visible,o.castShadow]);
+        const ranges = block.lodRanges.map(r=>r.clone());
+        shadows.withCasters(() => {
+          const cast = block.levels.map((o,i) => o.visible && o.castShadow ? block.lodRanges[i] : null);
+          for(let rank=.015;rank<1;rank+=.03125) {
+            const expected=ranges.slice(0,3).some(r=>rank>=r.x && rank<r.y);
+            expect(cast.filter(r=>r && rank>=r.x && rank<r.y)).toHaveLength(expected?1:0);
+          }
+          if(metres===20 || metres===100) expect(cast[2]).toBeTruthy();
+        });
+        expect(block.levels.map(o=>[o.visible,o.castShadow])).toEqual(before);
+        expect(block.lodRanges).toEqual(ranges);
+      }
+      visible(false);
+      expect(block.shadowSubstitutes()).toHaveLength(1);
     } finally {
       for (const level of block.levels) {
         level.geometry.dispose();

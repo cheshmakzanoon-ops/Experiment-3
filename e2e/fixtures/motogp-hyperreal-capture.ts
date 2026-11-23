@@ -157,10 +157,11 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           brake: current[base + F.BRAKE],
           throttle: current[base + F.THROTTLE],
         });
-        // The review runner persists each frame immediately when it exposes this.
-        await (
-          globalThis as { saveCapture?: (name: string, url: string) => Promise<void> }
-        ).saveCapture?.(`${view}-${moment}s.jpg`, image);
+        // Long software-GPU reviews persist each measured view as it completes.
+        const receiver = globalThis as { saveCapture?: (name: string, url: string) => Promise<void> };
+        await receiver.saveCapture?.(`${view}-${moment}s.jpg`, image);
+        const { image: _image, ...measurement } = captures[captures.length - 1];
+        console.log('GP frame ' + JSON.stringify(measurement));
         console.log(
           `captured ${view}@${moment}s in ${((performance.now() - started) / 1000).toFixed(1)} s`,
         );

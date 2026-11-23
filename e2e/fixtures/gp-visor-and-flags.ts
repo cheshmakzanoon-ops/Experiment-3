@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { gpEyePose } from '../../src/rendering/gp-helmet-optics.ts';
+import { BikeCockpit } from '../../src/rendering/bike-cockpit.ts';
 import { Rider } from '../../src/rendering/rider.ts';
 import { gpSpectatorFlagMaterial } from '../../src/rendering/gp-spectator-flags.ts';
 import { flagGeometry } from '../../src/rendering/studio/crowd-flags.ts';
@@ -25,6 +26,7 @@ export function captureGpOpticsAndCloth() {
   const rider = new Rider({primary: 0xaa291b, secondary: 0x151c27, accent: 0xe4c378}, 'high', 'leathers', 23, true);
   const head = rider.root.getObjectByName('Rider head and helmet')!;
   const anchor = head.parent!;
+  const dash = new BikeCockpit(17000,true);
   const flags = new T.InstancedMesh(flagGeometry(true), gpSpectatorFlagMaterial(), 3);
   const matrix = new T.Object3D(), tones = [0xa91d32, 0xdc9a1d, 0x204b83];
   for (let i = 0; i < 3; i++) {
@@ -116,7 +118,30 @@ export function captureGpOpticsAndCloth() {
     hang(1);
     const loadedAgain = snap('leather-turn-rewound');
     scene.remove(garment);
-    return {captures, gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
+    dash.root.position.set(0,0,0);
+    dash.root.rotation.set(0,0,0);
+    scene.add(dash.root);
+    camera.position.set(-.022,.042,-.212);
+    camera.lookAt(0,0,0);
+    const race = {speed: 55, rpm: 15200, gear: 4, frontSurfaceTemp: 82,
+      rearSurfaceTemp: 96, chassisLean: .59, intervention: .12, brake: .29, throttle: .86};
+    dash.update(race);
+    const speedFrame = snap('cockpit-tft-at-speed');
+    const screen = dash.root.getObjectByName('GP instrument display') as T.Mesh<T.PlaneGeometry,T.MeshPhysicalMaterial>;
+    const panel = screen.material.map!.image as HTMLCanvasElement;
+    const digitInk = (x: number, y: number, w: number, h: number) => {
+      const data = panel.getContext('2d')!.getImageData(x,y,w,h).data;
+      let bright = 0;
+      for (let i=0;i<data.length;i+=4) if (data[i]>170 && data[i+1]>180 && data[i+2]>170) bright++;
+      return bright;
+    };
+    const speedInk=digitInk(186,108,177,76), gearInk=digitInk(384,108,70,74);
+    dash.update({ speed: 0, rpm: 2800, gear: 0, pitLane: true, brake: 1 });
+    const pitFrame = snap('cockpit-tft-pit');
+    dash.update(race);
+    const speedAgain = snap('cockpit-tft-rewound');
+    scene.remove(dash.root);
+    return {captures, speedInk, gearInk, instrumentPixels: changed(speedFrame,pitFrame), instrumentRestore: changed(speedFrame,speedAgain), gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
       facePixels: changed(portrait,liner), faceRestore: changed(portrait,restored),
       windPixels: changed(east,west), calmPixels: changed(east,calm), windRestore: changed(east,eastAgain),
       glError: gl.getContext().getError()};
@@ -125,6 +150,8 @@ export function captureGpOpticsAndCloth() {
     studioUniforms.studioTime.value = time;
     anchor.add(head);
     rider.dispose();
+    dash.dispose();
+    for (const o of dash.root.children) if (o instanceof T.Mesh) o.geometry.dispose();
     flags.geometry.dispose();
     flags.material.dispose();
     flags.dispose();

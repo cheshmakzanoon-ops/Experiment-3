@@ -10,6 +10,7 @@ import {
 } from './human-kit.ts';
 import { installAudienceActions } from './audience-actions.ts';
 import { detailDistance } from './view-detail.ts';
+import type { ShadowSubstitute } from './shadow-proxies.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import * as T from 'three';
 import { PEOPLE_ASSET } from './people-asset.ts';
@@ -470,6 +471,9 @@ export function crowdDetail(distance: number, previous: CrowdDetail, gpCards = f
 export class CrowdCluster {
   readonly root = new T.Group();
   readonly levels: readonly T.InstancedMesh[];
+  private readonly normalCasters: ShadowSubstitute[];
+  private readonly gpCasters: ShadowSubstitute[];
+  private gpShadowDetail = false;
   readonly uniforms = {
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0 },
@@ -589,23 +593,24 @@ export class CrowdCluster {
       this.root.add(people);
     }
     this.levels = levels;
+    this.normalCasters = [this.makeShadowPair(0, 1)];
+    // The low 3D sculpt preserves limbs, seat contact and gesturing. Its
+    // shadow remains volumetric at every angle, including low afternoon sun.
+    this.gpCasters = gpSeatSide
+      ? [...this.normalCasters, this.makeShadowPair(1, 2)]
+      : this.normalCasters;
   }
-  /** Shadow pass: while only the close sculpt is shown, the mid sculpt
-   * (about 4.7x fewer triangles, same transforms and audience actions)
-   * casts for every instance; its handoff range is widened for that pass. */
-  shadowSubstitute() {
-    const range = this.lodRanges[1],
-      saved = new T.Vector2();
+  private makeShadowPair(fine: number, coarse: number): ShadowSubstitute {
+    const source = this.lodRanges[fine], target = this.lodRanges[coarse], saved = new T.Vector2();
     return {
-      fine: this.levels[0],
-      coarse: this.levels[1],
-      begin: () => {
-        saved.copy(range);
-        range.set(Math.min(this.lodRanges[0].x, range.x), Math.max(this.lodRanges[0].y, range.y));
-      },
-      end: () => range.copy(saved),
+      fine: this.levels[fine],
+      coarse: this.levels[coarse],
+      begin: () => { saved.copy(target); target.copy(source); },
+      end: () => { target.copy(saved); },
     };
   }
+  shadowSubstitute() { return this.normalCasters[0]; }
+  shadowSubstitutes() { return this.gpShadowDetail ? this.gpCasters : this.normalCasters; }
   update(
     time: number,
     camera: T.Vector3,
@@ -624,6 +629,7 @@ export class CrowdCluster {
       throw new Error('Invalid crowd presentation');
     this.root.updateWorldMatrix(true, false);
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
+    this.gpShadowDetail = !!this.gpYaw && gpGrid;
     const distance = this.centre.distanceTo(camera);
     const lensDistance = detailDistance(distance, fov, aspect);
     // A face occupying four pixels at 540p spans sixteen pixels at 2160p.

@@ -1,3 +1,4 @@
+import { drawWordmark, fitHeight } from '../studio/brand-atlas.ts';
 import * as T from 'three';
 import { clamp, mod } from '../../core/math.ts';
 import { gpCornerShapes, isGpCourse } from '../../simulation/gp-corner-shape.ts';
@@ -128,26 +129,26 @@ function boardAtlas(track: Track) {
       c.scale((cellWidth - 8) / 256, (cellHeight - 8) / 128);
       c.fillStyle = ACCENTS[track.circuit.id];
       c.fillRect(0, 0, 8, 128);
-      c.textBaseline = 'middle';
       if (distance !== null) {
-        // The cell maps to a tall plate, so compressed glyphs here recover
-        // their intended proportions on the 1.12 x 1.5 m printed surface.
-        c.textAlign = 'center';
-        c.fillStyle = '#20282b';
-        c.font = '800 62px Arial';
-        c.fillText(String(distance), 130, 54, 224);
-        c.font = '700 11px Arial';
-        c.fillText('m', 130, 104, 218);
+        // The narrow physical plate stretches its atlas cell vertically.
+        // Widen the original figures in the print so they read from race pace.
+        const style = { width: 1.78, weight: .205, tracking: .17, corner: .17 };
+        c.strokeStyle = '#20282b';
+        drawWordmark(c, String(distance), 130, 55, 58, style);
+        // Lowercase SI metre symbol.
+        c.lineWidth = 2.5; c.beginPath(); c.moveTo(121,108); c.lineTo(121,98);
+        c.moveTo(121,102); c.bezierCurveTo(124,96,130,97,130,101); c.lineTo(130,108);
+        c.moveTo(130,102); c.bezierCurveTo(134,96,139,97,139,101); c.lineTo(139,108); c.stroke();
       } else {
         const index = slot - GP_BOARD_DISTANCES.length,
           corner = track.circuit.corners[index],
           shape = shapes[index];
-        c.fillStyle = '#f3f1e7';
-        c.textAlign = 'left';
-        c.font = '800 54px Arial';
-        c.fillText(`T${String(index + 1).padStart(2, '0')}`, 22, 46, 132);
-        c.font = '700 18px Arial';
-        c.fillText(corner.name, 22, 98, 218);
+        const number = 'T' + String(index + 1).padStart(2, '0');
+        c.strokeStyle = c.fillStyle = '#f3f1e7';
+        const numeral = { weight: .19, tracking: .13, width: .98 };
+        drawWordmark(c, number, 22, 46, fitHeight(number, 132, 47, numeral), numeral, 'left');
+        const lettering = { weight: .145, tracking: .11, width: .96 };
+        drawWordmark(c, corner.name, 22, 98, fitHeight(corner.name, 218, 18, lettering), lettering, 'left');
         const left = shape.direction === 'left',
           tip = left ? 175 : 233,
           tail = left ? 231 : 177,

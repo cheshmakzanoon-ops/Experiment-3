@@ -1,4 +1,5 @@
 import * as T from 'three';
+export { captureGpViewingBank } from './gp-viewing-bank.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { CrowdCluster } from '../../src/rendering/crowd.ts';
 
@@ -30,7 +31,7 @@ export function captureGpFanSilhouettes() {
   const weather = new WeatherPresentation();
   for (const sections of [gp, seated, old]) weather.install(sections.root);
   const captures: { name: string; image: string; draws: number; triangles: number }[] = [];
-  const snap = (name: string, group: CrowdCluster, level: number) => {
+  const snap = (name: string, group: CrowdCluster, level: number, view: T.Camera = camera) => {
     for (const g of [gp, seated, old]) scene.remove(g.root);
     scene.add(group.root);
     group.update(4, camera.position, 0, undefined, 40, 2, true, 1080);
@@ -38,7 +39,7 @@ export function captureGpFanSilhouettes() {
       mesh.visible = i === level;
       group.lodRanges[i].set(0, 1);
     });
-    gl.render(scene, camera);
+    gl.render(scene, view);
     const pix = new Uint8Array(width * height * 4),
       ctx = gl.getContext();
     ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, pix);
@@ -74,10 +75,14 @@ export function captureGpFanSilhouettes() {
     camera.position.set(-5.1, 1.45, 1.8);
     camera.lookAt(-0.36, 0.56, 0);
     const same = snap('standing-rewound', gp, 3);
+    const sunlight = new T.OrthographicCamera(-2.2,2.2,1.1,-1.1,.1,25);
+    sunlight.position.set(-4.2,6.3,3.4);sunlight.lookAt(-.28,.42,0);
+    const midCaster=snap('sun-mid-caster', gp, 1, sunlight), lowCaster=snap('sun-low-caster', gp, 2, sunlight);
     let restored = 0;
     for (let i = 0; i < same.length; i++) if (same[i] !== current[i]) restored++;
     return {
       captures,
+      casterAgreement: agreement(midCaster,lowCaster),
       shape: agreement(sculpt, current),
       oldShape: agreement(sculpt, previous),
       reverseShape: agreement(backSculpt, backCard),

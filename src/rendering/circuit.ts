@@ -97,6 +97,7 @@ import {
   gpPitStripeLateral,
 } from './venue-kit/gp-edge-design.ts';
 import { buildGpGridGantry } from './venue-kit/gp-grid-gantry.ts';
+import type { GpWindSleeve } from './venue-kit/gp-windsock.ts';
 import { buildGpSpectatorBank } from './venue-kit/gp-spectator-banks.ts';
 import { gpSpectatorBankPlan } from './venue-kit/gp-spectator-bank-sites.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
@@ -159,6 +160,7 @@ export class CircuitScene {
   readonly startFinish: StartFinishVenue;
   readonly secondaryStands: SecondaryGrandstands;
   readonly crowdClusters: CrowdCluster[] = [];
+  gpWindSleeve?: GpWindSleeve;
   readonly staff: MarshalStaffView;
   readonly props = new StaticTransformGroup();
   readonly surfaces = new StaticTransformGroup();
@@ -1096,9 +1098,11 @@ export class CircuitScene {
     const kit = this.venueKit?.context;
     if (kit && isGpCourse(this.track))
       this.construction.add('GP general-admission viewing banks', 2, () => {
-        for (const bank of gpSpectatorBankPlan(this.track))
-          buildGpSpectatorBank(this.track, bank, this.props, this.crowd, this.crowdClusters,
-            kit.materials.ground, stands.people, kit.materials.steel);
+        for (const [index, bank] of gpSpectatorBankPlan(this.track).entries()) {
+          const sleeve = buildGpSpectatorBank(this.track, bank, this.props, this.crowd, this.crowdClusters,
+            kit.materials.ground, stands.people, kit.materials.steel, index === 0);
+          if (sleeve) this.gpWindSleeve = sleeve;
+        }
       });
     // The indoor bowl already supplies stands, aisles, crowd and roof.
     for (const site of this.track.circuit.offroad?.kind === 'supercross'
