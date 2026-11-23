@@ -71,6 +71,8 @@ test('active road-bike snapshots render supported, airborne and landed poses wit
     }
   }
   const [supported, airborne, landed] = report.observations;
+  expect(supported.tyres.some(tyre => tyre.clearance - tyre.unloadedClearance > 0.002)).toBe(true);
+  for (const tyre of airborne.tyres) expect(tyre.clearance).toBe(tyre.unloadedClearance);
   expect(supported.contactWeights).toEqual([1, 1]);
   expect(airborne.contactWeights).toEqual([0, 0]);
   expect(landed.contactWeights.some((weight) => weight === 1)).toBe(true);

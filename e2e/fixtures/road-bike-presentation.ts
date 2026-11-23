@@ -18,6 +18,7 @@ import {
 } from '../../src/simulation/protocol.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { pixelDifference } from './pixel-difference.ts';
+import { roadTyreClearance } from './road-tyre-clearance.ts';
 
 const WIDTH = 480,
   HEIGHT = 320,
@@ -155,7 +156,7 @@ export function capture() {
     // BikeModel attaches its actual sprung group first. Inspect the production
     // graph rather than posing a second independently constructed model.
     const sprung = root.children[0],
-      tyres: { wheel: number; vertices: number; clearance: number; expected: number }[] = [];
+      tyres: { wheel: number; vertices: number; clearance: number; unloadedClearance: number; expected: number }[] = [];
     let finite = true,
       meshes = 0;
     root.traverse((object) => {
@@ -170,17 +171,10 @@ export function capture() {
       const wheel = front ? 0 : 2,
         p = wheelContactBase(o, wheel),
         n = new T.Vector3().fromArray(frame, p + BC.NORMAL_X),
-        point = new T.Vector3().fromArray(frame, p + BC.X),
-        positions = object.geometry.getAttribute('position');
-      let clearance = Infinity;
-      for (let i = 0; i < positions.count; i++) {
-        scratch.fromBufferAttribute(positions, i).applyMatrix4(object.matrixWorld).sub(point);
-        clearance = Math.min(clearance, n.dot(scratch));
-      }
+        point = new T.Vector3().fromArray(frame, p + BC.X);
       tyres.push({
         wheel,
-        vertices: positions.count,
-        clearance,
+        ...roadTyreClearance(object, object.material, n, point, front ? 0 : 1),
         expected: frame[p + BC.GAP] * n.y,
       });
     });

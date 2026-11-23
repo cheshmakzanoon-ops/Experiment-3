@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { roadTyreClearance } from '../e2e/fixtures/road-tyre-clearance.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import { BikeModel, BikeShells, GP_ONBOARD } from '../src/rendering/bike.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
@@ -364,39 +365,11 @@ function geometryClearance(
 ) {
   let lowest = Infinity,
     vertices = 0;
-  const shader = {
-    vertexShader: T.ShaderLib.standard.vertexShader,
-    fragmentShader: T.ShaderLib.standard.fragmentShader,
-    uniforms: {},
-  } as T.WebGLProgramParametersWithUniforms;
-  rubber.onBeforeCompile(shader, {} as T.WebGLRenderer);
-  const point = new T.Vector3(), bind = new T.Vector3(), localNormal = new T.Vector3();
   spin.traverse((object) => {
     if (!(object instanceof T.Mesh) || object.material !== rubber) return;
-    const positions = object.geometry.getAttribute('position'),
-      profile = object.geometry.getAttribute('gpTyreBind'),
-      indent = (shader.uniforms.gpFootSquash?.value as T.Vector2 | undefined)?.getComponent(axle) ?? 0,
-      plane = shader.uniforms[axle ? 'gpFootRear' : 'gpFootFront']?.value as T.Vector4 | undefined;
-    if (plane && profile && indent > 0.00001) {
-      localNormal.set(plane.x, plane.y, plane.z);
-      expect(localNormal.dot(normal)).toBeCloseTo(1, 6);
-      localNormal.transformDirection(new T.Matrix4().copy(object.matrixWorld).invert());
-    }
-    for (let i = 0; i < positions.count; i++) {
-      point.fromBufferAttribute(positions, i).applyMatrix4(object.matrixWorld).sub(road);
-      let clearance = normal.dot(point);
-      if (plane && profile && profile.getW(i) > 0.025 && indent > 0.00001) {
-        bind.fromBufferAttribute(profile, i);
-        const h = localNormal.dot(bind) + plane.w;
-        // Signed clearance of the flat footprint, with a rounded shoulder of
-        // width 2r. Sidewall bulge lies entirely within the road plane.
-        const r = Math.max(0.0001, 0.32 * indent);
-        if (h <= -r) clearance -= h;
-        else if (h < r) clearance += (r - h) ** 2 / (4 * r);
-      }
-      lowest = Math.min(lowest, clearance);
-      vertices++;
-    }
+    const part = roadTyreClearance(object, rubber, normal, road, axle);
+    lowest = Math.min(lowest, part.clearance);
+    vertices += part.vertices;
   });
   expect(vertices).toBeGreaterThan(100);
   return lowest;
