@@ -1,4 +1,5 @@
 import { LIVERIES } from '../../simulation/config.ts';
+import { VEHICLES } from '../../simulation/vehicles.ts';
 import { DEFAULT_LIVERY } from '../../storage/livery.ts';
 import type { BodySheet } from './body-sheet.ts';
 
@@ -194,6 +195,7 @@ export function bodyLook(
   sheet: BodySheet,
   livery?: LiveryInput | null,
 ): BodyLook {
+  const entrantNumber = Math.max(1, Math.min(99, Math.round(livery?.number ?? (id + 1)) || 1));
   if (id === 0 && liveryOverrides(livery)) {
     const primary = hexNumber(livery.primary, DEFAULT_PRIMARY),
       accent = hexNumber(livery.accent, DEFAULT_ACCENT);
@@ -205,7 +207,7 @@ export function bodyLook(
       pin: false,
       helmet: primary,
       suit: primary,
-      number: Math.max(1, Math.min(99, Math.round(livery.number) || 1)),
+      number: entrantNumber,
       source: 'livery',
     };
   }
@@ -219,7 +221,9 @@ export function bodyLook(
       pin: !!way.pin && sheet.kind === 'closed',
       helmet: way.primary,
       suit: suitFor(way.primary, way.secondary),
-      number: id + 1,
+      // A Formula race number is an independent entry on the timing sheet.
+      // Editing it should also work with the car's factory paint selected.
+      number: VEHICLES[vehicleId]?.drs ? entrantNumber : id + 1,
       source: 'colourway',
     };
   return teamLook(id);

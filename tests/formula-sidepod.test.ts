@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { expect, it } from 'vitest';
+import { DEFAULT_LIVERY } from '../src/storage/livery.ts';
+import { bodyLook } from '../src/rendering/vehicle-bodies/colourways.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
@@ -33,5 +35,20 @@ it.each(['fr3', 'fx26', 'jf2'])(
         expect(hit.distance).toBeGreaterThan(0.24);
       }
     }
+  },
+);
+
+it.each(['fr3', 'fx26', 'jf2'])(
+  'changes the %s entrant number without changing factory paint or a rival',
+  (id) => {
+    const sheet = bodySheetFor(VEHICLES[id])!;
+    const factory = bodyLook(id, 0, sheet);
+    const entry = { ...DEFAULT_LIVERY, number: 27 };
+    expect(bodyLook(id, 0, sheet, DEFAULT_LIVERY)).toEqual({
+      ...factory,
+      number: DEFAULT_LIVERY.number,
+    });
+    expect(bodyLook(id, 0, sheet, entry)).toEqual({ ...factory, number: 27 });
+    expect(bodyLook(id, 3, sheet, entry)).toEqual(bodyLook(id, 3, sheet));
   },
 );
