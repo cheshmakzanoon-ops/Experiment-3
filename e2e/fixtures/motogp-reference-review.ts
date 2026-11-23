@@ -125,7 +125,7 @@ export function captureBikeSequence(
   // A mild day: rain below 2 C is snow (weather.ts snowShare; protocol.ts H.AMBIENT).
   weatherFrame[H.AMBIENT] = 18;
   scene.add(bike.root);
-  if (view === 'bodywork') bike.rider.root.visible = false;
+  if (view === 'bodywork' || view === 'tank-service') bike.rider.root.visible = false;
   const floor = new T.Mesh(
     new T.PlaneGeometry(200, 200),
     new T.MeshStandardMaterial({ color: 0x45494d, roughness: 0.91 }),
@@ -140,6 +140,13 @@ export function captureBikeSequence(
   else if (view === 'rider-corner') camera.position.set(2.8, 1.65, 3.35);
   else camera.position.set(-2.8, 1.65, 3.35);
   camera.lookAt(0, 0.68, 0);
+  if (view === 'tank-service') {
+    const focus = bike.sprung.localToWorld(new T.Vector3(0, 0.30, 0.095));
+    camera.position.copy(focus).add(new T.Vector3(0.52, 0.54, -0.34));
+    camera.lookAt(focus);
+    camera.fov = 31;
+    camera.updateProjectionMatrix();
+  }
   // Inspect the actual garment skin at a useful reference-photo distance.
   // These views keep the same BikeModel, light, materials and riding pose.
   if (view === 'braking-entry') {

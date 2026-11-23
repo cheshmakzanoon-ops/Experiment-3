@@ -17,6 +17,42 @@ const REAR_RADIUS = CHAIN_PITCH / (2 * Math.sin(Math.PI / REAR_TEETH));
 const FRONT_RADIUS = CHAIN_PITCH / (2 * Math.sin(Math.PI / FRONT_TEETH));
 const X = 0.115;
 
+/** The small cold-headed steel pins have flat peened ends. Independent face
+ * normals keep those ends flat and the roller cylindrical. The convex caps
+ * triangulate from the perimeter, avoiding two centre fans per moving pin. */
+export function gpChainPin() {
+  const radius = .004, half = .0255 / 2, sides = 6;
+  const pos: number[] = [], normal: number[] = [], uv: number[] = [], index: number[] = [];
+  for (const sign of [-1, 1]) for (let i = 0; i <= sides; i++) {
+    const a = 2 * Math.PI * i / sides, x = Math.cos(a), z = Math.sin(a);
+    pos.push(radius * x, sign * half, radius * z);
+    normal.push(x, 0, z);
+    uv.push(i / sides, (sign + 1) / 2);
+  }
+  for (let i = 0; i < sides; i++) {
+    const j = i + sides + 1;
+    index.push(i, j, j + 1, i, j + 1, i + 1);
+  }
+  for (const sign of [-1, 1]) {
+    const start = pos.length / 3;
+    for (let i = 0; i < sides; i++) {
+      const a = 2 * Math.PI * i / sides, x = Math.cos(a), z = Math.sin(a);
+      pos.push(radius * x, sign * half, radius * z);
+      normal.push(0, sign, 0);
+      uv.push(.5 + .5 * x, .5 + .5 * z);
+    }
+    for (let i = 1; i < sides - 1; i++)
+      if (sign > 0) index.push(start, start + i + 1, start + i);
+      else index.push(start, start + i, start + i + 1);
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  geometry.setAttribute('normal', new T.Float32BufferAttribute(normal, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(index);
+  return geometry;
+}
+
 function sprocketGeometry() {
   const shape = new T.Shape();
   for (let i = 0; i <= REAR_TEETH * 8; i++) {
@@ -76,7 +112,7 @@ export class GPChainDrive {
     this.spacing = this.loop.length / this.links;
     this.root.name = 'GP prototype animated steel chain (articulated with swingarm)';
     this.rollers = new T.InstancedMesh(
-      new T.CylinderGeometry(0.004, 0.004, 0.0255, 8),
+      gpChainPin(),
       steel,
       this.links,
     );

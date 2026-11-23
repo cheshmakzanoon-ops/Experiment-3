@@ -24,6 +24,7 @@ import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { MxRecoveryPose } from './offroad/motocross-recovery.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
+import { gpFuelFiller } from './gp-fuel-filler.ts';
 import {
   gpLiveryMaterial,
   GP_TAIL_LAMP_Z,
@@ -1710,6 +1711,11 @@ export class BikeModel {
         { screen: sport ? look.screen : 1 },
       );
       this.sprung.add(moulding.root);
+      if (gpPrototype && detail !== 'far') {
+        const filler = gpFuelFiller(moulding.tank.geometry, definition.id === 'gpr2', detail === 'high');
+        add(this.sprung, filler.alloy, m.aluminium).name = 'GP filler flange and captive bail';
+        add(this.sprung, filler.insert, m.dark).name = 'GP filler gasket and recessed lid';
+      }
       if (look.headlamp === 'twin-slit') {
         installSportHeadlights(this.sprung, moulding.body, m, detail);
         const foot = sportMirrorFoot(moulding.body, detail);

@@ -9,6 +9,7 @@ import {
   gpRaceBodywork,
 } from '../src/rendering/gp-race-bodywork.ts';
 import { gpAerofoil } from '../src/rendering/gp-aerofoil.ts';
+import { gpFuelFiller } from '../src/rendering/gp-fuel-filler.ts';
 import { liveryUv, shellPanelGeometry, type P3 } from '../src/rendering/gp-race-shell.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { meshColumnsFor, meshSurfaceIntrusion } from './gp-mesh-clearance.ts';
@@ -33,6 +34,45 @@ const release = (root: T.Object3D) =>
   });
 
 describe('GP race shell control-net surfaces', () => {
+  it.each(['gpr1', 'gpr2'] as const)('seats the %s quick filler on the real tank crown at both racing LODs', (id) => {
+    const materials = new BikeMaterials(0);
+    const front = new T.MeshBasicMaterial();
+    const z = id === 'gpr2' ? .197 : .184;
+    for (const lod of ['high', 'mid'] as const) {
+      const shell = gpRaceBodywork(materials, lod, id, 0);
+      const parts = gpFuelFiller(shell.tank.geometry, id === 'gpr2', lod === 'high');
+      const metal = new T.Mesh(parts.alloy, front), insert = new T.Mesh(parts.insert, front);
+      const at = (x: number, dz: number, target: T.Mesh) =>
+        new T.Raycaster(new T.Vector3(x, 1, z + dz), new T.Vector3(0, -1, 0))
+          .intersectObject(target)[0]?.point.y;
+      const bed = at(0, 0, insert)!;
+      expect(bed).toBeGreaterThan(at(0, 0, shell.tank)!);
+      expect(at(0, 0, metal)).toBeUndefined();
+      expect(at(.045, 0, metal)! - bed).toBeCloseTo(.0015, 4);
+      expect(at(.016, 0, metal)! - bed).toBeCloseTo(.0033, 4);
+      expect(at(.055, 0, insert)).toBeUndefined();
+      if (lod === 'high') {
+        for (let i = 0; i < 6; i++) {
+          const a = (i + .5) * Math.PI / 3, x = .0423 * Math.cos(a), dz = .0423 * Math.sin(a);
+          const socket = at(x, dz, insert)!;
+          expect(at(x, dz, metal)).toBeUndefined();
+          expect(at(x + .0018, dz, metal)! - socket).toBeCloseTo(.0012, 3);
+        }
+      }
+      for (let i = 0; i < 16; i++) {
+        const a = Math.PI * i / 8, x = .0494 * Math.cos(a), dz = .0494 * Math.sin(a);
+        const gap = at(x, dz, insert)! - at(x, dz, shell.tank)!;
+        expect(gap).toBeGreaterThan(0);
+        expect(gap).toBeLessThan(.008);
+      }
+      parts.alloy.dispose();
+      parts.insert.dispose();
+      release(shell.root);
+    }
+    front.dispose();
+    materials.dispose();
+  });
+
   it('keeps mirrored atlas charts separate across a smooth welded crown', () => {
     const g = new T.BufferGeometry();
     g.setAttribute('position', new T.Float32BufferAttribute([

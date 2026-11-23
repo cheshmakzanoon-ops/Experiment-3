@@ -266,7 +266,7 @@ export async function captureGpGrandstands(
         architectureBatches: architecture.children.length,
         architecture: {
           triangles: geometryBudget(architecture).triangles,
-          // Common stairs are built identically after either architecture path.
+          // Includes the generic aisle boxes replaced by each GP terrace.
           baselineTriangles:
             baseline.structure.triangles -
             structure.triangles +

@@ -912,6 +912,7 @@ const FINISH = Object.freeze({
   gloss: '#ff47ff',
   satin: '#80a000',
   matte: '#00f000',
+  grip: '#0ab900',
 });
 /** Metallic-pearl basecoat under the clear coat on gloss zones: aluminium
  * flake gives the colour its own broad tinted highlight beneath the sharp
@@ -1233,19 +1234,35 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
       GP_PANEL_RELIEF.dome,
     );
   }
-  // Knee-grip pads on the tank flanks (textured, matte).
-  p.poly(
-    [
+  const knee: ZY[] = [
       [0.1, 0.33],
       [-0.06, 0.315],
       [-0.17, 0.268],
       [-0.17, 0.205],
       [0.0, 0.205],
       [0.12, 0.25],
-    ],
-    '#16181a',
-    'matte',
-  );
+    ];
+  p.poly(knee, '#16181a', 'matte', variant === 'sport' ? undefined : 147);
+  if (variant !== 'sport') {
+    // Moulded traction pads. Ribs stop inside the perimeter and the gripped
+    // tips have a wider specular lobe than the damp paint beside them.
+    p.line([...knee, knee[0]], .0032, '#242729', 'matte', GP_PANEL_RELIEF.groove);
+    for (let row = 0; row < 10; row++) {
+      const y = .214 + .0115 * row;
+      const edges: number[] = [];
+      for (let i = 0; i < knee.length; i++) {
+        const a = knee[i], b = knee[(i + 1) % knee.length];
+        if ((a[1] > y) !== (b[1] > y)) edges.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]));
+      }
+      if (edges.length !== 2) continue;
+      const min = Math.min(...edges) + .009, max = Math.max(...edges) - .009;
+      for (let z = -.158 + (row % 2) * .011; z + .012 < max; z += .023) {
+        if (z < min) continue;
+        p.line([[z, y - .001], [z + .007, y + .0018], [z + .012, y + .001]],
+          .0038, '#292d2e', 'grip', 241);
+      }
+    }
+  }
   // Shoulder stripe along the brow fold, into the tank.
   p.line(
     [

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
-import { GPChainDrive } from '../src/rendering/gp-chain-drive.ts';
+import { gpChainPin, GPChainDrive } from '../src/rendering/gp-chain-drive.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 const material = () => new T.MeshStandardMaterial();
@@ -15,6 +15,21 @@ const positions = (mesh: T.InstancedMesh) => {
 };
 
 describe('GP-R1 high-detail instanced, replay-deterministic chain drive', () => {
+  it('keeps both pin heads closed and the full barrel visible in twenty triangles', () => {
+    const geometry = gpChainPin(), m = material(), mesh = new T.Mesh(geometry, m);
+    expect(geometry.index!.count / 3).toBe(20);
+    for (const side of [-1, 1]) {
+      const end = new T.Raycaster(new T.Vector3(.0003, side, .0007), new T.Vector3(0, -side, 0))
+        .intersectObject(mesh)[0];
+      expect(end?.point.y).toBeCloseTo(side * .01275, 6);
+      expect(end?.face?.normal.y).toBeCloseTo(side, 6);
+    }
+    const barrel = new T.Raycaster(new T.Vector3(1, 0, 0), new T.Vector3(-1, 0, 0))
+      .intersectObject(mesh)[0];
+    expect(barrel?.point.x).toBeCloseTo(.004, 6);
+    geometry.dispose();
+    m.dispose();
+  });
   it('keeps the pin-lobed plate dimensions and the complete production chain inside its triangle budget', () => {
     const spec = VEHICLES.gpr1.bike!,
       arm = Math.hypot(spec.rearWheelRadius - spec.cgHeight + 0.13, -spec.cgToRear + 0.2),
