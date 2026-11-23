@@ -23,7 +23,7 @@ import {
   gpHelmetV,
   gpVisorGeometry,
 } from '../src/rendering/gp-rider-helmet.ts';
-import { gpEyePortFace } from '../src/rendering/gp-helmet-optics.ts';
+import { gpEyePortFace, gpEyePose } from '../src/rendering/gp-helmet-optics.ts';
 import { Rider, type RiderPose } from '../src/rendering/rider.ts';
 
 beforeAll(() => {
@@ -338,6 +338,23 @@ describe('GP spring-damped rider body', () => {
 });
 
 describe('GP race helmet', () => {
+  it('moves both eyes toward the upcoming road and restores an entrant-specific lid on replay', () => {
+    const out = new T.Vector3(), sight = {yaw: .48, gradeChange: .12, weight: .85};
+    const a = gpEyePose(out, 23, undefined, sight).clone();
+    expect(a.x).toBeGreaterThan(.13);
+    expect(a.y).toBeGreaterThan(.03);
+    expect(a.z).toBe(0);
+    expect(gpEyePose(out, 23, undefined, {...sight, weight: 0}).lengthSq()).toBe(0);
+    expect(gpEyePose(out, 23, undefined, {...sight, yaw: -.48}).x).toBe(-a.x);
+    const samples = Array.from({length: 670}, (_, index) => gpEyePose(out, 23, index/100, sight).z);
+    const closed = samples.findIndex(lid => lid > .98);
+    expect(closed).toBeGreaterThan(0);
+    expect(samples.filter(x => x > .25).length).toBeLessThan(40);
+    expect(gpEyePose(out, 23, closed/100 + .3, sight).z).toBe(0);
+    expect(gpEyePose(out, 23, closed/100, sight).z).toBe(samples[closed]);
+    expect(gpEyePose(out, 81, closed/100, sight).z).toBe(0);
+    expect(gpEyePose(out, 23, NaN, {yaw: Infinity, gradeChange: NaN, weight: NaN}).toArray()).toEqual([0,0,0]);
+  });
   it.each(['high', 'mid'] as const)('%s eye rays pass through the lens to the rider before the padding', (detail) => {
     const material = new T.MeshBasicMaterial();
     const shell = new T.Mesh(gpHelmetShell(detail), material);

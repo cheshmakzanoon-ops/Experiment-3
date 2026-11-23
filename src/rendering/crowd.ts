@@ -61,6 +61,7 @@ interface CrowdUniforms {
   crowdPassA?: { value: T.Vector4 };
   crowdPassB?: { value: T.Vector4 };
   crowdGpYaw?: { value: number };
+  crowdGpSeats?: { value: T.Vector3 };
   crowdLodRange?: { value: T.Vector2 };
 }
 
@@ -110,6 +111,8 @@ uniform float crowdMotion;
 uniform vec2 crowdReaction;
 #ifdef GP_CROWD_GAZE
 uniform float crowdGpYaw;
+// Local centre and the two slopes through the actual end seats.
+uniform vec3 crowdGpSeats;
 #endif
 #ifdef MX_CROWD_PASS
 uniform vec4 crowdPassA, crowdPassB;
@@ -154,7 +157,12 @@ mat3 crowdTurn() {
   if (crowdJoint > 2.5) {
     float gaze = angle + (fract(spectatorPhase*3.71)-.5)*.22 + nearby.x*.57;
     #ifdef GP_CROWD_GAZE
-    gaze += crowdGpYaw * (.66 + .34 * fract(spectatorPhase * 4.73));
+    float packTurn = crowdGpYaw;
+    #ifdef USE_INSTANCING
+    float seatOffset = instanceMatrix[3].z - crowdGpSeats.x;
+    packTurn += seatOffset * (seatOffset < 0. ? crowdGpSeats.y : crowdGpSeats.z);
+    #endif
+    gaze += packTurn * (.66 + .34 * fract(spectatorPhase * 4.73));
     #endif
     float gc=cos(gaze), gs=sin(gaze);
     return mat3(gc,0.,-gs, 0.,1.,0., gs,0.,gc);
@@ -183,6 +191,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     if (!shader.vertexShader.includes('#include <begin_vertex>'))
       throw new Error('Crowd shader position hook missing');
     Object.assign(shader.uniforms, uniforms);
+    if (uniforms.crowdGpYaw) shader.uniforms.crowdGpSeats = uniforms.crowdGpSeats ?? { value: new T.Vector3() };
     shader.uniforms.crowdReaction = uniforms.crowdReaction ?? { value: new T.Vector2() };
     shader.uniforms.crowdLodRange = uniforms.crowdLodRange ?? { value: new T.Vector2(0, 1) };
     shader.vertexShader =
@@ -443,7 +452,7 @@ vColor.rgb = vec3(1.);`,
     }
   };
   material.customProgramCacheKey = () =>
-    `apex-procedural-crowd-v15-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}`;
+    `apex-procedural-crowd-v16-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
@@ -467,6 +476,9 @@ export class CrowdCluster {
   };
   readonly audienceTime = { value: 0 };
   readonly gpYaw?: { value: number };
+  readonly gpSeats?: { value: T.Vector3 };
+  private seatLimits = new T.Vector2(Infinity, -Infinity);
+  private endSeat = new T.Vector3();
   level: CrowdDetail = 0;
   readonly lodRanges = [new T.Vector2(0, 1), new T.Vector2(), new T.Vector2(), new T.Vector2()];
   private centre = new T.Vector3();
@@ -478,12 +490,16 @@ export class CrowdCluster {
     material: T.MeshStandardMaterial,
     authoredFamily?: number,
     private readonly gpSeatSide = 0,
+    standingBank = false,
   ) {
     if (!matrices.length || matrices.length !== colors.length || !Number.isSafeInteger(seed))
       throw new Error('Invalid spectator cluster');
     this.root.name = `Authored crowd cluster ${seed}`;
     this.root.userData.authoredPeople = PEOPLE_ASSET;
-    if (gpSeatSide) this.gpYaw = { value: 0 };
+    if (gpSeatSide) {
+      this.gpYaw = { value: 0 };
+      this.gpSeats = { value: new T.Vector3() };
+    }
     const phase = new Float32Array(matrices.length),
       skin = new Float32Array(matrices.length * 3),
       style = new Float32Array(matrices.length * 4);
@@ -498,9 +514,13 @@ export class CrowdCluster {
       hash ^= hash >>> 16;
       phase[i] = ((hash >>> 0) / 4294967296) * Math.PI * 2;
       style.set(spectatorVariation(i, seed, matrices[i].elements[13] > frontRow + 0.6), i * 4);
+      if (standingBank) style[i * 4 + 2] = 1;
       const c = skinPalette[Math.abs((i * 17 + seed) % skinPalette.length)];
       skin.set([c.r, c.g, c.b], i * 3);
-      this.localCentre.add(new T.Vector3().setFromMatrixPosition(matrices[i]));
+      this.endSeat.setFromMatrixPosition(matrices[i]);
+      this.localCentre.add(this.endSeat);
+      this.seatLimits.x = Math.min(this.seatLimits.x, this.endSeat.z);
+      this.seatLimits.y = Math.max(this.seatLimits.y, this.endSeat.z);
     }
     this.localCentre.multiplyScalar(1 / matrices.length);
     const phases = new T.InstancedBufferAttribute(phase, 1),
@@ -518,7 +538,7 @@ export class CrowdCluster {
         level === 3 ? undefined : new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
       const distanceMaterial = level === 3 ? undefined : new T.MeshDistanceMaterial();
       const uniforms = { ...this.uniforms, crowdLodRange: { value: this.lodRanges[level] },
-        ...(this.gpYaw && { crowdGpYaw: this.gpYaw }) };
+        ...(this.gpYaw && { crowdGpYaw: this.gpYaw, crowdGpSeats: this.gpSeats }) };
       if (level === 3) installCrowdImpostorShader(colorMaterial, this.lodRanges[level]);
       else {
         installCrowdShader(colorMaterial, uniforms, true);
@@ -614,12 +634,26 @@ export class CrowdCluster {
     crowdResponse(frame, this.centre, this.uniforms.crowdReaction.value).multiplyScalar(
       clamp((180 - distance) / 50, 0, 1) * (1 - clamp(rain / 60, 0, 0.4)),
     );
-    if (this.gpYaw) {
+    if (this.gpYaw && this.gpSeats) {
       const m = this.root.matrixWorld.elements;
       const side = this.gpSeatSide / (Math.hypot(m[8], m[10]) || 1);
-      this.gpYaw.value = gpGrid && frame && visualDistance < 480
-        ? gpSpectatorYaw(frame, this.centre, side * m[8], side * m[10])
-        : 0;
+      const scan = gpGrid && frame && visualDistance < 480;
+      this.gpYaw.value = scan ? gpSpectatorYaw(frame, this.centre, side * m[8], side * m[10]) : 0;
+      const slopes = this.gpSeats.value.set(this.localCentre.z, 0, 0);
+      // A rider abreast of the middle row is still approaching one end of a
+      // long terrace and receding from the other. Sample three real seats per
+      // block. The GPU interpolates them for the whole crowd and shadow pass.
+      if (scan) {
+        for (let i = 0; i < 2; i++) {
+          const offset = this.seatLimits.getComponent(i) - this.localCentre.z;
+          if (Math.abs(offset) < .25) continue;
+          this.endSeat.copy(this.centre);
+          this.endSeat.x += m[8] * offset;
+          this.endSeat.z += m[10] * offset;
+          const endYaw = gpSpectatorYaw(frame, this.endSeat, side * m[8], side * m[10]);
+          slopes.setComponent(i + 1, (endYaw - this.gpYaw.value) / offset);
+        }
+      }
     }
     this.level = crowdDetail(visualDistance, this.level);
     crowdLodRanges(visualDistance, this.lodRanges);

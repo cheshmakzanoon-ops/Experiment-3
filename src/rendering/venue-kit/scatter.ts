@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { Random } from '../../core/math.ts';
 import { trackPoint } from '../../simulation/track.ts';
+import { gpSpectatorBankPlan, inGpSpectatorBank } from './gp-spectator-bank-sites.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { terrainFor } from '../terrain.ts';
 import type { VenueKitContext } from './context.ts';
@@ -15,6 +16,7 @@ export function buildScatter(kit: VenueKitContext) {
     random = new Random(0x51c4 + Math.round(track.length)),
     p = trackPoint(),
     tile = 320;
+  const banks = gpSpectatorBankPlan(track);
   const desert = !!kit.style.desertScrub;
   const shrubMaterial = new T.MeshStandardMaterial({
     color: desert ? 0x8b7a4e : 0x4f5d32,
@@ -34,7 +36,7 @@ export function buildScatter(kit: VenueKitContext) {
     if (
       kit.overOtherSection(x, z, s, 30) ||
       kit.blocks(x, z, 4) ||
-      inStandFootprint(track, x, z, 6)
+      inStandFootprint(track, x, z, 6) || inGpSpectatorBank(banks, x, z, 3)
     )
       continue;
     const y = terrain.height(x, z);

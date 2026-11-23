@@ -113,7 +113,7 @@ export function standMaterials(track?: Track) {
 let sharedFlagMaterial: T.MeshStandardMaterial | null = null;
 let sharedGpFlagMaterial: T.MeshStandardMaterial | null = null;
 /** One flag material for every stand (one program, shared uniforms). */
-function crowdFlagMaterial(gp: boolean) {
+export function crowdFlagMaterial(gp: boolean) {
   if (gp) return (sharedGpFlagMaterial ??= gpSpectatorFlagMaterial());
   return (sharedFlagMaterial ??= flagMaterial());
 }

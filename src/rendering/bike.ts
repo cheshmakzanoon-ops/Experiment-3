@@ -2133,6 +2133,7 @@ export class BikeModel {
         gLong: v.gLong,
         leanRate: v.leanRate,
         gpBody: v.gpBody,
+        time: v.time,
         sight: v.sight,
       });
       this.poseSparks(v);

@@ -2,9 +2,56 @@ import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import { CrowdCluster, installCrowdShader } from '../src/rendering/crowd.ts';
 import { F, H, B, BIKE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import { gpSpectatorYaw } from '../src/rendering/crowd-response.ts';
 import { PHASE } from '../src/simulation/race.ts';
 
 describe('GP grandstand attention', () => {
+  it('follows the rider separately at each end of a rotated terrace and retraces a replay seek', () => {
+    const frame = new Float32Array(HEADER + CAR_STRIDE);
+    frame[H.CARS] = 1;
+    frame[H.PHASE] = PHASE.RACING;
+    const o = carBase(0);
+    const material = new T.MeshStandardMaterial();
+    const seats = [-12, -3, 3, 12].map(z => new T.Matrix4().makeTranslation(0, 0, z));
+    const cluster = new CrowdCluster(seats, seats.map(() => new T.Color()), 42, material, undefined, 1);
+    cluster.root.rotation.y = .81;
+    cluster.root.position.set(41, 0, -72);
+    cluster.root.scale.z = 1.2;
+    cluster.root.updateMatrixWorld();
+    const side = new T.Vector3(0,0,1).transformDirection(cluster.root.matrixWorld);
+    const rider = cluster.root.localToWorld(new T.Vector3(-17,0,0));
+    frame[o + F.X] = rider.x;
+    frame[o + F.Z] = rider.z;
+    frame[o + F.SPEED] = 50;
+    const camera = cluster.root.position.clone();
+    const sample = () => {
+      cluster.update(15, camera, 0, frame, 44, 1.7, true, 1080);
+      return [-12, 0, 12].map(z => cluster.gpYaw!.value + (z-cluster.gpSeats!.value.x) *
+        (z < cluster.gpSeats!.value.x ? cluster.gpSeats!.value.y : cluster.gpSeats!.value.z));
+    };
+    try {
+      const first = sample();
+      expect(first[0]).toBeGreaterThan(.19);
+      expect(first[2]).toBeLessThan(-.19);
+      for (const [i,z] of [-12,0,12].entries()) {
+        const actualSeat = cluster.root.localToWorld(new T.Vector3(0,0,z));
+        expect(first[i]).toBeCloseTo(gpSpectatorYaw(frame, actualSeat, side.x, side.z), 8);
+      }
+      frame[o + F.RETIRED] = 1;
+      expect(sample()).toEqual([0,0,0]);
+      frame[o + F.RETIRED] = 0;
+      expect(sample()).toEqual(first);
+    } finally {
+      for (const level of cluster.levels) {
+        level.geometry.dispose();
+        (level.material as T.Material).dispose();
+        level.customDepthMaterial?.dispose();
+        level.customDistanceMaterial?.dispose();
+        level.dispose();
+      }
+      material.dispose();
+    }
+  });
   it('tracks an approaching pack across either side of the road and restores a held pose', () => {
     const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
     frame[H.CARS] = 2;

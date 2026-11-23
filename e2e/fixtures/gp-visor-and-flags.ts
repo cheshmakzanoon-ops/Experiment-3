@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { gpEyePose } from '../../src/rendering/gp-helmet-optics.ts';
 import { Rider } from '../../src/rendering/rider.ts';
 import { gpSpectatorFlagMaterial } from '../../src/rendering/gp-spectator-flags.ts';
 import { flagGeometry } from '../../src/rendering/studio/crowd-flags.ts';
@@ -61,6 +62,20 @@ export function captureGpOpticsAndCloth() {
     const liner = snap('liner-without-face');
     face.visible = true;
     const restored = snap('visor-restored');
+    const eye = new T.Vector3();
+    const eyeFrame = (name: string, time?: number, yaw = 0) => {
+      rider.ride({lean: 0, braking: 0, offset: 0, steer: 0, tuck: .4, time,
+        sight: {yaw, gradeChange: 0, weight: 1}});
+      // Keep the portrait lens locked to the eye port as the riding rig moves.
+      head.position.set(0,0,0);
+      head.quaternion.identity();
+      return snap(name);
+    };
+    let closeTime = 0;
+    while (closeTime < 8 && gpEyePose(eye, 23, closeTime).z < .995) closeTime += .005;
+    const looking = eyeFrame('eyes-toward-apex', undefined, .52);
+    const blink = eyeFrame('eyelids-closed', closeTime);
+    const open = eyeFrame('eyes-rewound');
     camera.position.set(.39, .12, .43);
     camera.lookAt(0, .065, .03);
     snap('visor-three-quarter');
@@ -77,7 +92,8 @@ export function captureGpOpticsAndCloth() {
     const calm = snap('supporters-calm');
     studioUniforms.studioWind.value.set(6, 2, 7, .8);
     const eastAgain = snap('supporters-rewound');
-    return {captures, facePixels: changed(portrait,liner), faceRestore: changed(portrait,restored),
+    return {captures, gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
+      facePixels: changed(portrait,liner), faceRestore: changed(portrait,restored),
       windPixels: changed(east,west), calmPixels: changed(east,calm), windRestore: changed(east,eastAgain),
       glError: gl.getContext().getError()};
   } finally {

@@ -288,16 +288,27 @@ HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, floa
   // just meets its bottom edge.
   float upperLid = .0138 + .0018 * (1. - lidU * lidU);
   float lowerLid = .0058 - .0014 * (1. - lidU * lidU);
+  #ifdef GP_HELMET_GAZE
+  float restingUpper = upperLid;
+  upperLid = mix(upperLid, lowerLid + .001, gpEyePose.z);
+  lowerLid = mix(lowerLid, restingUpper, .12 * gpEyePose.z);
+  #endif
   float eyeMask = step(length(ed), .0128) * step(.079, hp.z)
     * smoothstep(upperLid + .0005, upperLid - .0005, hp.y) * smoothstep(lowerLid - .0005, lowerLid + .0005, hp.y);
   vec3 en = normalize(ed);
   vec3 iris = mix(vec3(.1, .055, .025), vec3(.12, .2, .26), step(.7, humanHash(person + 2.3)));
   vec3 sclera = vec3(.3, .275, .26) * mix(.45, 1., smoothstep(.45, .0, en.y)) * mix(.8, 1., smoothstep(.3, .7, en.z));
-  float irisRing = smoothstep(.84, .86, en.z);
+  float irisFacing = en.z;
+  #ifdef GP_HELMET_GAZE
+  // The two eyes move together. Keep the corneal reflection anchored to
+  // the curved surface while the pupil and iris turn beneath it.
+  irisFacing = dot(vec3(en.x * sign(hp.x), en.y, en.z), normalize(vec3(gpEyePose.xy, 1.)));
+  #endif
+  float irisRing = smoothstep(.84, .86, irisFacing);
   // Seen from further away the eye reads as a shaded almond, not a white disc.
   sclera *= mix(1., .55, smoothstep(.0008, .002, px));
-  vec3 eyeCol = mix(sclera, iris * mix(.6, 1., smoothstep(.97, .9, en.z)), irisRing);
-  eyeCol = mix(eyeCol, vec3(.008), smoothstep(.968, .975, en.z));
+  vec3 eyeCol = mix(sclera, iris * mix(.6, 1., smoothstep(.97, .9, irisFacing)), irisRing);
+  eyeCol = mix(eyeCol, vec3(.008), smoothstep(.968, .975, irisFacing));
   // The same key-light direction in both eyes (true x, not mirrored).
   vec2 glintAt = vec2(-.24, .3);
   float glint = (1. - smoothstep(.07, .13, length(vec2(en.x * sign(hp.x), en.y) - glintAt))) * eyeMask * irisRing;

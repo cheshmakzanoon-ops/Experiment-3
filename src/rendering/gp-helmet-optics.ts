@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { GpRiderSight } from './motorcycle-camera.ts';
 import { HUMAN_FACE_GLSL, HUMAN_TONE_GLSL, humanHeadGeometry } from './human-kit.ts';
 import { chainShaderHook, injectAfter, injectBefore, injectDeclarations } from './studio/shader-hooks.ts';
 
@@ -38,14 +39,33 @@ export function gpEyePortFace(detail: 'high' | 'mid', entrant: number, material:
   return mesh;
 }
 
+/** The helmet already follows the preview with the neck. The eyes cover the
+ * remaining angle into a turn or over a crest. The lid closes faster than it
+ * opens, with a phase and interval stable for the same entrant on every LOD. */
+export function gpEyePose(out: T.Vector3, entrant: number, time?: number, sight?: GpRiderSight) {
+  const weight = T.MathUtils.clamp(Number.isFinite(sight?.weight) ? sight!.weight : 0, 0, 1);
+  const yaw = Number.isFinite(sight?.yaw) ? sight!.yaw : 0;
+  const grade = Number.isFinite(sight?.gradeChange) ? sight!.gradeChange : 0;
+  let lid = 0;
+  if (time !== undefined && Number.isFinite(time)) {
+    const seed = Math.imul(entrant + 17, 0x45d9f3b) >>> 0;
+    const interval = 3.8 + (seed & 1023) / 380;
+    const phase = T.MathUtils.euclideanModulo(time + interval * ((seed >>> 10) & 1023) / 1024, interval);
+    lid = T.MathUtils.smoothstep(phase, 0, .045) * (1 - T.MathUtils.smoothstep(phase, .065, .175));
+  }
+  return out.set(T.MathUtils.clamp(.36*yaw*weight, -.21, .21),
+    T.MathUtils.clamp(.32*grade*weight, -.085, .085), lid);
+}
+
 /** Both shell and facial insert are opaque. The facial insert has an ID
  * starting at one. The default scalar attribute on every lacquered part is
  * zero, keeping the existing paint and decals on those pieces. */
-export function installGpHelmetFace(material: T.MeshPhysicalMaterial) {
-  chainShaderHook(material, 'gp-helmet-interior-v1', (shader) => {
+export function installGpHelmetFace(material: T.MeshPhysicalMaterial, eyes: T.Vector3) {
+  chainShaderHook(material, 'gp-helmet-interior-v2', (shader) => {
+    shader.uniforms.gpEyePose = { value: eyes };
     injectDeclarations(shader, 'common', 'attribute float gpFaceId; varying vec4 vGpFace;', 'vertex');
     injectAfter(shader, 'begin_vertex', 'vGpFace = vec4(position,gpFaceId);', 'vertex');
-    injectDeclarations(shader, 'common', 'varying vec4 vGpFace;\n' + HUMAN_TONE_GLSL + HUMAN_FACE_GLSL, 'fragment');
+    injectDeclarations(shader, 'common', '#define GP_HELMET_GAZE\nuniform vec3 gpEyePose; varying vec4 vGpFace;\n' + HUMAN_TONE_GLSL + HUMAN_FACE_GLSL, 'fragment');
     injectAfter(shader, 'color_fragment', `
 float gpFaceRough = .62, gpFaceGlint = 0.;
 float gpFacePixel = max(length(dFdx(vGpFace.xyz)),length(dFdy(vGpFace.xyz)));
