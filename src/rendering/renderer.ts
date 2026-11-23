@@ -2521,6 +2521,7 @@ export class RacingRenderer {
           gpGrid,
           this.scenePass.target.height,
         );
+    this.circuit.gpSlipMarks?.show(presented[H.TIME], !menu && !studio);
     this.effectPlayback.update(presented, !menu, !replay);
     this.effects.setSignalLights(presented, !studio);
     this.debris.update(b);

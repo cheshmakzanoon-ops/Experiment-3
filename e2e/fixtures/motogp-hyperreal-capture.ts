@@ -85,9 +85,14 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
   const step = 1 / 120;
   let previous = simulation.makeFrame();
   let current = simulation.makeFrame();
+  const passageFrame = simulation.makeFrame();
   const advance = (seconds: number) => {
     const ticks = Math.max(1, Math.round(seconds / step));
-    for (let i = 0; i < ticks; i++) simulation.step(step);
+    for (let i = 0; i < ticks; i++) {
+      simulation.step(step);
+      const marks = renderer.circuit.gpSlipMarks;
+      if (marks && simulation.tick % 4 === 0) marks.record(simulation.writeFrame(passageFrame));
+    }
     previous = current;
     current = simulation.makeFrame();
   };
@@ -105,6 +110,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     image: string;
     draws: number;
     triangles: number;
+    slipSegments: number;
     presentedSeconds: number;
     rig: number;
     station: number;
@@ -187,6 +193,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           image,
           draws: renderer.renderer.info.render.calls,
           triangles: renderer.renderer.info.render.triangles,
+          slipSegments: renderer.circuit.gpSlipMarks?.visibleSegments ?? 0,
           presentedSeconds: current[H.TIME],
           rig: renderer.broadcastShot.rig,
           station: current[base + F.S],

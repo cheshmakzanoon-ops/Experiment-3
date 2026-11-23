@@ -1232,6 +1232,7 @@ export class GameApp {
     this.previous = null;
     this.liveFrames.reset();
     this.renderer?.reset();
+    this.renderer?.circuit.gpSlipMarks?.clear();
     this.worker?.terminate();
     if (this.renderer) this.renderer.engineering = null;
     const generation = ++this.generation;
@@ -1446,6 +1447,7 @@ export class GameApp {
     this.liveFrames.observe(next, performance.now());
     if (this.state === 'driving') {
       this.renderer?.circuit.offroad?.recordWheelPassage(next);
+      this.renderer?.circuit.gpSlipMarks?.record(next);
       this.radioCaption.show(this.radio.observe(next, this.options.laps));
       this.rumble.update(
         this.input.activePad(),
@@ -2387,6 +2389,7 @@ export class GameApp {
     this.flashbackPending = false;
     this.flashbacks++;
     this.replay?.truncate(time);
+    this.renderer?.circuit.gpSlipMarks?.truncate(time);
     this.telemetry?.truncate(time);
     this.flashbackMode = false;
     this.flashbackPanel.show(false);

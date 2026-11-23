@@ -6,6 +6,8 @@ import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { racingLineFor } from '../simulation/racing-line.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
+import { gpRubberImprint } from './gp-rubber-imprint.ts';
+import { GpSlipMarks } from './gp-slip-marks.ts';
 import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 
@@ -426,8 +428,8 @@ export function installTyreMarkWater(material: T.Material, state: T.Texture) {
   });
 }
 
-function tyreMarkMaterial(state?: T.Texture) {
-  const texture = markTexture();
+function tyreMarkMaterial(state?: T.Texture, gpVenue = false) {
+  const texture = gpVenue ? gpRubberImprint() : markTexture();
   texture.wrapT = T.RepeatWrapping;
   texture.colorSpace = T.NoColorSpace;
   const material = new T.MeshStandardMaterial({
@@ -457,13 +459,14 @@ export function buildTyreMarks(
   parent: T.Object3D,
   marks = tyreMarks(track),
   state?: T.Texture,
-  material = tyreMarkMaterial(state),
+  material = tyreMarkMaterial(state, isGpCourse(track)),
 ) {
   const chunks = new Map<
     number,
     { position: number[]; uv: number[]; trackUV: number[]; color: number[]; index: number[] }
   >();
   const p = trackPoint();
+  const gpVenue = isGpCourse(track);
   for (const mark of marks) {
     const key = Math.floor(
       (((mark.s[0] % track.length) + track.length) % track.length) / TYRE_MARKS.chunk,
@@ -472,6 +475,11 @@ export function buildTyreMarks(
     if (!chunk)
       chunks.set(key, (chunk = { position: [], uv: [], trackUV: [], color: [], index: [] }));
     const base = chunk.position.length / 3;
+    // A different piece of the contact mask meets the ground on each pass.
+    // Derive it from geometry so rebuilding a family after a seek is exact.
+    const phase = gpVenue ? mark.s[0] * 0.137 + mark.lateral[0] * 0.359 : 0;
+    const fraction = phase - Math.floor(phase);
+    const stampMetres = gpVenue ? 3.1 + 2.2 * fraction : 4;
     // Lap of the mark's first sample: the state V coordinate continues past 1
     // (or below 0) instead of jumping back across the whole texture inside one
     // quad when a mark crosses the start line; the shader wraps it.
@@ -485,7 +493,7 @@ export function buildTyreMarks(
           p.y + p.bank * clamp(l, -12, 12) + TYRE_MARKS.lift,
           p.z + p.nz * l,
         );
-        chunk.uv.push(edge + 0.5, (mark.s[k] - mark.s[0]) / 4);
+        chunk.uv.push(edge + 0.5, fraction + (mark.s[k] - mark.s[0]) / stampMetres);
         // The road ribbon's state coordinates (lateral share, lap fraction).
         chunk.trackUV.push(clamp((l / p.width) * 0.5 + 0.5, 0, 1), mark.s[k] / track.length - lap);
         chunk.color.push(1, 1, 1, mark.alpha[k]);
@@ -525,6 +533,7 @@ type TyreMarkFamily = 'car' | 'motorcycle' | 'gp';
  * Geometry generation stays out of the steady-state draw loop. */
 export class TyreMarkPresentation {
   readonly root = new T.Group();
+  passage?: GpSlipMarks;
   private readonly layers = new Map<TyreMarkFamily, T.Group>();
   private family: TyreMarkFamily = 'car';
   private ready = false;
@@ -553,9 +562,11 @@ export class TyreMarkPresentation {
         this.venue,
         gpVenueStreaks(this.track),
         this.state,
-        (this.material ??= tyreMarkMaterial(this.state)),
+        (this.material ??= tyreMarkMaterial(this.state, true)),
       );
       this.root.add(this.venue);
+      this.passage = new GpSlipMarks(this.track, this.material);
+      this.root.add(this.passage.mesh);
     }
     this.showLayer();
   }

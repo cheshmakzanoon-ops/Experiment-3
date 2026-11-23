@@ -714,6 +714,7 @@ export class CircuitScene {
   /** Follow the actual snapshot's vehicle family. A uniform changes road
    * deposits immediately; the bounded mark cache switches once per transition,
    * so menu/replay changes never append another copy of the surface geometry. */
+  get gpSlipMarks() { return this.tyreRubber.passage; }
   setMotorcyclePresentation(enabled: boolean, grandPrix = false) {
     const changed = this.tyreRubber.setMotorcycle(enabled, grandPrix);
     if (!changed) return;
