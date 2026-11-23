@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45100570605
-- commit: `4e8967e770` · Light GP pavilion gallery windows and photograph race-night and tower comparisons
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45101922574
+- commit: `538e13b8ed` · Verify seated GP crowds at all four venues and publish full-game practice photographs
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-23T02:30:11Z · updated: 2026-11-23T02:46:36Z
+- started: 2026-11-23T02:44:33Z · updated: 2026-11-23T02:55:28Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
+| browser (night) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
 | browser (day) | success | 7 |  |
-| browser (night) | success | 7 |  |
