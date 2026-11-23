@@ -5,7 +5,7 @@ import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts'
 import { COURSE_CELL } from '../../simulation/offroad/course.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import type { CameraRig } from '../trackside.ts';
-import { STADIUM } from './stadium-dimensions.ts';
+import { stadiumFloor } from './stadium-dimensions.ts';
 
 /** Encloses the actual procedural replay-camera base, offset support,
  * platform, rails, body and lens. Local +X points away from the nearest lane;
@@ -67,21 +67,8 @@ export function placeMotocrossRigs(track: Track, rigs: readonly CameraRig[]): Ca
   });
   // The indoor seating starts at these four authored floor edges. Keep the
   // complete support inside them, in addition to the ordinary stand exclusion.
-  const floor = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
+  const floor = surface.kind === 'supercross' ? stadiumFloor(track) : null;
   const point = trackPoint();
-  if (surface.kind === 'supercross') {
-    for (let s = 0; s < track.length; s += 4) {
-      track.at(s, point);
-      for (const side of [-1, 1]) {
-        const x = point.x + point.nx * point.width * side,
-          z = point.z + point.nz * point.width * side;
-        floor.minX = Math.min(floor.minX, x - STADIUM.margin);
-        floor.maxX = Math.max(floor.maxX, x + STADIUM.margin);
-        floor.minZ = Math.min(floor.minZ, z - STADIUM.margin);
-        floor.maxZ = Math.max(floor.maxZ, z + STADIUM.margin);
-      }
-    }
-  }
   const offsets: { along: number; across: number; cost: number }[] = [];
   for (let along = -16; along <= 16; along += 2)
     for (let across = -32; across <= 32; across += 0.25)
@@ -106,11 +93,11 @@ export function placeMotocrossRigs(track: Track, rigs: readonly CameraRig[]): Ca
         cz = z + point.nz * side * centreOffset,
         margin = radius + MX_CAMERA_FOOTPRINT.clearance;
       if (
-        (surface.kind === 'supercross' &&
-          (cx - margin < floor.minX ||
-            cx + margin > floor.maxX ||
-            cz - margin < floor.minZ ||
-            cz + margin > floor.maxZ)) ||
+        (floor &&
+          (cx - margin < floor.min.x ||
+            cx + margin > floor.max.x ||
+            cz - margin < floor.min.z ||
+            cz + margin > floor.max.z)) ||
         inStandFootprint(track, cx, cz, margin) ||
         centres.some((other) => Math.hypot(cx - other.x, cz - other.z) < radius * 2 + 0.5)
       )

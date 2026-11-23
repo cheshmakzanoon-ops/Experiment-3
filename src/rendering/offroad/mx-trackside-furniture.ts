@@ -11,7 +11,7 @@ import { Track, trackPoint } from '../../simulation/track.ts';
 import type { MarshalLocation } from '../marshal-staff.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { tracksideRigs } from '../trackside.ts';
-import { STADIUM } from './stadium-dimensions.ts';
+import { stadiumFloor } from './stadium-dimensions.ts';
 import {
   MX_TRACKSIDE_MODELS,
   mxTracksideParts,
@@ -139,18 +139,7 @@ export function planMxTracksideFurniture(track: Track) {
     };
   });
   const cameras = tracksideRigs(track);
-  const floor = new T.Box3(),
-    p = trackPoint();
-  if (indoor) {
-    for (let s = 0; s < track.length; s += 4) {
-      track.at(s, p);
-      for (const side of [-1, 1])
-        floor.expandByPoint(
-          new T.Vector3(p.x + p.nx * p.width * side, 0, p.z + p.nz * p.width * side),
-        );
-    }
-    floor.expandByVector(new T.Vector3(STADIUM.margin, 0, STADIUM.margin));
-  }
+  const floor = indoor ? stadiumFloor(track) : null, p = trackPoint();
   const sites: MxFurnitureSite[] = [],
     placements: MxFurniturePlacement[] = [];
   let rejected = 0;
@@ -167,7 +156,7 @@ export function planMxTracksideFurniture(track: Track) {
       z = at.z + at.nz * l;
     const reach = radius + MX_FURNITURE_LIMITS.laneClearance;
     if (
-      (indoor &&
+      (floor &&
         (x - reach < floor.min.x ||
           x + reach > floor.max.x ||
           z - reach < floor.min.z ||

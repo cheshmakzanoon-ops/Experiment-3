@@ -5,7 +5,7 @@ import { Track, trackPoint } from '../../simulation/track.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { tracksideRigs } from '../trackside.ts';
 import { mxFurnitureGround, planMxTracksideFurniture, type MxFurnitureSite } from './mx-trackside-furniture.ts';
-import { STADIUM } from './stadium-dimensions.ts';
+import { stadiumFloor } from './stadium-dimensions.ts';
 
 export interface MxCourseSite {
   kind: 'barn' | 'quarry' | 'ridge-deck';
@@ -76,22 +76,7 @@ export function planMxCourseSites(track: Track, furnitureSites?: readonly MxFurn
         ) + 0.1,
     };
   });
-  const floor = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
-  if (indoor) {
-    const p = trackPoint();
-    // Same station interval, edge definition and margin as the actual bowl.
-    for (let s = 0; s < track.length; s += 4) {
-      track.at(s, p);
-      for (const side of [-1, 1]) {
-        const x = p.x + p.nx * p.width * side,
-          z = p.z + p.nz * p.width * side;
-        floor.minX = Math.min(floor.minX, x - STADIUM.margin);
-        floor.maxX = Math.max(floor.maxX, x + STADIUM.margin);
-        floor.minZ = Math.min(floor.minZ, z - STADIUM.margin);
-        floor.maxZ = Math.max(floor.maxZ, z + STADIUM.margin);
-      }
-    }
-  }
+  const floor = indoor ? stadiumFloor(track) : null;
   const furniture = furnitureSites ?? planMxTracksideFurniture(track).sites,
     cameras = tracksideRigs(track),
     landmarks: MxCourseSite[] = [],
@@ -125,11 +110,11 @@ export function planMxCourseSites(track: Track, furnitureSites?: readonly MxFurn
       z = p.z + p.nz * lateral,
       reach = radius + CLEARANCE;
     if (
-      (indoor &&
-        (x - reach < floor.minX ||
-          x + reach > floor.maxX ||
-          z - reach < floor.minZ ||
-          z + reach > floor.maxZ)) ||
+      (floor &&
+        (x - reach < floor.min.x ||
+          x + reach > floor.max.x ||
+          z - reach < floor.min.z ||
+          z + reach > floor.max.z)) ||
       inStandFootprint(track, x, z, reach) ||
       furniture.some((q) => Math.hypot(x - q.x, z - q.z) < radius + q.radius + SITE_GAP) ||
       cameras.some((q) => Math.hypot(x - q.position.x, z - q.position.z) < radius + 2.4) ||

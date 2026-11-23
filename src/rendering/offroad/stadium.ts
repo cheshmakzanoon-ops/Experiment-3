@@ -10,7 +10,7 @@ import { MxTimingBoard } from './mx-timing-board.ts';
 import { MxCrowdPass } from './mx-crowd-pass.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
-import { trackPoint, type Track } from '../../simulation/track.ts';
+import type { Track } from '../../simulation/track.ts';
 import { installCrowdShader, spectatorGeometry, spectatorVariation } from '../crowd.ts';
 import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-impostor.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
@@ -18,7 +18,7 @@ import { materials } from '../materials/index.ts';
 import { mxAtlasRow, mxEventAtlas } from './mx-event-graphics.ts';
 import { mxArenaFinish } from './mx-finish-line.ts';
 import { onMxAtmosphere, onMxDetail } from './mx-quality.ts';
-import { STADIUM } from './stadium-dimensions.ts';
+import { STADIUM, stadiumFloor } from './stadium-dimensions.ts';
 import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
 export { STADIUM } from './stadium-dimensions.ts';
 
@@ -119,16 +119,7 @@ export class Stadium {
   };
   constructor(track: Track) {
     this.root.name = 'Supercross stadium';
-    const p = trackPoint(),
-      box = new T.Box3();
-    let floor = Infinity;
-    for (let s = 0; s < track.length; s += 4) {
-      track.at(s, p);
-      box.expandByPoint(new T.Vector3(p.x + p.nx * p.width, p.y, p.z + p.nz * p.width));
-      box.expandByPoint(new T.Vector3(p.x - p.nx * p.width, p.y, p.z - p.nz * p.width));
-      floor = Math.min(floor, p.y);
-    }
-    box.expandByVector(new T.Vector3(STADIUM.margin, 0, STADIUM.margin));
+    const box = stadiumFloor(track), floor = box.min.y;
     // The bowl sits in the dark beyond the floodlit floor: darker concrete
     // and roof, with the crowd lit by spill rather than by the floor's pools.
     const concrete = materials.concrete({ variant: 'rough', horizontal: 1, color: 0x55534e });
