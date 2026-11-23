@@ -1,38 +1,38 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45136619080
-- commit: `f8f92c9171` · Keep GP turf at ground scale through hairpins and wear spectator paths into the bank
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45137496354
+- commit: `1dae9b79d6` · Exercise the High wet Cape Wrenna race through the player menu and capture the moving field
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-23T08:11:35Z · updated: 2026-11-23T08:18:19Z
+- started: 2026-11-23T08:18:01Z · updated: 2026-11-23T08:29:03Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| unit-tests (2) | cancelled | 6 | Complete unit-suite partition without source changes |
+| unit-tests (4) | success | 9 |  |
+| offroad-scenarios | success | 5 |  |
+| scenarios | cancelled | 10 | Run npm run test:vehicles |
+| unit-tests (3) | failure | 8 | Complete unit-suite partition without source changes |
+| unit-tests (1) | cancelled | 10 | Complete unit-suite partition without source changes |
 | validate | success | 3 |  |
-| unit-tests (1) | cancelled | 5 | Complete unit-suite partition without source changes |
-| unit-tests (3) | cancelled | 5 | Complete unit-suite partition without source changes |
-| unit-tests (4) | cancelled | 6 | Complete unit-suite partition without source changes |
-| offroad-scenarios | cancelled | 5 | Full offroad calibrations and races without source changes |
-| scenarios | cancelled | 4 | Run npm run test:physics |
-| owner-qa (1) | cancelled | 2 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| wet-presentation | cancelled | 1 | Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts |
-| owner-qa (3) | cancelled | 0 | Run npx playwright install --with-deps chromium |
-| owner-qa (2) | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| owner-qa (4) | cancelled | 2 |  |
-| browser (1) | cancelled | 2 |  |
-| browser (14) | cancelled | 0 | Run actions/checkout@v4 |
-| browser (13) | cancelled | 2 |  |
-| browser (6) | cancelled | 2 |  |
-| browser (5) | cancelled | 2 |  |
-| browser (2) | cancelled | 2 |  |
-| browser (15) | cancelled | 2 |  |
-| browser (4) | cancelled | 2 |  |
-| browser (7) | cancelled | 2 |  |
-| browser (9) | cancelled | 2 |  |
-| browser (16) | cancelled | 2 |  |
-| browser (8) | cancelled | 2 |  |
-| browser (3) | cancelled | 2 |  |
-| browser (12) | cancelled | 2 |  |
-| browser (10) | cancelled | 2 |  |
-| browser (11) | cancelled | 2 |  |
-| publish | cancelled | -1 |  |
+| unit-tests (2) | cancelled | 10 | Complete unit-suite partition without source changes |
+| owner-qa (3) | cancelled | 6 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| wet-presentation | cancelled | 6 | Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts |
+| owner-qa (4) | cancelled | 6 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| owner-qa (2) | cancelled | 4 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| owner-qa (1) | cancelled | 1 | Run npx playwright install --with-deps chromium |
+| browser (1) | cancelled | 6 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/16 |
+| browser (7) | cancelled | 6 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16 |
+| browser (5) | cancelled | 4 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/16 |
+| browser (4) | cancelled | 6 |  |
+| browser (6) | cancelled | 1 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/16 |
+| browser (3) | cancelled | 2 | Run npx playwright install --with-deps chromium |
+| browser (12) | cancelled | 5 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/16 |
+| browser (10) | cancelled | 6 |  |
+| browser (14) | cancelled | 6 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 14/16 |
+| browser (16) | cancelled | 6 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16 |
+| browser (13) | cancelled | 5 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 13/16 |
+| browser (2) | cancelled | 1 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16 |
+| browser (15) | cancelled | 4 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 15/16 |
+| browser (8) | cancelled | 6 |  |
+| browser (11) | cancelled | 6 |  |
+| browser (9) | cancelled | 6 |  |
+| publish | cancelled | 0 |  |
