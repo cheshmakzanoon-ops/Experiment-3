@@ -8,6 +8,43 @@ import { flagGeometry } from '../../src/rendering/studio/crowd-flags.ts';
 import { studioHookKeys } from '../../src/rendering/studio/shader-hooks.ts';
 import { studioUniforms } from '../../src/rendering/studio/studio-frame.ts';
 
+/** Match the same iris under opposing lamps and in a dark paddock. The
+ * production insert uses the original head coordinate frame inside its shell. */
+function measureCornealLight(gl: T.WebGLRenderer, face: T.Mesh) {
+  const scene = new T.Scene();
+  scene.background = new T.Color(0);
+  scene.add(new T.Mesh(face.geometry, face.material));
+  const camera = new T.PerspectiveCamera(30, gl.domElement.width / gl.domElement.height, .012, 1);
+  const iris = new T.Vector3(.031, .0105, .088);
+  camera.position.copy(iris).z += .105;
+  camera.lookAt(iris);
+  const lamp = new T.DirectionalLight(0xffffff, 3);
+  lamp.target.position.copy(iris);
+  scene.add(lamp, lamp.target);
+  const width = 86, height = 30, context = gl.getContext();
+  const sample = (x: number, intensity: number) => {
+    lamp.position.copy(iris).add(new T.Vector3(x, .18, .5));
+    lamp.intensity = intensity;
+    gl.render(scene, camera);
+    const pixels = new Uint8Array(width * height * 4);
+    context.readPixels((gl.domElement.width - width) / 2, (gl.domElement.height - height) / 2,
+      width, height, context.RGBA, context.UNSIGNED_BYTE, pixels);
+    return Uint8Array.from({length: width * height}, (_, i) =>
+      Math.round(.2126 * pixels[i * 4] + .7152 * pixels[i * 4 + 1] + .0722 * pixels[i * 4 + 2]));
+  };
+  const dark = sample(0, 0), left = sample(-.43, 3), right = sample(.43, 3), repeated = sample(-.43, 3);
+  const brightestX = (pixels: Uint8Array) => {
+    const threshold = [...pixels].sort((a, b) => b - a)[15];
+    let weightedX = 0, sum = 0;
+    pixels.forEach((p, i) => {
+      if (p >= threshold) { weightedX += (i % width) * p; sum += p; }
+    });
+    return sum ? weightedX / sum : 0;
+  };
+  return { darkPeak: Math.max(...dark), leftPeak: Math.max(...left), rightPeak: Math.max(...right),
+    leftX: brightestX(left), rightX: brightestX(right), restored: repeated.every((v, i) => v === left[i]) };
+}
+
 /** Render the production rider head and instanced supporter cloth in one
  * context. All paired captures use identical lighting and camera poses. */
 export function captureGpOpticsAndCloth() {
@@ -59,7 +96,8 @@ export function captureGpOpticsAndCloth() {
     camera.position.set(.08, .097, .59);
     camera.lookAt(0, .065, .03);
     const face = head.getObjectByName('GP recessed brow and eyes');
-    if (!face) throw new Error('Missing production GP eye port');
+    if (!(face instanceof T.Mesh)) throw new Error('Missing production GP eye port');
+    const cornea = measureCornealLight(gl, face);
     const portrait = snap('coated-visor');
     face.visible = false;
     const liner = snap('liner-without-face');
@@ -141,7 +179,7 @@ export function captureGpOpticsAndCloth() {
     dash.update(race);
     const speedAgain = snap('cockpit-tft-rewound');
     scene.remove(dash.root);
-    return {captures, speedInk, gearInk, instrumentPixels: changed(speedFrame,pitFrame), instrumentRestore: changed(speedFrame,speedAgain), gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
+    return {captures, cornea, speedInk, gearInk, instrumentPixels: changed(speedFrame,pitFrame), instrumentRestore: changed(speedFrame,speedAgain), gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
       facePixels: changed(portrait,liner), faceRestore: changed(portrait,restored),
       windPixels: changed(east,west), calmPixels: changed(east,calm), windRestore: changed(east,eastAgain),
       glError: gl.getContext().getError()};

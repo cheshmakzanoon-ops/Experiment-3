@@ -2467,6 +2467,7 @@ export class RacingRenderer {
       this.follow,
       undefined,
       roadBikeSubject ? this.follow : undefined,
+      roadBikeSubject && followedDefinition.classId === 'gp-bike' ? this.renderHeight : undefined,
     );
     this.bikeShells?.setFirstPerson(
       bikeFirstPersonView(cameraMode, menu, pregame, this.photo?.view) ? this.follow : -1,

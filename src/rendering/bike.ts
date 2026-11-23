@@ -104,6 +104,7 @@ import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
 import { detailDistance } from './view-detail.ts';
+import { gpOpponentDetail } from './gp-field-detail.ts';
 import { Rider, type RiderColours, type RiderDetail } from './rider.ts';
 import { bikeEntrantScheme, bikeSheetFor } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
@@ -2610,7 +2611,10 @@ export class BikeShells {
     entrant?: number,
     // The photo/reflection subject can already be posed for this exact frame.
     posedEntrant?: number,
+    // Backbuffer height after the race camera and render scale are final.
+    gpViewHeight = 0,
   ) {
+    if (gpViewHeight > 0 && b[H.CARS] > 1) camera.updateWorldMatrix(true, false);
     const end = entrant === undefined ? cars.length : entrant + 1;
     for (let id = entrant ?? 0; id < end; id++) {
       if (id === posedEntrant) {
@@ -2678,6 +2682,8 @@ export class BikeShells {
       if (previous === 0 && level === 1 && distance < 36) level = 0;
       if (previous === 1 && level === 2 && distance < 106) level = 1;
       if (previous === 2 && level === 1 && distance > 94) level = 2;
+      if (gpViewHeight > 0 && id !== follow && definition.classId === 'gp-bike')
+        level = Math.max(level, gpOpponentDetail(camera, car.position, gpViewHeight, previous));
       const model = entry.levels[level] ?? this.buildDirtLevel(entry, id, level, b[H.CARS] > 1);
       if (!model.root.parent) this.root.add(model.root);
       const old = entry.levels[previous];

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import type { GpRiderSight } from './motorcycle-camera.ts';
-import { HUMAN_FACE_GLSL, HUMAN_TONE_GLSL, humanHeadGeometry } from './human-kit.ts';
+import { HUMAN_FACE_GLSL, HUMAN_TONE_GLSL, humanHeadGeometry, skinWrapLighting } from './human-kit.ts';
 import { chainShaderHook, injectAfter, injectBefore, injectDeclarations } from './studio/shader-hooks.ts';
 
 /** Keep the brow, eyes, nose and temples of the original head sculpt. The
@@ -61,28 +61,54 @@ export function gpEyePose(out: T.Vector3, entrant: number, time?: number, sight?
  * starting at one. The default scalar attribute on every lacquered part is
  * zero, keeping the existing paint and decals on those pieces. */
 export function installGpHelmetFace(material: T.MeshPhysicalMaterial, eyes: T.Vector3) {
-  chainShaderHook(material, 'gp-helmet-interior-v2', (shader) => {
+  chainShaderHook(material, 'gp-helmet-interior-v3', (shader) => {
     shader.uniforms.gpEyePose = { value: eyes };
     injectDeclarations(shader, 'common', 'attribute float gpFaceId; varying vec4 vGpFace;', 'vertex');
     injectAfter(shader, 'begin_vertex', 'vGpFace = vec4(position,gpFaceId);', 'vertex');
-    injectDeclarations(shader, 'common', '#define GP_HELMET_GAZE\nuniform vec3 gpEyePose; varying vec4 vGpFace;\n' + HUMAN_TONE_GLSL + HUMAN_FACE_GLSL, 'fragment');
+    injectDeclarations(shader, 'common', `
+#define GP_HELMET_GAZE
+uniform vec3 gpEyePose;
+varying vec4 vGpFace;
+float gpFacialSkin;
+${HUMAN_TONE_GLSL}
+${HUMAN_FACE_GLSL}`, 'fragment');
+    shader.fragmentShader = skinWrapLighting(shader.fragmentShader, 'gpFacialSkin');
     injectAfter(shader, 'color_fragment', `
-float gpFaceRough = .62, gpFaceGlint = 0.;
+gpFacialSkin = 0.;
+float gpFaceRough = .62, gpFaceRelief = 0., gpCornea = 0., gpPortOcclusion = 1.;
 float gpFacePixel = max(length(dFdx(vGpFace.xyz)),length(dFdy(vGpFace.xyz)));
 if (vGpFace.w > .5) {
   float who = vGpFace.w - 1.;
   HumanFace face = humanFace(vGpFace.xyz,humanSkinTone(who),humanHairTone(who),who,0.,gpFacePixel,0.);
   diffuseColor.rgb = face.col;
-  gpFaceRough = face.rough;
-  gpFaceGlint = face.glint;
+  gpFacialSkin = face.skin;
+  gpCornea = face.eye;
+  // The open centre sees the sky. The brow lip and temple pads limit the
+  // hemisphere visible to skin within about two centimetres of the shell.
+  float temple = smoothstep(.047, .071, abs(vGpFace.x));
+  float brow = smoothstep(.021, .053, vGpFace.y);
+  gpPortOcclusion = 1. - max(.46 * temple, .36 * brow);
+  gpFaceRough = mix(face.rough, .115, gpCornea);
+  // A shallow tear film follows the lid aperture and reflects the incident light.
+  vec2 irisOffset = vec2(abs(vGpFace.x) - .031, vGpFace.y - .0105);
+  float cap = 1. - smoothstep(.0035, .0105, length(irisOffset));
+  gpFaceRelief = face.bump + .00038 * cap * gpCornea;
 }`, 'fragment');
     injectAfter(shader, 'roughnessmap_fragment', 'if (vGpFace.w > .5) roughnessFactor=gpFaceRough;', 'fragment');
     injectAfter(shader, 'metalnessmap_fragment', 'if (vGpFace.w > .5) metalnessFactor=0.;', 'fragment');
+    injectAfter(shader, 'normal_fragment_maps', `
+if (vGpFace.w > .5) normal = humanBumpNormal(-vViewPosition, normal, gpFaceRelief, faceDirection);`, 'fragment');
     injectAfter(shader, 'lights_physical_fragment', `
-#ifdef USE_CLEARCOAT
-if (vGpFace.w > .5) material.clearcoat=0.;
-#endif`, 'fragment');
-    injectBefore(shader, 'opaque_fragment', 'outgoingLight+=vec3(.17,.15,.13)*gpFaceGlint;', 'fragment');
+if (vGpFace.w > .5) {
+  // Skin and the transparent tear film have their own dielectric reflection.
+  material.specularColor = vec3(mix(.028, .020, gpCornea));
+  #ifdef USE_CLEARCOAT
+  material.clearcoat = 0.;
+  #endif
+}`, 'fragment');
+    injectAfter(shader, 'aomap_fragment', `
+reflectedLight.indirectDiffuse *= gpPortOcclusion;
+reflectedLight.indirectSpecular *= sqrt(gpPortOcclusion);`, 'fragment');
   });
 }
 

@@ -23,6 +23,10 @@ test('GP visor reveals the recessed rider and held flags follow reversible cross
   await info.attach('optics-and-cloth.json', {body: JSON.stringify({...metrics, frames: captures.map(({name, draws, triangles}) => ({name, draws, triangles})), errors}), contentType: 'application/json'});
   expect(errors).toEqual([]);
   expect(metrics.glError).toBe(0);
+  expect(metrics.cornea.darkPeak).toBe(0);
+  expect(Math.min(metrics.cornea.leftPeak, metrics.cornea.rightPeak)).toBeGreaterThan(60);
+  expect(metrics.cornea.rightX - metrics.cornea.leftX).toBeGreaterThan(35);
+  expect(metrics.cornea.restored).toBe(true);
   expect(metrics.speedInk).toBeGreaterThan(900);
   expect(metrics.gearInk).toBeGreaterThan(200);
   expect(metrics.instrumentPixels).toBeGreaterThan(1200);

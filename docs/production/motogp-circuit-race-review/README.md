@@ -2,7 +2,7 @@
 
 ![The GP cockpit at Haarveld, leaning into the sunset at 122 km/h](haarveld-cockpit.jpg)
 
-The GP-R1 enters a bend at Haarveld at 122 km/h and 22.3° of lean. The steering-mounted display shows the same speed as the simulation. The race stills use the production simulation and Three.js renderer at the High preset, 800 × 450, with seed 34100 and alternating GP-R1 and GP-R2 machines.
+The GP-R1 enters a bend at Haarveld at 122 km/h and 22.3° of lean. The steering-mounted display shows the same speed as the simulation. The race stills use the production simulation and Three.js renderer on High with seed 34100 and alternating GP-R1 and GP-R2 machines. They are 800 × 450 unless a different resolution is given.
 
 ![Two-second in-engine sequence of the GP field leaning through a bend at Poggio Alto](poggio-corner-motion.webp)
 
@@ -24,6 +24,20 @@ The timing bridges span the surveyed road and pit widths. Front and rear contact
 
 Both frames show the same four riders at 7.0 seconds. The camera and its visible tower now sit on the public side of the barrier, with the lens 7.1 metres above the surveyed surface. Across all four GP circuits, 684 camera-to-tyre sightlines cleared the fence crown by at least 1.5 metres. The fence remains visible at the lower left of the revised shot.
 
+## Twelve-rider race at Poggio Alto
+
+![All twelve GP motorcycles accelerating away from the grid, seen from the Poggio Alto start-line tower](poggio-full-grid.jpg)
+
+Six GP-R1 and six GP-R2 machines are accelerating at 21–32 km/h. At this 1024 × 576 resolution the followed motorcycle uses the full model and the eleven opponents use the middle model. Narrowing the lens, moving closer or increasing the render resolution brings back the fine wheel, brake and rider geometry. Two transition bands keep detail stable when a rider approaches a changeover distance.
+
+| At the same camera position and race tick | Earlier field | Revised field |
+| --- | ---: | ---: |
+| Draw calls across all passes | 2,698 | 2,269 |
+| Submitted triangles across all passes | 7,272,029 | 5,798,260 |
+| Shadow triangles | 2,655,278 | 1,942,876 |
+
+The 351 × 124 crop enclosing all twelve riders differed by an average of 0.94 per 8-bit colour channel. All twelve positions, speeds and lean angles matched exactly between runs. [Earlier frame](poggio-full-grid-before.jpg) · [Per-rider telemetry and image measurements](poggio-full-grid-telemetry.json)
+
 ## Montejaral after dark
 
 | Earlier pavilion | Revised pavilion |
@@ -44,6 +58,8 @@ The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dr
 | ![Recessed face, cheek pad and eye line through the coated visor](gp-rider-visor.jpg) | ![GP instrument at 198 kilometres per hour in fourth gear, with separate front and rear tyre temperatures](gp-instruments.jpg) |
 
 These close-ups use the game meshes under controlled lighting. The brake pose sets the same inputs as the riding renderer. The dashboard capture shows 15,200 RPM. The temperature, lean, speed and gear channels use the live instrument code. A held or rewound frame restores the instrument, rider gaze, leather folds and optical state.
+
+Behind the tinted visor, the brow and temple pads shade the rider’s skin. The wet surface of the eye reflects the lamps at the circuit. On the same iris, moving a test lamp from left to right moved the brightest part of the reflection by 74 pixels in an 86-pixel-wide sample. Turning off all light reduced the brightest sample from the former 32/255 to black. The helmet, lens and padding rendered identically with the face hidden.
 
 ## Spectators and wind
 
