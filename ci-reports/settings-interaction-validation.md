@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44860322508
-- commit: `b5a9eb6cbd` · Match clear GP daylight across detail levels and reuse track cross-section samples
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45087937251
+- commit: `d08c2d731f` · Reflect rain-soaked GP circuits in their local road plane
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-21T03:17:08Z · updated: 2026-11-21T04:03:19Z
+- started: 2026-11-23T00:17:56Z · updated: 2026-11-23T00:19:10Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | failure | 5 | Original menu regression and transition ownership, without forced clicks or retries |
-| qa | skipped | -1 |  |
+| settings | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| qa | skipped | 0 |  |
