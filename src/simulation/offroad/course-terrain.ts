@@ -13,6 +13,10 @@ import {
 } from './course.ts';
 import type { OffroadSurface } from './types.ts';
 
+function smoothUnit(t: number) {
+  return t * t * (3 - 2 * t);
+}
+
 /** A scratch station (track.ts `trackPoint`, duplicated so this module needs
  * no runtime import of the Track: circuits.ts loads it through venues.ts). */
 const trackPoint = (): TrackPoint => ({
@@ -62,6 +66,7 @@ export class CourseTerrain extends TerrainTile {
   readonly renderColumns: number;
   readonly renderRows: number;
   private readonly point = trackPoint();
+  private readonly rutCentres?: Float64Array;
   constructor(
     readonly track: Track,
     readonly course: OffroadCourse,
@@ -80,6 +85,11 @@ export class CourseTerrain extends TerrainTile {
     this.baseMoisture = new Uint8Array(columns * rows);
     this.renderColumns = Math.ceil(columns / 2);
     this.renderRows = Math.ceil(rows / 2);
+    if (course.kind === 'motocross' || course.kind === 'supercross') {
+      this.rutCentres = Float64Array.from({ length: rows }, (_, row) =>
+        (row * COURSE_CELL.along + Math.min(track.length, (row + 1) * COURSE_CELL.along)) * 0.5,
+      );
+    }
     const p = this.point;
     for (let row = 0; row < rows; row++) {
       const s = (row + 0.5) * COURSE_CELL.along;
@@ -118,8 +128,46 @@ export class CourseTerrain extends TerrainTile {
       : clamp(this.baseMoisture[cell] / 255 + this.wetness, 0, 1);
   }
   depthAt(lateral: number, s: number) {
-    const i = this.index(lateral, s);
-    return i < 0 ? 0 : this.depth[i];
+    return this.sampleRut(lateral, s);
+  }
+  override heightAt(lateral: number, s: number) {
+    return this.base(lateral, s) - this.depthAt(lateral, s);
+  }
+  /** Stored depths and packing describe the middle of each wheel pass. A
+   * motorcycle tyre crossing between cells needs a continuous support patch.
+   * The last row can be short, so interpolate across its actual lap distance. */
+  private sampleRut(lateral: number, s: number, out?: TerrainContact) {
+    const centres = this.rutCentres;
+    if (!centres) {
+      const i = this.index(lateral, s);
+      if (out) out.compaction = i < 0 ? 0 : this.compaction[i];
+      return i < 0 ? 0 : this.depth[i];
+    }
+    const x = (lateral - this.originX) / COURSE_CELL.lateral - 0.5;
+    const last = this.columns - 1;
+    if (x <= -0.5 || x >= last + 0.5) {
+      if (out) out.compaction = 0;
+      return 0;
+    }
+    const col = clamp(x, 0, last), left = Math.floor(col), right = Math.min(last, left + 1);
+    const length = this.track.length;
+    const station = s >= 0 && s < length ? s : mod(s, length);
+    const row = Math.floor(station / COURSE_CELL.along);
+    const lower = station < centres[row] ? row - 1 : row;
+    const back = lower < 0 ? this.rows - 1 : lower;
+    const front = lower + 1 === this.rows ? 0 : lower + 1;
+    const start = centres[back] - (lower < 0 ? length : 0);
+    const end = centres[front] + (front === 0 && lower >= 0 ? length : 0);
+    const u = smoothUnit(col - left), v = smoothUnit((station - start) / (end - start));
+    const edge = smoothUnit(Math.min(1, 1 + 2 * Math.min(x, last - x)));
+    const a = back * this.columns, b = front * this.columns;
+    const al = (1 - u) * (1 - v) * edge, ar = u * (1 - v) * edge;
+    const bl = (1 - u) * v * edge, br = u * v * edge;
+    if (out) out.compaction =
+      this.compaction[a + left] * al + this.compaction[a + right] * ar +
+      this.compaction[b + left] * bl + this.compaction[b + right] * br;
+    return this.depth[a + left] * al + this.depth[a + right] * ar +
+      this.depth[b + left] * bl + this.depth[b + right] * br;
   }
   /** Per-cell contact: soil friction, compaction line and moisture, rut
    * bulldozing. Normal is in the Track frame (x = lateral, z = along). */
@@ -129,21 +177,20 @@ export class CourseTerrain extends TerrainTile {
       kind = i < 0 ? this.course.spec.offTrack : this.soilKind(i),
       soil = SOILS[kind],
       wet = this.moistureAt(i),
-      depth = i < 0 ? 0 : this.depth[i],
-      compaction = i < 0 ? 0 : this.compaction[i];
+      depth = this.sampleRut(lateral, s, result),
+      compaction = result.compaction;
     const hl = COURSE_CELL.lateral,
       hs = COURSE_CELL.along;
     const dx = (this.heightAt(lateral + hl, s) - this.heightAt(lateral - hl, s)) / (2 * hl),
       dz = (this.heightAt(lateral, s + hs) - this.heightAt(lateral, s - hs)) / (2 * hs),
       len = Math.hypot(dx, 1, dz);
-    result.height = this.heightAt(lateral, s);
+    result.height = this.base(lateral, s) - depth;
     result.nx = -dx / len;
     result.ny = 1 / len;
     result.nz = -dz / len;
     result.material =
       kind === 'mud' ? 'mud' : kind === 'sand' ? 'sand' : kind === 'hardpack' ? 'hardpack' : 'loam';
     result.moisture = wet;
-    result.compaction = compaction;
     result.depth = depth;
     const m = surfaceMaterial(soil.material);
     // Compacted ruts are grippier (a line forms); moisture costs grip on
