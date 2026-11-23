@@ -318,9 +318,10 @@ export function buildGrandstand(
     bodyColors[i] = entry.color;
   });
   // D21: waving team flags, one instanced draw per stand.
-  // Flags, rider-following heads and distant fan silhouettes belong to the GP
-  // circuit. A change of canopy or seating architecture keeps the same crowd.
+  // GP venues use their own flags and distant fan silhouettes. A grandstand
+  // on a Formula course tracks passing cars through the same seated rig.
   const gpAudience = !!track.gpEdges;
+  const formulaSeats = !track.circuit.offroad && track.circuit.drsZones.length > 0;
   const flags = buildCrowdFlags(spectators, Math.round(site.s), crowdFlagMaterial(gpAudience), gpAudience);
   if (flags) peopleRoot.add(flags);
   const chunkSize = hero ? 64 : 128;
@@ -332,6 +333,8 @@ export function buildGrandstand(
       m.people,
       hero ? Math.floor(offset / chunkSize) % 4 : undefined,
       gpAudience ? side : 0,
+      false,
+      formulaSeats ? side : 0,
     );
     peopleRoot.add(cluster.root);
     clusters?.push(cluster);

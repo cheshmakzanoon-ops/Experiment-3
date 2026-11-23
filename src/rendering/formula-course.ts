@@ -9,6 +9,7 @@ import { inStandFootprint } from './grandstand.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { drawWordmark } from './studio/brand-atlas.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
+import { gpWindMast, type GpWindSleeve } from './venue-kit/gp-windsock.ts';
 
 type StationKind = 'activation' | 'detection';
 export interface FormulaStation {
@@ -53,6 +54,31 @@ export function formulaStations(track: Track) {
     }
   }
   return stations;
+}
+
+/** Position the wind indicator at a braking approach where it can be read
+ * against the sky. Keep its textile's full reach out of the seats and lane. */
+export function formulaWindSites(track: Track, stations = formulaStations(track)) {
+  if (track.gpEdges) return [];
+  const sites: { s: number; position: T.Vector3; yaw: number }[] = [];
+  for (const board of stations) {
+    if (board.kind !== 'detection') continue;
+    const side = Math.sign(board.lateral);
+    for (const advance of [-11, 16, -24]) {
+      const s = (board.s + advance + track.length) % track.length;
+      const p = track.at(s, trackPoint());
+      const lateral = side * (track.boundaryAt(p, side) + 3.25);
+      const x = p.x + p.nx * lateral,
+        z = p.z + p.nz * lateral;
+      if (inStandFootprint(track, x, z, 2.75)) continue;
+      const y =
+        p.y + p.bank * T.MathUtils.clamp(lateral, -12, 12) + grassApronOffset(track, s, lateral);
+      sites.push({ s, position: new T.Vector3(x, y, z), yaw: Math.atan2(p.tx, p.tz) });
+      break;
+    }
+    if (sites.length === 2) break;
+  }
+  return sites;
 }
 
 function panelAtlas() {
@@ -118,6 +144,10 @@ export class FormulaCourse {
   readonly active = { value: 0 };
   readonly edges: FormulaEdgeProfile | null;
   gridCamera?: FormulaGridCamera;
+  readonly windSleeves: GpWindSleeve[] = [];
+  presentWind(wind: T.Vector4) {
+    if (this.root.visible) for (const sleeve of this.windSleeves) sleeve.presentWorld(wind);
+  }
   constructor(readonly track: Track) {
     this.root.name = 'Formula timing stations';
     this.root.visible = false;
@@ -150,6 +180,15 @@ export class FormulaCourse {
     );
     this.gridCamera = new FormulaGridCamera(this.track, hardware);
     this.root.add(this.gridCamera.root);
+    for (const site of formulaWindSites(this.track, stations)) {
+      const mast = gpWindMast(hardware);
+      mast.root.name = 'Formula braking-zone weather mast';
+      mast.sleeve.mesh.name = 'Formula wind indicator';
+      mast.root.position.copy(site.position);
+      mast.root.rotation.y = site.yaw;
+      this.root.add(mast.root);
+      this.windSleeves.push(mast.sleeve);
+    }
     const print = tagWeatherSurface(
       new T.MeshStandardMaterial({ map: panelAtlas(), roughness: 0.59 }),
       'paint',

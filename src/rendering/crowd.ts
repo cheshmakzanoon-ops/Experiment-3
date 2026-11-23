@@ -496,12 +496,13 @@ export class CrowdCluster {
     authoredFamily?: number,
     private readonly gpSeatSide = 0,
     standingBank = false,
+    private readonly formulaSeatSide = 0,
   ) {
     if (!matrices.length || matrices.length !== colors.length || !Number.isSafeInteger(seed))
       throw new Error('Invalid spectator cluster');
     this.root.name = `Authored crowd cluster ${seed}`;
     this.root.userData.authoredPeople = PEOPLE_ASSET;
-    if (gpSeatSide) {
+    if (gpSeatSide || formulaSeatSide) {
       this.gpYaw = { value: 0 };
       this.gpSeats = { value: new T.Vector3() };
     }
@@ -620,6 +621,7 @@ export class CrowdCluster {
     aspect = 16 / 9,
     gpGrid = false,
     renderHeight = 1080,
+    formulaGrid = false,
   ) {
     if (
       !Number.isFinite(time) ||
@@ -629,13 +631,15 @@ export class CrowdCluster {
       throw new Error('Invalid crowd presentation');
     this.root.updateWorldMatrix(true, false);
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
-    this.gpShadowDetail = !!this.gpYaw && gpGrid;
+    this.gpShadowDetail = !!this.gpSeatSide && gpGrid;
+    const formulaGaze = formulaGrid && !!this.formulaSeatSide;
+    const trackTraffic = this.gpShadowDetail || formulaGaze;
     const distance = this.centre.distanceTo(camera);
     const lensDistance = detailDistance(distance, fov, aspect);
     // A face occupying four pixels at 540p spans sixteen pixels at 2160p.
     // Scale the GP stands' existing handoff bands to the colour target. The
     // actual metre distance below still governs reactions to passing traffic.
-    const visualDistance = this.gpYaw && gpGrid && Number.isFinite(renderHeight) && renderHeight > 0
+    const visualDistance = trackTraffic && Number.isFinite(renderHeight) && renderHeight > 0
       ? lensDistance * clamp(1080 / renderHeight, 0.5, 2)
       : lensDistance;
     // Traffic relevance stays in world metres. Only mesh selection follows
@@ -645,9 +649,10 @@ export class CrowdCluster {
     );
     if (this.gpYaw && this.gpSeats) {
       const m = this.root.matrixWorld.elements;
-      const side = this.gpSeatSide / (Math.hypot(m[8], m[10]) || 1);
-      const scan = gpGrid && frame && visualDistance < 480;
-      this.gpYaw.value = scan ? gpSpectatorYaw(frame, this.centre, side * m[8], side * m[10]) : 0;
+      const side = (this.gpSeatSide || this.formulaSeatSide) / (Math.hypot(m[8], m[10]) || 1);
+      const scan = trackTraffic && frame && visualDistance < 480;
+      const lead = formulaGaze ? 0.135 : 0;
+      this.gpYaw.value = scan ? gpSpectatorYaw(frame, this.centre, side * m[8], side * m[10], lead) : 0;
       const slopes = this.gpSeats.value.set(this.localCentre.z, 0, 0);
       // A rider abreast of the middle row is still approaching one end of a
       // long terrace and receding from the other. Sample three real seats per
@@ -659,13 +664,13 @@ export class CrowdCluster {
           this.endSeat.copy(this.centre);
           this.endSeat.x += m[8] * offset;
           this.endSeat.z += m[10] * offset;
-          const endYaw = gpSpectatorYaw(frame, this.endSeat, side * m[8], side * m[10]);
+          const endYaw = gpSpectatorYaw(frame, this.endSeat, side * m[8], side * m[10], lead);
           slopes.setComponent(i + 1, (endYaw - this.gpYaw.value) / offset);
         }
       }
     }
-    this.level = crowdDetail(visualDistance, this.level, !!this.gpYaw && gpGrid);
-    crowdLodRanges(visualDistance, this.lodRanges, !!this.gpYaw && gpGrid);
+    this.level = crowdDetail(visualDistance, this.level, this.gpShadowDetail);
+    crowdLodRanges(visualDistance, this.lodRanges, this.gpShadowDetail);
     this.levels.forEach((mesh, i) => {
       mesh.visible = this.lodRanges[i].y > this.lodRanges[i].x;
     });

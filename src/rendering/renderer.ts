@@ -1829,7 +1829,8 @@ export class RacingRenderer {
         !!followedDefinition.bike?.offroad;
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
     const gpGrid = gpGridForFrame(presented);
-    this.circuit.setGrandPrixGrid(gpGrid, !gpGrid && formulaGridForFrame(presented));
+    const formulaGrid = !gpGrid && formulaGridForFrame(presented);
+    this.circuit.setGrandPrixGrid(gpGrid, formulaGrid);
     if (this.circuit.formulaCourse?.root.visible)
       this.circuit.formulaCourse.gridCamera?.update(presented, this.follow);
     this.circuit.gpPitBoards?.update(presented);
@@ -2552,6 +2553,7 @@ export class RacingRenderer {
           this.camera.aspect,
           gpGrid,
           this.scenePass.target.height,
+          formulaGrid,
         );
     this.circuit.gpSlipMarks?.show(presented[H.TIME], !menu && !studio);
     this.effectPlayback.update(presented, !menu, !replay);
@@ -2595,6 +2597,7 @@ export class RacingRenderer {
     const studioView = `${cameraMode}:${this.follow}:${this.trackside.activeId}:${menu}:${pregame}`;
     this.studioFrame.update(presented, this.camera, this.sun, studioView);
     this.circuit.gpWindSleeve?.presentWorld(this.studioFrame.uniforms.studioWind.value);
+    this.circuit.formulaCourse?.presentWind(this.studioFrame.uniforms.studioWind.value);
     for (const bank of this.circuit.gpRailUmbrellas)
       bank.presentWorld(liquidRain, this.studioFrame.uniforms.studioWind.value);
     this.audioView.update(

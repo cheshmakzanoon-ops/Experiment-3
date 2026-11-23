@@ -4,9 +4,15 @@ import { PHASE } from '../simulation/race.ts';
 import type { Vector2, Vector3 } from 'three';
 
 /** Head turn toward a passing pack, in a spectator's seat frame. Neighbouring
- * riders contribute together, so a pair passing side by side cannot make
+ * entrants contribute together, so a pair passing side by side cannot make
  * heads snap between targets when their running order changes. */
-export function gpSpectatorYaw(frame: Float32Array, centre: Vector3, sideX: number, sideZ: number) {
+export function gpSpectatorYaw(
+  frame: Float32Array,
+  centre: Vector3,
+  sideX: number,
+  sideZ: number,
+  leadSeconds = 0,
+) {
   if (frame[H.PHASE] !== PHASE.RACING) return 0;
   let direction = 0,
     total = 0;
@@ -19,8 +25,13 @@ export function gpSpectatorYaw(frame: Float32Array, centre: Vector3, sideX: numb
       frame[o + BIKE_BASE + B.STATE]
     )
       continue;
-    const dx = frame[o + F.X] - centre.x,
-      dz = frame[o + F.Z] - centre.z;
+    // A grandstand spectator can look a few metres ahead of a fast Formula
+    // car. Bound the lead so a replay splice cannot pull a whole row around.
+    const vx = frame[o + F.VX],
+      vz = frame[o + F.VZ];
+    const lead = leadSeconds > 0 ? Math.min(leadSeconds, 8 / Math.max(1, Math.hypot(vx, vz))) : 0;
+    const dx = frame[o + F.X] + vx * lead - centre.x,
+      dz = frame[o + F.Z] + vz * lead - centre.z;
     const distanceSq = dx * dx + dz * dz;
     const forward = sideX * dz - sideZ * dx;
     if (forward <= 0 || distanceSq >= 90 * 90 || distanceSq < 0.01) continue;
