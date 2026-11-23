@@ -116,6 +116,21 @@ export class FormulaGridCamera {
     this.root.add(hardware, head);
     this.aim(site.target);
   }
+  /** A lens cannot record its own yoke. This scope affects the direct colour
+   * exposure only. Reflections, other cameras and the next frame see the rig. */
+  expose(eye: T.Vector3, render: () => void) {
+    if (eye.distanceToSquared(this.site.eye) > 0.0025) {
+      render();
+      return;
+    }
+    const visible = this.root.visible;
+    this.root.visible = false;
+    try {
+      render();
+    } finally {
+      this.root.visible = visible;
+    }
+  }
   private aim(point: T.Vector3) {
     this.target.copy(point);
     this.root.worldToLocal(this.target).sub(this.head.position);

@@ -1105,6 +1105,7 @@ export class RacingRenderer {
     }
     this.cars.forEach((car, id) => {
       car.root.visible = id < n;
+      if (car instanceof FormulaCar) car.catalogueBodiesAvailable = !!this.vehicleBodies;
       if (car instanceof RoadBikeHost || !car.root.visible || !this.pendingFormulaPitFits.has(id)) return;
       // Keep the fit pending for a motorcycle host. If a replay or later
       // race puts a Formula car in this slot, measure its own wheels once.
@@ -2838,7 +2839,12 @@ export class RacingRenderer {
       // Its preceding, completed depth submission owns this colour frame's maps.
       if (pass === 'held-colour') this.renderer.shadowMap.autoUpdate = false;
       const dressing = this.circuit.offroad?.dressing;
+      const finishCamera = this.circuit.formulaCourse?.gridCamera;
       if (dressing) dressing.inCameraView(this.camera, () => this.composer.render());
+      else if (
+        finishCamera && cameraMode === 'trackside' && this.trackside.activeId === 0 && followedDefinition.drs
+      )
+        finishCamera.expose(this.camera.position, () => this.composer.render());
       else this.composer.render();
       this.ultra.afterFrame();
       this.drawLedger.mark('other');

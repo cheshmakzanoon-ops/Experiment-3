@@ -18,6 +18,15 @@ describe('Formula finish camera', () => {
       expect(track.length - site.s).toBeGreaterThan(5);
       expect(site.eye.y - site.base.y).toBeCloseTo(6.25);
       expect(rig.head.getWorldPosition(new T.Vector3()).distanceTo(site.eye)).toBeLessThan(1e-8);
+      rig.expose(site.eye, () => expect(rig.root.visible).toBe(false));
+      expect(rig.root.visible).toBe(true);
+      rig.expose(site.target, () => expect(rig.root.visible).toBe(true));
+      expect(() =>
+        rig.expose(site.eye, () => {
+          throw new Error('frame interrupted');
+        }),
+      ).toThrow('frame interrupted');
+      expect(rig.root.visible).toBe(true);
       const director = new TracksideDirector(track);
       director.update(
         site.s,

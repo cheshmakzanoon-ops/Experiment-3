@@ -72,7 +72,7 @@ import { box, canvasTexture, cockpitShell, mergeStatic, mesh, rod } from './geom
 import { COMPOUNDS, LIVERIES, WING_DETACH_HEALTH } from '../simulation/config.ts';
 import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
-import { vehicleAt } from '../simulation/vehicles.ts';
+import { DEFAULT_VEHICLE_ID, vehicleAt } from '../simulation/vehicles.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
@@ -87,6 +87,9 @@ export class FormulaCar {
   private highDetail = new T.Group();
   private reduced: ReducedCar[] = [];
   lodLevel = 0;
+  /** A dedicated catalogue exterior can supply the visible Formula chassis. */
+  catalogueBodiesAvailable = false;
+  private followedInstruments = false;
   readonly frontWing = new T.Group();
   readonly rearWing = new T.Group();
   readonly rearFlap = new FormulaRearFlap();
@@ -709,6 +712,7 @@ export class FormulaCar {
     player: boolean,
     exactClose = false,
   ) {
+    this.followedInstruments = player;
     if (this.suppliedPlayer) {
       // Never let an old procedural LOD reappear in replay, menu or photo mode.
       this.lodLevel = carLod(distance, this.lodLevel, quality, player);
@@ -735,10 +739,12 @@ export class FormulaCar {
   ) {
     t = sampleChassisPose(a, b, o, t, this.root.position, this.root.quaternion);
     const source = snapshotSource(a, b, t);
-    // The race motorcycles pose their own limbs, wheels, dashboard and
-    // suspension. Their hidden Formula host supplies the interpolated anchor.
+    // Bikes and the three catalogue Formula cars supply their own articulated
+    // model. Keep their APX host as a sampled camera and effects anchor.
     const definition = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE]));
-    this.slotRoot.suspendWhenHidden = definition.dynamicsKind === 'bike';
+    this.slotRoot.suspendWhenHidden =
+      definition.dynamicsKind === 'bike' ||
+      (this.catalogueBodiesAvailable && definition.drs && definition.id !== DEFAULT_VEHICLE_ID);
     if (this.slotRoot.suspendWhenHidden) return;
     time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {
@@ -912,7 +918,10 @@ export class FormulaCar {
     this.frontWing.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];
     this.frontWing.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
     this.rearWing.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;
-    if (this.id === 0 && this.displayClock.due(time, source[o + F.GEAR])) {
+    if (
+      (this.id === 0 || cockpit || this.followedInstruments) &&
+      this.displayClock.due(time, source[o + F.GEAR])
+    ) {
       drawSteeringDisplay(this.ctx, source, o);
       for (let j = 0; j < this.shiftLeds.count; j++)
         this.shiftLeds.setColorAt(
