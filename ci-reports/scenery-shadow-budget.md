@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45125062161
-- commit: `aff03ff533` · Build closed spectator terraces with continuous aisles and railings
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-23T06:34:57Z · updated: 2026-11-23T06:42:40Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45126588255
+- commit: `f4c9005020` · Fit GP helmets with raked chin intakes and folded visor tear-offs
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-23T06:48:11Z · updated: 2026-11-23T07:03:12Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 7 |  |
-| browser (night) | success | 7 |  |
-| browser (sunset) | success | 6 |  |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
+| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
