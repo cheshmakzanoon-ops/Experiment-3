@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { WING_DETACH_HEALTH } from '../../simulation/config.ts';
 import { TAU } from '../../core/math.ts';
 import {
   F,
@@ -80,6 +81,10 @@ export interface StudioUniforms {
   studioCarPrev: T.IUniform<T.Matrix4[]>;
   /** (x, z, yaw, groundY) per car. */
   studioCarPose: T.IUniform<T.Vector4[]>;
+  /** Formula axle half-track and along positions (front x/z, rear x/z). */
+  studioFormulaAxles: T.IUniform<T.Vector4[]>;
+  /** Attached front/rear fractions, front steer, jack lift. Negative x is a different vehicle type. */
+  studioFormulaParts: T.IUniform<T.Vector4[]>;
   /** GP-only tyre contacts: (world x, world z, surface y, contact weight). */
   studioGpFront: T.IUniform<T.Vector4[]>;
   studioGpRear: T.IUniform<T.Vector4[]>;
@@ -100,6 +105,8 @@ const GLSL_TYPES: Readonly<Record<StudioUniformName, string>> = Object.freeze({
   studioCarNow: 'mat4 studioCarNow[STUDIO_MAX_CARS]',
   studioCarPrev: 'mat4 studioCarPrev[STUDIO_MAX_CARS]',
   studioCarPose: 'vec4 studioCarPose[STUDIO_MAX_CARS]',
+  studioFormulaAxles: 'vec4 studioFormulaAxles[STUDIO_MAX_CARS]',
+  studioFormulaParts: 'vec4 studioFormulaParts[STUDIO_MAX_CARS]',
   studioGpFront: 'vec4 studioGpFront[STUDIO_MAX_CARS]',
   studioGpRear: 'vec4 studioGpRear[STUDIO_MAX_CARS]',
   studioGpShape: 'vec4 studioGpShape[STUDIO_MAX_CARS]',
@@ -118,6 +125,8 @@ export function createStudioUniforms(): StudioUniforms {
     studioCarNow: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4()) },
     studioCarPrev: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4()) },
     studioCarPose: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
+    studioFormulaAxles: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
+    studioFormulaParts: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4(-1,0,0,0)) },
     studioGpFront: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
     studioGpRear: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
     studioGpShape: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
@@ -280,10 +289,14 @@ export class StudioFrame {
       const now = u.studioCarNow.value[id],
         prev = u.studioCarPrev.value[id],
         pose = u.studioCarPose.value[id],
+        axles = u.studioFormulaAxles.value[id],
+        parts = u.studioFormulaParts.value[id],
         gpFront = u.studioGpFront.value[id],
         gpRear = u.studioGpRear.value[id],
         gpShape = u.studioGpShape.value[id],
         last = this.previousCars[id];
+      axles.set(0, 0, 0, 0);
+      parts.set(-1, 0, 0, 0);
       gpFront.set(0, 0, 0, 0);
       gpRear.set(0, 0, 0, 0);
       gpShape.set(0, 0, 0, 0);
@@ -310,6 +323,13 @@ export class StudioFrame {
       this.point.set(0, 0, 1).applyQuaternion(this.quaternion);
       const heading = Math.atan2(this.point.x, this.point.z);
       const definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
+      if (definition.drs) {
+        const [front, , rear] = definition.wheelPositions;
+        axles.set(Math.abs(front[0]), front[2], Math.abs(rear[0]), rear[2]);
+        const fw = presented[o + F.FRONT_HEALTH], rw = presented[o + F.REAR_HEALTH];
+        parts.set(fw > WING_DETACH_HEALTH ? fw : 0, rw > WING_DETACH_HEALTH ? rw : 0,
+          presented[o + F.STEER], presented[o + F.JACK_HEIGHT]);
+      }
       const ground =
         definition.bike && !definition.bike.offroad
           ? this.gpContacts.project(
@@ -323,18 +343,18 @@ export class StudioFrame {
               gpRear,
               gpShape,
             )
-          : this.groundHeight(presented, o);
+          : this.groundHeight(presented, o, definition.drs ? definition.wheelPositions : WHEEL_POSITIONS);
       pose.set(this.position.x, this.position.z, heading, ground);
     }
     this.cars = cars;
   }
 
   /** Mean world height of the four presented tyre contacts. */
-  private groundHeight(presented: Float32Array, o: number) {
+  private groundHeight(presented: Float32Array, o: number, mounts: typeof WHEEL_POSITIONS) {
     let sum = 0;
     for (let wheel = 0; wheel < 4; wheel++) {
       const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE,
-        mount = WHEEL_POSITIONS[wheel];
+        mount = mounts[wheel];
       const length = presented[p + W.LENGTH] || 0.25,
         radius = presented[p + W.RADIUS] || 0.335;
       this.point

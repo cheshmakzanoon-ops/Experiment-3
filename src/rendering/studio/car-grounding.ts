@@ -1,3 +1,4 @@
+import { FORMULA_SUN_SHADOW } from './formula-sun-shadow.ts';
 import type * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
 import { useStudioUniforms } from './studio-frame.ts';
@@ -104,13 +105,25 @@ float apexGpGrounding( vec3 p, vec4 pose, vec4 front, vec4 rear, vec4 shape ) {
 	float rcontact = rear.w * apexGroundBox( rq, vec2( 0.0 ), vec2( ${f(GP_GROUNDING.rearHalf[0])}, ${f(GP_GROUNDING.rearHalf[1])} ), ${f(GP_GROUNDING.tyreFalloff)} );
 	return max( occ, max( fcontact, rcontact ) ) * gate;
 }
+${FORMULA_SUN_SHADOW}
+float apexFormulaDirect;
 float apexCarGrounding( vec3 p ) {
+  apexFormulaDirect = 0.0;
 	float total = 0.0;
 	for ( int i = 0; i < STUDIO_MAX_CARS; i ++ ) {
 		if ( i >= studioCarCount ) break;
 		vec4 pose = studioCarPose[ i ];
 		vec2 d = p.xz - pose.xy;
-		if ( dot( d, d ) > ${f(CAR_GROUNDING.reach * CAR_GROUNDING.reach)} ) continue;
+    float distanceSq = dot(d, d);
+#ifndef USE_SHADOWMAP
+    if (distanceSq < 48.0 && studioFormulaParts[i].x >= 0.0) {
+      vec3 local = studioCarPoseLocal(pose, p);
+      float height = 1.0 - smoothstep(.23, .60, abs(local.y + studioFormulaParts[i].w));
+      if (height > 0.0) apexFormulaDirect = max(apexFormulaDirect, height *
+        apexFormulaCast(local.xz, pose.z, studioFormulaAxles[i], studioFormulaParts[i]));
+    }
+#endif
+		if ( distanceSq > ${f(CAR_GROUNDING.reach * CAR_GROUNDING.reach)} ) continue;
 		if ( studioGpShape[ i ].x > 0.5 ) {
 			total = max( total, apexGpGrounding( p, pose, studioGpFront[ i ], studioGpRear[ i ], studioGpShape[ i ] ) );
 			continue;
@@ -133,9 +146,10 @@ float apexCarGrounding( vec3 p ) {
 const APPLY = /* glsl */ `{
 	// D08 car grounding: sky and sun light under the cars' footprints.
 	float apexGround = apexCarGrounding( vApexGroundWorld );
-	if ( apexGround > 0.0 ) {
+	if ( apexGround > 0.0 || apexFormulaDirect > 0.0 ) {
 		float apexIndirect = 1.0 - ${f(CAR_GROUNDING.indirect)} * apexGround;
 		float apexDirect = 1.0 - ${f(CAR_GROUNDING.direct)} * apexGround * apexGround;
+    apexDirect *= 1.0 - .76 * apexFormulaDirect;
 		reflectedLight.indirectDiffuse *= apexIndirect;
 		reflectedLight.indirectSpecular *= apexIndirect;
 		reflectedLight.directDiffuse *= apexDirect;
@@ -151,7 +165,7 @@ export function installCarGrounding(material: T.Material) {
   return chainShaderHook(material, CAR_GROUNDING_HOOK, (shader) => {
     useStudioUniforms(
       shader,
-      ['studioCarCount', 'studioCarPose', 'studioGpFront', 'studioGpRear', 'studioGpShape'],
+      ['studioCarCount', 'studioCarPose', 'studioGpFront', 'studioGpRear', 'studioGpShape', 'studioSunDir', 'studioFormulaAxles', 'studioFormulaParts'],
       'fragment',
     );
     injectDeclarations(shader, 'common', 'varying vec3 vApexGroundWorld;', 'vertex');

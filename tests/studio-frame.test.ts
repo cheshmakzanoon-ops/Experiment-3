@@ -1,3 +1,4 @@
+import { vehicleIndex, VEHICLES } from '../src/simulation/vehicles.ts';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as T from 'three';
@@ -6,6 +7,8 @@ import {
   F,
   H,
   HEADER,
+  R,
+  RACE_BASE,
   W,
   WHEEL_BASE,
   WHEEL_STRIDE,
@@ -438,4 +441,33 @@ describe('renderer integration contract', () => {
     expect(body('private resetPresentationState')).toContain('this.studioFrame.reset();');
     expect(body('resize')).toContain('this.studioFrame.reset();');
   });
+});
+
+it('publishes fitted Formula axles and attached wings to shadows through steering, jack lift and field replacement', () => {
+  const r = rig(),
+    frame = new StudioFrame(createStudioUniforms()),
+    state = snapshot(2, grid);
+  const o = carBase(0);
+  state[o + RACE_BASE + R.VEHICLE] = vehicleIndex('fx26');
+  state[o + F.FRONT_HEALTH] = 0.06;
+  state[o + F.REAR_HEALTH] = 0.7;
+  state[o + F.STEER] = -0.18;
+  state[o + F.JACK_HEIGHT] = 0.11;
+  frame.update(state, r.camera, r.sun, 'chase:0');
+  const def = VEHICLES.fx26,
+    a = frame.uniforms.studioFormulaAxles.value[0],
+    b = frame.uniforms.studioFormulaParts.value[0];
+  expect(a.toArray()).toEqual([
+    Math.abs(def.wheelPositions[0][0]),
+    def.wheelPositions[0][2],
+    Math.abs(def.wheelPositions[2][0]),
+    def.wheelPositions[2][2],
+  ]);
+  expect(b.x).toBe(0);
+  expect(b.y).toBeCloseTo(0.7);
+  expect(b.z).toBeCloseTo(-0.18);
+  expect(b.w).toBeCloseTo(0.11);
+  state[o + RACE_BASE + R.VEHICLE] = vehicleIndex('rd2');
+  frame.update(state, r.camera, r.sun, 'chase:0');
+  expect(b.toArray()).toEqual([-1, 0, 0, 0]);
 });
