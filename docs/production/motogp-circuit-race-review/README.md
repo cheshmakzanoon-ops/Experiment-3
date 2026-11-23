@@ -34,6 +34,10 @@ Fans reach the standing rows through the central opening and a service aisle beh
 
 ## Circuit cameras
 
+![A GP-R2 exits Lookout Rise in the rain at Cape Wrenna, in second place at 72 km/h](cape-wrenna-high-wet-race.jpg)
+
+Four GP-R2s started this race through the player menu with wet tyres and the High preset. The chase camera caught the rider exiting Lookout Rise at 72 km/h and 25° of right lean. At native 960 × 540, the renderer used 4× MSAA, ambient occlusion and 2048-pixel shadow maps. The moving sample recorded ten tyre-spray particles and 516 raindrops. [Original frame, diagnostics and browser test](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45137496302/job/137567860320)
+
 ![Aurel race broadcast with the GP-R1 at 149 km/h and several riders on the main straight](aurel-live-race.jpg)
 
 The public game’s race menu started this eight-rider Grand Prix at Aurel Grand Circuit. The trackside camera caught the field accelerating on the first lap, with the GP-R1 telemetry reading 149 km/h. This frame includes the live broadcast overlay.
@@ -128,6 +132,7 @@ These 1280 × 800 screenshots came from the production build’s dry and wet pra
 | Montejaral night camera, same 27 × 27 pixel region above the GP-R1 rear tyre | The number of bright pixels fell from 37 to 2 (mean 8-bit RGB above 155). In the separate HDR light test, the revised filter retained 89% of the halo around a 16-pixel-wide floodlight while reducing halo energy around a single-pixel glint by 90%. |
 | Twelve riders, two wet laps of Cape Wrenna, fixed 120 Hz | All twelve riders finished without a fall in each run. The combined race and track-surface digest matched after 63,484 steps. [Results for every entrant](cape-full-field-replay.json) |
 | Eight riders, two wet laps of Poggio Alto, fixed 120 Hz | Both runs classified all eight riders with zero falls and the same replay digest after 70,897 steps. |
+| One-lap races at Aurel, Cape Wrenna, Haarveld and Poggio Alto, twelve riders per circuit | All 48 entrants finished with zero falls. Peak speeds were 243.9, 278.5, 232.4 and 293.4 km/h respectively. Cape Wrenna and Haarveld ran in rain. Aurel and Poggio Alto ran in clear weather. |
 
 The revised twelve-rider grid, the Full HD corner and the menu-driven practices share one gameplay revision. The tower and pavilion pairs preserve the original captures from those stages of development. [Gameplay commit](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/d02273c9fe8a25ce55c9baa6b45734befce3fee9)
 
