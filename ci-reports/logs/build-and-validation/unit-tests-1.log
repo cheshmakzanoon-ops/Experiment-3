@@ -1,1 +1,255 @@
-logs unavailable (expired or not accessible)
+### unit-tests (1) (job 137431506989)
+--- error digest (first 120 matching lines) ---
+283:unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:11.8623075Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.5916781Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.8843136Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.8869740Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.9021170Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.9046573Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.9196385Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.9224048Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.9224507Z ##[group]Fetching the repository
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:33.9236687Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +5ec506e068ef8f75e400c8de550b80d401998b05:refs/remotes/origin/main
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2023863Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2024510Z  * [new ref]         5ec506e068ef8f75e400c8de550b80d401998b05 -> origin/main
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2028192Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2028623Z ##[group]Determining the checkout info
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2030775Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2036511Z [command]/usr/bin/git sparse-checkout disable
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2127016Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2142300Z ##[group]Checking out the ref
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:43.2142951Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2308762Z Updating files:  54% (5089/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2365145Z Updating files:  55% (5179/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2421094Z Updating files:  56% (5273/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2471286Z Updating files:  57% (5368/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2510886Z Updating files:  58% (5462/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2615027Z Updating files:  59% (5556/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2724905Z Updating files:  60% (5650/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2797778Z Updating files:  61% (5744/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.2867701Z Updating files:  62% (5838/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.3047930Z Updating files:  63% (5933/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.3228559Z Updating files:  64% (6027/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.3458990Z Updating files:  65% (6121/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.3831267Z Updating files:  66% (6215/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4019394Z Updating files:  67% (6309/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4199378Z Updating files:  68% (6403/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4371905Z Updating files:  69% (6498/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4791032Z Updating files:  70% (6592/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4828204Z Updating files:  71% (6686/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4872217Z Updating files:  72% (6780/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.4908029Z Updating files:  73% (6874/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.5487451Z Updating files:  74% (6968/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.5923987Z Updating files:  75% (7062/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:44.9216904Z Updating files:  76% (7157/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.0214181Z Updating files:  77% (7251/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.0317357Z Updating files:  78% (7345/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.0363892Z Updating files:  79% (7439/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.0432211Z Updating files:  80% (7533/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.0816838Z Updating files:  81% (7627/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.0872270Z Updating files:  82% (7722/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1032253Z Updating files:  83% (7816/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1076430Z Updating files:  84% (7910/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1132721Z Updating files:  85% (8004/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1263361Z Updating files:  86% (8098/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1314979Z Updating files:  87% (8192/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1361384Z Updating files:  88% (8287/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1410577Z Updating files:  89% (8381/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1457163Z Updating files:  90% (8475/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1500902Z Updating files:  91% (8569/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1542611Z Updating files:  92% (8663/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1586178Z Updating files:  93% (8757/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1622358Z Updating files:  94% (8852/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1666860Z Updating files:  95% (8946/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1706891Z Updating files:  96% (9040/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1745954Z Updating files:  97% (9134/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1785915Z Updating files:  98% (9228/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1828254Z Updating files:  99% (9322/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1828656Z Updating files: 100% (9416/9416)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1829111Z Updating files: 100% (9416/9416), done.
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1922222Z Switched to a new branch 'main'
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1930260Z branch 'main' set up to track 'origin/main'.
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.1994542Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.2037776Z [command]/usr/bin/git log -1 --format=%H
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T01:43:45.2058932Z 5ec506e068ef8f75e400c8de550b80d401998b05
+unit-tests (1)	Run actions/setup-node@v4	﻿2026-11-23T01:43:45.2267265Z ##[group]Run actions/setup-node@v4
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2267540Z with:
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2267758Z   node-version: 22
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2267971Z   cache: npm
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2268168Z   always-auth: false
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2268448Z   check-latest: false
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2270473Z   token: ***
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.2270685Z ##[endgroup]
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.4614427Z (node:2145) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.4615656Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.4617106Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:45.4617976Z ##[group]Environment details
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:49.8775187Z node: v22.23.5
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:49.8776004Z npm: 10.9.9
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:49.8776263Z yarn: 1.22.22
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:49.8777039Z ##[endgroup]
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:49.8790989Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:50.3305084Z /home/runner/.npm
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:50.6489275Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:50.6572012Z (node:2145) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:51.9962703Z Received 0 of 34424064 (0.0%), 0.0 MBs/sec
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:52.7488114Z Received 34424064 of 34424064 (100.0%), 18.7 MBs/sec
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:52.7488714Z Cache Size: ~33 MB (34424064 B)
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:52.7507809Z [command]/usr/bin/tar -xf /home/runner/work/_temp/2b02c502-bee9-4042-81ac-7c44edb0eb3d/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:52.7899683Z Cache restored successfully
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T01:43:52.7916992Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-23T01:43:52.8057313Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:52.8058092Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:53.0651977Z shell: /usr/bin/bash -e {0}
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:53.0652526Z ##[endgroup]
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:56.0768063Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:56.3436352Z 
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:56.3437329Z added 194 packages in 2s
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:56.9824106Z (node:2195) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+unit-tests (1)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T01:43:56.9824981Z (Use `node --trace-warnings ...` to show where the warning was created)
+unit-tests (1)	Complete unit-suite partition without source changes	﻿2026-11-23T01:43:56.9968933Z ##[group]Run set -euo pipefail
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9969274Z ^[[36;1mset -euo pipefail^[[0m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9969707Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm test -- \^[[0m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9970122Z ^[[36;1m  --shard=1/4 \^[[0m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9970375Z ^[[36;1m  --reporter=default --reporter=json \^[[0m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9970738Z ^[[36;1m  --outputFile.json="$RUNNER_TEMP/unit-1.json" \^[[0m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9971096Z ^[[36;1m  2>&1 | tee "$RUNNER_TEMP/unit-1.log"^[[0m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9999036Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:56.9999420Z ##[endgroup]
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.7801570Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.7802602Z > apex-formula-laboratory@0.1.0 pretest
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.7803199Z > npm run generate:player-lods
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.7803379Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.8497577Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.8498684Z > apex-formula-laboratory@0.1.0 generate:player-lods
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.8499235Z > node --experimental-strip-types scripts/build-player-lods.mjs
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:57.8499653Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.2582024Z mesh 0: 32262 -> 8860 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.3610008Z mesh 1: 50456 -> 29174 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.8089658Z mesh 2: 241852 -> 131054 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.8867112Z mesh 3: 44752 -> 10318 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.8867788Z mesh 4: 2 -> 2 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.9012207Z mesh 5: 7108 -> 2946 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:43:58.9026021Z mesh 6: 504 -> 416 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.1718373Z mesh 7: 752047 -> 406205 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.2316239Z mesh 8: 51920 -> 47482 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.2484624Z mesh 9: 21133 -> 21025 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.2923932Z mesh 10: 38706 -> 37002 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.3487068Z mesh 11: 51680 -> 39384 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.4059122Z mesh 12: 51680 -> 39342 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.4625181Z mesh 13: 51680 -> 39360 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.5196641Z mesh 14: 51680 -> 39396 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.5197349Z mesh 15: 108 -> 108 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.5198076Z mesh 16: 108 -> 108 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.5302902Z mesh 17: 7440 -> 3472 near triangles
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7278192Z {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7278739Z   "version": 2,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7279604Z   "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7280629Z   "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7281322Z   "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7282020Z   "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7282543Z   "bytes": 13037000,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7282895Z   "compressedBytes": 4213368,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7283248Z   "primitives": 172,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7283541Z   "triangles": [
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7283799Z     1455118,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7284096Z     855654,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7284354Z     814806,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7284598Z     797386
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7284891Z   ],
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7285154Z   "cacheModel": {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7285829Z     "name": "FIFO-16 vertex misses, not hardware timings",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7286297Z     "levels": [
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7286540Z       {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7286833Z         "before": 992010,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7287195Z         "after": 622914
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7287574Z       },
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7287834Z       {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7288069Z         "before": 952099,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7288418Z         "after": 595999
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7288702Z       },
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7288995Z       {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7289297Z         "before": 933925,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7289606Z         "after": 583328
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7289910Z       }
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7290137Z     ]
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7290456Z   },
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7290717Z   "levels": [
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7291054Z     {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7291762Z       "name": "efficient-close",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7292095Z       "ratio": 0.15,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7292446Z       "error": 0.002
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7292752Z     },
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7293027Z     {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7293299Z       "name": "medium",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7293664Z       "ratio": 0.075,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7293976Z       "error": 0.006
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7294264Z     },
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7294573Z     {
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7294844Z       "name": "distant",
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7295181Z       "ratio": 0.025,
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7295730Z       "error": 0.012
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7296011Z     }
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7296325Z   ]
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7296583Z }
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7433276Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7434443Z > apex-formula-laboratory@0.1.0 test
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7435531Z > vitest run --shard=1/4 --reporter=default --reporter=json --outputFile.json=/home/runner/work/_temp/unit-1.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:00.7436057Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:01.0922396Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:01.0924274Z ^[[1m^[[46m RUN ^[[49m^[[22m ^[[36mv3.2.4 ^[[39m^[[90m/home/runner/work/Experiment-3/Experiment-3^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:01.0936525Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T01:44:11.8623075Z ##[error]The operation was canceled.
+unit-tests (1)	Unit results, including failures	﻿2026-11-23T01:44:11.8695095Z ##[group]Run actions/upload-artifact@v4
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8695748Z with:
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8695969Z   name: unit-validation-1-of-4
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8696370Z   path: /home/runner/work/_temp/unit-1.json
+unit-tests (1)	Unit results, including failures	/home/runner/work/_temp/unit-1.log
+unit-tests (1)	Unit results, including failures	
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8696783Z   retention-days: 7
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8697081Z   if-no-files-found: error
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8697327Z   compression-level: 6
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8697547Z   overwrite: false
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8697847Z   include-hidden-files: false
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:11.8698098Z ##[endgroup]
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0108071Z (node:2324) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0109416Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0148668Z Multiple search paths detected. Calculating the least common ancestor of all paths
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0193929Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0195472Z With the provided path, there will be 1 file uploaded
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0196665Z Artifact name is valid!
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.0197699Z Root directory input is valid!
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.5634353Z Beginning upload of artifact content to blob storage
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.5762565Z (node:2324) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.9014117Z Uploaded bytes 1066
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.9922176Z Finished uploading artifact content to blob storage!
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.9923257Z SHA256 digest of uploaded artifact zip is dd8724e78f636216a910caf90a6da65ccd549d893e0fcb45479cf1d92ca4a87b
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:12.9923755Z Finalizing artifact upload
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:13.4272720Z Artifact unit-validation-1-of-4.zip successfully finalized. Artifact ID 14783671103
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:13.4273971Z Artifact unit-validation-1-of-4 has been successfully uploaded! Final size is 1066 bytes. Artifact ID is 14783671103
+unit-tests (1)	Unit results, including failures	2026-11-23T01:44:13.4287527Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45094604207/artifacts/14783671103
+unit-tests (1)	Post Run actions/checkout@v4	﻿2026-11-23T01:44:13.4546219Z Post job cleanup.
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5237297Z [command]/usr/bin/git version
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5274439Z git version 2.56.1
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5322340Z Temporarily overriding HOME='/home/runner/work/_temp/a94d03fd-65a8-4ff7-bb08-1f2525213d91' before making global git config changes
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5327627Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5328713Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5360460Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5394328Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5669862Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5697946Z http.https://github.com/.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5709399Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.5770582Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.6030542Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T01:44:13.6059384Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (1)	Complete job	﻿2026-11-23T01:44:13.6348801Z Cleaning up orphan processes
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6564116Z Terminate orphan process: pid (2229) (node)
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6587749Z Terminate orphan process: pid (2230) (tee)
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6613196Z Terminate orphan process: pid (2237) (npm test --shar)
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6645785Z Terminate orphan process: pid (2269) (sh)
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6671840Z Terminate orphan process: pid (2270) (node (vitest))
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6698197Z Terminate orphan process: pid (2294) (esbuild)
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6728531Z Terminate orphan process: pid (2300) (node (vitest 1))
+unit-tests (1)	Complete job	2026-11-23T01:44:13.6796958Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
