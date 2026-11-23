@@ -1,3 +1,4 @@
+import { bindFormulaEdge, FORMULA_KERB_COLOUR, FORMULA_APRON_COLOUR } from '../formula-edge.ts';
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
 import { installTrackEdgeHelpers } from './track-edge-wear.ts';
@@ -118,14 +119,16 @@ export function installKerbFinish(
   material: T.MeshStandardMaterial,
   lapLength = 3600,
   gp: GpEdgeDesign | null = null,
+  formula?: { value: number },
 ) {
   // Stripe colour is authored in metres in the shader. Disabling the old
   // vertex tint lets construction joints and paint chips survive the colour
   // stage instead of resetting all of them to kerbPaint after color_fragment.
   material.vertexColors = false;
   if (gp) material.userData.gpEdgeDesign = gp.id;
-  return chainShaderHook(material, gp ? `gp-kerb-${gp.id}-v2` : KERB_HOOK, (shader) => {
+  return chainShaderHook(material, gp ? `gp-kerb-${gp.id}-v2` : formula ? 'formula-kerb-v1' : KERB_HOOK, (shader) => {
     installTrackEdgeHelpers(shader, lapLength);
+    if (formula) bindFormulaEdge(shader, formula);
     injectDeclarations(
       shader,
       'common',
@@ -191,6 +194,7 @@ export function installKerbFinish(
 	float ribPhase = vFinishMetres.y * ${f((2 * Math.PI) / KERB.rib)};
 	float ribAA = 1.0 - smoothstep( .6, 2.0, fwidth( ribPhase ) );
 	paint *= 1.0 - ${gp ? `${f(GP_KERB.groove)} * ribAA` : '.08 * dustBand * ribAA'} * smoothstep( .3, 1.0, - cos( ribPhase ) );
+	${formula ? FORMULA_KERB_COLOUR : ''}
 	kerbPaint = paint;
 	diffuseColor.rgb = paint;
 }`,
@@ -226,11 +230,13 @@ export function installRunoffFinish(
   material: T.MeshStandardMaterial,
   lapLength = 3600,
   gp: GpEdgeDesign | null = null,
+  formula?: { value: number },
 ) {
   material.color.setHex(0xffffff);
   if (gp) material.userData.gpEdgeDesign = gp.id;
-  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v4` : RUNOFF_HOOK, (shader) => {
+  return chainShaderHook(material, gp ? `gp-runoff-${gp.id}-v4` : formula ? 'formula-runoff-v1' : RUNOFF_HOOK, (shader) => {
     installTrackEdgeHelpers(shader, lapLength);
+    if (formula) bindFormulaEdge(shader, formula);
     if (gp) {
       injectDeclarations(
         shader,
@@ -345,6 +351,7 @@ ${
 		float grit = finishFilteredNoise( vFinishWorld.xz * 23.0 );
 		surface *= .93 + .14 * grit;
 	}
+	${formula ? FORMULA_APRON_COLOUR : ''}
 	// Worn soil where the run-off meets the kerb and the grass.
 	float seam = 1.0 - smoothstep( 0.0, ${f(RUNOFF.seam)}, abs( e - ${f(RUNOFF.from)} - .1 ) );
 	surface = mix( surface, ${v3(RUNOFF.soil)} * ( .8 + .4 * grain ), seam * .55 );

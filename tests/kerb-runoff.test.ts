@@ -124,3 +124,19 @@ describe('kerb and run-off finishes', () => {
     expect(RUNOFF.band[1] - RUNOFF.band[0]).toBeLessThanOrEqual(2);
   });
 });
+
+it('binds one live field selector to the banked Formula kerb and adjoining apron', () => {
+  const active = { value: 1 }, materials = [new T.MeshStandardMaterial(), new T.MeshStandardMaterial()];
+  installKerbFinish(materials[0], 2972, null, active);
+  installRunoffFinish(materials[1], 2972, null, active);
+  for (const material of materials) {
+    const shader = compile(material);
+    expect(shader.uniforms.apexFormulaEdge).toBe(active);
+    expect(shader.vertexShader).toContain('vFormulaCorner = formulaCorner');
+    expect(shader.fragmentShader).toContain('smoothstep(.36, .58, vFormulaCorner)');
+    // Switching a replay field reuses the already compiled program.
+    active.value = 0;
+    expect(shader.uniforms.apexFormulaEdge.value).toBe(0);
+    material.dispose();
+  }
+});

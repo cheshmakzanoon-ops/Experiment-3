@@ -1039,6 +1039,7 @@ export class RacingRenderer {
     this.shadowProxies.add(...car.shadowFrames());
   }
   setCars(n: number, frame?: Float32Array) {
+    if (frame) this.circuit.formulaCourse?.select(frame, n);
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
     const mxVenue = isMotocrossVenue(this.circuit.track);

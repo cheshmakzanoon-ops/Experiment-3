@@ -1,3 +1,4 @@
+import { FormulaCourse } from './formula-course.ts';
 import { TERRAIN_SIZE, terrainSegments, terrainSurface } from './terrain-surface.ts';
 import { GpClassification } from './venue-kit/gp-classification.ts';
 import { GpPitBoards } from './venue-kit/gp-pit-boards.ts';
@@ -177,6 +178,7 @@ export class CircuitScene {
   static readonly STRIP_WIDTH = 1.5;
   readonly stateTexture: T.DataTexture;
   /** Planar reflection sampled by the wet road and pit lane film. */
+  readonly formulaCourse: FormulaCourse | null;
   readonly wetReflection = new WetRoadReflection();
   readonly roadMaterial: T.MeshStandardMaterial;
   private readonly motorcycleSurface = { value: 0 };
@@ -238,6 +240,12 @@ export class CircuitScene {
     // A terrain venue's course is soil, not a paved ribbon with kerbs.
     this.offroad = offroadSceneFor(track, this.construction);
     const paved = !this.offroad;
+    this.formulaCourse = paved && track.circuit.drsZones.length ? new FormulaCourse(track) : null;
+    const formula = this.formulaCourse;
+    if (formula) this.construction.add('Formula timing stations', 2, () => {
+      formula.build();
+      this.group.add(formula.root);
+    });
     const mx = isMotocrossVenue(track);
     if (mx && this.offroad) {
       // The dirt venues supply their own platforms and safe, ground-level
@@ -299,7 +307,7 @@ export class CircuitScene {
     const runOff = surfaceMaterial('asphalt', 'paint');
     // GP venues have a coherent palette and road-shaped aprons; other venue
     // families retain their authored bands, chevrons and artificial turf.
-    installRunoffFinish(runOff, track.length, gpEdgeDesign(track));
+    installRunoffFinish(runOff, track.length, gpEdgeDesign(track), formula?.edges ? formula.active : undefined);
     const gravel = surfaceMaterial('gravel');
     for (const material of [this.roadMaterial, grass, runOff, gravel])
       this.surfaceMaterials.add(material);
@@ -375,7 +383,7 @@ export class CircuitScene {
       roughness: 0.85,
     });
     installCircuitFinish(kerb, 'kerb');
-    installKerbFinish(kerb, track.length, gpEdgeDesign(track));
+    installKerbFinish(kerb, track.length, gpEdgeDesign(track), formula?.edges ? formula.active : undefined);
     for (const m of [white, kerb]) {
       this.surfaceMaterials.add(m);
       installCarGrounding(m);
@@ -841,6 +849,8 @@ export class CircuitScene {
       kerbStyle = options.stripes ? new Float32Array(vertexCount) : null,
       runoffStyle = options.runoff ? new Float32Array(vertexCount) : null,
       usage = options.stripes || options.runoff ? new Float32Array(vertexCount) : null,
+      edgeProfile = usage ? this.formulaCourse?.edges : null,
+      formulaCorner = edgeProfile ? new Float32Array(vertexCount) : null,
       gpRunoff = options.runoff && gpEdgeDesign(this.track),
       gpPaint = gpRunoff ? new Float32Array(vertexCount) : null,
       gpGravel = gpRunoff ? new Float32Array(vertexCount) : null,
@@ -858,6 +868,8 @@ export class CircuitScene {
       // Sample the two verges separately so asymmetric corners and pit merges survive.
       const motorcycleBrake = bikeBrake ? apexLineAt(this.track, s, 0, line, true)[1] : 0;
       if (apex || usage) apexLineAt(this.track, s, 0, line);
+      const leftFormula = edgeProfile?.at(s, -1) ?? 0;
+      const rightFormula = edgeProfile?.at(s, 1) ?? 0;
       const leftUse = usage ? kerbUsage(Math.abs(-p.width + line[0])) : 0;
       const rightUse = usage ? kerbUsage(Math.abs(p.width + line[0])) : 0;
       const stripe = STRIPE_COLOURS[Math.floor(s / 3) % 2 === 0 ? 0 : 1];
@@ -892,6 +904,7 @@ export class CircuitScene {
         if (kerbStyle) kerbStyle[index] = kerbScheme;
         if (runoffStyle) runoffStyle[index] = apronScheme;
         if (usage) usage[index] = l < 0 ? leftUse : rightUse;
+        if (formulaCorner) formulaCorner[index] = l < 0 ? leftFormula : rightFormula;
         if (gpPaint) gpPaint[index] = l === 0 ? 0 : l < 0 ? leftPaint : rightPaint;
         if (gpKerb) gpKerb[index] = l < 0 ? leftKerb : rightKerb;
         if (gpGravel) gpGravel[index] = l < 0 ? leftGravel : rightGravel;
@@ -920,6 +933,7 @@ export class CircuitScene {
     if (kerbStyle) g.setAttribute('kerbStyle', new T.BufferAttribute(kerbStyle, 1));
     if (runoffStyle) g.setAttribute('runoffStyle', new T.BufferAttribute(runoffStyle, 1));
     if (usage) g.setAttribute('kerbUsage', new T.BufferAttribute(usage, 1));
+    if (formulaCorner) g.setAttribute('formulaCorner', new T.BufferAttribute(formulaCorner, 1));
     if (gpKerb) g.setAttribute('gpKerbAmount', new T.BufferAttribute(gpKerb, 1));
     if (gpPaint) g.setAttribute('gpCornerPaint', new T.BufferAttribute(gpPaint, 1));
     if (gpGravel) g.setAttribute('gpVergeGravel', new T.BufferAttribute(gpGravel, 1));
