@@ -1,3 +1,4 @@
+export { captureGpPavilion } from './gp-pavilion-lighting.ts';
 import { gpPaddockPennants } from '../../src/rendering/venue-kit/gp-paddock-pennants.ts';
 import { PHASE } from '../../src/simulation/race.ts';
 import * as T from 'three';

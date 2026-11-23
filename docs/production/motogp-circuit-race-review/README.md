@@ -16,6 +16,22 @@ The trackside camera follows four AI riders through the bend at Poggio Alto. Lea
 
 The timing bridges span the surveyed road and pit widths. Front and rear contact points sample water and rubber independently. Wheel load and the local water film determine the source of the spray. A surveyed plane gives nearby wet surfaces a reflection that follows the slope and bank through corners.
 
+## Start-line broadcast camera
+
+| Earlier tower | Revised tower |
+| --- | --- |
+| ![Fence posts crossing two riders in the earlier Poggio Alto broadcast view](poggio-tower-before.jpg) | ![Four riders visible above the fence line from the revised tower](poggio-tower-after.jpg) |
+
+Both frames show the same four riders at 7.0 seconds. The camera and its visible tower now sit on the public side of the barrier, with the lens 7.1 metres above the surveyed surface. Across all four GP circuits, 684 camera-to-tyre sightlines cleared the fence crown by at least 1.5 metres. The fence remains visible at the lower left of the revised shot.
+
+## Montejaral after dark
+
+| Earlier pavilion | Revised pavilion |
+| --- | --- |
+| ![The earlier blue and orange pavilion fills the right side of Montejaral’s night grid](montejaral-night-before.jpg) | ![The pavilion’s warm gallery windows behind the field, beneath a dark standing-seam roof](montejaral-night.jpg) |
+
+The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dry race. The roof now reflects the venue lighting and the two glazed floors emit through individual window bays. Both frames submitted 1,596 draw calls and 1,144,160 triangles at the same exposure.
+
 ## Motorcycle and rider
 
 | GP-R1 under braking | GP-R2 rear wheel |

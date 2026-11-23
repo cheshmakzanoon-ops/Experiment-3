@@ -8,6 +8,7 @@ import { inStandFootprint } from './grandstand.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { districtPlan, inDistrictFootprint, type DistrictSite } from './venue-districts.ts';
 import { catalogueLandmark } from './venue-kit/plan.ts';
+import { gpPavilionMaterial } from './venue-kit/gp-pavilion.ts';
 
 /** One original event hall, not another circuit or a copied licensed building.
  * The lower sphere is cut where its shell meets the load-bearing facade ring. */
@@ -168,8 +169,13 @@ export interface VenueLandmark {
 export function buildVenueLandmark(track: Track): VenueLandmark {
   if (venuePlan(track).landmark === 'lighthouse') return buildLighthouse(track);
   const site = landmarkSitePlan(track);
+  const gpVenue = track.gpEdges
+    ? (track.circuit.catalogue?.venueName ?? track.circuit.name)
+    : undefined;
   const structure = new T.Group();
-  structure.name = 'Aurel event hall / grounded facade and public plaza';
+  structure.name = gpVenue
+    ? `${gpVenue} / pavilion plaza`
+    : 'Aurel event hall / grounded facade and public plaza';
   structure.position.set(site.x, site.deckY, site.z);
   structure.rotation.y = site.yaw;
   structure.userData.authoredAsset = EVENT_HALL_ASSET.revision;
@@ -235,9 +241,12 @@ export function buildVenueLandmark(track: Track): VenueLandmark {
   bollards.castShadow = true;
   structure.add(bollards);
   const shell = eventHallShell();
-  const display = new T.Mesh(shell.geometry, landmarkScreenMaterial());
+  const panels = gpVenue ? gpPavilionMaterial(track.circuit.id) : landmarkScreenMaterial();
+  const display = new T.Mesh(shell.geometry, panels);
   shell.bind(display);
-  display.name = 'Original LED venue landmark / structurally grounded event hall';
+  display.name = gpVenue
+    ? `${gpVenue} / glazed GP pavilion`
+    : 'Original LED venue landmark / structurally grounded event hall';
   display.position.set(site.x, site.deckY + LANDMARK.centreHeight, site.z);
   display.rotation.y = site.yaw;
   display.castShadow = true;
