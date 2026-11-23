@@ -14,6 +14,7 @@ import { applySuppliedCharacterLookdev } from '../src/rendering/studio/supplied-
 import { driverMaterials } from '../src/rendering/driver-materials.ts';
 import { cornerGaze, HEAD_ROLL_GAIN } from '../src/rendering/driver.ts';
 import { hansUprightGeometry, standUpCollarGeometry } from '../src/rendering/driver-anatomy.ts';
+import { helmetVentGeometry } from '../src/rendering/formula-helmet-vents.ts';
 import { HANS_ANCHOR } from '../src/rendering/driver-restraints.ts';
 import {
   VISOR_PHI,
@@ -103,6 +104,41 @@ describe('team helmet and visor', () => {
     collar.computeBoundingBox();
     expect(collar.boundingBox!.max.y).toBeGreaterThan(0.035);
     for (const g of [visor, spoiler, hans, collar]) g.dispose();
+  });
+
+  it('seats four vent beds on the shell with a proud lip that clears the eye port', () => {
+    const p = new T.Vector3();
+    for (const chin of [false, true]) {
+      const left = helmetVentGeometry(chin, -1);
+      const right = helmetVentGeometry(chin, 1);
+      expect(left.lip.boundingBox!.min.x).toBeCloseTo(-right.lip.boundingBox!.max.x, 6);
+      for (const { lip, bed } of [left, right]) {
+        const index = bed.getIndex()!;
+        const verts = bed.getAttribute('position');
+        const a = new T.Vector3().fromBufferAttribute(verts, index.getX(0));
+        const b = new T.Vector3().fromBufferAttribute(verts, index.getX(1));
+        const c = new T.Vector3().fromBufferAttribute(verts, index.getX(2));
+        expect(b.sub(a).cross(c.sub(a)).z).toBeGreaterThan(0);
+        const bounds = lip.boundingBox!;
+        expect(chin ? bounds.max.y < -0.055 : bounds.min.y > 0.055).toBe(true);
+        let crown = 0;
+        for (const g of [lip, bed]) {
+          const coords = g.getAttribute('position');
+          const uv = g.getAttribute('uv');
+          for (let i = 0; i < coords.count; i++) {
+            p.fromBufferAttribute(coords, i);
+            const shell = helmetPoint(p.y, 2 * Math.PI * uv.getX(i));
+            const standOff = p.distanceTo(shell);
+            expect(standOff).toBeGreaterThan(0.0004);
+            expect(standOff).toBeLessThan(0.0071);
+            if (g === lip) crown = Math.max(crown, standOff);
+          }
+        }
+        expect(crown).toBeGreaterThan(0.006);
+        lip.dispose();
+        bed.dispose();
+      }
+    }
   });
 
   it('gives the visor a dark iridescent film and a strong environment response', () => {

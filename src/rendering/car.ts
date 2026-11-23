@@ -1,3 +1,4 @@
+import { GpOpticalRain } from './gp-optics-rain.ts';
 import { mountFormulaCameraPod } from './formula-camera-pod.ts';
 import { mountTailLamp, mountTailLampHousing } from './formula-tail-lamp.ts';
 import { FormulaRearFlap } from './formula-rear-flap.ts';
@@ -111,6 +112,7 @@ export class FormulaCar {
   readonly cockpitControls: CockpitControls;
   readonly driver: DriverRig;
   readonly helmet = new T.Group();
+  private readonly visorRain = new GpOpticalRain();
   readonly rainLight: T.MeshStandardMaterial;
   readonly rearSignal: T.Mesh;
   readonly display: T.CanvasTexture;
@@ -635,7 +637,7 @@ export class FormulaCar {
     this.driver = new DriverRig(this.steering, driverAsset, kit);
     this.root.add(this.driver.root);
 
-    buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory }, kit);
+    buildHelmet(this.helmet, { carbon, dark, metal, paint: ivory }, kit, this.visorRain);
     if (hero) {
       mesh(s, hero.copy('tail_carbon'), carbon);
       mesh(s, hero.copy('tail_alloy'), metal);
@@ -888,6 +890,13 @@ export class FormulaCar {
       cornerGaze(sampleValue(a, b, o + F.SPEED, t), steer, yawRate),
     );
     this.helmet.rotation.set(this.driver.headPitch, this.driver.headYaw, this.driver.headRoll);
+    this.visorRain.set(
+      time,
+      frameLiquidRain(source),
+      sampleValue(a, b, o + F.SPEED, t),
+      this.driver.headRoll,
+      sampleValue(a, b, o + F.G_LAT, t),
+    );
     this.cockpitControls.update(source, o);
     this.helmet.visible = !cockpit;
     for (let i = 0; i < 4; i++) {

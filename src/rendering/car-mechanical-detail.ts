@@ -1,3 +1,5 @@
+import { helmetVentGeometry } from './formula-helmet-vents.ts';
+import { type GpOpticalRain, installGpOpticalRain } from './gp-optics-rain.ts';
 import {
   rivalVisorMaterial,
   teamHelmetMaterial,
@@ -108,7 +110,12 @@ export function addTailMechanicalDetail(parent: T.Group, m: MechanicalMaterials)
 
 /** The neck pivot is independent from the shell centre, so load-induced nods
  * rotate about the neck instead of swinging the head around the car origin. */
-export function buildHelmet(parent: T.Group, m: MechanicalMaterials, design?: DriverDesign) {
+export function buildHelmet(
+  parent: T.Group,
+  m: MechanicalMaterials,
+  design?: DriverDesign,
+  rain?: GpOpticalRain,
+) {
   parent.name = 'Original helmet with neck-centred articulation';
   parent.position.set(0, 0.17, -0.4);
   const shellGeometry = helmetShell();
@@ -119,7 +126,9 @@ export function buildHelmet(parent: T.Group, m: MechanicalMaterials, design?: Dr
     const paint = teamHelmetMaterial(design, new T.Vector3(0, 0.12, 0.02)).material;
     mesh(parent, shellGeometry, paint, 0, 0.12, 0.02);
     mesh(parent, helmetSpoilerGeometry(), paint, 0, 0.12, 0.02);
-    buildHelmetDetail(parent, m, rivalVisorMaterial(), true);
+    const visor = rivalVisorMaterial();
+    if (rain) installGpOpticalRain(visor, rain, true);
+    buildHelmetDetail(parent, m, visor, true, paint);
     return;
   }
   const helmetPaint = m.paint.clone();
@@ -148,18 +157,16 @@ export function buildHelmet(parent: T.Group, m: MechanicalMaterials, design?: Dr
   };
   helmetPaint.customProgramCacheKey = () => 'original-helmet-crown-v2';
   mesh(parent, shellGeometry, helmetPaint, 0, 0.12, 0.02);
-  buildHelmetDetail(
-    parent,
-    m,
-    new T.MeshPhysicalMaterial({
-      name: 'Original smoked visor',
-      color: 0x253b45,
-      metalness: 0.35,
-      roughness: 0.13,
-      clearcoat: 1,
-      clearcoatRoughness: 0.07,
-    }),
-  );
+  const visor = new T.MeshPhysicalMaterial({
+    name: 'Original smoked visor',
+    color: 0x253b45,
+    metalness: 0.35,
+    roughness: 0.13,
+    clearcoat: 1,
+    clearcoatRoughness: 0.07,
+  });
+  if (rain) installGpOpticalRain(visor, rain, true);
+  buildHelmetDetail(parent, m, visor, false, helmetPaint);
 }
 /** Visor, gaskets, hinges and tether sockets around a helmet shell. */
 function buildHelmetDetail(
@@ -167,6 +174,7 @@ function buildHelmetDetail(
   m: MechanicalMaterials,
   visorMaterial: T.Material,
   eyePort = false,
+  shellPaint?: T.Material,
 ) {
   // Raised brow and a tapered visor follow the same shell rather than a
   // circular band. Gaskets remain separated by only millimetres at the cheeks.
@@ -239,6 +247,13 @@ function buildHelmetDetail(
     );
     tab.rotation.z = side * 0.4;
     tab.scale.z = 0.4;
+  }
+  for (const side of [-1, 1] as const) {
+    for (const chin of [false, true]) {
+      const { lip, bed } = helmetVentGeometry(chin, side);
+      mesh(parent, lip, chin ? m.dark : (shellPaint ?? m.dark), 0, 0.12, 0.02);
+      mesh(parent, bed, m.dark, 0, 0.12, 0.02);
+    }
   }
   const seal = mesh(parent, new T.TorusGeometry(0.073, 0.012, 8, 24), m.dark, 0, 0.005, 0.006);
   seal.rotation.x = Math.PI / 2;
