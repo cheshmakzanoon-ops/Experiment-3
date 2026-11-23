@@ -18,6 +18,8 @@ The tank has a recessed filler latch, socket heads and molded knee grips. The he
 
 Both camera views use the same 48 samples from a 120 Hz simulation. The rider holds 80% throttle and releases the manual clutch over one second. The left hand follows the lever as plate torque rises and the bike reaches 43.3 km/h. The drive and return runs share up to 16 mm of free-span deflection. The boot pedal operates the rear brake independently. In automatic mode the original secondary brake binding remains available. [Frame measurements](gp-clutch-launch.json)
 
+The 102-link chain took a median 9.63 µs per update after the two side plates began sharing one transform basis, down from 17.13 µs. This CPU measurement used nine alternating batches of 4,800 moving poses in Node 24.22.3. Six 1280 × 800 WebGL close-ups covering drive, neutral and overrun on both motorcycles had identical pixels before and after the change.
+
 ![Haarveld’s seated crowd on stepped concrete terraces and Cape Wrenna’s rail-mounted umbrellas](gp-trackside-spectators.jpg)
 
 At Haarveld, closed concrete risers support the seats and three shallow steps connect each pair of rows in the aisles. At Cape Wrenna, four umbrellas on the first bank unfold in a shower and follow the wind. Holding the weather or rewinding to dry reproduced the original pixels. In a separate shadow measurement at race shadow-map density, the 10–90% edge width below an eight-metre canopy grew from 5 cm in sun to 14 cm under thin cloud and 30.5 cm in a shower. A plate eight centimetres above the road kept its 5 cm edge in all three conditions.

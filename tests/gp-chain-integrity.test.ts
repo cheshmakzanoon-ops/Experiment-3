@@ -71,18 +71,25 @@ describe('GP chain real instance cost and mechanical continuity', () => {
       }
     },
   );
-  it('centres every plate between its two pins, not on a single pin', () => {
+  it('seats both ends of each side plate on their pins through drive and overrun', () => {
     const c = new GPChainDrive(0.52, ...materials);
+    const matrix = new T.Matrix4(), eye = new T.Vector3();
+    const halfPitch = 0.015875 / 2;
     try {
       for (const phase of [0, 0.071, 1.123, -7.2]) {
-        c.update(phase);
+        c.update(phase, Math.sin(phase * 4));
         for (let i = 0; i < c.links; i++) {
-          const a = point(c.rollers, i),
-            b = point(c.rollers, (i + 1) % c.links);
-          const mid = a.add(b).multiplyScalar(0.5),
-            p = point(c.plates, i * 2);
-          expect(p.y).toBeCloseTo(mid.y, 6);
-          expect(p.z).toBeCloseTo(mid.z, 6);
+          const pins = [point(c.rollers, i), point(c.rollers, (i + 1) % c.links)];
+          const lateralOffset = i % 2 ? 0.0104 : 0.0076;
+          for (const side of [0, 1]) {
+            c.plates.getMatrixAt(2 * i + side, matrix);
+            for (const [end, pin] of pins.entries()) {
+              eye.set(0, 0, end ? halfPitch : -halfPitch).applyMatrix4(matrix);
+              expect(eye.x - pin.x).toBeCloseTo(side ? lateralOffset : -lateralOffset, 6);
+              expect(eye.y).toBeCloseTo(pin.y, 6);
+              expect(eye.z).toBeCloseTo(pin.z, 6);
+            }
+          }
         }
       }
     } finally {

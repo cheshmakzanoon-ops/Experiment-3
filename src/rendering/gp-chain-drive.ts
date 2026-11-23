@@ -193,19 +193,10 @@ export class GPChainDrive {
   readonly links: number;
   private readonly loop: ChainLoop;
   private readonly spacing: number;
-  private readonly qRoller = new T.Quaternion().setFromAxisAngle(
-    new T.Vector3(0, 0, 1),
-    -Math.PI / 2,
-  );
-  private readonly qLink = new T.Quaternion();
-  private readonly axis = new T.Vector3(1, 0, 0);
+  private readonly rollerMatrix = new T.Matrix4().makeRotationZ(-Math.PI / 2);
+  private readonly plateMatrix = new T.Matrix4();
   private readonly p = new T.Vector3();
   private readonly next = new T.Vector3();
-  private readonly midpoint = new T.Vector3();
-  private readonly tangent = new T.Vector3();
-  private readonly matrix = new T.Matrix4();
-  private readonly one = new T.Vector3(1, 1, 1);
-  private readonly linkScale = new T.Vector3(1, 1, 1);
   private lastWheelPhase = Number.NaN;
   private lastLoad = Number.NaN;
 
@@ -265,17 +256,21 @@ export class GPChainDrive {
     this.loop.sample(phase * this.spacing, this.p, upperSag, lowerSag);
     for (let i = 0; i < this.links; i++) {
       this.loop.sample((i + 1 + phase) * this.spacing, this.next, upperSag, lowerSag);
-      this.tangent.subVectors(this.next, this.p);
-      this.midpoint.addVectors(this.p, this.next).multiplyScalar(0.5);
-      this.qLink.setFromAxisAngle(this.axis, Math.atan2(-this.tangent.y, this.tangent.z));
-      this.linkScale.z = this.tangent.length() / CHAIN_PITCH;
-      this.matrix.compose(this.p, this.qRoller, this.one);
-      this.rollers.setMatrixAt(i, this.matrix);
-      for (let side = 0; side < 2; side++) {
-        this.midpoint.x = X + (side * 2 - 1) * (i % 2 ? 0.0104 : 0.0076);
-        this.matrix.compose(this.midpoint, this.qLink, this.linkScale);
-        this.plates.setMatrixAt(i * 2 + side, this.matrix);
-      }
+      this.rollers.setMatrixAt(i, this.rollerMatrix.setPosition(this.p));
+      const dy = this.next.y - this.p.y, dz = this.next.z - this.p.z;
+      const inverseLength = 1 / Math.sqrt(dy * dy + dz * dz);
+      const y = (this.next.y + this.p.y) * 0.5, z = (this.next.z + this.p.z) * 0.5;
+      const offset = i % 2 ? 0.0104 : 0.0076;
+      // Z spans exactly one pair of pins. Y is its unit perpendicular in the
+      // chain plane. Both side plates share that basis and differ only in X.
+      this.plateMatrix.set(
+        1, 0, 0, X - offset,
+        0, dz * inverseLength, dy / CHAIN_PITCH, y,
+        0, -dy * inverseLength, dz / CHAIN_PITCH, z,
+        0, 0, 0, 1,
+      );
+      this.plates.setMatrixAt(i * 2, this.plateMatrix);
+      this.plates.setMatrixAt(i * 2 + 1, this.plateMatrix.setPosition(X + offset, y, z));
       this.p.copy(this.next);
     }
     this.rollers.instanceMatrix.needsUpdate = true;
