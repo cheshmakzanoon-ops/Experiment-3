@@ -513,6 +513,7 @@ export class BikeVehicle extends Vehicle {
       : 1;
     this.applyCrosswind(dt, track);
     this.advanceRoadSuspension(dt, track);
+    const headingBeforeForces = d.heading;
     d.step(
       {
         lean: this.input.steer,
@@ -551,12 +552,26 @@ export class BikeVehicle extends Vehicle {
       }
     }
     const h = d.heading;
-    d.x += Math.cos(h) * this.slide * dt;
-    d.z -= Math.sin(h) * this.slide * dt;
+    // Airborne wheels cannot redirect a wind or collision impulse as the
+    // frame rotates. Keep that separate slide available to the landing model.
+    const flight = this.roadSuspensionLive && this.roadSuspension.airborne && this.riding && d.motoGP;
+    const slideHeading = flight ? headingBeforeForces : h;
+    d.x += Math.cos(slideHeading) * this.slide * dt;
+    d.z -= Math.sin(slideHeading) * this.slide * dt;
     if (this.yawKick !== 0) {
       d.heading += this.yawKick * dt;
       this.yawKick *= Math.exp(-8 * dt);
       if (Math.abs(this.yawKick) < 1e-4) this.yawKick = 0;
+    }
+    if (flight && (this.slide !== 0 || d.heading !== h)) {
+      // The core has already transported its own two velocity components
+      // through its yaw step. Project their sum with the world-space external
+      // impulse into the final, collision-rotated chassis frame just once.
+      const vx = Math.sin(h) * d.speed + Math.cos(h) * flight.lateralSpeed + Math.cos(slideHeading) * this.slide;
+      const vz = Math.cos(h) * d.speed - Math.sin(h) * flight.lateralSpeed - Math.sin(slideHeading) * this.slide;
+      const sin = Math.sin(d.heading), cos = Math.cos(d.heading);
+      d.speed = sin * vx + cos * vz;
+      flight.lateralSpeed = cos * vx - sin * vz - this.slide;
     }
     this.updateRider(dt, track);
     // Fuel: ~0.3 overall efficiency against 43 MJ/kg, plus idle.

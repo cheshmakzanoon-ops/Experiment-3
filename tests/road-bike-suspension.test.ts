@@ -212,9 +212,6 @@ describe('production road/GP sprung chassis and unilateral contacts', () => {
       const heading = d.heading,
         speed = d.speed,
         side = gp.lateralSpeed,
-        drag = ((d.p.drag * d.dragScale * speed * speed) / d.mass) * DT,
-        expectedX = Math.sin(heading) * (speed - drag) + Math.cos(heading) * side,
-        expectedZ = Math.cos(heading) * (speed - drag) - Math.sin(heading) * side,
         combinedLean = d.lean + gpHangOffAngle(d.riderOffset, d.p.cgHeight);
       bike.step(DT, track);
       expect(bike.roadSuspension.airborne).toBe(true);
@@ -225,6 +222,11 @@ describe('production road/GP sprung chassis and unilateral contacts', () => {
         12,
       );
       expect(d.driveForce + d.frontBrakeForce + d.rearBrakeForce).toBe(0);
+      // The rider retucks at the start of the integration tick. Evaluate the
+      // drag actually applied over this interval, using its initial velocity.
+      const drag = ((d.p.drag * d.dragScale * speed * speed) / d.mass) * DT;
+      const expectedX = Math.sin(heading) * (speed - drag) + Math.cos(heading) * side;
+      const expectedZ = Math.cos(heading) * (speed - drag) - Math.sin(heading) * side;
       expect(bike.body.velocity.x).toBeCloseTo(expectedX, 9);
       expect(bike.body.velocity.z).toBeCloseTo(expectedZ, 9);
       expect(Math.hypot(bike.body.velocity.x, bike.body.velocity.z)).toBeCloseTo(
@@ -234,6 +236,32 @@ describe('production road/GP sprung chassis and unilateral contacts', () => {
     }
   });
 
+  it.each([GP_R1, GP_R2])('$id transports airborne side and yaw impulses without curving the flight path', definition => {
+    const track = new ProfileTrack(crest), bike = machine(definition, track, 30, -22);
+    const d = bike.dynamics, gp = d.motoGP!;
+    for (let i = 0; i < 400 && Math.min(bike.roadSuspension.frontGap, bike.roadSuspension.rearGap) < .30; i++)
+      bike.step(DT, track);
+    expect(bike.roadSuspension.airborne).toBe(true);
+    gp.yawRate = .75;
+    bike.body.velocity.x += 2.8 * Math.cos(d.heading);
+    bike.body.velocity.z -= 2.8 * Math.sin(d.heading);
+    bike.body.omega.y += .68;
+    const initialHeading = d.heading, initialX = d.x, initialZ = d.z;
+    let travelledX = 0, travelledZ = 0;
+    for (let i=0; i<12; i++) {
+      const vx=bike.body.velocity.x, vz=bike.body.velocity.z, speed=d.speed, heading=d.heading;
+      bike.step(DT,track);
+      expect(bike.roadSuspension.airborne).toBe(true);
+      const drag=d.p.drag*d.dragScale*speed*speed/d.mass*DT;
+      const expectedX=vx-drag*Math.sin(heading), expectedZ=vz-drag*Math.cos(heading);
+      expect(bike.body.velocity.x).toBeCloseTo(expectedX,8);
+      expect(bike.body.velocity.z).toBeCloseTo(expectedZ,8);
+      travelledX+=expectedX*DT; travelledZ+=expectedZ*DT;
+    }
+    expect(d.heading-initialHeading).toBeGreaterThan(12 * DT * gp.yawRate + .02);
+    expect(d.x-initialX).toBeCloseTo(travelledX,5);
+    expect(d.z-initialZ).toBeCloseTo(travelledZ,5);
+  });
   it('continues rear-supported yaw without any front road-steering force', () => {
     const track = new ProfileTrack(flat),
       bike = machine(GP_R1, track),
