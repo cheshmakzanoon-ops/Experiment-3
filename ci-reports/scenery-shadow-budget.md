@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45263618385
-- commit: `5fbbd193bd` · Fit motocross team bibs around the rider protection and retire unused road textures on dirt grids
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45265358536
+- commit: `c398f43137` · Light Valley Ridge and its reflections from a weather-matched photographic sky at every racing preset
 - event: push · status: completed · conclusion: **success**
-- started: 2026-11-23T20:51:11Z · updated: 2026-11-23T23:20:21Z
+- started: 2026-11-23T21:01:25Z · updated: 2026-11-23T23:26:52Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 11 |  |
-| browser (sunset) | success | 8 |  |
-| browser (day) | success | 9 |  |
+| browser (day) | success | 5 |  |
+| browser (sunset) | success | 7 |  |
+| browser (night) | success | 7 |  |
