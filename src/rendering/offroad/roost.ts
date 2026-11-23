@@ -19,6 +19,7 @@ import {
 } from '../../simulation/protocol.ts';
 import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { StartGate } from './start-gate.ts';
+import { MxChassisShade } from './mx-chassis-shade.ts';
 import { MotocrossAxles } from './motocross-axles.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
@@ -206,6 +207,7 @@ export class Roost {
   /** Solid soil shares the existing pool; this is one additional bounded draw. */
   readonly clods: T.InstancedMesh | null;
   readonly contactShadows: T.InstancedMesh | null;
+  private readonly chassisShade: MxChassisShade | null;
   /** Optional displayed terrain sampler, including live/replayed rut depth. */
   startPad: Pick<StartGate, 'padHeightAt'> | null = null;
   groundHeight: ((s: number, lateral: number) => number) | null = null;
@@ -352,7 +354,11 @@ export class Roost {
           128,
         )
       : null;
-    if (this.contactShadows) {
+    this.chassisShade = this.contactShadows
+      ? new MxChassisShade((this.contactShadows.material as T.MeshBasicMaterial).map!)
+      : null;
+    if (this.contactShadows && this.chassisShade) {
+      this.contactShadows.add(this.chassisShade.mesh);
       this.contactShadows.name = 'MX loaded tyre contact shadows';
       this.contactShadows.instanceMatrix.setUsage(T.DynamicDrawUsage);
       this.contactShadows.count = 0;
@@ -515,11 +521,16 @@ export class Roost {
     if (!mesh) return;
     let count = 0;
     this.loaded.fill(0);
+    this.chassisShade?.begin();
     for (let id = 0; id < Math.min(64, frame[H.CARS]); id++) {
       const o = carBase(id),
         def = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
-      if (def.dynamicsKind !== 'bike' || frame[o + OFFROAD_BASE + O.AIRBORNE] > 0.5) continue;
+      if (def.dynamicsKind !== 'bike' || frame[o + F.RETIRED] > 0.5) continue;
       this.q.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
+      if (this.track && this.groundHeight && def.bike?.offroad)
+        this.chassisShade?.add(frame[o + F.X], frame[o + F.Y], frame[o + F.Z], this.q,
+          def.spec.wheelbase, this.track, this.groundHeight, this.startPad);
+      if (frame[o + OFFROAD_BASE + O.AIRBORNE] > 0.5) continue;
       for (const wheel of [0, 2]) {
         const w = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         if (frame[w + W.LOAD] < 45) continue;
@@ -540,6 +551,7 @@ export class Roost {
         mesh.setMatrixAt(count++, pose.matrix);
       }
     }
+    this.chassisShade?.end();
     mesh.count = count;
     markItems(mesh.instanceMatrix, 0, count - 1);
   }
@@ -939,6 +951,8 @@ export class Roost {
     if (this.motocross) this.points.geometry.setDrawRange(0, 0);
     this.points.geometry.getAttribute('position').needsUpdate = true;
     this.points.geometry.getAttribute('mxParticleAlpha').needsUpdate = true;
+    this.chassisShade?.begin();
+    this.chassisShade?.end();
     if (this.contactShadows) this.contactShadows.count = 0;
     if (this.clods) this.clods.count = 0;
   }

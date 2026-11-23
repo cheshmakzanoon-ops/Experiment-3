@@ -74,6 +74,44 @@ function harness(riders = 1, venue: 'valley-ridge-mx' | 'arena-nord-sx' = 'valle
 }
 
 describe('lit motocross soil and independent touchdown contacts', () => {
+  it('drapes the engine shade over the displayed bank and pad, with finite fade and repeatable seeking', () => {
+    const { roost, frame, b, p, track } = harness();
+    const ground = (s: number, lateral: number) => 0.12 * (s - p.s) + 0.28 * lateral;
+    roost.groundHeight = ground;
+    frame[b + F.Y] = 0.86;
+    const shade = roost.contactShadows!.children[0] as T.Mesh<T.BufferGeometry>;
+    const pos = shade.geometry.getAttribute('position'), colours = shade.geometry.getAttribute('color');
+    const probe = trackPoint();
+    const draw = () => roost.update(frame, 1 / 60);
+    draw();
+    expect(shade.visible).toBe(true);
+    expect(shade.geometry.drawRange.count).toBe(48);
+    const original = Array.from(pos.array.slice(0, 45));
+    const alpha = colours.getW(7);
+    for (let v = 0; v < 15; v++) {
+      const l = track.nearest(pos.getX(v), pos.getZ(v), probe);
+      expect(pos.getY(v)).toBeCloseTo(ground(probe.s, l) + 0.014, 3);
+    }
+    frame[b + F.Y] += 0.5;
+    draw();
+    expect(colours.getW(7)).toBeLessThan(alpha);
+    expect(colours.getW(7)).toBeGreaterThan(0);
+    frame[b + F.Y] += 2;
+    draw();
+    expect(shade.visible).toBe(false);
+    frame[b + F.Y] = 0.86;
+    roost.startPad = { padHeightAt: () => 0.4 };
+    draw();
+    expect(pos.getY(7)).toBeCloseTo(0.414, 5);
+    roost.startPad = null;
+    roost.clear();
+    expect(shade.geometry.drawRange.count).toBe(0);
+    draw();
+    expect(Array.from(pos.array.slice(0, 45))).toEqual(original);
+    frame[b + F.RETIRED] = 1;
+    draw();
+    expect(shade.visible).toBe(false);
+  });
   it.each(['valley-ridge-mx','arena-nord-sx'] as const)('advects only exposed suspended fines in %s with the recorded crosswind', venue => {
     const calm = harness(1, venue), wind = harness(1, venue);
     for (const h of [calm,wind]) {
