@@ -1,3 +1,4 @@
+import { formulaFlapAngle } from '../formula-rear-flap.ts';
 import { WING_DETACH_HEALTH } from '../../simulation/config.ts';
 import { lampMaterial } from './materials.ts';
 import * as T from 'three';
@@ -26,6 +27,7 @@ import {
 import {
   presentationAlpha,
   sampleOffroadField,
+  sampleValue,
   snapshotSource,
 } from '../snapshot-interpolation.ts';
 import { bodySheetFor, type BodySheet } from './body-sheet.ts';
@@ -94,6 +96,13 @@ interface ShadowWheel {
   camber: number;
   radiusScale: number;
 }
+interface ShadowFlap {
+  first: number;
+  local: Float32Array;
+  pivot: T.Vector3;
+  angle: number;
+}
+const shadowFlaps = new WeakMap<T.Mesh, ShadowFlap>();
 const shadowWheels = new WeakMap<T.Mesh, ShadowWheel[]>();
 /** Where the colourway layers sit on a closed body (car-frame metres). */
 export function layerFrameFor(frame: BodyFrame, model: ClosedBodyModel): LayerFrame {
@@ -190,7 +199,7 @@ export function buildVehicleBody(
     wheels.push(corners);
     links.push(meshes);
   }
-  const proxy = shadowProxy(lods[2].group, wheels[2], definition);
+  const proxy = shadowProxy(lods[2].group, wheels[2], definition, lods[2].flap);
   root.add(proxy);
   return {
     definition,
@@ -221,11 +230,11 @@ function admitsLight(material: T.Material | undefined) {
 /** One depth-only mesh: the far body and four posed wheel cylinders. The
  * glazing and the cabin lid are left out, so the sun reaches the near
  * cabin through the windows while the roof and body still shade it. */
-function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefinition) {
+function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefinition, flap?: T.Mesh<T.BufferGeometry>) {
   const parts: T.BufferGeometry[] = [];
   far.updateMatrixWorld(true);
   far.traverse((o) => {
-    if (!(o instanceof T.Mesh) || o.name === 'Suspension link') return;
+    if (!(o instanceof T.Mesh) || o === flap || o.name === 'Suspension link') return;
     let inWheel = false;
     for (let p: T.Object3D | null = o; p && p !== far; p = p.parent)
       if (wheels.some((w) => w.pivot === p)) inWheel = true;
@@ -249,6 +258,9 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
     g.applyMatrix4(o.matrixWorld.clone().premultiply(far.matrixWorld.clone().invert()));
     parts.push(g);
   });
+  // Place the articulated panel directly before the wheel block so all
+  // frequently updated vertices occupy one contiguous GPU upload range.
+  if (flap) parts.push(flap.geometry.clone().translate(flap.position.x, flap.position.y, flap.position.z));
   for (const w of wheels) {
     const g = new T.CylinderGeometry(w.radius, w.radius, 2 * w.halfWidth, 12).rotateZ(Math.PI / 2);
     g.translate(w.pivot.position.x, w.pivot.position.y, w.pivot.position.z);
@@ -265,8 +277,14 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
   // the body remains static and the shadow retains one draw call.
   let first = 0;
   const moving: ShadowWheel[] = [];
+  let movingFlap: ShadowFlap | undefined;
   flat.forEach((g, i) => {
     const position = g.getAttribute('position');
+    if (flap && i === flat.length - 5) {
+      const p = flap.geometry.getAttribute('position');
+      // Catalogue aerofoil sections are already non-indexed triangle lists.
+      movingFlap = { first, local: Float32Array.from(p.array), pivot: flap.position.clone(), angle: 0 };
+    }
     if (i >= flat.length - 4) {
       const wheel = wheels[i - flat.length + 4];
       const local = Float32Array.from(position.array);
@@ -290,6 +308,7 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
   proxy.receiveShadow = false;
   proxy.visible = false;
   shadowWheels.set(proxy, moving);
+  if (movingFlap) shadowFlaps.set(proxy, movingFlap);
   return proxy;
 }
 export class VehicleBodies {
@@ -401,6 +420,24 @@ export class VehicleBodies {
       // A bounded round-cylinder envelope is sufficient at shadow-map detail.
       const proxyPosition = body.proxy.geometry.getAttribute('position') as T.BufferAttribute;
       const shadow = shadowWheels.get(body.proxy)!;
+      const flap = shadowFlaps.get(body.proxy);
+      const angle = flap ? formulaFlapAngle(sampleValue(a, b, o + RACE_BASE + R.DRS_FLAP, t)) : 0;
+      const flapMoved = flap !== undefined && flap.angle !== angle;
+      if (flap && flapMoved) {
+        const c = Math.cos(angle), s = Math.sin(angle);
+        for (let j = 0; j < flap.local.length; j += 3) {
+          const y = flap.local[j + 1], z = flap.local[j + 2];
+          proxyPosition.setXYZ(flap.first + j / 3, flap.pivot.x + flap.local[j],
+            flap.pivot.y + c * y - s * z, flap.pivot.z + s * y + c * z);
+        }
+        flap.angle = angle;
+      }
+      // A newly chosen feed LOD can render before the next main update.
+      for (const lod of body.lods) {
+        if (lod.flap) lod.flap.rotation.x = angle;
+        for (const e of lod.front) e.visible = front;
+        for (const e of lod.rear) e.visible = rear;
+      }
       let shadowMoved = false;
       shadow.forEach((pose, i) => {
         const { first, local } = pose;
@@ -442,12 +479,16 @@ export class VehicleBodies {
           );
         }
       });
-      if (shadowMoved) {
+      if (shadowMoved || flapMoved) {
         // All four cylinders are contiguous after the static shell. Keep one
         // pending range if an off-screen shadow skips several upload frames.
-        const start = shadow[0].first * proxyPosition.itemSize;
-        if (!proxyPosition.updateRanges.length)
-          proxyPosition.addUpdateRange(start, proxyPosition.array.length - start);
+        const start = (flap && flapMoved ? flap.first : shadow[0].first) * proxyPosition.itemSize;
+        const pending = proxyPosition.updateRanges[0];
+        if (!pending) proxyPosition.addUpdateRange(start, proxyPosition.array.length - start);
+        else if (start < pending.start) {
+          pending.start = start;
+          pending.count = proxyPosition.array.length - start;
+        }
         proxyPosition.needsUpdate = true;
       }
       // The main view's LOD, and the coarser one a rear-view feed shows.
@@ -456,8 +497,6 @@ export class VehicleBodies {
         : [level]) {
         const lod = body.lods[shown];
         lod.wipers?.update(lerp(a[H.TIME], b[H.TIME], t), lerp(a[H.RAIN], b[H.RAIN], t), id);
-        for (const e of lod.front) e.visible = front;
-        for (const e of lod.rear) e.visible = rear;
         body.wheels[shown].forEach((wheel, i) => {
           const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
           const contact = sampleWheelContact(a, b, o, i, t, this.contactPose);
@@ -586,7 +625,7 @@ export class VehicleBodies {
     const out: ShadowSubstitute[] = [];
     for (const body of this.bodies.values()) {
       if (!body.root.visible) continue;
-      if (intactOnly) {
+      if (intactOnly || body.lods[body.level].flap) {
         // The merged silhouette represents the intact catalogue shell. Use
         // the current geometry for broken parts and a replaced active wing.
         const lod = body.lods[body.level];

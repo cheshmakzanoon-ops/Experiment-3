@@ -187,7 +187,8 @@ export class Simulation {
         this.ai[i].update(dt, this.track, this.cars, this.race);
       } else if (this.race.phase === PHASE.LIGHTS && c.input.throttle === 0) c.input.brake = 1;
       // Dirty air (downforce) and slipstream (drag) behind every leader.
-      wakeFields(c, this.cars);
+      if (c.definition.drs) wakeFields(c, this.cars, this.track.windX, this.track.windZ);
+      else wakeFields(c, this.cars);
     }
     this.offroad?.beforePhysics(dt, this.autoPlayer);
     for (let sub = 0; sub < 2; sub++) {

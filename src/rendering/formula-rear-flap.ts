@@ -8,7 +8,9 @@ export type RearSkin = 'rear_paint' | 'rear_carbon';
  * the upper element's trailing edge. Positive Z points towards the nose. */
 const HINGE_Y = 0.607;
 const HINGE_Z = -2.255;
-const OPEN_ANGLE = -0.4;
+export function formulaFlapAngle(travel: number) {
+  return -0.4 * clamp(travel, 0, 1);
+}
 
 /** The Blender exports batch by finish. The two endplates lie entirely beyond
  * |x| = .83 m. The separate carbon Gurney lip lies above the mainplane and
@@ -71,6 +73,6 @@ export class FormulaRearFlap {
   }
 
   setTravel(fraction: number) {
-    this.hinge.rotation.x = OPEN_ANGLE * clamp(fraction, 0, 1);
+    this.hinge.rotation.x = formulaFlapAngle(fraction);
   }
 }

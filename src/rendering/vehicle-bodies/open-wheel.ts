@@ -396,18 +396,30 @@ export function buildOpenWheel(
       carbon,
       placed(0, yw, zw, 0.15),
     );
-    if (detail < 2) {
-      rear.add(
-        aerofoil(0.2, 0.1, 0.05, span * 0.98, 8),
-        carbon,
-        placed(0, yw + 0.09, zw - 0.3, 0.55),
-      );
+    const adjustable = cabin?.def.drs === true;
+    if (adjustable) {
+      // The authored section begins at its leading edge. Bake the closed
+      // incidence about a journal 88% of the way back along the chord.
+      const pivot = new T.Vector3(0, 0, -0.176).applyEuler(new T.Euler(0.55, 0, 0));
+      const skin = aerofoil(0.2, 0.1, 0.05, span * 0.98, detail === 0 ? 12 : 5);
+      skin.rotateX(0.55).translate(0, -pivot.y, -pivot.z);
+      const flap = new T.Mesh(skin, carbon);
+      flap.name = 'Drag reduction upper element';
+      flap.position.set(0, yw + 0.09 + pivot.y, zw - 0.3 + pivot.z);
+      flap.castShadow = flap.receiveShadow = true;
+      lod.flap = flap;
+    } else if (detail < 2) {
+      rear.add(aerofoil(0.2, 0.1, 0.05, span * 0.98, 8), carbon, placed(0, yw + 0.09, zw - 0.3, 0.55));
+    }
+    if (detail < 2 || adjustable) {
       for (const side of [-1, 1])
         rear.add(
           roundedBox(0.012, 0.62, 0.62, 0.006, 1),
           carbon,
           placed(side * (span / 2 + 0.006), yw - 0.18, zw - 0.2),
         );
+    }
+    if (detail < 2) {
       rear.add(aerofoil(0.2, 0.1, 0.04, span * 0.9, 8), carbon, placed(0, y(0.42), zw + 0.05, 0.1));
       rear.add(
         roundedBox(0.03, yw - y(0.48), 0.1, 0.01, 1),
@@ -418,6 +430,7 @@ export function buildOpenWheel(
     const g = new T.Group();
     g.name = 'Rear wing (detachable)';
     rear.build(g, detail === 0);
+    if (lod.flap) g.add(lod.flap);
     lod.group.add(g);
     lod.rear.push(g);
   }

@@ -90,6 +90,7 @@ export interface BuiltLod {
   group: T.Group;
   front: T.Object3D[];
   rear: T.Object3D[];
+  flap?: T.Mesh<T.BufferGeometry>;
   /** The near cabin (LOD0 only): interior.ts. */
   cabin?: BuiltCabin;
   wipers?: FestivalWipers;

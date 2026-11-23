@@ -152,3 +152,36 @@ describe('porpoising-safe floor near its stall region', () => {
     expect(Math.abs(results[0].height - results[2].height)).toBeLessThan(0.002);
   }, 60000);
 });
+
+it('carries the tow and loss of front-wing air downwind while preserving body alignment', () => {
+  const following = new Vehicle(0),
+    leading = new Vehicle(1);
+  const track = new DynamicsTrack();
+  for (const car of [following, leading]) {
+    car.place(track, 0);
+    car.forward.set(0, 0, 1);
+    car.body.position.set(0, 1, 0);
+    car.speed = 60;
+  }
+  const field = [following, leading];
+  function sample(x: number, windX = 0, windZ = 0, behind = 40) {
+    following.body.position.set(x, 1, -behind);
+    wakeFields(following, field, windX, windZ);
+    return [following.wake, following.slipstream];
+  }
+  const calm = sample(0);
+  expect(calm[0]).toBeGreaterThan(0.3);
+  expect(calm[1]).toBeGreaterThan(0.5);
+  // 40 m behind at 60 m/s, a 9 m/s crosswind convects the centre by 6 m.
+  expect(sample(0, 9)).toEqual([0, 0]);
+  const leeward = sample(6, 9);
+  expect(leeward[0]).toBeGreaterThan(0.35);
+  expect(leeward[1]).toBeGreaterThan(0.5);
+  expect(sample(-6, -9)).toEqual(leeward);
+  expect(sample(-6, 9)).toEqual([0, 0]);
+  expect(sample(0, 0, 0)).toEqual(calm);
+  expect(sample(0, 0, 65)).toEqual([0, 0]);
+  expect(sample(18, 9, 0, 120)).toEqual([0, 0]);
+  following.forward.set(0, 0, -1);
+  expect(sample(6, 9)).toEqual([0, 0]);
+});

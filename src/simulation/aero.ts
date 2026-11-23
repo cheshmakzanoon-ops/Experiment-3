@@ -156,6 +156,7 @@ export function wakeOverlap(
   leaderForward: Vec3,
   leaderSpeed: number,
   followerForward?: Vec3,
+  leaderHeading = leaderForward,
 ) {
   const length = leaderForward.length();
   if (length < 1e-8 || leaderSpeed <= 20) return 0;
@@ -173,7 +174,12 @@ export function wakeOverlap(
     ? smooth(
         0,
         0.85,
-        followerForward.dot(leaderForward) / Math.max(1e-8, followerForward.length() * length),
+        followerForward.dot(leaderHeading) /
+          Math.max(
+            1e-8,
+            followerForward.length() *
+              (leaderHeading === leaderForward ? length : leaderHeading.length()),
+          ),
       )
     : 1;
   return (
@@ -196,6 +202,7 @@ export function slipstreamOverlap(
   leaderForward: Vec3,
   leaderSpeed: number,
   followerForward?: Vec3,
+  leaderHeading = leaderForward,
 ) {
   const length = leaderForward.length();
   if (length < 1e-8 || leaderSpeed <= 15) return 0;
@@ -213,7 +220,12 @@ export function slipstreamOverlap(
     ? smooth(
         0.3,
         0.9,
-        followerForward.dot(leaderForward) / Math.max(1e-8, followerForward.length() * length),
+        followerForward.dot(leaderHeading) /
+          Math.max(
+            1e-8,
+            followerForward.length() *
+              (leaderHeading === leaderForward ? length : leaderHeading.length()),
+          ),
       )
     : 1;
   return (
@@ -226,6 +238,8 @@ export function slipstreamOverlap(
     alignment
   );
 }
+const apparentFlow = new Vec3();
+
 /** Dirty-air and slipstream fractions of `follower` behind every other car,
  * scaled by each leader's wake and tow strength. Exact cull (§23.4): both
  * volumes are zero beyond 100 m behind, and at more than 101 m apart the
@@ -233,6 +247,8 @@ export function slipstreamOverlap(
 export function wakeFields(
   follower: Pick<Vehicle, 'wake' | 'slipstream' | 'body' | 'forward'>,
   cars: readonly Pick<Vehicle, 'body' | 'forward' | 'speed' | 'physics'>[],
+  windX = 0,
+  windZ = 0,
 ) {
   let wake = 0,
     tow = 0;
@@ -241,14 +257,30 @@ export function wakeFields(
     if (other !== follower && position.distanceSq(other.body.position) < 101 * 101) {
       const leader = other.physics.aero,
         at = other.body.position;
+      // Turbulence is convected with the air. In a crosswind the wake trails
+      // downwind of the car's heading; a following driver can recover clean
+      // front-wing air by moving to windward. Alignment still uses the cars.
+      let axis = other.forward,
+        airspeed = other.speed;
+      if (windX !== 0 || windZ !== 0) {
+        if (other.speed <= 15) continue;
+        const length = axis.length();
+        if (length < 1e-8) continue;
+        apparentFlow.copy(axis).scale(other.speed / length);
+        apparentFlow.x -= windX;
+        apparentFlow.z -= windZ;
+        if (apparentFlow.dot(axis) <= 0) continue;
+        axis = apparentFlow;
+        airspeed = apparentFlow.length();
+      }
       wake = Math.max(
         wake,
-        wakeOverlap(position, at, other.forward, other.speed, follower.forward) *
+        wakeOverlap(position, at, axis, airspeed, follower.forward, other.forward) *
           leader.wakeStrength,
       );
       tow = Math.max(
         tow,
-        slipstreamOverlap(position, at, other.forward, other.speed, follower.forward) *
+        slipstreamOverlap(position, at, axis, airspeed, follower.forward, other.forward) *
           leader.towStrength,
       );
     }

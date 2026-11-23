@@ -246,3 +246,46 @@ describe('WP30 procedural vehicle bodies', () => {
     expect(bodies.shadowSubstitutes()).toHaveLength(1);
   });
 });
+
+it('moves the Formula upper plane and the same shadow vertices in a cold mirror LOD and on replay seek', () => {
+  const bodies = new VehicleBodies();
+  const frame = new Float32Array(HEADER + CAR_STRIDE),
+    o = carBase(0);
+  frame[H.CARS] = 1;
+  frame[o + F.FRONT_HEALTH] = frame[o + F.REAR_HEALTH] = 1;
+  const hosts = [{ root: new T.Group(), lodLevel: 0 }];
+  for (const id of ['fx26', 'fr3', 'jf2']) {
+    frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+    frame[o + F.REAR_HEALTH] = 1;
+    frame[o + RACE_BASE + R.DRS_FLAP] = 0;
+    bodies.update(frame, frame, 1, hosts);
+    const built = (
+      bodies as unknown as { bodies: Map<number, ReturnType<typeof buildVehicleBody>> }
+    ).bodies.get(0)!;
+    const positions = built.proxy.geometry.getAttribute('position');
+    const initial = Array.from(positions.array);
+    const pivots = built.lods.map((lod) => lod.flap!.position.clone());
+    frame[o + RACE_BASE + R.DRS_FLAP] = 1;
+    bodies.update(frame, frame, 1, hosts);
+    bodies.showFeedDetail(() => 2);
+    built.lods.forEach((lod, i) => {
+      expect(lod.flap!.rotation.x).toBeCloseTo(-0.4);
+      expect(lod.flap!.position.distanceTo(pivots[i])).toBe(0);
+      expect(lod.rear[0].children).toContain(lod.flap);
+    });
+    const moved: number[] = [];
+    for (let v = 0; v < positions.count; v++)
+      if (Math.abs(positions.getY(v) - initial[v * 3 + 1]) > 1e-5) moved.push(v);
+    expect(moved.length).toBeGreaterThan(16);
+    expect(Math.max(...moved) - Math.min(...moved)).toBeLessThan(400);
+    bodies.restoreFeedDetail();
+    frame[o + RACE_BASE + R.DRS_FLAP] = 0;
+    bodies.update(frame, frame, 1, hosts);
+    moved.forEach((v) => expect(positions.getY(v)).toBeCloseTo(initial[v * 3 + 1], 6));
+    frame[o + F.REAR_HEALTH] = 0;
+    bodies.update(frame, frame, 1, hosts);
+    expect(built.lods.every((lod) => lod.rear.every((part) => !part.visible))).toBe(true);
+    expect(bodies.shadowSubstitutes()).toHaveLength(0);
+  }
+  bodies.clear();
+});
