@@ -1,11 +1,12 @@
 import * as T from 'three';
+import type { TrackPoint } from '../simulation/track.ts';
 
 /** Objects that appear in the wet-road reflection opt in to this layer. */
 export const WET_REFLECTION_LAYER = 5;
 
 /** Wet-road planar reflection. Standing water on a broadcast-scale race track
  * mirrors cars, sky, lamps and large structures. One mirrored view is drawn
- * about the horizontal plane under the followed car, with an oblique near
+ * about the local road plane, with an oblique near
  * plane at the water surface. Only large, reflection-relevant objects opt in
  * (WET_REFLECTION_LAYER), so the extra pass stays a small fraction of the main
  * view's draws. The road's water-film clearcoat lobe samples it with the same
@@ -27,6 +28,8 @@ export const WET_STREAK = Object.freeze({ base: 0.004, roughness: 0.03, taps: 7 
 export interface WetReflectionUniforms {
   wetReflection: { value: T.Texture };
   wetReflectionMatrix: { value: T.Matrix4 };
+  /** World-space unit plane (normal.xyz, constant) of the reflected road. */
+  wetReflectionPlane: { value: T.Vector4 };
   /** x plane height (m), y strength 0..1, z max LOD, w unused. */
   wetReflectionState: { value: T.Vector4 };
 }
@@ -62,6 +65,7 @@ export class WetRoadReflection {
     this.uniforms = {
       wetReflection: { value: this.target.texture },
       wetReflectionMatrix: { value: new T.Matrix4() },
+      wetReflectionPlane: { value: new T.Vector4(0, 1, 0, 0) },
       wetReflectionState: { value: new T.Vector4(0, 0, WET_REFLECTION.maxLod, 0) },
     };
   }
@@ -77,14 +81,15 @@ export class WetRoadReflection {
   suspend() {
     this.uniforms.wetReflectionState.value.y = 0;
   }
-  /** Mirror `source` about the horizontal plane y = planeY and render the
-   * opted-in objects. `strength` 0 skips the pass and disables sampling. */
+  /** The GP water film follows the surveyed asphalt at the rider's station.
+   * One plane drives the mirrored eye, clip, highlights and distance fade. */
   update(
     renderer: T.WebGLRenderer,
     scene: T.Scene,
     source: T.PerspectiveCamera,
     planeY: number,
     strength: number,
+    road?: TrackPoint,
   ) {
     const state = this.uniforms.wetReflectionState.value;
     state.x = planeY;
@@ -97,9 +102,19 @@ export class WetRoadReflection {
       this.target.setSize(width, height);
     source.updateMatrixWorld();
     this.cameraPosition.setFromMatrixPosition(source.matrixWorld);
-    this.planePoint.set(this.cameraPosition.x, planeY, this.cameraPosition.z);
-    // The camera must be above the water: under it there is nothing to mirror.
-    if (this.cameraPosition.y <= planeY + 0.02) return;
+    if (road) {
+      this.normal.set(-road.tx * road.gradient - road.nx * road.bank, 1,
+        -road.tz * road.gradient - road.nz * road.bank).normalize();
+      this.planePoint.set(road.x, road.y, road.z);
+    } else {
+      this.normal.set(0, 1, 0);
+      this.planePoint.set(this.cameraPosition.x, planeY, this.cameraPosition.z);
+    }
+    this.plane.setFromNormalAndCoplanarPoint(this.normal, this.planePoint);
+    if (this.plane.distanceToPoint(this.cameraPosition) <= 0.02) return;
+    this.uniforms.wetReflectionPlane.value.set(
+      this.normal.x, this.normal.y, this.normal.z, this.plane.constant,
+    );
     // Mirror the eye and its gaze about the plane (as three's Reflector does).
     this.rotation.extractRotation(source.matrixWorld);
     this.look.set(0, 0, -1).applyMatrix4(this.rotation).add(this.cameraPosition);
@@ -115,7 +130,6 @@ export class WetRoadReflection {
     camera.updateMatrixWorld();
     camera.projectionMatrix.copy(source.projectionMatrix);
     // Oblique near plane at the water surface (Lengyel): nothing below it.
-    this.plane.setFromNormalAndCoplanarPoint(this.normal, this.planePoint);
     this.plane.applyMatrix4(camera.matrixWorldInverse);
     this.clip.set(this.plane.normal.x, this.plane.normal.y, this.plane.normal.z, this.plane.constant);
     const p = camera.projectionMatrix.elements;
@@ -174,12 +188,12 @@ if (wetReflectionState.y > 0.0 && material.clearcoat > 0.0) {
   vec4 wetReflectionClip = wetReflectionMatrix * vec4(vFinishWorld, 1.0);
   vec2 wetReflectionUv = wetReflectionClip.xy / wetReflectionClip.w;
   // Ripples and aggregate tilt the film: offset in view space, a few pixels.
-  vec3 wetReflectionTilt = geometryClearcoatNormal - normalize(mat3(viewMatrix) * vec3(0.0, 1.0, 0.0));
+  vec3 wetReflectionTilt = geometryClearcoatNormal - normalize(mat3(viewMatrix) * wetReflectionPlane.xyz);
   wetReflectionUv += wetReflectionTilt.xy * 0.06;
   vec2 wetReflectionEdge = smoothstep(vec2(0.0), vec2(0.05), wetReflectionUv) *
     (1.0 - smoothstep(vec2(0.95), vec2(1.0), wetReflectionUv));
   float wetReflectionHeight = 1.0 - smoothstep(${WET_REFLECTION.planeFade[0].toFixed(2)}, ${WET_REFLECTION.planeFade[1].toFixed(2)},
-    abs(vFinishWorld.y - wetReflectionState.x));
+    abs(dot(wetReflectionPlane, vec4(vFinishWorld, 1.0))));
   float wetReflectionWeight = wetReflectionState.y * wetReflectionEdge.x * wetReflectionEdge.y *
     wetReflectionHeight * step(0.0, wetReflectionClip.w);
   float wetReflectionLod = sqrt(material.clearcoatRoughness) * wetReflectionState.z;

@@ -145,7 +145,7 @@ export function installWetRoad(
       '#include <common>',
       '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; uniform float roadDust; uniform float roadLampRadius; varying vec2 vTrackUV; varying vec2 vRoadMetres;\n' +
         (reflection
-          ? 'uniform sampler2D wetReflection; uniform mat4 wetReflectionMatrix; uniform vec4 wetReflectionState;\n'
+          ? 'uniform sampler2D wetReflection; uniform mat4 wetReflectionMatrix; uniform vec4 wetReflectionState, wetReflectionPlane;\n'
           : '') +
         LIGHT_FOOTPRINT_GLSL +
         ROAD_MACRO_GLSL,

@@ -8,6 +8,7 @@ import {
   reflectInWetRoad,
 } from '../src/rendering/wet-reflection.ts';
 import { installWetRoad } from '../src/rendering/materials.ts';
+import { trackPoint } from '../src/simulation/track.ts';
 
 /** Records calls in place of a WebGL renderer. */
 function fakeRenderer(width = 1600, height = 900) {
@@ -89,6 +90,33 @@ describe('wet-road planar reflection', () => {
     expect(reflection.target.width).toBe(800);
     expect(reflection.target.height).toBe(450);
     expect(reflection.passes).toBe(1);
+  });
+  it('keeps the eye, clip plane and film sampling coincident on a climbing banked GP road', () => {
+    const reflection = new WetRoadReflection();
+    const { renderer } = fakeRenderer();
+    const scene = new T.Scene();
+    const road = { ...trackPoint(), x: 3, y: 1.2, z: -24, gradient: 0.055, bank: -0.08 };
+    const normal = new T.Vector3(-road.bank, 1, -road.gradient).normalize();
+    const plane = new T.Plane().setFromNormalAndCoplanarPoint(normal, new T.Vector3(road.x, road.y, road.z));
+    reflection.update(renderer, scene, camera, road.y, 1, road);
+    expect(reflection.passes).toBe(1);
+    const reflected = (point: T.Vector3) => point.clone().addScaledVector(normal, -2 * plane.distanceToPoint(point));
+    expect(reflection.camera.position.distanceTo(reflected(camera.position))).toBeLessThan(1e-8);
+    expect(reflection.uniforms.wetReflectionPlane.value.toArray()).toEqual([...normal.toArray(), plane.constant]);
+    const object = new T.Vector3(-3, 3.4, -18);
+    const image = reflected(object);
+    const ray = new T.Line3(camera.position, image);
+    const surface = plane.intersectLine(ray, new T.Vector3())!;
+    const projective = reflection.uniforms.wetReflectionMatrix.value;
+    expect(project(projective, surface).distanceTo(project(projective, object))).toBeLessThan(1e-7);
+    const clipDepth = (p: T.Vector3) => p.clone().project(reflection.camera).z;
+    expect(clipDepth(object)).toBeGreaterThan(-1);
+    expect(clipDepth(image)).toBeLessThan(-1);
+    // Reusing the renderer for a flat venue must reset its plane and camera.
+    reflection.update(renderer, scene, camera, 0.5, 1);
+    expect(reflection.uniforms.wetReflectionPlane.value.toArray()).toEqual([0, 1, 0, -0.5]);
+    expect(reflection.camera.position.y).toBeCloseTo(1 - camera.position.y, 9);
+    reflection.dispose();
   });
   it('skips the pass when dry, on Low, or with the camera under the water', () => {
     const reflection = new WetRoadReflection();

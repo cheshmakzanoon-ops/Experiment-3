@@ -2664,6 +2664,7 @@ export class RacingRenderer {
         this.camera,
         roadPoint.y + roadPoint.bank * presented[o + F.LATERAL],
         !menu && !studio && (presented[H.WATER] > 0.02 || wetReflection) ? 1 : 0,
+        gpGrid && this.circuit.track.gpEdges ? roadPoint : undefined,
       );
       this.drawLedger.mark('other');
       this.motionBlur.setStrength(
