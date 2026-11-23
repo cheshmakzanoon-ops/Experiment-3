@@ -4,9 +4,9 @@
 
 The GP-R1 enters a bend at Haarveld at 122 km/h and 22.3° of lean. The steering-mounted display shows the same speed as the simulation. The race stills use the production simulation and Three.js renderer at the High preset, 800 × 450, with seed 34100 and alternating GP-R1 and GP-R2 machines.
 
-![GP riders leaning through a right-hand bend at Poggio Alto](poggio-corner.jpg)
+![Two-second in-engine sequence of the GP field leaning through a bend at Poggio Alto](poggio-corner-motion.webp)
 
-Four AI riders enter a bend at Poggio Alto. The trackside camera follows the leading bike as the field crosses the dark rubbered line.
+The trackside camera follows four AI riders through the bend at Poggio Alto. Lean on the followed bike increases from 21.8° to 32.5°. The 640 × 360 sequence contains 48 distinct renders at 24 fps. Every frame advances five physics ticks. [Full-size still](poggio-corner.jpg) · [Frame telemetry](poggio-corner-telemetry.json)
 
 | Poggio Alto, dry start | Cape Wrenna, wet start |
 | --- | --- |
@@ -57,4 +57,11 @@ The paired photographic checks run through the repository’s browser tests.
 
 ```sh
 npm run test:e2e -- e2e/gp-visor-and-flags.spec.ts e2e/gp-fan-silhouettes.spec.ts e2e/gp-rider-contact.spec.ts --workers=1
+```
+
+To render the same 48 JPEG frames and their telemetry, install the repo dependencies and run the capture from the repository root. The script starts a local Vite server and closes it after the last frame.
+
+```sh
+npx playwright install chromium
+node scripts/studio/gp-race-clip.mjs ./captures/gp-corner
 ```

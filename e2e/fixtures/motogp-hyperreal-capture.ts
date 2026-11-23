@@ -18,6 +18,8 @@ export interface HyperrealCaptureOptions {
   width?: number;
   height?: number;
   seed?: number;
+  /** Optional offline image sequence. Each image advances an exact number of 120 Hz physics ticks. */
+  clip?: { frames: number; fps: 24 | 30 | 60 };
 }
 
 /** Hyperrealism review capture: the production Simulation and RacingRenderer
@@ -41,6 +43,17 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     import('../../src/simulation/protocol.ts'),
     import('../../src/rendering/gpu-frame-gate.ts'),
   ]);
+  const receiver = globalThis as { saveCapture?: (name: string, url: string) => Promise<void> };
+  if (
+    o.clip &&
+    (!Number.isInteger(o.clip.frames) ||
+      o.clip.frames < 1 ||
+      ![24, 30, 60].includes(o.clip.fps) ||
+      !receiver.saveCapture)
+  )
+    throw new Error(
+      'A GP clip requires a positive frame count, a supported cadence and a frame receiver',
+    );
   const weather = o.weather ?? 'clear';
   const preset = o.preset ?? 'high';
   const opponents = o.opponents ?? 5;
@@ -78,6 +91,14 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     previous = current;
     current = simulation.makeFrame();
   };
+  const timeline: {
+    file: string;
+    tick: number;
+    seconds: number;
+    station: number;
+    leanDeg: number;
+    speedKph: number;
+  }[] = [];
   const captures: {
     view: string;
     moment: number;
@@ -85,6 +106,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     draws: number;
     triangles: number;
     presentedSeconds: number;
+    rig: number;
     station: number;
     passes: DrawBreakdown;
     speedKph: number;
@@ -95,7 +117,10 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
   // Review-only GPU fence: a CPU rasteriser (llvmpipe) can spend minutes on one
   // full High/Medium circuit frame, so the shipped 120 s stall limit and 45 s
   // preparation deadline are replaced for this capture only.
-  const internals = renderer as unknown as { gpuFrames: InstanceType<typeof GpuFrameGate>; drawLedger: DrawLedger };
+  const internals = renderer as unknown as {
+    gpuFrames: InstanceType<typeof GpuFrameGate>;
+    drawLedger: DrawLedger;
+  };
   internals.gpuFrames.dispose();
   const gpuFrames = (internals.gpuFrames = new GpuFrameGate(
     renderer.renderer.getContext() as WebGL2RenderingContext,
@@ -121,10 +146,14 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     );
     if (!prepared) throw new Error('GP composition preparation cancelled');
     if (simulation.track.gpEdges) {
-      const ground = renderer.circuit.props.getObjectByName('GP spectator terrain and weather masts');
+      const ground = renderer.circuit.props.getObjectByName(
+        'GP spectator terrain and weather masts',
+      );
       const sleeve = renderer.circuit.gpWindSleeve?.mesh;
       if (ground?.children.length !== 2 || !sleeve || ground.getObjectById(sleeve.id) !== sleeve)
-        throw new Error('The assembled GP circuit lost its spectator terrain or animated weather mast');
+        throw new Error(
+          'The assembled GP circuit lost its spectator terrain or animated weather mast',
+        );
     }
     console.log(`prepared ${preset} scene in ${(performance.now() / 1000).toFixed(1)} s`);
     const moments = (o.moments ?? [24, 32, 40]).slice().sort((a, b) => a - b);
@@ -159,6 +188,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           draws: renderer.renderer.info.render.calls,
           triangles: renderer.renderer.info.render.triangles,
           presentedSeconds: current[H.TIME],
+          rig: renderer.broadcastShot.rig,
           station: current[base + F.S],
           passes: internals.drawLedger.snapshot(),
           speedKph: current[base + F.SPEED] * 3.6,
@@ -167,19 +197,40 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           throttle: current[base + F.THROTTLE],
         });
         // Long software-GPU reviews persist each measured view as it completes.
-        const receiver = globalThis as { saveCapture?: (name: string, url: string) => Promise<void> };
         await receiver.saveCapture?.(`${view}-${moment}s.jpg`, image);
         const { image: _image, ...measurement } = captures[captures.length - 1];
         console.log('GP frame ' + JSON.stringify(measurement));
         console.log(
           `captured ${view}@${moment}s in ${((performance.now() - started) / 1000).toFixed(1)} s`,
         );
+        if (o.clip) {
+          const dt = 1 / o.clip.fps;
+          for (let frame = 0; frame < o.clip.frames; frame++) {
+            await settle();
+            advance(dt);
+            time += dt;
+            renderer.draw(previous, current, 1, dt, false);
+            // Reading before returning to the event loop retains the actual
+            // composed framebuffer. Stream frames so long clips keep bounded memory.
+            const file = `${view}-${moment}s-frame-${String(frame).padStart(4, '0')}.jpg`;
+            await receiver.saveCapture!(file, canvas.toDataURL('image/jpeg', 0.92));
+            timeline.push({
+              file,
+              tick: current[H.TICK],
+              seconds: current[H.TIME],
+              station: current[base + F.S],
+              leanDeg: (current[base + BIKE_BASE + B.LEAN] * 180) / Math.PI,
+              speedKph: current[base + F.SPEED] * 3.6,
+            });
+          }
+        }
       }
     }
     return {
       captures,
       finite: current.every(Number.isFinite),
       lighting: renderer.lighting,
+      ...(o.clip ? { timeline } : {}),
       weather,
       preset,
       circuit: o.circuit ?? 'poggio-alto',
