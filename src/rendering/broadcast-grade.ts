@@ -224,6 +224,7 @@ export class BroadcastGradePass extends Pass {
         lensRain: lens.lensRain,
         lensTime: lens.lensTime,
         lensStreak: lens.lensStreak,
+        lensVisor: lens.lensVisor,
       },
       depthTest: false,
       depthWrite: false,

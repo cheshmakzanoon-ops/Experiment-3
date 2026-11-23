@@ -189,6 +189,7 @@ export class CircuitScene {
   private readonly tyreRubber: TyreMarkPresentation;
   private gridPaint?: GridPaintPresentation;
   private readonly grandPrixGrid = { value: 0 };
+  private formulaGrid = false;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
   readonly trackInfrastructure: TrackInfrastructurePlan;
@@ -734,10 +735,11 @@ export class CircuitScene {
   }
   /** Grid layout belongs to the complete session field, independently of the
    * followed vehicle's road-material family. Remember selection before build. */
-  setGrandPrixGrid(enabled: boolean) {
+  setGrandPrixGrid(enabled: boolean, formula = false) {
+    this.formulaGrid = formula;
     this.grandPrixGrid.value = enabled ? 1 : 0;
     if (this.gpGarageEquipment) this.gpGarageEquipment.visible = enabled;
-    if (this.gridPaint?.setGrandPrix(enabled)) this.props.invalidateTransforms();
+    if (this.gridPaint?.setGrandPrix(enabled, formula)) this.props.invalidateTransforms();
   }
   startingGridDiagnostics() {
     return this.gridPaint?.diagnostics() ?? null;
@@ -1227,8 +1229,9 @@ export class CircuitScene {
     });
     installCircuitFinish(paint, 'paint');
     this.gridPaint = new GridPaintPresentation(this.track, paint);
-    this.gridPaint.setGrandPrix(this.grandPrixGrid.value > 0);
+    this.gridPaint.setGrandPrix(this.grandPrixGrid.value > 0, this.formulaGrid);
     this.gridPaint.build(this.props);
+    this.gridPaint.prepareFormula();
     const finish = canvasTexture(128, 32, (c) => {
       for (let y = 0; y < 2; y++)
         for (let x = 0; x < 16; x++) {

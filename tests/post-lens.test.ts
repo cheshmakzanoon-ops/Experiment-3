@@ -24,7 +24,7 @@ import {
 import { DOF_TAPS, DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
 import { BroadcastGradePass, GRADE_PROFILES } from '../src/rendering/broadcast-grade.ts';
 import { LensBloomPass } from '../src/rendering/lens-bloom.ts';
-import { H } from '../src/simulation/protocol.ts';
+import { F, H, CAR_STRIDE, HEADER, carBase } from '../src/simulation/protocol.ts';
 
 const PROFILES: GradeLutProfile[] = ['day', 'sunset', 'night', 'studio', 'wet'];
 const hueDelta = (a: number, b: number) => {
@@ -225,6 +225,51 @@ describe('lens effects', () => {
     expect(gu.lensRain.value).toBe(0);
     grade.dispose();
     bloom.dispose();
+    lens.dispose();
+  });
+});
+
+describe('open Formula visor', () => {
+  it('drains the open shield from the recorded time, wind, speed and corner load', () => {
+    const u = createLensUniforms(),
+      lens = new LensEffects(u);
+    const frame = new Float32Array(HEADER + CAR_STRIDE),
+      car = carBase(0);
+    const camera = new T.PerspectiveCamera(),
+      sun = new T.Vector3(0, 1, 0);
+    frame[H.AMBIENT] = 16;
+    frame[H.RAIN] = 12;
+    frame[H.TIME] = 46;
+    frame[H.WIND_X] = 5;
+    const sample = (
+      view: 'cockpit' | 'pod' | 'trackside',
+      speed: number,
+      open?: number,
+      on = true,
+    ) => lens.update(on, camera, view, frame, speed, sun, false, false, open);
+    sample('cockpit', 0, car);
+    expect(u.lensRain.value).toBeCloseTo(0.94);
+    expect(u.lensVisor.value.x).toBe(1);
+    expect(u.lensVisor.value.y).toBeCloseTo(5 / 18);
+    frame[car + F.G_LAT] = 3;
+    sample('cockpit', 80, car);
+    const wet = [u.lensRain.value, ...u.lensVisor.value.toArray(), u.lensTime.value];
+    expect(u.lensRain.value).toBeCloseTo(0.68);
+    expect(u.lensVisor.value.y).toBeLessThan(0);
+    sample('trackside', 80, car);
+    expect(u.lensStreak.value).toBe(0);
+    expect(u.lensVisor.value.toArray()).toEqual([0, 0]);
+    sample('pod', 80, car);
+    expect(u.lensStreak.value).toBe(1);
+    sample('cockpit', 80);
+    expect(u.lensRain.value).toBe(0);
+    sample('cockpit', 80, car);
+    expect([u.lensRain.value, ...u.lensVisor.value.toArray(), u.lensTime.value]).toEqual(wet);
+    sample('cockpit', 80, car, false);
+    expect(u.lensVisor.value.x + u.lensRain.value).toBe(0);
+    frame[H.AMBIENT] = -8;
+    sample('cockpit', 80, car);
+    expect(u.lensVisor.value.x + u.lensRain.value).toBe(0);
     lens.dispose();
   });
 });

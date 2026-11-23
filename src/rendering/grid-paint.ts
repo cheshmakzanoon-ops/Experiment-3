@@ -3,6 +3,7 @@ import { clamp } from '../core/math.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { gpGridSlot } from '../simulation/gp-grid.ts';
 import { batchScene, box } from './geometry.ts';
+import { formulaGridPaint } from './formula-grid-marks.ts';
 import { surfaceGridFor } from './studio/road-detail.ts';
 
 /** REF 014/016: a short front-wheel U mark, scaled to the existing GP bikes.
@@ -57,13 +58,14 @@ export function gpGridPaintGeometry(track: Track, s: number, lateral: number) {
   return geometry;
 }
 
-/** At most two retained, spatially batched paint layers share the original
- * material. Menu, followed-bike and replay switches only change visibility
+/** Each discipline retains its banked, spatially batched paint on first use. Menu, followed-bike and replay switches only change visibility
  * after a family's first use. Hidden layers stay reachable for scene disposal. */
+type GridFamily = 'original' | 'gp' | 'formula';
+
 export class GridPaintPresentation {
   readonly root = new T.Group();
-  private readonly layers = new Map<boolean, T.Group>();
-  private grandPrix = false;
+  private readonly layers = new Map<GridFamily, T.Group>();
+  private family: GridFamily = 'original';
   private ready = false;
 
   constructor(
@@ -80,26 +82,41 @@ export class GridPaintPresentation {
     this.showLayer();
   }
 
-  setGrandPrix(enabled: boolean) {
-    if (this.grandPrix === enabled) return false;
-    this.grandPrix = enabled;
+  setGrandPrix(enabled: boolean, formula = false) {
+    const next = enabled ? 'gp' : formula ? 'formula' : 'original';
+    if (this.family === next) return false;
+    this.family = next;
     if (this.ready) this.showLayer();
     return true;
   }
 
+  /** The circuit prepares this small batch before the shared weather and
+   * atmospheric material installation, even when the initial menu is idle. */
+  prepareFormula() {
+    if (this.layers.has('formula')) return;
+    const layer = new T.Group();
+    layer.name = 'Formula starting grid';
+    layer.add(formulaGridPaint(this.track));
+    layer.visible = this.family === 'formula';
+    this.layers.set('formula', layer);
+    this.root.add(layer);
+  }
+
   private showLayer() {
-    if (!this.layers.has(this.grandPrix)) {
+    if (this.family === 'formula') this.prepareFormula();
+    if (!this.layers.has(this.family)) {
       const layer = new T.Group(),
         grid = surfaceGridFor(this.track);
-      layer.name = this.grandPrix ? 'GP front-wheel grid marks' : 'Original grid boxes';
+      layer.name = this.family === 'gp' ? 'GP front-wheel grid marks' : 'Original grid boxes';
       for (let i = 0; i < grid.rows * 2; i++) {
-        const { s, lateral } = this.grandPrix
-          ? gpGridSlot(this.track, i)
-          : {
-              s: this.track.length - grid.front - Math.floor(i / 2) * grid.spacing,
-              lateral: i % 2 === 0 ? -grid.lateral : grid.lateral,
-            };
-        if (this.grandPrix) {
+        const { s, lateral } =
+          this.family === 'gp'
+            ? gpGridSlot(this.track, i)
+            : {
+                s: this.track.length - grid.front - Math.floor(i / 2) * grid.spacing,
+                lateral: i % 2 === 0 ? -grid.lateral : grid.lateral,
+              };
+        if (this.family === 'gp') {
           const mark = new T.Mesh(gpGridPaintGeometry(this.track, s, lateral), this.material);
           mark.name = 'GP front-wheel grid paint';
           mark.receiveShadow = true;
@@ -121,15 +138,15 @@ export class GridPaintPresentation {
         }
       }
       batchScene(layer, new Set());
-      this.layers.set(this.grandPrix, layer);
+      this.layers.set(this.family, layer);
       this.root.add(layer);
     }
-    for (const [grandPrix, layer] of this.layers) layer.visible = grandPrix === this.grandPrix;
+    for (const [family, layer] of this.layers) layer.visible = family === this.family;
   }
 
   diagnostics() {
     return {
-      mode: this.grandPrix ? 'gp' : 'original',
+      mode: this.family,
       cachedLayers: this.layers.size,
       slots: surfaceGridFor(this.track).rows * 2,
     };

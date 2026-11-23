@@ -132,6 +132,7 @@ import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
+import { formulaGridForFrame } from './formula-grid-marks.ts';
 import { gpGridForFrame } from '../simulation/gp-grid.ts';
 import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
@@ -1193,7 +1194,7 @@ export class RacingRenderer {
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
       const gpGrid = gpGridForFrame(frame);
-      this.circuit.setGrandPrixGrid(gpGrid);
+      this.circuit.setGrandPrixGrid(gpGrid, !gpGrid && formulaGridForFrame(frame));
       if (this.tyreEquipment && isGpCourse(this.circuit.track))
         this.tyreEquipment.root.visible = !gpGrid;
       // Construct the actual motorcycle materials before compileAsync. Building
@@ -1828,7 +1829,7 @@ export class RacingRenderer {
         !!followedDefinition.bike?.offroad;
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
     const gpGrid = gpGridForFrame(presented);
-    this.circuit.setGrandPrixGrid(gpGrid);
+    this.circuit.setGrandPrixGrid(gpGrid, !gpGrid && formulaGridForFrame(presented));
     this.circuit.gpPitBoards?.update(presented);
     this.circuit.gpClassification?.update(presented);
     if (this.tyreEquipment && isGpCourse(this.circuit.track))
@@ -2809,6 +2810,8 @@ export class RacingRenderer {
         this.camera,
         cameraMode,
         speed,
+        undefined,
+        followedDefinition.drs ? o : undefined,
       );
       this.ultra.prepareFrame({
         presented,

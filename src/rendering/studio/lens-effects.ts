@@ -1,6 +1,6 @@
 import * as T from 'three';
 import type { LightingMode } from '../daylight.ts';
-import { H } from '../../simulation/protocol.ts';
+import { F, H } from '../../simulation/protocol.ts';
 import { frameLiquidRain } from '../../simulation/weather.ts';
 import { surfaceDampness } from '../weather-presentation.ts';
 import type { BroadcastGradePass } from '../broadcast-grade.ts';
@@ -148,6 +148,8 @@ export interface LensUniforms {
   lensTime: T.IUniform<number>;
   /** Streak amount 0..1 from speed. */
   lensStreak: T.IUniform<number>;
+  /** Open Formula shield and signed cross-flow in the camera's right direction. */
+  lensVisor: T.IUniform<T.Vector2>;
 }
 export function createLensUniforms(): LensUniforms {
   return {
@@ -157,6 +159,7 @@ export function createLensUniforms(): LensUniforms {
     lensRain: { value: 0 },
     lensTime: { value: 0 },
     lensStreak: { value: 0 },
+    lensVisor: { value: new T.Vector2() },
   };
 }
 
@@ -171,6 +174,7 @@ export class LensEffects {
   constructor(readonly uniforms: LensUniforms = lensUniforms) {}
   private dirt: T.DataTexture | null = null;
   private readonly forward = new T.Vector3();
+  private readonly right = new T.Vector3();
   update(
     enabled: boolean,
     camera: T.Camera,
@@ -180,8 +184,10 @@ export class LensEffects {
     sunDirection: T.Vector3,
     night: boolean,
     physical = false,
+    formulaCar?: number,
   ) {
     const u = this.uniforms;
+    u.lensVisor.value.set(0, 0);
     u.lensTime.value = Number.isFinite(presented[H.TIME]) ? presented[H.TIME] : 0;
     if (!enabled) {
       u.lensFlare.value = u.lensDirt.value = u.lensRain.value = u.lensStreak.value = 0;
@@ -194,8 +200,26 @@ export class LensEffects {
     u.lensFlare.value = night ? 0 : LENS.flare * flareWeight(angle);
     const dirt = physical ? LENS.physicalDirt : LENS.dirt;
     u.lensDirt.value = exterior ? dirt : dirt * 0.35;
-    u.lensRain.value = exterior ? lensRainAmount(frameLiquidRain(presented)) : 0;
-    u.lensStreak.value = smooth(8, LENS.streakSpeed, Math.abs(speed));
+    const rain = lensRainAmount(frameLiquidRain(presented));
+    const windX = presented[H.WIND_X] || 0,
+      windZ = presented[H.WIND_Z] || 0;
+    const stationary = formulaCar !== undefined && view === 'trackside';
+    u.lensStreak.value = smooth(
+      8,
+      LENS.streakSpeed,
+      stationary ? Math.hypot(windX, windZ) : Math.abs(speed),
+    );
+    u.lensRain.value = exterior ? rain : 0;
+    if (!exterior && formulaCar !== undefined && rain > 0) {
+      // Gravity pools drops at the seal in the pits. On track they escape over
+      // the curved brow, with crosswind and cornering biasing the drainage.
+      this.right.setFromMatrixColumn(camera.matrixWorld, 0);
+      const crosswind = windX * this.right.x + windZ * this.right.z;
+      const lateralG = presented[formulaCar + F.G_LAT] || 0;
+      const deflection = T.MathUtils.clamp(crosswind / 18 - lateralG * 0.13, -0.8, 0.8);
+      u.lensVisor.value.set(1, deflection);
+      u.lensRain.value = rain * (0.94 - 0.26 * u.lensStreak.value);
+    }
   }
   dispose() {
     this.dirt?.dispose();
@@ -240,6 +264,7 @@ export const LENS_RAIN_GLSL = /* glsl */ `
 uniform float lensRain;
 uniform float lensTime;
 uniform float lensStreak;
+uniform vec2 lensVisor;
 float lensHash(vec3 p) {
   p = fract(p * vec3(0.1031, 0.1030, 0.0973));
   p += dot(p, p.yxz + 33.33);
@@ -258,12 +283,21 @@ vec3 lensDropLayer(vec2 px, float cell, float layer) {
   if (seed > ${LENS.dropShare.toFixed(3)} * lensRain * (0.35 + 0.65 * lensRain)) return vec3(0.0, 0.0, 1.0);
   float pxScale = resolution.y / 720.0;
   float radius = (2.0 + 10.0 * lensHash(vec3(id + epoch, layer + 4.0))) * pxScale;
+  radius *= mix(1.0, 0.57, lensVisor.x);
   vec2 centre = (vec2(lensHash(vec3(id + epoch, layer + 5.0)), lensHash(vec3(id + epoch, layer + 6.0))) - 0.5)
     * (cell - 2.0 * radius - 4.0);
   // At speed the airflow drags drops outward and down the glass.
   vec2 screen = (id + 0.5) * cell / resolution - 0.5;
   vec2 flow = normalize(screen * vec2(1.0, 0.6) + vec2(0.0, -0.35));
-  centre += flow * lensStreak * age * cell * 0.35;
+  if (lensVisor.x > 0.5) {
+    // Peripheral beads linger on the shield. The central air stream clears
+    // light rain sooner, preserving the driver's view of braking references.
+    float exposure = mix(0.42, 1.0, smoothstep(0.06, 0.46, length(screen * vec2(1.0, 0.65))));
+    if (seed > ${LENS.dropShare.toFixed(3)} * lensRain * exposure) return vec3(0.0, 0.0, 1.0);
+    vec2 visorFlow = vec2(screen.x * 1.5 + lensVisor.y, mix(-0.9, 0.8, lensStreak));
+    flow = visorFlow * inversesqrt(max(dot(visorFlow, visorFlow), 1e-6));
+  }
+  centre += flow * mix(lensStreak, 0.30 + 0.70 * lensStreak, lensVisor.x) * age * cell * 0.35;
   vec2 d = local - centre;
   float along = dot(d, flow), across = dot(d, vec2(-flow.y, flow.x));
   along /= 1.0 + 2.5 * lensStreak;
@@ -311,6 +345,7 @@ export function postLensFrame(
   view: LensCamera,
   speed: number,
   lens: LensEffects = lensEffects,
+  formulaCar?: number,
 ) {
   const rain = frameLiquidRain(presented),
     water = presented[H.WATER];
@@ -330,5 +365,6 @@ export function postLensFrame(
     studioUniforms.studioSunDir.value,
     profile === 'night',
     bloom.energyConserving,
+    formulaCar,
   );
 }
