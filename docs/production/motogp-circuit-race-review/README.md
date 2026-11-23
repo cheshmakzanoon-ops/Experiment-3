@@ -6,7 +6,7 @@ The GP-R1 enters a bend at Haarveld at 122 km/h and 22.3° of lean. The steering
 
 ![Two-second in-engine sequence of the GP field leaning through a bend at Poggio Alto](poggio-corner-motion.webp)
 
-The trackside camera follows four AI riders through the bend at Poggio Alto. Lean on the followed bike increases from 21.8° to 32.5°. The 640 × 360 sequence contains 48 distinct renders at 24 fps. Every frame advances five physics ticks. [Full-size still](poggio-corner.jpg) · [Frame telemetry](poggio-corner-telemetry.json)
+The trackside camera follows four AI riders through the bend at Poggio Alto. Lean on the followed bike increases from 21.8° to 32.5°. The 640 × 360 sequence contains 48 distinct renders at 24 fps. Every frame advances five physics ticks. [1920 × 1080 race still](poggio-corner.jpg) · [Frame telemetry](poggio-corner-telemetry.json)
 
 | Poggio Alto, dry start | Cape Wrenna, wet start |
 | --- | --- |
@@ -36,7 +36,7 @@ Six GP-R1 and six GP-R2 machines are accelerating at 21–32 km/h. At this 1024 
 | Submitted triangles across all passes | 7,272,029 | 5,798,260 |
 | Shadow triangles | 2,655,278 | 1,942,876 |
 
-The 351 × 124 crop enclosing all twelve riders differed by an average of 0.94 per 8-bit colour channel. All twelve positions, speeds and lean angles matched exactly between runs. [Earlier frame](poggio-full-grid-before.jpg) · [Per-rider telemetry and image measurements](poggio-full-grid-telemetry.json)
+The 351 × 124 crop enclosing all twelve riders differed by an average of 0.94 per 8-bit colour channel. Distance along the circuit, speed and lean angle matched exactly for every rider in both runs. With both fields rendered as opaque silhouettes from the same lens, 99.0% of the covered pixels were shared. The chassis, front and rear axles and helmet kept the same world positions to within 0.001 mm when the models switched. In the overlay, white pixels belong to both meshes, red to the earlier field and green to the revised field. [Silhouette overlay](poggio-full-grid-silhouette.png) · [Earlier frame](poggio-full-grid-before.jpg) · [Per-rider telemetry and image measurements](poggio-full-grid-telemetry.json)
 
 ## Montejaral after dark
 
@@ -59,7 +59,7 @@ The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dr
 
 These close-ups use the game meshes under controlled lighting. The brake pose sets the same inputs as the riding renderer. The dashboard capture shows 15,200 RPM. The temperature, lean, speed and gear channels use the live instrument code. A held or rewound frame restores the instrument, rider gaze, leather folds and optical state.
 
-Behind the tinted visor, the brow and temple pads shade the rider’s skin. The wet surface of the eye reflects the lamps at the circuit. On the same iris, moving a test lamp from left to right moved the brightest part of the reflection by 74 pixels in an 86-pixel-wide sample. Turning off all light reduced the brightest sample from the former 32/255 to black. The helmet, lens and padding rendered identically with the face hidden.
+Behind the tinted visor, the brow and temple pads shade the rider’s skin. The wet surface of the eye reflects the lamps at the circuit. In an 86-pixel-wide crop of one eye, moving the test lamp from left to right shifted the centre of the brightest pixels by 74 pixels. Turning off all light reduced the brightest sample from the former 32/255 to black. The helmet, lens and padding rendered identically with the face hidden.
 
 ## Spectators and wind
 
@@ -73,11 +73,11 @@ This controlled trackside view uses Cape Wrenna’s surveyed bank, standing race
 
 ## Practice through the game menus
 
-| Poggio Alto, chase view at 190 km/h | Wet cockpit at 185 km/h |
+| Poggio Alto, chase view at 196 km/h | Wet cockpit at 155 km/h |
 | --- | --- |
-| ![Poggio Alto practice through the production HUD with three opponents and a moving chase camera](practice-dry-chase.jpg) | ![The live wet cockpit and race HUD both report 185 kilometres per hour](practice-wet-cockpit.jpg) |
+| ![Poggio Alto practice through the production HUD with three opponents and a moving chase camera](practice-dry-chase.jpg) | ![The live wet cockpit and race HUD both report 155 kilometres per hour](practice-wet-cockpit.jpg) |
 
-These 1280 × 800 screenshots came from the production build’s dry and wet practice tests. Both tests entered through the menus and used the Low preset. The wet practice test enabled full spray density. The dry run also switched to the cockpit, paused and opened the recorded replay. [Hosted test run and original attachments](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45096209309)
+These 1280 × 800 screenshots came from the production build’s dry and wet practice tests. Both tests entered through the menus and used the Low preset. The wet practice test enabled full spray density. The dry run also switched to the cockpit, paused and opened the recorded replay. [Hosted test run and original attachments](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45104672026)
 
 ## Measurements
 
@@ -88,7 +88,10 @@ These 1280 × 800 screenshots came from the production build’s dry and wet pra
 | Distant spectators against the 3D crowd, same camera | Standing silhouette agreement rose from 28.9% to 86.0%. Rear seated agreement was 75.5%. Each distant spectator uses two triangles. |
 | Dry road shimmer, controlled foreground and sky | Shimmer changed 5,071 pixels. All 12,160 sampled foreground pixels and the sky stayed fixed. The rain control produced zero changed pixels. |
 | Montejaral night camera, same 27 × 27 pixel region above the GP-R1 rear tyre | The number of bright pixels fell from 37 to 2 (mean 8-bit RGB above 155). In the separate HDR light test, the revised filter retained 89% of the halo around a 16-pixel-wide floodlight while reducing halo energy around a single-pixel glint by 90%. |
+| Twelve riders, two wet laps of Cape Wrenna, fixed 120 Hz | All twelve riders finished without a fall in each run. The combined race and track-surface digest matched after 63,484 steps. [Results for every entrant](cape-full-field-replay.json) |
 | Eight riders, two wet laps of Poggio Alto, fixed 120 Hz | Both runs classified all eight riders with zero falls and the same replay digest after 70,897 steps. |
+
+The revised twelve-rider grid, the Full HD corner and the menu-driven practices share one gameplay revision. The tower and pavilion pairs preserve the original captures from those stages of development. [Gameplay commit](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/d02273c9fe8a25ce55c9baa6b45734befce3fee9)
 
 The geometry measurements count submitted primitives across separately recorded passes. The High race frames and controlled model views used Chromium with SwiftShader. The menu-driven practice frames used Chromium with Mesa llvmpipe. Physical-GPU frame times and console image-quality parity require hardware measurement.
 
