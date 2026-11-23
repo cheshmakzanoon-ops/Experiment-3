@@ -21,7 +21,8 @@ export function captureGpOpticsAndCloth() {
   key.position.set(-1.7, 2.4, 1.8);
   scene.add(key, new T.HemisphereLight(0xd3e5ff, 0x82786f, 1.2));
   const rider = new Rider({primary: 0xaa291b, secondary: 0x151c27, accent: 0xe4c378}, 'high', 'leathers', 23, true);
-  const head = rider.head, anchor = head.parent!;
+  const head = rider.root.getObjectByName('Rider head and helmet')!;
+  const anchor = head.parent!;
   const flags = new T.InstancedMesh(flagGeometry(true), gpSpectatorFlagMaterial(), 3);
   const matrix = new T.Object3D(), tones = [0xa91d32, 0xdc9a1d, 0x204b83];
   for (let i = 0; i < 3; i++) {

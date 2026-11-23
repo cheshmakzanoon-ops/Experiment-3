@@ -1,6 +1,7 @@
 import { installGpRotorFinish } from './gp-rotor-finish.ts';
 import { installGpOpticalRain } from './gp-optics-rain.ts';
 import * as T from 'three';
+import { ROAD_SIDE_CAN } from './gp-exhaust-datums.ts';
 import { installGlassFresnel } from './materials/library.ts';
 import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
 import { installSsrMask } from './ultra/ssr-mask.ts';
@@ -461,7 +462,7 @@ export function gpSilencer(
   const profile = [
     [0.03, -0.108],
     [0.03, -0.153],
-    [0.033, -0.158],
+    [0.033, ROAD_SIDE_CAN.lip],
     [0.037, -0.157],
     [0.044, -0.135],
     [0.052, -0.118],

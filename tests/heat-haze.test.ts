@@ -7,7 +7,9 @@ import {
   createHeatHazeUniforms,
 } from '../src/rendering/heat-haze.ts';
 import { SceneAmbientPass } from '../src/rendering/scene-ambient-pass.ts';
-import { F, H, carBase } from '../src/simulation/protocol.ts';
+import { vehicleIndex } from '../src/simulation/vehicles.ts';
+import { GP_EXHAUST_MOUTHS } from '../src/rendering/gp-exhaust-datums.ts';
+import { F, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 
 function frame(cars: { speed: number; throttle: number; retired?: number }[]) {
   const f = new Float32Array(carBase(cars.length) + 200);
@@ -65,6 +67,33 @@ describe('exhaust heat haze', () => {
     expect(u.hazeParam.value[0].x).toBeCloseTo(HEAT_HAZE.full, 9);
     expect(u.hazeTime.value).toBe(12.5);
     expect(u.hazePixels.value).toBeCloseTo(HEAT_HAZE.pixels, 9);
+  });
+
+  it.each(['gpr1','gpr2'] as const)('attaches %s air to its tilted outlet and bends it into the moving wake', (id) => {
+    const haze = new HeatHaze(), cam = camera(), o = carBase(0);
+    const sample = frame([{speed: 0, throttle: .7}]);
+    sample[o + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+    sample[o + F.RPM] = 7200;
+    const chassisPose = new T.Matrix4().makeRotationZ(.82).setPosition(.3,.64,.2);
+    haze.update(sample,cam,[chassisPose],1,4,1080);
+    const mouth = GP_EXHAUST_MOUTHS[id];
+    const expected = new T.Vector3(...mouth.position).applyMatrix4(chassisPose).applyMatrix4(cam.matrixWorldInverse);
+    const origin = haze.uniforms.hazeOrigin.value[0];
+    expect(expected.distanceTo(new T.Vector3(origin.x, origin.y, origin.z))).toBeLessThan(1e-7);
+    expect(origin.w).toBeCloseTo(mouth.radius,8);
+    const idle = haze.uniforms.hazeAxis.value[0].clone();
+    sample[o + F.SPEED] = sample[o + F.VZ] = 55;
+    sample[H.WIND_X] = 5;
+    haze.update(sample,cam,[chassisPose],1,5,1080);
+    const moving = haze.uniforms.hazeAxis.value[0].clone();
+    expect(moving.w).toBeGreaterThan(idle.w);
+    expect(moving.z).toBeGreaterThan(.80);
+    sample[o + F.RPM] = 0;
+    haze.update(sample,cam,[chassisPose],1,6,1080);
+    expect(haze.count).toBe(0);
+    sample[o + F.RPM] = 7200;
+    haze.update(sample,cam,[chassisPose],1,5,1080);
+    expect(haze.uniforms.hazeAxis.value[0].toArray()).toEqual(moving.toArray());
   });
 
   it('scales strength with throttle, amplitude with frame height, caps the length', () => {

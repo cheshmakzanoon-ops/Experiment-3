@@ -8,6 +8,7 @@ import {
   type BikeMaterials,
 } from './bike.ts';
 import { addClassicInduction } from './road-bike-classic-induction.ts';
+import { ROAD_SIDE_CAN, BELLY_EXIT } from './gp-exhaust-datums.ts';
 import { gpBellyOutlet, gpSilencer } from './gp-appearance.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import type { BikeSheet } from './bike-sheet.ts';
@@ -410,11 +411,7 @@ export function addRoadPowertrain(
     );
     can.scale(1.43, 1, 0.7).rotateX(Math.PI / 2);
     add(body, can, m.titanium, -0.031, -0.396, -0.153);
-    const exit: Point[] = [
-      [-0.031, -0.396, -0.27],
-      [-0.083, -0.386, -0.298],
-      [-0.148, -0.358, -0.3],
-    ];
+    const exit = BELLY_EXIT;
     add(body, exhaustGeometry(exit, 0.026, near ? 10 : 6, sides), m.titanium);
     if (prototype && !far) {
       const outlet = gpBellyOutlet(detail, m);
@@ -427,12 +424,8 @@ export function addRoadPowertrain(
   }
   const short = look.exhaust === 'stubby',
     lengthScale = short ? 0.78 : 1;
-  const centre = new T.Vector3(
-    short ? -0.181 : -0.165,
-    short ? -0.225 : -0.08,
-    short ? -0.471 : -0.74,
-  );
-  const rotation = Math.PI / 2 - (short ? 0.28 : 0.35);
+  const centre = short ? new T.Vector3(-.181, -.225, -.471) : new T.Vector3(...ROAD_SIDE_CAN.centre);
+  const rotation = short ? Math.PI / 2 - .28 : ROAD_SIDE_CAN.rotation;
   const inlet: Point = [
     centre.x,
     centre.y + 0.149 * lengthScale * Math.cos(rotation),

@@ -659,7 +659,7 @@ export class Rider {
         visor.iridescenceIOR = 1.75;
         visor.iridescenceThicknessRange = [260, 430];
         visor.name = 'GP iridium visor';
-        if (detail !== 'far') installGpVisorGlazing(visor);
+        installGpVisorGlazing(visor);
         if (opticalRain) installGpOpticalRain(visor, opticalRain, true);
       }
     }

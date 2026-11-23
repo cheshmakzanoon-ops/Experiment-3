@@ -1,5 +1,13 @@
 import * as T from 'three';
-import { F, carBase } from '../simulation/protocol.ts';
+import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
+import { vehicleIndex } from '../simulation/vehicles.ts';
+import { GP_EXHAUST_MOUTHS } from './gp-exhaust-datums.ts';
+
+const gpR1 = vehicleIndex('gpr1'), gpR2 = vehicleIndex('gpr2');
+function gpMouth(presented: Float32Array, offset: number) {
+  const kind = presented[offset + RACE_BASE + R.VEHICLE];
+  return kind === gpR1 ? GP_EXHAUST_MOUTHS.gpr1 : kind === gpR2 ? GP_EXHAUST_MOUTHS.gpr2 : undefined;
+}
 import { STUDIO_MAX_CARS } from './studio/studio-frame.ts';
 
 /**
@@ -169,6 +177,7 @@ export class HeatHaze {
   count = 0;
   private readonly origin = new T.Vector3();
   private readonly axis = new T.Vector3();
+  private readonly air = new T.Vector3();
   private readonly flow = new T.Vector3(...HEAT_HAZE.flow).normalize();
   private readonly outlet = new T.Vector3(...HEAT_HAZE.outlet);
   private readonly candidates: { id: number; distance: number }[] = [];
@@ -201,7 +210,11 @@ export class HeatHaze {
     for (let id = 0; id < total; id++) {
       const o = carBase(id);
       if (presented[o + F.RETIRED] > 0.5) continue;
-      this.origin.copy(this.outlet).applyMatrix4(carNow[id]).applyMatrix4(view);
+      const mouth = gpMouth(presented, o);
+      if (mouth && presented[o + F.RPM] < 200) continue;
+      if (mouth) this.origin.fromArray(mouth.position);
+      else this.origin.copy(this.outlet);
+      this.origin.applyMatrix4(carNow[id]).applyMatrix4(view);
       // Behind the camera or too far away: nothing to see.
       const distance = -this.origin.z;
       if (distance < -4 || distance > HEAT_HAZE.fadeFar) continue;
@@ -216,15 +229,30 @@ export class HeatHaze {
       const throttle = Math.min(1, Math.max(0, presented[o + F.THROTTLE] || 0));
       const fade = 1 - smooth(HEAT_HAZE.fadeNear, HEAT_HAZE.fadeFar, distance);
       const strength = (HEAT_HAZE.idle + (HEAT_HAZE.full - HEAT_HAZE.idle) * throttle) * fade;
-      this.origin.copy(this.outlet).applyMatrix4(carNow[id]).applyMatrix4(view);
-      this.axis.copy(this.flow).transformDirection(carNow[id]).transformDirection(view);
+      const mouth = gpMouth(presented, o);
+      if (mouth) {
+        this.origin.fromArray(mouth.position);
+        // Model the jet close to the pipe and its entrainment into the air
+        // passing the bike. World velocity includes actual slide and yaw.
+        this.axis.fromArray(mouth.direction).transformDirection(carNow[id]).multiplyScalar(8 + 9 * throttle);
+        this.air.set((presented[H.WIND_X] || 0) - (presented[o + F.VX] || 0),
+          1.4 - (presented[o + F.VY] || 0), (presented[H.WIND_Z] || 0) - (presented[o + F.VZ] || 0));
+        this.axis.addScaledVector(this.air, .62);
+        if (this.axis.lengthSq() < .0001) this.axis.fromArray(mouth.direction).transformDirection(carNow[id]);
+        this.axis.normalize();
+      } else {
+        this.origin.copy(this.outlet);
+        this.axis.copy(this.flow).transformDirection(carNow[id]);
+      }
+      this.origin.applyMatrix4(carNow[id]).applyMatrix4(view);
+      this.axis.transformDirection(view);
       const length = Math.min(
         HEAT_HAZE.maxLength,
         HEAT_HAZE.length + HEAT_HAZE.lengthPerSpeed * speed,
       );
-      u.hazeOrigin.value[i].set(this.origin.x, this.origin.y, this.origin.z, HEAT_HAZE.radius);
-      u.hazeAxis.value[i].set(this.axis.x, this.axis.y, this.axis.z, length);
-      u.hazeParam.value[i].set(strength, HEAT_HAZE.spread, id * 13.7, 0);
+      u.hazeOrigin.value[i].set(this.origin.x, this.origin.y, this.origin.z, mouth?.radius ?? HEAT_HAZE.radius);
+      u.hazeAxis.value[i].set(this.axis.x, this.axis.y, this.axis.z, mouth ? Math.min(3.4, .95 + .036 * speed) : length);
+      u.hazeParam.value[i].set(mouth ? strength * .8 : strength, mouth ? .105 : HEAT_HAZE.spread, id * 13.7, 0);
     }
     this.count = count;
     u.hazeCount.value = count;
