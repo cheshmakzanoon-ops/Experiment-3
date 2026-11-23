@@ -14,6 +14,7 @@ import { inStandFootprint } from '../src/rendering/grandstand.ts';
 import { CrowdCluster } from '../src/rendering/crowd.ts';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
+import { apronWidth } from '../src/simulation/gp-course-edges.ts';
 
 describe('GP general-admission viewing banks', () => {
   it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const)(
@@ -42,6 +43,21 @@ describe('GP general-admission viewing banks', () => {
               wx = site.x + c * x + n * z,
               wz = site.z - n * x + c * z;
             const l = track.nearest(wx, wz, near);
+            const uv = geometry.getAttribute('uv');
+            expect(uv.getX(i) * 5).toBeCloseTo(l, 2);
+            const unwrapped = uv.getY(i) * 5 - near.s;
+            expect(unwrapped - Math.round(unwrapped / track.length) * track.length).toBeCloseTo(
+              0,
+              2,
+            );
+            expect(geometry.getAttribute('edgeMetres').getX(i)).toBeCloseTo(
+              Math.abs(l) - near.width,
+              2,
+            );
+            expect(geometry.getAttribute('gpVergeInset').getX(i)).toBeCloseTo(
+              4 - apronWidth(track.gpEdges!.at(near.s, l < 0 ? -1 : 1)),
+              3,
+            );
             expect(Math.abs(l) - track.boundaryAt(near, l < 0 ? -1 : 1)).toBeGreaterThan(8);
             expect(inStandFootprint(track, wx, wz, 3)).toBe(false);
             expect(normals.getY(i)).toBeGreaterThan(0.5);
@@ -99,28 +115,41 @@ describe('GP general-admission viewing banks', () => {
 
 describe('recorded wind at the GP viewing bank', () => {
   it('suspends a circular mouth and a tapered, drooping outlet under the actual wind vector', () => {
-    const cone = new GpWindSleeve(), g=cone.mesh.geometry, p=g.getAttribute('position') as T.BufferAttribute,
-      n=g.getAttribute('normal'), point=new T.Vector3(), radius=g.boundingSphere!.radius;
-    const ring = (row:number) => {
-      const centre=new T.Vector3();
-      for(let j=0;j<14;j++) centre.add(point.fromBufferAttribute(p,row*14+j));
-      return centre.multiplyScalar(1/14);
+    const cone = new GpWindSleeve(),
+      g = cone.mesh.geometry,
+      p = g.getAttribute('position') as T.BufferAttribute,
+      n = g.getAttribute('normal'),
+      point = new T.Vector3(),
+      radius = g.boundingSphere!.radius;
+    const ring = (row: number) => {
+      const centre = new T.Vector3();
+      for (let j = 0; j < 14; j++) centre.add(point.fromBufferAttribute(p, row * 14 + j));
+      return centre.multiplyScalar(1 / 14);
     };
-    const mouth=ring(0), calm=ring(19);
+    const mouth = ring(0),
+      calm = ring(19);
     expect(calm.y).toBeLessThan(-2.1);
-    expect(calm.x).toBeCloseTo(0,5);
-    expect(mouth.length()).toBeCloseTo(.42,5);
-    cone.present(9,0,7.25,.8);
-    const east=ring(19), snapshot=p.array.slice(), version=p.version;
-    expect(east.x).toBeGreaterThan(2); expect(east.y).toBeGreaterThan(calm.y+1.2);
-    for(let i=0;i<p.count;i++) {
-      expect(point.fromBufferAttribute(p,i).length()).toBeLessThan(radius);
-      expect(point.fromBufferAttribute(n,i).length()).toBeCloseTo(1,5);
+    expect(calm.x).toBeCloseTo(0, 5);
+    expect(mouth.length()).toBeCloseTo(0.42, 5);
+    cone.present(9, 0, 7.25, 0.8);
+    const east = ring(19),
+      snapshot = p.array.slice(),
+      version = p.version;
+    expect(east.x).toBeGreaterThan(2);
+    expect(east.y).toBeGreaterThan(calm.y + 1.2);
+    for (let i = 0; i < p.count; i++) {
+      expect(point.fromBufferAttribute(p, i).length()).toBeLessThan(radius);
+      expect(point.fromBufferAttribute(n, i).length()).toBeCloseTo(1, 5);
     }
-    cone.present(9,0,7.25,.8);expect(p.version).toBe(version);
-    cone.present(-9,0,7.25,.8);expect(ring(19).x).toBeCloseTo(-east.x,4);
-    cone.present(9,0,7.25,.8);expect(p.array).toEqual(snapshot);
-    cone.present(NaN,0,NaN,NaN);expect(ring(19).distanceTo(calm)).toBeLessThan(.00001);
-    (cone.mesh.material as T.Material).dispose();g.dispose();
+    cone.present(9, 0, 7.25, 0.8);
+    expect(p.version).toBe(version);
+    cone.present(-9, 0, 7.25, 0.8);
+    expect(ring(19).x).toBeCloseTo(-east.x, 4);
+    cone.present(9, 0, 7.25, 0.8);
+    expect(p.array).toEqual(snapshot);
+    cone.present(NaN, 0, NaN, NaN);
+    expect(ring(19).distanceTo(calm)).toBeLessThan(0.00001);
+    (cone.mesh.material as T.Material).dispose();
+    g.dispose();
   });
 });

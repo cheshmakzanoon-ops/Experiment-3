@@ -1,11 +1,13 @@
 import type { QualityPreset } from '../../src/rendering/options.ts';
 import type { DrawLedger, DrawBreakdown } from '../../src/rendering/draw-ledger.ts';
+import type { LightingMode } from '../../src/rendering/daylight.ts';
 import type { CameraMode } from '../../src/rendering/renderer.ts';
 
 export { installOfflineAssets } from './motogp-race-review.ts';
 
 export interface HyperrealCaptureOptions {
   weather?: 'clear' | 'rain';
+  lighting?: LightingMode;
   preset?: QualityPreset;
   circuit?: string;
   vehicles?: string[];
@@ -64,6 +66,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
   document.body.style.cssText = 'margin:0';
   document.body.append(canvas);
   const renderer = new RacingRenderer(canvas, simulation.track);
+  renderer.lighting = o.lighting ?? 'day';
   renderer.setQuality(preset, { ...graphicsPreset(preset), resolutionScale: 1 });
   const yieldGpu = () => new Promise<void>((resolve) => setTimeout(resolve, 12));
   const step = 1 / 120;
@@ -117,6 +120,12 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
       yieldGpu,
     );
     if (!prepared) throw new Error('GP composition preparation cancelled');
+    if (simulation.track.gpEdges) {
+      const ground = renderer.circuit.props.getObjectByName('GP spectator terrain and weather masts');
+      const sleeve = renderer.circuit.gpWindSleeve?.mesh;
+      if (ground?.children.length !== 2 || !sleeve || ground.getObjectById(sleeve.id) !== sleeve)
+        throw new Error('The assembled GP circuit lost its spectator terrain or animated weather mast');
+    }
     console.log(`prepared ${preset} scene in ${(performance.now() / 1000).toFixed(1)} s`);
     const moments = (o.moments ?? [24, 32, 40]).slice().sort((a, b) => a - b);
     const views = o.views ?? (['chase', 'cockpit', 'trackside'] as CameraMode[]);
@@ -170,6 +179,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     return {
       captures,
       finite: current.every(Number.isFinite),
+      lighting: renderer.lighting,
       weather,
       preset,
       circuit: o.circuit ?? 'poggio-alto',

@@ -161,6 +161,7 @@ export class CircuitScene {
   readonly secondaryStands: SecondaryGrandstands;
   readonly crowdClusters: CrowdCluster[] = [];
   gpWindSleeve?: GpWindSleeve;
+  private gpBankGround?: T.Group;
   readonly staff: MarshalStaffView;
   readonly props = new StaticTransformGroup();
   readonly surfaces = new StaticTransformGroup();
@@ -581,6 +582,7 @@ export class CircuitScene {
         new Set(
           [
             this.marshalPosts?.root,
+            this.gpBankGround,
             this.startGantry?.root,
             this.signalHardware?.root,
             ...(this.signalHardware?.displays.meshes ?? []),
@@ -1098,8 +1100,14 @@ export class CircuitScene {
     const kit = this.venueKit?.context;
     if (kit && isGpCourse(this.track))
       this.construction.add('GP general-admission viewing banks', 2, () => {
+        // Static prop batching discards custom turf attributes and clones the
+        // wind sleeve's animated vertex buffer. Keep these two small banks
+        // intact under the same weather/reflection and transform ownership.
+        const ground = (this.gpBankGround = new T.Group());
+        ground.name = 'GP spectator terrain and weather masts';
+        this.props.add(ground);
         for (const [index, bank] of gpSpectatorBankPlan(this.track).entries()) {
-          const sleeve = buildGpSpectatorBank(this.track, bank, this.props, this.crowd, this.crowdClusters,
+          const sleeve = buildGpSpectatorBank(this.track, bank, ground, this.crowd, this.crowdClusters,
             kit.materials.ground, stands.people, kit.materials.steel, index === 0);
           if (sleeve) this.gpWindSleeve = sleeve;
         }

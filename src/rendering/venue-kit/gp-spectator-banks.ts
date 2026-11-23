@@ -1,5 +1,6 @@
 import * as T from 'three';
-import { Random, clamp } from '../../core/math.ts';
+import { Random, clamp, mod } from '../../core/math.ts';
+import { apronWidth } from '../../simulation/gp-course-edges.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import { CrowdCluster } from '../crowd.ts';
 import { crowdFlagMaterial } from '../grandstand.ts';
@@ -16,6 +17,8 @@ export function gpBankSurface(track: Track, site: GpSpectatorBank) {
     stride = cols + 1,
     pos: number[] = [],
     uv: number[] = [],
+    edge: number[] = [],
+    inset: number[] = [],
     index: number[] = [];
   const terrain = cataloguePlantingGround(track),
     near = trackPoint();
@@ -35,7 +38,16 @@ export function gpBankSurface(track: Track, site: GpSpectatorBank) {
         T.MathUtils.smoothstep(across, 0, 0.66) * (1 - T.MathUtils.smoothstep(across, 0.74, 1));
       const y = terrain(near.s, l, wx, wz) - 0.17 + site.rise * end * profile;
       pos.push(x, y, z);
-      uv.push(wx * 0.12, wz * 0.12);
+      // The venue turf uses the same lateral/station UVs as the adjacent verge.
+      // Carry distance to the road so its soil band and floodlight rows stay
+      // at the ribbon. Keep UVs continuous across the timing-line seam.
+      const station =
+        site.station +
+        mod(near.s - site.station + track.length / 2, track.length) -
+        track.length / 2;
+      uv.push(l / 5, station / 5);
+      edge.push(Math.abs(l) - near.width);
+      inset.push(4 - apronWidth(track.gpEdges?.at(near.s, l < 0 ? -1 : 1) ?? 1));
       if (row === rows || col === cols) continue;
       const a = row * stride + col,
         b = a + 1,
@@ -48,6 +60,8 @@ export function gpBankSurface(track: Track, site: GpSpectatorBank) {
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
   geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
+  geometry.setAttribute('gpVergeInset', new T.Float32BufferAttribute(inset, 1));
   geometry.setIndex(index);
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
@@ -96,9 +110,10 @@ export function buildGpSpectatorBank(
   let sleeve: GpWindSleeve | undefined;
   if (weatherMast) {
     // The rear service aisle is outside the standing rows and the front rail.
-    const x = site.side * site.width * .35, z = site.length * .39;
+    const x = site.side * site.width * 0.35,
+      z = site.length * 0.39;
     const mast = gpWindMast(steel);
-    mast.root.position.set(x, height(x,z),z);
+    mast.root.position.set(x, height(x, z), z);
     land.add(mast.root);
     sleeve = mast.sleeve;
   }
