@@ -10,57 +10,50 @@ import {
 } from '../src/rendering/gp-panel-relief.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 
-/** Every paint operation the relief pass issues: [operation, style]. */
-const recorded: [string, string][] = [];
-let recording = false;
+const operations = new WeakMap<object, string[]>();
 beforeAll(() => {
-  const ctx = new Proxy({} as Record<string, unknown>, {
-    get: (target, key: string) => {
-      if (key === 'measureText') return () => ({ width: 10 });
-      if (key === 'fill' || key === 'stroke' || key === 'fillRect')
-        return () => {
-          if (recording)
-            recorded.push([key, String(key === 'stroke' ? target.strokeStyle : target.fillStyle)]);
-        };
-      return typeof target[key] === 'undefined' ? () => undefined : target[key];
-    },
-    set: (target, key: string, value) => {
-      target[key] = value;
-      return true;
-    },
-  });
-  vi.stubGlobal('document', {
-    createElement: () => ({ width: 0, height: 0, getContext: () => ctx }),
-  });
+  function createCanvas() {
+    const styles: string[] = [];
+    const ctx = new Proxy({} as Record<string, unknown>, {
+      get: (target, key: string) => {
+        if (key === 'measureText') return () => ({ width: 10 });
+        if (key === 'fill' || key === 'stroke' || key === 'fillRect')
+          return () => styles.push(String(key === 'stroke' ? target.strokeStyle : target.fillStyle));
+        return typeof target[key] === 'undefined' ? () => undefined : target[key];
+      },
+      set: (target, key: string, value) => {
+        target[key] = value;
+        return true;
+      },
+    });
+    const canvas = { width: 0, height: 0, getContext: () => ctx };
+    operations.set(canvas, styles);
+    return canvas;
+  }
+  vi.stubGlobal('document', { createElement: createCanvas });
 });
 afterAll(() => vi.unstubAllGlobals());
 
 describe('GP livery panel relief', () => {
-  it('draws only the annotated seams, fasteners, gills and recesses into the height atlas', () => {
+  it('records the six calibrated heights for the paint, mouldings, fasteners and grip pads', () => {
     const m = new BikeMaterials(5);
     const before = gpReliefAtlasCount();
-    recording = true;
-    recorded.length = 0;
     const paint = gpLiveryMaterial(m, 5, 'gpr1');
-    recording = false;
     try {
       expect(gpReliefAtlasCount()).toBe(before + 1);
-      const heights = recorded
-        .map(([, style]) => /^rgb\((\d+), \1, \1\)$/.exec(style)?.[1])
-        .filter((v): v is string => v !== undefined)
-        .map(Number);
-      // The flat base plus the annotated elements; nothing else is height data.
-      const allowed = new Set<number>([
+      const uniforms = paint.userData.gpRelief as GpPanelReliefUniforms;
+      const styles = operations.get(uniforms.gpReliefMap.value.image)!;
+      const heights = styles.map((style) => Number(/^rgb\((\d+), \1, \1\)$/.exec(style)?.[1]));
+      const expected = new Set<number>([
         GP_PANEL_RELIEF.flat,
         GP_PANEL_RELIEF.groove,
         GP_PANEL_RELIEF.recess,
         GP_PANEL_RELIEF.dome,
+        GP_PANEL_RELIEF.gripBacking,
+        GP_PANEL_RELIEF.gripRib,
       ]);
       expect(heights.length).toBeGreaterThan(40);
-      for (const h of heights) expect(allowed.has(h)).toBe(true);
-      for (const wanted of [GP_PANEL_RELIEF.groove, GP_PANEL_RELIEF.recess, GP_PANEL_RELIEF.dome])
-        expect(heights).toContain(wanted);
-      expect(paint.userData.gpRelief).toBeTruthy();
+      expect(new Set(heights)).toEqual(expected);
     } finally {
       m.dispose();
     }

@@ -1242,7 +1242,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
       [0.0, 0.205],
       [0.12, 0.25],
     ];
-  p.poly(knee, '#16181a', 'matte', variant === 'sport' ? undefined : 147);
+  p.poly(knee, '#16181a', 'matte', variant === 'sport' ? undefined : GP_PANEL_RELIEF.gripBacking);
   if (variant !== 'sport') {
     // Moulded traction pads. Ribs stop inside the perimeter and the gripped
     // tips have a wider specular lobe than the damp paint beside them.
@@ -1259,7 +1259,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
       for (let z = -.158 + (row % 2) * .011; z + .012 < max; z += .023) {
         if (z < min) continue;
         p.line([[z, y - .001], [z + .007, y + .0018], [z + .012, y + .001]],
-          .0038, '#292d2e', 'grip', 241);
+          .0038, '#292d2e', 'grip', GP_PANEL_RELIEF.gripRib);
       }
     }
   }

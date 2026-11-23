@@ -24,6 +24,10 @@ At Haarveld, closed concrete risers support the seats and three shallow steps co
 
 ## Circuit cameras
 
+![Aurel race broadcast with the GP-R1 at 149 km/h and several riders on the main straight](aurel-live-race.jpg)
+
+The public game’s race menu started this eight-rider Grand Prix at Aurel Grand Circuit. The trackside camera caught the field accelerating on the first lap, with the GP-R1 telemetry reading 149 km/h. This frame includes the live broadcast overlay.
+
 ![The GP cockpit at Haarveld, leaning into the sunset at 122 km/h](haarveld-cockpit.jpg)
 
 The GP-R1 enters a bend at Haarveld at 122 km/h and 22.3° of lean. The steering-mounted display shows the same speed as the simulation. The race stills use the production simulation and Three.js renderer on High with seed 34100 and alternating GP-R1 and GP-R2 machines. They are 800 × 450 unless a different resolution is given.

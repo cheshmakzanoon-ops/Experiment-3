@@ -23,6 +23,8 @@ export const GP_PANEL_RELIEF = Object.freeze({
   groove: 40,
   recess: 70,
   dome: 220,
+  gripBacking: 147,
+  gripRib: 241,
   /** Metres of paint height per atlas unit (0..1): a groove 88/255 down is about 0.3 mm. */
   heightMetres: 0.0009,
 });

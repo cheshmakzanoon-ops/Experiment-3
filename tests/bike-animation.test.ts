@@ -102,6 +102,8 @@ it.each(['gpr1', 'mx450'])(
       b = frame(vehicle, 0.1);
     b[car + F.BRAKE] = 1;
     b[car + F.GEAR] = 3;
+    a[car + F.ENGINE_TORQUE] = 11;
+    b[car + F.ENGINE_TORQUE] = 33;
     b[bike + B.LEAN] = 0.6;
     b[bike + B.FORK] = 0.07;
     b[offroad + O.BODY] = 0.8;
@@ -120,7 +122,9 @@ it.each(['gpr1', 'mx450'])(
       expect(values.standing).toBeCloseTo(0.4, 6);
       expect(model.rider.root.parent).toBe(model.sprung);
       if (vehicle === 'gpr1') {
-        expect(chain).toHaveBeenLastCalledWith(model.rearSpin.rotation.x);
+        const [wheelRotation, chainLoad] = chain.mock.lastCall!;
+        expect(wheelRotation).toBe(model.rearSpin.rotation.x);
+        expect(chainLoad).toBeCloseTo(0.36, 6);
         const lever = model.root.getObjectByName('GP front-brake lever pivot')!;
         // The curved GP blade has a 0.25-radian stroke; this snapshot is 40% applied.
         expect(lever.rotation.y).toBeCloseTo(-0.1, 6);
