@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45140263184
-- commit: `00623dfe67` · Limit hidden GP cockpit shading to a tile on single-frame presets
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45245128345
+- commit: `934953b039` · Mark Formula DRS stations and distinguish straight shoulders from painted apexes
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-23T08:38:31Z · updated: 2026-11-23T08:59:13Z
+- started: 2026-11-23T19:04:54Z · updated: 2026-11-23T19:20:18Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | success | 4 |  |
-| qa | failure | 15 | Review-tool specs of the settings and menu regression, on the QA build |
+| settings | failure | 6 | Original menu regression and transition ownership, without forced clicks or retries |
+| qa | skipped | 0 |  |
