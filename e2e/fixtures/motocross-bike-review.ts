@@ -113,6 +113,49 @@ function sideWheelHashes(pixels: Uint8Array, width: number) {
   return { front: halves[0], rear: halves[1] };
 }
 
+/** Read the dye and number ink from inside the rear bib on the texture
+ * actually bound to this rider. UVs stay the same at each print resolution. */
+function inspectRaceBib(rider: T.Object3D, camera: T.PerspectiveCamera) {
+  const torso = rider.getObjectByName('Motocross sculpted textile torso') as
+    T.Mesh<T.BufferGeometry, T.MeshPhysicalMaterial>;
+  const guard = rider.getObjectByName('Motocross roost deflector and neck protection')!;
+  const canvas = torso.material.map!.image as HTMLCanvasElement;
+  const context = canvas.getContext('2d')!;
+  const left = Math.round(canvas.width * 0.64), top = Math.round(canvas.height * 0.37);
+  const region = context.getImageData(left, top,
+    Math.round(canvas.width * 0.20), Math.round(canvas.height * 0.35));
+  const pixels = region.data;
+  const rgbAt = (i: number) => pixels[i] * 65536 + pixels[i + 1] * 256 + pixels[i + 2];
+  const counts = new Map<number, number>();
+  for (let i = 0; i < pixels.length; i += 4) {
+    const rgb = rgbAt(i);
+    counts.set(rgb, (counts.get(rgb) ?? 0) + 1);
+  }
+  const swatches = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2)
+    .map(([rgb, count]) => ({ rgb, fraction: count / (pixels.length / 4) }));
+  // Cast through the print on the posed garment and test whether the belt
+  // or the neck brace intercepts each stroke on its way to the camera.
+  const ray = new T.Raycaster(), screen = new T.Vector2();
+  let numberSamples = 0, covered = 0;
+  for (let row = 0; row < 27; row++) {
+    for (let column = 0; column < 30; column++) {
+      screen.set(-0.23 + column * 0.016, 0.12 - row * 0.022);
+      ray.setFromCamera(screen, camera);
+      ray.far = camera.far;
+      const hit = ray.intersectObject(torso, false)[0];
+      if (!hit?.uv) continue;
+      const x = Math.floor(hit.uv.x * canvas.width) - left;
+      const y = Math.floor((1 - hit.uv.y) * canvas.height) - top;
+      if (x < 0 || x >= region.width || y < 0 || y >= region.height) continue;
+      if (rgbAt(4 * (y * region.width + x)) !== swatches[1].rgb) continue;
+      numberSamples++;
+      ray.far = hit.distance - 0.001;
+      if (ray.intersectObject(guard, false).length) covered++;
+    }
+  }
+  return { swatches, numberSamples, covered };
+}
+
 /** Actual production DirtBikeModel in a controlled inspection scene. The
  * production geometry, materials, suspension and rider IK are unmodified. */
 export function captureMotocrossBike(
@@ -160,7 +203,7 @@ export function captureMotocrossBike(
   ground.receiveShadow = true;
   scene.add(ground);
   const def = VEHICLES[id],
-    materials = new BikeMaterials(entrant),
+    materials = new BikeMaterials(entrant, 'dirt'),
     mud = mudUniforms();
   const model = new DirtBikeModel(def, entrant, detail, materials, mud),
     sag = staticSag(def);
@@ -174,6 +217,7 @@ export function captureMotocrossBike(
   else if (view === 'motion-side') camera.position.set(4.5, 1.68, 0.06);
   else if (view === 'front') camera.position.set(0.38, 1.5, 4.1);
   else if (view === 'rear') camera.position.set(-2.85, 1.9, -3.5);
+  else if (view === 'race-bib') camera.position.set(-0.32, 1.74, -1.75);
   else if (view === 'helmet') camera.position.set(0.75, 1.75, 1.2);
   else if (view === 'drivetrain') camera.position.set(1.45, 0.67, -0.54);
   else if (view === 'rear-tyre') camera.position.set(-0.9, 0.76, -1.65);
@@ -182,6 +226,7 @@ export function captureMotocrossBike(
   else camera.position.set(-3.05, 1.72, 3.6);
   camera.lookAt(0, view === 'helmet' ? 1.59 : 0.93, 0);
   if (view === 'motion-side') camera.lookAt(0, 1.12, 0);
+  if (view === 'race-bib') camera.lookAt(0, 1.44, 0.03);
   if (view === 'drivetrain') camera.lookAt(0.095, 0.38, -0.45);
   if (view === 'rear-tyre') camera.lookAt(0, 0.36, -0.68);
   if (view === 'front-brake') camera.lookAt(0.055, 0.36, 0.72);
@@ -428,6 +473,7 @@ export function captureMotocrossBike(
           programs: renderer.info.programs?.length ?? 0,
         },
         mud: mud.offroadMud.value,
+        bib: view === 'race-bib' ? inspectRaceBib(model.rider.root, camera) : undefined,
         wetness: mud.offroadMudWet.value,
         materials: [...materialsUsed],
       };

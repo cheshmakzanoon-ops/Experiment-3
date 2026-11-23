@@ -504,9 +504,16 @@ export function motocrossGraphics(
       c.font = '700 21px "Saira Variable", sans-serif';
       c.fillText('FACTORY  /  MX', 256, 477, 300);
     } else if (kind === 'jersey') {
+      const raceBib = colours.motocrossBib !== undefined;
+      const bib = colours.motocrossBib === undefined ? secondary : hex(colours.motocrossBib);
+      // Three decodes the fabric swatch from sRGB before measuring luminance.
+      // Pale dye takes graphite ink; dark dye takes a warm white race number.
+      const dye = new T.Color(bib);
+      const printInk = raceBib && 0.2126 * dye.r + 0.7152 * dye.g + 0.0722 * dye.b > 0.18
+        ? '#14171b' : '#f0ede6';
       for (const centre of [256, 768]) {
-        // Both the back and chest share the construction of the jersey.
-        // Leave an uninterrupted dark field for timing-camera identification.
+        // The chest and back use the same dyed panel, with a contrasting
+        // shoulder yoke that can still be seen above the roost protector.
         if (pattern === 'arrow') {
           polygon(
             [
@@ -519,7 +526,7 @@ export function motocrossGraphics(
               [centre - 134, 291],
               [centre - 234, 153],
             ],
-            secondary,
+            bib,
           );
           for (const d of [-1, 1]) {
             const chevron = (inset: number, ink: string) =>
@@ -545,7 +552,7 @@ export function motocrossGraphics(
               [centre - 116, 512],
               [centre - 117, 286],
             ],
-            secondary,
+            bib,
           );
           polygon(
             [
@@ -568,7 +575,7 @@ export function motocrossGraphics(
             '#e8e6df',
           );
         } else if (pattern === 'minimal') {
-          c.fillStyle = secondary;
+          c.fillStyle = bib;
           c.fillRect(centre - 157, 0, 314, 512);
           c.fillStyle = accent;
           c.fillRect(centre - 166, 0, 5, 512);
@@ -581,7 +588,7 @@ export function motocrossGraphics(
               [centre + 174, 512],
               [centre + 196, 0],
             ],
-            secondary,
+            bib,
           );
           polygon(
             [
@@ -602,30 +609,56 @@ export function motocrossGraphics(
             accent,
           );
         }
+        if (raceBib) {
+          polygon([
+            [centre - 250, 0], [centre + 250, 0], [centre + 218, 89],
+            [centre + 135, 70], [centre + 79, 45], [centre - 70, 45],
+            [centre - 151, 76], [centre - 219, 94],
+          ], secondary);
+          // The two raglan seams run from the base of the collar to the
+          // armholes. The small binding has a continuous silhouette at Mid.
+          for (const side of [-1, 1]) {
+            polygon([
+              [centre + side * 70, 45], [centre + side * 141, 68],
+              [centre + side * 218, 83], [centre + side * 214, 92],
+              [centre + side * 139, 77],
+            ], accent);
+          }
+        }
       }
       c.textAlign = 'center';
       // The loft wraps U clockwise, so each chest/back panel needs its text
       // mirrored around its own centre to read normally on the outside.
-      const print = (text: string, x: number, y: number, width: number) => {
+      const print = (text: string, x: number, y: number, width: number, edged = false) => {
         c.save();
         c.translate(x, y);
         c.scale(-1, 1);
+        if (edged) {
+          c.lineJoin = 'round';
+          c.lineWidth = 6;
+          c.strokeStyle = printInk === '#14171b' ? '#f0ede6' : '#14171b';
+          c.strokeText(text, 0, 0, width);
+        }
         c.fillText(text, 0, 0, width);
         c.restore();
       };
-      c.fillStyle = '#f0ede6';
+      c.fillStyle = printInk;
       c.font = '800 42px "Saira Variable", sans-serif';
       print(teamName, 256, 206, 292);
       c.font = '700 23px "Saira Variable", sans-serif';
       print('OFFROAD RACING', 256, 244, 246);
-      print('FACTORY RIDER', 768, 121, 272);
-      c.font = 'italic 950 225px "Saira Variable", sans-serif';
-      print(String(number), 758, 359, 274);
+      // The neck brace descends over the centre of the shoulder blades and
+      // the kidney belt rises around the waist. Keep the whole number in
+      // the exposed cloth between them, including when the rider braces.
+      if (raceBib) c.font = '800 33px "Saira Variable", sans-serif';
+      print(raceBib ? teamName : 'FACTORY RIDER', 768, raceBib ? 164 : 121, 270);
+      c.font = `italic 950 ${raceBib ? 196 : 225}px "Saira Variable", sans-serif`;
+      print(String(number), 758, raceBib ? 326 : 359, 274, raceBib);
       c.font = '800 24px "Saira Variable", sans-serif';
-      print(teamName, 768, 405, 270);
+      print(raceBib ? 'MOTOBOUND' : teamName, 768, raceBib ? 441 : 405, 270);
       c.fillStyle = accent;
       c.fillRect(166, 273, 180, 6);
-      c.fillRect(674, 425, 188, 6);
+      c.fillRect(674, raceBib ? 458 : 425, 188, 6);
     } else if (kind === 'pants') {
       // The garment runs from the boot cuff at the top of the atlas to the
       // hip at the bottom. The heat shield is on the inboard face (-X in the

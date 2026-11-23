@@ -32,6 +32,35 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('motocross equipment surface and ownership', () => {
+  it('builds the dirt race plates and grip surfaces without allocating unused road artwork', () => {
+    const road = new BikeMaterials(1);
+    const dirt = new BikeMaterials(1, 'dirt');
+    const model = new DirtBikeModel(VEHICLES.mx450, 1, 'mid', dirt, mudUniforms());
+    try {
+      const fairingMaps = (m: BikeMaterials) => [
+        m.plate.map, ...[m.paint, m.secondary, m.accent].flatMap((p) => [p.normalMap, p.roughnessMap]),
+      ];
+      const roadBytes = fairingMaps(road).reduce((bytes, map) => {
+        const size = map!.image as { width: number; height: number };
+        return bytes + 4 * size.width * size.height;
+      }, 0);
+      expect(roadBytes).toBe(1441792);
+      expect(fairingMaps(dirt).every((map) => map === null)).toBe(true);
+      expect(dirt.rubber.normalMap).toBeTruthy();
+      expect(dirt.seat.roughnessMap).toBeTruthy();
+      const badges = new Set<T.Texture>();
+      model.root.traverse((object) => {
+        if (!(object instanceof T.Mesh)) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        for (const m of materials) if (m.name === 'Motocross factory number board' && m.map) badges.add(m.map);
+      });
+      expect(badges.size).toBe(1);
+    } finally {
+      model.dispose();
+      dirt.dispose();
+      road.dispose();
+    }
+  });
   it.each(['high', 'mid'] as const)('places both %s eyes inside the goggle cavity behind the coated lens', detail => {
     const rider = new Rider({ primary: 0x314184, secondary: 0x191a28, accent: 0xdde2e9 }, detail, 'motocross');
     const assembly = new T.Group(), material = new T.MeshBasicMaterial({ side: T.DoubleSide });

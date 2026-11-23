@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { RiderDetail } from '../rider.ts';
 import { motocrossJerseyPoint, motocrossNeckBrace } from './motocross-gear.ts';
 
-type PanelPoint = { angle: number; y: number; relief: number };
+type PanelPoint = { angle: number; y: number; relief: number; colour?: T.Color };
 
 /** Chest plates, kidney belt and pivot straps in metres in the jersey's bind
  * frame. Open ventilation slots expose the textile under the moulding; the
@@ -36,8 +36,8 @@ export function motocrossRoostDeflector(detail: RiderDetail, accent: number, lig
     for (let back = 0; back < (far ? 1 : 2); back++)
       for (let j = 0; j <= rows; j++)
         for (let i = 0; i <= cols; i++) {
-          const { angle, y, relief } = sample(i / cols, j / rows);
-          insert(motocrossJerseyPoint(angle, y, relief - back * thickness), back ? foam : tone);
+          const { angle, y, relief, colour } = sample(i / cols, j / rows);
+          insert(motocrossJerseyPoint(angle, y, relief - back * thickness), back ? foam : colour ?? tone);
         }
     const solid = (x: number, y: number) =>
       x >= 0 && x < cols && y >= 0 && y < rows && !slot?.(x, y);
@@ -83,12 +83,6 @@ export function motocrossRoostDeflector(detail: RiderDetail, accent: number, lig
       },
       (x, y) => !far && (y === 2 || y === 4) && x >= 2 && x <= 5,
     );
-    // A broad belt curves around the kidney and ends before either thigh.
-    panel(detail === 'high' ? 6 : 4, 2, side, webbing, 0.004, (u, v) => ({
-      angle: Math.PI / 2 - side * (0.48 + 2.62 * u),
-      y: 0.15 + 0.043 * v + 0.03 * Math.sin(Math.PI * u),
-      relief: 0.015 + 0.0035 * Math.sin(Math.PI * v),
-    }));
     for (const back of [false, true]) {
       // Hardware terminates underneath the raised collar shelf at the top.
       const direction = back ? -side : side;
@@ -113,6 +107,26 @@ export function motocrossRoostDeflector(detail: RiderDetail, accent: number, lig
           (x, y) => y === 1 && x === 0,
         );
     }
+  }
+  // One elastic band wraps under the bib and broadens over the lower back.
+  // Its join and ladder buckle sit on the front quarter, clear of the spine.
+  const buckleAngle = Math.PI / 2 + 0.48;
+  const belt = (angle: number, v: number) => {
+    const lumbar = (1 - Math.sin(angle)) / 2;
+    const sideRise = 0.017 * Math.cos(angle) ** 2;
+    return {
+      angle, y: 0.148 + sideRise - 0.013 * lumbar + v * (0.036 + 0.018 * lumbar),
+      relief: 0.011 + 0.0025 * Math.sin(Math.PI * v),
+      colour: v === 0 || v === 1 ? foam : webbing,
+    };
+  };
+  panel(detail === 'high' ? 16 : far ? 10 : 14, 2, 1, webbing, 0.003,
+    (u, v) => belt(buckleAngle - 2 * Math.PI * u, v));
+  if (!far) {
+    panel(3, 3, 1, shell, 0.004, (u, v) => {
+      const point = belt(buckleAngle + (0.5 - u) * 0.20, 0.10 + v * 0.80);
+      return { ...point, relief: point.relief + 0.005, colour: shell };
+    }, (column, row) => column === 1 && row === 1);
   }
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));

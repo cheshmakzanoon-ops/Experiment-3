@@ -9,7 +9,8 @@ import {
   motocrossTankShell,
   motocrossTankTop,
 } from '../src/rendering/offroad/motocross-bodywork.ts';
-import { motocrossNeckBrace } from '../src/rendering/offroad/motocross-gear.ts';
+import { motocrossGarmentGeometry, motocrossNeckBrace } from '../src/rendering/offroad/motocross-gear.ts';
+import { motocrossRoostDeflector } from '../src/rendering/offroad/mx-roost-deflector.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 const triangles = (g: T.BufferGeometry) =>
@@ -185,6 +186,30 @@ describe('motocross bodywork volumes', () => {
 });
 
 describe('motocross neck brace', () => {
+  it.each(['high', 'mid', 'far'] as const)('%s kidney belt wraps the jersey continuously at the waist', (detail) => {
+    const material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+    const jersey = new T.Mesh(motocrossGarmentGeometry('jersey', detail), material);
+    const guard = new T.Mesh(motocrossRoostDeflector(detail, 0xdec842, false), material);
+    const ray = new T.Raycaster();
+    try {
+      for (let degree = 0; degree < 360; degree += 2) {
+        const angle = degree * Math.PI / 180;
+        ray.ray.origin.set(0.41 * Math.cos(angle), 0.17, -0.005 + 0.41 * Math.sin(angle));
+        ray.ray.direction.set(-Math.cos(angle), 0, -Math.sin(angle));
+        const cloth = ray.intersectObject(jersey)[0];
+        const band = ray.intersectObject(guard)[0];
+        expect(band, `belt at ${degree} degrees`).toBeDefined();
+        expect(cloth).toBeDefined();
+        const clearance = cloth.distance - band.distance;
+        expect(clearance).toBeGreaterThan(0);
+        expect(clearance).toBeLessThan(0.027);
+      }
+    } finally {
+      jersey.geometry.dispose();
+      guard.geometry.dispose();
+      material.dispose();
+    }
+  });
   it('shows the release below the stamped tongue and seats its two moulded end faces', () => {
     const g = motocrossNeckBrace('high');
     const mesh = new T.Mesh(g, new T.MeshBasicMaterial());

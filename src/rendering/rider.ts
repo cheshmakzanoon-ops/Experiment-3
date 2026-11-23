@@ -111,6 +111,8 @@ export interface RiderColours {
   secondary: number;
   accent: number;
   team?: Pick<LiveryScheme, 'pattern' | 'title'>;
+  /** Dyed number panel on an outdoor MX or stadium SX race jersey. */
+  motocrossBib?: number;
 }
 export interface RiderPose extends MotocrossRiderMotionInput {
   sight?: GpRiderSight;

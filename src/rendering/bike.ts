@@ -570,9 +570,12 @@ export class BikeMaterials {
   /** GP bike-space occlusion uniforms shared by this entrant's bike and rider
    * materials (gp-occlusion.ts); inert until a GP entrant binds a volume. */
   readonly occlusion = gpOcclusionUniforms();
-  constructor(private readonly entrant: number) {
+  constructor(private readonly entrant: number, bodywork: 'road' | 'dirt' = 'road') {
     const scheme = liveryScheme(entrant);
     const add = <M extends T.Material>(m: M) => (this.list.push(m), m);
+    // Dirt bikes draw their own moulded plastic, printed shrouds and number
+    // board. Their fork, seat, brushed frame and tyre still use this owner.
+    const fairingMaps = () => bodywork === 'road' ? bikeSurfaceMaps('paint') : {};
     this.paint = add(
       new T.MeshPhysicalMaterial({
         color: scheme.primary,
@@ -580,7 +583,7 @@ export class BikeMaterials {
         roughness: 0.4,
         clearcoat: 0.72,
         clearcoatRoughness: 0.18,
-        ...bikeSurfaceMaps('paint'),
+        ...fairingMaps(),
         normalScale: new T.Vector2(0.065, 0.065),
         name: 'Bike fairing paint (clear coat)',
       }),
@@ -592,7 +595,7 @@ export class BikeMaterials {
         roughness: 0.36,
         clearcoat: 1,
         clearcoatRoughness: 0.06,
-        ...bikeSurfaceMaps('paint'),
+        ...fairingMaps(),
         normalScale: new T.Vector2(0.065, 0.065),
         name: 'Bike secondary paint',
       }),
@@ -604,7 +607,7 @@ export class BikeMaterials {
         roughness: 0.38,
         clearcoat: 1,
         clearcoatRoughness: 0.06,
-        ...bikeSurfaceMaps('paint'),
+        ...fairingMaps(),
         normalScale: new T.Vector2(0.065, 0.065),
       }),
     );
@@ -736,7 +739,7 @@ export class BikeMaterials {
     this.band = add(new T.MeshStandardMaterial({ color: 0xf5c400, roughness: 0.6 }));
     this.plate = add(
       new T.MeshPhysicalMaterial({
-        map: numberTexture((entrant % 98) + 2, scheme.primary, scheme.accent),
+        map: bodywork === 'road' ? numberTexture((entrant % 98) + 2, scheme.primary, scheme.accent) : null,
         transparent: true,
         depthWrite: false,
         polygonOffset: true,
@@ -2440,10 +2443,10 @@ export class BikeShells {
     // The player's SS-600 and SBK-1000 wear their own team scheme (bike-sheet.ts
     // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
     const scheme = bikeEntrantScheme(definition.id, id);
-    const materials = new BikeMaterials(scheme);
+    const dirtMud = isDirtBike(definition) ? mudUniforms() : undefined;
+    const materials = new BikeMaterials(scheme, dirtMud ? 'dirt' : 'road');
     // Only the drawn level enters the live scene. Dirt models build other
     // levels during race preparation before the worker releases the gate.
-    const dirtMud = isDirtBike(definition) ? mudUniforms() : undefined;
     const levels = dirtMud
       ? []
       : BIKE_DETAILS.map((detail) => {

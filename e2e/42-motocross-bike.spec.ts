@@ -171,6 +171,27 @@ test('different motocross teams keep their race colours, printed kit and hardwar
   expect(hashes.size).toBe(3);
 });
 
+for (const [entrant, detail, dye, ink] of [
+    [0, 'high', 0x5b2bd6, 0xf0ede6],
+    [1, 'mid', 0xf27c1e, 0x14171b],
+    [1, 'far', 0xf27c1e, 0x14171b],
+    [3, 'mid', 0xdcb02b, 0x14171b],
+    [4, 'far', 0xe9e9eb, 0x14171b],
+] as const) {
+  test(`motocross race number ${entrant + 2} remains visible between the neck brace and belt at ${detail} detail`, async ({ review }) => {
+    const [result] = await review.capture({
+      id: 'mx450', detail, entrant, view: 'race-bib',
+      samples: [{ startBrace: 0.4, standing: 0.08 }],
+    });
+    await review.attach(`mx450-bib-${entrant}-${detail}`, result);
+    const bib = result.bib!;
+    expect(bib.swatches.map((swatch) => swatch.rgb)).toEqual([dye, ink]);
+    expect(bib.swatches[1].fraction).toBeGreaterThan(0.12);
+    expect(bib.numberSamples).toBeGreaterThan(25);
+    expect(bib.covered).toBe(0);
+  });
+}
+
 test('the indoor roof light reaches real rider and bike materials and restores the outdoor image on a seek', async ({
   review,
 }) => {

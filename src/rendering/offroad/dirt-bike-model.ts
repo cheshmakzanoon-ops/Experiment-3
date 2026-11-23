@@ -161,12 +161,17 @@ export class DirtBikeModel {
     const b = definition.bike!,
       sides = detail === 'high' ? 36 : detail === 'mid' ? 18 : 10,
       supermoto = definition.tireFamily === 'supermoto',
-      scheme = liveryScheme(id);
+      scheme = liveryScheme(id),
+      primaryDye = new T.Color(scheme.primary),
+      accentDye = new T.Color(scheme.accent);
     const colours = {
-      primary: new T.Color(scheme.primary).getHex(),
+      primary: primaryDye.getHex(),
       secondary: new T.Color(scheme.secondary).getHex(),
-      accent: new T.Color(scheme.accent).getHex(),
+      accent: accentDye.getHex(),
       team: scheme,
+      motocrossBib: supermoto ? undefined : (
+        scheme.pattern === 'split' ? accentDye.clone().lerp(primaryDye, 0.22) : primaryDye
+      ).getHex(),
     };
     this.axles = MotocrossAxles.of(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
