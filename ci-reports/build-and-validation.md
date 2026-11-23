@@ -1,20 +1,38 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45091021750
-- commit: `9b20cb17e4` · Detail GP escape beds and retain the racing helmet geometry budget
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45092013522
+- commit: `0f8a24ba09` · Seat and animate GP spectators along the course and give riders a live sightline
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-23T00:49:33Z · updated: 2026-11-23T01:00:21Z
+- started: 2026-11-23T01:00:03Z · updated: 2026-11-23T01:11:23Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
+| validate | success | 3 |  |
 | unit-tests (4) | cancelled | 5 | Complete unit-suite partition without source changes |
-| scenarios | cancelled | 5 | Run node --experimental-transform-types scripts/race-classification.ts |
-| unit-tests (1) | cancelled | 4 | Complete unit-suite partition without source changes |
-| offroad-scenarios | cancelled | 4 | Full offroad calibrations and races without source changes |
-| unit-tests (3) | cancelled | 1 | Complete unit-suite partition without source changes |
-| validate | cancelled | 0 | Lint, validate content, typecheck and build without source changes |
-| unit-tests (2) | cancelled | 0 | Run actions/setup-node@v4; Unit results, including failures |
-| owner-qa | cancelled | 0 |  |
-| browser | cancelled | 0 |  |
-| wet-presentation | cancelled | 0 |  |
+| offroad-scenarios | cancelled | 3 | Full offroad calibrations and races without source changes |
+| unit-tests (1) | cancelled | 2 | Complete unit-suite partition without source changes |
+| unit-tests (2) | cancelled | 2 | Complete unit-suite partition without source changes |
+| unit-tests (3) | cancelled | 2 | Complete unit-suite partition without source changes |
+| scenarios | cancelled | 10 |  |
+| owner-qa (2) | cancelled | 2 |  |
+| owner-qa (3) | cancelled | 2 |  |
+| owner-qa (1) | cancelled | 2 |  |
+| wet-presentation | cancelled | 2 |  |
+| owner-qa (4) | cancelled | 2 |  |
+| browser (3) | cancelled | 2 |  |
+| browser (5) | cancelled | 2 |  |
+| browser (10) | cancelled | 2 |  |
+| browser (8) | cancelled | 2 |  |
+| browser (9) | cancelled | 2 |  |
+| browser (16) | cancelled | 2 |  |
+| browser (4) | cancelled | 2 |  |
+| browser (12) | cancelled | 2 |  |
+| browser (11) | cancelled | 2 |  |
+| browser (13) | cancelled | 2 |  |
+| browser (14) | cancelled | 2 |  |
+| browser (1) | cancelled | 2 |  |
+| browser (15) | cancelled | 2 |  |
+| browser (7) | cancelled | 2 |  |
+| browser (2) | cancelled | 2 |  |
+| browser (6) | cancelled | 2 |  |
 | publish | cancelled | 0 |  |
