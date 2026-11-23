@@ -50,12 +50,13 @@ import {
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
 import { addMotocrossHandguards } from './motocross-handguard.ts';
+import { MotocrossShockLinkage } from './motocross-shock-linkage.ts';
 import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
 import { mxCrossbarPad } from './motocross-bar-pad.ts';
 import { mxFenderLoad, prepareMxFenderFlex } from './mx-fender-flex.ts';
 import { mxSilencerHanger, mxSilencerSleeve } from './mx-silencer.ts';
 import { mxNumberBoard, mxNumberBoardBack, mxSideNumberPlate, mxSidePlateMounts } from './motocross-number-board.ts';
-import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
+import { MotocrossFootControls, motocrossRearBrakeLine, MX_PEG } from './motocross-foot-controls.ts';
 import {
   addMotocrossControlMounts,
   motocrossGrip,
@@ -131,8 +132,10 @@ export class DirtBikeModel {
   private readonly swingarm = new T.Group();
   private readonly rearBrake = new T.Group();
   private readonly shock?: MotocrossRearShock;
+  private readonly shockLinkage?: MotocrossShockLinkage;
   private readonly footControls?: MotocrossFootControls;
   private readonly brakeHose?: MotocrossBrakeHose;
+  private readonly rearBrakeLine?: T.SkinnedMesh;
   private readonly mudFlap?: T.Mesh;
   private readonly shockUpper = new T.Vector3(0, -0.02, -0.29);
   private readonly shockLower = new T.Vector3();
@@ -1044,12 +1047,13 @@ export class DirtBikeModel {
       this.shockLower.set(0, 0.04, -arm * 0.35);
       this.shock = new MotocrossRearShock(detail, this.m);
       this.root.add(this.shock.root);
-      // The two transverse mounting sleeves join the frame and swingarm.
-      // They stay in their own rigid batches while the shock pivots between.
+      if (!supermoto)
+        this.shockLinkage = new MotocrossShockLinkage(this.root, this.sprung, this.swingarm, this.m, detail === 'high');
       for (const [parent, anchor] of [
         [this.sprung, this.shockUpper],
         [this.swingarm, this.shockLower],
-      ] as const)
+      ] as const) {
+        if (parent === this.swingarm && this.shockLinkage) continue;
         add(
           parent,
           new T.CylinderGeometry(0.0065, 0.0065, 0.22, 10),
@@ -1058,10 +1062,17 @@ export class DirtBikeModel {
           anchor.y,
           anchor.z,
         ).rotation.z = Math.PI / 2;
+      }
       this.rearBrake.name = 'Motocross axle-mounted non-spinning rear brake';
       this.rearBrake.position.copy(this.axles.rearRest);
       this.root.add(this.rearBrake);
       const rearBanjo = addMotocrossBrakeCaliper(this.rearBrake, false, detail, this.m, 0);
+      if (!supermoto && this.footControls) {
+        this.rearBrakeLine = motocrossRearBrakeLine(
+          this.sprung, this.swingarm, this.axles.pivot, arm, this.footControls.outlet, this.m, detail === 'high',
+        );
+        this.root.add(this.rearBrakeLine);
+      }
       add(
         this.rearBrake,
         tube(
@@ -1164,7 +1175,8 @@ export class DirtBikeModel {
     if (this.shock) {
       this.swingarm.updateMatrix();
       this.upperEye.copy(this.shockUpper).applyMatrix4(this.sprung.matrix);
-      this.lowerEye.copy(this.shockLower).applyMatrix4(this.swingarm.matrix);
+      if (this.shockLinkage) this.shockLinkage.update(this.sprung.matrix, this.swingarm.matrix, this.lowerEye);
+      else this.lowerEye.copy(this.shockLower).applyMatrix4(this.swingarm.matrix);
       this.shock.update(this.upperEye, this.lowerEye);
       // The casting follows arm angle about the axle, independently of both
       // wheel spin and wheel removal. No swingarm stretch scales the casting.
@@ -1256,6 +1268,7 @@ export class DirtBikeModel {
     this.disposed = true;
     this.rider.root.removeFromParent();
     this.rider.dispose();
+    this.rearBrakeLine?.skeleton.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh) o.geometry.dispose();

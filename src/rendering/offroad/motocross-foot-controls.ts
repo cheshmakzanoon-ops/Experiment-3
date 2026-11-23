@@ -52,6 +52,7 @@ function leverBlank(tipY: number, tipZ: number, brake: boolean) {
  * of the rod slides inside its frame-mounted cylinder as the bell crank turns. */
 export class MotocrossFootControls {
   readonly brake = new T.Group();
+  readonly outlet = new T.Vector3();
   private readonly clevis = new T.Vector3(-0.001, 0.021, -0.039);
   private readonly mouth = new T.Vector3(-0.134, -0.335, -0.151);
   private readonly rod: T.Mesh;
@@ -148,6 +149,8 @@ export class MotocrossFootControls {
       this.mouth.z - 0.005,
     );
     barrel.rotation.x = -0.18;
+    barrel.updateMatrix();
+    this.outlet.set(0, 0.027, 0).applyMatrix4(barrel.matrix);
     // A separate pivot keeps the rod clear of the parent rigid batching pass.
     const linkage = new T.Group();
     linkage.name = 'Motocross hydraulic brake pushrod';
@@ -164,4 +167,58 @@ export class MotocrossFootControls {
     this.rod.position.copy(this.lower).lerp(this.mouth, 0.5);
     this.rod.quaternion.setFromUnitVectors(UP, this.axis.normalize());
   }
+}
+
+/** Route the hose from the frame-mounted master cylinder to the rear
+ * caliper's existing tail. A short loop bends beside the arm pivot; the rest
+ * of the hose and its saddles rotate rigidly on the non-spinning swingarm. */
+export function motocrossRearBrakeLine(
+  chassis: T.Group, arm: T.Group, pivot: T.Vector3, armLength: number, outlet: T.Vector3,
+  materials: BikeMaterials, detailed: boolean,
+) {
+  const onArm = (x: number, y: number, z: number) => new T.Vector3(x, y, z).add(pivot);
+  const path = new T.CatmullRomCurve3([
+    outlet.clone(),
+    outlet.clone().add(new T.Vector3(-0.004, 0.018, -0.012)),
+    onArm(-0.141, 0.078, -0.053),
+    onArm(-0.123, 0.055, -0.091),
+    onArm(-0.109, 0.055, -0.145),
+    onArm(-0.111, 0.05, -armLength * 0.53),
+    onArm(-0.113, 0.045, -armLength + 0.2),
+  ]);
+  const rows = detailed ? 22 : 13, sides = 5;
+  const g = new T.TubeGeometry(path, rows, 0.0035, sides, false);
+  const count = g.getAttribute('position').count;
+  const weights = new Float32Array(4 * count), indices = new Uint16Array(4 * count);
+  const centre = new T.Vector3();
+  for (let row = 0; row <= rows; row++) {
+    path.getPointAt(row / rows, centre);
+    const follow = T.MathUtils.smoothstep(-centre.z, 0.183, 0.245);
+    for (let side = 0; side <= sides; side++) {
+      const k = 4 * (row * (sides + 1) + side);
+      indices[k + 1] = 1;
+      weights[k] = 1 - follow;
+      weights[k + 1] = follow;
+    }
+  }
+  g.setAttribute('skinIndex', new T.Uint16BufferAttribute(indices, 4));
+  g.setAttribute('skinWeight', new T.Float32BufferAttribute(weights, 4));
+  const fixed = new T.Bone(), moving = new T.Bone();
+  chassis.add(fixed);
+  arm.add(moving);
+  const line = new T.SkinnedMesh(g, materials.dark);
+  line.name = 'Motocross flexible rear hydraulic line';
+  line.bind(new T.Skeleton([fixed, moving], [
+    new T.Matrix4(), new T.Matrix4().makeTranslation(-pivot.x, -pivot.y, -pivot.z),
+  ]), new T.Matrix4());
+  line.castShadow = line.receiveShadow = true;
+  g.computeBoundingSphere();
+  line.boundingSphere = g.boundingSphere!.clone();
+  line.boundingSphere.radius += 0.18;
+  for (const [x, y, z] of [[-0.109, 0.055, -0.145], [-0.111, 0.05, -armLength * 0.53]]) {
+    add(arm, new T.BoxGeometry(0.019, 0.0045, 0.015), materials.aluminium, x, y + 0.003, z);
+  }
+  add(chassis, new T.CylinderGeometry(0.0057, 0.0067, 0.012, 6), materials.steel,
+    outlet.x - 0.001, outlet.y + 0.005, outlet.z - 0.002).rotation.x = -0.4;
+  return line;
 }

@@ -56,13 +56,14 @@ const transformedPoint = (point: T.Vector3, object: T.Object3D) =>
 describe('motocross two-anchor suspension and brake geometry', () => {
   for (const id of ['mx250', 'mx450', 'sm450'])
     it.each(['high', 'mid'] as const)(
-      `${id} %s keeps both shock eyes on their actual frame/arm mounts through full suspension travel`,
+      `${id} %s keeps both shock eyes on their working bearings through full suspension travel`,
       (detail) => {
         const definition = VEHICLES[id],
           materials = new BikeMaterials(0),
           model = new DirtBikeModel(definition, 0, detail, materials, mudUniforms());
         const arm = model.root.getObjectByName('Motocross articulated swingarm')!,
           shock = model.root.getObjectByName('Motocross two-anchor telescoping rear shock')!,
+          rockerBearing = model.root.getObjectByName('Motocross rocker shock bearing'),
           lower = model.root.getObjectByName('Motocross moving lower shock eye and piston')!,
           coil = model.root.getObjectByName(
             'Motocross constant-diameter suspension coil',
@@ -101,7 +102,8 @@ describe('motocross two-anchor suspension and brake geometry', () => {
               );
               model.root.updateMatrixWorld(true);
               const upperWorld = transformedPoint(mountOnFrame, model.sprung),
-                lowerWorld = transformedPoint(mountOnArm, arm),
+                lowerWorld = id === 'sm450' ? transformedPoint(mountOnArm, arm)
+                  : rockerBearing!.getWorldPosition(new T.Vector3()),
                 length = upperWorld.distanceTo(lowerWorld);
               expect(shock.getWorldPosition(new T.Vector3()).distanceTo(upperWorld)).toBeLessThan(
                 1e-9,
@@ -128,6 +130,63 @@ describe('motocross two-anchor suspension and brake geometry', () => {
         }
       },
     );
+
+  it('keeps both ends of the actual rear brake hose seated during rebound, compression and wheel service', () => {
+    const definition = VEHICLES.mx450, materials = new BikeMaterials(0);
+    const model = new DirtBikeModel(definition, 0, 'high', materials, mudUniforms());
+    try {
+      const hose = model.root.getObjectByName('Motocross flexible rear hydraulic line') as T.SkinnedMesh;
+      const calliper = model.root.getObjectByName('Motocross axle-mounted non-spinning rear brake')!;
+      const vertices = hose.geometry.getAttribute('position').count, p = new T.Vector3();
+      const centre = (start: number) => {
+        const c = new T.Vector3();
+        for (let i = 0; i < 5; i++) c.add(hose.getVertexPosition(start + i, p));
+        return c.multiplyScalar(0.2).applyMatrix4(hose.matrixWorld);
+      };
+      model.root.rotation.set(0.14, -0.32, 0.64);
+      model.root.position.set(10, 8, -4);
+      let frameEnd: T.Vector3 | null = null;
+      for (const shock of [0, 0.08, definition.bike!.shockTravel, 0.08, 0]) {
+        model.pose(pose(0.1, shock, { rearRotation: 5.5, rearWheelOut: 0.085 }));
+        model.root.updateMatrixWorld(true);
+        const first = centre(0), last = centre(vertices - 6);
+        frameEnd ??= first;
+        expect(first.distanceTo(frameEnd)).toBeLessThan(1e-6);
+        expect(last.distanceTo(transformedPoint(new T.Vector3(-0.113, 0.045, 0.2), calliper))).toBeLessThan(1e-6);
+      }
+    } finally { model.dispose(); materials.dispose(); }
+  });
+
+  it.each(['mx250', 'mx450'] as const)('%s preserves both pull-rod lengths and increases shock motion per metre of axle travel', id => {
+    const definition = VEHICLES[id], materials = new BikeMaterials(0);
+    const model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+    try {
+      const arm = model.root.getObjectByName('Motocross articulated swingarm')!;
+      const rocker = model.root.getObjectByName('Motocross suspension bell crank')!;
+      const rods = model.root.getObjectByName('Motocross paired suspension pull rods')!;
+      const shock = model.root.getObjectByName('Motocross moving lower shock eye and piston')!;
+      const step = definition.bike!.shockTravel / 20, rates: number[] = [];
+      let previous = 0;
+      for (let i = 0; i <= 20; i++) {
+        model.pose(pose(0.1, step * i));
+        model.root.updateMatrixWorld(true);
+        const rockerPivot = transformedPoint(new T.Vector3(0, 0.021, -0.177), arm);
+        const framePivot = transformedPoint(new T.Vector3(0, -0.418, -0.091), model.sprung);
+        expect(rocker.getWorldPosition(new T.Vector3()).distanceTo(rockerPivot)).toBeLessThan(1e-9);
+        expect(rods.getWorldPosition(new T.Vector3()).distanceTo(framePivot)).toBeLessThan(1e-9);
+        for (const side of [-1, 1]) {
+          const pin = transformedPoint(new T.Vector3(side * 0.043, 0, 0.093), rocker);
+          const rodEnd = transformedPoint(new T.Vector3(side * 0.043, 0, 0.199), rods);
+          expect(pin.distanceTo(rodEnd)).toBeLessThan(1e-9);
+        }
+        if (i) rates.push((previous - shock.position.y) / step);
+        previous = shock.position.y;
+      }
+      expect(Math.min(...rates)).toBeGreaterThan(0.25);
+      expect(rates[19] / rates[0]).toBeGreaterThan(1.15);
+      for (let i = 1; i < rates.length; i++) expect(rates[i]).toBeGreaterThan(rates[i - 1]);
+    } finally { model.dispose(); materials.dispose(); }
+  });
 
   it.each(['high', 'mid'] as const)(
     '%s changes spring pitch while preserving wire radius, outward normals, reusable buffers and exact seeks',
