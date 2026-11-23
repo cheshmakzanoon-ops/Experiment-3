@@ -87,8 +87,8 @@ export function crowdColour(u: number, v: number) {
 }
 
 /** A 0.9 × 0.6 m flag on its own pole, origin at the hand. */
-export function flagGeometry() {
-  const cloth = new T.PlaneGeometry(0.9, 0.6, 6, 2).translate(0.45, 1.3, 0);
+export function flagGeometry(gp = false) {
+  const cloth = new T.PlaneGeometry(0.9, 0.6, gp ? 9 : 6, gp ? 4 : 2).translate(0.45, 1.3, 0);
   const pole = new T.BoxGeometry(0.02, 1.62, 0.02).translate(0, 0.81, 0);
   // Pole vertices carry u = 0 (no wave); the cloth's u grows to the fly end.
   const parts = [pole, cloth];
@@ -102,7 +102,7 @@ export function flagGeometry() {
     normal.push(...(g.getAttribute('normal').array as Float32Array));
     const p = g.getAttribute('position');
     for (let i = 0; i < p.count; i++)
-      uv.push(g === pole ? 0 : p.getX(i) / 0.9, g === pole ? 0 : (p.getY(i) - 1.0) / 0.6);
+      uv.push(g === pole ? 0 : p.getX(i) / 0.9, g === pole ? (gp ? -1 : 0) : (p.getY(i) - 1.0) / 0.6);
     for (const i of g.index!.array as ArrayLike<number> as number[]) index.push(base + i);
     g.dispose();
   }
@@ -122,6 +122,11 @@ export function flagGeometry() {
   g.boundingBox!.expandByScalar(0.25);
   g.computeBoundingSphere();
   g.boundingSphere!.radius += 0.25;
+  if (gp) {
+    // The held pole pitches and the fly can stream in any horizontal direction.
+    g.boundingBox = new T.Box3(new T.Vector3(-1.24, -0.04, -1.08), new T.Vector3(1.24, 1.75, 1.08));
+    g.boundingSphere = g.boundingBox.getBoundingSphere(new T.Sphere());
+  }
   return g;
 }
 
@@ -173,10 +178,11 @@ export function buildCrowdFlags(
   spectators: readonly T.Matrix4[],
   seed: number,
   material: T.Material,
+  gp = false,
 ) {
   const picks = spectators.filter((_, i) => (i * 7 + seed) % FLAG_EVERY === 0);
   if (!picks.length) return null;
-  const mesh = new T.InstancedMesh(flagGeometry(), material, picks.length);
+  const mesh = new T.InstancedMesh(flagGeometry(gp), material, picks.length);
   mesh.name = 'Spectator team flags';
   const m = new T.Matrix4(),
     lift = new T.Matrix4(),

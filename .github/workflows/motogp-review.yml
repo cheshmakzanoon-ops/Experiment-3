@@ -51,6 +51,8 @@ on:
       - 'e2e/gp-optical-rain.spec.ts'
       - 'e2e/gp-front-brake.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
+      - 'e2e/gp-visor-and-flags.spec.ts'
+      - 'e2e/fixtures/gp-visor-and-flags.ts'
       - 'e2e/gp-fork-crown.spec.ts'
       - 'e2e/gp-course-boards.spec.ts'
       - 'e2e/gp-paddock-architecture.spec.ts'
@@ -177,7 +179,8 @@ jobs:
           tests/gp-rider-glove.test.ts tests/gp-brake-rotor.test.ts
           tests/gp-radial-caliper.test.ts tests/gp-course-bridge.test.ts
           tests/gp-proximity.test.ts tests/proximity.test.ts
-          tests/gp-r5-materials.test.ts tests/preparation.test.ts
+          tests/gp-r5-materials.test.ts tests/gp-track-pickup.test.ts tests/gp-rider-posture.test.ts
+          tests/preparation.test.ts
           tests/gp-race-shell.test.ts tests/gp-course-boards.test.ts
           tests/gp-safety-padding.test.ts tests/gp-terrain-surface.test.ts
           tests/gp-appearance.test.ts tests/gp-occlusion.test.ts
@@ -242,7 +245,7 @@ jobs:
           - scene: presentation
             specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts e2e/gp-front-brake.spec.ts
           - scene: rider-contact
-            specs: e2e/gp-rider-contact.spec.ts
+            specs: e2e/gp-rider-contact.spec.ts e2e/gp-visor-and-flags.spec.ts
           - scene: course-construction
             specs: e2e/gp-course-boards.spec.ts e2e/gp-paddock-architecture.spec.ts
           - scene: dry-riding

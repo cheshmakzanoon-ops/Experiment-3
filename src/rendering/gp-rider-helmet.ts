@@ -64,32 +64,41 @@ export function gpHelmetPoint(y: number, phi: number, offset = 0, out = new T.Ve
   );
 }
 
-/** Closed outer shell: per-column rows from the sloped edge to the crown pole
- * (no pinched seam) and a neck-roll cap. UV u wraps azimuth, v rises. */
+/** The two near meshes follow the rim of a real aperture. The distant
+ * helmet bakes the shield into a closed, single-material silhouette. */
 export function gpHelmetShell(detail: RiderDetail) {
   const columns = detail === 'high' ? 56 : detail === 'mid' ? 32 : 16,
     rows = detail === 'high' ? 26 : detail === 'mid' ? 14 : 7,
     stride = columns + 1,
+    tau = 2 * Math.PI,
+    left = Math.round(columns * GP_VISOR_PHI[0] / tau),
+    right = Math.round(columns * GP_VISOR_PHI[1] / tau),
+    bottom = Math.round(rows * .38),
+    top = Math.round(rows * .59),
     positions: number[] = [],
     uv: number[] = [],
     indices: number[] = [],
     p = new T.Vector3();
   for (let row = 0; row <= rows; row++)
     for (let column = 0; column <= columns; column++) {
-      const phi = (column / columns) * Math.PI * 2,
-        edge = gpHelmetEdge(phi),
-        // Denser rows through the eye port and chin bar, sparser on the dome.
-        t = row / rows,
-        eye = detail === 'far' ? gpVisorBounds(phi) : undefined,
-        y = eye
-          ? [edge, -0.082, eye[0], eye[1], 0.078, 0.108, 0.135, GP_HELMET_TOP][row]
-          : row === rows
-            ? GP_HELMET_TOP
-            : edge + (GP_HELMET_TOP - edge) * (t - 0.12 * Math.sin(t * Math.PI));
+      let phi = column / columns * tau;
+      if (detail !== 'far') {
+        // Align shell columns with the two end posts of the shield.
+        if (column <= left) phi = GP_VISOR_PHI[0] * column / left;
+        else if (column <= right) phi = T.MathUtils.lerp(...GP_VISOR_PHI, (column - left) / (right - left));
+        else phi = T.MathUtils.lerp(GP_VISOR_PHI[1], tau, (column - right) / (columns - right));
+      }
+      const edge = gpHelmetEdge(phi), eye = gpVisorBounds(phi);
+      let y: number;
+      if (detail === 'far') y = [edge, -0.082, eye[0], eye[1], 0.078, 0.108, 0.135, GP_HELMET_TOP][row];
+      else if (row <= bottom) y = T.MathUtils.lerp(edge, eye[0], row / bottom);
+      else if (row <= top) y = T.MathUtils.lerp(...eye, (row - bottom) / (top - bottom));
+      else y = T.MathUtils.lerp(eye[1], GP_HELMET_TOP, Math.sin(Math.PI * .5 * (row - top) / (rows - top)));
       gpHelmetPoint(y, phi, 0, p);
       positions.push(p.x, p.y, p.z);
-      uv.push(column / columns, gpHelmetV(y));
-      if (row < rows && column < columns) {
+      uv.push(phi / tau, gpHelmetV(y));
+      const opening = detail !== 'far' && column >= left && column < right && row >= bottom && row < top;
+      if (row < rows && column < columns && !opening) {
         const a = row * stride + column,
           b = a + stride;
         indices.push(a, a + 1, b, a + 1, b + 1, b);
@@ -173,6 +182,18 @@ export function gpVisorGeometry(detail: RiderDetail) {
     const phi = T.MathUtils.lerp(GP_VISOR_PHI[0], GP_VISOR_PHI[1], u),
       [y0, y1] = gpVisorBounds(phi);
     return gpHelmetPoint(T.MathUtils.lerp(y0, y1, v), phi, 0.0035, out);
+  });
+}
+
+/** The lining rolls inward under the shell lip. Across the centre it sits
+ * behind the eyes; around the temples and cheek it closes off the cavity. */
+export function gpEyePortLiner(detail: RiderDetail) {
+  return patch(detail === 'high' ? 12 : 8, detail === 'high' ? 32 : 24, (u, v, out) => {
+    const phi = T.MathUtils.lerp(...GP_VISOR_PHI, u);
+    const [lo, hi] = gpVisorBounds(phi);
+    const temple = T.MathUtils.smoothstep(Math.min(u, 1 - u), 0, .22);
+    const pad = T.MathUtils.smoothstep(Math.min(v, 1 - v), 0, .20);
+    return gpHelmetPoint(T.MathUtils.lerp(lo - .0015, hi + .0015, v), phi, -.001 - .065 * temple * pad, out);
   });
 }
 
@@ -362,7 +383,9 @@ export function addGpHelmetDetails(
     backing.position.copy(mesh.position);
     backing.quaternion.copy(mesh.quaternion);
   };
-  add(gpVisorGeometry(detail), materials.visor, 'GP iridium race visor');
+  const shield = add(gpVisorGeometry(detail), materials.visor, 'GP iridium race visor');
+  shield.castShadow = false;
+  add(gpEyePortLiner(detail), materials.liner, 'GP eye-port padding');
   add(gpHelmetSpoiler(detail), materials.shell, 'GP rear crown spoiler');
   if (detail !== 'high') return;
   add(

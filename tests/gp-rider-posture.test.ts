@@ -16,12 +16,14 @@ import { GpRiderBody, GP_RIDER_BODY_MAX_GAP } from '../src/rendering/gp-rider-dy
 import {
   GP_HELMET_CENTRE,
   addGpHelmetDetails,
+  gpEyePortLiner,
   gpHelmetShell,
   gpHelmetSpoiler,
   gpHelmetVent,
   gpHelmetV,
   gpVisorGeometry,
 } from '../src/rendering/gp-rider-helmet.ts';
+import { gpEyePortFace } from '../src/rendering/gp-helmet-optics.ts';
 import { Rider, type RiderPose } from '../src/rendering/rider.ts';
 
 beforeAll(() => {
@@ -336,7 +338,36 @@ describe('GP spring-damped rider body', () => {
 });
 
 describe('GP race helmet', () => {
-  it('is a closed, elongated race shell with a visor and rear spoiler', () => {
+  it.each(['high', 'mid'] as const)('%s eye rays pass through the lens to the rider before the padding', (detail) => {
+    const material = new T.MeshBasicMaterial();
+    const shell = new T.Mesh(gpHelmetShell(detail), material);
+    const visor = new T.Mesh(gpVisorGeometry(detail), material);
+    const pad = new T.Mesh(gpEyePortLiner(detail), material);
+    const face = gpEyePortFace(detail, 23);
+    face.position.fromArray(GP_HELMET_CENTRE);
+    face.position.y += .006;
+    face.position.z += .016;
+    face.updateMatrixWorld();
+    const ray = new T.Raycaster();
+    try {
+      for (const x of [-.031, .031]) {
+        ray.set(new T.Vector3(x, GP_HELMET_CENTRE[1] + .0165, .6), new T.Vector3(0, 0, -1));
+        const lensHit = ray.intersectObject(visor)[0], faceHit = ray.intersectObject(face)[0];
+        const padHit = ray.intersectObject(pad)[0], shellHit = ray.intersectObject(shell)[0];
+        expect(lensHit.distance).toBeLessThan(faceHit.distance);
+        expect(faceHit.distance).toBeLessThan(padHit.distance);
+        expect(faceHit.distance).toBeLessThan(shellHit?.distance ?? Infinity);
+      }
+      expect(face.geometry.index!.count / 3).toBeLessThan(detail === 'high' ? 3300 : 1150);
+      expect(face.geometry.getAttribute('headPerson').getX(0)).toBe(23);
+    } finally {
+      for (const mesh of [shell, visor, pad, face]) mesh.geometry.dispose();
+      face.material.dispose();
+      material.dispose();
+    }
+  });
+
+  it('is an elongated race shell with a conformal visor and rear spoiler', () => {
     for (const detail of ['high', 'mid', 'far'] as const) {
       const shell = gpHelmetShell(detail),
         box = shell.boundingBox!,

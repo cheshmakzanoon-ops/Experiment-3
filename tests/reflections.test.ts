@@ -665,11 +665,14 @@ it('keeps Festival paint coherent after delayed live frames and captures the des
   }) as {
     photo: boolean;
     updateLocalReflection(
-      subject: T.Object3D, time: number, wet: number, environment: number, cut: boolean,
+      subject: T.Object3D, time: number, elapsed: number, wet: number, environment: number, cut: boolean,
     ): void;
   };
-  const present = (time: number, cut = false) =>
-    festival.updateLocalReflection(car, time, 0.4, 1, cut);
+  let last = 0;
+  const present = (time: number, cut = false) => {
+    festival.updateLocalReflection(car, time, cut ? 0 : Math.max(0, time - last), 0.4, 1, cut);
+    last = time;
+  };
   try {
     present(0, true);
     expect(faces).toHaveLength(6);

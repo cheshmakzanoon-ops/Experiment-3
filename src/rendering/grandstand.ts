@@ -11,6 +11,7 @@ import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
 import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
+import { gpSpectatorFlagMaterial } from './gp-spectator-flags.ts';
 import { installStadiumSeat, stadiumSeatGeometry } from './stadium-seat.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { mxRoofDeck } from './offroad/mx-roof-deck.ts';
@@ -110,8 +111,10 @@ export function standMaterials(track?: Track) {
   return materials;
 }
 let sharedFlagMaterial: T.MeshStandardMaterial | null = null;
+let sharedGpFlagMaterial: T.MeshStandardMaterial | null = null;
 /** One flag material for every stand (one program, shared uniforms). */
-function crowdFlagMaterial() {
+function crowdFlagMaterial(gp: boolean) {
+  if (gp) return (sharedGpFlagMaterial ??= gpSpectatorFlagMaterial());
   return (sharedFlagMaterial ??= flagMaterial());
 }
 export function buildGrandstand(
@@ -313,7 +316,7 @@ export function buildGrandstand(
     bodyColors[i] = entry.color;
   });
   // D21: waving team flags, one instanced draw per stand.
-  const flags = buildCrowdFlags(spectators, Math.round(site.s), crowdFlagMaterial());
+  const flags = buildCrowdFlags(spectators, Math.round(site.s), crowdFlagMaterial(!!gpStyle), !!gpStyle);
   if (flags) peopleRoot.add(flags);
   const chunkSize = hero ? 64 : 128;
   for (let offset = 0; offset < spectators.length; offset += chunkSize) {
