@@ -1,3 +1,6 @@
+import { mountTailLampHousing } from './formula-tail-lamp.ts';
+import { mountAuthoredWing } from './car-assembly.ts';
+import { FormulaRearFlap } from './formula-rear-flap.ts';
 import type { HeroShells } from './hero-shells.ts';
 import { mirrorShellGeometry, apertureGeometry } from './cockpit.ts';
 import { addSafetyCell, addAirbox, buildWing, reducedTireGeometry } from './car-architecture.ts';
@@ -37,6 +40,7 @@ export class ReducedCar {
   readonly brakes: T.Mesh[] = [];
   readonly front = new T.Group();
   readonly rear = new T.Group();
+  readonly rearFlap = new FormulaRearFlap();
   /** Batched bodywork (rigid). */
   readonly body = new T.Group();
   constructor(
@@ -90,19 +94,14 @@ export class ReducedCar {
       addSidepodDuct(body, side, { carbon, dark: rubber, metal: carbon, paint }, detail);
     }
     if (hero) {
-      for (const [name, parent] of [
-        ['front', this.front],
-        ['rear', this.rear],
-      ] as const) {
-        mesh(parent, hero.copy(`${name}_paint`), paint);
-        mesh(parent, hero.copy(`${name}_carbon`), carbon);
-        // Minor hardware shares carbon at this screen size; no extra draw.
-        mesh(parent, hero.copy(`${name}_alloy`), carbon);
-      }
+      // Minor hardware shares carbon at this screen size.
+      const materials = { paint, carbon, metal: carbon, dark: rubber };
+      mountAuthoredWing(this.front, hero, 'front', materials);
+      mountAuthoredWing(this.rear, hero, 'rear', materials, this.rearFlap.skin);
       mesh(body, hero.copy('safety'), paint); // D18: painted halo
     } else {
       buildWing(this.front, 'front', detail, paint, carbon);
-      buildWing(this.rear, 'rear', detail, paint, carbon);
+      buildWing(this.rear, 'rear', detail, paint, carbon, this.rearFlap.skin);
       addSafetyCell(body, carbon, detail);
     }
     for (const side of [-1, 1]) {
@@ -214,8 +213,10 @@ export class ReducedCar {
       mergeStatic(spin);
       spin.add(tire);
     }
+    mountTailLampHousing(body, carbon);
     mergeStatic(body);
     mergeStatic(this.front);
     mergeStatic(this.rear);
+    this.rearFlap.mount(this.rear);
   }
 }

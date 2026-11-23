@@ -1,3 +1,5 @@
+import { mountTailLamp, mountTailLampHousing } from './formula-tail-lamp.ts';
+import { FormulaRearFlap } from './formula-rear-flap.ts';
 import type { RivalLevels } from './a61-rival.ts';
 import type { SuppliedPlayer, SuppliedPlayerAsset } from './supplied-player.ts';
 import { mountAuthoredWing, mountAuthoredWheel, uprightSocketX } from './car-assembly.ts';
@@ -87,6 +89,7 @@ export class FormulaCar {
   lodLevel = 0;
   readonly frontWing = new T.Group();
   readonly rearWing = new T.Group();
+  readonly rearFlap = new FormulaRearFlap();
   readonly wheelPivots: T.Group[] = [];
   readonly wheelSpins: T.Group[] = [];
   /** Steered, non-rotating wheel hardware (ducts, uprights, calipers). */
@@ -336,24 +339,18 @@ export class FormulaCar {
       wingCarbon.roughness = 0.62;
       const materials = { paint: this.paint, carbon: wingCarbon, metal: wingCarbon, dark };
       mountAuthoredWing(this.frontWing, hero, 'front', materials);
-      mountAuthoredWing(this.rearWing, hero, 'rear', materials);
+      mountAuthoredWing(this.rearWing, hero, 'rear', materials, this.rearFlap.skin);
       mesh(s, hero.copy('beam'), floorCarbon);
     } else {
       buildWing(this.frontWing, 'front', 'high', this.paint, carbon);
-      buildWing(this.rearWing, 'rear', 'high', this.paint, carbon);
+      buildWing(this.rearWing, 'rear', 'high', this.paint, carbon, this.rearFlap.skin);
       mesh(s, wingElement(1.41, 0.23, 0.018, 0.011, 0.015, 0.008), carbon, 0, -0.12, -2.06);
       mesh(s, wingElement(1.36, 0.17, 0.018, 0.009, 0.02, 0.009), carbon, 0, -0.05, -2.18);
     }
-    const rain = new T.MeshStandardMaterial({
-      color: 0x710000,
-      emissive: 0xff1b0a,
-      emissiveIntensity: 0.4,
-    });
-    this.rainLight = rain;
-    // One physical lamp survives bodywork LOD switches. Its local anchor also
-    // drives RearSignalField; a low-detail car must not leave a phantom lit plume.
-    this.rearSignal = box(this.root, rain, 0, -0.23, -2.28, 0.095, 0.065, 0.02);
-    this.rearSignal.name = 'Recorded rear signal';
+    mountTailLampHousing(s, carbon);
+    const tailLamp = mountTailLamp(this.root);
+    this.rearSignal = tailLamp;
+    this.rainLight = tailLamp.material;
     // Original car identity and livery: small, deliberate markings on bodywork.
     const logo = installPaintFinish(
       new T.MeshPhysicalMaterial({
@@ -645,6 +642,7 @@ export class FormulaCar {
     mergeStatic(s);
     mergeStatic(this.frontWing);
     mergeStatic(this.rearWing);
+    this.rearFlap.mount(this.rearWing);
     const highChildren = [...this.root.children].filter(
       (child) => child !== this.suspension && child !== this.rearSignal,
     );
@@ -693,13 +691,14 @@ export class FormulaCar {
       this.staticBody,
       this.frontWing,
       this.rearWing,
+      this.rearFlap.skin,
       ...this.wheelCarriers,
       ...this.wheelSpins,
       ...this.brakeRotors,
       this.cockpitControls.staticParts,
       this.helmet,
       this.driver.body,
-      ...this.reduced.flatMap((car) => [car.body, car.front, car.rear, ...car.spins]),
+      ...this.reduced.flatMap((car) => [car.body, car.front, car.rear, car.rearFlap.skin, ...car.spins]),
     ];
   }
   setLod(
@@ -801,6 +800,11 @@ export class FormulaCar {
       );
       this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
       this.treads[i].heat.value = tireHeatAppearance(wheelValue(a, b, o, p, W.SURFACE_TEMP, t));
+      // The reduced wheels share these rotor materials, including during a replay seek.
+      const discTemp = wheelValue(a, b, o, p, W.DISC_TEMP, t);
+      this.discs[i].emissiveIntensity = clamp((discTemp - 500) / 450, 0, 2);
+      // Blackbody hue: cherry red as the glow begins, orange at race heat.
+      rotorGlowColour(discTemp, this.discs[i].emissive);
     }
     let coverBlur = -Infinity;
     for (const tread of this.treads) coverBlur = Math.max(coverBlur, tread.side.value.x);
@@ -849,6 +853,7 @@ export class FormulaCar {
         serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
       reduced.brakes[i].rotation.x = reduced.spins[i].rotation.x;
     }
+    reduced.rearFlap.setTravel(sampleValue(a, b, o + RACE_BASE + R.DRS_FLAP, t));
     reduced.front.visible = source[o + F.FRONT_HEALTH] > 0.08;
     reduced.rear.visible = source[o + F.REAR_HEALTH] > 0.08;
     reduced.front.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];
@@ -890,10 +895,6 @@ export class FormulaCar {
         Math.sign(WHEEL_POSITIONS[i][0]) *
         serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
       this.brakeRotors[i].rotation.x = this.wheelSpins[i].rotation.x;
-      const discTemp = wheelValue(a, b, o, p, W.DISC_TEMP, t);
-      this.discs[i].emissiveIntensity = clamp((discTemp - 500) / 450, 0, 2);
-      // Blackbody hue: cherry red as the glow begins, orange at race heat.
-      rotorGlowColour(discTemp, this.discs[i].emissive);
       this.carcasses[i].update(
         this.wheelSpins[i].rotation.x,
         wheelValue(a, b, o, p, W.RADIUS, t),
@@ -904,6 +905,7 @@ export class FormulaCar {
       );
     }
     this.updateSuspension(this.wheelPivots);
+    this.rearFlap.setTravel(sampleValue(a, b, o + RACE_BASE + R.DRS_FLAP, t));
     this.frontWing.visible = source[o + F.FRONT_HEALTH] > 0.08;
     this.rearWing.visible = source[o + F.REAR_HEALTH] > 0.08;
     this.frontWing.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];

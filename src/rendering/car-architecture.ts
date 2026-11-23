@@ -216,11 +216,12 @@ export function buildWing(
   detail: CarDetail,
   paint: T.Material,
   carbon: T.Material,
+  flap?: T.Group,
 ) {
   const surfaces = end === 'front' ? FRONT_SURFACES : REAR_SURFACES;
   for (const [index, d] of surfaces.entries()) {
     const part = mesh(
-      parent,
+      end === 'rear' && index === 1 && flap ? flap : parent,
       wingElement(d.span, d.chord, d.camber, d.thickness, d.sweep, d.gull, detail),
       d.painted ? paint : carbon,
       0,

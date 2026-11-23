@@ -19,13 +19,20 @@ export function mountAuthoredWing(
   hero: HeroShells,
   end: 'front' | 'rear',
   materials: AssemblyMaterials,
+  flap?: T.Group,
 ) {
   for (const [suffix, material] of [
     ['paint', materials.paint],
     ['carbon', materials.carbon],
     ['alloy', materials.metal],
-  ] as const)
-    mesh(parent, hero.copy(`${end}_${suffix}`), material).name = `APX ${end} ${suffix}`;
+  ] as const) {
+    if (end === 'rear' && flap && suffix !== 'alloy') {
+      const [stationary, moving] = hero.copyRearSkin(`rear_${suffix}`);
+      mesh(parent, stationary, material);
+      // The rolled trailing lip carries the flap finish and moves in its draw.
+      mesh(flap, moving, materials.paint);
+    } else mesh(parent, hero.copy(`${end}_${suffix}`), material).name = `APX ${end} ${suffix}`;
+  }
 }
 /** Positive-X prototypes are reflected with winding correction, not rotated
  * 180 degrees (which would incorrectly turn brake scoops towards the rear). */

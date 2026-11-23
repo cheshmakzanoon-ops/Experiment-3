@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { separateRearSkin, type RearSkin } from './formula-rear-flap.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from './apx01-shell.manifest.json' with { type: 'json' };
 import assembly from './apx01-assembly.json' with { type: 'json' };
@@ -231,6 +232,7 @@ export function validateHeroDocument(value: unknown): void {
  * clone, allowing existing material batching/disposal and independent liveries. */
 export class HeroShells {
   private disposed = false;
+  private readonly rearSkins = new Map<RearSkin, T.BufferGeometry[]>();
   private constructor(
     private readonly parts: Map<HeroPart, T.BufferGeometry>,
     private readonly identity: HeroManifest = manifest,
@@ -257,6 +259,15 @@ export class HeroShells {
     }
     return result;
   }
+  copyRearSkin(role: RearSkin) {
+    if (this.disposed) throw new Error('Authored bodywork already disposed');
+    let parts = this.rearSkins.get(role);
+    if (!parts) {
+      parts = separateRearSkin(this.parts.get(role)!, role);
+      this.rearSkins.set(role, parts);
+    }
+    return parts.map((geometry) => geometry.clone());
+  }
   diagnostics() {
     return {
       revision: this.identity === manifest ? assembly.revision : this.identity.asset,
@@ -274,6 +285,8 @@ export class HeroShells {
     this.disposed = true;
     for (const part of this.parts.values()) part.dispose();
     this.parts.clear();
+    for (const pair of this.rearSkins.values()) pair.forEach((geometry) => geometry.dispose());
+    this.rearSkins.clear();
   }
   static async decode(
     input: Uint8Array<ArrayBuffer>,

@@ -13,6 +13,8 @@ import {
   C,
   F,
   H,
+  R,
+  RACE_BASE,
   W,
   WHEEL_BASE,
   WHEEL_STRIDE,
@@ -292,5 +294,47 @@ it('preserves actual FormulaCar steering, service, damage, replay rewind and mir
   } finally {
     release(car.root);
     release(baseline.root);
+  }
+});
+
+it('hinges the authored flap about its journals at every distance and rewinds the corresponding brake heat', () => {
+  canvasStub();
+  const car = new FormulaCar(1, legacy, driver, undefined, levels);
+  const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 1 });
+  const older = sim.makeFrame(),
+    newer = older.slice(),
+    o = carBase(1);
+  newer[H.TIME] = older[H.TIME] + 1 / 30;
+  newer[o + RACE_BASE + R.DRS_FLAP] = 1;
+  older[o + WHEEL_BASE + W.DISC_TEMP] = 400;
+  newer[o + WHEEL_BASE + W.DISC_TEMP] = 950;
+  const tiers = [
+    car.rearFlap,
+    ...(car as unknown as { reduced: ReducedCar[] }).reduced.map((lod) => lod.rearFlap),
+  ];
+  const journal = new T.Vector3(),
+    centre = new T.Vector3(),
+    witness = new T.Vector3(0, 0.583, -2.04);
+  try {
+    for (const [level, distance] of [0, 100, 250].entries()) {
+      const flap = tiers[level];
+      car.setLod(distance, 'high', false);
+      car.update(older, newer, o, 0, 0, 0, false);
+      flap.hinge.getWorldPosition(journal);
+      const closed = flap.skin.localToWorld(witness.clone());
+      car.update(older, newer, o, 0.5, 0, 0, false);
+      expect(flap.hinge.rotation.x).toBeCloseTo(-0.2);
+      car.update(older, newer, o, 1, 0, 0, false);
+      expect(flap.hinge.getWorldPosition(centre).distanceTo(journal)).toBeLessThan(1e-7);
+      const open = flap.skin.localToWorld(witness.clone());
+      expect(open.y - closed.y).toBeGreaterThan(0.075);
+      expect(open.distanceTo(journal)).toBeCloseTo(closed.distanceTo(journal), 6);
+      expect(car.discs[0].emissiveIntensity).toBeCloseTo(1);
+      car.update(older, older, o, 1, 0, 0, false);
+      expect(flap.skin.localToWorld(witness.clone()).distanceTo(closed)).toBeLessThan(1e-7);
+      expect(car.discs[0].emissiveIntensity).toBe(0);
+    }
+  } finally {
+    release(car.root);
   }
 });
