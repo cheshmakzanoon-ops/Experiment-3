@@ -20,6 +20,15 @@ const VENUES_ADDED_AFTER_CAPTURE = [
   'kalder-dam',
   'saffron-lane',
 ] as const;
+// Original eyes before the four permanent GP grid pedestals moved beyond
+// the banked public-side catch fence. All remaining camera records stay
+// covered by the historical venue hash below.
+const ORIGINAL_GP_GRID_EYES: Readonly<Partial<Record<string, readonly [number, number, number]>>> = {
+  'poggio-alto': [17.204999999999927, 25.630747666774894, 816.8],
+  'cape-wrenna': [-58.96799999999985, 35.00000000000007, -452.6],
+  haarveld: [223.8779999999997, 5.049013611599258, 653],
+  montejaral: [91.8070000000007, 8.022934207274936, 67.79999999999998],
+};
 const ORIGINAL_NON_MX_SIGNATURES = {
   aurel: '2e7146774fbdbfe3b968ca71248204bae1329f08dd33d2b9f056296dc0e1d5c3',
   vellamar: 'ef47691fc49c677f4b6e5b7dbdba21b634896668d088ee30cb7091279516e1b4',
@@ -195,6 +204,19 @@ describe('replay-camera control preservation outside MX/SX', () => {
                 position: camera.position.clone().set(originalX, camera.position.y, originalZ),
               }
             : camera,
+        );
+      }
+      const originalGrid = ORIGINAL_GP_GRID_EYES[id];
+      if (originalGrid) {
+        const grid = rigs[0];
+        const road = track.at(grid.centerS + (track.length / 20) * 0.18, trackPoint());
+        const side = track.pit.side === 1 ? -1 : 1;
+        const offset = side * (track.boundaryAt(road, side) + 2.15);
+        expect(grid.position.x).toBeCloseTo(road.x + road.nx * offset, 10);
+        expect(grid.position.z).toBeCloseTo(road.z + road.nz * offset, 10);
+        expect(grid.position.y).toBeCloseTo(road.y + road.bank * Math.max(-12, Math.min(12, offset)) + 7.1, 10);
+        historicalRigs = historicalRigs.map((camera) =>
+          camera.id === 0 ? { ...camera, position: camera.position.clone().set(...originalGrid) } : camera,
         );
       }
       if (id === 'vellamar') {
