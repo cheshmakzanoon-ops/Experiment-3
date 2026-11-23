@@ -1,204 +1,255 @@
-### unit-tests (1) (job 137549348930)
+### unit-tests (1) (job 137550893614)
 --- error digest (first 120 matching lines) ---
-162:unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:33.7345504Z ##[error]The operation was canceled.
-179:unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8806695Z ##[error]No files were found with the provided path: /home/runner/work/_temp/unit-1.json
+776:unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:55.2559028Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-unit-tests (1)	Set up job	﻿2026-11-23T07:36:59.0078928Z Current runner version: '2.338.2'
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0100491Z ##[group]Runner Image Provisioner
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0101627Z Hosted Compute Agent
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0102193Z Version: 20261111.635
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0102793Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0103388Z Build Date: 2026-11-11T01:49:01Z
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0104021Z Worker ID: {2cb3d45e-fe1e-4c56-acdf-1460f97c1f7f}
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0104654Z Region: westus2
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0105141Z Cloud: Azure
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0105615Z ##[endgroup]
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0106750Z ##[group]Operating System
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0107319Z Ubuntu
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0107800Z 24.04.5
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0108228Z LTS
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0108768Z ##[endgroup]
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0109242Z ##[group]Runner Image
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0109776Z Image: ubuntu-24.04
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0110295Z Version: 20261116.376.1
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0111375Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.376/images/ubuntu/Ubuntu2404-Readme.md
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0112908Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.376
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0114183Z ##[endgroup]
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0115090Z ##[group]GITHUB_TOKEN Permissions
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0116917Z Contents: read
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0117435Z Metadata: read
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0117892Z ##[endgroup]
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0119924Z Secret source: Actions
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0120719Z Cache mode: write
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0121525Z Prepare workflow directory
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0381940Z Prepare all required actions
-unit-tests (1)	Set up job	2026-11-23T07:36:59.0421934Z Getting action download info
-unit-tests (1)	Set up job	2026-11-23T07:36:59.3789158Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
-unit-tests (1)	Set up job	2026-11-23T07:36:59.8053056Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-unit-tests (1)	Set up job	2026-11-23T07:37:00.0525556Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
-unit-tests (1)	Set up job	2026-11-23T07:37:00.3596017Z Complete job name: unit-tests (1)
-unit-tests (1)	Run actions/checkout@v4	﻿2026-11-23T07:37:00.4291570Z ##[group]Run actions/checkout@v4
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4292377Z with:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4292800Z   repository: cheshmakzanoon-ops/Experiment-3
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4295870Z   token: ***
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4296256Z   ssh-strict: true
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4296642Z   ssh-user: git
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4297028Z   persist-credentials: true
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4297445Z   clean: true
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4297828Z   sparse-checkout-cone-mode: true
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4298279Z   fetch-depth: 1
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4298647Z   fetch-tags: false
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4299020Z   show-progress: true
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4299413Z   lfs: false
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4299777Z   submodules: false
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4300161Z   set-safe-directory: true
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4300586Z   allow-unsafe-pr-checkout: false
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4301518Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9970899Z Syncing repository: cheshmakzanoon-ops/Experiment-3
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9972442Z ##[group]Getting Git version info
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9972832Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9973441Z [command]/usr/bin/git version
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2230844Z git version 2.56.1
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2247703Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2261618Z Temporarily overriding HOME='/home/runner/work/_temp/b883aff3-9687-41e0-966e-f6e83b957094' before making global git config changes
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2262938Z Adding repository directory to the temporary git global config as a safe directory
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2266378Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2544615Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2552401Z ##[group]Initializing the repository
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2553069Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2679292Z hint: Using 'master' as the name for the initial branch. This default branch name
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2680786Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2681535Z hint: to use in all of your new repositories, which will suppress this warning,
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2682082Z hint: call:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2682434Z hint:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2682823Z hint: 	git config --global init.defaultBranch <name>
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2683298Z hint:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2683580Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684019Z hint: 'development'. The just-created branch can be renamed via this command:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684372Z hint:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684592Z hint: 	git branch -m <name>
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684815Z hint:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2685118Z hint: Disable this message with "git config set advice.defaultBranchName false"
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2687127Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2698046Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2785326Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2786075Z ##[group]Disabling automatic garbage collection
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2788307Z [command]/usr/bin/git config --local gc.auto 0
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2825810Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2826372Z ##[group]Setting up auth
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2832910Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2881817Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3236452Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3273019Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3480527Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3517231Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3721822Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3772450Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3773091Z ##[group]Fetching the repository
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3782826Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ae7e268d314d0b2c0b8dbf2b9ac605a10ac3b098:refs/remotes/origin/main
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4179021Z From https://github.com/cheshmakzanoon-ops/Experiment-3
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4179737Z  * [new ref]         ae7e268d314d0b2c0b8dbf2b9ac605a10ac3b098 -> origin/main
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4184314Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4184814Z ##[group]Determining the checkout info
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4186960Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4191938Z [command]/usr/bin/git sparse-checkout disable
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.5648623Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.5689740Z ##[group]Checking out the ref
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.5690139Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.5927374Z Updating files:  60% (5694/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6009979Z Updating files:  61% (5773/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6095132Z Updating files:  62% (5868/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6266245Z Updating files:  63% (5962/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6427947Z Updating files:  64% (6057/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6634085Z Updating files:  65% (6151/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6948108Z Updating files:  66% (6246/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7117819Z Updating files:  67% (6341/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7281186Z Updating files:  68% (6435/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7531805Z Updating files:  69% (6530/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7802903Z Updating files:  70% (6625/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7851339Z Updating files:  71% (6719/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7904852Z Updating files:  72% (6814/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7954213Z Updating files:  73% (6908/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.8548498Z Updating files:  74% (7003/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.8910245Z Updating files:  75% (7098/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.1842650Z Updating files:  76% (7192/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2675273Z Updating files:  77% (7287/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2759696Z Updating files:  78% (7382/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2812839Z Updating files:  79% (7476/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2918018Z Updating files:  80% (7571/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3236540Z Updating files:  81% (7666/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3300355Z Updating files:  82% (7760/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3454792Z Updating files:  83% (7855/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3509260Z Updating files:  84% (7949/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3578001Z Updating files:  85% (8044/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3710241Z Updating files:  86% (8139/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3769828Z Updating files:  87% (8233/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3827731Z Updating files:  88% (8328/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3886217Z Updating files:  89% (8423/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3941524Z Updating files:  90% (8517/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3995827Z Updating files:  91% (8612/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4050314Z Updating files:  92% (8706/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4104703Z Updating files:  93% (8801/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4154211Z Updating files:  94% (8896/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4208731Z Updating files:  95% (8990/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4262138Z Updating files:  96% (9085/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4312978Z Updating files:  97% (9180/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4364993Z Updating files:  98% (9274/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4418276Z Updating files:  99% (9369/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4418844Z Updating files: 100% (9463/9463)
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4419171Z Updating files: 100% (9463/9463), done.
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5734422Z Switched to a new branch 'main'
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5750730Z branch 'main' set up to track 'origin/main'.
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5866006Z ##[endgroup]
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5913800Z [command]/usr/bin/git log -1 --format=%H
-unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5944755Z ae7e268d314d0b2c0b8dbf2b9ac605a10ac3b098
-unit-tests (1)	Run actions/setup-node@v4	﻿2026-11-23T07:37:29.6431405Z ##[group]Run actions/setup-node@v4
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6431671Z with:
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6431840Z   node-version: 22
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6432011Z   cache: npm
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6432170Z   always-auth: false
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6432344Z   check-latest: false
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6434262Z   token: ***
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6434429Z ##[endgroup]
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8298029Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8301362Z (node:2626) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8302247Z (Use `node --trace-deprecation ...` to show where the warning was created)
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8304440Z ##[group]Environment details
-unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:33.7345504Z ##[error]The operation was canceled.
-unit-tests (1)	Unit results, including failures	﻿2026-11-23T07:37:33.7427267Z ##[group]Run actions/upload-artifact@v4
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7427501Z with:
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7427672Z   name: unit-validation-1-of-4
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7427981Z   path: /home/runner/work/_temp/unit-1.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:45.3305741Z    ^[[33m^[[2m✓^[[22m^[[39m 'rm8' seats the live rear views on the glass and reflects the neighbouring lanes ^[[33m 342^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:45.3306453Z    ^[[33m^[[2m✓^[[22m^[[39m 'rp6' seats the live rear views on the glass and reflects the neighbouring lanes ^[[33m 301^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:45.3307225Z    ^[[33m^[[2m✓^[[22m^[[39m 'rr4' seats the live rear views on the glass and reflects the neighbouring lanes ^[[33m 363^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:45.5237622Z  ^[[32m✓^[[39m tests/performance.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 30^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:47.3479764Z  ^[[32m✓^[[39m tests/festival-town-footways.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 293^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:47.7023503Z  ^[[32m✓^[[39m tests/texture-loader-lifecycle.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 160^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:48.5238840Z  ^[[32m✓^[[39m tests/local-fog-quality.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 95^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:51.1372625Z  ^[[32m✓^[[39m tests/bike-scaled-path.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 1925^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:51.1374262Z    ^[[33m^[[2m✓^[[22m^[[39m road motorcycle steering owns the shared narrowed path^[[2m > ^[[22mkeeps the wet 'poggio-alto' target on the authored world-space lane ^[[33m 635^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:51.1375856Z    ^[[33m^[[2m✓^[[22m^[[39m road motorcycle steering owns the shared narrowed path^[[2m > ^[[22mkeeps the wet 'vellamar' target on the authored world-space lane ^[[33m 623^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:51.1377460Z    ^[[33m^[[2m✓^[[22m^[[39m road motorcycle steering owns the shared narrowed path^[[2m > ^[[22mkeeps the wet 'ardennes' target on the authored world-space lane ^[[33m 615^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:51.8417842Z  ^[[32m✓^[[39m tests/showroom-framing.test.ts ^[[2m(^[[22m^[[2m31 tests^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:53.5660827Z  ^[[32m✓^[[39m tests/motocross-loose-soil.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 954^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:53.5663060Z    ^[[33m^[[2m✓^[[22m^[[39m MX loose soil^[[2m > ^[[22msettles the field on live and replayed rut triangles, including hidden Low-detail crumbs ^[[33m 521^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:54.8656305Z  ^[[32m✓^[[39m tests/gp-shell-hem.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 434^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:55.2676941Z  ^[[32m✓^[[39m tests/wet-presentation.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 170^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:55.7973061Z  ^[[32m✓^[[39m tests/tab-evidence.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 374^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:58.7136369Z  ^[[32m✓^[[39m tests/track-infrastructure.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 1719^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:48:58.7137855Z    ^[[33m^[[2m✓^[[22m^[[39m A01-A07 integrated infrastructure contract^[[2m > ^[[22mrestores actual recorded start lamps after lights-out, held frames and a new-session reset without mutating snapshots ^[[33m 1065^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:14.8749065Z  ^[[32m✓^[[39m tests/vsc.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 15318^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:14.8750049Z    ^[[33m^[[2m✓^[[22m^[[39m virtual safety car and safety car^[[2m > ^[[22mneutralises a long obstruction: VSC, then a safety car the field never passes ^[[33m 12867^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:14.8750873Z    ^[[33m^[[2m✓^[[22m^[[39m virtual safety car and safety car^[[2m > ^[[22mnever deploys outside race sessions ^[[33m 2159^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:15.9709073Z  ^[[32m✓^[[39m tests/aero-platform.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 457^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:16.1887524Z  ^[[32m✓^[[39m tests/solvane-contact-shadows-r2.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:19.0168580Z  ^[[32m✓^[[39m tests/motocross-worked-soil.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 2066^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:19.0170093Z    ^[[33m^[[2m✓^[[22m^[[39m MX prepared traffic corridor^[[2m > ^[[22mplaces the valley-ridge-mx launch hollows under the same grates even when a wider field rebuilds the start ^[[33m 636^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:19.0171944Z    ^[[33m^[[2m✓^[[22m^[[39m MX prepared traffic corridor^[[2m > ^[[22mkeeps prepared width and shader resources stable through terrain recording, holding and rewinding ^[[33m 801^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:23.1669275Z  ^[[32m✓^[[39m tests/sector-timing.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 3432^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:23.1670584Z    ^[[33m^[[2m✓^[[22m^[[39m SectorBoard^[[2m > ^[[22mtimes the production lap tracker: three sectors sum to the published lap ^[[33m 3428^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:33.9707696Z  ^[[32m✓^[[39m tests/net-authority.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 10094^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:33.9708711Z    ^[[33m^[[2m✓^[[22m^[[39m authoritative world (WP50 server simulation)^[[2m > ^[[22man all-AI NetDriver field is bit-identical to the plain Simulation ^[[33m 2987^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:33.9709801Z    ^[[33m^[[2m✓^[[22m^[[39m authoritative world (WP50 server simulation)^[[2m > ^[[22man overtake request starts the boost; edges that cannot act and fast pit toggles are not journaled ^[[33m 1326^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:33.9710765Z    ^[[33m^[[2m✓^[[22m^[[39m authoritative world (WP50 server simulation)^[[2m > ^[[22mthe shadow pilot leaves no trace in the world it reads ^[[33m 2371^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:33.9711874Z    ^[[33m^[[2m✓^[[22m^[[39m authoritative world (WP50 server simulation)^[[2m > ^[[22mreplays its journal to the identical state, and restores a crashed world ^[[33m 3378^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3837195Z  ^[[31m❯^[[39m tests/vehicle-catalogue.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m | ^[[22m^[[31m1 failed^[[39m^[[2m)^[[22m^[[33m 3728^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3852754Z    ^[[32m✓^[[39m WP30 destination catalogue^[[2m > ^[[22mpins the shared baselines the builder cannot import^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3853612Z    ^[[32m✓^[[39m WP30 destination catalogue^[[2m > ^[[22madds at least fourteen valid machines across the families^[[32m 5^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3854511Z    ^[[32m✓^[[39m WP30 destination catalogue^[[2m > ^[[22mkeeps APX-01 and TC-1 content identical and appends to the snapshot index^[[32m 6^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3855361Z    ^[[32m✓^[[39m WP30 destination catalogue^[[2m > ^[[22mderives wheel centres from weight distribution and placement from CG height^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3856334Z ^[[31m   ^[[31m×^[[31m WP30 destination catalogue^[[2m > ^[[22mrecords every machine inside its design bands at both timesteps^[[39m^[[32m 7^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3857235Z ^[[31m     → gpr1 calibration is stale: run npm run test:vehicles: expected 'eca1c71a' to be '5f121c00' // Object.is equality^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3857978Z    ^[[32m✓^[[39m WP30 destination catalogue^[[2m > ^[[22mgroups the registry by class for presentation^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.3858784Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 destination catalogue^[[2m > ^[[22mdrives a field of different catalogue machines without numerical failure ^[[33m 3704^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.7162997Z  ^[[32m✓^[[39m tests/driver-controls.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 144^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:38.9674891Z  ^[[32m✓^[[39m tests/scene-program-preparation.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 49^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:40.2382729Z  ^[[32m✓^[[39m tests/mirror-detail.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 420^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:40.2383581Z    ^[[33m^[[2m✓^[[22m^[[39m keeps coarser representations posed and damaged while a rival is at full detail ^[[33m 414^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8151671Z  ^[[32m✓^[[39m tests/gp-grid.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 4902^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8152856Z    ^[[33m^[[2m✓^[[22m^[[39m GP three-rider starting grid^[[2m > ^[[22maurel: places a full field in qualifying order with physical clearance ^[[33m 731^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8154137Z    ^[[33m^[[2m✓^[[22m^[[39m GP three-rider starting grid^[[2m > ^[[22mpoggio-alto: places a full field in qualifying order with physical clearance ^[[33m 617^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8155023Z    ^[[33m^[[2m✓^[[22m^[[39m GP three-rider starting grid^[[2m > ^[[22mcape-wrenna: places a full field in qualifying order with physical clearance ^[[33m 591^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8156579Z    ^[[33m^[[2m✓^[[22m^[[39m GP three-rider starting grid^[[2m > ^[[22mhaarveld: places a full field in qualifying order with physical clearance ^[[33m 532^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8157433Z    ^[[33m^[[2m✓^[[22m^[[39m GP three-rider starting grid^[[2m > ^[[22mretains the existing mixed, superbike and car placements ^[[33m 1210^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:45.8158351Z    ^[[33m^[[2m✓^[[22m^[[39m GP three-rider starting grid^[[2m > ^[[22mretains the spread-out qualifying release and restores a replay field selection ^[[33m 1220^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:48.0074067Z  ^[[32m✓^[[39m tests/motocross-course-wear.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 1404^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:48.0075745Z    ^[[33m^[[2m✓^[[22m^[[39m MX surveyed course wear^[[2m > ^[[22mcarries valley-ridge-mx wear across chunk joins and replay without changing wheel-contact geometry ^[[33m 492^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:48.0077342Z    ^[[33m^[[2m✓^[[22m^[[39m MX surveyed course wear^[[2m > ^[[22mleaves rallycross outside the MX prepared-wear path ^[[33m 556^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:48.7056517Z  ^[[32m✓^[[39m tests/soft-particles.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:49.4280286Z  ^[[32m✓^[[39m tests/button-actions.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[32m 13^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:52.0674493Z  ^[[32m✓^[[39m tests/race-day.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 1803^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:52.0675351Z    ^[[33m^[[2m✓^[[22m^[[39m routes a full grid around car envelopes and leaves parked bodies fixed in world space ^[[33m 1708^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:52.9725872Z  ^[[32m✓^[[39m tests/ip-audit.test.ts ^[[2m(^[[22m^[[2m54 tests^[[22m^[[2m)^[[22m^[[32m 196^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:53.6358869Z  ^[[32m✓^[[39m tests/tyre-thermal.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 22^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:55.2447964Z  ^[[32m✓^[[39m tests/road-bike-low-speed.test.ts ^[[2m(^[[22m^[[2m25 tests^[[22m^[[2m)^[[22m^[[33m 925^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:55.9323952Z  ^[[32m✓^[[39m tests/first-run.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[32m 10^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:56.1168048Z  ^[[32m✓^[[39m tests/canvas-texture-budget.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:49:56.9647189Z  ^[[32m✓^[[39m tests/recorded-signal-displays.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 37^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:04.6779269Z  ^[[32m✓^[[39m tests/gap-timer.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 7006^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:04.6780337Z    ^[[33m^[[2m✓^[[22m^[[39m timing-loop race intervals^[[2m > ^[[22mmatches the race timing at the line in a production simulation ^[[33m 6998^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:05.5176155Z  ^[[32m✓^[[39m tests/light-pools.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 70^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:08.7943763Z  ^[[32m✓^[[39m tests/gp-rider-driveline.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 2578^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:08.7963171Z    ^[[33m^[[2m✓^[[22m^[[39m gpr1 manual clutch free-revs, slips under bounded torque, and opens independently of the rear pedal ^[[33m 698^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:08.7964534Z    ^[[33m^[[2m✓^[[22m^[[39m gpr2 manual clutch free-revs, slips under bounded torque, and opens independently of the rear pedal ^[[33m 620^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:08.7965364Z    ^[[33m^[[2m✓^[[22m^[[39m gpr1 moves the hips independently while crouched and publishes the same aero pose ^[[33m 641^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:08.7966121Z    ^[[33m^[[2m✓^[[22m^[[39m gpr2 moves the hips independently while crouched and publishes the same aero pose ^[[33m 614^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.5235221Z  ^[[32m✓^[[39m tests/review-tools.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 5944^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.5236615Z    ^[[33m^[[2m✓^[[22m^[[39m Phase 27E evidence command line^[[2m > ^[[22mrecomputes raw observations, enforces source identity and gives strict failures for interrupted captures ^[[33m 3370^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.5237826Z    ^[[33m^[[2m✓^[[22m^[[39m Phase 27E evidence command line^[[2m > ^[[22mverifies actual counterpart PNG bytes without converting declarations into art certification ^[[33m 2530^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7329832Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mrejects a build-time modification or addition to src/example.ts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7330646Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7330953Z src/example.ts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7331103Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7527742Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mrejects a build-time modification or addition to src/new.ts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7528987Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7529391Z src/new.ts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7529615Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7719036Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mrejects a build-time modification or addition to docs/guide.md
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7719681Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7719984Z docs/guide.md
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7720147Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7909399Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mrejects a build-time modification or addition to package.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7910321Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7911078Z package.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.7911497Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.8131815Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mrejects deleted input even when the child command fails
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.8132851Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.8133230Z src/example.ts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.8133474Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9109903Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to src/browser-backend.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9111166Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9111795Z src/browser-backend.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9112070Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9306985Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to docs/browser-backend.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9308070Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9308623Z docs/browser-backend.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9308932Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9496355Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to public/browser-backend.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9497140Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9497532Z public/browser-backend.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9497730Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9692787Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to src/browser-progress.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9693937Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9694369Z src/browser-progress.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9694598Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9874620Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to docs/browser-progress.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9875803Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9876326Z docs/browser-progress.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:15.9876587Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0054169Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to public/browser-progress.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0055222Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0056003Z public/browser-progress.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0056342Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0229854Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to src/example.ts while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0230730Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0231088Z src/example.ts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0231621Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0424128Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mstill rejects changes to package.json while generating the root browser receipts
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0424765Z ^[[22m^[[39mCommand rewrote application inputs:
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0425109Z package.json
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0425276Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0641613Z ^[[90mstderr^[[2m | tests/source-stability.test.ts^[[2m > ^[[22m^[[2mpropagates a failing command and fails closed for a missing executable
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0642436Z ^[[22m^[[39mspawnSync /tmp/source-stability-piR7tH/nonexistent-executable ENOENT
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0642722Z 
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:16.0664414Z  ^[[32m✓^[[39m tests/source-stability.test.ts ^[[2m(^[[22m^[[2m19 tests^[[22m^[[2m)^[[22m^[[33m 378^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:17.1886217Z  ^[[32m✓^[[39m tests/road-bike-intent-capacity.test.ts ^[[2m(^[[22m^[[2m27 tests^[[22m^[[2m)^[[22m^[[33m 958^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:19.1638826Z  ^[[32m✓^[[39m tests/scenery-cube-camera.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 1145^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:19.1639871Z    ^[[33m^[[2m✓^[[22m^[[39m real cubemap cameras in the production scenery callbacks^[[2m > ^[[22mvegetation draws all six signed cube lenses without changing main-view LOD or resources ^[[33m 510^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:31.8524183Z    ^[[33m^[[2m✓^[[22m^[[39m real cubemap cameras in the production scenery callbacks^[[2m > ^[[22mquarry draws all six signed cube lenses without changing main-view LOD or resources ^[[33m 633^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:31.8525818Z  ^[[32m✓^[[39m tests/motocross-heading-guard.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 11983^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:31.8526821Z    ^[[33m^[[2m✓^[[22m^[[39m heading guard of the off-road riders^[[2m > ^[[22mreleases a cautioned turn-one queue with stadium event ^[[33m 6036^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:31.8527632Z    ^[[33m^[[2m✓^[[22m^[[39m heading guard of the off-road riders^[[2m > ^[[22mreleases a cautioned turn-one queue with twelve MX450s ^[[33m 5945^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:32.9939163Z  ^[[32m✓^[[39m tests/gp-race-control.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 450^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:33.7124494Z  ^[[32m✓^[[39m tests/audio-rig-scenarios.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 500^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:33.7125431Z    ^[[33m^[[2m✓^[[22m^[[39m audio rig scenarios^[[2m > ^[[22mkeeps every engine plan inside the rev range, in a real gear, with revs falling on each upshift ^[[33m 439^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:35.1872720Z  ^[[32m✓^[[39m tests/motocross-dab-ground.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 707^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:35.3607004Z    ^[[33m^[[2m✓^[[22m^[[39m motocross boot on presented dirt^[[2m > ^[[22mreturns the displayed triangle under the boot at valley-ridge-mx ^[[33m 484^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:35.3607962Z  ^[[32m✓^[[39m tests/motocross-contact-impulse.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:39.9067941Z  ^[[32m✓^[[39m tests/gp-crowd-atlas.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 3773^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:39.9068945Z    ^[[33m^[[2m✓^[[22m^[[39m GP far spectator sculpts^[[2m > ^[[22mbakes every authored silhouette, garment and unit normal into adjacent, padded views ^[[33m 3667^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:40.7868413Z  ^[[32m✓^[[39m tests/powertrain.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 210^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:40.9640680Z  ^[[32m✓^[[39m tests/gp-contact-momentum.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:41.1979438Z  ^[[32m✓^[[39m tests/telemetry-plots.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 40^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:42.0358598Z  ^[[32m✓^[[39m tests/crowd-flags.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 77^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:44.1873728Z  ^[[32m✓^[[39m tests/open-world-static-height.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 1397^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:44.1898247Z    ^[[33m^[[2m✓^[[22m^[[39m finite-height Festival static contacts^[[2m > ^[[22mkeeps the real trunk collision at ground level ^[[33m 652^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:46.1458356Z  ^[[32m✓^[[39m tests/festival-airfield.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 1161^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:50:46.1459334Z    ^[[33m^[[2m✓^[[22m^[[39m mounts red and green in opposite directions at the same flush threshold sockets ^[[33m 1137^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:43.0935545Z  ^[[32m✓^[[39m tests/endurance-mode.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 56249^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:43.0937043Z    ^[[33m^[[2m✓^[[22m^[[39m endurance: long race with the mandatory stop rule^[[2m > ^[[22mpenalises a finish without the stop ^[[33m 5289^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:43.0938142Z    ^[[33m^[[2m✓^[[22m^[[39m endurance: long race with the mandatory stop rule^[[2m > ^[[22mruns a full endurance race: every car stops once onto a second dry compound ^[[33m 50890^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:43.8669915Z  ^[[32m✓^[[39m tests/cloud-shadow.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 52^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:44.6234102Z  ^[[32m✓^[[39m tests/phase27g-media.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 62^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:44.9139497Z  ^[[32m✓^[[39m tests/gp-radial-caliper.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 104^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:45.8376964Z  ^[[32m✓^[[39m tests/motocross-rider-recovery.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 236^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:46.7738355Z  ^[[32m✓^[[39m tests/gp-road-air.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 246^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4727937Z  ^[[32m✓^[[39m tests/snapshot-header-contract.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[33m 6927^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4729771Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mclear^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 847^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4731745Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mclear^[[2m > ^[[22mfestival OpenWorldSimulation writes the preset ambient from the first frame and while it runs ^[[33m 743^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4733527Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mchangeable^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 697^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4735200Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mrain^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 695^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4741654Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mfog^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 693^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4743583Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mstorm^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 704^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4745215Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22mdust^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 669^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:54.4746831Z    ^[[33m^[[2m✓^[[22m^[[39m snapshot header weather contract^[[2m > ^[[22msnow^[[2m > ^[[22mcircuit Simulation writes the preset ambient from the first frame and while it runs ^[[33m 667^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:51:55.2101995Z  ^[[32m✓^[[39m tests/suspension-link-forces.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 71^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:03.1584555Z  ^[[32m✓^[[39m tests/vehicle-definitions.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 7246^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:03.1585807Z    ^[[33m^[[2m✓^[[22m^[[39m WP08 per-entry vehicle definitions^[[2m > ^[[22mraces a mixed field whose identities survive into snapshots ^[[33m 7241^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:04.1071144Z  ^[[32m✓^[[39m tests/photoreal-night.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 117^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:04.2643577Z  ^[[32m✓^[[39m tests/gp-steering-inverse.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:08.3819397Z  ^[[32m✓^[[39m tests/motocross-grass-tufts.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 3231^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:08.3821092Z    ^[[33m^[[2m✓^[[22m^[[39m MX close-cropped shoulder turf^[[2m > ^[[22mroots every tuft on the rendered terrain beside, never inside, the riding lanes ^[[33m 2735^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:08.3822798Z    ^[[33m^[[2m✓^[[22m^[[39m MX close-cropped shoulder turf^[[2m > ^[[22mleaves the indoor arena without outdoor turf ^[[33m 493^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:09.8324519Z  ^[[32m✓^[[39m tests/festival-quay-warehouse.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 753^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:09.8325914Z    ^[[33m^[[2m✓^[[22m^[[39m seats the Harbour Front net loft off the live road without displacing a frontage ^[[33m 704^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:11.7142128Z  ^[[32m✓^[[39m tests/festival-town-lamp-lod.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 1142^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:11.7143426Z    ^[[33m^[[2m✓^[[22m^[[39m selects streetlamp detail from the live road scene without moving the light pool ^[[33m 1131^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:13.9704547Z  ^[[32m✓^[[39m tests/clutch.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 1549^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:13.9706035Z    ^[[33m^[[2m✓^[[22m^[[39m a real car can free-rev with its clutch open, then launch without a velocity override ^[[33m 909^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:13.9706912Z    ^[[33m^[[2m✓^[[22m^[[39m serializes physical clutch state and rejects non-finite input ^[[33m 636^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:14.9708672Z  ^[[32m✓^[[39m tests/motocross-pass-and-ridges.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 302^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:15.6191090Z  ^[[32m✓^[[39m tests/audio.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:16.7859995Z  ^[[32m✓^[[39m tests/gp-track-drains.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 380^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:16.9554574Z  ^[[32m✓^[[39m tests/delivery-status.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 9^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:18.0136552Z  ^[[32m✓^[[39m tests/gp-broadcast-grid.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 233^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:18.3428745Z  ^[[32m✓^[[39m tests/driver.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 143^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:19.4665419Z  ^[[32m✓^[[39m tests/motocross-finish-line.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 376^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:19.4668207Z    ^[[33m^[[2m✓^[[22m^[[39m places two readable finish faces at the valley-ridge-mx scoring loop with clear lanes under the span ^[[33m 333^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:19.6837573Z  ^[[32m✓^[[39m tests/gp-wet-finish-order.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+unit-tests (1)	Complete unit-suite partition without source changes	2026-11-23T07:52:55.2559028Z ##[error]The operation was canceled.
+unit-tests (1)	Unit results, including failures	﻿2026-11-23T07:52:55.2621802Z ##[group]Run actions/upload-artifact@v4
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2622116Z with:
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2622347Z   name: unit-validation-1-of-4
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2623012Z   path: /home/runner/work/_temp/unit-1.json
 unit-tests (1)	Unit results, including failures	/home/runner/work/_temp/unit-1.log
 unit-tests (1)	Unit results, including failures	
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428297Z   retention-days: 7
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428480Z   if-no-files-found: error
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428684Z   compression-level: 6
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428859Z   overwrite: false
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7429032Z   include-hidden-files: false
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7429233Z ##[endgroup]
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8757799Z (node:2653) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8758769Z (Use `node --trace-deprecation ...` to show where the warning was created)
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8792606Z Multiple search paths detected. Calculating the least common ancestor of all paths
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8794322Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
-unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8806695Z ##[error]No files were found with the provided path: /home/runner/work/_temp/unit-1.json
-unit-tests (1)	Unit results, including failures	/home/runner/work/_temp/unit-1.log. No artifacts will be uploaded.
-unit-tests (1)	Post Run actions/checkout@v4	﻿2026-11-23T07:37:33.9023059Z Post job cleanup.
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9820043Z [command]/usr/bin/git version
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9843158Z git version 2.56.1
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9877385Z Temporarily overriding HOME='/home/runner/work/_temp/25cacb50-810f-4963-96f2-f3aa3afbaaa3' before making global git config changes
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9878498Z Adding repository directory to the temporary git global config as a safe directory
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9881867Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9919903Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9955834Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0264669Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0294425Z http.https://github.com/.extraheader
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0316669Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0351209Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0688681Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0784196Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-unit-tests (1)	Complete job	﻿2026-11-23T07:37:34.1197413Z Cleaning up orphan processes
-unit-tests (1)	Complete job	2026-11-23T07:37:34.1467684Z Terminate orphan process: pid (2639) (node)
-unit-tests (1)	Complete job	2026-11-23T07:37:34.1544846Z Terminate orphan process: pid (2640) (node)
-unit-tests (1)	Complete job	2026-11-23T07:37:34.1631288Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2623391Z   retention-days: 7
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2623637Z   if-no-files-found: error
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2623898Z   compression-level: 6
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2624127Z   overwrite: false
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2624412Z   include-hidden-files: false
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.2624667Z ##[endgroup]
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.3974984Z (node:5971) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.3976815Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.4013623Z Multiple search paths detected. Calculating the least common ancestor of all paths
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.4020810Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.4022066Z With the provided path, there will be 1 file uploaded
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.4022840Z Artifact name is valid!
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.4023297Z Root directory input is valid!
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.7189245Z Beginning upload of artifact content to blob storage
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.7384217Z (node:5971) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.7664609Z Uploaded bytes 14956
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.7825859Z Finished uploading artifact content to blob storage!
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.7827227Z SHA256 digest of uploaded artifact zip is 6ef59aa915d644f2a261b9e10234eb1a07a8b3ce94d24eca186031415308a224
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:55.7829074Z Finalizing artifact upload
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:56.1364683Z Artifact unit-validation-1-of-4.zip successfully finalized. Artifact ID 14798583870
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:56.1392426Z Artifact unit-validation-1-of-4 has been successfully uploaded! Final size is 14956 bytes. Artifact ID is 14798583870
+unit-tests (1)	Unit results, including failures	2026-11-23T07:52:56.1393560Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45132466273/artifacts/14798583870
+unit-tests (1)	Post Run actions/checkout@v4	﻿2026-11-23T07:52:56.1594229Z Post job cleanup.
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2295378Z [command]/usr/bin/git version
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2344315Z git version 2.56.1
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2378008Z Temporarily overriding HOME='/home/runner/work/_temp/fda9b3a0-0ef9-4cce-a7fe-c9810a44450b' before making global git config changes
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2380931Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2382889Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2424448Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2462282Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2709791Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2728106Z http.https://github.com/.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2743276Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2781708Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.2995868Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:52:56.3038018Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (1)	Complete job	﻿2026-11-23T07:52:56.3371132Z Cleaning up orphan processes
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3631747Z Terminate orphan process: pid (2252) (node)
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3849665Z Terminate orphan process: pid (2253) (tee)
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3871953Z Terminate orphan process: pid (2261) (npm test --shar)
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3890569Z Terminate orphan process: pid (2293) (sh)
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3908365Z Terminate orphan process: pid (2294) (node (vitest))
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3926741Z Terminate orphan process: pid (2318) (esbuild)
+unit-tests (1)	Complete job	2026-11-23T07:52:56.3959806Z Terminate orphan process: pid (5945) (node (vitest 1))
+unit-tests (1)	Complete job	2026-11-23T07:52:56.4000026Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
