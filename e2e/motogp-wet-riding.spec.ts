@@ -45,6 +45,9 @@ test('High renders the four-rider Cape Wrenna wet grid and presents its first mo
   expect(grid.options).toMatchObject({ circuit: 'cape-wrenna', weather: 'rain', compound: 'wet' });
   expect(grid.frame![H.CARS]).toBe(4);
   expect(grid.renderer?.graphics).toMatchObject({ textureSize: 1024, msaa: 4, ambientOcclusion: true });
+  expect(grid.renderer?.warmupGPCockpitColour).toEqual({
+    width: 320, height: 200, targetWidth: 960, targetHeight: 540,
+  });
   await page.keyboard.press('g');
   await expect.poll(async () => (await diag()).frame?.[carBase(0) + F.SPEED], { timeout: 120000 })
     .toBeGreaterThan(10);
@@ -52,6 +55,7 @@ test('High renders the four-rider Cape Wrenna wet grid and presents its first mo
     .toBeGreaterThan(0);
   const moving = await diag();
   expect(moving.renderer?.presentedCamera).toBe('chase');
+  expect(moving.renderer).toMatchObject({ renderWidth: 960, renderHeight: 540 });
   expect(moving.presentation!.frames).toBeGreaterThan(grid.presentation!.frames);
   expect(moving.frame![carBase(0) + WHEEL_BASE + 2 * WHEEL_STRIDE + W.WATER]).toBeGreaterThan(0);
   await info.attach('cape-wrenna-high-wet-grid.png', { body: await page.screenshot(), contentType: 'image/png' });

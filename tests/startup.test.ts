@@ -735,6 +735,38 @@ it.each([null, 'venue-probe', 'venue-shadows', 'held-colour'] as const)(
     colour.dispose();
   },
 );
+it.each([null, 'temporalAA', 'aoTemporal', 'ssr'] as const)(
+  'bounds the GP cockpit warmup and restores the full target with history option %s',
+  async (history) => {
+    const { target, typed, sample } = fixture('gpr2');
+    const colour = new T.WebGLRenderTarget(960, 540, { samples: 4 });
+    const rig = Object.assign(target, {
+      scenePass: { target: colour },
+      graphics: { reflections: 'local', ...(history && { [history]: true }) },
+      warmupGPCockpitColour: null,
+    });
+    Object.assign(target.renderer, { shadowMap: { enabled: true } });
+    for (let id = 0; id < sample[H.CARS]; id++)
+      sample[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex(id % 2 ? 'gpr2' : 'gpr1');
+    const cockpitRegions: number[][] = [];
+    target.draw.mockImplementation((_a, _b, _alpha, _dt, _menu, _replay, _wall, pass) => {
+      if (target.mode === 'cockpit' && pass === 'held-colour')
+        cockpitRegions.push((colour.scissorTest ? colour.scissor : colour.viewport).toArray());
+    });
+    try {
+      expect(await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, async () => {}, false)).toBe(true);
+      expect(cockpitRegions).toEqual([history ? [0, 0, 960, 540] : [320, 170, 320, 200]]);
+      expect(rig.warmupGPCockpitColour).toEqual(history ? null : {
+        width: 320, height: 200, targetWidth: 960, targetHeight: 540,
+      });
+      expect(colour.scissorTest).toBe(false);
+      expect(colour.scissor.toArray()).toEqual([0, 0, 960, 540]);
+      expect(target.mode).toBe('pod');
+    } finally {
+      colour.dispose();
+    }
+  },
+);
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();
   let cancelled = false;

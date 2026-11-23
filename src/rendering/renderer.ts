@@ -1120,6 +1120,7 @@ export class RacingRenderer {
   warmupPitPasses = 0;
   private warmupRoadColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private warmupDirtCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
+  private warmupGPCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private preparedDirtProbeStarts: number | null = null;
   private preparedGPProbeStarts: number | null = null;
   preparationTimeoutMs = 90000;
@@ -1169,6 +1170,7 @@ export class RacingRenderer {
       this.preparedGPProbeStarts = null;
       this.warmupRoadColour = null;
       this.warmupDirtCockpitColour = null;
+      this.warmupGPCockpitColour = null;
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
       if (!Number.isInteger(total) || total < 1 || total > 12)
@@ -1299,6 +1301,10 @@ export class RacingRenderer {
       const camera = this.mode;
       const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
       const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
+      // A GP cockpit can warm its fragment programs on a tile. Full-frame
+      // history consumers keep their complete first cockpit image.
+      const tileGPCockpit = gpGrid && !this.graphics?.temporalAA &&
+        !this.graphics?.aoTemporal && !this.graphics?.ssr;
       let retainGridProbe = false;
       try {
         for (const mode of ['chase', 'cockpit'] as const) {
@@ -1333,11 +1339,12 @@ export class RacingRenderer {
             splitShadows ? 'held-colour' : 'scene',
           );
           // These offscreen views link the real materials against the production
-          // colour and MSAA attachments. The first visible dirt grid is drawn
+          // colour and MSAA attachments. The first visible grid is drawn
           // after preparation restores the camera and the full target scissor.
-          if (splitShadows && (mode === 'chase' || !roadField)) {
+          if (splitShadows && (mode === 'chase' || !roadField || tileGPCockpit)) {
             const tile = warmRoadGridColour(this.scenePass.target, drawGrid);
             if (mode === 'chase') this.warmupRoadColour = tile;
+            else if (roadField) this.warmupGPCockpitColour = tile;
             else this.warmupDirtCockpitColour = tile;
           } else {
             drawGrid();
@@ -3265,6 +3272,7 @@ export class RacingRenderer {
       warmupFrames: this.warmupFrames,
       warmupRoadColour: this.warmupRoadColour,
       warmupDirtCockpitColour: this.warmupDirtCockpitColour,
+      warmupGPCockpitColour: this.warmupGPCockpitColour,
       preparedDirtProbeStarts: this.preparedDirtProbeStarts,
       preparedGPProbeStarts: this.preparedGPProbeStarts,
       warmupPitPasses: this.warmupPitPasses,
