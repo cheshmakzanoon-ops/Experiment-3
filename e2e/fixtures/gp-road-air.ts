@@ -1,3 +1,4 @@
+export { captureGpFloodlightGlare } from './gp-floodlight-glare.ts';
 import * as T from 'three';
 import { HeatHaze } from '../../src/rendering/heat-haze.ts';
 import { SceneAmbientPass } from '../../src/rendering/scene-ambient-pass.ts';

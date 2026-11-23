@@ -91,6 +91,12 @@ void main() {
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
 
+const thresholdSum = /* glsl */ `
+  float l = luminance(sum);
+  float soft = clamp(l - shape.x + shape.y, 0.0, 2.0 * shape.y);
+  soft = soft * soft / (4.0 * shape.y + 1e-5);
+  sum *= max(soft, l - shape.x) / max(l, 1e-5);`;
+
 const prefilterShader = /* glsl */ `
 #include <common>
 uniform sampler2D tSource;
@@ -109,10 +115,7 @@ vec3 limited(vec2 offset) {
 void main() {
   vec3 sum = vec3(0.0);
   ${taps(DOWNSAMPLE_TAPS, 'limited')}
-  float l = luminance(sum);
-  float soft = clamp(l - shape.x + shape.y, 0.0, 2.0 * shape.y);
-  soft = soft * soft / (4.0 * shape.y + 1e-5);
-  sum *= max(soft, l - shape.x) / max(l, 1e-5);
+  ${thresholdSum}
   gl_FragColor = vec4(sum, 1.0);
 }`;
 
@@ -154,12 +157,15 @@ export function physicalBloomMix(mode: 'day' | 'sunset' | 'night', wetness: numb
  * tile the 4x4 source block; one bright pixel reaches at most two of them).
  * Taps are limited above `PHYSICAL_BLOOM.outlierRatio` x that level, never
  * below 24, and never above the half-float-safe `limitKnee`/`limit`, so lamp
- * heads, windows and the sun keep their physical radiance into the glare. */
-const energyPrefilterShader = /* glsl */ `
+ * heads, windows and the sun keep their physical radiance into the glare.
+ * The thresholded GP night variant meters the outer cross of the same taps.
+ * A bright sample surrounded by dark bodywork contributes a small glint,
+ * while a resolved emitter can reach the usual threshold-mode radiance limit. */
+const adaptivePrefilterShader = (gpNight: boolean) => /* glsl */ `
 #include <common>
 uniform sampler2D tSource;
 uniform vec2 texel;
-uniform vec4 shape; // unused, unused, limitKnee, limit
+uniform vec4 shape; // threshold, threshold knee, radiance knee, radiance ceiling
 varying vec2 vUv;
 #define OUTLIER_RATIO ${PHYSICAL_BLOOM.outlierRatio.toFixed(1)}
 vec3 fetchTap(vec2 offset) { return texture2D(tSource, vUv + offset * texel).rgb; }
@@ -177,13 +183,19 @@ vec3 limitTap(vec3 c, float l, float knee, float ceiling) {
 float median3(float a, float b, float c) { return max(min(a, b), min(max(a, b), c)); }
 void main() {
   ${DOWNSAMPLE_TAPS.map(([x, y], i) => `vec3 c${i} = fetchTap(vec2(${x.toFixed(1)}, ${y.toFixed(1)}));\n  float l${i} = tapLuminance(c${i});`).join('\n  ')}
-  // Median of five: the centre (12) and the inner diagonals (0-3).
-  float m0 = max(l0, 0.0), m1 = max(l1, 0.0), m2 = max(l2, 0.0), m3 = max(l3, 0.0), m4 = max(l12, 0.0);
-  float level = median3(max(min(m0, m1), min(m2, m3)), min(max(m0, m1), max(m2, m3)), m4);
-  float knee = clamp(level * OUTLIER_RATIO, 24.0, shape.z);
-  float ceiling = min(knee * 4.0, shape.w);
+  // The physical lens meters its inner diagonals. At a floodlit GP the outer
+  // two-texel cross distinguishes an alloy glint from a resolved emitter.
+  ${gpNight
+    ? 'float m0=max(l8,0.0), m1=max(l9,0.0), m2=max(l10,0.0), m3=max(l11,0.0);'
+    : 'float m0=max(l0,0.0), m1=max(l1,0.0), m2=max(l2,0.0), m3=max(l3,0.0);'}
+  float level = median3(max(min(m0, m1), min(m2, m3)), min(max(m0, m1), max(m2, m3)), max(l12,0.0));
+  ${gpNight
+    ? 'float knee = clamp(level * 5.0, 1.6, shape.z);'
+    : 'float knee = clamp(level * OUTLIER_RATIO, 24.0, shape.z);'}
+  float ceiling = min(knee * ${gpNight ? '3.0' : '4.0'}, shape.w);
   vec3 sum = vec3(0.0);
   ${DOWNSAMPLE_TAPS.map(([, , w], i) => `sum += limitTap(c${i}, l${i}, knee, ceiling) * ${w.toFixed(5)};`).join('\n  ')}
+  ${gpNight ? thresholdSum : ''}
   gl_FragColor = vec4(sum, 1.0);
 }`;
 
@@ -251,6 +263,8 @@ export class LensBloomPass extends Pass {
   strength: number = LENS_BLOOM.strength;
   /** ULTRA energy-conserving mode (see PHYSICAL_BLOOM); off on every preset. */
   energyConserving = false;
+  /** Glare on GP prototypes under floodlights uses the angular extent of the source. */
+  gpFloodlights = false;
   /** Scene share redistributed in energy-conserving mode. */
   energyMix: number = PHYSICAL_BLOOM.mix;
   private readonly quad = new FullScreenQuad();
@@ -261,8 +275,12 @@ export class LensBloomPass extends Pass {
       value: new T.Vector4(LENS_BLOOM.threshold, LENS_BLOOM.knee, LENS_BLOOM.limitKnee, LENS_BLOOM.limit),
     },
   });
+  private readonly gpNightPrefilter = material(
+    adaptivePrefilterShader(true),
+    this.prefilter.uniforms,
+  );
   /** ULTRA's energy-conserving prefilter, compiled only when it is used. */
-  private readonly energyPrefilter = material(energyPrefilterShader, {
+  private readonly energyPrefilter = material(adaptivePrefilterShader(false), {
     tSource: { value: null },
     texel: { value: new T.Vector2() },
     shape: {
@@ -350,7 +368,10 @@ export class LensBloomPass extends Pass {
     // Threshold 0 with a vanishing knee passes every pixel unchanged.
     shape.x = energy ? 0 : LENS_BLOOM.threshold;
     shape.y = energy ? 1e-3 : LENS_BLOOM.knee;
-    draw(energy ? this.energyPrefilter : this.prefilter, readBuffer.texture, readBuffer, this.levels[0]);
+    const prefilter = energy
+      ? this.energyPrefilter
+      : this.gpFloodlights ? this.gpNightPrefilter : this.prefilter;
+    draw(prefilter, readBuffer.texture, readBuffer, this.levels[0]);
     for (let i = 1; i < this.levels.length; i++)
       draw(this.downsample, this.levels[i - 1].texture, this.levels[i - 1], this.levels[i]);
     this.upsample.uniforms.gain.value = this.scatter;
@@ -368,6 +389,7 @@ export class LensBloomPass extends Pass {
   override dispose() {
     this.levels.forEach((level) => level.dispose());
     this.prefilter.dispose();
+    this.gpNightPrefilter.dispose();
     this.energyPrefilter.dispose();
     this.downsample.dispose();
     this.upsample.dispose();

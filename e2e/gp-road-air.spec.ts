@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import { fixtureDefine } from './fixtures/owner-build.ts';
-import type { captureGpRoadAir } from './fixtures/gp-road-air.ts';
+import type { captureGpRoadAir, captureGpFloodlightGlare } from './fixtures/gp-road-air.ts';
 
-test('GP heat refracts distant details and respects tree-line and foreground depth', async ({
+test('GP optics resolve road heat, depth occlusion and the angular extent of floodlit highlights', async ({
   page,
 }, info) => {
   const bundle = await build({
@@ -51,4 +51,22 @@ test('GP heat refracts distant details and respects tree-line and foreground dep
   expect(stats.sky).toBe(0);
   expect(stats.rewound).toBe(0);
   expect(stats.wetDifference).toBe(0);
+  const glare = await page.evaluate(() =>
+    (
+      window as unknown as {
+        GpAir: { captureGpFloodlightGlare: typeof captureGpFloodlightGlare };
+      }
+    ).GpAir.captureGpFloodlightGlare(),
+  );
+  await info.attach('floodlight-glare.json', {
+    body: JSON.stringify(glare),
+    contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
+  expect(glare.glError).toBe(0);
+  expect(glare.original.glintHalo).toBeGreaterThan(1);
+  expect(glare.gp.glintHalo).toBeLessThan(glare.original.glintHalo * 0.2);
+  expect(glare.gp.lampHalo / glare.original.lampHalo).toBeGreaterThan(0.8);
+  expect(glare.gp.lampHalo / glare.original.lampHalo).toBeLessThan(1.05);
+  expect(glare.restored).toEqual(glare.original);
 });

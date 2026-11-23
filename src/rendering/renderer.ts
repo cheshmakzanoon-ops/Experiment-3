@@ -2766,6 +2766,8 @@ export class RacingRenderer {
       const toneMapper = gpLook?.toneMapper ?? this.graphics.toneMapper;
       this.renderer.toneMapping = TONE_MAPPING[toneMapper];
       this.grade.filmic = toneMapper !== 'aces';
+      this.bloom.gpFloodlights =
+        followedDefinition.classId === 'gp-bike' && illumination === 'night' && !studio;
       postLensFrame(
         this.grade,
         this.bloom,
