@@ -168,6 +168,11 @@ describe('GP verge turf and gravel', () => {
     expect(f.indexOf('vGravelCover < 0.999')).toBeLessThan(f.indexOf('discard'));
     expect(compile(gp.ground).fragmentShader).toContain(GP_TURF.saturation.toFixed(4));
     expect(compile(gp.ground).vertexShader).toContain('edgeMetres + gpVergeInset');
+    const turfVertex = compile(gp.ground).vertexShader;
+    expect(turfVertex.indexOf('vec3 gpTurfUv')).toBeGreaterThan(turfVertex.indexOf('#include <uv_vertex>'));
+    for (const channel of ['map', 'bumpMap', 'roughnessMap', 'normalMap'])
+      expect(turfVertex).toContain(`(${channel}Transform * gpTurfUv).xy`);
+    expect(compile(plain.ground).vertexShader).not.toContain('gpTurfUv');
     expect(compile(plain.ground).vertexShader).not.toContain('gpVergeInset');
     expect(GP_GRAVEL.tint[0]).toBeGreaterThan(1);
   });

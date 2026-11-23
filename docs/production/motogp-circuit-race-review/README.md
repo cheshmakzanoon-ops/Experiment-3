@@ -28,6 +28,10 @@ The 102-link chain took a median 9.63 µs per update after the two side plates b
 
 At Haarveld, closed concrete risers support the seats and three shallow steps connect each pair of rows in the aisles. At Cape Wrenna, four umbrellas on the first bank unfold in a shower and follow the wind. Holding the weather or rewinding to dry reproduced the original pixels. In a separate shadow measurement at race shadow-map density, the 10–90% edge width below an eight-metre canopy grew from 5 cm in sun to 14 cm under thin cloud and 30.5 cm in a shower. A plate eight centimetres above the road kept its 5 cm edge in all three conditions.
 
+![Matching overhead cameras show stretched grass in the earlier Cape Wrenna bank and continuous turf and worn walkways in the revised frame](cape-wrenna-turf.jpg)
+
+Fans reach the standing rows through the central opening and a service aisle behind the fourth row. Flattened stems give way to exposed earth along those routes. The two images use identical foot traffic and lighting. Earlier grass textures followed the nearest racing station, which stretched the pattern by up to 52.7 times on this bank. Sampling the grass in world metres keeps blades at a consistent scale. Floodlights and edge markings still follow the surveyed course.
+
 ## Circuit cameras
 
 ![Aurel race broadcast with the GP-R1 at 149 km/h and several riders on the main straight](aurel-live-race.jpg)
@@ -93,7 +97,7 @@ The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dr
 
 These close-ups use the game meshes under controlled lighting. The brake pose sets the same inputs as the riding renderer. The dashboard capture shows 15,200 RPM. The temperature, lean, speed and gear channels use the live instrument code. A held or rewound frame restores the instrument, rider gaze, leather folds and optical state.
 
-Behind the tinted visor, the brow and temple pads shade the rider’s skin. The wet surface of the eye reflects the lamps at the circuit. In an 86-pixel-wide crop of one eye, moving the test lamp from left to right shifted the centre of the brightest pixels by 74 pixels. Turning off all light reduced the brightest sample from the former 32/255 to black. The helmet, lens and padding rendered identically with the face hidden.
+Behind the tinted visor, the brow and temple pads shade the rider’s skin. The wet surface of the eye reflects the lamps at the circuit. In an 86-pixel-wide crop of one eye, moving the test lamp from left to right shifted the centre of the brightest pixels by 65 pixels. Turning off all light reduced the brightest sample to black. Repeating the left lamp position reproduced its original pixels.
 
 ## Spectators and wind
 

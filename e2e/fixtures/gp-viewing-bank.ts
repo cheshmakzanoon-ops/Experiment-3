@@ -173,6 +173,18 @@ export async function captureGpViewingBank() {
     meadow.root.visible = false;
     const cut = snap('cape-wrenna-mown-control');
     meadow.root.visible = true;
+    const crossing = .275 * site.width * site.side, aisleZ = 3;
+    const aisle = at(crossing, surface.height(crossing, aisleZ), aisleZ);
+    camera.position.copy(at(-.3 * site.width * site.side, aisle.y + 12, aisleZ + 14));
+    camera.lookAt(aisle);
+    const worn = snap('cape-wrenna-bank-footpaths');
+    const turf = land.getObjectByName('GP viewing bank turf') as T.Mesh<T.BufferGeometry>;
+    const path = turf.geometry.getAttribute('gpBankWalkway');
+    // An ordinary verge shares the turf program and has no bank attribute.
+    turf.geometry.deleteAttribute('gpBankWalkway');
+    const unwalked = snap('cape-wrenna-unwalked-turf');
+    turf.geometry.setAttribute('gpBankWalkway', path);
+    const wornAgain = snap('cape-wrenna-bank-footpaths-restored');
     const target = sock.getWorldPosition(new T.Vector3());
     camera.position.copy(target).add(new T.Vector3(-4.1, 2.6, 6));
     camera.lookAt(target.clone().add(new T.Vector3(0, -0.65, 0)));
@@ -187,6 +199,8 @@ export async function captureGpViewingBank() {
       captures: shots,
       meadowClumps: meadow.clumps,
       meadowPixels: difference(planted, cut),
+      pathPixels: difference(worn, unwalked),
+      pathRestore: difference(worn, wornAgain),
       windPixels: difference(east, west),
       lullPixels: difference(east, calm),
       windRestore: difference(east, rewind),

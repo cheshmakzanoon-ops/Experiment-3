@@ -18,6 +18,7 @@ export function gpBankSurface(track: Track, site: GpSpectatorBank) {
     stride = cols + 1,
     pos: number[] = [],
     uv: number[] = [],
+    walkway: number[] = [],
     edge: number[] = [],
     inset: number[] = [],
     index: number[] = [];
@@ -39,6 +40,9 @@ export function gpBankSurface(track: Track, site: GpSpectatorBank) {
         T.MathUtils.smoothstep(across, 0, 0.66) * (1 - T.MathUtils.smoothstep(across, 0.74, 1));
       const y = terrain(near.s, l, wx, wz) - 0.17 + site.rise * end * profile;
       pos.push(x, y, z);
+      // Local metres and half-extents locate the opening between groups
+      // and the service aisle behind the fourth row on either side of a track.
+      walkway.push(site.side * x, z, site.width * 0.5, site.length * 0.5);
       // The venue turf uses the same lateral/station UVs as the adjacent verge.
       // Carry distance to the road so its soil band and floodlight rows stay
       // at the ribbon. Keep UVs continuous across the timing-line seam.
@@ -61,6 +65,7 @@ export function gpBankSurface(track: Track, site: GpSpectatorBank) {
   const geometry = new T.BufferGeometry();
   geometry.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
   geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setAttribute('gpBankWalkway', new T.Float32BufferAttribute(walkway, 4));
   geometry.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
   geometry.setAttribute('gpVergeInset', new T.Float32BufferAttribute(inset, 1));
   geometry.setIndex(index);

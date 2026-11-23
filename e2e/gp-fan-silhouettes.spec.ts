@@ -77,6 +77,8 @@ test('GP distance fans retain the standing and seated sculpt silhouettes in two 
   expect(wind.windRestore).toBe(0);
   expect(wind.meadowClumps).toBeGreaterThan(80);
   expect(wind.meadowPixels).toBeGreaterThan(40);
+  expect(wind.pathPixels).toBeGreaterThan(300);
+  expect(wind.pathRestore).toBe(0);
   expect(wind.umbrellas).toBeGreaterThan(1);
   expect(wind.canopyPixels).toBeGreaterThan(120);
   expect(wind.canopyHeld).toBe(0);

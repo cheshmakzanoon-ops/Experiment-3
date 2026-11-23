@@ -85,13 +85,18 @@ describe('GP general-admission viewing banks', () => {
           }
           expect(gpBankGrass({ site, height }, 8, 4, 0.3)).toEqual(meadow);
           const positions = geometry.getAttribute('position'),
-            normals = geometry.getAttribute('normal');
+            normals = geometry.getAttribute('normal'),
+            walkway = geometry.getAttribute('gpBankWalkway');
           expect(inGpSpectatorBank(sites, site.x, site.z, 0)).toBe(true);
           for (let i = 0; i < positions.count; i++) {
             const x = positions.getX(i),
               z = positions.getZ(i),
               wx = site.x + c * x + n * z,
               wz = site.z - n * x + c * z;
+            expect(walkway.getX(i)).toBeCloseTo(site.side * x, 5);
+            expect(walkway.getY(i)).toBeCloseTo(z, 5);
+            expect(walkway.getZ(i)).toBeCloseTo(site.width / 2, 5);
+            expect(walkway.getW(i)).toBeCloseTo(site.length / 2, 5);
             const l = track.nearest(wx, wz, near);
             const uv = geometry.getAttribute('uv');
             expect(uv.getX(i) * 5).toBeCloseTo(l, 2);

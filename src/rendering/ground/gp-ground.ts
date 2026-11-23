@@ -111,6 +111,30 @@ export function installGpGravel(material: T.MeshStandardMaterial, landform = 'hi
 export function installGpTurf(material: T.MeshStandardMaterial) {
   const G = GP_TURF;
   return chainShaderHook(material, 'gp-turf-v1', (shader) => {
+    injectDeclarations(shader, 'common',
+      'attribute vec4 gpBankWalkway; varying vec4 vGpBankWalkway;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vGpBankWalkway = gpBankWalkway;', 'vertex');
+    injectDeclarations(shader, 'common', 'varying vec4 vGpBankWalkway;', 'fragment');
+    // Across the infield of a hairpin, the nearest station can jump to the
+    // opposite straight or stay constant along an entire triangle. Retain
+    // that station for racing infrastructure. Tile the grass in world metres.
+    injectAfter(shader, 'uv_vertex', `
+      #if defined(USE_MAP) || defined(USE_BUMPMAP) || defined(USE_ROUGHNESSMAP) || defined(USE_NORMALMAP)
+        vec3 gpTurfUv = vec3((modelMatrix * vec4(position, 1.)).xz * .2, 1.);
+        #ifdef USE_MAP
+          vMapUv = (mapTransform * gpTurfUv).xy;
+        #endif
+        #ifdef USE_BUMPMAP
+          vBumpMapUv = (bumpMapTransform * gpTurfUv).xy;
+        #endif
+        #ifdef USE_ROUGHNESSMAP
+          vRoughnessMapUv = (roughnessMapTransform * gpTurfUv).xy;
+        #endif
+        #ifdef USE_NORMALMAP
+          vNormalMapUv = (normalMapTransform * gpTurfUv).xy;
+        #endif
+      #endif
+    `, 'vertex');
     injectAfter(
       shader,
       'color_fragment',
@@ -123,6 +147,27 @@ export function installGpTurf(material: T.MeshStandardMaterial) {
 	diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * ${v3(G.dryTint)}, turfDry * 0.6 );
 	float turfLush = smoothstep( 0.6, 0.85, finishFilteredNoise( vFinishWorld.xz / ${f(G.lushScale)} + vec2( 4.4, 6.2 ) ) );
 	diffuseColor.rgb *= 1.0 - ${f(G.lushDarkening)} * turfLush;
+	// The bank mesh carries its dimensions. Ordinary verges have zero in Z.
+	if (vGpBankWalkway.z > 0.) {
+		vec2 p = vGpBankWalkway.xy;
+		float width = vGpBankWalkway.z, lengthZ = vGpBankWalkway.w;
+		float ruffle = .36 * (finishFilteredNoise(vFinishWorld.xz / .83) - .5);
+		float crossPath = abs(p.y - 3. - .24 * sin(.36 * p.x)) + ruffle;
+		float servicePath = abs(p.x - .55 * width - .22 * sin(.17 * p.y)) + ruffle;
+		float crossReach = smoothstep(-.96 * width, -.76 * width, p.x)
+			* (1. - smoothstep(.60 * width, .88 * width, p.x));
+		float serviceReach = 1. - smoothstep(.72 * lengthZ, .94 * lengthZ, abs(p.y));
+		float traffic = max((1. - smoothstep(.26, 1.32, crossPath)) * crossReach,
+			(1. - smoothstep(.19, 1.05, servicePath)) * serviceReach);
+		float clods = finishFilteredNoise(vFinishWorld.xz / .14);
+		float grass = smoothstep(.30, .75, clods + .46 * (1. - traffic));
+		// Flattened stems remain along the edges. The core exposes mineral
+		// soil between surviving tufts. All three receive the turf lighting.
+		vec3 straw = turfLuma * vec3(1.19, .96, .59);
+		vec3 soil = turfLuma * vec3(.84, .63, .42) * (.79 + .38 * clods);
+		vec3 worn = mix(soil, straw, .28 + .57 * grass);
+		diffuseColor.rgb = mix(diffuseColor.rgb, worn, traffic * (.70 + .26 * (1. - grass)));
+	}
 }`,
       'fragment',
     );
