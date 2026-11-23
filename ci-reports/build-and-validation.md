@@ -1,19 +1,19 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45250372387
-- commit: `68ef75703c` · Paint surveyed Formula starting boxes and drain the open cockpit visor with the race weather
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45259988589
+- commit: `b227da3bfd` · Retain the selected Formula race number on factory paint and replay models
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-23T19:34:39Z · updated: 2026-11-23T19:36:23Z
+- started: 2026-11-23T20:30:02Z · updated: 2026-11-23T20:42:03Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| offroad-scenarios | cancelled | 1 |  |
-| unit-tests (2) | cancelled | 1 |  |
-| unit-tests (1) | cancelled | 1 |  |
-| scenarios | cancelled | 1 |  |
-| unit-tests (3) | cancelled | 1 |  |
-| unit-tests (4) | cancelled | 1 |  |
-| validate | cancelled | 1 |  |
+| scenarios | cancelled | 11 |  |
+| unit-tests (1) | cancelled | 11 |  |
+| unit-tests (2) | cancelled | 11 |  |
+| unit-tests (4) | cancelled | 11 |  |
+| validate | cancelled | 11 |  |
+| unit-tests (3) | cancelled | 11 |  |
+| offroad-scenarios | cancelled | 11 |  |
 | owner-qa | cancelled | 0 |  |
 | wet-presentation | cancelled | 0 |  |
 | browser | cancelled | 0 |  |
