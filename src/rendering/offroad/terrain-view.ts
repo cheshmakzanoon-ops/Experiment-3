@@ -5,7 +5,7 @@ import {
   type CourseTerrain,
   type TerrainRenderDelta,
 } from '../../simulation/offroad/course-terrain.ts';
-import { COURSE_CELL, SOIL_KINDS, type SoilKind } from '../../simulation/offroad/course.ts';
+import { COURSE_CELL, SOIL_KINDS, relief, type SoilKind } from '../../simulation/offroad/course.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { TERRAIN } from '../../simulation/terrain.ts';
 import { materials } from '../materials/index.ts';
@@ -131,6 +131,8 @@ export class TerrainView {
       q = trackPoint(),
       colour = new T.Color();
     const sample = this.motocross ? mxSoilSample() : null,
+      bank = this.motocross ? { bed: 0, lip: 0 } : undefined,
+      section = relief(),
       wear = this.motocross ? mxCourseWearSample() : null,
       braking = this.motocross ? brakingBumpSample() : null,
       brakingSpans = t.course.spec.brakingBumps ?? [],
@@ -163,7 +165,7 @@ export class TerrainView {
       mxCourseWidth = this.motocross ? new Float32Array(count) : null,
       mxCourseWear = this.motocross ? new Float32Array(count * 4) : null,
       mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
-      mxBrakingWork = this.motocross ? new Float32Array(count * 2) : null,
+      mxBrakingWork = this.motocross ? new Float32Array(count * 4) : null,
       mxSoilTopo = this.motocross ? new Float32Array(count) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
@@ -183,7 +185,7 @@ export class TerrainView {
           lateral = Math.sign(lateral) * inside;
         const x = p.x + p.nx * lateral,
           z = p.z + p.nz * lateral,
-          h = t.baseHeight(s, lateral);
+          h = t.course.groundAt(s, lateral, p, section, bank);
         base[k] = h;
         position[k * 3] = x;
         position[k * 3 + 1] = h;
@@ -225,10 +227,12 @@ export class TerrainView {
         colours[k * 3] = colour.r;
         colours[k * 3 + 1] = colour.g;
         colours[k * 3 + 2] = colour.b;
-        if (braking && mxBrakingWork) {
+        if (braking && bank && mxBrakingWork) {
           sampleBrakingBumps(brakingSpans, s, lateral, L, braking);
-          mxBrakingWork[k * 2] = braking.work;
-          mxBrakingWork[k * 2 + 1] = clamp(braking.h / brakingHeight, 0, 1);
+          mxBrakingWork[k * 4] = braking.work;
+          mxBrakingWork[k * 4 + 1] = clamp(braking.h / brakingHeight, 0, 1);
+          mxBrakingWork[k * 4 + 2] = bank.bed;
+          mxBrakingWork[k * 4 + 3] = bank.lip;
         }
         if (mxCourse) {
           mxCourse[k * 4] = lateral;
@@ -306,7 +310,7 @@ export class TerrainView {
     if (mxCourseWear) geometry.setAttribute('mxCourseWear', new T.BufferAttribute(mxCourseWear, 4));
     if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
     if (mxBrakingWork)
-      geometry.setAttribute('mxBrakingWork', new T.BufferAttribute(mxBrakingWork, 2));
+      geometry.setAttribute('mxBrakingWork', new T.BufferAttribute(mxBrakingWork, 4));
     if (mxSoilTopo) geometry.setAttribute('mxSoilTopo', new T.BufferAttribute(mxSoilTopo, 1));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));

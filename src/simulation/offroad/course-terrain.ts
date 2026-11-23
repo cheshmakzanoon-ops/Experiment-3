@@ -6,6 +6,7 @@ import {
   COURSE_CELL,
   SOIL_KINDS,
   SOILS,
+  groundHeight,
   relief,
   type OffroadCourse,
   type SoilKind,
@@ -73,11 +74,7 @@ export class CourseTerrain extends TerrainTile {
       r = relief();
     // The tile's base height is the course ground in the Track frame (x =
     // lateral, z = lap distance): Track cross-section plus static relief.
-    const base = (lateral: number, s: number) => {
-      track.at(s, at);
-      course.relief(s, lateral, at, r);
-      return at.y + at.bank * clamp(lateral, -12, 12) + r.h;
-    };
+    const base = (lateral: number, s: number) => groundHeight(track, course, s, lateral, at, r);
     super(lateralMin, 0, columns, rows, base, 'loam', course.spec.moisture);
     this.soil = new Uint8Array(columns * rows);
     this.baseMoisture = new Uint8Array(columns * rows);

@@ -3,7 +3,8 @@ import { defineCircuit, type CircuitSpec, type Segment } from '../circuit-catalo
 import { A, S } from '../circuit-catalogue/dsl.ts';
 import type { OffroadCircuitId } from '../circuit-catalogue/venue-data.ts';
 import type { Track } from '../track.ts';
-import { OffroadCourse, type OffroadCourseSpec } from './course.ts';
+import { OffroadCourse, type BermSpec, type OffroadCourseSpec } from './course.ts';
+import { ARENA_BERM_LINES, OUTDOOR_BERM_LINES, type BermLine } from './berm-lines.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { ProfileBuilder, type JumpSurvey } from './profile.ts';
 import type { OffroadVenueData } from './types.ts';
@@ -120,8 +121,9 @@ const berm = (h: number, extra: Partial<Segment> = {}) => ({ ...extra, berm: h }
 function berms(
   path: readonly (Segment & { berm?: number })[],
   at: (i: number, l?: number) => number,
+  lines: readonly BermLine[],
 ) {
-  const out: { from: number; to: number; height: number; side: 1 | -1 }[] = [];
+  const out: BermSpec[] = [];
   path.forEach((seg, i) => {
     if (!seg.berm || seg.r === undefined || seg.turn === undefined) return;
     const run = seg.r * Math.abs(seg.turn * DEG);
@@ -131,6 +133,7 @@ function berms(
       to: at(i, run + 4),
       height: seg.berm,
       side: seg.turn > 0 ? 1 : -1,
+      lines,
     });
   });
   return out;
@@ -238,7 +241,7 @@ const VALLEY_RIDGE = venue(
         { from: at(8, 10), to: at(8, 64), soil: 'sand' },
         { from: at(6, 38), to: at(6, 60), soil: 'mud', moisture: 0.45 },
       ],
-      berms: berms(valleyPath, at),
+      berms: berms(valleyPath, at, OUTDOOR_BERM_LINES),
       chop: 0.025,
       rough: [{ from: at(2, 0), to: at(2, 18) }],
       // Worked inside entries, after the previous landing has settled.
@@ -354,7 +357,7 @@ const ARENA_NORD = venue(
       offTrack: 'hardpack',
       moisture: 0.18,
       zones: [{ from: at(4, 8), to: at(4, 60), soil: 'loam' }],
-      berms: berms(arenaPath, at),
+      berms: berms(arenaPath, at, ARENA_BERM_LINES),
       brakingBumps: [
         {
           name: 'STAGE TURN ENTRY',

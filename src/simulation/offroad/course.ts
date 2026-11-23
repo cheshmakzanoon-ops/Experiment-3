@@ -4,6 +4,7 @@ import type { Track, TrackPoint } from '../track.ts';
 import { LongitudinalProfile, type JumpSurvey, type RoughSurvey } from './profile.ts';
 import type { OffroadKind } from './types.ts';
 import { brakingBumpSample, sampleBrakingBumps, type BrakingBumpSpec } from './braking-bumps.ts';
+import { addBermLines, type BermFinish, type BermLine } from './berm-lines.ts';
 
 /** Off-road course data (WP37-WP41): everything a terrain venue adds to its
  * catalogue centreline — the longitudinal jump profile, berms, soil kinds,
@@ -55,6 +56,7 @@ export interface BermSpec {
   height: number;
   /** Lateral side of the wall; absent: the outside of the corner. */
   side?: 1 | -1;
+  lines?: readonly BermLine[];
 }
 export interface JokerSpec {
   /** Lap distances where the joker road leaves and rejoins the lap. */
@@ -127,6 +129,7 @@ export class OffroadCourse {
   readonly rough: readonly RoughSurvey[];
   private readonly scratch = { h: 0, dh: 0 };
   private readonly brakingScratch = brakingBumpSample();
+  private readonly lineScratch = { h: 0, ds: 0, dl: 0 };
   constructor(
     readonly spec: OffroadCourseSpec,
     profile: LongitudinalProfile,
@@ -185,7 +188,7 @@ export class OffroadCourse {
   /** Relief above the Track's base cross-section at a station: the jump
    * profile (faded at the sides), berm walls, the joker island and chop.
    * Returns the height and its derivatives along s and across. */
-  relief(s: number, lateral: number, p: TrackPoint, out: Relief) {
+  relief(s: number, lateral: number, p: TrackPoint, out: Relief, finish?: BermFinish) {
     s = mod(s, this.length);
     const w = p.width,
       f = this.profile.evaluate(s, this.scratch);
@@ -196,6 +199,7 @@ export class OffroadCourse {
     let h = f.h * fade,
       ds = f.dh * fade,
       dl = f.h * dFade;
+    if (finish) finish.bed = finish.lip = 0;
     for (const b of this.spec.berms) {
       if (!inSpan(s, b.from, b.to, this.length)) continue;
       const side = b.side ?? (p.curvature > 0 ? -1 : 1),
@@ -220,6 +224,14 @@ export class OffroadCourse {
       h += b.height * shape * env;
       ds += b.height * shape * dEnv;
       dl += b.height * dShape * env;
+      if (b.lines) {
+        const line = this.lineScratch;
+        line.h = line.ds = line.dl = 0;
+        addBermLines(b.lines, side, lateral, into, span, env, dEnv, line, finish);
+        h += line.h;
+        ds += line.ds;
+        dl += line.dl;
+      }
     }
     const joker = this.jokerCentre(s);
     if (joker !== null) {
@@ -288,6 +300,11 @@ export class OffroadCourse {
     out.ds = ds;
     out.dl = dl;
     return out;
+  }
+  /** The caller may reuse a sampled track frame across an entire cross-section. */
+  groundAt(s: number, lateral: number, p: TrackPoint, r: Relief, finish?: BermFinish) {
+    this.relief(s, lateral, p, r, finish);
+    return p.y + p.bank * clamp(lateral, -12, 12) + r.h;
   }
   isRough(s: number) {
     s = mod(s, this.length);
@@ -404,6 +421,5 @@ export function groundHeight(
   r: Relief,
 ) {
   track.at(s, p);
-  course.relief(s, lateral, p, r);
-  return p.y + p.bank * clamp(lateral, -12, 12) + r.h;
+  return course.groundAt(s, lateral, p, r);
 }
