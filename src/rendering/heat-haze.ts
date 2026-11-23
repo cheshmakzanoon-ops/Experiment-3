@@ -1,6 +1,9 @@
 import * as T from 'three';
+import type { Track } from '../simulation/track.ts';
+import { GP_ROAD_AIR_GLSL, GpRoadAir, roadAirUniforms } from './gp-road-air.ts';
 import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { vehicleIndex } from '../simulation/vehicles.ts';
+import { STUDIO_MAX_CARS } from './studio/studio-frame.ts';
 import { GP_EXHAUST_MOUTHS } from './gp-exhaust-datums.ts';
 
 const gpR1 = vehicleIndex('gpr1'), gpR2 = vehicleIndex('gpr2');
@@ -8,7 +11,6 @@ function gpMouth(presented: Float32Array, offset: number) {
   const kind = presented[offset + RACE_BASE + R.VEHICLE];
   return kind === gpR1 ? GP_EXHAUST_MOUTHS.gpr1 : kind === gpR2 ? GP_EXHAUST_MOUTHS.gpr2 : undefined;
 }
-import { STUDIO_MAX_CARS } from './studio/studio-frame.ts';
 
 /**
  * Exhaust heat haze (High and Ultra): a refractive shimmer of the air behind a
@@ -71,7 +73,7 @@ export const HEAT_HAZE = Object.freeze({
   foregroundTolerance: 0.4,
 });
 
-export interface HeatHazeUniforms extends Record<string, T.IUniform> {
+export interface HeatHazeUniforms extends Record<string, T.IUniform>, ReturnType<typeof roadAirUniforms> {
   hazeCount: T.IUniform<number>;
   /** View-space outlet (xyz) and the radius at the outlet. */
   hazeOrigin: T.IUniform<T.Vector4[]>;
@@ -84,9 +86,10 @@ export interface HeatHazeUniforms extends Record<string, T.IUniform> {
   hazePixels: T.IUniform<number>;
 }
 
-export function createHeatHazeUniforms(): HeatHazeUniforms {
+export function createHeatHazeUniforms(road = roadAirUniforms()): HeatHazeUniforms {
   const vectors = () => Array.from({ length: HEAT_HAZE.maxSources }, () => new T.Vector4());
   return {
+    ...road,
     hazeCount: { value: 0 },
     hazeOrigin: { value: vectors() },
     hazeAxis: { value: vectors() },
@@ -108,6 +111,7 @@ export const HEAT_HAZE_GLSL = /* glsl */ `
   uniform vec4 hazeParam[HAZE_MAX];
   uniform float hazeTime;
   uniform float hazePixels;
+  ${GP_ROAD_AIR_GLSL}
   // Smooth quasi-periodic turbulence: three incommensurate waves per channel.
   vec2 hazeSwirl(vec3 q) {
     return vec2(
@@ -121,7 +125,7 @@ export const HEAT_HAZE_GLSL = /* glsl */ `
     vec3 ray = normalize(viewAtZ(uv, -1.0));
     float surface = z / ray.z;
     float jitter = interleavedNoise(floor(uv * colorResolution) + vec2(3.0, 7.0));
-    vec2 offset = vec2(0.0);
+    vec2 offset = gpRoadAirCount>0 ? gpRoadRefraction(ray,surface) : vec2(0.0);
     for (int i = 0; i < HAZE_MAX; i++) {
       if (i >= hazeCount) break;
       vec3 o = hazeOrigin[i].xyz;
@@ -172,7 +176,8 @@ export const HEAT_HAZE_GLSL = /* glsl */ `
 
 /** CPU half: places each plume in view space. */
 export class HeatHaze {
-  readonly uniforms = createHeatHazeUniforms();
+  private readonly road = new GpRoadAir();
+  readonly uniforms = createHeatHazeUniforms(this.road.uniforms);
   /** Sources written by the last `update`. */
   count = 0;
   private readonly origin = new T.Vector3();
@@ -184,6 +189,7 @@ export class HeatHaze {
 
   /** No haze this frame (menu, showroom, disabled): the composite skips it. */
   clear() {
+    this.road.clear();
     this.count = 0;
     this.uniforms.hazeCount.value = 0;
   }
@@ -202,7 +208,11 @@ export class HeatHaze {
     cars: number,
     time: number,
     height: number,
+    road?: Track,
+    station = 0,
+    daytime = false,
   ) {
+    this.road.update(road, station, presented, camera, daytime);
     const u = this.uniforms;
     const total = Math.max(0, Math.min(STUDIO_MAX_CARS, Math.floor(cars)));
     this.candidates.length = 0;

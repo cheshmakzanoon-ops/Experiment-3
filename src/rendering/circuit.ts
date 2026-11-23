@@ -96,6 +96,7 @@ import {
   gpPitPavingLateral,
   gpPitStripeLateral,
 } from './venue-kit/gp-edge-design.ts';
+import { buildGpGridGantry } from './venue-kit/gp-grid-gantry.ts';
 import { buildGpSpectatorBank } from './venue-kit/gp-spectator-banks.ts';
 import { gpSpectatorBankPlan } from './venue-kit/gp-spectator-bank-sites.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
@@ -1138,6 +1139,10 @@ export class CircuitScene {
       gantry.position.copy(this.at(0, 0));
       gantry.rotation.y = Math.atan2(p.tx, p.tz);
       this.props.add(gantry);
+      if (kit && isGpCourse(this.track)) {
+        buildGpGridGantry(this.track, gantry, this.sightlines, kit.materials, this.startLamps);
+        return;
+      }
       if (this.startGantry) this.startGantry.build(this.track, gantry, this.sightlines);
       else buildGantrySolids(gantry, dark, concrete, this.sightlines);
       const banner = mesh(

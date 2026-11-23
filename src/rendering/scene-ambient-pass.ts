@@ -310,8 +310,8 @@ const compositeFragment = /* glsl */ `
   void main() {
     vec2 colorUv = vUv;
     #ifdef HEAT_HAZE
-      // Refraction through a hot exhaust plume (High/Ultra): see heat-haze.ts.
-      if (hazeCount > 0) colorUv = heatHazeUv(vUv, viewZAt(vUv));
+      // Heat over measured GP asphalt and running exhaust outlets.
+      if (hazeCount > 0 || gpRoadAirCount > 0) colorUv = heatHazeUv(vUv, viewZAt(vUv));
     #endif
     // Scene alpha may carry SSR metadata before TAA, or positive view depth
     // after TAA. It is private to those passes; the composer image is opaque.

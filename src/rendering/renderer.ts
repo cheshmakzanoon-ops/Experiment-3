@@ -2690,6 +2690,9 @@ export class RacingRenderer {
           studioUniforms.studioCarCount.value,
           presented[H.TIME],
           this.scenePass.target.height,
+          gpFollow ? this.circuit.track : undefined,
+          presented[o + F.S],
+          illumination === 'day',
         );
       else this.heatHaze.clear();
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
