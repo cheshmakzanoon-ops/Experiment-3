@@ -1,4 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import {
+  GP_CLEAR_SKYLINE,
+  SKY_RAMPS,
+  skyBlend,
+  withClearSky,
+} from '../src/rendering/assets/sky-catalogue.ts';
 import { GRADE_PROFILES } from '../src/rendering/broadcast-grade.ts';
 import {
   applyGpDaylight,
@@ -50,9 +56,23 @@ describe('motocross daylight look', () => {
     expect(sun.b).toBeGreaterThan(0.75);
   });
 
-  it('uses the AgX display transform, keeps the venue sky, and grades without lens artefacts', () => {
+  it('crossfades the clear noon horizon into the valley cloud and rain photographs', () => {
+    const valley = SKY_RAMPS.green.day;
+    const stops = withClearSky(valley, MX_PHOTOGRAPHIC.clearSky!);
+    expect(stops[0].skyline).toBe(GP_CLEAR_SKYLINE);
+    expect(skyBlend(stops, 0.12)).toEqual({ a: 'kiara-5-noon', b: 'kiara-5-noon', weight: 0 });
+    expect(skyBlend(stops, 0.325)).toEqual({
+      a: 'kiara-5-noon',
+      b: 'rural-landscape',
+      weight: 0.5,
+    });
+    for (const cover of [0.45, 0.62, 0.8, 0.95])
+      expect(skyBlend(stops, cover)).toEqual(skyBlend(valley, cover));
+    expect(MX_ARENA_PHOTOGRAPHIC.clearSky).toBeNull();
+  });
+
+  it('uses the AgX display transform and grades without lens artefacts', () => {
     expect(MX_PHOTOGRAPHIC.toneMapper).toBe('agx');
-    expect(MX_PHOTOGRAPHIC.clearSky).toBeNull();
     expect(gpGradeProfile('night', MX_PHOTOGRAPHIC)).toBeNull();
     expect(gpGradeProfile('studio', MX_PHOTOGRAPHIC)).toBeNull();
     for (const profile of ['day', 'sunset'] as const) {

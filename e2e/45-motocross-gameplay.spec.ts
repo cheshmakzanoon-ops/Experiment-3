@@ -4,6 +4,7 @@ import {
   motocrossScreenCapture, screenImageDigest, type PauseButtonPixels,
 } from './fixtures/motocross-screen-capture.ts';
 import { mod } from '../src/core/math.ts';
+import { SKY_RAMPS, skyBlend, withClearSky } from '../src/rendering/assets/sky-catalogue.ts';
 import { F, H, O, R, OFFROAD_BASE, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { LANDING_RULES } from '../src/simulation/offroad/riding-feedback.ts';
@@ -196,6 +197,16 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.renderer?.presentationPurpose).toBe('circuit');
     expect(initialized.renderer?.construction.tasks).toBeGreaterThan(0);
     expect(initialized.renderer?.preparation?.status).toBe('complete');
+    if (circuit === 'valley-ridge-mx') {
+      const { photoSky, lighting } = initialized.renderer!;
+      const stops = lighting === 'day' ? withClearSky(SKY_RAMPS.green.day) : SKY_RAMPS.green[lighting];
+      const expected = skyBlend(stops, initialized.frame![H.CLOUD]);
+      expect(photoSky?.shown).toMatchObject({ a: expected.a, b: expected.b, amount: 1 });
+      const width = photoSky?.variant === '4k' ? 4096 : photoSky?.variant === '2k' ? 2048 : 1024;
+      if (quality === 'low') expect(photoSky?.variant).toBe('1k');
+      for (const id of new Set([expected.a, expected.b]))
+        expect(photoSky?.resident).toContainEqual(expect.objectContaining({ id, width, loaded: true }));
+    }
     expect(carTemplateRequests, `${circuit} reuses the decoded showroom assets`).toEqual(showroomTemplates);
     const graphics = initialized.renderer!.graphics;
     if (graphics.reflections === 'local' && graphics.shadowSize > 0) {

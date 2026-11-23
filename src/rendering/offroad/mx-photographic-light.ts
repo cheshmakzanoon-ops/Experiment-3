@@ -1,3 +1,4 @@
+import { GP_CLEAR_SKY } from '../assets/sky-catalogue.ts';
 import type { GradeProfile } from '../broadcast-grade.ts';
 import type { GpPhotographicLook } from '../gp-photographic-light.ts';
 import type { LightingMode } from '../daylight.ts';
@@ -35,7 +36,9 @@ export const MX_PHOTOGRAPHIC: Readonly<GpPhotographicLook> = Object.freeze({
   sunTint: Object.freeze([1, 0.95, 0.85] as const),
   exposureEV: 0.08,
   haze: 2.3,
-  clearSky: null,
+  // The outdoor reference valley has open sky above its own wooded ridges.
+  // The shared clear-noon stop masks the photographed terrain below 9 degrees.
+  clearSky: GP_CLEAR_SKY,
   toneMapper: 'agx',
   grade: Object.freeze({
     day: Object.freeze({

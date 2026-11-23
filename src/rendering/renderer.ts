@@ -429,8 +429,9 @@ export class RacingRenderer {
   private renderWidth = 1;
   private renderHeight = 1;
   private environment: SkyEnvironment;
-  /** Photographed CC0 sky (HIGH/ULTRA 4k, MEDIUM 2k; LOW keeps the physical sky). */
+  /** Outdoor MX and Formula can use a compact photographed sky on Low. */
   readonly photoSky: PhotoSky;
+  private readonly outdoorMxSky: boolean;
   private disposed = false;
   private heroShells: HeroShells | null = null;
   private rivalLevels: RivalLevels | null = null;
@@ -600,7 +601,9 @@ export class RacingRenderer {
     configureSky(this.sky);
     const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
     this.photoSky = new PhotoSky(skyPaletteFor(track.circuit));
-    this.photoSky.setQuality(this.preset);
+    this.outdoorMxSky = !showroomOnly && track.circuit.offroad?.kind === 'motocross';
+    if (this.outdoorMxSky) this.photoSky.clearDay = MX_PHOTOGRAPHIC.clearSky;
+    this.photoSky.setQuality(this.preset, this.outdoorMxSky);
     this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
     this.scene.add(this.sky);
     this.scene.environmentIntensity = 0.7;
@@ -1044,7 +1047,7 @@ export class RacingRenderer {
   setCars(n: number, frame?: Float32Array) {
     const formulaCourse = this.circuit.formulaCourse;
     if (frame && formulaCourse && formulaCourse.select(frame, n))
-      this.photoSky?.setQuality(this.preset, formulaCourse.root.visible);
+      this.photoSky?.setQuality(this.preset, this.outdoorMxSky || formulaCourse.root.visible);
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
     const mxVenue = isMotocrossVenue(this.circuit.track);
@@ -1253,10 +1256,11 @@ export class RacingRenderer {
         vehicleAt(Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE])).classId ===
           'gp-bike',
       );
-      // A GP grid's clear day sky is loaded with the venue's own.
-      if (this.photoSky)
-        this.photoSky.clearDay =
-          gpGrid && this.lighting === 'day' ? (this.gpLook.clearSky ?? null) : null;
+      // Warm the sky the riding camera and its reflection will sample.
+      if (this.photoSky) {
+        const look = gpGrid ? this.gpLook : this.outdoorMxSky ? MX_PHOTOGRAPHIC : null;
+        this.photoSky.clearDay = this.lighting === 'day' ? (look?.clearSky ?? null) : null;
+      }
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);
@@ -1476,9 +1480,9 @@ export class RacingRenderer {
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
       if (stopped()) return false;
-      if (warmGpSurfaces) {
-        // The photographed sky and scanned surfaces change the programs used on the first riding frame.
-        // Resolve their normal loading budgets before warming those programs on a live preset change.
+      // Changing preset can replace the sky and soil photographs. Warm the new
+      // assets while the race is paused, before compiling the first riding view.
+      if (warmGpSurfaces || this.outdoorMxSky) {
         if (this.photoSky.enabled)
           await this.photoSky.ready(this.presented.value[H.CLOUD], this.lighting);
         if (stopped()) return false;
@@ -1584,7 +1588,10 @@ export class RacingRenderer {
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.environment.highDetail = g.reflections === 'local';
-    this.photoSky?.setQuality(preset, this.circuit.formulaCourse?.root.visible === true);
+    this.photoSky?.setQuality(
+      preset,
+      this.outdoorMxSky || this.circuit.formulaCourse?.root.visible === true,
+    );
     scannedGround.attach(this.renderer, preset);
     setMxQuality(preset);
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
@@ -1937,13 +1944,9 @@ export class RacingRenderer {
       illumination === 'night' || studio
         ? null
         : (this.photoSky?.fogPalette(weatherCover, illumination) ?? null);
-    const openGpSky =
-      followedDefinition.classId === 'gp-bike' &&
-      gpLook?.clearSky &&
-      illumination === 'day' &&
-      !photoPalette;
+    const openDaySky = gpLook?.clearSky && illumination === 'day' && !photoPalette;
     const daylight = circuitLightState(
-      openGpSky ? gpProceduralDayCover(weatherCover) : weatherCover,
+      openDaySky ? gpProceduralDayCover(weatherCover) : weatherCover,
       liquidRain,
       illumination,
     );
