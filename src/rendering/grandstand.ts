@@ -12,6 +12,7 @@ import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
 import { gpSpectatorFlagMaterial } from './gp-spectator-flags.ts';
+import { GP_AISLE_HALF_WIDTH, installGpTerraceFinish } from './venue-kit/gp-terrace.ts';
 import { installStadiumSeat, stadiumSeatGeometry } from './stadium-seat.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { mxRoofDeck } from './offroad/mx-roof-deck.ts';
@@ -105,6 +106,7 @@ export function standMaterials(track?: Track) {
     ),
   };
   installVenueFinish(materials.concrete, 'stone');
+  if (gpStyle) installGpTerraceFinish(materials.concrete);
   installVenueFinish(materials.steel, 'metal');
   installVenueFinish(materials.roof, 'metal');
   materials.sign.userData.venueLabel = venueLabel;
@@ -246,9 +248,9 @@ export function buildGrandstand(
   for (let row = 0; row < rows; row++)
     for (let col = 0; col < columns; col++) {
       const z = (col - (columns - 1) / 2) * 0.65;
-      const aisle = Math.abs(z - L * 0.25) < 0.7 || Math.abs(z + L * 0.25) < 0.7;
+      const aisle = Math.abs(Math.abs(z) - L * 0.25) < GP_AISLE_HALF_WIDTH;
       if (aisle) {
-        if (!hero && !authoredSecondary && col % 2 === 0)
+        if (!hero && !authoredSecondary && !gpStyle && col % 2 === 0)
           box(root, m.concrete, side * (1.6 + row * 0.98), row * 0.49 - 0.03, z, 0.95, 0.1, 0.63);
         continue;
       }

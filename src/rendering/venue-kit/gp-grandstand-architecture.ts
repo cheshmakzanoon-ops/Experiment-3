@@ -3,6 +3,7 @@ import * as T from 'three';
 import type { Track } from '../../simulation/track.ts';
 import type { BroadcastSightlines } from '../broadcast-sightlines.ts';
 import { box, canvasTexture, mergeStatic, mesh, rod } from '../geometry.ts';
+import { gpAisleRails, gpTerraceGeometry } from './gp-terrace.ts';
 import type { StandSpec } from '../venue-plan.ts';
 
 /** REF 032/036/077: open spectator terraces, thin overhanging roofs and
@@ -216,10 +217,8 @@ export function buildGpGrandstandArchitecture(
   root.name = `${track.circuit.name} ${style.profile} grandstand`;
   root.userData.gpGrandstand = { venue, profile: style.profile, length, side };
   parent.add(root);
-  box(root, m.concrete, side * 0.3, -0.12, 0, 2.5, 0.24, length);
-  for (let row = 0; row < 8; row++)
-    box(root, m.concrete, side * (1.7 + row * 0.98), row * 0.49 + 0.1, 0, 1.02, 0.2, length);
-  box(root, m.concrete, side * 9.5, 3.53, 0, 1.25, 0.2, length);
+  mesh(root, gpTerraceGeometry(length, side), m.concrete);
+  gpAisleRails(root, m.steel, length, side);
 
   const bays = Math.ceil(length / 8),
     along = (index: number) => -length / 2 + (index * length) / bays;
