@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { MxStadiumAudience } from './mx-stadium-audience.ts';
-import { MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
+import { installMxRoofBounce, MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mxPressSuite } from './mx-press-suite.ts';
@@ -530,6 +530,8 @@ export class Stadium {
     );
     roof.name = 'Arena roof deck';
     roof.position.set((min.x + max.x) / 2, floor + STADIUM.roof, (min.z + max.z) / 2);
+    installMxRoofBounce(roof.material, this.lampGrid);
+    installMxRoofBounce(steel, this.lampGrid);
     this.root.add(roof);
     // Secondary purlins and diagonal ties connect the five primary trusses.
     // They share the existing steel draw call, with no new shadow-casting light.

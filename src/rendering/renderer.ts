@@ -604,7 +604,7 @@ export class RacingRenderer {
     this.outdoorMxSky = !showroomOnly && track.circuit.offroad?.kind === 'motocross';
     if (this.outdoorMxSky) this.photoSky.clearDay = MX_PHOTOGRAPHIC.clearSky;
     this.photoSky.setQuality(this.preset, this.outdoorMxSky);
-    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
+    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky, this.outdoorMxSky);
     this.scene.add(this.sky);
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);
@@ -663,6 +663,8 @@ export class RacingRenderer {
       // Bake the atmosphere and the exact showroom cloud/PMREM bins here;
       // warming a cloudless sky leaves cold captures for the first menu draw.
       prewarmSky(this.lighting);
+      if (this.outdoorMxSky)
+        this.photoSky.bind(this.sky.material, MENU_CLOUD_COVER, this.lighting, false);
       this.environment.update(this.renderer, this.scene, MENU_CLOUD_COVER, this.lighting);
     });
     // Bind after every static venue task and spatial batching; early binding

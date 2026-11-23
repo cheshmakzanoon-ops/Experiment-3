@@ -18,6 +18,27 @@ const count = (text: string, token: string) => text.split(token).length - 1;
 afterEach(() => setMxQuality('high'));
 
 describe('supercross roof floodlight grid', () => {
+  it('fits reflected floor light to the existing decking and truss batches', () => {
+    const arena = new Stadium(rigTrack('arena-nord-sx'));
+    const { minX, minZ, spanX, spanZ, columns, rows, y } = arena.lampGrid;
+    for (const name of ['Arena roof deck', 'Merged open-web roof trusses and columns']) {
+      const mesh = arena.root.getObjectByName(name) as T.Mesh<T.BufferGeometry, T.MeshStandardMaterial>;
+      const source = T.ShaderLib.standard;
+      const shader = {
+        vertexShader: source.vertexShader, fragmentShader: source.fragmentShader,
+        uniforms: T.UniformsUtils.clone(source.uniforms),
+      } as StudioShader;
+      mesh.material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+      expect(shader.uniforms.mxRoofFloor.value.toArray()).toEqual([minX, minZ, spanX, spanZ]);
+      expect(shader.uniforms.mxRoofBanks.value.toArray()).toEqual([
+        columns, rows, y, Math.PI * MX_ARENA_LIGHT.intensity * columns * rows / (spanX * spanZ),
+      ]);
+    }
+    const chairs = arena.root.getObjectByName('Moulded stadium chairs (instanced)') as T.Mesh;
+    expect(studioHookKeys(chairs.material as T.Material)).not.toContain('mx-roof-bounce-v1');
+    arena.dispose();
+  });
+
   it('aims the visible recessed glass into the same cone as each roof fixture', () => {
     const head = mxFloodlightHead();
     const origin = new T.Vector3(8, 23, -7);

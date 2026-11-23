@@ -144,3 +144,61 @@ export function installMxArenaLighting(material: T.MeshPhysicalMaterial, grid: M
   });
   return installed ? lamp : null;
 }
+
+/** The lit clay returns light to the underside of the roof. Its finite extent
+ * leaves less fill over the grandstands. The nearest lamp bank adds a cooler
+ * spill to the steel immediately above its housing. Both terms are stationary
+ * in the venue and use the existing structural batches. */
+export function installMxRoofBounce(material: T.MeshStandardMaterial, grid: MxArenaGrid) {
+  chainShaderHook(material, 'mx-roof-bounce-v1', (shader) => {
+    shader.uniforms.mxRoofFloor = {
+      value: new T.Vector4(grid.minX, grid.minZ, grid.spanX, grid.spanZ),
+    };
+    // A downward Lambertian bank emits pi times its axial intensity. Divide
+    // total flux by the floor's area to estimate the mean incident light.
+    const floorIrradiance =
+      (Math.PI * MX_ARENA_LIGHT.intensity * grid.columns * grid.rows) / (grid.spanX * grid.spanZ);
+    shader.uniforms.mxRoofBanks = {
+      value: new T.Vector4(grid.columns, grid.rows, grid.y, floorIrradiance),
+    };
+    injectDeclarations(shader, 'common', 'varying vec3 vMxRoofWorld;', 'vertex');
+    injectAfter(
+      shader,
+      'worldpos_vertex',
+      'vMxRoofWorld = (modelMatrix * vec4(transformed, 1.)).xyz;',
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      /* glsl */ `
+varying vec3 vMxRoofWorld;
+uniform vec4 mxRoofFloor;
+uniform vec4 mxRoofBanks;`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'lights_fragment_end',
+      /* glsl */ `{
+  vec3 up = normalize((vec4(normal, 0.) * viewMatrix).xyz);
+  vec2 p = vMxRoofWorld.xz - mxRoofFloor.xy;
+  float height = max(vMxRoofWorld.y - mxRoofBanks.z + ${(STADIUM.roof - MX_LAMP_OPTICS.belowRoof).toFixed(2)}, 1.);
+  vec2 farEdge = mxRoofFloor.zw - p;
+  // Project opposite edges of the illuminated floor onto the two vertical planes.
+  vec2 extent = .5 * (p * inversesqrt(p*p + height*height) + farEdge * inversesqrt(farEdge*farEdge + height*height));
+  float floorView = extent.x * extent.y * (.5 - .5 * up.y);
+  vec2 cell = mxRoofFloor.zw / mxRoofBanks.xy;
+  vec2 lamp = (clamp(floor(p / cell), vec2(0.), mxRoofBanks.xy - 1.) + .5) * cell;
+  vec3 delta = vec3(lamp.x - p.x, mxRoofBanks.z - vMxRoofWorld.y, lamp.y - p.y);
+  float dist2 = max(dot(delta, delta), .01);
+  float spill = max(dot(up, delta) * inversesqrt(dist2), 0.) / (1. + .11 * dist2);
+  vec3 bounce = vec3(.20, .17, .15) * (mxRoofBanks.w * floorView) + vec3(.50, .64, .78) * spill;
+  bounce *= smoothstep(12., 23., height);
+  reflectedLight.indirectDiffuse += BRDF_Lambert(material.diffuseColor) * bounce;
+  reflectedLight.indirectSpecular += .09 * material.roughness * material.specularColor * bounce;
+}`,
+      'fragment',
+    );
+  });
+}
