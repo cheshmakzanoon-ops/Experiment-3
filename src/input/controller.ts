@@ -83,6 +83,7 @@ export class InputController {
         'right',
         'reverse',
         'clutch',
+        'rearBrake',
         'riderForward',
         'riderBack',
       ].includes(action)
@@ -207,6 +208,7 @@ export class InputController {
     let riderLean = Number(forward) - Number(back);
     const m = this.settings.mapping;
     let clutch = Number(isHeld(k, b, 'clutch'));
+    let rearBrake = Number(isHeld(k,b,'rearBrake'));
     let pads: (Gamepad | null)[] = [];
     try {
       pads = navigator.getGamepads?.() ?? [];
@@ -261,6 +263,11 @@ export class InputController {
       throttle = Math.max(throttle, pt);
       brake = Math.max(brake, pb);
       clutch = Math.max(clutch, pc);
+      if ((m.rearBrakeButton ?? -1) >= 0) {
+        const rear = pad.buttons[m.rearBrakeButton!];
+        if (!rear) return this.deviceFault('The mapped rear brake button is missing. Input paused.');
+        rearBrake = Math.max(rearBrake, clamp(rear.value || Number(rear.pressed),0,1));
+      }
       // The standard right-stick vertical axis independently positions the
       // rider. Explicit keyboard/touch input owns this axis, including a
       // deliberate neutral from both keys. A custom wheel, missing stick or
@@ -311,6 +318,7 @@ export class InputController {
     this.state.throttle = throttle;
     this.state.brake = brake;
     this.state.clutch = clutch;
+    this.state.rearBrake = rearBrake;
     this.state.manualClutch = m.manualClutch;
     const reverse = m.buttonActions.reverse;
     this.state.reverse =

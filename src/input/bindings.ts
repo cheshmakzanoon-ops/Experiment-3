@@ -6,6 +6,7 @@ export const DEFAULT_BINDINGS = {
   right: 'KeyD',
   reverse: 'KeyB',
   clutch: 'ShiftLeft',
+  rearBrake: 'KeyH',
   riderForward: 'KeyQ',
   riderBack: 'KeyZ',
   shiftDown: 'BracketLeft',
@@ -31,6 +32,7 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
   right: N_('Steer right'),
   reverse: N_('Reverse (hold at low speed)'),
   clutch: N_('Clutch pedal (manual clutch mode)'),
+  rearBrake: N_('Rear brake (GP motorcycle)'),
   riderForward: N_('Move rider weight forward (motocross)'),
   riderBack: N_('Move rider weight back (motocross)'),
   shiftDown: N_('Downshift'),
@@ -55,6 +57,7 @@ const LATE_ACTION_KEYS: Partial<Record<BindingAction, readonly string[]>> = {
   flashback: ['KeyX', 'KeyK', 'KeyL', 'KeyI'],
   riderForward: ['KeyQ', 'KeyU', 'KeyY', 'KeyH', 'KeyI', 'Digit8'],
   riderBack: ['KeyZ', 'KeyV', 'KeyN', 'KeyJ', 'KeyK', 'Digit9'],
+  rearBrake: ['KeyH', 'KeyN', 'KeyJ', 'Digit7'],
 };
 // More letter keys than actions guarantees room even when a saved layout
 // occupies every preferred migration key. Existing assignments keep priority.

@@ -492,6 +492,7 @@ export class OpenWorldSimulation {
     dst.reverse = !!input.reverse;
     dst.manualClutch = input.manualClutch === true;
     dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
+    dst.rearBrake = Number.isFinite(input.rearBrake) ? clamp(input.rearBrake!,0,1) : 0;
     if (dst.throttle > 0.05 || dst.brake > 0.05 || Math.abs(dst.steer) > 0.1 || dst.reverse)
       this.parked = false;
   }
@@ -1523,7 +1524,7 @@ function writeCar(out: Float32Array, id: number, c: Vehicle) {
   out[o + F.LAP_VALID] = 1;
   out[o + F.RETIRED] = Number(c.retired);
   out[o + F.MASS] = c.body.mass;
-  out[o + F.CLUTCH_PEDAL] = c.input.clutch;
+  out[o + F.CLUTCH_PEDAL] = c.definition.bike?.manualClutch && !c.input.manualClutch ? 0 : c.input.clutch;
   out[o + F.CLUTCH_ENGAGEMENT] = c.clutch.engagement;
   out[o + F.CLUTCH_TORQUE] = c.clutch.transmittedTorque;
   out[o + F.CLUTCH_SLIP_POWER] = c.clutch.slipPower;

@@ -88,8 +88,9 @@ import {
  * v32: GP riders arrest yaw during braking as the rear wheel begins to slide.
  * Support-class road riders reserve tyre capacity and brake along their actual lane.
  * v33: each GP contact evacuates water at its measured axle load and ground speed.
- * v34: GP kerbs, service shoulders and native runoff follow individual corner footprints. */
-export const SIMULATION_VERSION = 34;
+ * v34: GP kerbs, service shoulders and native runoff follow individual corner footprints.
+ * v35: manual GP clutch input exchanges torque with the measured rear shaft. */
+export const SIMULATION_VERSION = 35;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

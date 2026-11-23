@@ -80,6 +80,34 @@ for (const id of ['gpr1', 'gpr2']) {
   });
 }
 
+test('GP left clutch lever and glove follow held and rewound input independently of the brake', async ({page}, info) => {
+  const errors:string[]=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('console',m=>{if(m.type()==='error') errors.push(m.text());});
+  await page.setContent('<title>GP clutch hand inspection</title>');
+  await page.addScriptTag({content:fixtureScript});
+  const samples=await page.evaluate(()=>{
+    const review=(window as unknown as {MotoGPReview:{captureBikeSequence:typeof captureBikeSequence}}).MotoGPReview;
+    return review.captureBikeSequence('clutch-lever','high','gpr1',[0,.45,1,1,0].map(clutch=>({
+      wet:false,time:2,frontBrake:0,pose:{clutch,steer:.1},
+    })));
+  });
+  expect(samples[0].clutchAngle).toBe(0);
+  expect(Math.abs(samples[2].clutchAngle!)).toBeGreaterThan(Math.abs(samples[1].clutchAngle!));
+  expect(samples[2].hash).not.toBe(samples[0].hash);
+  expect(samples[2].hash).toBe(samples[3].hash);
+  expect(samples[0].hash).toBe(samples[4].hash);
+  for(const s of samples) {
+    expect(Math.abs(s.frontBrakeLever!.angle)).toBe(0);
+    expect(s.sourceFrameUnchanged).toBe(true);
+    expect(s.resources).toEqual(samples[0].resources);
+  }
+  for(const i of [0,2])await info.attach(i?'clutch-pulled':'clutch-released',{
+    body:Buffer.from(samples[i].image.split(',')[1],'base64'),contentType:'image/png',
+  });
+  expect(errors).toEqual([]);
+});
+
 test('GP rear contact broadens under load and follows the road through spin, lean and replay', async ({
   page,
 }, info) => {

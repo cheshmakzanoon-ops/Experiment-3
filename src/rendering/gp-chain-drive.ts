@@ -55,8 +55,10 @@ export function gpChainPin() {
 
 function sprocketGeometry() {
   const shape = new T.Shape();
-  for (let i = 0; i <= REAR_TEETH * 8; i++) {
-    const angle = (TAU * i) / (REAR_TEETH * 8);
+  // Six stations per 2.2 mm tooth retain the crown and root exactly. The
+  // between-station sag is below 0.30 mm, even in the chain close-up.
+  for (let i = 0; i <= REAR_TEETH * 6; i++) {
+    const angle = (TAU * i) / (REAR_TEETH * 6);
     const radius = REAR_RADIUS - 0.003 + 0.0022 * Math.cos(REAR_TEETH * angle);
     const a = radius * Math.cos(angle),
       b = radius * Math.sin(angle);

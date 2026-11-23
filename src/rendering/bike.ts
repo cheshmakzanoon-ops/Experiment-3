@@ -900,9 +900,12 @@ export class BikeModel {
   private readonly sparkOrigins: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly steeringDamper?: GpSteeringDamper;
   private readonly gpFrontBrakeLever?: T.Group;
+  private readonly gpClutchLever?: T.Group;
   private readonly gpThrottleSleeve?: T.Group;
   private readonly gpFrontHydraulics?: GPFrontHydraulics;
   private readonly gpBrakeTargets: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
+  private readonly gpClutchTargets: [T.Vector3, T.Vector3] = [new T.Vector3(),new T.Vector3()];
+  private readonly gpLeverMatrix = new T.Matrix4();
   private readonly cockpit?: BikeCockpit;
   private readonly roadClocks?: RoadBikeInstruments;
   private disposed = false;
@@ -1227,7 +1230,7 @@ export class BikeModel {
       if (detail === 'high') {
         const lever = add(
           this.steer,
-          side < 0
+          side < 0 || gpPrototype
             ? gpFrontBrakeGeometry()
             : new RoundedBoxGeometry(0.15, 0.008, 0.016, 2, 0.003),
           m.aluminium,
@@ -1248,6 +1251,17 @@ export class BikeModel {
           lever.name = gpPrototype ? 'GP articulated front-brake lever' : 'Road articulated front-brake lever';
           pivot.add(lever);
           this.gpFrontBrakeLever = pivot;
+        } else if (gpPrototype) {
+          const pivot = new T.Group();
+          pivot.name = 'GP left clutch lever pivot';
+          pivot.position.set(.211+barX,-.034+barY,.03);
+          this.steer.add(pivot);
+          lever.position.set(0,0,0);
+          lever.rotation.set(0,0,0);
+          lever.scale.x = -1;
+          lever.name = 'GP forged clutch lever';
+          pivot.add(lever);
+          this.gpClutchLever = pivot;
         }
         // Compact switch housing, lever pivot and bar end. REF_022/030 show
         // these mechanical layers even when the rider is fully tucked.
@@ -1966,6 +1980,7 @@ export class BikeModel {
     this.rider.ground.height = b.cgHeight;
     this.rider.ground.crown = b.crownRadius;
     if (this.gpFrontBrakeLever) this.rider.brakeFingerTargets = this.gpBrakeTargets;
+    if (this.gpClutchLever) this.rider.clutchFingerTargets = this.gpClutchTargets;
     this.sprung.add(this.rider.root);
     if (gpPrototype && detail === 'high') {
       this.sliderSparks = new GpSliderSparks();
@@ -2072,6 +2087,7 @@ export class BikeModel {
     // Presented front-brake input only: rear pedal, wheel speed and elapsed
     // display time do not pull the hand lever. An absolute pose restores on seek.
     if (this.gpFrontBrakeLever) this.gpFrontBrakeLever.rotation.y = gpFrontBrakeAngle(v.brake);
+    if (this.gpClutchLever) this.gpClutchLever.rotation.y = -gpFrontBrakeAngle(v.clutch);
     this.forkLower.position.y = road ? road.forkY : -(FORK_LENGTH + this.sag.fork - v.fork);
     this.gpFrontHydraulics?.update(this.forkLower.position.y);
     this.frontSpin.rotation.x = v.frontRotation;
@@ -2129,9 +2145,18 @@ export class BikeModel {
       }
       if (this.gpFrontBrakeLever) {
         this.gpFrontBrakeLever.updateMatrix();
-        this.matrix.multiply(this.gpFrontBrakeLever.matrix);
-        gpFrontBrakeFingerTarget(0, this.gpBrakeTargets[0]).applyMatrix4(this.matrix);
-        gpFrontBrakeFingerTarget(1, this.gpBrakeTargets[1]).applyMatrix4(this.matrix);
+        this.gpLeverMatrix.multiplyMatrices(this.matrix,this.gpFrontBrakeLever.matrix);
+        gpFrontBrakeFingerTarget(0, this.gpBrakeTargets[0]).applyMatrix4(this.gpLeverMatrix);
+        gpFrontBrakeFingerTarget(1, this.gpBrakeTargets[1]).applyMatrix4(this.gpLeverMatrix);
+      }
+      if (this.gpClutchLever) {
+        this.gpClutchLever.updateMatrix();
+        this.gpLeverMatrix.multiplyMatrices(this.matrix,this.gpClutchLever.matrix);
+        for(let i = 0; i < 2; i++) {
+          const tip=gpFrontBrakeFingerTarget(i as 0|1,this.gpClutchTargets[i]);
+          tip.x=-tip.x;
+          tip.applyMatrix4(this.gpLeverMatrix);
+        }
       }
       this.rider.ride({
         lean: v.chassisLean,
@@ -2149,6 +2174,7 @@ export class BikeModel {
             : undefined,
         roadSupportG: v.roadSupportG,
         rearBraking: v.rearBrake,
+        clutch: v.clutch,
         throttle: v.throttle,
         gLong: v.gLong,
         leanRate: v.leanRate,
@@ -2219,6 +2245,7 @@ export interface BikePoseValues extends GpTyreAppearance {
   tuck: number;
   brake: number;
   rearBrake: number;
+  clutch?: number;
   discTemp: number;
   /** Independently recorded rear rotor temperature for GP and MX steel brakes (°C). */
   rearDiscTemp?: number;
@@ -2786,6 +2813,7 @@ export class BikeShells {
     v.rainVisibility = Math.max(v.liquidRain / 2, sampleValue(a, b, H.WATER, t) / 0.35);
     v.rpm = sampleValue(a, b, o + F.RPM, t);
     v.gear = source[o + F.GEAR];
+    v.clutch = sampleValue(a,b,o+F.CLUTCH_PEDAL,t);
     v.pitLane = source[o + F.IN_PIT] > 0;
     v.intervention = sampleBikeField(a, b, o, B.INTERVENTION, t);
     v.fork = sampleBikeField(a, b, o, B.FORK, t);

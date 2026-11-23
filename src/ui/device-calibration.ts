@@ -69,7 +69,7 @@ export class DeviceCalibrationPanel {
         this.resetLabels();
         // Do not silently impose Xbox button positions on an unmapped wheel.
         if (pad && pad.mapping !== 'standard') {
-          for (const name of ['shiftUpButton', 'shiftDownButton'])
+          for (const name of ['shiftUpButton', 'shiftDownButton', 'rearBrakeButton'])
             (form.elements.namedItem(name) as HTMLInputElement).value = '-1';
         }
         const buttons = defaultButtonActions(!pad || pad.mapping === 'standard');

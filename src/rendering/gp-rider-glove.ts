@@ -106,11 +106,12 @@ export function addGpRacingGlove(
   side: -1 | 1,
   materials: { leather: T.Material; panel: T.Material; armour: T.Material; printed?: T.Material },
   articulatedBrake = false,
+  articulatedClutch = false,
 ) {
   if (side !== -1 && side !== 1) throw new RangeError('Invalid GP glove side');
   const high = detail === 'high',
     sides = high ? 8 : 6,
-    controls = articulatedBrake && high && side === -1;
+    controls = high && (side === -1 ? articulatedBrake : articulatedClutch);
   const add = (geometry: T.BufferGeometry, material: T.Material, name: string, print: GpEquipmentPart, reinforcement = false) => {
     if (materials.printed) gpEquipmentUv(geometry, print, reinforcement);
     if (side < 0) {
@@ -241,7 +242,7 @@ export function addGpRacingGlove(
     'GP molded metacarpal bridge', 'knuckle',
   );
   if (!controls) return;
-  const fingers = new GpBrakeFingers(parent, materials.printed ?? materials.leather);
+  const fingers = new GpBrakeFingers(parent, materials.printed ?? materials.leather, undefined, 'GP', side === 1);
   if (materials.printed) gpEquipmentUv(fingers.mesh.geometry, 'digit');
   return fingers;
 }

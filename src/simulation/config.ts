@@ -276,6 +276,8 @@ export interface Controls {
   throttle: number;
   brake: number;
   clutch: number;
+  /** Independent GP rear brake. Absent on older input devices and recordings. */
+  rearBrake?: number;
   manualClutch: boolean;
   steer: number;
   /** Motocross rider weight: +1 forward, -1 back. Older inputs are neutral. */
@@ -293,6 +295,7 @@ export const controls = (): Controls => ({
   throttle: 0,
   brake: 0,
   clutch: 0,
+  rearBrake: 0,
   manualClutch: false,
   steer: 0,
   riderLean: 0,

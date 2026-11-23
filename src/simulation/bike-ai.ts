@@ -99,6 +99,8 @@ export class BikeAIDriver extends AIDriver {
       command.brake = 0;
       command.steer = 0;
       command.clutch = 0;
+      command.rearBrake = 0;
+      command.manualClutch = false;
       command.reverse = false;
       c.aiTarget = 0;
       this.decision = d.state === 'remount' ? 'REMOUNTING' : 'RIDER DOWN';
@@ -127,6 +129,8 @@ export class BikeAIDriver extends AIDriver {
     }
     command.reverse = false;
     command.clutch = 0;
+    command.rearBrake = 0;
+    command.manualClutch = false;
     command.steer = this.steerIntent(track, command.steer);
     if (this.isGp) {
       // A GP lever's travel past the stoppie point adds no stopping force, only

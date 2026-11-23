@@ -15,14 +15,14 @@ const BASE_Z = GP_GLOVE_GRIP[2] + 0.0248 * Math.sin(-0.66);
 /** Two continuous leather fingers, five skin frames each. Dedicated bend
  * rings preserve volume at both knuckles. The other two fingers, thumb and
  * palm remain the existing rigid grip; no wrist or contact is translated. */
-function fingerGeometry() {
+function fingerGeometry(clutchHand = false) {
   const positions: number[] = [],
     uv: number[] = [],
     indices: number[] = [],
     skin: number[] = [],
     weights: number[] = [];
   const sides = 8,
-    rows = 20;
+    rows = clutchHand ? 9 : 20;
   for (let finger = 0; finger < 2; finger++) {
     const [a, b, c] = LENGTHS[finger],
       total = a + b + c,
@@ -124,6 +124,7 @@ export class GpBrakeFingers {
     material: T.Material,
     grip = GP_GLOVE_GRIP as readonly [number, number, number],
     label = 'GP',
+    private readonly clutchHand = false,
   ) {
     this.gripLandmark = new T.Vector3(...grip);
     // Build in the same joint frame, then register it to this glove's own
@@ -133,7 +134,8 @@ export class GpBrakeFingers {
       grip[1] - GP_GLOVE_GRIP[1],
       grip[2] - GP_GLOVE_GRIP[2],
     );
-    this.root.name = label + ' right brake fingers';
+    this.root.name = label + (clutchHand ? ' left clutch fingers' : ' right brake fingers');
+    if (clutchHand) this.root.scale.x = -1;
     const inverses = this.bones.map((bone, i) => {
       const finger = Math.floor(i / 5),
         at = i % 5,
@@ -144,8 +146,8 @@ export class GpBrakeFingers {
       this.root.add(bone);
       return new T.Matrix4().makeTranslation(-ROOT_X[finger], -BASE_Y, -BASE_Z - d);
     });
-    this.mesh = new T.SkinnedMesh(fingerGeometry(), material);
-    this.mesh.name = label + ' continuous brake-finger leather';
+    this.mesh = new T.SkinnedMesh(fingerGeometry(clutchHand), material);
+    this.mesh.name = label + (clutchHand ? ' continuous clutch-finger leather' : ' continuous brake-finger leather');
     this.mesh.bind(new T.Skeleton(this.bones, inverses), new T.Matrix4());
     this.mesh.castShadow = this.mesh.receiveShadow = true;
     this.mesh.boundingSphere = new T.Sphere(new T.Vector3(0, 0, 0.075), 0.15);
@@ -184,6 +186,7 @@ export class GpBrakeFingers {
           .applyQuaternion(this.inverseHand)
           .add(this.gripLandmark)
           .sub(this.root.position);
+        if (this.clutchHand) this.target.x = -this.target.x;
         if (
           Number.isFinite(this.target.x) &&
           Number.isFinite(this.target.y) &&

@@ -148,6 +148,7 @@ export class Simulation {
     dst.reverse = !!input.reverse;
     dst.manualClutch = input.manualClutch === true;
     dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
+    dst.rearBrake = Number.isFinite(input.rearBrake) ? clamp(input.rearBrake!,0,1) : 0;
     const car = this.cars[0];
     if (input.drs === true) car.drsRequest = true;
     if (
@@ -387,7 +388,7 @@ export class Simulation {
       out[o + F.PIT_YIELDING] = Number(c.pitYielding);
       out[o + F.RETIRED] = Number(c.retired);
       out[o + F.MASS] = c.body.mass;
-      out[o + F.CLUTCH_PEDAL] = c.input.clutch;
+      out[o + F.CLUTCH_PEDAL] = c.definition.bike?.manualClutch && !c.input.manualClutch ? 0 : c.input.clutch;
       out[o + F.CLUTCH_ENGAGEMENT] = c.clutch.engagement;
       out[o + F.CLUTCH_TORQUE] = c.clutch.transmittedTorque;
       out[o + F.CLUTCH_SLIP_POWER] = c.clutch.slipPower;

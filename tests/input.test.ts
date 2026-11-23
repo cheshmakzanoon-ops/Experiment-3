@@ -25,7 +25,7 @@ function setup(pad?: Partial<Gamepad>) {
   }
   const input = new InputController(settings, () => undefined);
   input.setEnabled(true);
-  return { input, window };
+  return { input, window, settings };
 }
 function key(window: EventTarget, code: string) {
   window.dispatchEvent(
@@ -33,6 +33,20 @@ function key(window: EventTarget, code: string) {
   );
 }
 afterEach(() => vi.unstubAllGlobals());
+it('keeps a held manual GP clutch and rear-brake binding independent through release and focus loss',()=>{
+  const {input,window,settings}=setup();
+  try {
+    settings.mapping.manualClutch=true;
+    key(window,settings.bindings.clutch);
+    expect(input.update(1/60)).toMatchObject({clutch:1,rearBrake:0,manualClutch:true});
+    key(window,settings.bindings.rearBrake);
+    expect(input.update(1/60)).toMatchObject({clutch:1,rearBrake:1});
+    window.dispatchEvent(Object.assign(new Event('keyup'),{code:settings.bindings.clutch}));
+    expect(input.update(1/60)).toMatchObject({clutch:0,rearBrake:1});
+    input.reset();
+    expect(input.state.rearBrake).toBe(0);
+  } finally {input.dispose();}
+});
 describe('human input and vehicle coordinate boundary', () => {
   it.each([
     ['KeyD', -1],

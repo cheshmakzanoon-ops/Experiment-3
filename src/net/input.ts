@@ -17,11 +17,12 @@ export type SanitizeResult =
   | { ok: true; controls: Controls; clamped: string[] }
   | { ok: false; reason: string };
 
-const NUMERIC = ['throttle', 'brake', 'clutch', 'steer', 'riderLean', 'shift', 'ers'] as const;
+const NUMERIC = ['throttle', 'brake', 'clutch', 'rearBrake', 'steer', 'riderLean', 'shift', 'ers'] as const;
 const RANGE: Record<(typeof NUMERIC)[number], readonly [number, number]> = {
   throttle: [0, 1],
   brake: [0, 1],
   clutch: [0, 1],
+  rearBrake: [0, 1],
   steer: [-1, 1],
   riderLean: [-1, 1],
   shift: [-1, 1],
@@ -57,10 +58,10 @@ export function sanitizeControls(raw: unknown): SanitizeResult {
 const SHIFT_CODE = (shift: number) => (shift > 0 ? 1 : shift < 0 ? 2 : 0);
 /** Wire representation: pedals 8 bit, steering 16 bit, discrete fields in a
  * 16-bit word. Its upper seven bits carry signed rider lean (-63..63); the
- * reserved -64 code is invalid. Neutral keeps the original seven-byte shape.
+ * reserved -64 code is invalid. V3 appends an eight-bit rear-brake pressure.
  * Both peers derive the applied value from these integers, so
  * the client predicts with exactly the numbers the server applies. */
-export function writeControls(w: ByteWriter, c: Controls) {
+export function writeControls(w: ByteWriter, c: Controls, withRearBrake = true) {
   w.u8(Math.round(clamp(c.throttle, 0, 1) * 255));
   w.u8(Math.round(clamp(c.brake, 0, 1) * 255));
   w.u8(Math.round(clamp(c.clutch, 0, 1) * 255));
@@ -75,8 +76,9 @@ export function writeControls(w: ByteWriter, c: Controls) {
     (c.pit ? 1 << 8 : 0) |
     ((Math.round(clamp(c.riderLean ?? 0, -1, 1) * 63) & 127) << 9);
   w.u16(bits);
+  if (withRearBrake) w.u8(Math.round(clamp(c.rearBrake ?? 0, 0, 1) * 255));
 }
-export function readControls(r: ByteReader): Controls {
+export function readControls(r: ByteReader, withRearBrake = true): Controls {
   const throttle = r.u8() / 255,
     brake = r.u8() / 255,
     clutch = r.u8() / 255,
@@ -92,6 +94,7 @@ export function readControls(r: ByteReader): Controls {
     throttle,
     brake,
     clutch,
+    rearBrake: withRearBrake ? r.u8()/255 : 0,
     steer: steerRaw / 32767,
     riderLean: (leanCode > 63 ? leanCode - 128 : leanCode) / 63,
     shift: shiftCode === 1 ? 1 : shiftCode === 2 ? -1 : 0,
@@ -109,13 +112,14 @@ export function quantizeControls(c: Controls): Controls {
   writeControls(w, c);
   return readControls(new ByteReader(w.finish()));
 }
-export const CONTROLS_WIRE_BYTES = 7;
+export const CONTROLS_WIRE_BYTES = 8;
 
 export function sameControls(a: Controls, b: Controls) {
   return (
     a.throttle === b.throttle &&
     a.brake === b.brake &&
     a.clutch === b.clutch &&
+    (a.rearBrake ?? 0) === (b.rearBrake ?? 0) &&
     a.steer === b.steer &&
     (a.riderLean ?? 0) === (b.riderLean ?? 0) &&
     a.shift === b.shift &&

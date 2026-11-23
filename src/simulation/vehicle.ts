@@ -212,11 +212,14 @@ export class Vehicle {
     // A catalogue power unit (spec.engine) carries its own clutch and inertia;
     // otherwise the engine block of the vehicle's dynamics (powertrain.ts).
     const engine = spec.engine;
+    const bikeClutch = definition.bike?.manualClutch;
     this.clutch = new FrictionClutch(
       spec.idleRPM,
-      spec.wheelInertia * drivenInertiaFactor(this.frontShare),
-      engine?.clutchCapacity ?? 760,
-      engine?.inertia ?? dynamics.engine.inertia,
+      // FrictionClutch sums two referred wheel inertias. A GP machine's
+      // single rear wheel therefore contributes half in each slot.
+      bikeClutch ? spec.wheelInertia / 2 : spec.wheelInertia * drivenInertiaFactor(this.frontShare),
+      bikeClutch?.capacity ?? engine?.clutchCapacity ?? 760,
+      bikeClutch?.inertia ?? engine?.inertia ?? dynamics.engine.inertia,
       engine?.engageRPM ?? spec.idleRPM,
     );
     this.diff = resolveDifferential(dynamics.differential, this.setup);

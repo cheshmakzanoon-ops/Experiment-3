@@ -59,6 +59,7 @@ export function applyControls(car: Vehicle, input: Controls, phase: number, edge
   dst.reverse = !!input.reverse;
   dst.manualClutch = input.manualClutch === true;
   dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
+  dst.rearBrake = Number.isFinite(input.rearBrake) ? clamp(input.rearBrake!,0,1) : 0;
   if (phase === PHASE.LIGHTS && dst.throttle === 0) dst.brake = 1;
   if (input.drs === true) car.drsRequest = true;
   if (
@@ -387,11 +388,14 @@ export function encodeJournal(entries: readonly JournalEntry[]) {
   let last = 0;
   for (const e of entries) {
     if (e.tick < last) throw new Error('Journal is not in tick order');
+    // Archived journals used seven control bytes after tag 0. Only commands
+    // carrying the extra pressure use tag 4 and its eighth control byte.
+    const rear = e.kind === 'controls' && !!e.controls.rearBrake;
     w.varint(e.tick - last)
       .u8(e.car)
-      .u8(KIND[e.kind]);
+      .u8(rear ? 4 : KIND[e.kind]);
     last = e.tick;
-    if (e.kind === 'controls') writeControls(w, e.controls);
+    if (e.kind === 'controls') writeControls(w, e.controls, rear);
     else if (e.kind === 'mode') w.u8(e.mode === 'ai' ? 1 : 0);
     else if (e.kind === 'pit') w.u8(e.compound ? COMPOUND_IDS.indexOf(e.compound) : 255);
   }
@@ -414,8 +418,8 @@ export function decodeJournal(
     tick += r.varint();
     const car = r.u8(),
       kind = r.u8();
-    if (kind === KIND.controls)
-      out.push({ tick, car, kind: 'controls', controls: readControls(r) });
+    if (kind === KIND.controls || kind === 4)
+      out.push({ tick, car, kind: 'controls', controls: readControls(r,kind === 4) });
     else if (kind === KIND.overtake) out.push({ tick, car, kind: 'overtake' });
     else if (kind === KIND.mode) {
       const m = r.u8();

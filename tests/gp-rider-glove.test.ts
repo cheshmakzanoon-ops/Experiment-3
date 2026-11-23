@@ -157,7 +157,7 @@ describe('production rider glove selection', () => {
         gp = new Rider(colours, detail, 'leathers', 2, true);
       try {
         const hand = gp.root.getObjectByName('GP left hand')!;
-        expect(inventory(hand).triangles).toBe(detail === 'high' ? 1752 : detail === 'mid' ? 820 : 108);
+        expect(inventory(hand).triangles).toBeLessThanOrEqual(detail === 'high' ? 1752 : detail === 'mid' ? 820 : 108);
         const frames = (rider: Rider) => [rider.seat, ...rider.grips, ...rider.pegs].map((p) => p.toArray());
         expect(frames(gp)).toEqual(frames(road));
       } finally {

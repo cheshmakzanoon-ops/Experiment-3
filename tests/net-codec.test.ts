@@ -114,7 +114,7 @@ describe('online codec: controls and input commands', () => {
       }),
     ).toThrow(/contiguous/);
     // 18 B header + 8 B per command.
-    expect(encodeInput({ sentAt: 1, ackTick: 2, commands }).length).toBe(1 + 4 + 4 + 1 + 8 + 3 * 8);
+    expect(encodeInput({ sentAt: 1, ackTick: 2, commands }).length).toBe(1 + 4 + 4 + 1 + 8 + 3 * 9);
   });
 });
 
@@ -252,6 +252,17 @@ describe('online codec: untrusted client messages (WP54 size limits)', () => {
 });
 
 describe('online codec: journals and base64', () => {
+  it('retains seven-byte archived commands and the separate GP pedal in a mixed journal',()=>{
+    // One tag-0 command recorded by v2: full throttle, 128/255 clutch, manual, ERS 1.
+    const archive=Uint8Array.from([1,0,0,0,255,0,128,0,0,20,0]);
+    const old=decodeJournal(archive);
+    expect(old[0].kind==='controls' && old[0].controls.rearBrake).toBe(0);
+    expect(encodeJournal(old)).toEqual(archive);
+    const both=quantizeControls({...controls(),clutch:.72,rearBrake:.43,manualClutch:true});
+    const entries:JournalEntry[]=[...old,{tick:8,car:0,kind:'controls',controls:both}];
+    expect(decodeJournal(encodeJournal(entries))).toEqual(entries);
+    expect(both.clutch).toBeCloseTo(.72,2);expect(both.rearBrake).toBeCloseTo(.43,2);
+  });
   it('round-trips a journal of every entry kind exactly', () => {
     const entries: JournalEntry[] = [
       { tick: 0, car: 1, kind: 'mode', mode: 'ai' },

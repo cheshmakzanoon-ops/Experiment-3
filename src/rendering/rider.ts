@@ -133,6 +133,7 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   roadSupportG?: number;
   /** Independent rear pedal; the front lever must not animate the right foot. */
   rearBraking?: number;
+  clutch?: number;
   /** Off-road (WP41): 0 seated .. 1 standing on the pegs. */
   standing?: number;
   /** Foot dab: -1 right foot down .. +1 left foot down. */
@@ -441,6 +442,7 @@ export class Rider {
   readonly gripAxes = [new T.Vector3(1, 0, 0), new T.Vector3(1, 0, 0)];
   /** Blade contact points in this rider-root frame, supplied by the GP lever. */
   brakeFingerTargets?: readonly [T.Vector3, T.Vector3];
+  clutchFingerTargets?: readonly [T.Vector3, T.Vector3];
   readonly pegs = [new T.Vector3(0.17, -0.2, -0.3), new T.Vector3(-0.17, -0.2, -0.3)];
   /** GP road plane: this frame's origin height above the road when upright,
    * and the tyre crown radius the chassis rolls on. Set from the machine. */
@@ -503,6 +505,7 @@ export class Rider {
   private readonly motocrossSpine?: MotocrossRiderSpine;
   private readonly jerseyAirflow?: number[];
   private readonly brakeFingers?: GpBrakeFingers;
+  private readonly clutchFingers?: GpBrakeFingers;
   private readonly exteriorForearms = [0, 1].map(() => ({
     position: new T.Vector3(),
     quaternion: new T.Quaternion(),
@@ -1356,8 +1359,10 @@ export class Rider {
           side,
           { leather: glove, panel, armour, printed: gpSuit ? glove : undefined },
           detail === 'high' && i === 1,
+          gp && i === 0,
         );
-        if (fingers) this.brakeFingers = fingers;
+        if (fingers && i === 1) this.brakeFingers = fingers;
+        else if (fingers) this.clutchFingers = fingers;
       } else
         part(
           hand,
@@ -1641,6 +1646,7 @@ export class Rider {
       gpAttachAtJoint(this.hands[i], this.forearms[i].group.quaternion, RIDER.forearm, this.q, wrist);
       if (i === 1)
         this.brakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
+      else this.clutchFingers?.update(pose.clutch, this.clutchFingerTargets, this.grips[i], this.q);
       hip
         .set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
@@ -1797,6 +1803,7 @@ export class Rider {
       );
       if (i === 1)
         this.brakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
+      else this.clutchFingers?.update(pose.clutch, this.clutchFingerTargets, this.grips[i], this.q);
       hip
         .set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
@@ -1887,6 +1894,7 @@ export class Rider {
     this.riding = false;
     if (this.gpEyes) gpEyePose(this.gpEyes, this.raceNumber, time);
     this.brakeFingers?.update(0);
+    this.clutchFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;
     const rise = mxRise ?? (phase === 0 ? 0 : 1);
     if (floor && dirt && rise > 0) this.recoveryInverse.copy(this.root.matrixWorld).invert();
@@ -2048,6 +2056,7 @@ export class Rider {
   }
   dispose() {
     this.brakeFingers?.dispose();
+    this.clutchFingers?.dispose();
     this.gpSpine?.dispose();
     this.motocrossSpine?.dispose();
     for (const garment of this.motocrossGarments) garment.skeleton.dispose();

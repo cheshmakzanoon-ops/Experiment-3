@@ -11,6 +11,30 @@ class TestBike extends BikeVehicle {
   driveTick(throttle: number) { return this.drive(dt, throttle); }
 }
 
+it.each(['gpr1','gpr2'])('%s manual clutch free-revs, slips under bounded torque, and opens independently of the rear pedal', id=>{
+  const bike=new TestBike(0,'medium',DEFAULT_SETUP,'sport',VEHICLES[id]);
+  const track=new Track('clear');bike.place(track,120,0);
+  const {capacity}=bike.bikeSpec.manualClutch!, gp=bike.dynamics.motoGP!;
+  bike.autoShift=false;bike.input.manualClutch=true;bike.input.clutch=1;
+  for(let i=0;i<360;i++)expect(bike.driveTick(.82)).toBe(0);
+  expect(bike.rpm).toBeGreaterThan(10000);
+  expect(bike.clutch.engagement).toBe(0);
+  expect(gp.rearOmega).toBe(0);
+  bike.input.clutch=.72;
+  expect(bike.driveTick(.82)).toBeGreaterThan(0);
+  expect(bike.clutch.transmittedTorque).toBeCloseTo(capacity*.28,7);
+  expect(bike.clutch.slipPower).toBeGreaterThan(0);
+  bike.input.clutch=1;bike.input.rearBrake=.44;
+  bike.step(dt,track);
+  expect(bike.rearBrake).toBeCloseTo(.44,7);
+  expect(bike.clutch.transmittedTorque).toBe(0);
+  bike.input.rearBrake=0;bike.step(dt,track);
+  expect(bike.rearBrake).toBe(0);
+  bike.input.manualClutch=false;bike.input.clutch=.63;bike.step(dt,track);
+  expect(bike.rearBrake).toBeCloseTo(.63,7);
+  expect(bike.clutch.slipPower).toBe(0);
+});
+
 it('blends rider crouch through the old thresholds and stays low through a fast corner', () => {
   expect(gpRiderTuck(55, 0, 1, 0)).toBe(1);
   expect(gpRiderTuck(0, 0, 1, 0)).toBe(0);

@@ -1414,6 +1414,7 @@ export class Interface {
         ['brakeButton', N_('Brake button')],
         ['clutchAxis', N_('Clutch axis (-1: button / key)')],
         ['clutchButton', N_('Clutch button (-1: key only)')],
+        ['rearBrakeButton', N_('GP rear brake button (−1 unbound)')],
         ['shiftUpButton', N_('Upshift button (-1: disabled)')],
         ['shiftDownButton', N_('Downshift button (-1: disabled)')],
       ]
@@ -1565,6 +1566,7 @@ export class Interface {
         'brakeButton',
         'clutchAxis',
         'clutchButton',
+        'rearBrakeButton',
         'shiftUpButton',
         'shiftDownButton',
         'deadzone',

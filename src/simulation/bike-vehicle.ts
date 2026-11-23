@@ -401,6 +401,7 @@ export class BikeVehicle extends Vehicle {
     }
     this.shiftClock = Math.max(0, this.shiftClock - dt);
     const gp = d.motoGP;
+    const manual = this.input.manualClutch && b.manualClutch && gp;
     const radius = gp?.drivenRadiusAt(d.speed) ?? spec.wheelRadius;
     const roadOmega = d.speed / radius;
     const shaftOmega = gp?.drivenOmegaAt(d.speed) ?? roadOmega;
@@ -415,6 +416,29 @@ export class BikeVehicle extends Vehicle {
     }
     const current = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
       wheelRPM = shaftOmega * current * 30 / Math.PI;
+    if (manual) {
+      // A pulled lever lets the crank run independently. Exchange a bounded
+      // equal/opposite clutch impulse with the actual driven shaft and send
+      // the signed output through the existing rear tyre and braking solver.
+      const omega = this.clutch.engineOmega, rpm = omega * 30 / Math.PI;
+      const firing = this.riding && this.fuel > 0;
+      const driveTorque = firing && rpm < spec.limiterRPM ? engineTorque(rpm, spec) * throttle : 0;
+      const idle = firing ? clamp((spec.idleRPM - rpm) * .17, 0, 48) : 0;
+      const dragMap = this.engineBrake * gpEngineBrakingGain(throttle) * engineTorque(rpm, spec);
+      // Roller and pumping losses still slow a free-revving engine with a
+      // closed throttle. The selected engine-braking map dominates on coast.
+      const drag = Math.min(omega * this.clutch.inertia / dt,
+        2.2 + .0028 * omega + dragMap * (1 - throttle));
+      this.engineOutputTorque = driveTorque + idle;
+      const pull = this.riding ? this.input.clutch : 1;
+      const torque = this.clutch.step(dt, this.engineOutputTorque - drag, shaftOmega, current,
+        pull, false, this.shiftClock > 0 && b.gearbox !== 'seamless');
+      this.rpm = Math.max(0, this.clutch.engineOmega * 30 / Math.PI);
+      return torque * b.drivelineEfficiency / radius;
+    }
+    // Returning an existing race or a controller to automatic restores the
+    // original calibrated launch model and clears manual-only telemetry.
+    this.clutch.engagement = this.clutch.transmittedTorque = this.clutch.slipPower = 0;
     // First-gear launch: the clutch slips at the launch speed under throttle.
     const slip = this.gear === 1 ? lerp(spec.idleRPM, b.launchRPM, throttle) : spec.idleRPM;
     const target = this.riding ? Math.max(wheelRPM, slip) : spec.idleRPM;
@@ -454,8 +478,11 @@ export class BikeVehicle extends Vehicle {
           ? Math.max(throttle, this.gpThrottle - GP_RIDE_BY_WIRE.closeRate * dt)
           : throttle;
     let brake = clamp(this.input.brake, 0, 1);
-    // Rear brake: the secondary (clutch) input — a bike session has no clutch pedal.
-    const rear = clamp(this.input.clutch, 0, 1);
+    // The legacy secondary control still operates the rear brake in
+    // automatic mode. A manually operated GP clutch has a separate pedal.
+    const rear = gpPrototype
+      ? clamp(Math.max(this.input.rearBrake ?? 0,this.input.manualClutch ? 0 : this.input.clutch),0,1)
+      : clamp(this.input.clutch, 0, 1);
     if (this.inPit && track.pitSpeedZone(this.s))
       throttle *= clamp((MARSHAL.pitSpeed - this.speed) / 0.8, 0, 1);
     if (this.retired) {
@@ -521,8 +548,10 @@ export class BikeVehicle extends Vehicle {
         frontBrake: brake * frontBrakeGain,
         rearBrake: rear * rearBrakeGain,
         rider: hang,
-        drive: force,
-        engineBrake: this.requestedEngineBraking(throttle),
+        drive: Math.max(0,force),
+        engineBrake: this.input.manualClutch && spec.manualClutch && d.motoGP
+          ? Math.max(0,-force)
+          : this.requestedEngineBraking(throttle),
       },
       dt,
     );

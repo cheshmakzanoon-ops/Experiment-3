@@ -45,6 +45,7 @@ export function driveButtonOwner(mapping: InputMapping, index: number): string |
   if (index < 0) return null;
   if (index === mapping.shiftUpButton) return 'upshift';
   if (index === mapping.shiftDownButton) return 'downshift';
+  if (index === mapping.rearBrakeButton) return 'GP rear brake';
   if (mapping.manualClutch && mapping.clutchAxis < 0 && index === mapping.clutchButton)
     return 'clutch';
   if (!mapping.axisPedals) {
@@ -74,6 +75,7 @@ export function validateButtonActions(
   if (!mapping.axisPedals)
     drive.push([mapping.throttleButton, 'throttle'], [mapping.brakeButton, 'brake']);
   if (mapping.manualClutch && mapping.clutchAxis < 0) drive.push([mapping.clutchButton, 'clutch']);
+  if ((mapping.rearBrakeButton ?? -1) >= 0) drive.push([mapping.rearBrakeButton!, 'GP rear brake']);
   for (const [index, name] of drive) {
     if (index < 0) continue;
     const owner = occupied.get(index);
@@ -144,6 +146,7 @@ export class ControllerActions {
         dispatched ||
         index === mapping.shiftUpButton ||
         index === mapping.shiftDownButton ||
+        index === mapping.rearBrakeButton ||
         (!mapping.axisPedals &&
           (index === mapping.throttleButton || index === mapping.brakeButton)) ||
         (mapping.manualClutch && mapping.clutchAxis < 0 && index === mapping.clutchButton)

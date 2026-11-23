@@ -6,8 +6,9 @@ import { SIMULATION_TICK_HZ } from '../core/session-identity.ts';
  * controls at 60 Hz (each command covers two physics ticks) and sends them at
  * 30 Hz with redundancy, and the server publishes a compact state at 20 Hz. */
 // v2 assigns the previously reserved control-word bits to motocross body lean.
+// v3 appends the independently sampled GP rear-brake pressure.
 // Older peers must fail the handshake before interpreting a non-neutral input.
-export const NET_PROTOCOL_VERSION = 2;
+export const NET_PROTOCOL_VERSION = 3;
 
 export const CADENCE = Object.freeze({
   physicsHz: SIMULATION_TICK_HZ,

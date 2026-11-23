@@ -40,6 +40,8 @@ export interface BikeSpec {
   /** Shift interruption: a seamless gearbox has none, a quickshifter a few ms. */
   gearbox: 'seamless' | 'quickshifter';
   shiftCut: number;
+  /** Rated manual clutch torque at the crank and combined crank inertia. */
+  manualClutch?: Readonly<{ capacity: number; inertia: number }>;
   /** Clutch-slip launch speed in first gear (rpm). */
   launchRPM: number;
   /** Rider aids: wheelie-control pitch (rad) and stoppie margin. */
@@ -266,6 +268,7 @@ const GP_BIKE: BikeSpec = Object.freeze({
   drivelineEfficiency: 0.92,
   gearbox: 'seamless',
   shiftCut: 0,
+  manualClutch: Object.freeze({ capacity: 195, inertia: .105 }),
   launchRPM: 9000,
   wheelieLimit: 0.1,
   stoppieMargin: 0.92,
@@ -517,6 +520,7 @@ export const GP_R2: VehicleDefinition = roadBike({
   classId: 'gp-bike',
   bike: Object.freeze({
     ...GP_BIKE,
+    manualClutch: Object.freeze({ capacity: 200, inertia: .112 }),
     cgHeight: 0.61,
     cgToFront: 0.72,
     cgToRear: 0.73,

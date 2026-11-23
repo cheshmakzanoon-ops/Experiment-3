@@ -38,6 +38,7 @@ export interface InputMapping {
   calibration: CalibrationSet;
   clutchAxis: number;
   clutchButton: number;
+  rearBrakeButton?: number;
   manualClutch: boolean;
   shiftUpButton: number;
   shiftDownButton: number;
@@ -113,6 +114,7 @@ export const DEFAULT_SETTINGS: Settings = {
     calibration: emptyCalibration(),
     clutchAxis: -1,
     clutchButton: -1,
+    rearBrakeButton: -1,
     manualClutch: false,
     shiftUpButton: 5,
     shiftDownButton: 4,
@@ -170,6 +172,7 @@ export function validateSettings(v: unknown): Settings {
       saturation: finite(m.saturation, 1, 0.5, 1),
       calibration: validateCalibration(m.calibration),
       clutchAxis: Math.round(finite(m.clutchAxis, -1, -1, 31)),
+      rearBrakeButton: Math.round(finite(m.rearBrakeButton, -1, -1, 127)),
       clutchButton: Math.round(finite(m.clutchButton, -1, -1, 127)),
       manualClutch: !!m.manualClutch,
       shiftUpButton: Math.round(finite(m.shiftUpButton, 5, -1, 127)),

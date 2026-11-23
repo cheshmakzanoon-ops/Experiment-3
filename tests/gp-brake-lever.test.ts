@@ -2,7 +2,7 @@ import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
-import { gpFrontBrakeTip } from '../src/rendering/gp-front-brake.ts';
+import { gpFrontBrakeTip, gpFrontBrakeFingerTarget } from '../src/rendering/gp-front-brake.ts';
 
 // Geometry and articulation checks only; actual materials are drawn by the
 // production-model browser fixture with a real Canvas/WebGL implementation.
@@ -45,6 +45,29 @@ function pose(id: string, brake = 0, rearBrake = 0) {
 }
 
 describe('GP front-brake lever follows the presented hand control', () => {
+  it.each(['gpr1','gpr2'])('%s holds the left clutch blade with two fingertips at both steering locks', id=>{
+    const materials=new BikeMaterials(0), model=new BikeModel(VEHICLES[id],0,'high',materials,true);
+    try {
+      const pivot=model.root.getObjectByName('GP left clutch lever pivot')!;
+      const front=model.root.getObjectByName('GP front-brake lever pivot')!;
+      const fingers=model.root.getObjectByName('GP continuous clutch-finger leather') as T.SkinnedMesh;
+      for(const steer of [-.23,.23]) for(const pull of [.32,1]) {
+        model.pose({...pose(id),steer,clutch:pull});
+        model.root.updateMatrixWorld(true);
+        expect(Math.abs(front.rotation.y)).toBe(0);
+        expect(Math.abs(pivot.rotation.y)).toBeGreaterThan(.01);
+        for(const i of [0,1] as const) {
+          const goal=gpFrontBrakeFingerTarget(i,new T.Vector3());goal.x=-goal.x;
+          pivot.localToWorld(goal);
+          const fingertip=fingers.skeleton.bones[5*i+4].localToWorld(new T.Vector3(0,0,i===0?.018:.019));
+          expect(fingertip.distanceTo(goal)).toBeLessThan(.009);
+        }
+      }
+      model.pose({...pose(id,1,.7),clutch:0});
+      expect(Math.abs(pivot.rotation.y)).toBe(0);
+      expect(Math.abs(front.rotation.y)).toBeGreaterThan(.05);
+    } finally {model.dispose();materials.dispose();}
+  });
   it.each(['gpr1', 'gpr2'])('%s pulls toward the grip about the existing pivot', (id) => {
     const materials = new BikeMaterials(0),
       model = new BikeModel(VEHICLES[id], 0, 'high', materials, true);

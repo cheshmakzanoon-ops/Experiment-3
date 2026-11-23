@@ -45,6 +45,7 @@ export function captureBikeSequence(
         | 'rearOmega'
         | 'rearRotation'
         | 'rearBrake'
+        | 'clutch'
         | 'speed'
         | 'frontFairingHealth'
         | 'rpm'
@@ -239,14 +240,15 @@ export function captureBikeSequence(
     camera.fov = 31;
     camera.updateProjectionMatrix();
   }
-  if (view === 'brake-lever') {
+  if (view === 'brake-lever' || view === 'clutch-lever') {
     // Macro mechanical inspection, explicitly separate from the riding eye.
     // Keep the complete real model, including its glove, fairing and steering.
-    const lever = bike.root.getObjectByName('GP front-brake lever pivot');
+    const clutch = view === 'clutch-lever';
+    const lever = bike.root.getObjectByName(clutch ? 'GP left clutch lever pivot' : 'GP front-brake lever pivot');
     if (!lever) throw new Error('The selected model has no articulated GP lever');
     const focus = lever.getWorldPosition(new T.Vector3());
-    camera.position.copy(focus).add(new T.Vector3(-0.34, 0.3, 0.12));
-    camera.lookAt(focus.add(new T.Vector3(-0.055, -0.005, -0.025)));
+    camera.position.copy(focus).add(new T.Vector3(clutch ? .34 : -.34, 0.3, 0.12));
+    camera.lookAt(focus.add(new T.Vector3(clutch ? .055 : -.055, -0.005, -0.025)));
     camera.fov = 36;
     camera.updateProjectionMatrix();
   }
@@ -363,6 +365,7 @@ export function captureBikeSequence(
             ? { angle: lever.rotation.y, world: lever.getWorldPosition(new T.Vector3()).toArray() }
             : null;
         })(),
+        clutchAngle: bike.root.getObjectByName('GP left clutch lever pivot')?.rotation.y ?? null,
         rearBrakePedal: (() => {
           const pedal = bike.root.getObjectByName('GP rear-brake pedal pivot');
           return pedal
