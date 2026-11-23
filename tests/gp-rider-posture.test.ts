@@ -22,6 +22,7 @@ import {
   gpHelmetVent,
   gpHelmetV,
   gpVisorGeometry,
+  gpVisorPullTab,
 } from '../src/rendering/gp-rider-helmet.ts';
 import { gpEyePortFace, gpEyePose } from '../src/rendering/gp-helmet-optics.ts';
 import { Rider, type RiderPose } from '../src/rendering/rider.ts';
@@ -436,7 +437,7 @@ it('opens every mounted GP helmet duct to the outside, with a visible liner behi
   const vents = head.children.filter((piece) =>
     ['GP crown intake', 'GP chin vent', 'GP rear exhaust'].includes(piece.name),
   );
-  expect(vents).toHaveLength(5);
+  expect(vents).toHaveLength(6);
   try {
     for (const vent of vents) {
       const normal = new T.Vector3(0, 1, 0).applyQuaternion(vent.quaternion);
@@ -458,4 +459,29 @@ it('opens every mounted GP helmet duct to the outside, with a visible liner behi
     head.traverse((o) => { if (o instanceof T.Mesh) o.geometry.dispose(); });
     material.dispose();
   }
+});
+
+it('threads the clear pull tab over the left visor post and uses the shield draw', () => {
+  const m = new T.MeshBasicMaterial(), head = new T.Group();
+  addGpHelmetDetails(head, 'high', { shell:m, visor:m, trim:m, liner:m });
+  head.updateMatrixWorld(true);
+  const posts = head.children.filter(o => o.name === 'GP tear-off shank');
+  const left = posts.find(o => o.position.x < 0)!;
+  expect(posts).toHaveLength(2);
+  const tab = new T.Mesh(gpVisorPullTab(),m);
+  const n = new T.Vector3(0,1,0).applyQuaternion(left.quaternion);
+  const side = new T.Vector3(1,0,0).applyQuaternion(left.quaternion);
+  const probe = (offset:number) => new T.Raycaster(
+    left.position.clone().addScaledVector(n,.018).addScaledVector(side,offset), n.clone().negate(),
+  ).intersectObject(tab);
+  expect(probe(0)).toHaveLength(0);
+  expect([...probe(-.0045),...probe(.0045)].length).toBeGreaterThan(0);
+  const vis = head.getObjectByName('GP iridium race visor') as T.Mesh;
+  const uv = vis.geometry.getAttribute('uv');
+  const film = tab.geometry.getAttribute('uv');
+  expect(Array.from({length:uv.count},(_,i)=>uv.getX(i)).filter(u=>u>1.5)).toHaveLength(film.count);
+  expect(vis.material).toBe(m);
+  head.traverse(o=>{ if (o instanceof T.Mesh) o.geometry.dispose(); });
+  tab.geometry.dispose();
+  m.dispose();
 });

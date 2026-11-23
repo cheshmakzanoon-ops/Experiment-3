@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { drawWordmark } from './studio/brand-atlas.ts';
 import { canvasTexture } from './geometry.ts';
 import { sampleProfile } from './profile-sampling.ts';
@@ -185,6 +186,73 @@ export function gpVisorGeometry(detail: RiderDetail) {
   });
 }
 
+const GP_FILM_STATION = .089;
+function filmPost(u: number) {
+  const phi = T.MathUtils.lerp(...GP_VISOR_PHI, u);
+  const [bottom, top] = gpVisorBounds(phi);
+  return { phi, y: T.MathUtils.lerp(bottom, top, .46) };
+}
+
+/** Folded PET release tab at the rider's left temple. The die-cut hole fits
+ * over the shank. Both sides and the return fold have physical thickness.
+ * UVs above 2 identify clear PET on the shield's existing transparent draw. */
+export function gpVisorPullTab() {
+  const { phi, y } = filmPost(GP_FILM_STATION);
+  const positions: number[] = [], uvs: number[] = [], index: number[] = [];
+  const v = (x: number, z: number) => new T.Vector2(x, z);
+  const outline = [
+    v(-.0055,-.0028),v(-.0035,-.0057),v(.003,-.0062),v(.010,-.0047),
+    v(.013,-.0047),v(.013,.0047),v(.006,.0060),v(-.002,.0059),v(-.0055,.003),
+  ];
+  const hole = Array.from({length: 10}, (_, i) => v(.0029*Math.cos(i*Math.PI/5),.0029*Math.sin(i*Math.PI/5)));
+  const fold = [v(.013,-.0047),v(.020,-.0047),v(.020,.0044),v(.013,.0047)];
+  const tip = [v(.020,-.0047),v(.030,-.0051),v(.033,-.0035),v(.033,.0026),v(.030,.0045),v(.020,.0044)];
+  // The outboard end folds back on itself and clears the fixed visor pivot.
+  const point = (p: T.Vector2, thick: number) => {
+    const x = p.x <= .020 ? p.x : .020 - .72 * (p.x - .020);
+    const lift = Math.max(0, Math.min(.007, p.x - .013)) * .50 + Math.max(0, p.x - .020) * .13;
+    return gpHelmetPoint(y + p.y, phi - x / .145, .0043 + lift + thick);
+  };
+  const face = (poly: T.Vector2[], holes: T.Vector2[][], thick: number, outward: boolean) => {
+    const points = [...poly, ...holes.flat()], start = positions.length / 3;
+    const vertices = points.map(p => point(p, thick));
+    for (let i = 0; i < points.length; i++) {
+      positions.push(...vertices[i].toArray());
+      uvs.push(2 + (points[i].x + .006)/.039, .5 + points[i].y/.013);
+    }
+    for (const [a,b,c] of T.ShapeUtils.triangulateShape(poly, holes)) {
+      const pa = vertices[a], normal = vertices[b].clone().sub(pa).cross(vertices[c].clone().sub(pa));
+      const positive = normal.x*pa.x + normal.z*(pa.z-GP_HELMET_CENTRE[2]) > 0;
+      if (positive === outward) index.push(start+a,start+b,start+c);
+      else index.push(start+a,start+c,start+b);
+    }
+  };
+  for (const [poly, holes] of [[outline, [hole]], [fold, []], [tip, []]] as const) {
+    face(poly, [...holes], .00022, true);
+    face(poly, [...holes], 0, false);
+  }
+  const rim = (loop: T.Vector2[], inside: boolean) => {
+    for (let i = 0; i < loop.length; i++) {
+      const a = loop[i], b = loop[(i + 1) % loop.length], start = positions.length / 3;
+      for (const [q, h] of [[a, 0], [b, 0], [b, .00022], [a, .00022]] as const) {
+        positions.push(...point(q, h).toArray());
+        uvs.push(2 + (q.x + .006)/.039, .5 + q.y/.013);
+      }
+      if (inside) index.push(start,start+2,start+1,start,start+3,start+2);
+      else index.push(start,start+1,start+2,start,start+2,start+3);
+    }
+  };
+  rim([...outline.slice(0,5), fold[1], ...tip.slice(1,5), fold[2], ...outline.slice(5)],false);
+  rim(hole,true);
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions,3));
+  g.setAttribute('uv',new T.Float32BufferAttribute(uvs,2));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  return g;
+}
+
 /** The lining rolls inward under the shell lip. Across the centre it sits
  * behind the eyes; around the temples and cheek it closes off the cavity. */
 export function gpEyePortLiner(detail: RiderDetail) {
@@ -311,11 +379,11 @@ const VENT_SEGMENTS = 20;
 /** Flush-moulded air extractor with a raised rounded lip and a recessed
  * throat. Its local Y is the outward skin normal. Subtracting the recess
  * from the lip leaves real depth even with a head-on reflection. */
-export function gpHelmetVent(width: number, length: number, lift: number) {
+export function gpHelmetVent(width: number, length: number, lift: number, cheek = 0) {
   const points: number[] = [],
     uv: number[] = [],
     index: number[] = [];
-  const segments = VENT_SEGMENTS;
+  const segments = cheek ? 12 : VENT_SEGMENTS;
   for (const [scale, height] of [
     [1, -0.0005],
     [0.92, lift * 0.8],
@@ -329,7 +397,8 @@ export function gpHelmetVent(width: number, length: number, lift: number) {
         cz = Math.sin(a);
       const x = (Math.sign(cx) * Math.abs(cx) ** 0.55 * width * scale) / 2;
       const z = (Math.sign(cz) * Math.abs(cz) ** 0.62 * length * scale) / 2;
-      points.push(x * (0.89 + (0.2 * z) / length), height, z);
+      const rake = cheek * x * .27;
+      points.push(x * (0.89 + (0.2 * z) / length), height, z * (1 + cheek * x / width * .38) + rake);
       uv.push(0.5 + x / width, 0.5 + z / length);
     }
   }
@@ -370,22 +439,24 @@ export function addGpHelmetDetails(
     y: number,
     phi: number,
     lift: number,
+    cheek = 0,
   ) => {
-    const rim = gpHelmetVent(width, length, lip);
+    const rim = gpHelmetVent(width, length, lip, cheek);
     const mesh = onShell(add(rim, material, name), y, phi, lift);
     // Seat the dark duct behind the moulded lip. Reuse its inner outline
     // so no lacquer shows through a vent on a light-coloured helmet.
     const housing = rim.getAttribute('position');
-    const first = housing.count - VENT_SEGMENTS;
+    const segments = housing.count / 5;
+    const first = housing.count - segments;
     const points = [0, 0.0002, 0],
       uv = [0.5, 0.5],
       index: number[] = [];
-    for (let i = 0; i < VENT_SEGMENTS; i++) {
+    for (let i = 0; i < segments; i++) {
       const x = housing.getX(first + i),
         z = housing.getZ(first + i);
       points.push(x, 0.0002, z);
       uv.push(0.5 + x / width, 0.5 + z / length);
-      index.push(0, 1 + ((i + 1) % VENT_SEGMENTS), 1 + i);
+      index.push(0, 1 + ((i + 1) % segments), 1 + i);
     }
     const throat = new T.BufferGeometry();
     throat.setAttribute('position', new T.Float32BufferAttribute(points, 3));
@@ -396,7 +467,14 @@ export function addGpHelmetDetails(
     backing.position.copy(mesh.position);
     backing.quaternion.copy(mesh.quaternion);
   };
-  const shield = add(gpVisorGeometry(detail), materials.visor, 'GP iridium race visor');
+  let glazing = gpVisorGeometry(detail);
+  if (detail === 'high') {
+    const tab = gpVisorPullTab(), layered = mergeGeometries([glazing, tab], false)!;
+    glazing.dispose();
+    tab.dispose();
+    glazing = layered;
+  }
+  const shield = add(glazing, materials.visor, 'GP iridium race visor');
   shield.castShadow = false;
   add(gpEyePortLiner(detail), materials.liner, 'GP eye-port padding');
   add(gpBreathDeflector(detail), materials.liner, 'GP breath deflector');
@@ -410,6 +488,13 @@ export function addGpHelmetDetails(
   for (const side of [-1, 1]) {
     // phi measured from bike right: left side is PI - phi.
     const sidePhi = (phi: number) => (side > 0 ? Math.PI - phi : phi);
+    const mount = filmPost(side > 0 ? 1 - GP_FILM_STATION : GP_FILM_STATION);
+    onShell(add(new T.CylinderGeometry(.00265, .00265, .0017, 8, 1, true),
+      materials.liner, 'GP tear-off shank'), mount.y, mount.phi, .00435);
+    onShell(add(new T.CylinderGeometry(.0036, .0041, .0015, 8),
+      materials.trim, 'GP tear-off retaining head'), mount.y, mount.phi, .00575);
+    vent(.043, .020, .0046, materials.trim, 'GP chin vent', -.075,
+      Math.PI / 2 + side * .235, .0018, -side);
     vent(
       0.026,
       0.04,
@@ -437,7 +522,6 @@ export function addGpHelmetDetails(
       0.0015,
     );
   }
-  vent(0.036, 0.016, 0.0042, materials.liner, 'GP chin vent', -0.083, Math.PI / 2, 0.0015);
 }
 
 /** Original paint for the GP shell's UVs (u wraps from bike right, 0.25 at
@@ -548,6 +632,17 @@ export function gpHelmetLivery(colours: RiderColours, raceNumber: number, title 
         c.strokeStyle = css(colours.accent);
         c.lineWidth = 2.5;
         c.stroke();
+        // The cheek graphic follows the underside of the shield into the
+        // raked twin chin ducts. Leave the front centre free for the maker.
+        c.beginPath();
+        c.moveTo(u(.034),py(-.067));
+        c.bezierCurveTo(u(.082),py(-.070),u(.140),py(-.045),u(.192),py(-.013));
+        c.bezierCurveTo(u(.159),py(-.054),u(.121),py(-.072),u(.065),py(-.084));
+        c.lineTo(u(.041),py(-.079));c.closePath();
+        c.fillStyle='#24282b';c.fill();
+        c.beginPath();c.moveTo(u(.064),py(-.077));
+        c.bezierCurveTo(u(.109),py(-.069),u(.155),py(-.044),u(.177),py(-.028));
+        c.strokeStyle=css(colours.accent);c.lineWidth=2.3;c.stroke();
       }
       c.restore();
     }
@@ -559,7 +654,7 @@ export function gpHelmetLivery(colours: RiderColours, raceNumber: number, title 
       weight: 0.18,
       slant: 0.1,
     });
-    drawWordmark(c, 'VANTA', px(0.25), py(-0.087), 16, { weight: 0.2, tracking: 0.08 });
+    drawWordmark(c, 'VANTA', px(0.25), py(-0.049), 13, { weight: 0.2, tracking: 0.08 });
     const number = String(raceNumber).padStart(2, '0');
     const raceMark = (u: number, y: number, h: number) => {
       c.strokeStyle = '#1e252c';

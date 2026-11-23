@@ -126,4 +126,35 @@ float gpViewCos=abs(dot(normalize(vViewPosition),normal));
 float gpGrazing=pow(1.-clamp(gpViewCos,0.,1.),3.);
 diffuseColor.a=mix(.69,.97,gpGrazing);`, 'fragment');
   });
+  chainShaderHook(visor, 'gp-visor-tearoff-v1', (shader) => {
+    injectDeclarations(shader, 'common', 'varying vec2 vGpFilm;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vGpFilm=uv;', 'vertex');
+    injectDeclarations(shader, 'common', 'varying vec2 vGpFilm;', 'fragment');
+    injectAfter(shader, 'roughnessmap_fragment', `
+      float gpPullTab=step(1.5,vGpFilm.x);
+      float gpFilmHeight=mix(.076,.022,smoothstep(.45,.98,abs(2.*vGpFilm.x-1.)));
+      vec2 gpFilmXY=abs(vGpFilm-.5)*vec2(.35,gpFilmHeight);
+      vec2 gpDie=gpFilmXY-vec2(.35*.453-.005,gpFilmHeight*.5-.0088);
+      float gpFilmDist=length(max(gpDie,0.))+min(max(gpDie.x,gpDie.y),0.)-.005;
+      float gpPixel=max(fwidth(gpFilmDist),.00004);
+      float gpEdge=0.;
+      for(int i=0;i<2;i++) {
+        float d=abs(gpFilmDist+float(i)*(.00028+.00063*smoothstep(.08,.15,gpFilmXY.x)));
+        gpEdge+=clamp((.00014+.5*gpPixel-d)/gpPixel,0.,1.)*
+          min(1.,.00052/gpPixel);
+      }
+      gpEdge=min(gpEdge,1.)*(1.-gpPullTab);
+      roughnessFactor=mix(roughnessFactor, .16, max(gpEdge*.50,gpPullTab));
+    `, 'fragment');
+    injectBefore(shader, 'opaque_fragment', `
+      vec3 gpFilmReflection=reflectedLight.indirectSpecular+reflectedLight.directSpecular;
+      outgoingLight+=gpEdge*(.35*gpFilmReflection+.14*outgoingLight);
+      diffuseColor.a=mix(diffuseColor.a,min(.98,diffuseColor.a+.11),gpEdge);
+      if(gpPullTab>.5){
+        float gpFold=smoothstep(.49,.68,vGpFilm.x-2.);
+        outgoingLight=.55*outgoingLight+gpFilmReflection*(.72+.42*gpFold);
+        diffuseColor.a=mix(.24,.58,clamp(.64*gpGrazing+.40*gpFold,0.,1.));
+      }
+    `, 'fragment');
+  });
 }
