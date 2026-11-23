@@ -1,6 +1,15 @@
 import * as T from 'three';
 import type { RiderDetail } from '../rider.ts';
 
+/** Shared with the actual open silencer. Positions are in sprung chassis space. */
+export const MX_SILENCER_MOUNT = Object.freeze({
+  x: -0.177,
+  y: -0.005,
+  z: -0.615,
+  pitch: 0.22,
+  outletZ: -0.222,
+});
+
 const REAR = -0.171,
   FRONT = 0.171;
 

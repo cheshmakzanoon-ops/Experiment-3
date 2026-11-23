@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
+import { MX_SILENCER_MOUNT } from '../src/rendering/offroad/mx-silencer.ts';
 import { Roost, ROOST_CAPACITY, ROOST_GROUND_SAMPLES } from '../src/rendering/offroad/roost.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -74,6 +75,33 @@ function harness(riders = 1, venue: 'valley-ridge-mx' | 'arena-nord-sx' = 'valle
 }
 
 describe('lit motocross soil and independent touchdown contacts', () => {
+  it('emits the two-stroke plume at the tipped silencer, with outdoor drift and repeatable seeks', () => {
+    for (const venue of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
+      const { roost, frame, b } = harness(1, venue), mesh = roost.exhaust!.points;
+      const attr = mesh.geometry.getAttribute('position'), update = () => roost.update(frame, 0);
+      frame[b + RACE_BASE + R.VEHICLE] = vehicleIndex('mx250');
+      frame[H.TIME] = 3;
+      frame[b + F.RPM] = 3800;
+      frame[b + F.SPEED] = 0;
+      frame[b+F.VX] = frame[b+F.VZ] = 0;
+      update();
+      const count=mesh.geometry.drawRange.count, calm=Array.from(attr.array.slice(0,count*3));
+      expect(count).toBeGreaterThan(3);
+      expect(mesh.material).toBe(roost.points.material);
+      const m=MX_SILENCER_MOUNT;
+      const expected=new T.Vector3(m.x,m.y-Math.sin(m.pitch)*m.outletZ,m.z+Math.cos(m.pitch)*m.outletZ)
+        .applyQuaternion(new T.Quaternion().fromArray(frame,b+F.QX)).add(new T.Vector3().fromArray(frame,b+F.X));
+      expect(expected.distanceTo(new T.Vector3().fromBufferAttribute(attr,0))).toBeLessThan(0.00002);
+      frame[H.WIND_X]=7; update();
+      expect(attr.getX(0)).toBeCloseTo(calm[0],5);
+      if (venue==='valley-ridge-mx') expect(attr.getX(count-1)).toBeGreaterThan(calm[(count-1)*3]+0.3);
+      else expect(Array.from(attr.array.slice(0,count*3))).toEqual(calm);
+      frame[H.TIME]=2.65; update(); frame[H.TIME]=3;frame[H.WIND_X]=0;update();
+      expect(Array.from(attr.array.slice(0,count*3))).toEqual(calm);
+      frame[b+RACE_BASE+R.VEHICLE]=vehicleIndex('mx450');update();expect(mesh.visible).toBe(false);
+      frame[b+RACE_BASE+R.VEHICLE]=vehicleIndex('mx250');frame[b+F.RPM]=0;update();expect(mesh.visible).toBe(false);
+    }
+  });
   it('drapes the engine shade over the displayed bank and pad, with finite fade and repeatable seeking', () => {
     const { roost, frame, b, p, track } = harness();
     const ground = (s: number, lateral: number) => 0.12 * (s - p.s) + 0.28 * lateral;

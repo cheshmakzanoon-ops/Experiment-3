@@ -54,7 +54,7 @@ import { MotocrossShockLinkage } from './motocross-shock-linkage.ts';
 import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
 import { mxCrossbarPad } from './motocross-bar-pad.ts';
 import { mxFenderLoad, prepareMxFenderFlex } from './mx-fender-flex.ts';
-import { mxSilencerHanger, mxSilencerSleeve } from './mx-silencer.ts';
+import { MX_SILENCER_MOUNT, mxSilencerHanger, mxSilencerSleeve } from './mx-silencer.ts';
 import { mxNumberBoard, mxNumberBoardBack, mxSideNumberPlate, mxSidePlateMounts } from './motocross-number-board.ts';
 import { MotocrossFootControls, motocrossRearBrakeLine, MX_PEG } from './motocross-foot-controls.ts';
 import {
@@ -926,8 +926,8 @@ export class DirtBikeModel {
     }
     const silencer = new T.Group();
     silencer.name = 'Motocross tapered open exhaust silencer';
-    silencer.position.set(-0.177, -0.005, -0.615);
-    silencer.rotation.x = 0.22;
+    silencer.position.set(MX_SILENCER_MOUNT.x, MX_SILENCER_MOUNT.y, MX_SILENCER_MOUNT.z);
+    silencer.rotation.x = MX_SILENCER_MOUNT.pitch;
     this.sprung.add(silencer);
     add(silencer, mxSilencerSleeve(detail, lightFrame), this.m.aluminium).name =
       'Swaged exhaust sleeve';
@@ -945,7 +945,7 @@ export class DirtBikeModel {
     );
     bore.rotateX(Math.PI / 2);
     add(silencer, bore, this.m.dark);
-    add(silencer, new T.TorusGeometry(0.0245, 0.0025, 5, sides / 2), this.m.steel, 0, 0, -0.222);
+    add(silencer, new T.TorusGeometry(0.0245, 0.0025, 5, sides / 2), this.m.steel, 0, 0, MX_SILENCER_MOUNT.outletZ);
     // An annular inlet leaves the real header connection open as well.
     const inlet = new T.RingGeometry(0.022, 0.049, sides / 2);
     add(silencer, inlet, this.m.aluminium, 0, 0, 0.171);

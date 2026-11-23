@@ -19,6 +19,7 @@ import {
 } from '../../simulation/protocol.ts';
 import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { StartGate } from './start-gate.ts';
+import { MxExhaustMist } from './mx-exhaust-mist.ts';
 import { MxChassisShade } from './mx-chassis-shade.ts';
 import { MotocrossAxles } from './motocross-axles.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -204,6 +205,7 @@ function softDisc(soft = false) {
 export class Roost {
   private disposed = false;
   readonly points: T.Points;
+  readonly exhaust: MxExhaustMist | null;
   /** Solid soil shares the existing pool; this is one additional bounded draw. */
   readonly clods: T.InstancedMesh | null;
   readonly contactShadows: T.InstancedMesh | null;
@@ -314,6 +316,8 @@ export class Roost {
     this.points = new T.Points(g, material);
     if (material instanceof MxDustMaterial)
       this.points.onBeforeRender = (renderer) => material.updateViewport(renderer);
+    this.exhaust = material instanceof MxDustMaterial ? new MxExhaustMist(material) : null;
+    if (this.exhaust) this.points.add(this.exhaust.points);
     this.points.name = 'Roost (clods and dust)';
     this.points.frustumCulled = false;
     this.clods = this.motocross
@@ -670,6 +674,7 @@ export class Roost {
     if (this.disposed) return;
     if (!Number.isFinite(dt) || dt < 0) return;
     this.points.visible = this.enabled;
+    this.exhaust?.update(frame, this.enabled ? this.density : 0, this.windExposed);
     this.shadows(frame);
     if (this.clods) {
       this.clods.visible = this.enabled;
@@ -936,6 +941,7 @@ export class Roost {
     this.publish();
   }
   clear() {
+    this.exhaust?.clear();
     this.life.fill(0);
     for (let i = 0; i < ROOST_CAPACITY; i++) this.positions[i * 3 + 1] = -1e4;
     this.emission.fill(0);
