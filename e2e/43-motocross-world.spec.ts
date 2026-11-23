@@ -1,3 +1,4 @@
+import { MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
 import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -68,7 +69,7 @@ for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const)
         expect(sample.hash).not.toBe(0);
         expect(sample.bikes).toBe(8);
         expect(sample.terrainCells).toBeGreaterThan(50);
-        expect(sample.soilHooks).toContain('mx-groomed-soil-v4');
+        expect(sample.soilHooks).toContain(MX_SOIL_DETAIL_HOOK);
         expect(sample.soilScans.active).toBe(true);
         expect(sample.soilScans.macro).toBe('dryEarth');
         expect(sample.soilScans.compiledMacroSampler).toBe('apexScanDryEarthC');

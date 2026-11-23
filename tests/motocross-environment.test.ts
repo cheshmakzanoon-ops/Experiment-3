@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { BuildQueue } from '../src/rendering/build-queue.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
 import { OffroadScene } from '../src/rendering/offroad/index.ts';
+import { MxFieldCover } from '../src/rendering/offroad/mx-field-cover.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import { MX_SOIL_COLOURS, MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
 import { sampleMxSoilTransition } from '../src/rendering/offroad/mx-soil-transition.ts';
@@ -97,6 +98,38 @@ function finiteGeometry(root: T.Object3D) {
   });
   return draws;
 }
+
+describe('Valley Ridge event grounds', () => {
+  it('keeps event paths outside the course and shares one mipmapped cover across the verge and hills', () => {
+    const track = rigTrack('valley-ridge-mx'), cover = new MxFieldCover(track);
+    const pixels = cover.texture.image.data as Uint8Array, size = cover.texture.image.width;
+    let walked = 0, wheelTracks = 0, lush = 0, dry = 0;
+    for (let k = 0; k < pixels.length; k += 4) {
+      if (pixels[k] > 70) walked++;
+      if (pixels[k+1] > 75) wheelTracks++;
+      if (pixels[k+2] < 60) lush++;
+      if (pixels[k+2] > 165) dry++;
+    }
+    expect(Math.min(walked, wheelTracks)).toBeGreaterThan(100);
+    expect(Math.min(lush, dry)).toBeGreaterThan(500);
+    const bound = cover.bounds, p = trackPoint();
+    for (let s = 0; s < track.length; s += 3.2) {
+      track.at(s, p);
+      for (const alpha of [-0.75, 0, 0.75]) {
+        const x = p.x + p.nx*p.width*alpha, z = p.z + p.nz*p.width*alpha;
+        const k = 4*(Math.floor((x-bound.x)*bound.z*size) + size*Math.floor((z-bound.y)*bound.w*size));
+        expect(pixels[k] + pixels[k+1]).toBe(0);
+      }
+    }
+    expect(cover.texture.minFilter).toBe(T.LinearMipmapLinearFilter);
+    const verge = new T.MeshStandardMaterial(), hill = new T.MeshStandardMaterial();
+    let released = 0;
+    cover.texture.addEventListener('dispose', () => released++);
+    cover.install(verge); cover.install(hill); cover.install(verge);
+    verge.dispose(); expect(released).toBe(0);
+    hill.dispose(); expect(released).toBe(1);
+  });
+});
 
 describe('reference-informed MX environments', () => {
   it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(

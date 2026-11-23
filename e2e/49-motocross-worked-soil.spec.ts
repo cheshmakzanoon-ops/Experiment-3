@@ -1,3 +1,4 @@
+import { MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
 import { expect, test as base } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -83,7 +84,7 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
     expect(result.capture.shadowMapSize).toBe(process.env.APEX_MX_SOIL_COMPACT === '1' ? 512 : 1536);
     expect(result.geometry.courseWidthBytes).toBe(result.geometry.vertices * 4);
     expect(result.geometry.courseWearBytes).toBe(result.geometry.vertices * 16);
-    expect(result.hooks).toContain('mx-groomed-soil-v4');
+    expect(result.hooks).toContain(MX_SOIL_DETAIL_HOOK);
     expect(result.hooks).toContain('mx-soil-morphology-v2');
     expect(result.scans.failed).toEqual([]);
     for (const { samples } of result.results) {

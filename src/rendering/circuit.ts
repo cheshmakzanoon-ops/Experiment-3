@@ -105,6 +105,7 @@ import { gpSpectatorBankPlan, type GpBankProfile } from './venue-kit/gp-spectato
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
+import { MxFieldCover } from './offroad/mx-field-cover.ts';
 import { isMotocrossVenue } from './offroad/mx-boundary.ts';
 import { MX_FURNITURE_LIMITS } from './offroad/mx-trackside-furniture.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
@@ -304,6 +305,7 @@ export class CircuitScene {
     );
     // Sub-cell puddles and an emerging dry line (D22).
     installWetDetail(this.roadMaterial);
+    const fieldCover = track.circuit.id === 'valley-ridge-mx' ? new MxFieldCover(track) : null;
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
     // GP venues have a coherent palette and road-shaped aprons; other venue
@@ -323,6 +325,8 @@ export class CircuitScene {
     installScannedAsphalt(runOff);
     installScannedTurf(grass);
     installVergeFinish(grass);
+    fieldCover?.install(grass);
+    if (this.venueKit) fieldCover?.install(this.venueKit.context.materials.ground);
     installScannedGravel(gravel);
     // The grass apron plus D17's skirt onto the terrain, both sides, as one
     // ribbon (D32: the skirt shares the apron's chunks, 0 extra draws).
@@ -507,6 +511,7 @@ export class CircuitScene {
         installShoreline(land, model.seaLevel);
       }
       installScannedTerrain(land);
+      fieldCover?.install(land);
       // D32: culled per tile (same vertices), not one always-visible plane.
       for (const tile of splitTerrainGrid(terrain, segments))
         reflectInWetRoad(mesh(this.surfaces, tile, land));

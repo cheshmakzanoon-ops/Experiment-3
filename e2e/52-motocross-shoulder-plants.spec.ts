@@ -1,3 +1,4 @@
+import { MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
 import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -62,7 +63,7 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
   expect(result.sharedPlantMaterial).toBe(true);
   expect(result.plantTextures).toBe(false);
   expect(result.windHooks).toContain('mx-shoulder-wind-v1');
-  expect(result.soilHooks).toContain('mx-groomed-soil-v4');
+  expect(result.soilHooks).toContain(MX_SOIL_DETAIL_HOOK);
   expect(result.scans.failed).toEqual([]);
   expect(result.scans.resident).toContain('dryEarth');
   expect(result.foliage).toHaveLength(3);
