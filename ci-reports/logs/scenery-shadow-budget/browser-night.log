@@ -1,256 +1,259 @@
-### browser (night) (job 137410691621)
+### browser (night) (job 137414433770)
 --- error digest (first 120 matching lines) ---
-246:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:57.5157698Z ##[error]tests/ibl-energy.test.ts(195,42): error TS2345: Argument of type '{ wetReflection: { value: T.Texture; }; wetReflectionMatrix: { value: T.Matrix4; }; wetReflectionState: { value: T.Vector4; }; }' is not assignable to parameter of type 'WetReflectionUniforms'.
-250:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:58.4587932Z ##[error]Process completed with exit code 2.
+712:browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4583318Z   ✘  1 e2e/scenery-shadow-budget.spec.ts:10:3 › scenery shadow budget night (5.6m)
+716:browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4587533Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+720:browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5130055Z   1) e2e/scenery-shadow-budget.spec.ts:10:3 › scenery shadow budget night ──────────────────────────
+724:browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5132650Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+747:browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.6533162Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0182489Z   clean: true
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0182931Z   sparse-checkout-cone-mode: true
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0183468Z   fetch-depth: 1
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0183893Z   fetch-tags: false
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0184343Z   show-progress: true
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0184990Z   lfs: false
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0185422Z   submodules: false
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0185884Z   set-safe-directory: true
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0186406Z   allow-unsafe-pr-checkout: false
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0187189Z env:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0187611Z   DEBUG: pw:browser
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0188072Z   APEX_BROWSER_BACKEND: mesa
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0188623Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0189182Z   GALLIUM_DRIVER: llvmpipe
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.0189660Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3155326Z Syncing repository: cheshmakzanoon-ops/Experiment-3
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3158445Z ##[group]Getting Git version info
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3159786Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3161673Z [command]/usr/bin/git version
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3307608Z git version 2.56.1
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3310892Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3327096Z Temporarily overriding HOME='/home/runner/work/_temp/bdf440ab-85e8-46cc-8e20-042df10377c0' before making global git config changes
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3329435Z Adding repository directory to the temporary git global config as a safe directory
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3332891Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3399413Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3416177Z ##[group]Initializing the repository
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3438675Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3542812Z hint: Using 'master' as the name for the initial branch. This default branch name
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3544556Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3546354Z hint: to use in all of your new repositories, which will suppress this warning,
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3547643Z hint: call:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3548318Z hint:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3549258Z hint: 	git config --global init.defaultBranch <name>
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3550330Z hint:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3551321Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3552927Z hint: 'development'. The just-created branch can be renamed via this command:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3554209Z hint:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3555138Z hint: 	git branch -m <name>
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3556023Z hint:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3557094Z hint: Disable this message with "git config set advice.defaultBranchName false"
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3567205Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3582844Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3647105Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3648422Z ##[group]Disabling automatic garbage collection
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3651370Z [command]/usr/bin/git config --local gc.auto 0
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3693221Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3694944Z ##[group]Setting up auth
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3701699Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.3748077Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4231792Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4281301Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4533227Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4587395Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4846348Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4898542Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4995224Z ##[group]Fetching the repository
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:00.4998161Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d08c2d731f4d122b6a9034ca2d5ccddbdb67e878:refs/remotes/origin/main
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2478786Z From https://github.com/cheshmakzanoon-ops/Experiment-3
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2479971Z  * [new ref]         d08c2d731f4d122b6a9034ca2d5ccddbdb67e878 -> origin/main
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2486974Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2487555Z ##[group]Determining the checkout info
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2488615Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2494724Z [command]/usr/bin/git sparse-checkout disable
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2562687Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2605441Z ##[group]Checking out the ref
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:10.2609084Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.2943083Z Updating files:  46% (4331/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.3241245Z Updating files:  47% (4413/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.3523172Z Updating files:  48% (4507/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.3613881Z Updating files:  49% (4601/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.3674464Z Updating files:  50% (4694/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.3858320Z Updating files:  51% (4788/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4011164Z Updating files:  52% (4882/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4101469Z Updating files:  53% (4976/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4206762Z Updating files:  54% (5070/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4286438Z Updating files:  55% (5164/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4355944Z Updating files:  56% (5258/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4433119Z Updating files:  57% (5352/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4502866Z Updating files:  58% (5446/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4635088Z Updating files:  59% (5539/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4771884Z Updating files:  60% (5633/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4879393Z Updating files:  61% (5727/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.4962356Z Updating files:  62% (5821/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.5166752Z Updating files:  63% (5915/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.5357267Z Updating files:  64% (6009/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.5589929Z Updating files:  65% (6103/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.5960886Z Updating files:  66% (6197/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.6221442Z Updating files:  67% (6290/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.6414202Z Updating files:  68% (6384/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.6595520Z Updating files:  69% (6478/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.7063634Z Updating files:  70% (6572/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.7125524Z Updating files:  71% (6666/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.7193480Z Updating files:  72% (6760/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.7258537Z Updating files:  73% (6854/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.7791943Z Updating files:  74% (6948/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:11.8320680Z Updating files:  75% (7041/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.1655508Z Updating files:  76% (7135/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.2757498Z Updating files:  77% (7229/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.2814863Z Updating files:  77% (7281/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.2921418Z Updating files:  78% (7323/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3020677Z Updating files:  79% (7417/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3111026Z Updating files:  80% (7511/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3426225Z Updating files:  81% (7605/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3605851Z Updating files:  82% (7699/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3788497Z Updating files:  83% (7793/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3856346Z Updating files:  84% (7886/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.3942508Z Updating files:  85% (7980/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4104084Z Updating files:  86% (8074/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4181121Z Updating files:  87% (8168/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4253193Z Updating files:  88% (8262/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4333332Z Updating files:  89% (8356/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4400024Z Updating files:  90% (8450/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4470021Z Updating files:  91% (8544/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4538299Z Updating files:  92% (8637/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4607330Z Updating files:  93% (8731/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4672273Z Updating files:  94% (8825/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4743345Z Updating files:  95% (8919/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4813191Z Updating files:  96% (9013/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4882595Z Updating files:  97% (9107/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.4950640Z Updating files:  98% (9201/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5022547Z Updating files:  99% (9295/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5023115Z Updating files: 100% (9388/9388)
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5023771Z Updating files: 100% (9388/9388), done.
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5129731Z Switched to a new branch 'main'
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5132282Z branch 'main' set up to track 'origin/main'.
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5260463Z ##[endgroup]
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5328769Z [command]/usr/bin/git log -1 --format=%H
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5370946Z d08c2d731f4d122b6a9034ca2d5ccddbdb67e878
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5386616Z ##[group]Removing auth
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5392142Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5442900Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5712791Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5750478Z http.https://github.com/.extraheader
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5840354Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.5843465Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.6082616Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.6131870Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (night)	Run actions/checkout@v4	2026-11-23T00:18:12.6395511Z ##[endgroup]
-browser (night)	Run actions/setup-node@v4	﻿2026-11-23T00:18:12.6672204Z ##[group]Run actions/setup-node@v4
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6672504Z with:
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6672706Z   node-version: 22
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6672912Z   cache: npm
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6673107Z   always-auth: false
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6673327Z   check-latest: false
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6676299Z   token: ***
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6676510Z env:
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6676695Z   DEBUG: pw:browser
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6676910Z   APEX_BROWSER_BACKEND: mesa
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6677155Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6677395Z   GALLIUM_DRIVER: llvmpipe
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.6677614Z ##[endgroup]
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.8251284Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.8259425Z (node:2420) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.8260675Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:12.8262145Z ##[group]Environment details
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.2290403Z node: v22.23.5
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.2290777Z npm: 10.9.9
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.2290989Z yarn: 1.22.22
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.2292605Z ##[endgroup]
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.2312709Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.3446479Z /home/runner/.npm
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.4406304Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.4530728Z (node:2420) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.7276007Z Received 34424064 of 34424064 (100.0%), 138.5 MBs/sec
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.7276999Z Cache Size: ~33 MB (34424064 B)
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.7305424Z [command]/usr/bin/tar -xf /home/runner/work/_temp/f78c53a5-0366-4de5-9ac0-d311ef5ecde1/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.8300258Z Cache restored successfully
-browser (night)	Run actions/setup-node@v4	2026-11-23T00:18:13.8319081Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-23T00:18:13.8559830Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8560806Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8593570Z shell: /usr/bin/bash -e {0}
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8593884Z env:
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8594113Z   DEBUG: pw:browser
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8594363Z   APEX_BROWSER_BACKEND: mesa
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8594648Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8595282Z   GALLIUM_DRIVER: llvmpipe
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:13.8595564Z ##[endgroup]
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:17.2166259Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:17.7432275Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:17.7433031Z added 194 packages in 3s
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:18.5212378Z (node:2470) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-23T00:18:18.5214303Z (Use `node --trace-warnings ...` to show where the warning was created)
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	﻿2026-11-23T00:18:18.5405337Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm run build
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5406168Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm run build^[[0m
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5428007Z shell: /usr/bin/bash -e {0}
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5428278Z env:
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5428481Z   DEBUG: pw:browser
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5428712Z   APEX_BROWSER_BACKEND: mesa
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5428977Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5429226Z   GALLIUM_DRIVER: llvmpipe
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:18.5429465Z ##[endgroup]
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.5219821Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.5220798Z > apex-formula-laboratory@0.1.0 prebuild
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.5221482Z > npm run generate:player-lods -- --owner-only
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.5221825Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.6268002Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.6269008Z > apex-formula-laboratory@0.1.0 generate:player-lods
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.6269923Z > node --experimental-strip-types scripts/build-player-lods.mjs --owner-only
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.6270473Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.7263027Z Player LODs skipped: product build (an owner QA build, npm run build:qa, generates them).
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.7371833Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.7372545Z > apex-formula-laboratory@0.1.0 build
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.7373181Z > tsc --noEmit && vite build
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:19.7373455Z 
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:57.5157698Z ##[error]tests/ibl-energy.test.ts(195,42): error TS2345: Argument of type '{ wetReflection: { value: T.Texture; }; wetReflectionMatrix: { value: T.Matrix4; }; wetReflectionState: { value: T.Vector4; }; }' is not assignable to parameter of type 'WetReflectionUniforms'.
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:57.5168023Z   Property 'wetReflectionPlane' is missing in type '{ wetReflection: { value: T.Texture; }; wetReflectionMatrix: { value: T.Matrix4; }; wetReflectionState: { value: T.Vector4; }; }' but required in type 'WetReflectionUniforms'.
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:58.4464707Z (node:2504) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:58.4466249Z (Use `node --trace-warnings ...` to show where the warning was created)
-browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-23T00:18:58.4587932Z ##[error]Process completed with exit code 2.
-browser (night)	Run actions/upload-artifact@v4	﻿2026-11-23T00:18:58.4703651Z ##[group]Run actions/upload-artifact@v4
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4703974Z with:
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4704190Z   name: scenery-shadow-night
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4704615Z   path: test-results/
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.4585858Z Need to get 1464 kB of archives.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.4586953Z After this operation, 4054 kB of additional disk space will be used.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.4587875Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.5573971Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.6311559Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-plugin-1-gtk amd64 0.2.2-1build2 [22.2 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.7066541Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [117 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.7885933Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.8648208Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:02.9383183Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.0127533Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.0879459Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2 [164 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.1764766Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2 [1051 kB]
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5228770Z Fetched 1464 kB in 1s (1856 kB/s)
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5454555Z Selecting previously unselected package libdecor-0-0:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5508606Z (Reading database ... 
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5509135Z (Reading database ... 5%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5509526Z (Reading database ... 10%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5509950Z (Reading database ... 15%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5510316Z (Reading database ... 20%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5510738Z (Reading database ... 25%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5511168Z (Reading database ... 30%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5511566Z (Reading database ... 35%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5512425Z (Reading database ... 40%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5512855Z (Reading database ... 45%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5513249Z (Reading database ... 50%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5531605Z (Reading database ... 55%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5587594Z (Reading database ... 60%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5610403Z (Reading database ... 65%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5645215Z (Reading database ... 70%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5668221Z (Reading database ... 75%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5837239Z (Reading database ... 80%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.5997963Z (Reading database ... 85%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6058605Z (Reading database ... 90%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6420929Z (Reading database ... 95%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6421575Z (Reading database ... 100%
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6422423Z (Reading database ... 217359 files and directories currently installed.)
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6468717Z Preparing to unpack .../0-libdecor-0-0_0.2.2-1build2_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6485771Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6745785Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6896521Z Preparing to unpack .../1-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.6907790Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.7179562Z Selecting previously unselected package libegl-mesa0:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.7327277Z Preparing to unpack .../2-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.7336499Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.7619799Z Selecting previously unselected package libxcb-xkb1:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.7765925Z Preparing to unpack .../3-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.7773269Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8036628Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8191205Z Preparing to unpack .../4-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8201357Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8473599Z Selecting previously unselected package libegl1:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8622430Z Preparing to unpack .../5-libegl1_1.7.0-1build1_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8631565Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.8889165Z Selecting previously unselected package libgles2:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9039048Z Preparing to unpack .../6-libgles2_1.7.0-1build1_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9048708Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9301771Z Selecting previously unselected package mesa-utils-bin:amd64.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9450550Z Preparing to unpack .../7-mesa-utils-bin_9.0.0-2_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9459111Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9771051Z Selecting previously unselected package mesa-utils.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9919644Z Preparing to unpack .../8-mesa-utils_9.0.0-2_amd64.deb ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:03.9928941Z Unpacking mesa-utils (9.0.0-2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0564106Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0589710Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0610905Z Setting up libgles2:amd64 (1.7.0-1build1) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0632630Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0655137Z Setting up libegl1:amd64 (1.7.0-1build1) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0675499Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0703862Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0725646Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0745865Z Setting up mesa-utils (9.0.0-2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0771395Z Processing triggers for man-db (2.12.0-4build2) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0791170Z Not building database; man-db/auto-update is not 'true'.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.0805033Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6985491Z 
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6987123Z Running kernel seems to be up-to-date.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6987553Z 
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6987823Z No services need to be restarted.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6988150Z 
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6988409Z No containers need to be restarted.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6989064Z 
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6989379Z No user sessions are running outdated binaries.
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6989744Z 
+browser (night)	Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb	2026-11-23T00:32:04.6990221Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	﻿2026-11-23T00:32:05.9725612Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/scenery-shadow-budget.spec.ts --grep 'night'
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9727197Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/scenery-shadow-budget.spec.ts --grep 'night'^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9747974Z shell: /usr/bin/bash -e {0}
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9748244Z env:
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9748442Z   DEBUG: pw:browser
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9748669Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9748920Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9749186Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:05.9749419Z ##[endgroup]
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:08.4458937Z 2026-11-23T00:32:08.444Z pw:browser <launching> /home/runner/.cache/ms-playwright/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --no-sandbox --use-gl=angle --use-angle=gl --ignore-gpu-blocklist --gpu-watchdog-timeout-seconds=120 --user-data-dir=/tmp/playwright_chromiumdev_profile-fPg0gr --remote-debugging-pipe --no-startup-window
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:08.4484987Z 2026-11-23T00:32:08.448Z pw:browser <launched> pid=4131
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.1460202Z 2026-11-23T00:32:09.145Z pw:browser [pid=4131][err] [4131:4145:1123/003209.145240:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.1781501Z 2026-11-23T00:32:09.176Z pw:browser [pid=4131][err] [4131:4145:1123/003209.171673:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.1980605Z 2026-11-23T00:32:09.197Z pw:browser [pid=4131][err] [4131:4131:1123/003209.197270:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2009382Z 2026-11-23T00:32:09.198Z pw:browser [pid=4131][err] [4131:4145:1123/003209.197920:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2018629Z 2026-11-23T00:32:09.198Z pw:browser [pid=4131][err] [4131:4145:1123/003209.197941:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2024790Z 2026-11-23T00:32:09.198Z pw:browser [pid=4131][err] [4131:4145:1123/003209.197952:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2040785Z 2026-11-23T00:32:09.198Z pw:browser [pid=4131][err] [4131:4145:1123/003209.197961:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2048186Z 2026-11-23T00:32:09.202Z pw:browser [pid=4131][err] [4131:4131:1123/003209.202317:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2101808Z 2026-11-23T00:32:09.206Z pw:browser [pid=4131][err] [4131:4131:1123/003209.204461:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2129019Z 2026-11-23T00:32:09.211Z pw:browser [pid=4131][err] [4131:4131:1123/003209.210860:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2638380Z 2026-11-23T00:32:09.263Z pw:browser [pid=4131][err] [4131:4145:1123/003209.263105:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.2648620Z 2026-11-23T00:32:09.263Z pw:browser [pid=4131][err] [4131:4145:1123/003209.263130:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.6652644Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.6665527Z 2026-11-23T00:32:09.666Z pw:browser [pid=4131] <gracefully close start>
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.7454986Z 2026-11-23T00:32:09.745Z pw:browser [pid=4131] <process did exit: exitCode=0, signal=null>
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.7459314Z 2026-11-23T00:32:09.745Z pw:browser [pid=4131] starting temporary directories cleanup
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.7563025Z 2026-11-23T00:32:09.756Z pw:browser [pid=4131] finished temporary directories cleanup
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:09.7564104Z 2026-11-23T00:32:09.756Z pw:browser [pid=4131] <gracefully close end>
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.0179749Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.0180843Z Running 1 test using 1 worker
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.0181222Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.7621543Z [browser-progress] START  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.7950523Z   ^[[30;1mpw:browser ^[[0m<launching> /home/runner/.cache/ms-playwright/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --no-sandbox --use-gl=angle --use-angle=gl --ignore-gpu-blocklist --gpu-watchdog-timeout-seconds=120 --user-data-dir=/tmp/playwright_chromiumdev_profile-Nn07TL --remote-debugging-pipe --no-startup-window ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.7979728Z   ^[[30;1mpw:browser ^[[0m<launched> pid=4243 ^[[30m+5ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9566788Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003210.954506:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+158ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9823575Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003210.979111:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+24ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9979940Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4243:1123/003210.994068:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:  ^[[30m+15ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9983832Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003210.994814:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+2ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9987815Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003210.994833:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9991729Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003210.994843:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:10.9995344Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003210.994852:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:11.0062480Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4243:1123/003211.004460:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:  ^[[30m+9ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:11.0100923Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4243:1123/003211.007166:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:  ^[[30m+3ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:11.0330944Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4243:1123/003211.013808:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files ^[[30m+22ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:11.0851354Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003211.084397:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+54ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:11.0855163Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4257:1123/003211.084414:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:13.4479371Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4259:1123/003213.408470:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+2s^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:40.0325830Z [browser-progress] 29s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:32:41.1596745Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4259:1123/003241.158670:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+28s^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:33:10.0628287Z [browser-progress] 59s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:33:30.3311380Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4259:1123/003330.330431:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+49s^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:33:40.0721175Z [browser-progress] 89s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:34:10.1042154Z [browser-progress] 119s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:34:40.1347829Z [browser-progress] 149s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:09.2049118Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4259:1123/003509.203064:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+2m^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:10.1352034Z [browser-progress] 179s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:10.9950291Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] Warning: vkCreateInstance: Found no drivers! ^[[30m+2s^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:10.9988908Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] Warning: vkCreateInstance failed with VK_ERROR_INCOMPATIBLE_DRIVER ^[[30m+3ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:11.0017567Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err]     at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:106) ^[[30m+2ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:11.0026920Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err]  ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:11.0099256Z   ^[[30;1mpw:browser ^[[0m[pid=4243][err] [4243:4243:1123/003511.007663:ERROR:services/on_device_model/public/cpp/service_client.cc:36] Unexpected on_device_model service disconnect: Error loading backend. ^[[30m+9ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:35:40.1640398Z [browser-progress] 209s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:36:10.1960679Z [browser-progress] 239s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:36:40.2066718Z [browser-progress] 269s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:10.2367639Z [browser-progress] 299s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Evaluate
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:40.2497619Z [browser-progress] 329s  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night / Close context
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:46.6441657Z   ^[[30;1mpw:browser ^[[0m[pid=4243] <gracefully close start> ^[[30m+3m^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:46.8134194Z   ^[[30;1mpw:browser ^[[0m[pid=4243] <process did exit: exitCode=0, signal=null> ^[[30m+174ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:46.8143334Z   ^[[30;1mpw:browser ^[[0m[pid=4243] starting temporary directories cleanup ^[[30m+1ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:46.8287951Z   ^[[30;1mpw:browser ^[[0m[pid=4243] finished temporary directories cleanup ^[[30m+15ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:46.8288833Z   ^[[30;1mpw:browser ^[[0m[pid=4243] <gracefully close end> ^[[30m+0ms^[[0m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4583318Z   ✘  1 e2e/scenery-shadow-budget.spec.ts:10:3 › scenery shadow budget night (5.6m)
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4584557Z [browser-failure]  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4585469Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4586549Z [browser-failure]  >  > scenery-shadow-budget.spec.ts > scenery shadow budget night
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4587533Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.4588257Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/scenery-shadow-budget.spec.ts:42:31
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5113704Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5119652Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5130055Z   1) e2e/scenery-shadow-budget.spec.ts:10:3 › scenery shadow budget night ──────────────────────────
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5130877Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5131314Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5132260Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5132650Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5133096Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5133426Z       40 |     await page.goto('/scenery-shadow-survey');
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5134246Z       41 |     await page.addScriptTag({ content: chunk.code });
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5134999Z     > 42 |     const report = await page.evaluate(
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5135571Z          |                               ^
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5138457Z       43 |       (l) =>
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5138868Z       44 |         (
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5139344Z       45 |           window as unknown as {
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5140256Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/scenery-shadow-budget.spec.ts:42:31
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5140961Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5141801Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5142965Z     test-results/scenery-shadow-budget-scenery-shadow-budget-night/trace.zip
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5143781Z     Usage:
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5143989Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5144747Z         npx playwright show-trace test-results/scenery-shadow-budget-scenery-shadow-budget-night/trace.zip
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5145572Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5147974Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5148576Z 
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5148995Z   Slow test file: e2e/scenery-shadow-budget.spec.ts (5.6m)
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5150169Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5151117Z   1 failed
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.5152196Z     e2e/scenery-shadow-budget.spec.ts:10:3 › scenery shadow budget night ───────────────────────────
+browser (night)	First complete cockpit frame, all shadow submissions, unchanged budget	2026-11-23T00:37:50.6533162Z ##[error]Process completed with exit code 1.
+browser (night)	Run actions/upload-artifact@v4	﻿2026-11-23T00:37:50.6622189Z ##[group]Run actions/upload-artifact@v4
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6622688Z with:
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6622934Z   name: scenery-shadow-night
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6623351Z   path: test-results/
 browser (night)	Run actions/upload-artifact@v4	playwright-report/
 browser (night)	Run actions/upload-artifact@v4	browser-backend.json
 browser (night)	Run actions/upload-artifact@v4	browser-progress.json
 browser (night)	Run actions/upload-artifact@v4	
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4705384Z   retention-days: 14
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4705620Z   if-no-files-found: warn
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4705866Z   compression-level: 6
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4706088Z   overwrite: false
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4706309Z   include-hidden-files: false
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4706554Z env:
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4706747Z   DEBUG: pw:browser
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4706961Z   APEX_BROWSER_BACKEND: mesa
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4707219Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4707466Z   GALLIUM_DRIVER: llvmpipe
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.4707709Z ##[endgroup]
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.6478324Z (node:2560) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.6479985Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.6530474Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.6538375Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:18:58.6555955Z ##[warning]No files were found with the provided path: test-results/
-browser (night)	Run actions/upload-artifact@v4	playwright-report/
-browser (night)	Run actions/upload-artifact@v4	browser-backend.json
-browser (night)	Run actions/upload-artifact@v4	browser-progress.json. No artifacts will be uploaded.
-browser (night)	Post Run actions/checkout@v4	﻿2026-11-23T00:18:58.6856317Z Post job cleanup.
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.7922100Z [command]/usr/bin/git version
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.7973858Z git version 2.56.1
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8023338Z Temporarily overriding HOME='/home/runner/work/_temp/3cce745c-c3a8-4254-ae8a-e68b169e4fb0' before making global git config changes
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8025595Z Adding repository directory to the temporary git global config as a safe directory
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8032917Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8084270Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8132437Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8438849Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8483067Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8806231Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (night)	Post Run actions/checkout@v4	2026-11-23T00:18:58.8870112Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (night)	Complete job	﻿2026-11-23T00:18:58.9377096Z Cleaning up orphan processes
-browser (night)	Complete job	2026-11-23T00:18:58.9800697Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6623794Z   retention-days: 14
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6624017Z   if-no-files-found: warn
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6624262Z   compression-level: 6
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6624477Z   overwrite: false
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6624690Z   include-hidden-files: false
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6624923Z env:
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6625114Z   DEBUG: pw:browser
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6625325Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6625564Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6625802Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.6626025Z ##[endgroup]
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8403564Z (node:4487) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8404492Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8539333Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8558991Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8561441Z With the provided path, there will be 20 files uploaded
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8562827Z Artifact name is valid!
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:50.8563478Z Root directory input is valid!
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:51.2180631Z Beginning upload of artifact content to blob storage
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:51.5049013Z (node:4487) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:52.3659716Z Uploaded bytes 8388608
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:52.6489904Z Uploaded bytes 16777216
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:52.8372296Z Uploaded bytes 25165824
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:52.9282271Z Uploaded bytes 33554432
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:53.1368259Z Uploaded bytes 41943040
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:53.2006837Z Uploaded bytes 50331648
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:53.3816684Z Uploaded bytes 58720256
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:53.6320366Z Uploaded bytes 67108864
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:53.9127453Z Uploaded bytes 75497472
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.1925713Z Uploaded bytes 81123620
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.2702625Z Finished uploading artifact content to blob storage!
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.2705783Z SHA256 digest of uploaded artifact zip is 2657a6eb7dab05bbca02fe42d1c037cf49cb287a40e644c1bd2efdeef397036f
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.2708223Z Finalizing artifact upload
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.6402492Z Artifact scenery-shadow-night.zip successfully finalized. Artifact ID 14781365343
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.6403913Z Artifact scenery-shadow-night has been successfully uploaded! Final size is 81123620 bytes. Artifact ID is 14781365343
+browser (night)	Run actions/upload-artifact@v4	2026-11-23T00:37:54.6414420Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45089125079/artifacts/14781365343
+browser (night)	Post Run actions/checkout@v4	﻿2026-11-23T00:37:54.6709551Z Post job cleanup.
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7641004Z [command]/usr/bin/git version
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7692645Z git version 2.56.1
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7741187Z Temporarily overriding HOME='/home/runner/work/_temp/1084dcbd-057e-48c9-a5ed-1349a92613fe' before making global git config changes
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7742775Z Adding repository directory to the temporary git global config as a safe directory
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7747505Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7796523Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.7848423Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.8150098Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.8194618Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.8505896Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (night)	Post Run actions/checkout@v4	2026-11-23T00:37:54.8556105Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (night)	Complete job	﻿2026-11-23T00:37:54.9036777Z Cleaning up orphan processes
+browser (night)	Complete job	2026-11-23T00:37:54.9458101Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
