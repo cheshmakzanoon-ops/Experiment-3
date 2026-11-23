@@ -1,0 +1,273 @@
+### qa (job 137437758401)
+--- error digest (first 120 matching lines) ---
+794:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T01:56:44.6785629Z   ✘  1 e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation (6.2m)
+798:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T01:56:44.6792750Z Error: locator.click: Test timeout of 300000ms exceeded.
+849:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2546181Z   ✘  2 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical (3.4m)
+851:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2549461Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
+856:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2551472Z Timeout:  60000ms
+907:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4663557Z   ✘  3 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (5.8m)
+909:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4667589Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+919:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5109161Z   1) e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation 
+923:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5111200Z     Error: locator.click: Test timeout of 300000ms exceeded.
+951:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5133535Z   2) e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical 
+953:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5135213Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
+958:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5137310Z     Timeout:  60000ms
+967:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5140775Z     > 83 |   await expect(page.locator('.driving-academy')).toBeVisible();
+971:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5144204Z       86 |   expect((await diag(page)).renderer!.presentationPurpose).toBe('circuit');
+988:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5158214Z   3) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards 
+990:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5159903Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+998:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5162784Z       158 |   expect((await diag(page)).state).toBe('menu');
+1002:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5166105Z       161 |   expect((await diag(page)).options).toMatchObject({
+1019:qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.7542984Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:06.9967463Z   ^[[30;1mpw:browser ^[[0m[pid=3872] <gracefully close end> ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2546181Z   ✘  2 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical (3.4m)
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2548188Z [browser-failure]  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2549461Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2549952Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2550209Z Locator:  locator('.driving-academy')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2550657Z Expected: visible
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2551073Z Received: <element(s) not found>
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2551472Z Timeout:  60000ms
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2551670Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2551800Z Call log:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2552756Z ^[[2m  - Expect "toBeVisible" with timeout 60000ms^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2553463Z ^[[2m  - waiting for locator('.driving-academy')^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2553796Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.2554279Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:83:50
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.8739092Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.9079280Z   ^[[30;1mpw:browser ^[[0m<launching> /home/runner/.cache/ms-playwright/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --no-sandbox --use-gl=angle --use-angle=gl --ignore-gpu-blocklist --gpu-watchdog-timeout-seconds=120 --user-data-dir=/tmp/playwright_chromiumdev_profile-ohYoOf --remote-debugging-pipe --no-startup-window ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:09.9112733Z   ^[[30;1mpw:browser ^[[0m<launched> pid=4068 ^[[30m+4ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.0765164Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.073987:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+165ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1027671Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.099509:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+24ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1312503Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4068:1123/020010.127821:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:  ^[[30m+30ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1314883Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.130144:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+1ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1326759Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.130165:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1330073Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.130176:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1332908Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.130185:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1370978Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4068:1123/020010.133724:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:  ^[[30m+4ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1438074Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4068:1123/020010.140126:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:  ^[[30m+6ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.1508077Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4068:1123/020010.146653:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files ^[[30m+7ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.2020746Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.201400:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+54ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:10.2025772Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020010.201417:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:29.5229536Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4085:1123/020029.522254:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+19s^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:31.6709614Z [browser-progress] 22s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:51.2671998Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4085:1123/020051.266121:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+22s^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:53.8388287Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020053.838040:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+3s^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:00:53.8391470Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020053.838070:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:01:01.6777492Z [browser-progress] 52s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:01:31.7087003Z [browser-progress] 82s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:01:48.4127682Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4085:1123/020148.411734:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+55s^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:02:01.7236966Z [browser-progress] 112s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:02:31.7527274Z [browser-progress] 142s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:01.7567195Z [browser-progress] 172s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:10.1216406Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] Warning: vkCreateInstance: Found no drivers! ^[[30m+1m^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:10.1256604Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] Warning: vkCreateInstance failed with VK_ERROR_INCOMPATIBLE_DRIVER ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:10.1286318Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err]     at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:106) ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:10.1326858Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err]  ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:10.1366447Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4068:1123/020310.125584:ERROR:services/on_device_model/public/cpp/service_client.cc:36] Unexpected on_device_model service disconnect: Error loading backend. ^[[30m+9ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:19.0867163Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4085:1123/020319.082488:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT ^[[30m+9s^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:03:31.7677649Z [browser-progress] 202s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:04:01.7977478Z [browser-progress] 232s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:04:31.8277284Z [browser-progress] 262s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:04:50.6667590Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020450.659265:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+2m^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:04:50.6696893Z   ^[[30;1mpw:browser ^[[0m[pid=4068][err] [4068:4082:1123/020450.659291:ERROR:dbus/bus.cc:408] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix") ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:01.8377131Z [browser-progress] 292s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Evaluate
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:31.8426731Z [browser-progress] 322s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:56.1537338Z   ^[[30;1mpw:browser ^[[0m[pid=4068] <gracefully close start> ^[[30m+1m^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:56.2336717Z   ^[[30;1mpw:browser ^[[0m[pid=4068] <process did exit: exitCode=0, signal=null> ^[[30m+80ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:56.2337748Z   ^[[30;1mpw:browser ^[[0m[pid=4068] starting temporary directories cleanup ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:56.2439073Z   ^[[30;1mpw:browser ^[[0m[pid=4068] finished temporary directories cleanup ^[[30m+10ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:56.2439813Z   ^[[30;1mpw:browser ^[[0m[pid=4068] <gracefully close end> ^[[30m+0ms^[[0m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4663557Z   ✘  3 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (5.8m)
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4665785Z [browser-failure]  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4667589Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4668216Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4668534Z Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4668989Z Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4669170Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4669268Z Call Log:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4669532Z - Test timeout of 300000ms exceeded
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.4670082Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5092421Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5097764Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5109161Z   1) e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5110142Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5110517Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5110868Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5111200Z     Error: locator.click: Test timeout of 300000ms exceeded.
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5111751Z     Call log:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5112493Z     ^[[2m  - waiting for locator('[data-reference="47"]').locator('summary')^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5113398Z     ^[[2m    - locator resolved to <summary>…</summary>^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5114051Z     ^[[2m  - attempting click action^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5116884Z     ^[[2m    - waiting for element to be visible, enabled and stable^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5117381Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5117393Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5117896Z       12 |   await page.getByRole('button', { name: 'REFERENCE REVIEW', exact: true }).click();
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5118805Z       13 |   const entry = page.locator(`[data-reference="${id}"]`);
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5119496Z     > 14 |   await entry.locator('summary').click();
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5120333Z          |                                  ^
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5120967Z       15 |   await entry.locator(`[data-action="reference:${id}"]`).click();
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5121548Z       16 | }
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5122193Z       17 | /** Observe completed production frames, not the selected lighting label alone.
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5123480Z         at inspect (/home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:14:34)
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5124895Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:64:3
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5125519Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5126216Z     Error Context: test-results/08-reference-implementatio-498eb-reserve-the-held-simulation/error-context.md
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5126947Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5127685Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5128827Z     test-results/08-reference-implementatio-498eb-reserve-the-held-simulation/trace.zip
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5129608Z     Usage:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5129796Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5130529Z         npx playwright show-trace test-results/08-reference-implementatio-498eb-reserve-the-held-simulation/trace.zip
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5131301Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5131943Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5132439Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5133535Z   2) e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5134416Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5135213Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5135710Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5135939Z     Locator:  locator('.driving-academy')
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5136438Z     Expected: visible
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5136855Z     Received: <element(s) not found>
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5137310Z     Timeout:  60000ms
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5137519Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5137664Z     Call log:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5138262Z     ^[[2m  - Expect "toBeVisible" with timeout 60000ms^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5138987Z     ^[[2m  - waiting for locator('.driving-academy')^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5139357Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5139366Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5139603Z       81 |   const original = await diag(page);
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5140115Z       82 |   await inspect(page, 79);
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5140775Z     > 83 |   await expect(page.locator('.driving-academy')).toBeVisible();
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5141465Z          |                                                  ^
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5142184Z       84 |   // A night preview must upgrade the daylight-only menu showroom to the
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5143044Z       85 |   // actual venue, without replacing the held simulation snapshot.
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5144204Z       86 |   expect((await diag(page)).renderer!.presentationPurpose).toBe('circuit');
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5145524Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:83:50
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5146181Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5146954Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5148112Z     test-results/08-reference-implementatio-a8312-reversible-and-non-physical/test-failed-1.png
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5149448Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5149935Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5150634Z     Error Context: test-results/08-reference-implementatio-a8312-reversible-and-non-physical/error-context.md
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5151374Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5152065Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5153118Z     test-results/08-reference-implementatio-a8312-reversible-and-non-physical/trace.zip
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5153891Z     Usage:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5154300Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5155246Z         npx playwright show-trace test-results/08-reference-implementatio-a8312-reversible-and-non-physical/trace.zip
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5156038Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5156684Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5157149Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5158214Z   3) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5159105Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5159903Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5160548Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5160820Z     Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5161384Z     Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5161686Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5161823Z     Call Log:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5162192Z     - Test timeout of 300000ms exceeded
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5162505Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5162784Z       158 |   expect((await diag(page)).state).toBe('menu');
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5163488Z       159 |   await page.locator('[data-action="academy:confirm"]').click();
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5164473Z     > 160 |   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5165620Z           |   ^
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5166105Z       161 |   expect((await diag(page)).options).toMatchObject({
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5166688Z       162 |     mode: 'practice',
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5167099Z       163 |     opponents: 0,
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5167883Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5168497Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5169152Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5170209Z     test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5170942Z     Usage:
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5171120Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5171817Z         npx playwright show-trace test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5172574Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5173139Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5173593Z 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5173730Z   3 failed
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5175008Z     e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5176770Z     e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.5178570Z     e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards 
+qa	Review-tool specs of the settings and menu regression, on the QA build	2026-11-23T02:05:58.7542984Z ##[error]Process completed with exit code 1.
+qa	Retain results including failures (test results only, never the build)	﻿2026-11-23T02:05:58.7637838Z ##[group]Run actions/upload-artifact@v4
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7638150Z with:
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7638384Z   name: settings-interaction-qa-evidence
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7638832Z   path: test-results/
+qa	Retain results including failures (test results only, never the build)	playwright-report/
+qa	Retain results including failures (test results only, never the build)	browser-backend.json
+qa	Retain results including failures (test results only, never the build)	browser-progress.json
+qa	Retain results including failures (test results only, never the build)	
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7639306Z   retention-days: 7
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7639546Z   if-no-files-found: warn
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7639797Z   compression-level: 6
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7640024Z   overwrite: false
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7640258Z   include-hidden-files: false
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7640498Z env:
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7640688Z   DEBUG: pw:browser
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7640901Z   APEX_BROWSER_BACKEND: mesa
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7641155Z   LIBGL_ALWAYS_SOFTWARE: true
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7641395Z   GALLIUM_DRIVER: llvmpipe
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7641639Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7641887Z   MOTOBOUND_REVIEW_TOOLS: 1
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.7642134Z ##[endgroup]
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9410814Z (node:4247) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9412000Z (Use `node --trace-deprecation ...` to show where the warning was created)
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9608775Z Multiple search paths detected. Calculating the least common ancestor of all paths
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9610954Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9612137Z With the provided path, there will be 31 files uploaded
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9612773Z Artifact name is valid!
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:58.9613071Z Root directory input is valid!
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:59.1686388Z Beginning upload of artifact content to blob storage
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:59.4735430Z (node:4247) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:59.7468173Z Uploaded bytes 8388608
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:05:59.9723787Z Uploaded bytes 16777216
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:00.2934423Z Uploaded bytes 25165824
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:00.6310786Z Uploaded bytes 33554432
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:00.9122795Z Uploaded bytes 41943040
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:01.1567921Z Uploaded bytes 50331648
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:01.4396642Z Uploaded bytes 58720256
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:01.7037518Z Uploaded bytes 67108864
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:01.9570903Z Uploaded bytes 75497472
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:02.2073853Z Uploaded bytes 83886080
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:02.5046195Z Uploaded bytes 92274688
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:02.7705352Z Uploaded bytes 100663296
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:03.0279856Z Uploaded bytes 109051904
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:03.2671966Z Uploaded bytes 117440512
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:03.5565830Z Uploaded bytes 125829120
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:03.8786291Z Uploaded bytes 134217728
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:04.1025932Z Uploaded bytes 142606336
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:04.4745847Z Uploaded bytes 150994944
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:04.6693168Z Uploaded bytes 159383552
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:04.9400317Z Uploaded bytes 167772160
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:05.1946267Z Uploaded bytes 176160768
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:05.4313385Z Uploaded bytes 184549376
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:05.8483342Z Uploaded bytes 192937984
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.0434270Z Uploaded bytes 201326592
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.2873797Z Uploaded bytes 209715200
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.3763039Z Uploaded bytes 212569423
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.3976305Z Finished uploading artifact content to blob storage!
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.3979459Z SHA256 digest of uploaded artifact zip is 80fe5822a488f86678d97064fe0b95a04895a6963c1e4bc626267506e6be091f
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.3981745Z Finalizing artifact upload
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.7686169Z Artifact settings-interaction-qa-evidence.zip successfully finalized. Artifact ID 14784361652
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.7687232Z Artifact settings-interaction-qa-evidence has been successfully uploaded! Final size is 212569423 bytes. Artifact ID is 14784361652
+qa	Retain results including failures (test results only, never the build)	2026-11-23T02:06:06.7690684Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45096209304/artifacts/14784361652
+qa	Post Run actions/checkout@v4	﻿2026-11-23T02:06:06.7970532Z Post job cleanup.
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.8911651Z [command]/usr/bin/git version
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.8966102Z git version 2.56.1
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9016505Z Temporarily overriding HOME='/home/runner/work/_temp/9e35fad4-71ac-4ecd-a32e-9e02ac783085' before making global git config changes
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9018197Z Adding repository directory to the temporary git global config as a safe directory
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9021992Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9095597Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9152672Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9515960Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9568300Z http.https://github.com/.extraheader
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9572057Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:06.9626693Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:07.0051443Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+qa	Post Run actions/checkout@v4	2026-11-23T02:06:07.0123284Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+qa	Complete job	﻿2026-11-23T02:06:07.0606171Z Cleaning up orphan processes
+qa	Complete job	2026-11-23T02:06:07.0997819Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
