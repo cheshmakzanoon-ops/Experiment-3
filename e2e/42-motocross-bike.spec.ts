@@ -142,6 +142,16 @@ for (const id of ['mx450', 'mx250', 'sm450'])
     expect(triangles[1]).toBeGreaterThan(triangles[2]);
   });
 
+test('Motocross wave rotor shows the spoke windows through a reversible front-wheel turn', async ({ review }) => {
+  const frames = await review.capture({
+    id: 'mx250', detail: 'high', view: 'front-brake',
+    samples: [{ frontRotation: 0 }, { frontRotation: 0.32 }, { frontRotation: 0 }],
+  });
+  for (const [i, frame] of frames.entries()) await review.attach('front-brake-' + i, frame);
+  expect(frames[1].hash).not.toBe(frames[0].hash);
+  expect(frames[2].hash).toBe(frames[0].hash);
+});
+
 test('different motocross teams keep their race colours, printed kit and hardware budgets in the chase view', async ({
   review,
 }) => {

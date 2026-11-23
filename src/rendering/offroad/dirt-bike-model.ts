@@ -25,7 +25,7 @@ import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive, distantMotocrossChain } from './motocross-chain-drive.ts';
 import { addMotocrossRadiators } from './motocross-radiators.ts';
 import { motocrossRim, motocrossRimFittings, motocrossWheelHub, motocrossWheelSpokes } from './motocross-wheel-detail.ts';
-import { installMotocrossMetalFinish } from './motocross-metal-finish.ts';
+import { installMotocrossMetalFinish, installMxRotorFinish } from './motocross-metal-finish.ts';
 import {
   bindMotocrossTyre,
   installMotocrossTyreFinish,
@@ -220,6 +220,8 @@ export class DirtBikeModel {
     });
     this.rearRotor = this.frontRotor.clone();
     this.rearRotor.name = 'Motocross rear stainless wave rotor';
+    installMxRotorFinish(this.frontRotor);
+    installMxRotorFinish(this.rearRotor);
     const chainMaterial = new T.MeshStandardMaterial({
       color: 0x938165,
       metalness: 0.78,

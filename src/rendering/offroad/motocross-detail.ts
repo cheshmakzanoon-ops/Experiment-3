@@ -1182,8 +1182,9 @@ export function motocrossRotor(
   sprocket = false,
   carrierRadius = radius,
 ) {
+  const detailCarrier = !sprocket && detail !== 'far';
   const shape = new T.Shape(),
-    count = detail === 'high' ? 120 : detail === 'mid' ? 64 : 32;
+    count = detail === 'high' ? (detailCarrier ? 80 : 120) : detail === 'mid' ? 64 : 32;
   for (let i = 0; i <= count; i++) {
     const a = (i / count) * Math.PI * 2;
     const r = radius * (sprocket ? 0.97 + 0.03 * Math.cos(a * 40) : 0.97 + 0.03 * Math.cos(a * 10));
@@ -1193,35 +1194,71 @@ export function motocrossRotor(
   const centre = new T.Path();
   centre.absarc(0, 0, carrierRadius * (detail === 'far' ? 0.22 : 0.44), 0, Math.PI * 2, true);
   shape.holes.push(centre);
-  const holes = detail === 'high' ? 12 : detail === 'mid' ? 8 : 5;
-  for (let k = 0; k < holes; k++) {
-    const a = (k / holes) * Math.PI * 2,
-      hole = new T.Path();
-    if (detail === 'far') {
-      // Five openings leave a visible carrier between the hub and brake track.
-      // The large, simple cutouts remain legible across the racing field.
-      for (const [index, [angle, reach]] of [
-        [a - 0.34, 0.76],
-        [a + 0.34, 0.76],
-        [a + 0.18, 0.39],
-        [a - 0.1, 0.39],
-      ].entries()) {
-        const x = Math.cos(angle) * radius * reach,
-          y = Math.sin(angle) * radius * reach;
-        if (index === 0) hole.moveTo(x, y);
-        else hole.lineTo(x, y);
+  if (detailCarrier) {
+    // Six swept steel arms join the hub bolts to the pad track. The openings
+    // pass through both faces, so spokes remain visible through the carrier.
+    const turn = Math.PI / 3;
+    const root = carrierRadius * 0.475;
+    for (let k = 0; k < 6; k++) {
+      // The wheel's mounting bolts start on +Y after the extrusion is turned
+      // about Y. A solid arm must lie beneath each bolt.
+      const a = Math.PI / 2 + k * turn;
+      const window = new T.Path();
+      const outline = [
+        [0.18, root], [0.25, 0.71 * radius], [0.33, 0.765 * radius],
+        [0.68, 0.771 * radius], [0.99, 0.733 * radius],
+        [turn - 0.19, root], [0.52, root],
+      ];
+      for (const [j, [angle, reach]] of outline.entries()) {
+        const x = Math.cos(a + angle) * reach, y = Math.sin(a + angle) * reach;
+        if (j === 0) window.moveTo(x, y);
+        else window.lineTo(x, y);
       }
-      hole.closePath();
-    } else
-      hole.absarc(
-        Math.cos(a) * radius * 0.73,
-        Math.sin(a) * radius * 0.73,
-        radius * (sprocket ? 0.12 : 0.085),
-        0,
-        Math.PI * 2,
-        true,
-      );
-    shape.holes.push(hole);
+      window.closePath();
+      shape.holes.push(window);
+      // Offset cooling slots across the wiped steel band. Opposite pairs
+      // have equal mass and sit clear of the scalloped outer edge.
+      const slots = detail === 'high' ? 2 : 1;
+      for (let j = 0; j < slots; j++) {
+        const angle = a + 0.27 + 0.36 * j;
+        const r = radius * (0.855 + j * 0.046);
+        const hole = new T.Path();
+        hole.absellipse(Math.cos(angle) * r, Math.sin(angle) * r,
+          radius * 0.028, radius * 0.052, 0, Math.PI * 2, true, angle - 0.24);
+        shape.holes.push(hole);
+      }
+    }
+  } else {
+    const holes = detail === 'high' ? 12 : detail === 'mid' ? 8 : 5;
+    for (let k = 0; k < holes; k++) {
+      const a = (k / holes) * Math.PI * 2,
+        hole = new T.Path();
+      if (detail === 'far') {
+        // Five openings leave a visible carrier between the hub and brake track.
+        // The large, simple cutouts remain legible across the racing field.
+        for (const [index, [angle, reach]] of [
+          [a - 0.34, 0.76],
+          [a + 0.34, 0.76],
+          [a + 0.18, 0.39],
+          [a - 0.1, 0.39],
+        ].entries()) {
+          const x = Math.cos(angle) * radius * reach,
+            y = Math.sin(angle) * radius * reach;
+          if (index === 0) hole.moveTo(x, y);
+          else hole.lineTo(x, y);
+        }
+        hole.closePath();
+      } else
+        hole.absarc(
+          Math.cos(a) * radius * 0.73,
+          Math.sin(a) * radius * 0.73,
+          radius * (sprocket ? 0.12 : 0.085),
+          0,
+          Math.PI * 2,
+          true,
+        );
+      shape.holes.push(hole);
+    }
   }
   const g = new T.ExtrudeGeometry(shape, {
     depth: 0.004,
@@ -1231,6 +1268,11 @@ export function motocrossRotor(
   });
   g.translate(0, 0, -0.002);
   g.rotateY(Math.PI / 2);
+  if (!sprocket) {
+    // Preserve the wheel plane after the rigid parts enter their draw batch.
+    const position = g.getAttribute('position'), uv = g.getAttribute('uv');
+    for (let i = 0; i < position.count; i++) uv.setXY(i, position.getY(i) / radius, position.getZ(i) / radius);
+  }
   return g;
 }
 

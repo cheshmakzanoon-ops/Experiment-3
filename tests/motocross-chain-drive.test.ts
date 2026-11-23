@@ -457,3 +457,30 @@ it('keeps the distant chain on the same sprockets and opens windows through the 
     material.dispose();
   }
 });
+
+it.each(['high', 'mid'] as const)('keeps the %s MX brake track on six hub arms with open views to the spokes', (detail) => {
+  const material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+  for (const radius of [0.117, 0.131]) {
+    const rotor = motocrossRotor(radius, detail), mesh = new T.Mesh(rotor, material);
+    const ray = new T.Raycaster();
+    const hits = (reach: number, angle: number) => {
+      ray.set(new T.Vector3(0.2, Math.sin(angle) * reach, -Math.cos(angle) * reach), new T.Vector3(-1, 0, 0));
+      return ray.intersectObject(mesh).length > 0;
+    };
+    const p = rotor.getAttribute('position'), uv = rotor.getAttribute('uv');
+    for (let i = 0; i < p.count; i += 7) {
+      expect(uv.getX(i)).toBeCloseTo(p.getY(i) / radius, 5);
+      expect(uv.getY(i)).toBeCloseTo(p.getZ(i) / radius, 5);
+    }
+    for (let k = 0; k < 6; k++) {
+      const a = Math.PI / 2 + k * Math.PI / 3;
+      expect(hits(0.061, a)).toBe(true);
+      expect(hits(radius * 0.63, a)).toBe(true);
+      expect(hits(radius * 0.63, a + 0.52)).toBe(false);
+      expect(hits(radius * 0.855, a + 0.27)).toBe(false);
+      expect(hits(radius * 0.89, a)).toBe(true);
+    }
+    rotor.dispose();
+  }
+  material.dispose();
+});

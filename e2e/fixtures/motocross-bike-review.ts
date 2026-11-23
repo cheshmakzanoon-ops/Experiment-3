@@ -177,12 +177,14 @@ export function captureMotocrossBike(
   else if (view === 'helmet') camera.position.set(0.75, 1.75, 1.2);
   else if (view === 'drivetrain') camera.position.set(1.45, 0.67, -0.54);
   else if (view === 'rear-tyre') camera.position.set(-0.9, 0.76, -1.65);
+  else if (view === 'front-brake') camera.position.set(0.78, 0.46, 0.91);
   else if (view === 'front-tyre') camera.position.set(-0.72, 0.57, 1.65);
   else camera.position.set(-3.05, 1.72, 3.6);
   camera.lookAt(0, view === 'helmet' ? 1.59 : 0.93, 0);
   if (view === 'motion-side') camera.lookAt(0, 1.12, 0);
   if (view === 'drivetrain') camera.lookAt(0.095, 0.38, -0.45);
   if (view === 'rear-tyre') camera.lookAt(0, 0.36, -0.68);
+  if (view === 'front-brake') camera.lookAt(0.055, 0.36, 0.72);
   if (view === 'front-tyre') camera.lookAt(0, 0.36, 0.72);
   if (view === 'bodywork') model.rider.root.visible = false;
   const heldShadows = samples.some((s) => s.heldShadow) ? new FarShadow() : undefined;

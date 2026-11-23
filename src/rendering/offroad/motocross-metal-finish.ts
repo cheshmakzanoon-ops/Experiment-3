@@ -95,3 +95,25 @@ export function installMotocrossMetalFinish(
     injectDeclarations(shader, 'normal_fragment_maps', NORMAL, 'fragment');
   });
 }
+
+/** Contact runs around the outer steel track. The unswept carrier stays
+ * oxidised and cooler. Wheel-plane UVs survive posing and rigid batching. */
+export function installMxRotorFinish(material: T.MeshStandardMaterial) {
+  return chainShaderHook(material, 'mx-swept-stainless-rotor-v1', (shader) => {
+    injectDeclarations(shader, 'common', 'varying vec2 vMxRotorPlane;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vMxRotorPlane = uv;', 'vertex');
+    injectDeclarations(shader, 'common', 'varying vec2 vMxRotorPlane; float mxSweptBand; float mxPadMarks;', 'fragment');
+    injectBefore(shader, 'color_fragment', `
+      float mxRotorRadius = length(vMxRotorPlane);
+      float mxRotorFootprint = max(fwidth(mxRotorRadius), .0001);
+      mxSweptBand = smoothstep(.775 - mxRotorFootprint, .807 + mxRotorFootprint, mxRotorRadius);
+      float mxResolveMarks = 1. - smoothstep(.0017, .0058, mxRotorFootprint);
+      mxPadMarks = mxResolveMarks * mxSweptBand *
+        (.58 * cos(mxRotorRadius * 576.) + .42 * cos(mxRotorRadius * 369.));
+      diffuseColor.rgb *= mix(vec3(.53, .55, .57), vec3(1.04, 1.035, 1.025), mxSweptBand) * (1. + .047 * mxPadMarks);
+    `, 'fragment');
+    injectDeclarations(shader, 'roughnessmap_fragment',
+      'roughnessFactor = clamp(roughnessFactor + .17 - .245 * mxSweptBand + .035 * mxPadMarks, .18, .95);', 'fragment');
+    injectAfter(shader, 'emissivemap_fragment', 'totalEmissiveRadiance *= .08 + .92 * mxSweptBand;', 'fragment');
+  });
+}

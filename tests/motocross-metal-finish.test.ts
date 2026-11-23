@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { installMotocrossMetalFinish } from '../src/rendering/offroad/motocross-metal-finish.ts';
+import { installMotocrossMetalFinish, installMxRotorFinish } from '../src/rendering/offroad/motocross-metal-finish.ts';
 import { installMud, mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import {
@@ -122,4 +122,16 @@ describe('motocross cast metal finish', () => {
     original.dispose();
     clone.dispose();
   });
+});
+
+it('locates the wiped metal and pad heat at the same wheel radius after batching', () => {
+  const rotor = new T.MeshPhysicalMaterial();
+  expect(installMxRotorFinish(rotor)).toBe(true);
+  expect(installMxRotorFinish(rotor)).toBe(false);
+  const shader = compile(rotor);
+  expect(shader.vertexShader).toContain('vMxRotorPlane = uv;');
+  expect(shader.fragmentShader).toContain('fwidth(mxRotorRadius)');
+  expect(shader.fragmentShader).toContain('.035 * mxPadMarks');
+  expect(shader.fragmentShader).toContain('totalEmissiveRadiance *= .08 + .92 * mxSweptBand');
+  rotor.dispose();
 });
