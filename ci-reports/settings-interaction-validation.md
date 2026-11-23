@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45265358502
-- commit: `c398f43137` · Light Valley Ridge and its reflections from a weather-matched photographic sky at every racing preset
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45266944342
+- commit: `b9ffc8d73e` · Return the floodlit clay into Arena Nord roof steel and skip obscured cloud bakes outdoors
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-23T21:01:25Z · updated: 2026-11-23T22:15:11Z
+- started: 2026-11-23T21:10:33Z · updated: 2026-11-23T22:21:01Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | success | 6 |  |
-| qa | failure | 16 | Review-tool specs of the settings and menu regression, on the QA build |
+| settings | success | 5 |  |
+| qa | failure | 21 | Review-tool specs of the settings and menu regression, on the QA build |
