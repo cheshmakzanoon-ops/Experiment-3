@@ -24,6 +24,7 @@ import { FORMULA_APX01, setupFor, type VehicleDefinition, type VehicleSpec } fro
 import {
   controls,
   DEFAULT_SETUP,
+  WING_DETACH_HEALTH,
   type Assist,
   type Compound,
   type Controls,
@@ -487,8 +488,10 @@ export class Vehicle {
             ? 0.55
             : 0;
     this.overtakeClock = Math.max(0, this.overtakeClock - dt);
-    if (!this.definition.drs) this.drsOpen = false;
-    this.drsFlap = clamp(this.drsFlap + (this.drsOpen ? dt : -dt) / DRS.travel, 0, 1);
+    if (!this.definition.drs || this.rearHealth <= WING_DETACH_HEALTH) {
+      this.drsOpen = false;
+      this.drsFlap = 0;
+    } else this.drsFlap = clamp(this.drsFlap + (this.drsOpen ? dt : -dt) / DRS.travel, 0, 1);
     // An axle motor (hybridAxle) drives its own wheels above its threshold
     // speed instead of adding shaft torque; it regenerates on that axle.
     const axleMotor = this.definition.hybridAxle;
@@ -1013,12 +1016,12 @@ export class Vehicle {
     this.suspensionDamage = Math.max(...this.cornerDamage);
     this.impact = Math.max(this.impact, Math.min(1, energy / 30000));
     // Wing detachment transfers its inherited momentum into a physical fragment.
-    if (this.frontHealth < 0.08 && !this.frontDetached) this.detach(1, ...st.frontElement);
-    if (this.rearHealth < 0.08 && !this.rearDetached) this.detach(2, ...st.rearElement);
+    if (this.frontHealth <= WING_DETACH_HEALTH && !this.frontDetached) this.detach(1, ...st.frontElement);
+    if (this.rearHealth <= WING_DETACH_HEALTH && !this.rearDetached) this.detach(2, ...st.rearElement);
   }
   repairFrontWing(dt: number) {
     this.frontHealth = Math.min(1, this.frontHealth + dt * 0.3);
-    if (this.frontDetached && this.frontHealth > 0.08) {
+    if (this.frontDetached && this.frontHealth > WING_DETACH_HEALTH) {
       this.lostMass = Math.max(0, this.lostMass - this.definition.stations.frontElement[1]);
       this.frontDetached = false;
     }

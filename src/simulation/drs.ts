@@ -1,3 +1,4 @@
+import { WING_DETACH_HEALTH } from './config.ts';
 import { mod } from '../core/math.ts';
 import type { DrsZone } from './circuits.ts';
 import type { Vehicle } from './vehicle.ts';
@@ -139,6 +140,7 @@ export class DrsControl {
       const available =
         this.enabled &&
         !!zone &&
+        c.rearHealth > WING_DETACH_HEALTH &&
         !c.inPit &&
         !c.retired &&
         !context.yellow(i) &&

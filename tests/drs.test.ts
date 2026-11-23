@@ -6,6 +6,7 @@ import {
   DEFAULT_OPTIONS,
   DEFAULT_SETUP,
   VEHICLE,
+  WING_DETACH_HEALTH,
   controls,
 } from '../src/simulation/config.ts';
 import { PIT_CHOICES, selectedPitCompound } from '../src/ui/race-day-hud.ts';
@@ -32,13 +33,14 @@ import { DEFAULT_SETTINGS } from '../src/storage/data.ts';
 const forces = (): AeroForces => ({ front: 0, rear: 0, floor: 0, drag: 0, wake: 0 });
 type Stub = Pick<
   Vehicle,
-  's' | 'inPit' | 'retired' | 'finishTime' | 'brake' | 'drsRequest' | 'drsOpen'
+  's' | 'inPit' | 'retired' | 'finishTime' | 'rearHealth' | 'brake' | 'drsRequest' | 'drsOpen'
 >;
 const stub = (s: number): Stub => ({
   s,
   inPit: false,
   retired: false,
   finishTime: 0,
+  rearHealth: 1,
   brake: 0,
   drsRequest: false,
   drsOpen: false,
@@ -134,6 +136,29 @@ describe('DRS zones and rules', () => {
     expect(openUntil).toBeGreaterThan(470 - 2);
     expect(control.eligibleZone[1]).toBe(-1);
     expect(control.state[1]).toBe(DRS_STATE.OFF);
+  });
+
+  it('removes flap authority and its drag benefit when the rear wing departs', () => {
+    const ctx = context({ racing: false }),
+      cars = [stub(2150)];
+    const control = new DrsControl(AUREL_ZONE, LENGTH, 1, [2150]);
+    run(control, cars, [70], 3, ctx, 0, () => (cars[0].drsRequest = true));
+    expect(cars[0].drsOpen).toBe(true);
+    cars[0].rearHealth = WING_DETACH_HEALTH;
+    run(control, cars, [70], 0.05, ctx, 3, () => (cars[0].drsRequest = true));
+    expect(control.state[0]).toBe(DRS_STATE.OFF);
+    expect(cars[0].drsOpen).toBe(false);
+    for (const health of [1, 0.5, WING_DETACH_HEALTH, 0]) {
+      const closed = forces(),
+        open = forces();
+      aero(70, DEFAULT_SETUP, 0.05, 0.07, 1, health, 1, 0, 0, closed);
+      aero(70, DEFAULT_SETUP, 0.05, 0.07, 1, health, 1, 0, 0, open, 1);
+      if (health <= WING_DETACH_HEALTH) expect(open.rear).toBe(0);
+      expect(1 - open.drag / closed.drag).toBeCloseTo(
+        DRS.dragLoss * (health > WING_DETACH_HEALTH ? health : 0),
+        10,
+      );
+    }
   });
 
   it('needs the gap under 1.0 s, race lap 3, a dry track and no yellow or safety car', () => {

@@ -68,7 +68,7 @@ import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steerin
 import { carbonMaterial, treadMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
 import { box, canvasTexture, cockpitShell, mergeStatic, mesh, rod } from './geometry.ts';
-import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
+import { COMPOUNDS, LIVERIES, WING_DETACH_HEALTH } from '../simulation/config.ts';
 import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
@@ -854,8 +854,8 @@ export class FormulaCar {
       reduced.brakes[i].rotation.x = reduced.spins[i].rotation.x;
     }
     reduced.rearFlap.setTravel(sampleValue(a, b, o + RACE_BASE + R.DRS_FLAP, t));
-    reduced.front.visible = source[o + F.FRONT_HEALTH] > 0.08;
-    reduced.rear.visible = source[o + F.REAR_HEALTH] > 0.08;
+    reduced.front.visible = source[o + F.FRONT_HEALTH] > WING_DETACH_HEALTH;
+    reduced.rear.visible = source[o + F.REAR_HEALTH] > WING_DETACH_HEALTH;
     reduced.front.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];
     reduced.front.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
     reduced.rear.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;
@@ -906,8 +906,8 @@ export class FormulaCar {
     }
     this.updateSuspension(this.wheelPivots);
     this.rearFlap.setTravel(sampleValue(a, b, o + RACE_BASE + R.DRS_FLAP, t));
-    this.frontWing.visible = source[o + F.FRONT_HEALTH] > 0.08;
-    this.rearWing.visible = source[o + F.REAR_HEALTH] > 0.08;
+    this.frontWing.visible = source[o + F.FRONT_HEALTH] > WING_DETACH_HEALTH;
+    this.rearWing.visible = source[o + F.REAR_HEALTH] > WING_DETACH_HEALTH;
     this.frontWing.scale.x = 0.35 + 0.65 * source[o + F.FRONT_HEALTH];
     this.frontWing.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
     this.rearWing.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;

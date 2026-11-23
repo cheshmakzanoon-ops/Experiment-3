@@ -11,7 +11,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
 import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
-import { COMPOUNDS } from '../simulation/config.ts';
+import { COMPOUNDS, WING_DETACH_HEALTH } from '../simulation/config.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import { contactHubLength, sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
 import { bindSuppliedTire, type RecordedTire } from './recorded-tire.ts';
@@ -503,8 +503,8 @@ export class SuppliedPlayer {
         (i % 2 === 0 ? -1 : 1) *
         serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
     }
-    this.front.visible = source[o + F.FRONT_HEALTH] > 0.08;
-    this.rear.visible = source[o + F.REAR_HEALTH] > 0.08;
+    this.front.visible = source[o + F.FRONT_HEALTH] > WING_DETACH_HEALTH;
+    this.rear.visible = source[o + F.REAR_HEALTH] > WING_DETACH_HEALTH;
     this.front.scale.x = 0.35 + 0.65 * clamp(source[o + F.FRONT_HEALTH], 0, 1);
     this.front.rotation.z = (1 - source[o + F.FRONT_HEALTH]) * 0.12;
     this.rear.rotation.z = (1 - source[o + F.REAR_HEALTH]) * 0.09;

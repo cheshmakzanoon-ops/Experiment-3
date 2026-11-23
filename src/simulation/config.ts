@@ -123,6 +123,8 @@ export const COMPOUNDS: Record<
 };
 /** The Formula APX-01 specification (vehicles.ts owns every definition). */
 export const VEHICLE = FORMULA_APX01.spec;
+/** Remaining structure at or below this fraction releases the wing. */
+export const WING_DETACH_HEALTH = 0.08;
 export interface SessionOptions {
   /** Original circuit; Aurel when absent (older saves and callers). */
   circuit?: CircuitId;

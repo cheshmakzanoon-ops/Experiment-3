@@ -1,3 +1,4 @@
+import { WING_DETACH_HEALTH } from '../../simulation/config.ts';
 import { lampMaterial } from './materials.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -388,8 +389,8 @@ export class VehicleBodies {
         body.lods.forEach((lod, i) => (lod.group.visible = i === level));
         body.level = level;
       }
-      const front = source[o + F.FRONT_HEALTH] > 0.08,
-        rear = source[o + F.REAR_HEALTH] > 0.08;
+      const front = source[o + F.FRONT_HEALTH] > WING_DETACH_HEALTH,
+        rear = source[o + F.REAR_HEALTH] > WING_DETACH_HEALTH;
       const brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], t);
       body.materials.tail.emissiveIntensity = brake > 0.05 ? 3.2 : headlights ? 1.1 : 0.55;
       body.materials.head.emissiveIntensity = headlights ? 2.6 : 0.35;

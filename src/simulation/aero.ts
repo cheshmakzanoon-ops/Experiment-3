@@ -1,6 +1,6 @@
 import { sampleAeroMap } from './aero-map.ts';
 import { smooth, Vec3 } from '../core/math.ts';
-import { VEHICLE, type Setup } from './config.ts';
+import { VEHICLE, WING_DETACH_HEALTH, type Setup } from './config.ts';
 import { DRS } from './drs.ts';
 import type { Vehicle } from './vehicle.ts';
 const FORMULA_BODY = Object.freeze({ downforce: 1, drag: 1 });
@@ -127,11 +127,12 @@ export function aero(
     yawLoss = Math.exp(-Math.abs(yawSlip) * 0.85),
     pitch = Math.atan2(frontHeight - rearHeight, wheelbase);
   sampleAeroMap(frontHeight, rearHeight, pitch, out);
+  const rearWing = rearHealth > WING_DETACH_HEALTH ? rearHealth : 0;
   out.front *= q * (0.85 + setup.frontWing * 0.8) * frontHealth * (1 - 0.43 * wake) * yawLoss;
   out.rear *=
     q *
     (1.05 + setup.rearWing * 0.9) *
-    rearHealth *
+    rearWing *
     (1 - 0.2 * wake) *
     yawLoss *
     (1 - DRS.rearLoss * drs);
@@ -140,7 +141,7 @@ export function aero(
     q *
     (0.76 + setup.frontWing * 0.14 + setup.rearWing * 0.23 + (1 - frontHealth) * 0.12) *
     (1 - 0.16 * tow) *
-    (1 - DRS.dragLoss * drs);
+    (1 - DRS.dragLoss * drs * rearWing);
   if (body !== FORMULA_BODY) {
     out.front *= body.downforce;
     out.rear *= body.downforce;
