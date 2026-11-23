@@ -36,7 +36,7 @@ import { compileSceneTarget, PreparationTrace, warmRoadGridColour } from './prep
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import type { SuppliedPlayerAsset } from './supplied-player.ts';
-import { detailDistance, feedDetailDistance } from './view-detail.ts';
+import { detailDistance, feedDetailDistance, formulaRivalDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
@@ -2454,7 +2454,14 @@ export class RacingRenderer {
       const slot = this.cars[id];
       if (definition.dynamicsKind !== 'bike' && !(slot instanceof RoadBikeHost))
         slot.setLod(
-          detailDistance(distance, this.camera.fov, this.camera.aspect),
+          definition.drs
+            ? formulaRivalDistance(
+                distance,
+                this.camera.fov,
+                this.camera.aspect,
+                this.scenePass.target.height,
+              )
+            : detailDistance(distance, this.camera.fov, this.camera.aspect),
           this.quality,
           false,
         );

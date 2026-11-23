@@ -855,7 +855,9 @@ export class Vehicle {
       this.setup,
       this.aeroFront,
       this.aeroRear,
-      this.frontHealth,
+      // The departed Formula wing has no aerodynamic surface. The floor
+      // still produces its own axle load until the crew fits a replacement.
+      this.definition.drs && this.frontHealth <= WING_DETACH_HEALTH ? 0 : this.frontHealth,
       this.rearHealth,
       this.floorHealth,
       this.wake,

@@ -30,6 +30,14 @@ export function detailDistance(distance: number, fov = 58, aspect = 16 / 9): num
   return distance * scale;
 }
 
+/** Rival Formula bodies have three complete sculpts. Their handoff was
+ * authored at 1080 rows. Keep the same apparent tyre and wing size on a
+ * lower-resolution race target and retain fine detail longer at 4K. */
+export function formulaRivalDistance(distance: number, fov: number, aspect: number, height: number) {
+  if (!Number.isFinite(height) || height <= 0) throw new Error('Invalid Formula race target height');
+  return detailDistance(distance, fov, aspect) * Math.max(0.67, Math.min(2.65, 1080 / height));
+}
+
 /** Equivalent main-view distance of a subject in a smaller feed, such as a
  * rear-view mirror: the lens correction above, scaled by how many fewer pixel
  * rows the feed has than the main view. A reflection 20 px tall then chooses

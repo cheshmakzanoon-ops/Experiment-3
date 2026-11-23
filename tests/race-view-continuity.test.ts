@@ -176,6 +176,7 @@ describe('current-view detail and deterministic presentation', () => {
           cars,
           follow,
           quality: 'high',
+          scenePass: { target: { height: 1080 } },
           // Every cockpit camera reads the player's Graphics "Cockpit field of view" (8fcc2ae), so the
           // hand-built renderer needs the real option set, not just the cars.
           graphics: graphicsPreset('high'),
