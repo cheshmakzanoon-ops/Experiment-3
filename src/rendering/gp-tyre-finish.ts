@@ -138,7 +138,7 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
   // Threshold between the two authored widths and the permanent tread design
   // (race slick, road sport, period rib). Shared by the three LODs of one bike.
   const sectionUniform = { value: new T.Vector2((f.halfWidth + r.halfWidth) / 2, 0) };
-  chainShaderHook(material, 'gp-tyre-drainage-v5', (shader) => {
+  chainShaderHook(material, 'gp-tyre-drainage-v6', (shader) => {
     Object.assign(shader.uniforms, {
       gpTyreFront: front,
       gpTyrePickup: pickup,
@@ -164,6 +164,10 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       uniform vec2 gpTyreStyle, gpTyreSection, gpTyrePickup;
       ${hasLetters ? 'uniform sampler2D gpTyreLetters;' : ''}
       float gpTyreRelief, gpTyreRoughness, gpTyreCoverage;
+      // Integrated length of periodic rectangular channels on the unwrapped tread.
+      float gpChannelArea(float turns, float duty) {
+        return floor(turns)*duty + min(fract(turns),duty);
+      }
     `,
       'fragment',
     );
@@ -185,17 +189,30 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       float road=step(.5,gpTyreSection.y);
       float vintage=step(1.5,gpTyreSection.y);
       float cuts=mix(mix(28.,32.,road),40.,step(1.5,gpTyreStyle.x));
-      float phase=theta*cuts + across*mix(.85,.58,vintage) + sin(across*3.14159265)*.16;
+      float sweep=across*mix(.85,.58,vintage) + sin(across*3.14159265)*.16;
       // Stagger the two banks of road channels; the centre rib stays continuous.
-      phase+=road*smoothstep(-.12,.12,p.x/max(p.w,.03))*.32;
-      // Derivatives of the continuous plane, not of fract(), avoid a dark
-      // unfiltered seam at every groove. Fade subpixel grooves to no relief.
-      float px=max(fwidth(phase),.00001);
-      float resolved=1.-smoothstep(.16,.45,px);
+      sweep+=road*smoothstep(-.12,.12,p.x/max(p.w,.03))*.32;
+      float phase=theta*cuts+sweep;
       float width=mix(.033,.048,step(1.5,gpTyreStyle.x));
-      float groove=(1.-smoothstep(width-px*.5,width+px*.5,abs(fract(phase)-.5)))
-        * smoothstep(.1,.2,across) * (1.-smoothstep(.87,.97,across))
-        * max(step(.5,gpTyreStyle.x),road) * resolved;
+      float groove=0., reliefWeight=1.;
+      if (road>.5) {
+        float px=max(fwidth(phase),.00001);
+        groove=(1.-smoothstep(width-px*.5,width+px*.5,abs(fract(phase)-.5)))
+          *(1.-smoothstep(.16,.45,px));
+      } else if (gpTyreStyle.x>.5) {
+        // atan wraps by a full revolution on the underside of the tyre. Its
+        // analytic gradient keeps the screen footprint continuous across that seam.
+        vec2 angularGradient=vec2(-p.z,p.y)*cuts/(6.28318530718*max(dot(p.yz,p.yz),.000001));
+        float px=max(abs(dot(angularGradient,dFdx(p.yz))+dFdx(sweep))
+             + abs(dot(angularGradient,dFdy(p.yz))+dFdy(sweep)),.001);
+        float centre=phase-.5+width;
+        groove=clamp((gpChannelArea(centre+.5*px,2.*width)
+                    - gpChannelArea(centre-.5*px,2.*width))/px,0.,1.);
+        // Distant channels retain their rubber/void ratio without perturbing
+        // the normal with detail smaller than a fragment.
+        reliefWeight=1.-smoothstep(.16,.45,px);
+      }
+      groove*=smoothstep(.1,.2,across)*(1.-smoothstep(.87,.97,across));
       float ribDistance=abs(across-(.21+.026*sin(theta*6.28318530718*24.)));
       float ribPixel=max(fwidth(across),.0001);
       float rib=(1.-smoothstep(.018-ribPixel*.5,.018+ribPixel*.5,ribDistance))
@@ -223,7 +240,7 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       diffuseColor.rgb *= mix(1., mix(1.08,.94,heat)*mix(1.,.56,groove)
         *(1.+scrub*(.36+(streak-.5)*.14*resolvedScrub)+grain*.022*resolvedGrain)
         *(1.-.18*fresh)*(1.-.14*hotPatch),gpTyreCoverage*crown);
-      gpTyreRelief=(-.0016*groove + .000035*(streak-.5)*scuff
+      gpTyreRelief=(-.0016*groove*reliefWeight + .000035*(streak-.5)*scuff
         + grain*.000018*resolvedGrain*crown)*gpTyreCoverage;
       gpTyreRoughness=clamp(mix(.71,.84-.08*heat+.055*condition.x,crown)
         +.07*scrub-.2*fresh-.05*hotPatch-.20*water*crown+.12*groove,.48,.94);

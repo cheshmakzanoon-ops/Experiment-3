@@ -52,6 +52,9 @@ on:
       - 'e2e/motorcycle-presentation.spec.ts'
       - 'e2e/gp-rear-chassis.spec.ts'
       - 'e2e/fixtures/gp-tyre-footprint.ts'
+      - 'e2e/gp-r5-tyre-review.spec.ts'
+      - 'e2e/fixtures/gp-r5-tyre-review.ts'
+      - 'e2e/fixtures/gp-tyre-drainage.ts'
       - 'e2e/gp-optical-rain.spec.ts'
       - 'e2e/gp-front-brake.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
@@ -163,6 +166,8 @@ jobs:
           src/rendering/gp-brake-rotor.ts src/rendering/gp-radial-caliper.ts
           src/rendering/gp-tyre-carcass.ts src/rendering/gp-rubber-imprint.ts
           src/rendering/gp-slip-marks.ts e2e/fixtures/gp-tyre-footprint.ts
+          src/rendering/gp-tyre-finish.ts e2e/fixtures/gp-r5-tyre-review.ts
+          e2e/fixtures/gp-tyre-drainage.ts e2e/gp-r5-tyre-review.spec.ts
           src/rendering/gp-front-hydraulics.ts src/rendering/gp-rider-garment.ts src/rendering/gp-fuel-filler.ts
           src/rendering/bike.ts src/rendering/gp-rider-glove.ts src/rendering/rider.ts
           src/rendering/venue-kit/gp-course-bridge.ts src/rendering/venue-kit/structures.ts
@@ -265,7 +270,7 @@ jobs:
       matrix:
         include:
           - scene: presentation
-            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts e2e/gp-front-brake.spec.ts
+            specs: e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp-rear-chassis.spec.ts e2e/gp-fork-crown.spec.ts e2e/gp-front-brake.spec.ts e2e/gp-r5-tyre-review.spec.ts
           - scene: rider-contact
             specs: e2e/gp-rider-contact.spec.ts e2e/gp-visor-and-flags.spec.ts
           - scene: course-construction

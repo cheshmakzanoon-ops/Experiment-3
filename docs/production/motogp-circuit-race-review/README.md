@@ -10,6 +10,10 @@ Four riders enter the same Poggio Alto corner on High. The followed bike is trav
 
 The tyre shader uses the load, inflation pressure and measured road plane at each axle. This side-on inspection resolves one millimetre per pixel. The visible footprint grew from 38 mm unloaded to 120 mm at 1,650 N. Raising the inflation pressure at that load reduced deflection from 8.51 to 6.56 mm. The lifted wheel cleared the plane by 63 mm.
 
+![The GP rear tyre in matched lighting, fitted with a used slick, an intermediate and a wet compound](gp-tyre-compounds.webp)
+
+From left to right, the same rear wheel wears a used slick, an intermediate and a wet tyre. When the rain channels project smaller than a pixel, the camera retains the proportion of cut rubber. In a controlled WebGL measurement, one groove period per pixel previously produced zero channel coverage. It now measures 9.60%, matching the 9.6% of the mould cut by the channel. The close-up slicks reproduced the previous pixels exactly.
+
 ![The GP-R2 fuel tank and helmet visor above the GP-R1 left-hand control and rear carrier](gp-prototype-controls.jpg)
 
 The tank has a recessed filler latch, socket heads and molded knee grips. The helmet has two jaw intakes and a replaceable visor film with a folded release tab on the left retaining post. At the rear wheel, five open windows and five recessed wrench sockets rotate with the carrier. Its hollow collar seats inside the wheel hub. The complete High models submit 109,980 triangles for the GP-R1 and 109,382 for the GP-R2, including the repeated chain plates and rollers.

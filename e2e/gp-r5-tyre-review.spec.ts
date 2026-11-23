@@ -55,6 +55,11 @@ test('GP R5: actual slick, intermediate and wet tyre shader holds and rewinds wi
   expect(hashes[3]).toBe(hashes[4]);
   expect(hashes[0]).toBe(hashes[5]);
   expect(review.captures.map((c) => c.drainage)).toEqual([0, 0, 1, 2, 2, 0]);
+  for (const sample of review.drainageFilter) {
+    expect(sample.maxSeamError).toBeLessThan(0.002);
+    expect(sample.maxCoverageError).toBeLessThan(0.005);
+    expect(Math.abs(sample.meanCoverage - 0.096)).toBeLessThan(0.004);
+  }
   await info.attach('tyre-conditions.json', {
     body: JSON.stringify(review, (k, v) => (k === 'image' ? undefined : v), 2),
     contentType: 'application/json',

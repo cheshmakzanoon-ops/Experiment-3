@@ -110,7 +110,7 @@ describe('GP R5 recorded tyre material state', () => {
     expect(shader.uniforms.gpTyreFront).toBe(finish.front);
     expect(shader.uniforms.gpTyreRear).toBe(finish.rear);
     expect(shader.uniforms.gpTyrePickup).toBe(finish.pickup);
-    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v5');
+    expect(material.customProgramCacheKey()).toContain('gp-tyre-drainage-v6');
     material.dispose();
   });
   it('selects both classic tyres correctly and presents a locked front and spinning rear independently', () => {

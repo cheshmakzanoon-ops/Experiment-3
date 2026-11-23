@@ -2,6 +2,7 @@ import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, tyreGeometry } from '../../src/rendering/bike.ts';
 import { type GpTyreAppearance } from '../../src/rendering/gp-tyre-finish.ts';
+import { measureGpDrainage } from './gp-tyre-drainage.ts';
 
 /** Actual production tyre mesh and material, isolated to inspect tread response.
  * These are material-state observations, not a gameplay or frame-rate benchmark. */
@@ -90,6 +91,7 @@ export function captureGpTyreConditions() {
           drainage: materials.tyreFinish.style.value.x,
         };
       }),
+      drainageFilter: measureGpDrainage(renderer),
     };
   } finally {
     geometry.dispose();
