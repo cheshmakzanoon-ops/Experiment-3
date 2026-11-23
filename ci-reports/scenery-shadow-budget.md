@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45141060620
-- commit: `30fd111142` · Keep GP wet tyre drainage visible at distance and continuous across the wheel seam
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-23T08:44:28Z · updated: 2026-11-23T08:52:08Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45241152720
+- commit: `327de3ea17` · Sculpt banked racing grooves into MX and SX tyre contact and track surfaces
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-23T18:42:01Z · updated: 2026-11-23T18:50:52Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
 | browser (sunset) | success | 7 |  |
-| browser (night) | success | 6 |  |
-| browser (day) | success | 7 |  |
+| browser (day) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | success | 7 |  |
