@@ -1,1 +1,204 @@
-logs unavailable (expired or not accessible)
+### unit-tests (1) (job 137549348930)
+--- error digest (first 120 matching lines) ---
+162:unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:33.7345504Z ##[error]The operation was canceled.
+179:unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8806695Z ##[error]No files were found with the provided path: /home/runner/work/_temp/unit-1.json
+
+--- last 250 lines ---
+unit-tests (1)	Set up job	﻿2026-11-23T07:36:59.0078928Z Current runner version: '2.338.2'
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0100491Z ##[group]Runner Image Provisioner
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0101627Z Hosted Compute Agent
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0102193Z Version: 20261111.635
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0102793Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0103388Z Build Date: 2026-11-11T01:49:01Z
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0104021Z Worker ID: {2cb3d45e-fe1e-4c56-acdf-1460f97c1f7f}
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0104654Z Region: westus2
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0105141Z Cloud: Azure
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0105615Z ##[endgroup]
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0106750Z ##[group]Operating System
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0107319Z Ubuntu
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0107800Z 24.04.5
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0108228Z LTS
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0108768Z ##[endgroup]
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0109242Z ##[group]Runner Image
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0109776Z Image: ubuntu-24.04
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0110295Z Version: 20261116.376.1
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0111375Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.376/images/ubuntu/Ubuntu2404-Readme.md
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0112908Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.376
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0114183Z ##[endgroup]
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0115090Z ##[group]GITHUB_TOKEN Permissions
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0116917Z Contents: read
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0117435Z Metadata: read
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0117892Z ##[endgroup]
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0119924Z Secret source: Actions
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0120719Z Cache mode: write
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0121525Z Prepare workflow directory
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0381940Z Prepare all required actions
+unit-tests (1)	Set up job	2026-11-23T07:36:59.0421934Z Getting action download info
+unit-tests (1)	Set up job	2026-11-23T07:36:59.3789158Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+unit-tests (1)	Set up job	2026-11-23T07:36:59.8053056Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+unit-tests (1)	Set up job	2026-11-23T07:37:00.0525556Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+unit-tests (1)	Set up job	2026-11-23T07:37:00.3596017Z Complete job name: unit-tests (1)
+unit-tests (1)	Run actions/checkout@v4	﻿2026-11-23T07:37:00.4291570Z ##[group]Run actions/checkout@v4
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4292377Z with:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4292800Z   repository: cheshmakzanoon-ops/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4295870Z   token: ***
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4296256Z   ssh-strict: true
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4296642Z   ssh-user: git
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4297028Z   persist-credentials: true
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4297445Z   clean: true
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4297828Z   sparse-checkout-cone-mode: true
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4298279Z   fetch-depth: 1
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4298647Z   fetch-tags: false
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4299020Z   show-progress: true
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4299413Z   lfs: false
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4299777Z   submodules: false
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4300161Z   set-safe-directory: true
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4300586Z   allow-unsafe-pr-checkout: false
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:00.4301518Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9970899Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9972442Z ##[group]Getting Git version info
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9972832Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:01.9973441Z [command]/usr/bin/git version
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2230844Z git version 2.56.1
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2247703Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2261618Z Temporarily overriding HOME='/home/runner/work/_temp/b883aff3-9687-41e0-966e-f6e83b957094' before making global git config changes
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2262938Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2266378Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2544615Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2552401Z ##[group]Initializing the repository
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2553069Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2679292Z hint: Using 'master' as the name for the initial branch. This default branch name
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2680786Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2681535Z hint: to use in all of your new repositories, which will suppress this warning,
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2682082Z hint: call:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2682434Z hint:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2682823Z hint: 	git config --global init.defaultBranch <name>
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2683298Z hint:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2683580Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684019Z hint: 'development'. The just-created branch can be renamed via this command:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684372Z hint:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684592Z hint: 	git branch -m <name>
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2684815Z hint:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2685118Z hint: Disable this message with "git config set advice.defaultBranchName false"
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2687127Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2698046Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2785326Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2786075Z ##[group]Disabling automatic garbage collection
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2788307Z [command]/usr/bin/git config --local gc.auto 0
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2825810Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2826372Z ##[group]Setting up auth
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2832910Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.2881817Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3236452Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3273019Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3480527Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3517231Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3721822Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3772450Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3773091Z ##[group]Fetching the repository
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:02.3782826Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ae7e268d314d0b2c0b8dbf2b9ac605a10ac3b098:refs/remotes/origin/main
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4179021Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4179737Z  * [new ref]         ae7e268d314d0b2c0b8dbf2b9ac605a10ac3b098 -> origin/main
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4184314Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4184814Z ##[group]Determining the checkout info
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4186960Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.4191938Z [command]/usr/bin/git sparse-checkout disable
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.5648623Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.5689740Z ##[group]Checking out the ref
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:27.5690139Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.5927374Z Updating files:  60% (5694/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6009979Z Updating files:  61% (5773/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6095132Z Updating files:  62% (5868/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6266245Z Updating files:  63% (5962/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6427947Z Updating files:  64% (6057/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6634085Z Updating files:  65% (6151/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.6948108Z Updating files:  66% (6246/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7117819Z Updating files:  67% (6341/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7281186Z Updating files:  68% (6435/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7531805Z Updating files:  69% (6530/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7802903Z Updating files:  70% (6625/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7851339Z Updating files:  71% (6719/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7904852Z Updating files:  72% (6814/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.7954213Z Updating files:  73% (6908/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.8548498Z Updating files:  74% (7003/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:28.8910245Z Updating files:  75% (7098/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.1842650Z Updating files:  76% (7192/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2675273Z Updating files:  77% (7287/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2759696Z Updating files:  78% (7382/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2812839Z Updating files:  79% (7476/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.2918018Z Updating files:  80% (7571/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3236540Z Updating files:  81% (7666/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3300355Z Updating files:  82% (7760/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3454792Z Updating files:  83% (7855/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3509260Z Updating files:  84% (7949/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3578001Z Updating files:  85% (8044/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3710241Z Updating files:  86% (8139/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3769828Z Updating files:  87% (8233/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3827731Z Updating files:  88% (8328/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3886217Z Updating files:  89% (8423/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3941524Z Updating files:  90% (8517/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.3995827Z Updating files:  91% (8612/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4050314Z Updating files:  92% (8706/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4104703Z Updating files:  93% (8801/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4154211Z Updating files:  94% (8896/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4208731Z Updating files:  95% (8990/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4262138Z Updating files:  96% (9085/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4312978Z Updating files:  97% (9180/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4364993Z Updating files:  98% (9274/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4418276Z Updating files:  99% (9369/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4418844Z Updating files: 100% (9463/9463)
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.4419171Z Updating files: 100% (9463/9463), done.
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5734422Z Switched to a new branch 'main'
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5750730Z branch 'main' set up to track 'origin/main'.
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5866006Z ##[endgroup]
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5913800Z [command]/usr/bin/git log -1 --format=%H
+unit-tests (1)	Run actions/checkout@v4	2026-11-23T07:37:29.5944755Z ae7e268d314d0b2c0b8dbf2b9ac605a10ac3b098
+unit-tests (1)	Run actions/setup-node@v4	﻿2026-11-23T07:37:29.6431405Z ##[group]Run actions/setup-node@v4
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6431671Z with:
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6431840Z   node-version: 22
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6432011Z   cache: npm
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6432170Z   always-auth: false
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6432344Z   check-latest: false
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6434262Z   token: ***
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.6434429Z ##[endgroup]
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8298029Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8301362Z (node:2626) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8302247Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:29.8304440Z ##[group]Environment details
+unit-tests (1)	Run actions/setup-node@v4	2026-11-23T07:37:33.7345504Z ##[error]The operation was canceled.
+unit-tests (1)	Unit results, including failures	﻿2026-11-23T07:37:33.7427267Z ##[group]Run actions/upload-artifact@v4
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7427501Z with:
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7427672Z   name: unit-validation-1-of-4
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7427981Z   path: /home/runner/work/_temp/unit-1.json
+unit-tests (1)	Unit results, including failures	/home/runner/work/_temp/unit-1.log
+unit-tests (1)	Unit results, including failures	
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428297Z   retention-days: 7
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428480Z   if-no-files-found: error
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428684Z   compression-level: 6
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7428859Z   overwrite: false
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7429032Z   include-hidden-files: false
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.7429233Z ##[endgroup]
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8757799Z (node:2653) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8758769Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8792606Z Multiple search paths detected. Calculating the least common ancestor of all paths
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8794322Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
+unit-tests (1)	Unit results, including failures	2026-11-23T07:37:33.8806695Z ##[error]No files were found with the provided path: /home/runner/work/_temp/unit-1.json
+unit-tests (1)	Unit results, including failures	/home/runner/work/_temp/unit-1.log. No artifacts will be uploaded.
+unit-tests (1)	Post Run actions/checkout@v4	﻿2026-11-23T07:37:33.9023059Z Post job cleanup.
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9820043Z [command]/usr/bin/git version
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9843158Z git version 2.56.1
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9877385Z Temporarily overriding HOME='/home/runner/work/_temp/25cacb50-810f-4963-96f2-f3aa3afbaaa3' before making global git config changes
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9878498Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9881867Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9919903Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:33.9955834Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0264669Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0294425Z http.https://github.com/.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0316669Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0351209Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0688681Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (1)	Post Run actions/checkout@v4	2026-11-23T07:37:34.0784196Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (1)	Complete job	﻿2026-11-23T07:37:34.1197413Z Cleaning up orphan processes
+unit-tests (1)	Complete job	2026-11-23T07:37:34.1467684Z Terminate orphan process: pid (2639) (node)
+unit-tests (1)	Complete job	2026-11-23T07:37:34.1544846Z Terminate orphan process: pid (2640) (node)
+unit-tests (1)	Complete job	2026-11-23T07:37:34.1631288Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
