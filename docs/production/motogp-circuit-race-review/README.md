@@ -30,7 +30,7 @@ Both frames show the same four riders at 7.0 seconds. The camera and its visible
 | --- | --- |
 | ![The earlier blue and orange pavilion fills the right side of Montejaral’s night grid](montejaral-night-before.jpg) | ![The pavilion’s warm gallery windows behind the field, beneath a dark standing-seam roof](montejaral-night.jpg) |
 
-The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dry race. The roof now reflects the venue lighting and the two glazed floors emit through individual window bays. Both frames submitted 1,596 draw calls and 1,144,160 triangles at the same exposure.
+The GP-R1 is travelling at 161 km/h in both shots, 12.5 seconds into the same dry race. The roof now reflects the venue lighting and the two glazed floors emit through individual window bays. Both frames submitted 1,596 draw calls and 1,144,160 triangles with identical camera and exposure settings.
 
 ## Motorcycle and rider
 
@@ -47,9 +47,21 @@ These close-ups use the game meshes under controlled lighting. The brake pose se
 
 ## Spectators and wind
 
+![Fans seated under the canopy at Haarveld from the edge of the front walkway](haarveld-grandstand.jpg)
+
+Haarveld’s stand has 952 moulded seats. Its six crowd groups share the venue’s railings, flags and roof shadows. This eye-level view uses the production spectators and their distance-dependent meshes. Holding the same rider position reproduced the head-turn image exactly.
+
 ![Spectators watching the racing line from the general-admission rail at Cape Wrenna](cape-supporters.jpg)
 
 This controlled trackside view uses Cape Wrenna’s surveyed bank, standing race crowd and local terrain. This bank carries 165 photographed grass clumps along its unwalked edges. The clumps share the normal track wind and distance fade. Each GP circuit has two viewing banks. The wind sleeve has an open mouth, a suspended bridle and a tapered fabric outlet. In the Cape close-up, reversing the recorded wind changed 19,792 pixels. Restoring it produced the original pixels exactly.
+
+## Practice through the game menus
+
+| Poggio Alto, chase view at 190 km/h | Wet cockpit at 185 km/h |
+| --- | --- |
+| ![Poggio Alto practice through the production HUD with three opponents and a moving chase camera](practice-dry-chase.jpg) | ![The live wet cockpit and race HUD both report 185 kilometres per hour](practice-wet-cockpit.jpg) |
+
+These 1280 × 800 screenshots came from the production build’s dry and wet practice tests. Both tests entered through the menus and used the Low preset. The wet practice test enabled full spray density. The dry run also switched to the cockpit, paused and opened the recorded replay. [Hosted test run and original attachments](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45096209309)
 
 ## Measurements
 
@@ -61,7 +73,13 @@ This controlled trackside view uses Cape Wrenna’s surveyed bank, standing race
 | Dry road shimmer, controlled foreground and sky | Shimmer changed 5,071 pixels. All 12,160 sampled foreground pixels and the sky stayed fixed. The rain control produced zero changed pixels. |
 | Eight riders, two wet laps of Poggio Alto, fixed 120 Hz | Both runs classified all eight riders with zero falls and the same replay digest after 70,897 steps. |
 
-The geometry measurements count submitted primitives across separately recorded passes. The captures used Chromium’s SwiftShader WebGL2 backend. Physical-GPU frame times and console image-quality parity require hardware measurement.
+The geometry measurements count submitted primitives across separately recorded passes. The High race frames and controlled model views used Chromium with SwiftShader. The menu-driven practice frames used Chromium with Mesa llvmpipe. Physical-GPU frame times and console image-quality parity require hardware measurement.
+
+The hardware benchmark runs the GP journey through the game and records the GPU identity, presented frame rates and longest stall.
+
+```sh
+npm run bench:gpu -- --journeys gp-race --qualities high --target-quality high --viewport 1920x1080
+```
 
 The replay check can be repeated from the repository root.
 

@@ -17,6 +17,9 @@ on:
       - 'src/rendering/mirrors.ts'
       - 'src/rendering/reflections.ts'
       - 'src/rendering/circuit.ts'
+      - 'src/rendering/crowd.ts'
+      - 'src/rendering/grandstand.ts'
+      - 'src/rendering/venue-landmark.ts'
       - 'src/rendering/terrain-surface.ts'
       - 'src/rendering/venue-kit/ground.ts'
       - 'src/rendering/venue-kit/planting-ground.ts'
@@ -61,6 +64,9 @@ on:
       - 'e2e/gp-fork-crown.spec.ts'
       - 'e2e/gp-course-boards.spec.ts'
       - 'e2e/gp-paddock-architecture.spec.ts'
+      - 'e2e/gp-grandstand-architecture.spec.ts'
+      - 'e2e/fixtures/gp-grandstand-review.ts'
+      - 'e2e/fixtures/gp-pavilion-lighting.ts'
       - 'e2e/30-menu-access.spec.ts'
       - 'e2e/menu-timing-evidence.ts'
       - 'e2e/settings-transition.spec.ts'
@@ -171,6 +177,8 @@ jobs:
           tests/gp-rider-glove.test.ts tests/gp-course-bridge.test.ts tests/gp-proximity.test.ts
           e2e/gp-front-brake.spec.ts e2e/gp-rider-contact.spec.ts e2e/gp-course-boards.spec.ts
           e2e/gp-paddock-architecture.spec.ts e2e/fixtures/gp-paddock-review.ts
+          e2e/gp-grandstand-architecture.spec.ts e2e/fixtures/gp-grandstand-review.ts
+          e2e/fixtures/gp-pavilion-lighting.ts src/rendering/venue-kit/gp-pavilion.ts
           e2e/fixtures/gp-race-control-review.ts
           e2e/motorcycle-presentation.spec.ts
           e2e/motogp-riding-flow.spec.ts
@@ -256,7 +264,7 @@ jobs:
           - scene: rider-contact
             specs: e2e/gp-rider-contact.spec.ts e2e/gp-visor-and-flags.spec.ts
           - scene: course-construction
-            specs: e2e/gp-course-boards.spec.ts e2e/gp-paddock-architecture.spec.ts e2e/gp-fan-silhouettes.spec.ts e2e/gp-road-air.spec.ts
+            specs: e2e/gp-course-boards.spec.ts e2e/gp-paddock-architecture.spec.ts e2e/gp-grandstand-architecture.spec.ts e2e/gp-fan-silhouettes.spec.ts e2e/gp-road-air.spec.ts
           - scene: dry-riding
             specs: e2e/motogp-riding-flow.spec.ts
           - scene: wet-riding

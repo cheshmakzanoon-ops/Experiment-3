@@ -26,10 +26,20 @@ test.beforeAll(async () => {
   fixtureScript = chunk.code;
 });
 
-for (const id of ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const) {
-  test(`${id} grandstand renders its production crowd and stable wet/held/reset materials`, async ({
-    page,
-  }, info) => {
+const inspections = [
+  ['poggio-alto', 'architecture'],
+  ['cape-wrenna', 'architecture'],
+  ['haarveld', 'architecture'],
+  ['montejaral', 'architecture'],
+  ['haarveld', 'trackside'],
+] as const;
+
+for (const [id, view] of inspections) {
+  const title =
+    view === 'architecture'
+      ? `${id} grandstand renders its production crowd and stable wet/held/reset materials`
+      : `${id} front walkway shows the seated crowd tracking passing riders`;
+  test(title, async ({ page }, info) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => {
@@ -38,13 +48,13 @@ for (const id of ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as con
     await page.setContent('<!doctype html><title>Production GP grandstand inspection</title>');
     await page.addScriptTag({ content: fixtureScript });
     const result = await page.evaluate(
-      (venue) =>
+      ({ venue, camera }) =>
         (
           window as unknown as {
             GpStandReview: { captureGpGrandstands: typeof captureGpGrandstands };
           }
-        ).GpStandReview.captureGpGrandstands([venue]),
-      id,
+        ).GpStandReview.captureGpGrandstands([venue], camera),
+      { venue: id, camera: view },
     );
     for (const capture of result.captures)
       await info.attach(`${capture.venue}-grandstand.png`, {
@@ -72,9 +82,15 @@ for (const id of ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as con
       expect(capture.architecture.addedTriangles).toBe(structuralIncrease);
       expect(structuralIncrease).toBeLessThan(capture.site.length * 200 + 1000);
       const [dry, held, wet, wetHeld, restored] = capture.states;
-      // The measured render delta must come entirely from the new structure.
-      // Existing seat and crowd geometry is held to the actual fallback builder.
-      expect(dry.triangles - capture.baseline.render.triangles).toBe(structuralIncrease);
+      // The wide camera contains the entire structure, so the exact increase
+      // in submitted primitives equals the new architecture. At the walkway,
+      // frustum culling cuts different roof spans in the two building meshes.
+      if (view === 'architecture') {
+        expect(dry.triangles - capture.baseline.render.triangles).toBe(structuralIncrease);
+      } else {
+        expect(capture.seats).toBe(952);
+        expect(dry.calls).toBeLessThan(40);
+      }
       expect(dry.hash).toBe(held.hash);
       expect(wet.hash).toBe(wetHeld.hash);
       expect(wet.hash).not.toBe(dry.hash);

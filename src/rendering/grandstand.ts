@@ -316,7 +316,10 @@ export function buildGrandstand(
     bodyColors[i] = entry.color;
   });
   // D21: waving team flags, one instanced draw per stand.
-  const flags = buildCrowdFlags(spectators, Math.round(site.s), crowdFlagMaterial(!!gpStyle), !!gpStyle);
+  // Flags, rider-following heads and distant fan silhouettes belong to the GP
+  // circuit. A change of canopy or seating architecture keeps the same crowd.
+  const gpAudience = !!track.gpEdges;
+  const flags = buildCrowdFlags(spectators, Math.round(site.s), crowdFlagMaterial(gpAudience), gpAudience);
   if (flags) peopleRoot.add(flags);
   const chunkSize = hero ? 64 : 128;
   for (let offset = 0; offset < spectators.length; offset += chunkSize) {
@@ -326,7 +329,7 @@ export function buildGrandstand(
       821 + Math.round(site.s) + offset,
       m.people,
       hero ? Math.floor(offset / chunkSize) % 4 : undefined,
-      gpStyle ? side : 0,
+      gpAudience ? side : 0,
     );
     peopleRoot.add(cluster.root);
     clusters?.push(cluster);

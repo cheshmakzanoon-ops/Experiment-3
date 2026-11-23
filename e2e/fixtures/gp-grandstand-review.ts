@@ -41,7 +41,10 @@ function geometryBudget(root: T.Object3D, staticOnly = false) {
  * fixture verifies WebGL materials, held/weather/reset frames and resources;
  * it is not a full-venue gameplay capture or device frame-rate benchmark. */
 const venues = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
-export async function captureGpGrandstands(ids: readonly (typeof venues)[number][] = venues) {
+export async function captureGpGrandstands(
+  ids: readonly (typeof venues)[number][] = venues,
+  view: 'architecture' | 'trackside' = 'architecture',
+) {
   const width = 1000,
     height = 650,
     renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -158,8 +161,13 @@ export async function captureGpGrandstands(ids: readonly (typeof venues)[number]
       );
       apron.receiveShadow = true;
       scene.add(apron);
-      camera.position.set(-site.side * 61, 15.5, -66);
-      camera.lookAt(site.side * 4.4, 3.1, 0);
+      if (view === 'trackside') {
+        camera.position.set(-site.side * 6.8, 1.85, -12.5);
+        camera.lookAt(site.side * 4.6, 2.1, 0);
+      } else {
+        camera.position.set(-site.side * 61, 15.5, -66);
+        camera.lookAt(site.side * 4.4, 3.1, 0);
+      }
       camera.updateMatrixWorld(true);
       scene.updateMatrixWorld(true);
       studioUniforms.studioTime.value = 12;
