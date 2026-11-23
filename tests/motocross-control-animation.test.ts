@@ -588,6 +588,46 @@ it('sizes race graphics by distance and puts each knee heat shield on the inboar
   }
 });
 
+it('warms the two Low race levels, then selects an opponent by its displayed size after an upgrade', async () => {
+  const shells = new BikeShells(), camera = new T.PerspectiveCamera(60, 16 / 9);
+  const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+  frame[H.CARS] = 2;
+  const cars = [0, 1].map(id => {
+    frame[carBase(id) + F.QW] = 1;
+    frame[carBase(id) + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
+    return { root: new T.Object3D() };
+  });
+  cars[1].root.position.z = -24;
+  const draw = (quality: 'high' | 'low') =>
+    shells.update(frame, frame, 1, cars, camera, quality, 0, undefined, undefined, 540);
+  const prepared: string[] = [];
+  const warm = (quality: 'high' | 'low') => shells.prepareDirtField(
+    () => false, async () => {}, (_, detail) => prepared.push(detail), quality,
+  );
+  try {
+    draw('low');
+    expect(shells.detailLevel(0)).toBe(1);
+    expect(shells.detailLevel(1)).toBe(1);
+    expect(await warm('low')).toBe(true);
+    expect(prepared).toEqual(['far', 'far']);
+    prepared.length = 0;
+    expect(await warm('high')).toBe(true);
+    expect(prepared).toEqual(['high', 'high']);
+    draw('high');
+    expect(shells.detailLevel(0)).toBe(0);
+    expect(shells.detailLevel(1)).toBe(1);
+    camera.fov = 18;
+    camera.updateProjectionMatrix();
+    draw('high');
+    expect(shells.detailLevel(1)).toBe(0);
+    camera.fov = 70;
+    camera.updateProjectionMatrix();
+    cars[1].root.position.z = -70;
+    draw('high');
+    expect(shells.detailLevel(1)).toBe(2);
+  } finally { shells.disposeAll(); }
+});
+
 it('prepares camera cuts during loading, shares rigid vertex data and keeps suspension per rider', async () => {
   const shells = new BikeShells(),
     camera = new T.PerspectiveCamera(60, 16 / 9);

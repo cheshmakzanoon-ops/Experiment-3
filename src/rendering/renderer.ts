@@ -1226,6 +1226,7 @@ export class RacingRenderer {
             () => this.disposed || cancelled(),
             yieldFrame,
             (id, level) => progress(`Preparing motocross rider ${id + 1} / ${total} · ${level} detail…`),
+            this.quality,
           );
           if (!ready) return false;
         }
@@ -1461,6 +1462,10 @@ export class RacingRenderer {
       }
       applied = true;
       this.setQuality(quality, graphics);
+      if (this.circuit.offroad && detailTier(previousQuality) === 'low' && this.quality !== 'low') {
+        if (!(await this.bikeShells.prepareDirtField(stopped, yieldControl, undefined, this.quality)))
+          return false;
+      }
       this.circuit.vegetation?.update(this.camera, this.quality);
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
@@ -2481,7 +2486,8 @@ export class RacingRenderer {
       this.follow,
       undefined,
       roadBikeSubject ? this.follow : undefined,
-      roadBikeSubject && followedDefinition.classId === 'gp-bike' ? this.renderHeight : undefined,
+      this.circuit.offroad || (roadBikeSubject && followedDefinition.classId === 'gp-bike')
+        ? this.renderHeight : undefined,
     );
     this.bikeShells?.setFirstPerson(
       bikeFirstPersonView(cameraMode, menu, pregame, this.photo?.view) ? this.follow : -1,

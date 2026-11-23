@@ -105,7 +105,7 @@ import { MotorcycleRoadPreview, type GpRiderSight } from './motorcycle-camera.ts
 import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
-import { detailDistance } from './view-detail.ts';
+import { detailDistance, projectedBikeDiameter } from './view-detail.ts';
 import { gpOpponentDetail } from './gp-field-detail.ts';
 import { Rider, type RiderColours, type RiderDetail } from './rider.ts';
 import { bikeEntrantScheme, bikeSheetFor } from './bike-sheet.ts';
@@ -2510,10 +2510,11 @@ export class BikeShells {
     cancelled: () => boolean,
     yieldFrame: () => Promise<void>,
     report?: (id: number, detail: (typeof BIKE_DETAILS)[number]) => void,
+    quality: Quality = 'high',
   ) {
     for (const [id, entry] of this.entries) {
       if (!entry.dirtMud) continue;
-      for (let level = 0; level < BIKE_DETAILS.length; level++) {
+      for (let level = quality === 'low' ? 1 : 0; level < BIKE_DETAILS.length; level++) {
         if (entry.levels[level]) continue;
         report?.(id, BIKE_DETAILS[level]);
         await yieldFrame();
@@ -2657,9 +2658,9 @@ export class BikeShells {
     // The photo/reflection subject can already be posed for this exact frame.
     posedEntrant?: number,
     // Backbuffer height after the race camera and render scale are final.
-    gpViewHeight = 0,
+    viewHeight = 0,
   ) {
-    if (gpViewHeight > 0 && b[H.CARS] > 1) camera.updateWorldMatrix(true, false);
+    if (viewHeight > 0 && b[H.CARS] > 1) camera.updateWorldMatrix(true, false);
     const end = entrant === undefined ? cars.length : entrant + 1;
     for (let id = entrant ?? 0; id < end; id++) {
       if (id === posedEntrant) {
@@ -2727,8 +2728,18 @@ export class BikeShells {
       if (previous === 0 && level === 1 && distance < 36) level = 0;
       if (previous === 1 && level === 2 && distance < 106) level = 1;
       if (previous === 2 && level === 1 && distance > 94) level = 2;
-      if (gpViewHeight > 0 && id !== follow && definition.classId === 'gp-bike')
-        level = Math.max(level, gpOpponentDetail(camera, car.position, gpViewHeight, previous));
+      if (viewHeight > 0 && id !== follow) {
+        if (definition.classId === 'gp-bike') {
+          level = Math.max(level, gpOpponentDetail(camera, car.position, viewHeight, previous));
+        } else if (entry.dirtMud) {
+          // Enclose a standing dirt rider, both wheel patches and fender tips.
+          // Keep the finer model through a short band on a receding camera cut.
+          const pixels = projectedBikeDiameter(camera, car.position, viewHeight, 1.32);
+          if (pixels < (previous === 2 ? 32 : 25)) level = 2;
+          else if (pixels < (previous === 0 ? 99 : 118)) level = Math.max(1, level);
+        }
+      }
+      if (entry.dirtMud && quality === 'low') level = Math.max(1, level);
       const model = entry.levels[level] ?? this.buildDirtLevel(entry, id, level, b[H.CARS] > 1);
       if (!model.root.parent) this.root.add(model.root);
       const old = entry.levels[previous];

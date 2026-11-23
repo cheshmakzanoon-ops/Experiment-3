@@ -1,3 +1,13 @@
+import type { PerspectiveCamera, Vector3 } from 'three';
+
+/** Conservative diameter in backbuffer pixels, measured from the near side
+ * of the envelope. Distance along the view axis keeps an oblique rider sharp. */
+export function projectedBikeDiameter(camera: PerspectiveCamera, position: Vector3, height: number, radius: number) {
+  const view = camera.matrixWorldInverse.elements;
+  const depth = -(view[2] * position.x + view[6] * position.y + view[10] * position.z + view[14]);
+  return height * camera.projectionMatrix.elements[5] * radius / Math.max(Math.abs(depth) - radius, camera.near);
+}
+
 /** Equivalent distance under the current lens, relative to a 58-degree view.
  * Narrow lenses and portrait views must not select coarse geometry for an
  * optically enlarged subject. Wide lenses retain the existing metre thresholds;
