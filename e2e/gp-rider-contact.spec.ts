@@ -6,7 +6,7 @@ import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /* Complete production model, including instanced links, the optical helmet
  * and the fitted wheel hardware. Pose and recovery must retain this topology. */
-const TRIANGLES = { gpr1: 109_620, gpr2: 109_022 } as const;
+const TRIANGLES = { gpr1: 109_980, gpr2: 109_382 } as const;
 
 let fixtureScript: string;
 test.beforeAll(async () => {

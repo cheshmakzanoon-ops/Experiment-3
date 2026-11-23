@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp, smooth } from '../core/math.ts';
 import { B, BIKE_BASE, F, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { ChainLoop, chainLinkPlateGeometry } from './chain-geometry.ts';
@@ -103,16 +104,83 @@ function sprocketGeometry() {
     if (i === 0) shape.moveTo(a, b);
     else shape.lineTo(a, b);
   }
-  const hole = new T.Path();
-  hole.absarc(0, 0, 0.069, 0, TAU, true);
-  shape.holes.push(hole);
-  const geometry = new T.ExtrudeGeometry(shape, {
+  const bore = new T.Path();
+  for (let i = 0; i < 12; i++) {
+    const a = (-TAU * i) / 12;
+    if (!i) bore.moveTo(0.0145 * Math.cos(a), 0.0145 * Math.sin(a));
+    else bore.lineTo(0.0145 * Math.cos(a), 0.0145 * Math.sin(a));
+  }
+  bore.closePath();
+  shape.holes.push(bore);
+  // Through-windows taper towards the hub. The solid lands between windows
+  // carry the fasteners; the toothed outer band stays continuous.
+  const windowProfile = [
+    [-0.24, 0.049],
+    [-0.38, 0.079],
+    [-0.35, 0.087],
+    [-0.23, 0.091],
+    [0.23, 0.091],
+    [0.35, 0.087],
+    [0.38, 0.079],
+    [0.24, 0.049],
+  ] as const;
+  const webCount = 5;
+  for (let i = 0; i < webCount; i++) {
+    const centre = (TAU * (i + 0.5)) / webCount;
+    const window = new T.Path();
+    for (const [j, [offset, radius]] of windowProfile.entries()) {
+      const x = radius * Math.cos(centre + offset),
+        y = radius * Math.sin(centre + offset);
+      if (!j) window.moveTo(x, y);
+      else window.lineTo(x, y);
+    }
+    window.closePath();
+    shape.holes.push(window);
+  }
+  const plate = new T.ExtrudeGeometry(shape, {
     depth: 0.007,
     bevelEnabled: false,
     steps: 1,
     curveSegments: 12,
   });
-  geometry.rotateY(Math.PI / 2);
+  // Collar overlaps the hollow wheel hub at its inboard end. Both the carrier
+  // and its five seated hex sockets turn as a single piece with the rear hub.
+  const hardware: T.BufferGeometry[] = [plate];
+  for (const section of [
+    [new T.Vector2(0.0145, 0), new T.Vector2(0.0145, -0.061)],
+    [new T.Vector2(0.031, -0.061), new T.Vector2(0.033, 0)],
+  ]) {
+    // The inboard end seats inside the hub. The visible surfaces are the
+    // tapered outside and the bore through which the axle passes.
+    hardware.push(new T.LatheGeometry(section, 12).rotateX(Math.PI / 2).toNonIndexed());
+  }
+  // The plate supplies the socket floors. Three rings form the wrench flats,
+  // top lands and recessed inner walls without back faces buried in the plate.
+  const socketHead = new T.LatheGeometry(
+    [
+      new T.Vector2(0.0065, 0),
+      new T.Vector2(0.0065, 0.0045),
+      new T.Vector2(0.0032, 0.0045),
+      new T.Vector2(0.0032, 0),
+    ],
+    6,
+  )
+    .rotateX(Math.PI / 2)
+    .toNonIndexed();
+  socketHead.computeVertexNormals();
+  for (let i = 0; i < webCount; i++) {
+    const a = (TAU * i) / webCount;
+    hardware.push(
+      socketHead
+        .clone()
+        .rotateZ(a)
+        .translate(0.058 * Math.cos(a), 0.058 * Math.sin(a), 0.007),
+    );
+  }
+  socketHead.dispose();
+  const geometry = mergeGeometries(hardware, false)!.rotateY(Math.PI / 2);
+  for (const part of hardware) part.dispose();
+  geometry.name = 'Five-window GP sprocket, socket heads and hollow carrier';
   geometry.computeBoundingSphere();
   return geometry;
 }

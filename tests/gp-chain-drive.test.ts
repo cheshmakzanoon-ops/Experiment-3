@@ -30,6 +30,34 @@ const positions = (mesh: T.InstancedMesh) => {
 };
 
 describe('GP-R1 high-detail instanced, replay-deterministic chain drive', () => {
+  it('machines five open carrier windows and deep wrench sockets into the rotating sprocket', () => {
+    const m = material(),
+      chain = new GPChainDrive(0.575, m, m, m);
+    const gear = chain.sprocket;
+    gear.updateMatrixWorld(true);
+    const face = (radius: number, angle: number) =>
+      new T.Raycaster(
+        new T.Vector3(gear.position.x + 0.1, radius * Math.sin(angle), -radius * Math.cos(angle)),
+        new T.Vector3(-1, 0, 0),
+      ).intersectObject(gear)[0];
+    expect(face(0.01, 0)).toBeUndefined();
+    for (let i = 0; i < 5; i++) {
+      const a = (Math.PI * 2 * i) / 5;
+      expect(face(0.07, a + Math.PI / 5)).toBeUndefined();
+      expect(face(0.099, a + Math.PI / 5).point.x - gear.position.x).toBeCloseTo(0.007, 6);
+      expect(face(0.058, a).point.x - gear.position.x).toBeCloseTo(0.007, 6);
+      expect(face(0.063, a).point.x - gear.position.x).toBeCloseTo(0.0115, 6);
+    }
+    const wall = new T.Raycaster(
+      new T.Vector3(gear.position.x - 0.04, 0.07, 0),
+      new T.Vector3(0, -1, 0),
+    ).intersectObject(gear)[0];
+    expect(wall.point.y).toBeGreaterThan(0.028);
+    expect(wall.point.y).toBeLessThan(0.034);
+    for (const mesh of [chain.rollers, chain.plates]) mesh.dispose();
+    for (const mesh of [chain.rollers, chain.plates, chain.sprocket]) mesh.geometry.dispose();
+    m.dispose();
+  });
   it('puts the free length on the return span under drive and on the upper span on overrun', () => {
     const loop = new ChainLoop(0.575, 0.106, 0.046, 0.115);
     const sample = (d: number, load: number) =>
