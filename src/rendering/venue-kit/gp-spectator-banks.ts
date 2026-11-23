@@ -6,6 +6,7 @@ import { CrowdCluster } from '../crowd.ts';
 import { crowdFlagMaterial } from '../grandstand.ts';
 import { buildCrowdFlags, crowdColour } from '../studio/crowd-flags.ts';
 import { gpWindMast, type GpWindSleeve } from './gp-windsock.ts';
+import { GpRailUmbrellas } from './gp-rail-umbrellas.ts';
 import { cataloguePlantingGround } from './planting-ground.ts';
 import type { GpSpectatorBank } from './gp-spectator-bank-sites.ts';
 
@@ -122,6 +123,7 @@ export function buildGpSpectatorBank(
   const peopleMatrices: T.Matrix4[] = [],
     shirts: T.Color[] = [],
     holders: T.Matrix4[] = [];
+  const frontRow: number[] = [];
   const half = site.length * 0.38,
     cols = Math.floor((2 * half) / 1.05);
   // Friends arrive in groups, leave a walk-through at either end and a path
@@ -140,6 +142,7 @@ export function buildGpSpectatorBank(
       pose.scale.setScalar(scale);
       pose.updateMatrix();
       peopleMatrices.push(pose.matrix.clone());
+      if (row === 0) frontRow.push(z);
       shirts.push(new T.Color(crowdColour(rng.next(), rng.next())));
       const hand = new T.Matrix4().makeTranslation(-0.51, 0.43, 0.15);
       holders.push(pose.matrix.clone().multiply(hand));
@@ -167,9 +170,12 @@ export function buildGpSpectatorBank(
     up = new T.Vector3(0, 1, 0);
   const segments = Math.ceil((2 * half) / 3);
   const railX = -site.side * site.width * 0.215;
+  const shadePosts: T.Vector3[] = [];
   for (let i = 0; i <= segments; i++) {
     const z = -half + (2 * half * i) / segments,
       y = height(railX, z);
+    if (i > 0 && i < segments && (i + seed) % 3 === 0 && frontRow.some(fan => Math.abs(fan-z)<1.85))
+      shadePosts.push(new T.Vector3(railX,y+.94,z));
     pose.position.set(railX, y + 0.49, z);
     pose.quaternion.identity();
     pose.scale.set(0.068, 0.98, 0.068);
@@ -192,5 +198,7 @@ export function buildGpSpectatorBank(
   rail.computeBoundingSphere();
   rail.castShadow = rail.receiveShadow = true;
   land.add(rail);
-  return { sleeve, profile: { site, height } };
+  const umbrellas = shadePosts.length ? new GpRailUmbrellas(shadePosts,site.side,seed) : undefined;
+  if (umbrellas) fans.add(umbrellas.mesh);
+  return { sleeve, umbrellas, profile: { site, height } };
 }

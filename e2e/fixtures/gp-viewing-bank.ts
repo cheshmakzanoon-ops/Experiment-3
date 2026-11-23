@@ -28,7 +28,7 @@ export async function captureGpViewingBank() {
   const props = new T.Group(),
     crowd = new T.Group(),
     groups: CrowdCluster[] = [];
-  const { sleeve, profile } = buildGpSpectatorBank(
+  const { sleeve, umbrellas, profile } = buildGpSpectatorBank(
     track,
     site,
     props,
@@ -112,13 +112,14 @@ export async function captureGpViewingBank() {
   let meadow: TrackGrass | undefined;
   const previousEye = vegetationUniforms.vegEye.value.clone(),
     previousLod = vegetationUniforms.vegLod.value.clone();
-  const snap = (name: string) => {
+  const snap = (name: string, liquidRain = 0) => {
     camera.getWorldPosition(vegetationUniforms.vegEye.value);
     vegetationUniforms.vegLod.value.z = 0.7 * VEGETATION.grass.high;
     vegetationUniforms.vegLod.value.w = VEGETATION.grass.high;
     meadow?.update(camera, VEGETATION.grass.high);
     for (const c of groups) c.update(4, camera.position, 0, undefined, camera.fov, 2, true, 420);
     const wind = studioUniforms.studioWind.value;
+    umbrellas?.presentWorld(liquidRain, wind);
     wind.z = studioUniforms.studioTime.value;
     sleeve!.presentWorld(wind);
     gl.render(scene, camera);
@@ -163,6 +164,12 @@ export async function captureGpViewingBank() {
     camera.position.copy(at(frontX - site.side * 12, surface.height(frontX, -8) + 1.85, -13));
     camera.lookAt(at(0, surface.height(0, 3) + 1.2, 3));
     const planted = snap('cape-wrenna-supporter-rail');
+    const shower = snap('cape-wrenna-open-canopies', 17);
+    const held = snap('cape-wrenna-shower-held', 17);
+    studioUniforms.studioWind.value.set(-7, -3, 7.35, .81);
+    const reverseRain = snap('cape-wrenna-umbrellas-crosswind', 17);
+    studioUniforms.studioWind.value.set(7, 3, 7.35, .81);
+    const dryAgain = snap('cape-wrenna-umbrellas-rewound');
     meadow.root.visible = false;
     const cut = snap('cape-wrenna-mown-control');
     meadow.root.visible = true;
@@ -183,6 +190,11 @@ export async function captureGpViewingBank() {
       windPixels: difference(east, west),
       lullPixels: difference(east, calm),
       windRestore: difference(east, rewind),
+      umbrellas: umbrellas?.mesh.count ?? 0,
+      canopyPixels: difference(planted, shower),
+      canopyHeld: difference(shower, held),
+      showerWindPixels: difference(shower, reverseRain),
+      canopyRestore: difference(planted, dryAgain),
       glError: gl.getContext().getError(),
     };
   } finally {

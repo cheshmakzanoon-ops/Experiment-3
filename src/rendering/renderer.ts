@@ -2563,6 +2563,8 @@ export class RacingRenderer {
     const studioView = `${cameraMode}:${this.follow}:${this.trackside.activeId}:${menu}:${pregame}`;
     this.studioFrame.update(presented, this.camera, this.sun, studioView);
     this.circuit.gpWindSleeve?.presentWorld(this.studioFrame.uniforms.studioWind.value);
+    for (const bank of this.circuit.gpRailUmbrellas)
+      bank.presentWorld(liquidRain, this.studioFrame.uniforms.studioWind.value);
     this.audioView.update(
       this.camera,
       this.presented.value[H.TIME],

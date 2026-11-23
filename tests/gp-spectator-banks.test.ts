@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import { gpBankGrass } from '../src/rendering/vegetation/grass.ts';
 import { GpWindSleeve } from '../src/rendering/venue-kit/gp-windsock.ts';
+import { GpRailUmbrellas } from '../src/rendering/venue-kit/gp-rail-umbrellas.ts';
 import {
   gpSpectatorBankPlan,
   inGpSpectatorBank,
@@ -18,6 +19,39 @@ import { Track, trackPoint } from '../src/simulation/track.ts';
 import { apronWidth } from '../src/simulation/gp-course-edges.ts';
 
 describe('GP general-admission viewing banks', () => {
+  it('deploys the sewn canopies from the rail and preserves their clamps in a reversible crosswind', () => {
+    const group = new GpRailUmbrellas([new T.Vector3(1,.9,10),new T.Vector3(1,1,16)],-1,47);
+    const mesh=group.mesh, probe=new T.Mesh(mesh.geometry,mesh.material), g=mesh.geometry;
+    const b=g.getAttribute('position'), cloth=g.getAttribute('gpUmbrellaFabric');
+    const wind=new T.Vector4(8,3,10,.7), fabric:number[]=[], clamps:number[]=[];
+    for(let i=0;i<b.count;i++) {
+      if(cloth.getX(i)>0) fabric.push(i);
+      else if(b.getY(i)<-.05) clamps.push(i);
+    }
+    function width() {
+      mesh.getMorphAt(0,probe);
+      const box=new T.Box3(), p=new T.Vector3();
+      for(const i of fabric) box.expandByPoint(probe.getVertexPosition(i,p));
+      return box.max.z-box.min.z;
+    }
+    group.presentWorld(0,wind);
+    expect(width()).toBeLessThan(.13);
+    group.presentWorld(18,wind);
+    expect(width()).toBeGreaterThan(1.2);
+    const wet=Array.from(probe.morphTargetInfluences!), version=mesh.morphTexture!.version;
+    group.presentWorld(18,wind);
+    expect(mesh.morphTexture!.version).toBe(version);
+    const p=new T.Vector3();
+    for(const i of clamps) expect(probe.getVertexPosition(i,p).distanceTo(new T.Vector3().fromBufferAttribute(b,i))).toBeLessThan(1e-6);
+    group.presentWorld(18,new T.Vector4(-8,-3,10,.7));
+    mesh.getMorphAt(0,probe);
+    expect(probe.morphTargetInfluences![1]).toBeCloseTo(-wet[1],6);
+    expect(probe.morphTargetInfluences![2]).toBeCloseTo(-wet[2],6);
+    group.presentWorld(18,wind);mesh.getMorphAt(0,probe);
+    expect(probe.morphTargetInfluences).toEqual(wet);
+    group.presentWorld(0,wind);expect(width()).toBeLessThan(.13);
+    mesh.dispose();g.dispose();(mesh.material as T.Material).dispose();
+  });
   it.each(['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const)(
     '%s sites and feet follow the drawn lawn outside every racing corridor',
     (id) => {

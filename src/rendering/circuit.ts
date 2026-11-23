@@ -99,6 +99,7 @@ import {
 import { buildGpGridGantry } from './venue-kit/gp-grid-gantry.ts';
 import type { GpWindSleeve } from './venue-kit/gp-windsock.ts';
 import { buildGpSpectatorBank } from './venue-kit/gp-spectator-banks.ts';
+import type { GpRailUmbrellas } from './venue-kit/gp-rail-umbrellas.ts';
 import { gpSpectatorBankPlan, type GpBankProfile } from './venue-kit/gp-spectator-bank-sites.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
@@ -161,6 +162,7 @@ export class CircuitScene {
   readonly secondaryStands: SecondaryGrandstands;
   readonly crowdClusters: CrowdCluster[] = [];
   gpWindSleeve?: GpWindSleeve;
+  readonly gpRailUmbrellas: GpRailUmbrellas[] = [];
   private gpBankGround?: T.Group;
   private readonly gpBankProfiles: GpBankProfile[] = [];
   readonly staff: MarshalStaffView;
@@ -1110,10 +1112,11 @@ export class CircuitScene {
         ground.name = 'GP spectator terrain and weather masts';
         this.props.add(ground);
         for (const [index, bank] of gpSpectatorBankPlan(this.track).entries()) {
-          const { sleeve, profile } = buildGpSpectatorBank(this.track, bank, ground, this.crowd, this.crowdClusters,
+          const { sleeve, umbrellas, profile } = buildGpSpectatorBank(this.track, bank, ground, this.crowd, this.crowdClusters,
             kit.materials.ground, stands.people, kit.materials.steel, index === 0);
           this.gpBankProfiles.push(profile);
           if (sleeve) this.gpWindSleeve = sleeve;
+          if (umbrellas) this.gpRailUmbrellas.push(umbrellas);
         }
       });
     // The indoor bowl already supplies stands, aisles, crowd and roof.
