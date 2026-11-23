@@ -32,6 +32,8 @@ export interface TireFamily {
    * has none; 0.2 turns packed snow from 0.30 into 0.44 and glaze ice from
    * 0.12 into 0.30 of dry asphalt, the order of a studded winter tyre. */
   winterGrip: number;
+  /** Effective void depth between tread blocks on loose soil (mm). */
+  blockDrainageMm?: number;
 }
 const family = (
   id: TireFamilyId,
@@ -39,7 +41,10 @@ const family = (
   grip: readonly [number, number],
   looseGrip: number,
   winterGrip = 0,
-): TireFamily => Object.freeze({ id, name, grip: Object.freeze(grip), looseGrip, winterGrip });
+  blockDrainageMm = 0,
+): TireFamily => Object.freeze({ id, name, grip: Object.freeze(grip), looseGrip, winterGrip,
+  ...(blockDrainageMm > 0 ? { blockDrainageMm } : {}),
+});
 export const TIRE_FAMILIES: Readonly<Record<TireFamilyId, TireFamily>> = Object.freeze({
   /** Wide, warm, high-downforce single-seater slick (the reference, 1.0). */
   'formula-slick': family('formula-slick', 'Formula slick', [0.9, 1.05], 0),
@@ -62,7 +67,7 @@ export const TIRE_FAMILIES: Readonly<Record<TireFamilyId, TireFamily>> = Object.
   'historic-slick': family('historic-slick', 'Historic slick', [0.68, 0.9], 0),
   /** Off-road motorcycle knobby: tall square blocks that bite into loam,
    * sand and mud (bike definitions carry their own peak μ; tireGrip 1). */
-  knobby: family('knobby', 'Motocross knobby', [0.6, 1.1], 0.8, 0.15),
+  knobby: family('knobby', 'Motocross knobby', [0.6, 1.1], 0.8, 0.15, 3.2),
   /** Supermoto treaded slick: sticky on asphalt, a little bite on dirt. */
   supermoto: family('supermoto', 'Supermoto treaded slick', [0.6, 1.1], 0.25, 0.03),
 });

@@ -248,6 +248,7 @@ export class Vehicle {
         this.looseGrip,
         dynamics.tyre,
         this.winterGrip,
+        this.definition.tireFamily ? TIRE_FAMILIES[this.definition.tireFamily].blockDrainageMm : 0,
       ),
     );
     this.compoundsUsed.add(compound);
@@ -301,6 +302,7 @@ export class Vehicle {
         this.looseGrip,
         this.physics.tyre,
         this.winterGrip,
+        this.definition.tireFamily ? TIRE_FAMILIES[this.definition.tireFamily].blockDrainageMm : 0,
       );
   }
   private get looseGrip() {

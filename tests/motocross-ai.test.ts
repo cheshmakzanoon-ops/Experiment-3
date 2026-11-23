@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mod } from '../src/core/math.ts';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { FLAG } from '../src/simulation/marshal.ts';
-import { DirtBikeAIDriver, jumpHoldSpeed, motocrossJumpApproachSteer } from '../src/simulation/offroad/ai.ts';
+import { DirtBikeAIDriver, jumpHoldSpeed, motocrossClosingSpeed, motocrossJumpApproachSteer } from '../src/simulation/offroad/ai.ts';
 import { MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -50,6 +50,18 @@ function wetBeachedRider() {
   sim.autoPlayer = true;
   return { sim, bike, traffic, ai: sim.ai[0] as DirtBikeAIDriver };
 }
+
+describe('motocross close traffic', () => {
+  it('reserves stopping distance for a stranded rider while leaving an outside pass open', () => {
+    expect(motocrossClosingSpeed(4, 0.25, 0, 8, 0, 0.8)).toBeLessThan(2);
+    expect(motocrossClosingSpeed(4, 1.4, 0, 8, 0, 0.8)).toBe(Infinity);
+    expect(motocrossClosingSpeed(4, 1.3, -2, 8, 0, 0.8)).toBeLessThan(2);
+    expect(motocrossClosingSpeed(-2, 0, 0, 8, 0, 0.8)).toBe(Infinity);
+    expect(motocrossClosingSpeed(4, 0, 0, 8, 9, 0.8)).toBe(Infinity);
+    expect(motocrossClosingSpeed(10, 0, 0, 12, 1, 0.42)).toBeLessThan(
+      motocrossClosingSpeed(10, 0, 0, 12, 1, 0.85));
+  });
+});
 
 describe('motocross committed jump handoff', () => {
   it.each([-1, 1])('finishes a committed lane change before the lip from side %s', (side) => {

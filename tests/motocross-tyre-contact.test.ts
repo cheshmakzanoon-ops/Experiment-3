@@ -6,7 +6,7 @@ import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts'
 import { rideLine, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import { MATERIAL } from '../src/simulation/surface-material.ts';
-import { peakGrip } from '../src/simulation/tire.ts';
+import { contactWaterLift, peakGrip } from '../src/simulation/tire.ts';
 import { Track } from '../src/simulation/track.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 
@@ -73,6 +73,26 @@ function contactStep(
   }
   return { bike, surfaces, frontGrip, rearGrip };
 }
+
+describe('motocross block drainage', () => {
+  it('evacuates shallow film on loose soil and loses that reserve with wear', () => {
+    const { bike } = creekBike(MX_450, 'mud');
+    const tyre = bike.tires[0], patch = { ...bike.contacts[0], water: 1.2 };
+    const slick = { ...tyre, blockDrainageMm: 0 };
+    const grip = (t: typeof tyre) => peakGrip(t, 1000, patch, 14);
+    expect(grip(tyre)).toBeGreaterThan(grip(slick));
+    expect(contactWaterLift(tyre, 1000, patch, 40)).toBeLessThan(contactWaterLift(slick, 1000, patch, 40));
+    const worn = { ...tyre, wear: 1 };
+    expect(contactWaterLift(worn, 1000, patch, 40)).toBeGreaterThan(contactWaterLift(tyre, 1000, patch, 40));
+    patch.water = 0;
+    expect(grip(tyre)).toBe(grip(slick));
+    patch.water = 1.2;
+    patch.terrain = false;
+    expect(grip(tyre)).toBe(grip(slick));
+    bike.replaceTires('hard');
+    expect(bike.tires[0].blockDrainageMm).toBe(tyre.blockDrainageMm);
+  });
+});
 
 describe('motocross independently sampled tyre grip', () => {
   it.each([MX_250, MX_450])(

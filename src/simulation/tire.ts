@@ -75,6 +75,8 @@ export interface Tire {
   /** Share of loose-surface (grass/gravel) grip loss the construction
    * recovers (tire-families.ts); absent or 0 for racing slicks. */
   looseGrip?: number;
+  /** Open volume between soil-engaging blocks expressed as water depth in mm. */
+  blockDrainageMm?: number;
   /** Share of the grip a snow or ice cover removes that the construction wins
    * back (tire-families.ts winterGrip); absent for a racing slick. */
   winterGrip?: number;
@@ -172,6 +174,7 @@ export function makeTire(
   looseGrip = 0,
   construction: TyreConstruction = FORMULA_SLICK,
   winterGrip = 0,
+  blockDrainageMm = 0,
 ): Tire {
   const temp = COMPOUNDS[compound].ideal - 5;
   return {
@@ -232,6 +235,7 @@ export function makeTire(
     peakSlip: REFERENCE_PEAK_SLIP,
     usage: 0,
     ...(looseGrip > 0 ? { looseGrip } : {}),
+    ...(blockDrainageMm > 0 ? { blockDrainageMm } : {}),
     ...(winterGrip > 0 ? { winterGrip } : {}),
   };
 }
@@ -330,13 +334,23 @@ function treadTexture(sample: SurfaceSample, pure: number) {
   return patchValue(sample, pure, roadAsphalt.textureMm, roadPaint.textureMm, shoulder.textureMm);
 }
 
+/** Free film under a soil-engaging block. Shallow water can enter the voids;
+ * as they fill, further depth bears increasingly on the tread. Soil softening
+ * and the exposed material's wet friction still use the full measured water. */
+function treadFilm(t: Tire, patch: SurfaceSample) {
+  const water = patch.water, voidMm = t.blockDrainageMm;
+  if (!voidMm || water <= 0 || !patch.terrain || !surfaceMaterial(patch.surface).loose) return water;
+  const open = voidMm * (1 - 0.75 * clamp(t.wear, 0, 1));
+  return water * water / (water + open);
+}
+
 /** Normal load available to squeeze water out of this patch. A stationary
  * wheel can be sliding across water and a spinning wheel can be at rest
  * over it, so use speed over the ground rather than wheel angular speed. */
 export function contactWaterLift(t: Tire, normalLoad: number, patch: SurfaceSample, groundSpeed: number) {
   if (patch.water <= 0 || normalLoad <= 0) return 0;
   const texture = treadTexture(patch, surfaceMaterial(patch.surface).textureMm);
-  return aquaplaning(t.compound, normalLoad, patch.water, groundSpeed, t.wear, t.pressure, texture);
+  return aquaplaning(t.compound, normalLoad, treadFilm(t, patch), groundSpeed, t.wear, t.pressure, texture);
 }
 
 /** Peak friction coefficient μ (excluding camber, which needs the slip
@@ -350,7 +364,8 @@ export function peakGrip(
     k = t.construction,
     m = surfaceMaterial(s.surface),
     loadRatio = Math.max(load, 100) / k.nominalLoad,
-    wetRatio = s.water / (s.water + c.waterTolerance),
+    film = treadFilm(t, s),
+    wetRatio = film / (film + c.waterTolerance),
     wetPenalty =
       (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio;
   let ground = materialGrip(m, s.water, s.temp) / m.grip,

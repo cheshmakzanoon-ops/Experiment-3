@@ -93,6 +93,20 @@ export function motocrossJumpApproachSteer(
   return (1 - laneWeight) * lipSteer + laneWeight * laneSteer;
 }
 
+/** Speed that still leaves a bike-length to a slow rider in the projected
+ * path. Resolve the gap in the following rider's ground plane: adjacent
+ * lanes and a rider receding round the hairpin remain free to race. */
+export function motocrossClosingSpeed(gap: number, offset: number, crossSpeed: number,
+  speed: number, leadSpeed: number, grip: number) {
+  const closing = speed - leadSpeed;
+  if (gap <= 0 || closing <= 0.75) return Infinity;
+  const contactIn = clamp((gap - 2.05) / closing, 0, 0.7);
+  if (Math.abs(offset + crossSpeed * contactIn) > 0.94) return Infinity;
+  const braking = clamp(0.58 * G * grip, 2.2, 6.5);
+  const room = Math.max(0, gap - 2.05 - 0.22 * closing);
+  return Math.sqrt(Math.max(0, leadSpeed) ** 2 + 2 * braking * room);
+}
+
 /** Seconds after the gate drop the field launches flat out. */
 const LAUNCH_SECONDS = 1.6;
 /** Grade (sine of the ground slope) and speed (m/s) below which a rider
@@ -145,7 +159,32 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.headingGuard(track, race);
     this.gateLaunch(track, race);
     this.turnContactReserve(track, race);
+    this.guardClosingRider(race);
     this.unstick(dt, track, race);
+  }
+  /** A stopped bike on a jump face can sit below the surveyed landing zone.
+   * Grounded rivals have to brake before a rear impact launches both bikes. */
+  private guardClosingRider(race: RaceDirector) {
+    const c = this.rider, d = c.dynamics;
+    if (!c.riding || c.airborne || c.inPit || c.input.reverse || c.speed < 2 ||
+      race.phase !== PHASE.RACING || race.raceTime <= LAUNCH_SECONDS) return;
+    const fx = Math.sin(d.heading), fz = Math.cos(d.heading);
+    const reach = Math.min(35, 3 + 0.25 * c.speed + c.speed * c.speed / 5);
+    let limit = c.speed;
+    for (const other of this.field) {
+      if (other === c || other.inPit || other.retired || !(other instanceof DirtBikeVehicle) || other.airborne) continue;
+      const dx = other.dynamics.x - d.x, dz = other.dynamics.z - d.z;
+      if (Math.abs(dx) > reach || Math.abs(dz) > reach || Math.abs(other.body.position.y - c.body.position.y) > 2.4) continue;
+      const ahead = dx * fx + dz * fz;
+      if (ahead <= 0 || ahead > reach) continue;
+      const vx = other.body.velocity.x, vz = other.body.velocity.z;
+      limit = Math.min(limit, motocrossClosingSpeed(ahead, dx * fz - dz * fx,
+        vx * fz - vz * fx - c.slide, c.speed, vx * fx + vz * fz, d.grip));
+    }
+    if (limit >= c.speed) return;
+    c.aiTarget = Math.min(c.aiTarget, limit);
+    c.input.throttle = Math.min(c.input.throttle, clamp(1 - (c.speed - limit) * 1.8, 0, 1));
+    c.input.brake = Math.max(c.input.brake, clamp((c.speed - limit) * 0.52, 0, 1));
   }
   /** A triple fed directly by a whoop train needs a settled heading before its
    * lip. Plan the return to the held lane over the remaining run, so alternating
@@ -244,6 +283,21 @@ export class DirtBikeAIDriver extends BikeAIDriver {
         // Leave enough drive to turn uphill while keeping weight on the front.
         const frontShare = clamp(c.forceFront / (d.mass * G), 0, 1);
         c.input.throttle = Math.min(c.input.throttle, 0.24 + 0.3 * frontShare);
+        return;
+      }
+    }
+    // Exiting a supported berm, the racing line can legitimately cross back
+    // toward the middle as the tangent straightens. Stand the chassis up while
+    // the measured velocity stays inside for the next steering response. A
+    // rider aiming at an outside wall still needs the full rejoin brake below.
+    const headingError = Math.abs(error);
+    if (this.plan?.clear && c.speed >= 2 && headingError > 0.45 && headingError < 0.65 &&
+        Math.abs(c.lateral) < squarePoint.width - 0.2 && race.control.flags[c.id] === FLAG.GREEN) {
+      const across = c.body.velocity.x * squarePoint.nx + c.body.velocity.z * squarePoint.nz;
+      if (c.lateral * across < 0 && Math.abs(c.lateral + 0.8 * across) < squarePoint.width - 1 &&
+          offroadCourse(track.circuit)?.spec.berms.some((berm) =>
+            mod(c.s - berm.to + 2, track.length) - 2 < Math.max(5, c.speed * 0.8))) {
+        c.input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.6, 0.6);
         return;
       }
     }
