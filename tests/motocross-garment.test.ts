@@ -41,33 +41,35 @@ function garments(rider: Rider) {
 }
 
 describe('motocross continuous textile skin', () => {
-  it('preserves the actual sleeve cross-section through a bent elbow without pose history', () => {
+  it.each(['sleeve', 'pants'] as const)('preserves the %s cross-section at a bent joint without pose history', (kind) => {
     const root = new T.Group(),
       upper = new T.Group(),
       lower = new T.Group(),
-      shoulder = new T.Bone(),
+      shoulder = kind === 'sleeve' ? new T.Bone() : undefined,
       material = new T.MeshBasicMaterial();
-    root.add(upper, lower, shoulder);
-    lower.position.y = RIDER.upperArm;
-    const sleeve = addMotocrossGarment(
+    root.add(upper, lower);
+    if (shoulder) root.add(shoulder);
+    const upperLength = kind === 'sleeve' ? RIDER.upperArm : RIDER.thigh;
+    lower.position.y = upperLength;
+    const garment = addMotocrossGarment(
       root,
       upper,
       lower,
-      RIDER.upperArm,
-      RIDER.forearm,
-      'sleeve',
+      upperLength,
+      kind === 'sleeve' ? RIDER.forearm : RIDER.shin,
+      kind,
       'high',
       material,
       shoulder,
     );
-    const positions = sleeve.geometry.getAttribute('position'),
-      uv = sleeve.geometry.getAttribute('uv'),
+    const positions = garment.geometry.getAttribute('position'),
+      uv = garment.geometry.getAttribute('uv'),
       ring: number[] = [];
     let closest = Infinity,
       ringY = 0;
     for (let i = 0; i < positions.count; i++) {
       if (uv.getX(i) !== 0) continue;
-      const distance = Math.abs(positions.getY(i) - RIDER.upperArm);
+      const distance = Math.abs(positions.getY(i) - upperLength);
       if (distance < closest) {
         closest = distance;
         ringY = positions.getY(i);
@@ -78,11 +80,11 @@ describe('motocross continuous textile skin', () => {
       inverse = new T.Quaternion();
     const areaAt = (angle: number) => {
       lower.rotation.z = angle;
-      sleeve.updatePose();
+      garment.updatePose();
       root.updateMatrixWorld(true);
       inverse.setFromAxisAngle(new T.Vector3(0, 0, 1), -angle / 2);
       const outline = ring.map((vertex) => {
-        sleeve.getVertexPosition(vertex, point);
+        garment.getVertexPosition(vertex, point);
         point.sub(lower.position).applyQuaternion(inverse);
         return [point.x, point.z];
       });
@@ -102,8 +104,8 @@ describe('motocross continuous textile skin', () => {
       expect(areaAt(Math.PI / 2)).toBeCloseTo(bent, 10);
       expect(areaAt(0)).toBeCloseTo(rest, 10);
     } finally {
-      sleeve.skeleton.dispose();
-      sleeve.geometry.dispose();
+      garment.skeleton.dispose();
+      garment.geometry.dispose();
       material.dispose();
     }
   });

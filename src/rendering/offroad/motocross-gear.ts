@@ -119,7 +119,7 @@ export function motocrossGarmentGeometry(
   upper = 0.29,
   lower = 0.28,
   shoulderAttached = false,
-  elbowSupported = false,
+  bendSupported = false,
 ) {
   const sections = garmentSections(kind, upper, lower),
     ys = sections.map((section) => section[0]),
@@ -133,7 +133,7 @@ export function motocrossGarmentGeometry(
             ? 10
             : 6
         : detail === 'high'
-          ? (kind === 'jersey' ? 48 : 64)
+          ? (kind === 'jersey' ? 48 : 56)
           : detail === 'mid'
             ? 36
             : 18,
@@ -169,14 +169,14 @@ export function motocrossGarmentGeometry(
               // correctly sized sleeve when the rider steers at full reach.
               1 - T.MathUtils.smoothstep(y, -upper * 0.24, upper * 0.04)
             : 0;
-      // A linear blend of two ninety-degree arm transforms collapses the
-      // elbow's cross-section. A bisector bone carries the cloth over the
-      // joint, retaining its rounded volume without inflating the whole arm.
+      // A bent joint collapses under linear blending. Carry the joint ring
+      // on the bisector so the elbow or kneepad keeps its cross-section.
       const bend =
-        elbowSupported && kind === 'sleeve'
+        bendSupported
           ? 1 - T.MathUtils.smoothstep(Math.abs(y - upper), 0, transition)
           : 0;
-      skinIndices.push(0, 1, shoulderAttached ? 2 : 0, elbowSupported ? 3 : 0);
+      const bendIndex = shoulderAttached ? 3 : 2;
+      skinIndices.push(0, 1, shoulderAttached ? 2 : 0, bendSupported ? bendIndex : 0);
       skinWeights.push(
         (1 - weight) * (1 - shoulder) * (1 - bend),
         weight * (1 - bend),
@@ -329,7 +329,6 @@ export function motocrossGarmentGeometry(
  * cannot rotate out of the jersey. This adds no simulation state, pose history,
  * per-frame buffers or CPU cloth pass. */
 export class MotocrossGarmentMesh extends T.SkinnedMesh {
-  private readonly elbow: T.Bone | null;
   private readonly proximalDirection = new T.Vector3();
   private readonly distalDirection = new T.Vector3();
   constructor(
@@ -337,18 +336,17 @@ export class MotocrossGarmentMesh extends T.SkinnedMesh {
     material: T.Material,
     private readonly proximal: T.Group,
     private readonly distal: T.Group,
-    elbow: T.Bone | null,
+    private readonly jointSupport: T.Bone | null,
   ) {
     super(geometry, material);
-    this.elbow = elbow;
   }
   /** The solved limbs and the support bone share the rider's local frame.
    * Re-evaluate directly from this pose, including replay and camera changes;
    * no spring history or new simulation state is involved. */
   updatePose() {
-    if (this.elbow) {
-      this.elbow.position.copy(this.distal.position);
-      this.elbow.quaternion.copy(this.proximal.quaternion).slerp(this.distal.quaternion, 0.5);
+    if (this.jointSupport) {
+      this.jointSupport.position.copy(this.distal.position);
+      this.jointSupport.quaternion.copy(this.proximal.quaternion).slerp(this.distal.quaternion, 0.5);
     }
     if (this.morphTargetInfluences?.length) {
       this.proximalDirection.set(0, 1, 0).applyQuaternion(this.proximal.quaternion);
@@ -378,24 +376,25 @@ export function addMotocrossGarment(
   proximal.add(bones[0]);
   distal.add(bones[1]);
   const inverses = [new T.Matrix4(), new T.Matrix4().makeTranslation(0, -upper, 0)];
-  if (shoulder && kind === 'sleeve') {
-    bones.push(shoulder);
+  const armhole = kind === 'sleeve' ? shoulder : undefined;
+  if (armhole) {
+    bones.push(armhole);
     inverses.push(new T.Matrix4());
   }
-  const elbow = shoulder && kind === 'sleeve' ? new T.Bone() : null;
-  if (elbow) {
-    elbow.name = 'Motocross sleeve elbow volume';
-    parent.add(elbow);
-    bones.push(elbow);
+  const jointSupport = armhole || (kind === 'pants' && detail !== 'far') ? new T.Bone() : null;
+  if (jointSupport) {
+    jointSupport.name = kind === 'pants' ? 'Motocross trouser knee volume' : 'Motocross sleeve elbow volume';
+    parent.add(jointSupport);
+    bones.push(jointSupport);
     inverses.push(new T.Matrix4().makeTranslation(0, -upper, 0));
   }
   const skeleton = new T.Skeleton(bones, inverses);
   const mesh = new MotocrossGarmentMesh(
-    motocrossGarmentGeometry(kind, detail, upper, lower, !!shoulder, !!elbow),
+    motocrossGarmentGeometry(kind, detail, upper, lower, !!armhole, !!jointSupport),
     material,
     proximal,
     distal,
-    elbow,
+    jointSupport,
   );
   if (kind === 'pants' && mirrorPant) {
     // Reflect around the forward meridian. RepeatWrapping keeps the inside
@@ -940,6 +939,34 @@ function gogglePoint(u: number, v: number) {
   );
 }
 
+/** The soft nose guard clips under the curved centre of the frame. Its
+ * folded lip hides the edge of the face insert from a low camera. */
+function goggleNoseGuard() {
+  const positions: number[] = [], uv: number[] = [], index: number[] = [];
+  const columns = 8;
+  for (let row = 0; row < 4; row++) {
+    const t = Math.min(1, row / 2);
+    for (let column = 0; column <= columns; column++) {
+      const across = 2 * column / columns - 1;
+      const p = gogglePoint(0.5 + across * 0.19, 0);
+      const centre = 1 - across * across;
+      positions.push(p.x * (1 - 0.28 * t), p.y - 0.001 - t * (0.002 + 0.023 * centre),
+        p.z + 0.002 + t * (0.001 + 0.006 * centre) - (row === 3 ? 0.0025 : 0));
+      uv.push(column / columns, row / 3);
+      if (row < 3 && column < columns) {
+        const a = row * (columns + 1) + column, b = a + columns + 1;
+        index.push(a, b, a + 1, a + 1, b, b + 1);
+      }
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(index);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 /** Peaked shell, curved mirrored goggles, foam gasket, real ribbon strap and
  * vented chin protector. All meshes are merged by the caller per material. */
 export function addMotocrossHelmet(
@@ -959,7 +986,7 @@ export function addMotocrossHelmet(
     trim,
     0,
     0.15,
-    0.02,
+    detail === 'far' ? 0.02 : -0.009,
   ).name = 'Motocross recessed eye-port liner';
   part(head, motocrossEyePortReturn(detail), trim, 0, 0.15, 0.02).name =
     'Motocross eye-port shell return';
@@ -1019,6 +1046,7 @@ export function addMotocrossHelmet(
   );
   strap.name = 'Motocross woven goggle strap';
   if (detail === 'far') return;
+  part(head, goggleNoseGuard(), trim).name = 'Motocross moulded goggle nose guard';
   for (const start of REAR_VENTS) {
     const duct = part(head, motocrossHelmetDuct(detail, start, VENT_SPAN, VENT_BOTTOM, VENT_TOP, 0.01), trim, 0, 0.15, 0.02);
     duct.name = 'Motocross recessed rear helmet exhaust';

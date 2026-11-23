@@ -7,6 +7,8 @@ import { MX_RECOVERY } from '../../simulation/offroad/rider-recovery.ts';
  * These are pose signals, not a second physics simulation. */
 export interface MotocrossRiderMotionInput {
   standing?: number;
+  lean?: number;
+  speed?: number;
   /** Recorded acceleration in g, positive forward, and chassis roll rate in rad/s. */
   gLong?: number;
   leanRate?: number;
@@ -92,11 +94,14 @@ export function sampleMotocrossRiderMotion(
   out.pelvisBack += (0.052 * braking - 0.033 * drive) * mobility;
   out.torsoPitch += 0.13 * drive - 0.095 * braking;
   out.elbowLift += 0.032 * braking + 0.015 * drive;
-  // Let the machine roll under the rider during a direction change. The
-  // slide and counter-roll go to zero in a steady turn at the same lean.
+  // While the wheels are carrying load the outside peg takes more weight.
+  // The hips stay nearer the saddle centre standing, when both knees grip it.
+  // A separate transient lets the chassis roll under the torso in a reversal.
+  const corner = Math.sin(clamp(finite(pose.lean), -1.1, 1.1))
+    * smooth(2.5, 10, Math.abs(finite(pose.speed))) * effort;
   const roll = Math.tanh(finite(pose.leanRate) * 0.7) * effort;
-  out.pelvisSide = -0.027 * roll * mobility;
-  out.counterRoll = 0.11 * roll * mobility;
+  out.pelvisSide = -0.027 * roll * mobility - corner * (0.055 - 0.022 * standing);
+  out.counterRoll = 0.11 * roll * mobility + corner * (0.105 - 0.04 * standing);
   if (ready > 0) {
     // Riders set their weight over the bars before the gate drops. The race
     // number keeps each rider's elbow carriage and breathing phase the same

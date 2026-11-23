@@ -1,12 +1,14 @@
 import * as T from 'three';
-import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { chainShaderHook, injectAfter, injectBefore, injectDeclarations } from '../studio/shader-hooks.ts';
 
 /** Vary the optical density of the smoked lens toward its brow and the
  * thickness of its dielectric coating over the wrap. The thin laminated
  * edges change highlight roughness and fade below a pixel at race distance. */
 export function installMxGoggleFilm(material: T.MeshPhysicalMaterial) {
   material.ior = 1.58;
-  chainShaderHook(material, 'mx-goggle-film-v1', (shader) => {
+  material.transparent = true;
+  material.depthWrite = false;
+  chainShaderHook(material, 'mx-goggle-film-v2', (shader) => {
     injectDeclarations(shader, 'common', 'varying vec2 vMxLensUv;', 'vertex');
     injectAfter(shader, 'begin_vertex', 'vMxLensUv = uv;', 'vertex');
     injectDeclarations(
@@ -15,6 +17,13 @@ export function installMxGoggleFilm(material: T.MeshPhysicalMaterial) {
       'varying vec2 vMxLensUv; float mxFilmEdge, mxLensBrow;',
       'fragment',
     );
+    // Darker at the brow and edges. Through the centre a camera can see the
+    // recessed eyes and cheek pads, while the coating reflects the venue.
+    injectBefore(shader, 'opaque_fragment', `
+      float mxGrazing = 1.0 - saturate(abs(dot(normal, normalize(vViewPosition))));
+      diffuseColor.a = mix(0.40 + 0.15 * mxLensBrow, 0.94, mxGrazing * mxGrazing);
+      diffuseColor.a += (1.0 - diffuseColor.a) * 0.22 * mxFilmEdge;
+    `, 'fragment');
     injectAfter(
       shader,
       'color_fragment',

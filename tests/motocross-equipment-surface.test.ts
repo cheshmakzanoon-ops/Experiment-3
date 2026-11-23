@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials } from '../src/rendering/bike.ts';
+import { Rider } from '../src/rendering/rider.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import {
   addMotocrossHelmet,
@@ -31,6 +32,32 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('motocross equipment surface and ownership', () => {
+  it.each(['high', 'mid'] as const)('places both %s eyes inside the goggle cavity behind the coated lens', detail => {
+    const rider = new Rider({ primary: 0x314184, secondary: 0x191a28, accent: 0xdde2e9 }, detail, 'motocross');
+    const assembly = new T.Group(), material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+    const original = rider.root.getObjectByName('Motocross recessed brow and eyes') as T.Mesh;
+    const face = new T.Mesh(original.geometry, material);
+    face.position.copy(original.position);
+    face.scale.copy(original.scale);
+    assembly.add(face);
+    addMotocrossHelmet(assembly, detail, material, material, material, material);
+    assembly.updateMatrixWorld(true);
+    const lens = assembly.getObjectByName('Motocross curved goggle lens')!;
+    const backing = assembly.getObjectByName('Motocross recessed eye-port liner')!;
+    try {
+      for (const x of [-0.031, 0.031]) {
+        const ray = new T.Raycaster(new T.Vector3(x, 0.171, 0.4), new T.Vector3(0, 0, -1));
+        const depth = (piece: T.Object3D) => ray.intersectObject(piece)[0]!.distance;
+        expect(depth(face) - depth(lens)).toBeGreaterThan(0.01);
+        expect(depth(backing) - depth(face)).toBeGreaterThan(0.005);
+      }
+    } finally {
+      assembly.remove(face);
+      assembly.traverse(piece => { if (piece instanceof T.Mesh) piece.geometry.dispose(); });
+      material.dispose();
+      rider.dispose();
+    }
+  });
   it('keeps each immutable print CPU-backed through grid resampling', () => {
     const colours = { primary: 0x353986, secondary: 0x171624, accent: 0xfff4df };
     for (const detail of ['high', 'mid', 'far'] as const) {

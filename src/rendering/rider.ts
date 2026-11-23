@@ -479,7 +479,7 @@ export class Rider {
   };
   private readonly gpGarments: GpRiderGarment[] = [];
   private readonly gpSpine?: GpRiderSpine;
-  private readonly gpEyes?: T.Vector3;
+  private readonly helmetEyes?: T.Vector3;
   private readonly gpSuitLoads?: T.Vector3;
   private readonly gpPosture = new GpRiderPosture();
   private readonly gpScratch = [new T.Vector3(), new T.Vector3()];
@@ -1088,10 +1088,21 @@ export class Rider {
     }
     if (mx) {
       addMotocrossHelmet(this.head, detail, helmet, visor, flex, mxTrim!, mxStrap!);
+      if (detail !== 'far') {
+        this.helmetEyes = new T.Vector3();
+        const skin = new T.MeshPhysicalMaterial({ name: 'Motocross eye port', roughness: 0.62 });
+        installGpHelmetFace(skin, this.helmetEyes);
+        this.materials.push(skin);
+        const face = gpEyePortFace(detail, raceNumber, skin);
+        face.name = 'Motocross recessed brow and eyes';
+        face.position.set(0, 0.159, 0.1);
+        face.scale.z = 0.82;
+        this.head.add(face);
+      }
     } else if (gpHelmet) {
       if (detail !== 'far') {
-        this.gpEyes = new T.Vector3();
-        installGpHelmetFace(helmet, this.gpEyes);
+        this.helmetEyes = new T.Vector3();
+        installGpHelmetFace(helmet, this.helmetEyes);
         const face = gpEyePortFace(detail, raceNumber, helmet);
         face.position.fromArray(GP_HELMET_CENTRE);
         face.position.y += .006;
@@ -1524,6 +1535,7 @@ export class Rider {
   /** Riding pose in the bike's (sprung) frame. */
   ride(pose: RiderPose) {
     this.riding = true;
+    if (this.helmetEyes) gpEyePose(this.helmetEyes, this.raceNumber, pose.time, pose.sight);
     if (this.gp && this.kit !== 'motocross') {
       this.rideGp(pose);
       return;
@@ -1714,7 +1726,6 @@ export class Rider {
    * a knee or elbow back about its limb axis so its slider skims, but never
    * penetrates, the road at full lean. Pure in `pose`: no clock or history. */
   private rideGp(pose: RiderPose) {
-    if (this.gpEyes) gpEyePose(this.gpEyes, this.raceNumber, pose.time, pose.sight);
     const posture = this.gpPosture.solve(pose, this.seat),
       braking = Number.isFinite(pose.braking) ? T.MathUtils.clamp(pose.braking, 0, 1) : 0,
       lean = T.MathUtils.clamp(Number.isFinite(pose.lean) ? pose.lean : 0, -1.3, 1.3),
@@ -1892,7 +1903,7 @@ export class Rider {
     dirt?: MxDabSurface,
   ) {
     this.riding = false;
-    if (this.gpEyes) gpEyePose(this.gpEyes, this.raceNumber, time);
+    if (this.helmetEyes) gpEyePose(this.helmetEyes, this.raceNumber, time);
     this.brakeFingers?.update(0);
     this.clutchFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;

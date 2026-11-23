@@ -145,6 +145,11 @@ describe('motocross suspension-driven rider motion', () => {
       expect(sample(mid, { leanRate: -1.8 })[0] - left[0]).toBeGreaterThan(0.035);
       expect(sample(mid, { leanRate: 1.8 })).toEqual(left);
       expect(sample(far, { leanRate: 1.8 })).toEqual(left);
+      const sustained = sample(mid, { chassisLean: 0.7 });
+      expect(sample(mid, { chassisLean: -0.7 })[0] - sustained[0]).toBeGreaterThan(0.04);
+      expect(sample(mid, { chassisLean: 0.7, dirtSupportG: 0 })[0]).toBeCloseTo(coasting[0], 10);
+      expect(sample(mid, { chassisLean: 0.7, speed: 0 })[0]).toBeCloseTo(coasting[0], 10);
+      expect(sample(far, { chassisLean: 0.7 })).toEqual(sustained);
     } finally {
       mid.dispose();
       far.dispose();
