@@ -2,6 +2,10 @@
 
 These stills come from the game's Three.js models and race renderer. The 100 supplied reference photographs informed the work on wing construction, helmet finish, lens height, wet-pavement contrast and trackside sightlines. The images below show the game itself.
 
+![A live circuit camera looking through catch fencing at the violet APX-01 on a dry Vellamar lap](vellamar-high-trackside.webp)
+
+This 640 × 400 High-preset frame came from a live practice session with the HUD hidden. The accompanying telemetry recorded 105 km/h, 987 metres into the lap. The local cubemap for the paint had two completed captures and was refreshing another face as the car moved.
+
 ## From the driver's seat to the finish-line camera
 
 ![Vellamar in rain, showing the rival's working gear display, three-car chase view, wet roll-hoop view and finish-line group shot](race-cameras.webp)
