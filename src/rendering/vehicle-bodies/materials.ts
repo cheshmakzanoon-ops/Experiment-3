@@ -430,7 +430,20 @@ export function tyreMaterial(pattern: TreadPattern, size?: RoadTyreSize, poseOnl
   return { material, pose, mould };
 }
 /** The numeral on a board canvas (128 px square). */
-export function paintNumber(ctx: CanvasRenderingContext2D, num: number) {
+export function paintNumber(ctx: CanvasRenderingContext2D, num: number, formula = false) {
+  if (formula) {
+    ctx.clearRect(0, 0, 128, 128);
+    ctx.font = 'italic 900 98px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#111720';
+    ctx.lineWidth = 10;
+    ctx.strokeText(String(num), 61, 67, 108);
+    ctx.fillStyle = '#f5f4ec';
+    ctx.fillText(String(num), 61, 67, 108);
+    return;
+  }
   ctx.fillStyle = '#f4f4f1';
   ctx.fillRect(0, 0, 128, 128);
   ctx.fillStyle = '#111214';
@@ -439,16 +452,22 @@ export function paintNumber(ctx: CanvasRenderingContext2D, num: number) {
   ctx.textBaseline = 'middle';
   ctx.fillText(String(num), 64, 70);
 }
-/** Race number board: white plate, black numerals (no marks, no brands). */
-export function numberBoard(num: number) {
+/** White number board or a keylined Formula race numeral on a clear carrier. */
+export function numberBoard(num: number, formula = false) {
   const material = new T.MeshStandardMaterial({ color: 0xf2f2ef, roughness: 0.55 });
+  if (formula) {
+    material.userData.formulaNumber = true;
+    material.alphaTest = 0.28;
+    material.alphaToCoverage = true;
+    material.roughness = 0.36;
+  }
   if (typeof document === 'undefined') return material;
   const canvas = document.createElement('canvas');
   canvas.width = 128;
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
   if (!ctx) return material;
-  paintNumber(ctx, num);
+  paintNumber(ctx, num, formula);
   const texture = new T.CanvasTexture(canvas);
   texture.colorSpace = T.SRGBColorSpace;
   texture.anisotropy = 4;

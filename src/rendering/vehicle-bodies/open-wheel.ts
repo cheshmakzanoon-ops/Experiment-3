@@ -20,6 +20,7 @@ import type { Detail } from './wheel.ts';
 import type { CabinLayout } from './cabin.ts';
 import { buildFrameCabin, buildOpenWheelCabin } from './interior.ts';
 import { buildFormulaFrontWing } from './formula-front-wing.ts';
+import { addFormulaCoverNumbers, addFormulaInlets, addFormulaNoseNumber } from './formula-sidepod.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 
 /** Open-wheel single-seaters (modern feeder formula with halo, sidepods and
@@ -128,6 +129,8 @@ export function buildOpenWheel(
   const rings = Array.from({ length: n + 1 }, (_, i) => ring(zTail + ((zNose - zTail) * i) / n));
   const counts = COUNTS[detail];
   const topStart = counts.slice(0, 7).reduce((a, b) => a + b, 0);
+  const shoulder = counts[0] + counts[1] + counts[2];
+  const shoulderEnds = f.rearAxle + (s.stripe === 'side' ? 0.62 : 0.87);
   const tub = loftRings(rings, {
     capStart: true,
     capEnd: true,
@@ -136,6 +139,17 @@ export function buildOpenWheel(
       // near LOD (the cabin fills it), a dark lid on the others.
       if (j >= topStart && zMid < zCockpit + 0.42 && zMid > zCockpit - 0.32) return near ? -1 : 1;
       if (s.stripe === 'centre' && j >= topStart + counts[7] - 1) return 2;
+      // The seam of the painted shoulder follows the actual sidepod profile,
+      // including the waist behind the radiators, at each tessellation level.
+      if (
+        modern &&
+        cabin?.def.drs &&
+        j >= shoulder &&
+        j < shoulder + counts[3] &&
+        zMid < f.frontAxle - 1.04 &&
+        zMid > shoulderEnds
+      )
+        return 2;
       if (j < counts[0]) return 3;
       return 0;
     },
@@ -146,6 +160,13 @@ export function buildOpenWheel(
     [mats.paint, sharedMaterials.cabinLid(), mats.accent, sharedMaterials.carbonSatin()],
     'Monocoque (lofted)',
   );
+  if (modern && cabin?.def.drs) {
+    addFormulaInlets(parts, f, mats, s.sidepod, cabin.def.id, detail);
+    if (detail < 2) {
+      addFormulaNoseNumber(parts, mats, zNose, (z) => top.at(z));
+      addFormulaCoverNumbers(parts, mats, zCockpit, ring, (z) => top.at(z));
+    }
+  }
   const carbon = sharedMaterials.carbon(),
     satin = sharedMaterials.carbonSatin();
   // Driver (the near cabin seats its own, with legs and a turning wheel).

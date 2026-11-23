@@ -148,6 +148,7 @@ export function buildVehicleBody(
     model ? model.gaps() : [],
     bodyLook(definition.id, id, sheet, livery),
     model ? layerFrameFor(frame, model) : null,
+    definition.drs,
   );
   if (definition.classId === 'road' && closed?.mirrorForm) {
     materials.reverse = lampMaterial(0x9ca8a7, 0xfff1d6);

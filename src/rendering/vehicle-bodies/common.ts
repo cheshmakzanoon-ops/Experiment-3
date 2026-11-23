@@ -43,6 +43,7 @@ export function carMaterials(
   gaps: readonly PanelGap[],
   look: BodyLook = teamLook(id),
   layerFrame?: LayerFrame | null,
+  formulaNumber = false,
 ) {
   const paint = bodyPaint(
     look.primary,
@@ -57,7 +58,7 @@ export function carMaterials(
     helmet: bodyPaint(look.helmet, 'gloss'),
     head: lampMaterial(0xe8edf2, 0xfff4e2),
     tail: lampMaterial(0x4a0606, 0xff1a12),
-    board: numberBoard(look.number),
+    board: numberBoard(look.number, formulaNumber),
     // Per car (not the shared cache): a livery edit recolours it in place.
     suit: new T.MeshStandardMaterial({ color: look.suit, roughness: 0.82, metalness: 0 }),
     layers,
@@ -80,7 +81,7 @@ export function applyLook(materials: CarMaterials, look: BodyLook) {
   const canvas = materials.board.map?.image as HTMLCanvasElement | undefined;
   const context = canvas?.getContext?.('2d');
   if (context && materials.board.map) {
-    paintNumber(context, look.number);
+    paintNumber(context, look.number, materials.board.userData.formulaNumber === true);
     materials.board.map.needsUpdate = true;
   }
 }
