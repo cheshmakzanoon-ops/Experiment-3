@@ -34,6 +34,8 @@ test('GP visor reveals the recessed rider and held flags follow reversible cross
   expect(metrics.gatherPixels).toBeGreaterThan(100);
   expect(metrics.gatherRestore).toBe(0);
   expect(metrics.gazePixels).toBeGreaterThan(8);
+  for (const pixels of metrics.pupilTravel) expect(pixels).toBeGreaterThan(2);
+  expect(metrics.gazeRestore).toBe(0);
   expect(metrics.lidPixels).toBeGreaterThan(20);
   expect(metrics.eyesRestore).toBe(0);
   expect(metrics.facePixels).toBeGreaterThan(120);

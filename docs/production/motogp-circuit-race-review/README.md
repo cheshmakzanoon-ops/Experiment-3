@@ -14,6 +14,10 @@ The tyre shader uses the load, inflation pressure and measured road plane at eac
 
 The tank has a recessed filler latch, socket heads and molded knee grips. The helmet has two jaw intakes and a replaceable visor film with a folded release tab on the left retaining post. At the rear wheel, five open windows and five recessed wrench sockets rotate with the carrier. Its hollow collar seats inside the wheel hub. The complete High models submit 109,980 triangles for the GP-R1 and 109,382 for the GP-R2, including the repeated chain plates and rollers.
 
+![Three matching views through the visor show the rider looking left, blinking and looking right](gp-rider-gaze.webp)
+
+The rider looks into each turn and the lids meet when blinking. Light reflects from the cornea while the iris turns beneath it. In this close-up, the bands of light and dark swept by the pigments were 23.0 and 23.9 pixels apart in the two eyes. Replaying the leftward gaze reproduced the same pixels.
+
 ![A two-second GP-R1 launch showing the rider releasing the clutch and the chain taking up drive](gp-clutch-launch.webp)
 
 Both camera views use the same 48 samples from a 120 Hz simulation. The rider holds 80% throttle and releases the manual clutch over one second. The left hand follows the lever as plate torque rises and the bike reaches 43.3 km/h. The drive and return runs share up to 16 mm of free-span deflection. The boot pedal operates the rear brake independently. In automatic mode the original secondary brake binding remains available. [Frame measurements](gp-clutch-launch.json)

@@ -57,6 +57,33 @@ export function gpEyePose(out: T.Vector3, entrant: number, time?: number, sight?
     T.MathUtils.clamp(.32*grade*weight, -.085, .085), lid);
 }
 
+// The pigmented iris sits behind the smooth, independently lit cornea.
+// Resolve radial fibres only when several samples span the iris. Its darker
+// limbal rim and warm inner collar survive farther from the portrait camera.
+const IRIS_GLSL = /* glsl */ `
+vec3 gpIrisColour(vec3 eyeNormal, vec3 pigment, vec3 sclera, float who, float px) {
+  vec3 gaze = normalize(vec3(gpEyePose.xy, 1.));
+  vec3 right = normalize(vec3(1., 0., -gpEyePose.x));
+  vec2 iris = vec2(dot(eyeNormal, right), dot(eyeNormal, cross(gaze, right))) / .485;
+  float radius = length(iris);
+  float aa = clamp(px / .0058, .022, .42);
+  float aperture = 1. - smoothstep(1. - aa, 1. + aa, radius);
+  if (aperture <= 0.) return sclera;
+  float collar = 1. - smoothstep(.46, .72, radius);
+  vec3 stroma = pigment * mix(vec3(1.03, 1.01, 1.), vec3(1.32, .89, .64), collar);
+  float fibreDetail = 1. - smoothstep(.00022, .00085, px);
+  if (fibreDetail > 0. && radius > .26) {
+    float theta = atan(iris.y, iris.x), seed = humanHash(who + 7.3) * 6.2832;
+    float rays = sin(23. * theta + seed + 1.5 * radius)
+      * sin(15. * theta - 2. * seed - .9 * radius);
+    stroma *= 1. + .32 * rays * fibreDetail;
+  }
+  stroma *= 1. - .54 * smoothstep(.81, 1., radius);
+  float pupil = 1. - smoothstep(.39 - aa * .6, .39 + aa * .6, radius);
+  return mix(sclera, mix(stroma, vec3(.0055, .0046, .0041), pupil), aperture);
+}
+`;
+
 /** Both shell and facial insert are opaque. The facial insert has an ID
  * starting at one. The default scalar attribute on every lacquered part is
  * zero, keeping the existing paint and decals on those pieces. */
@@ -71,6 +98,7 @@ uniform vec3 gpEyePose;
 varying vec4 vGpFace;
 float gpFacialSkin;
 ${HUMAN_TONE_GLSL}
+${IRIS_GLSL}
 ${HUMAN_FACE_GLSL}`, 'fragment');
     shader.fragmentShader = skinWrapLighting(shader.fragmentShader, 'gpFacialSkin');
     injectAfter(shader, 'color_fragment', `

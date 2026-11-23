@@ -117,6 +117,29 @@ export function captureGpOpticsAndCloth() {
     const looking = eyeFrame('eyes-toward-apex', undefined, .52);
     const blink = eyeFrame('eyelids-closed', closeTime);
     const open = eyeFrame('eyes-rewound');
+    const eyeCentre = face.localToWorld(new T.Vector3(0, .0105, .088));
+    camera.position.copy(eyeCentre).add(new T.Vector3(0, .011, .245));
+    camera.lookAt(eyeCentre);
+    const toLeft = eyeFrame('visor-gaze-left', undefined, -.56);
+    eyeFrame('visor-gaze-blink', closeTime);
+    const toRight = eyeFrame('visor-gaze-right', undefined, .56);
+    const leftAgain = eyeFrame('visor-gaze-left-replayed', undefined, -.56);
+    // A darker iris moving right leaves a brighter strip behind it. For each
+    // eye, measure the distance between the two strips in actual helmet pixels.
+    const pupilTravel = [-1, 1].map(side => {
+      const centre = face.localToWorld(new T.Vector3(side * .031, .0105, .088)).project(camera);
+      const cx = Math.round((centre.x + 1) * width / 2), cy = Math.round((centre.y + 1) * height / 2);
+      let gain = 0, loss = 0, gainMoment = 0, lossMoment = 0;
+      for (let y = cy - 13; y <= cy + 13; y++) for (let x = cx - 26; x <= cx + 26; x++) {
+        const k = 4 * (y * width + x);
+        const d = .2126 * (toRight[k] - toLeft[k]) + .7152 * (toRight[k + 1] - toLeft[k + 1])
+          + .0722 * (toRight[k + 2] - toLeft[k + 2]);
+        if (d > 2) { gain += d; gainMoment += x * d; }
+        if (d < -2) { loss -= d; lossMoment -= x * d; }
+      }
+      return loss && gain ? lossMoment / loss - gainMoment / gain : 0;
+    });
+    eyeFrame('visor-gaze-centred');
     camera.position.set(.39, .12, .43);
     camera.lookAt(0, .065, .03);
     snap('visor-three-quarter');
@@ -179,7 +202,7 @@ export function captureGpOpticsAndCloth() {
     dash.update(race);
     const speedAgain = snap('cockpit-tft-rewound');
     scene.remove(dash.root);
-    return {captures, cornea, speedInk, gearInk, instrumentPixels: changed(speedFrame,pitFrame), instrumentRestore: changed(speedFrame,speedAgain), gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
+    return {captures, cornea, pupilTravel, gazeRestore: changed(toLeft, leftAgain), speedInk, gearInk, instrumentPixels: changed(speedFrame,pitFrame), instrumentRestore: changed(speedFrame,speedAgain), gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
       facePixels: changed(portrait,liner), faceRestore: changed(portrait,restored),
       windPixels: changed(east,west), calmPixels: changed(east,calm), windRestore: changed(east,eastAgain),
       glError: gl.getContext().getError()};
