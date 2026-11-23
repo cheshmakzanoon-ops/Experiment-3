@@ -19,6 +19,48 @@ import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
 // separate WebGL gates in gp-contact-effects.spec.ts.
 test.use({ viewport: { width: 1280, height: 800 } });
 
+test('High renders the four-rider Cape Wrenna wet grid and presents its first moving lap', async ({ page }, info) => {
+  test.setTimeout(540000);
+  await page.setViewportSize({ width: 960, height: 540 });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.goto('/');
+  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
+  await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+  await page.locator('[name=quality]').selectOption('high');
+  await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await page.getByRole('radio', { name: /^GP BIKE,/ }).click();
+  await page.selectOption('#circuit', 'cape-wrenna');
+  await page.selectOption('#vehicle', 'gpr2');
+  await page.selectOption('#mode', 'race');
+  await page.selectOption('#opponents', '3');
+  await page.selectOption('#weather', 'rain');
+  await page.selectOption('#compound', 'wet');
+  await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
+  const diag = () => page.evaluate(() => window.apexDiagnostics());
+  const grid = await diag();
+  expect(grid.options).toMatchObject({ circuit: 'cape-wrenna', weather: 'rain', compound: 'wet' });
+  expect(grid.frame![H.CARS]).toBe(4);
+  expect(grid.renderer?.graphics).toMatchObject({ textureSize: 1024, msaa: 4, ambientOcclusion: true });
+  await page.keyboard.press('g');
+  await expect.poll(async () => (await diag()).frame?.[carBase(0) + F.SPEED], { timeout: 120000 })
+    .toBeGreaterThan(10);
+  await expect.poll(async () => (await diag()).presentation?.particles.active[PARTICLE_KIND.SPRAY])
+    .toBeGreaterThan(0);
+  const moving = await diag();
+  expect(moving.renderer?.presentedCamera).toBe('chase');
+  expect(moving.presentation!.frames).toBeGreaterThan(grid.presentation!.frames);
+  expect(moving.frame![carBase(0) + WHEEL_BASE + 2 * WHEEL_STRIDE + W.WATER]).toBeGreaterThan(0);
+  await info.attach('cape-wrenna-high-wet-grid.png', { body: await page.screenshot(), contentType: 'image/png' });
+  await info.attach('cape-wrenna-high-wet-grid.json', {
+    body: JSON.stringify({ grid, moving, errors }), contentType: 'application/json',
+  });
+  expect(errors).toEqual([]);
+});
+
 test('GP wet practice renders live two-tyre spray, advances normally and holds on pause', async ({
   page,
 }, info) => {
