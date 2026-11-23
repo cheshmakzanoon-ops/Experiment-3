@@ -232,7 +232,7 @@ describe('current-view detail and deterministic presentation', () => {
         expect(camera.position.toArray()).toEqual([60, 0.4, 0.2]);
         expect(fixture.presented.value[carBase(opponent) + F.X]).toBe(expectedX);
         expect(fixture.presented.value[H.TIME]).toBe(presentedTime);
-        expect(fixture.circuit.setGrandPrixGrid).toHaveBeenCalledExactlyOnceWith(false);
+        expect(fixture.circuit.setGrandPrixGrid).toHaveBeenCalledExactlyOnceWith(false, true);
         expect(garageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
         expect(frontageUpdate).toHaveBeenCalledExactlyOnceWith(camera, 'high', 'day');
         expect(frontageUpdate.mock.invocationCallOrder[0]).toBeLessThan(

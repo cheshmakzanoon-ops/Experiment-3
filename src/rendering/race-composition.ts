@@ -1,6 +1,7 @@
 import { PitComposition } from './pit-presentation.ts';
-import { Vector3 } from 'three';
-import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
+import { Quaternion, Vector3 } from 'three';
+import { vehicleAt } from '../simulation/vehicles.ts';
+import { F, H, R, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 
 /** Read-only composition of real nearby competitors. No car teleports, hidden
  * opponents, altered race state, or fabricated cinematic events. */
@@ -12,17 +13,28 @@ export class RaceComposition {
   participants: number[] = [];
   private readonly pit = new PitComposition();
   private positions: Vector3[] = Array.from({ length: 12 }, () => new Vector3());
+  private readonly carOrientation = new Quaternion();
+  private readonly carProbes = Array.from({ length: 8 }, () => new Vector3());
+  private readonly moving = {
+    moving: true,
+    anchor: new Vector3(),
+    points: [] as Vector3[],
+    maxDistance: 430,
+  };
   get visibility() {
+    if (this.moving.points.length) return this.moving;
     return this.kind === 'pit' && this.pit.active ? this.pit.visibility : undefined;
   }
   reset() {
     this.participants = [];
+    this.moving.points.length = 0;
     this.radius = 3.1;
     this.kind = 'single';
   }
   /** `subjectRadius`: the bounding sphere of one complete participant
    * (3.1 m: a car; a GP motorcycle and rider is smaller). */
-  update(frame: Float32Array, followed: number, subjectRadius = 3.1) {
+  update(frame: Float32Array, followed: number, subjectRadius = 3.1, observeFormula = false) {
+    this.moving.points.length = 0;
     if (!Number.isFinite(subjectRadius) || subjectRadius <= 0)
       throw new Error('Invalid composition subject radius');
     const count = frame[H.CARS];
@@ -60,6 +72,8 @@ export class RaceComposition {
       return this;
     }
     if (frame[o + F.RETIRED]) return this;
+    const leave = observeFormula ? 21 : 14;
+    const join = observeFormula ? 16 : 10;
     let totalWeight = 1;
     const selected: { id: number; distance: number; weight: number }[] = [];
     for (let id = 0; id < count; id++) {
@@ -68,7 +82,7 @@ export class RaceComposition {
       if (frame[b + F.RETIRED] || frame[b + F.IN_PIT]) continue;
       const p = this.positions[id].set(frame[b + F.X], frame[b + F.Y], frame[b + F.Z]);
       const distance = p.distanceTo(anchor);
-      if (distance >= (previous.has(id) ? 14 : 10) || Math.abs(p.y - anchor.y) > 2.5) continue;
+      if (distance >= (previous.has(id) ? leave : join) || Math.abs(p.y - anchor.y) > 2.5) continue;
       const vx = frame[b + F.VX],
         vz = frame[b + F.VZ],
         playerSpeed = Math.hypot(frame[o + F.VX], frame[o + F.VZ]),
@@ -80,7 +94,7 @@ export class RaceComposition {
         (vx * frame[o + F.VX] + vz * frame[o + F.VZ]) / (playerSpeed * otherSpeed) < 0.4
       )
         continue;
-      const t = Math.max(0, Math.min(1, (14 - distance) / 7)),
+      const t = Math.max(0, Math.min(1, (leave - distance) / (leave * 0.5))),
         weight = t * t * (3 - 2 * t);
       selected.push({ id, distance, weight });
     }
@@ -108,6 +122,35 @@ export class RaceComposition {
       );
     if (this.kind === 'single' && this.participants.length > 1)
       this.kind = this.participants.length > 2 ? 'pack' : 'battle';
+    if (observeFormula) {
+      this.moving.anchor.copy(anchor);
+      const w = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])).wheelPositions;
+      this.carOrientation
+        .set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW])
+        .normalize();
+      // The head can see a car's CG past a bridge support while losing a wing,
+      // both front wheels, or its opponent. Sample the actual racing envelope.
+      for (let i = 0; i < 4; i++) {
+        const [x, , z] = w[i];
+        this.moving.points.push(
+          this.carProbes[i].set(x, -0.08, z).applyQuaternion(this.carOrientation).add(anchor),
+        );
+      }
+      this.moving.points.push(
+        this.carProbes[4]
+          .set(0, 0.48, w[2][2] - 0.5)
+          .applyQuaternion(this.carOrientation)
+          .add(anchor),
+      );
+      this.moving.points.push(
+        this.carProbes[5]
+          .set(0, -0.16, w[0][2] + 0.55)
+          .applyQuaternion(this.carOrientation)
+          .add(anchor),
+      );
+      for (let i = 0; i < Math.min(2, selected.length); i++)
+        this.moving.points.push(this.carProbes[6 + i].copy(this.positions[selected[i].id]));
+    }
     return this;
   }
   diagnostics() {

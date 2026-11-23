@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { FormulaGridCamera } from './formula-grid-camera.ts';
 import { FormulaEdgeProfile } from './formula-edge.ts';
 import { carBase, R, RACE_BASE } from '../simulation/protocol.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -116,6 +117,7 @@ export class FormulaCourse {
   readonly root = new T.Group();
   readonly active = { value: 0 };
   readonly edges: FormulaEdgeProfile | null;
+  gridCamera?: FormulaGridCamera;
   constructor(readonly track: Track) {
     this.root.name = 'Formula timing stations';
     this.root.visible = false;
@@ -146,6 +148,8 @@ export class FormulaCourse {
       'metal',
       0.7,
     );
+    this.gridCamera = new FormulaGridCamera(this.track, hardware);
+    this.root.add(this.gridCamera.root);
     const print = tagWeatherSurface(
       new T.MeshStandardMaterial({ map: panelAtlas(), roughness: 0.59 }),
       'paint',

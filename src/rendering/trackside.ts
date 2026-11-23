@@ -3,10 +3,12 @@ import { clamp, mod } from '../core/math.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
+import { formulaGridCameraSite } from './formula-grid-camera.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { isMotocrossBroadcast, placeMotocrossRigs } from './offroad/broadcast-sites.ts';
 
 export interface BroadcastSubjectVisibility {
+  readonly moving?: boolean;
   /** At most eight finite world-space subject-boundary points. */
   readonly points: readonly Vector3[];
   /** Actual actor culling anchor, not the offset optical target. */
@@ -161,6 +163,13 @@ export interface TracksideLens {
   maxFov: number;
   subjectRadius: number;
 }
+export const FORMULA_TELEPHOTO: Readonly<TracksideLens> = Object.freeze({
+  fill: 0.67,
+  minFov: 6.5,
+  maxFov: 30,
+  subjectRadius: 3.1,
+});
+
 // The lens itself is a broadcast camera's thin lens (studio/subject-focus.ts
 // BROADCAST_LENS): a depth-proportional blur reached 10 m either side of focus
 // made every held broadcast shot a tilt-shift miniature (photoreal review).
@@ -212,7 +221,9 @@ export function tracksideFraming(
 /** Fixed trackside positions plus a predictable pan/zoom director. Replay seeks
  * and camera cuts reset the pan; normal boundary jitter uses coverage hysteresis. */
 export class TracksideDirector {
-  readonly rigs: readonly CameraRig[];
+  rigs: readonly CameraRig[];
+  private readonly regularRigs: readonly CameraRig[];
+  private readonly formulaRigs: readonly CameraRig[];
   readonly position = new Vector3();
   readonly gaze = new Vector3();
   private predicted = new Vector3();
@@ -236,7 +247,11 @@ export class TracksideDirector {
     readonly track: Track,
     private readonly blocked?: (from: Vector3, to: Vector3) => boolean,
   ) {
-    this.rigs = tracksideRigs(track);
+    this.regularRigs = this.rigs = tracksideRigs(track);
+    this.formulaRigs =
+      track.circuit.drsZones.length && !track.circuit.offroad
+        ? [{ ...this.rigs[0], position: formulaGridCameraSite(track).eye }, ...this.rigs.slice(1)]
+        : this.regularRigs;
   }
   reset() {
     this.activeId = -1;
@@ -266,6 +281,11 @@ export class TracksideDirector {
       dt < 0
     )
       throw new Error('Invalid trackside camera state');
+    const nextRigs = lens === FORMULA_TELEPHOTO ? this.formulaRigs : this.regularRigs;
+    if (nextRigs !== this.rigs) {
+      this.rigs = nextRigs;
+      this.reset();
+    }
     const length = this.track.length;
     s = mod(s, length);
     const spacing = length / this.rigs.length;
@@ -279,6 +299,7 @@ export class TracksideDirector {
     this.subjectSampleCount = 1;
     this.subjectVisibleSamples = 1;
     this.subjectWithinRange = true;
+    const service = !!visibility && !visibility.moving;
     if (visibility) {
       if (
         visibility.points.length > 8 ||
@@ -297,12 +318,12 @@ export class TracksideDirector {
           this.rigs[candidate].baseFov,
           aspect,
           radius,
-          true,
+          service,
           lens,
         ).fits;
       // Prefer a previously chosen service lens while its physical view remains
       // suitable. A stopped car must not cut back and forth at a road-sector edge.
-      if (!seek && this.activeId >= 0 && inRange(this.activeId) && fits(this.activeId))
+      if (service && !seek && this.activeId >= 0 && inRange(this.activeId) && fits(this.activeId))
         id = this.activeId;
       const samples = (candidate: number) => {
         const from = this.rigs[candidate].position;
@@ -407,7 +428,7 @@ export class TracksideDirector {
     // Present the requested lens immediately, rather than retaining a wide lens
     // forever until the player resumes. A moving sequence keeps its zoom rate.
     const resized =
-      aspect !== this.previousAspect || (dt === 0 && !!visibility !== this.previousService);
+      aspect !== this.previousAspect || (dt === 0 && service !== this.previousService);
     const rig = this.rigs[id];
     this.position.copy(rig.position);
     const distanceM = this.position.distanceTo(target);
@@ -416,7 +437,7 @@ export class TracksideDirector {
       rig.baseFov,
       aspect,
       radius,
-      !!visibility,
+      service,
       lens,
     );
     this.subjectRadius = radius;
@@ -483,7 +504,7 @@ export class TracksideDirector {
     this.activeId = id;
     this.previousS = s;
     this.previousAspect = aspect;
-    this.previousService = !!visibility;
+    this.previousService = service;
     // Projected sphere diameter / smaller viewport dimension. This is a bound
     // occupancy witness, not a claim that every enclosed actor pixel is visible.
     const angularRadius = Math.asin(

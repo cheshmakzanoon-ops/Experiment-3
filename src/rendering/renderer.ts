@@ -137,7 +137,7 @@ import { gpGridForFrame } from '../simulation/gp-grid.ts';
 import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
 import { prepareVenueGround } from './venue-kit/preparation.ts';
-import { TracksideDirector } from './trackside.ts';
+import { FORMULA_TELEPHOTO, TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { MotocrossChaseCamera } from './offroad/chase-camera.ts';
 import { ReflectionSystem } from './reflections.ts';
@@ -1830,6 +1830,8 @@ export class RacingRenderer {
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
     const gpGrid = gpGridForFrame(presented);
     this.circuit.setGrandPrixGrid(gpGrid, !gpGrid && formulaGridForFrame(presented));
+    if (this.circuit.formulaCourse?.root.visible)
+      this.circuit.formulaCourse.gridCamera?.update(presented, this.follow);
     this.circuit.gpPitBoards?.update(presented);
     this.circuit.gpClassification?.update(presented);
     if (this.tyreEquipment && isGpCourse(this.circuit.track))
@@ -2126,6 +2128,7 @@ export class RacingRenderer {
         presented,
         this.follow,
         gpFollow ? GP_TELEPHOTO.subjectRadius : undefined,
+        followedDefinition.drs,
       );
       this.trackside.update(
         presented[o + F.S],
@@ -2136,7 +2139,7 @@ export class RacingRenderer {
         composition.radius,
         true,
         composition.visibility,
-        gpFollow ? GP_TELEPHOTO : undefined,
+        gpFollow ? GP_TELEPHOTO : followedDefinition.drs ? FORMULA_TELEPHOTO : undefined,
       );
       this.desired.copy(this.trackside.position);
       this.gaze.copy(this.trackside.gaze);

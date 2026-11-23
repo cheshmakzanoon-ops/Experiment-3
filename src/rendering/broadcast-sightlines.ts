@@ -5,7 +5,8 @@ import * as T from 'three';
  * empty grandstand seating volumes/fences/trees are not treated as solid walls.
  * This is a conservative structure-occlusion test, not pixel-perfect visibility. */
 export class BroadcastSightlines {
-  private readonly solids: { inverse: T.Matrix4; bounds: T.Box3 }[] = [];
+  private readonly solids: { inverse: T.Matrix4; bounds: T.Box3; world: T.Box3 }[] = [];
+  private readonly segment = new T.Box3();
   private readonly a = new T.Vector3();
   private readonly b = new T.Vector3();
   private readonly direction = new T.Vector3();
@@ -27,12 +28,21 @@ export class BroadcastSightlines {
       ![...bounds.min.toArray(), ...bounds.max.toArray()].every(Number.isFinite)
     )
       throw new Error('Invalid static broadcast occluder bounds');
-    this.solids.push({ inverse: matrix.clone().invert(), bounds: bounds.clone() });
+    this.solids.push({
+      inverse: matrix.clone().invert(),
+      bounds: bounds.clone(),
+      world: bounds.clone().applyMatrix4(matrix),
+    });
   }
   blocked(from: T.Vector3, to: T.Vector3) {
     if (!Number.isFinite(from.x + from.y + from.z + to.x + to.y + to.z))
       throw new Error('Invalid broadcast sightline');
+    this.segment.min.copy(from).min(to);
+    this.segment.max.copy(from).max(to);
     for (const solid of this.solids) {
+      // Most structures are in another track sector; no inverse transform or
+      // ray intersection is needed for any of the subject rays in that case.
+      if (!solid.world.intersectsBox(this.segment)) continue;
       this.a.copy(from).applyMatrix4(solid.inverse);
       this.b.copy(to).applyMatrix4(solid.inverse);
       const length = this.direction.copy(this.b).sub(this.a).length();
