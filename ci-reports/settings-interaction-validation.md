@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45265645237
-- commit: `0ffccbd6e9` · Stage the six Formula grid reflections and shadow passes before releasing the racing grid
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45265358502
+- commit: `c398f43137` · Light Valley Ridge and its reflections from a weather-matched photographic sky at every racing preset
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-23T21:03:05Z · updated: 2026-11-23T21:24:31Z
+- started: 2026-11-23T21:01:25Z · updated: 2026-11-23T22:15:11Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | failure | 5 | Original menu regression and transition ownership, without forced clicks or retries |
-| qa | skipped | 0 |  |
+| settings | success | 6 |  |
+| qa | failure | 16 | Review-tool specs of the settings and menu regression, on the QA build |
