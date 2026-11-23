@@ -1,274 +1,234 @@
-### owner-qa (1) (job 137472167733)
+### owner-qa (1) (job 137522006281)
 --- error digest (first 120 matching lines) ---
-610:owner-qa (1)	UNKNOWN STEP	2026-11-23T03:49:07.8785803Z   ✘   1 e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (5.2m)
-614:owner-qa (1)	UNKNOWN STEP	2026-11-23T03:49:07.8790601Z Error: expect.toContainText: Target page, context or browser has been closed
-668:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0014839Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.1m)
-670:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0017114Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-676:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0018780Z - Timeout 90000ms exceeded while waiting on the predicate
-699:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4219444Z   ✘  10 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.1m)
-701:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4221262Z Error: locator.selectOption: Test timeout of 300000ms exceeded.
-714:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8598597Z   1) e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
-718:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8599809Z     Error: expect.toContainText: Target page, context or browser has been closed
-722:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8601492Z     > 43 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
-725:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8602540Z       45 |   expect(edited.team.livery).toEqual({
-737:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8606843Z   2) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards › Expect "poll toBe" 
-739:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8608616Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-745:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8610255Z     - Timeout 90000ms exceeded while waiting on the predicate
-747:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8610692Z       158 |   expect((await diag(page)).state).toBe('menu');
-751:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8612334Z       161 |   expect((await diag(page)).options).toMatchObject({
-766:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8617673Z   3) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
-770:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8618715Z     Error: locator.selectOption: Test timeout of 300000ms exceeded.
-784:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8623421Z       78 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
-805:owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.0827800Z ##[error]Process completed with exit code 1.
+184:owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:34.2612993Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:54:06.2184540Z   ✓   4 e2e/07-reference-tools.spec.ts:227:1 › reference tools: every supplied number is searchable with duplicates and exclusions visible (40.5s)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:54:06.2203616Z [browser-progress] START  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:54:19.9319928Z [browser-progress] 14s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:54:49.9311597Z [browser-progress] 44s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:55:19.9601756Z [browser-progress] 74s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:55:49.9602026Z [browser-progress] 104s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeGreaterThan"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:56:13.8629681Z   ✓   5 e2e/07-reference-tools.spec.ts:254:1 › covered menu redraws once on resize and resumes after closing without freezing photo mode (2.1m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:56:13.8809180Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:56:19.9680329Z [browser-progress] 6s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Create context
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:56:49.9929694Z [browser-progress] 36s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:57:20.0139336Z [browser-progress] 66s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toHaveValue"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:57:50.0219355Z [browser-progress] 96s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Press "Escape"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:58:20.0431952Z [browser-progress] 126s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Click locator('[data-reference="47"]').locator('summary')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:58:50.0559677Z [browser-progress] 156s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Screenshot
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:59:20.0750798Z [browser-progress] 186s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Press "Escape"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:59:29.1479947Z   ✓   6 e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation (3.3m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:59:29.1528915Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical
-owner-qa (1)	UNKNOWN STEP	2026-11-23T03:59:50.0989551Z [browser-progress] 21s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Create context
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:00:20.1149181Z [browser-progress] 51s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:00:50.1289496Z [browser-progress] 81s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:01:20.1571077Z [browser-progress] 111s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:01:50.1899989Z [browser-progress] 141s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Evaluate
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:02:20.2051746Z [browser-progress] 171s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Screenshot
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:02:50.2079570Z [browser-progress] 201s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:03:20.2072907Z [browser-progress] 231s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:03:50.2089889Z [browser-progress] 261s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:04:15.6038621Z   ✓   7 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical (4.8m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:04:15.6092331Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:04:20.2125200Z [browser-progress] 5s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Create context
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:04:50.2436424Z [browser-progress] 35s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Create context
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:05:20.2709782Z [browser-progress] 65s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:05:50.2841405Z [browser-progress] 95s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:06:20.3000571Z [browser-progress] 125s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:06:50.3002868Z [browser-progress] 155s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:07:20.3000935Z [browser-progress] 185s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:07:50.3001353Z [browser-progress] 215s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:20.3007279Z [browser-progress] 245s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Fixture "context"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0014839Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.1m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0016271Z [browser-failure]  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0017114Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0017598Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0017808Z Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0018148Z Received: ^[[31m"^[[7mload^[[27ming"^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0018350Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0018449Z Call Log:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0018780Z - Timeout 90000ms exceeded while waiting on the predicate
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.0019561Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:39.4218523Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:08:50.3122450Z [browser-progress] 11s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:09:20.3121262Z [browser-progress] 41s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBeGreaterThan"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:09:50.3203069Z [browser-progress] 71s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Evaluate
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:10:20.3194478Z [browser-progress] 101s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBe"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:10:50.3354122Z [browser-progress] 131s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Screenshot
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:11:04.0605238Z   ✓   9 e2e/09-reference-depth.spec.ts:16:1 › reference depth: survey, focus and headquarters render without advancing the held scene (2.4m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:11:04.0641216Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:11:20.3516337Z [browser-progress] 16s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Create context
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:11:50.3669390Z [browser-progress] 46s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Expect "toBeVisible"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:12:20.3789744Z [browser-progress] 76s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:12:50.4071458Z [browser-progress] 106s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:13:20.4371383Z [browser-progress] 136s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:13:50.4569604Z [browser-progress] 166s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "NORTH" locator('[data-decal="text"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:14:20.4585035Z [browser-progress] 196s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="side"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:14:50.4895396Z [browser-progress] 226s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="side"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:15:20.5159496Z [browser-progress] 256s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:15:50.5321792Z [browser-progress] 286s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "SOUTH" locator('[data-decal="text"]')
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:20.5429274Z [browser-progress] 316s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fixture "browser"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4217073Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4218503Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4219444Z   ✘  10 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.1m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4220590Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4221262Z Error: locator.selectOption: Test timeout of 300000ms exceeded.
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4221764Z Call log:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4222117Z ^[[2m  - waiting for locator('[data-decal="side"]')^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4222645Z ^[[2m    - locator resolved to <select data-decal="side" aria-label="Decal surface">…</select>^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4223149Z ^[[2m  - attempting select option action^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4223550Z ^[[2m    - waiting for element to be visible and enabled^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4223769Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.4224061Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:75:47
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:44.9293068Z [browser-progress] START  >  > 14-phase27e.spec.ts > actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:50.5451601Z [browser-progress] 6s  >  > 14-phase27e.spec.ts > actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool / Create page
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.7738568Z   ✓  11 e2e/14-phase27e.spec.ts:31:1 › actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool (9.8s)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8580006Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8596882Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8598597Z   1) e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8598998Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8599222Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8599513Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8599809Z     Error: expect.toContainText: Target page, context or browser has been closed
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8600285Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8600493Z       41 |   await page.locator('#liveryPattern').selectOption('split');
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8600983Z       42 |   await page.getByRole('button', { name: 'SAVE LIVERY', exact: true }).click();
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8601492Z     > 43 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8601862Z          |                                              ^
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8602200Z       44 |   const edited = await diag(page);
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8602540Z       45 |   expect(edited.team.livery).toEqual({
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8602873Z       46 |     primary: '#2266bb',
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8603272Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:43:46
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8603564Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8603947Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8604525Z     test-results/07-reference-tools-referen-56b5f--quality-changes-and-reload/trace.zip
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8604918Z     Usage:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8605077Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8605396Z         npx playwright show-trace test-results/07-reference-tools-referen-56b5f--quality-changes-and-reload/trace.zip
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8605775Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8606072Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8606280Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8606843Z   2) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards › Expect "poll toBe" 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8607300Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8608616Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8608929Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8609113Z     Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8609568Z     Received: ^[[31m"^[[7mload^[[27ming"^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8609753Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8609854Z     Call Log:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8610255Z     - Timeout 90000ms exceeded while waiting on the predicate
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8610492Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8610692Z       158 |   expect((await diag(page)).state).toBe('menu');
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8611106Z       159 |   await page.locator('[data-action="academy:confirm"]').click();
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8611598Z     > 160 |   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8612000Z           |   ^
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8612334Z       161 |   expect((await diag(page)).options).toMatchObject({
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8612675Z       162 |     mode: 'practice',
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8612967Z       163 |     opponents: 0,
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8613394Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8613695Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8614023Z     Error Context: test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/error-context.md
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8614397Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8614745Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8615255Z     test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8615690Z     Usage:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8615791Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8616144Z         npx playwright show-trace test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8616521Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8616804Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8617066Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8617673Z   3) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8618037Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8618236Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8618515Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8618715Z     Error: locator.selectOption: Test timeout of 300000ms exceeded.
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8619062Z     Call log:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8619422Z     ^[[2m  - waiting for locator('[data-decal="side"]')^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8619970Z     ^[[2m    - locator resolved to <select data-decal="side" aria-label="Decal surface">…</select>^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8620424Z     ^[[2m  - attempting select option action^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8620817Z     ^[[2m    - waiting for element to be visible and enabled^[[22m
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8620999Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8621004Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8621189Z       73 |     await page.locator('[data-decal="enabled"]').check();
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8621669Z       74 |     await page.locator('[data-decal="text"]').fill(text);
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8622067Z     > 75 |     await page.locator('[data-decal="side"]').selectOption(side);
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8622446Z          |                                               ^
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8622709Z       76 |   }
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8623034Z       77 |   await page.locator('#saveLivery').click();
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8623421Z       78 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8623884Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:75:47
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8624188Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8624521Z     Error Context: test-results/09-reference-depth-referen-bdc79-the-real-application-reload/error-context.md
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8624889Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8625181Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8625759Z     test-results/09-reference-depth-referen-bdc79-the-real-application-reload/trace.zip
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8626149Z     Usage:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8626263Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8626659Z         npx playwright show-trace test-results/09-reference-depth-referen-bdc79-the-real-application-reload/trace.zip
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8627051Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8627808Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8628096Z 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8628290Z   Slow test file: e2e/08-reference-implementation.spec.ts (12.1m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8628731Z   Slow test file: e2e/09-reference-depth.spec.ts (7.6m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8629198Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8629601Z   3 failed
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8630156Z     e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8630986Z     e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8632010Z     e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:54.8632534Z   8 passed (33.2m)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.0827800Z ##[error]Process completed with exit code 1.
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.0893448Z ##[group]Run actions/upload-artifact@v4
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.0893718Z with:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.0893946Z   name: owner-qa-1-of-4
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.0894343Z   path: test-results/
-owner-qa (1)	UNKNOWN STEP	playwright-report/
-owner-qa (1)	UNKNOWN STEP	browser-backend.json
-owner-qa (1)	UNKNOWN STEP	browser-progress.json
-owner-qa (1)	UNKNOWN STEP	
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1007084Z   retention-days: 7
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1007762Z   if-no-files-found: warn
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1007953Z   compression-level: 6
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1008114Z   overwrite: false
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1008293Z   include-hidden-files: false
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1008461Z env:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1008610Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1008810Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1008993Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.1009158Z ##[endgroup]
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2233364Z (node:4116) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2234002Z (Use `node --trace-deprecation ...` to show where the warning was created)
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2342864Z Multiple search paths detected. Calculating the least common ancestor of all paths
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2344697Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2345484Z With the provided path, there will be 42 files uploaded
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2347639Z Artifact name is valid!
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.2348071Z Root directory input is valid!
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:55.7782986Z Beginning upload of artifact content to blob storage
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:56.0038778Z (node:4116) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.0767692Z Uploaded bytes 8388608
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.3092807Z Uploaded bytes 16777216
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.3939295Z Uploaded bytes 25165824
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.6364801Z Uploaded bytes 33554432
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.6442471Z Uploaded bytes 41943040
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.7383241Z Uploaded bytes 50331648
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.7858364Z Uploaded bytes 58720256
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:57.9472619Z Uploaded bytes 67108864
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:58.2344613Z Uploaded bytes 75497472
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:58.4348113Z Uploaded bytes 83886080
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:58.7096848Z Uploaded bytes 92274688
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:58.9333340Z Uploaded bytes 100663296
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:59.1219143Z Uploaded bytes 109051904
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:59.3836563Z Uploaded bytes 117440512
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:59.5818503Z Uploaded bytes 125829120
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:16:59.9005868Z Uploaded bytes 134217728
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:00.0733881Z Uploaded bytes 142606336
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:00.2931035Z Uploaded bytes 150994944
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:00.5586136Z Uploaded bytes 159383552
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:00.7255601Z Uploaded bytes 167772160
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:00.9488270Z Uploaded bytes 176160768
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:01.2123949Z Uploaded bytes 184549376
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:01.3992160Z Uploaded bytes 192937984
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:01.6141364Z Uploaded bytes 201326592
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:01.9305281Z Uploaded bytes 209715200
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.2386523Z Uploaded bytes 218097499
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.3272414Z Finished uploading artifact content to blob storage!
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.3274900Z SHA256 digest of uploaded artifact zip is c0ed526d23ffd30d4d7451058fef52e7e3f92f65f74769f73bcb73c98e8cca26
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.3275933Z Finalizing artifact upload
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.8548174Z Artifact owner-qa-1-of-4.zip successfully finalized. Artifact ID 14788484811
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.8548983Z Artifact owner-qa-1-of-4 has been successfully uploaded! Final size is 218097499 bytes. Artifact ID is 14788484811
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.8553363Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45107253265/artifacts/14788484811
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.8762992Z Post job cleanup.
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9419912Z [command]/usr/bin/git version
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9449926Z git version 2.56.1
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9475449Z Temporarily overriding HOME='/home/runner/work/_temp/41b796e0-8b61-42b4-ac47-68fa9f685672' before making global git config changes
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9476507Z Adding repository directory to the temporary git global config as a safe directory
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9477634Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9506830Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9530571Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9726731Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9749387Z http.https://github.com/.extraheader
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9756807Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9781596Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9954313Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:02.9979810Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:03.0262764Z Cleaning up orphan processes
-owner-qa (1)	UNKNOWN STEP	2026-11-23T04:17:03.0505718Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+owner-qa (1)	Set up job	﻿2026-11-23T06:26:12.6636604Z Current runner version: '2.338.2'
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6654951Z ##[group]Runner Image Provisioner
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6655623Z Hosted Compute Agent
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6656027Z Version: 20261111.635
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6656544Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6657068Z Build Date: 2026-11-11T01:49:01Z
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6657631Z Worker ID: {5153aaac-ac1e-4bd7-a27b-6e74745bd1e5}
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6658138Z Region: us-west-2
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6658514Z Cloud: AWS
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6659026Z ##[endgroup]
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6660010Z ##[group]Operating System
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6660481Z Ubuntu
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6660862Z 24.04.5
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6661236Z LTS
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6661640Z ##[endgroup]
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6662017Z ##[group]Runner Image
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6662668Z Image: ubuntu-24.04
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6663072Z Version: 20261116.133.1
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6663822Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6665312Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6666002Z ##[endgroup]
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6666778Z ##[group]GITHUB_TOKEN Permissions
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6668475Z Contents: read
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6668884Z Metadata: read
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6669280Z ##[endgroup]
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6670940Z Secret source: Actions
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6671589Z Cache mode: write
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6672145Z Prepare workflow directory
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6939273Z Prepare all required actions
+owner-qa (1)	Set up job	2026-11-23T06:26:12.6976177Z Getting action download info
+owner-qa (1)	Set up job	2026-11-23T06:26:13.0828865Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+owner-qa (1)	Set up job	2026-11-23T06:26:14.7172209Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+owner-qa (1)	Set up job	2026-11-23T06:26:14.8821023Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+owner-qa (1)	Set up job	2026-11-23T06:26:15.1787165Z Complete job name: owner-qa (1)
+owner-qa (1)	Run actions/checkout@v4	﻿2026-11-23T06:26:15.2377822Z ##[group]Run actions/checkout@v4
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2378394Z with:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2378795Z   repository: cheshmakzanoon-ops/Experiment-3
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2380859Z   token: ***
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2381144Z   ssh-strict: true
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2381427Z   ssh-user: git
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2381706Z   persist-credentials: true
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2381987Z   clean: true
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2382244Z   sparse-checkout-cone-mode: true
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2382568Z   fetch-depth: 1
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2382900Z   fetch-tags: false
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2383208Z   show-progress: true
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2383466Z   lfs: false
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2383702Z   submodules: false
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2383990Z   set-safe-directory: true
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2384494Z   allow-unsafe-pr-checkout: false
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2384964Z env:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2385224Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2385547Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2385858Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:15.2386218Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.4489908Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.4491373Z ##[group]Getting Git version info
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.4491777Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.4492324Z [command]/usr/bin/git version
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.7785526Z git version 2.56.1
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.7799727Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.7812159Z Temporarily overriding HOME='/home/runner/work/_temp/0bdd5c43-f2b0-4a4f-8c6b-f522543d3046' before making global git config changes
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.7813191Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.7816721Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.8183042Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.8187188Z ##[group]Initializing the repository
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.8190094Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9030774Z hint: Using 'master' as the name for the initial branch. This default branch name
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9031314Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9031887Z hint: to use in all of your new repositories, which will suppress this warning,
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9032259Z hint: call:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9032478Z hint:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9032802Z hint: 	git config --global init.defaultBranch <name>
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9033108Z hint:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9033425Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9033836Z hint: 'development'. The just-created branch can be renamed via this command:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9034162Z hint:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9034583Z hint: 	git branch -m <name>
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9034872Z hint:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9035237Z hint: Disable this message with "git config set advice.defaultBranchName false"
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9041493Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9049894Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9092898Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9093388Z ##[group]Disabling automatic garbage collection
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9096419Z [command]/usr/bin/git config --local gc.auto 0
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9118327Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9118894Z ##[group]Setting up auth
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9123657Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:17.9149528Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3158691Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3186113Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3334617Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3359053Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3507901Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3533819Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3534528Z ##[group]Fetching the repository
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:18.3542911Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +e21b7aeaf78023789599828899173534c2df14a4:refs/remotes/origin/main
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5735054Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5735955Z  * [new ref]         e21b7aeaf78023789599828899173534c2df14a4 -> origin/main
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5745624Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5751316Z ##[group]Determining the checkout info
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5752129Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5752526Z [command]/usr/bin/git sparse-checkout disable
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5825760Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5833671Z ##[group]Checking out the ref
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:31.5838056Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6000997Z Updating files:  47% (4528/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6222900Z Updating files:  48% (4537/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6294675Z Updating files:  49% (4631/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6331141Z Updating files:  50% (4726/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6494433Z Updating files:  51% (4821/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6620135Z Updating files:  52% (4915/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6684003Z Updating files:  53% (5010/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6762194Z Updating files:  54% (5104/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6813807Z Updating files:  55% (5199/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6868378Z Updating files:  56% (5293/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6918523Z Updating files:  57% (5388/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.6955972Z Updating files:  58% (5482/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7059480Z Updating files:  59% (5577/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7175739Z Updating files:  60% (5671/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7244336Z Updating files:  61% (5766/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7316274Z Updating files:  62% (5860/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7495717Z Updating files:  63% (5955/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7671529Z Updating files:  64% (6049/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.7904799Z Updating files:  65% (6144/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.8267703Z Updating files:  66% (6238/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.8456591Z Updating files:  67% (6333/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.8634449Z Updating files:  68% (6427/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.8899655Z Updating files:  69% (6522/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.9208164Z Updating files:  70% (6616/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.9248038Z Updating files:  71% (6711/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.9290578Z Updating files:  72% (6805/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.9325428Z Updating files:  73% (6900/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:32.9950529Z Updating files:  74% (6994/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.0346004Z Updating files:  75% (7089/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.3490820Z Updating files:  76% (7183/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.4476223Z Updating files:  77% (7278/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.4581443Z Updating files:  78% (7372/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.4625230Z Updating files:  79% (7467/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.4689573Z Updating files:  80% (7561/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5073012Z Updating files:  81% (7656/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5127544Z Updating files:  82% (7750/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5285762Z Updating files:  83% (7845/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5331533Z Updating files:  84% (7939/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5386594Z Updating files:  85% (8034/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5518501Z Updating files:  86% (8128/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5568681Z Updating files:  87% (8223/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5615677Z Updating files:  88% (8317/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5663595Z Updating files:  89% (8412/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5710719Z Updating files:  90% (8506/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5754858Z Updating files:  91% (8601/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5796339Z Updating files:  92% (8695/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5838192Z Updating files:  93% (8790/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5878321Z Updating files:  94% (8884/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5921056Z Updating files:  95% (8979/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5942184Z Updating files:  96% (9073/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.5960427Z Updating files:  96% (9125/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6000126Z Updating files:  97% (9168/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6042086Z Updating files:  98% (9262/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6083528Z Updating files:  99% (9357/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6084082Z Updating files: 100% (9451/9451)
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6084700Z Updating files: 100% (9451/9451), done.
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6166283Z Switched to a new branch 'main'
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6173851Z branch 'main' set up to track 'origin/main'.
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6236071Z ##[endgroup]
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6276371Z [command]/usr/bin/git log -1 --format=%H
+owner-qa (1)	Run actions/checkout@v4	2026-11-23T06:26:33.6302052Z e21b7aeaf78023789599828899173534c2df14a4
+owner-qa (1)	Run actions/setup-node@v4	﻿2026-11-23T06:26:33.6505923Z ##[group]Run actions/setup-node@v4
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6506196Z with:
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6506393Z   node-version: 22
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6506630Z   cache: npm
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6506907Z   always-auth: false
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6507254Z   check-latest: false
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6509070Z   token: ***
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6509258Z env:
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6509487Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6509774Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6510048Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.6510270Z ##[endgroup]
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.9309166Z (node:2188) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.9310274Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.9311436Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:33.9312096Z ##[group]Environment details
+owner-qa (1)	Run actions/setup-node@v4	2026-11-23T06:26:34.2612993Z ##[error]The operation was canceled.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-23T06:26:34.2708123Z ##[group]Run actions/upload-artifact@v4
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2708426Z with:
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2708653Z   name: owner-qa-1-of-4
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2709056Z   path: test-results/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2709446Z   retention-days: 7
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2709742Z   if-no-files-found: warn
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2709988Z   compression-level: 6
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2710229Z   overwrite: false
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2710472Z   include-hidden-files: false
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2710696Z env:
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2710933Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2711209Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2711499Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.2711747Z ##[endgroup]
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.3937063Z (node:2205) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.3937812Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.4005761Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.4008034Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-23T06:26:34.4019037Z ##[warning]No files were found with the provided path: test-results/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json. No artifacts will be uploaded.
+owner-qa (1)	Post Run actions/checkout@v4	﻿2026-11-23T06:26:34.4171006Z Post job cleanup.
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4853956Z [command]/usr/bin/git version
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4883071Z git version 2.56.1
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4920571Z Temporarily overriding HOME='/home/runner/work/_temp/beac51c3-566d-4f33-885f-a9640201b5f4' before making global git config changes
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4921936Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4924744Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4960182Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.4987261Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.5182757Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.5202019Z http.https://github.com/.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.5210845Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.5237136Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.5405391Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-23T06:26:34.5427746Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (1)	Complete job	﻿2026-11-23T06:26:34.5761263Z Cleaning up orphan processes
+owner-qa (1)	Complete job	2026-11-23T06:26:34.5966677Z Terminate orphan process: pid (2200) (node)
+owner-qa (1)	Complete job	2026-11-23T06:26:34.6028642Z Terminate orphan process: pid (2201) (node)
+owner-qa (1)	Complete job	2026-11-23T06:26:34.6086235Z Terminate orphan process: pid (2202) (node)
+owner-qa (1)	Complete job	2026-11-23T06:26:34.6153184Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
