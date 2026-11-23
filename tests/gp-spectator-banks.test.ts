@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
+import { gpBankGrass } from '../src/rendering/vegetation/grass.ts';
 import { GpWindSleeve } from '../src/rendering/venue-kit/gp-windsock.ts';
 import {
   gpSpectatorBankPlan,
@@ -34,6 +35,21 @@ describe('GP general-admission viewing banks', () => {
           const c = Math.cos(site.yaw),
             n = Math.sin(site.yaw);
           const { geometry, height } = gpBankSurface(track, site);
+          const meadow = gpBankGrass({ site, height }, 8, 4, 0.3);
+          expect(meadow.length).toBeGreaterThan(80);
+          expect(meadow.length).toBeLessThan(310);
+          for (const clump of meadow) {
+            const dx = clump.x - site.x,
+              dz = clump.z - site.z;
+            const x = c * dx - n * dz,
+              z = n * dx + c * dz;
+            expect(Math.abs(x)).toBeGreaterThan(site.width * 0.345);
+            expect(Math.abs(z - 3)).toBeGreaterThanOrEqual(2.5);
+            expect(clump.y).toBeCloseTo(height(x, z) - 0.012, 5);
+            expect(clump.tile).toBeGreaterThanOrEqual(0);
+            expect(clump.tile).toBeLessThan(8);
+          }
+          expect(gpBankGrass({ site, height }, 8, 4, 0.3)).toEqual(meadow);
           const positions = geometry.getAttribute('position'),
             normals = geometry.getAttribute('normal');
           expect(inGpSpectatorBank(sites, site.x, site.z, 0)).toBe(true);

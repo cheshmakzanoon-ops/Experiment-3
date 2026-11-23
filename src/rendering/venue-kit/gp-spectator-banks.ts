@@ -192,5 +192,5 @@ export function buildGpSpectatorBank(
   rail.computeBoundingSphere();
   rail.castShadow = rail.receiveShadow = true;
   land.add(rail);
-  return sleeve;
+  return { sleeve, profile: { site, height } };
 }

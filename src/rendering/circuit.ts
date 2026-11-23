@@ -99,7 +99,7 @@ import {
 import { buildGpGridGantry } from './venue-kit/gp-grid-gantry.ts';
 import type { GpWindSleeve } from './venue-kit/gp-windsock.ts';
 import { buildGpSpectatorBank } from './venue-kit/gp-spectator-banks.ts';
-import { gpSpectatorBankPlan } from './venue-kit/gp-spectator-bank-sites.ts';
+import { gpSpectatorBankPlan, type GpBankProfile } from './venue-kit/gp-spectator-bank-sites.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
@@ -162,6 +162,7 @@ export class CircuitScene {
   readonly crowdClusters: CrowdCluster[] = [];
   gpWindSleeve?: GpWindSleeve;
   private gpBankGround?: T.Group;
+  private readonly gpBankProfiles: GpBankProfile[] = [];
   readonly staff: MarshalStaffView;
   readonly props = new StaticTransformGroup();
   readonly surfaces = new StaticTransformGroup();
@@ -654,6 +655,7 @@ export class CircuitScene {
             grass: !style || style.ground === 'grass',
             kit: this.venueKit?.context ?? null,
             shrubs: this.venueKit?.context.photoShrubs ?? [],
+            spectatorBanks: this.gpBankProfiles,
           },
           planting.root,
         );
@@ -1107,8 +1109,9 @@ export class CircuitScene {
         ground.name = 'GP spectator terrain and weather masts';
         this.props.add(ground);
         for (const [index, bank] of gpSpectatorBankPlan(this.track).entries()) {
-          const sleeve = buildGpSpectatorBank(this.track, bank, ground, this.crowd, this.crowdClusters,
+          const { sleeve, profile } = buildGpSpectatorBank(this.track, bank, ground, this.crowd, this.crowdClusters,
             kit.materials.ground, stands.people, kit.materials.steel, index === 0);
+          this.gpBankProfiles.push(profile);
           if (sleeve) this.gpWindSleeve = sleeve;
         }
       });

@@ -32,7 +32,11 @@ test('GP distance fans retain the standing and seated sculpt silhouettes in two 
     if (m.type() === 'error') errors.push(m.text());
   });
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.setContent('<title>GP spectator sculpts</title>');
+  // Load the shipped meadow atlas from the same preview origin as the game.
+  await page.route('**/gp-fan-review-host', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<title>GP spectator sculpts</title>' }),
+  );
+  await page.goto('/gp-fan-review-host');
   await page.addScriptTag({ content: code.code });
   const { captures, ...stats } = await page.evaluate(() =>
     (
@@ -54,7 +58,7 @@ test('GP distance fans retain the standing and seated sculpt silhouettes in two 
   expect(stats.shape).toBeGreaterThan(stats.oldShape + 0.1);
   expect(stats.reverseShape).toBeGreaterThan(0.64);
   expect(stats.restored).toBe(0);
-  expect(stats.casterAgreement).toBeGreaterThan(.78);
+  expect(stats.casterAgreement).toBeGreaterThan(0.78);
   const angular = captures.find((f) => f.name === 'standing-angular')!;
   expect(angular.draws).toBe(1);
   expect(angular.triangles).toBe(8);
@@ -71,6 +75,8 @@ test('GP distance fans retain the standing and seated sculpt silhouettes in two 
   expect(errors).toEqual([]);
   expect(wind.glError).toBe(0);
   expect(wind.windRestore).toBe(0);
+  expect(wind.meadowClumps).toBeGreaterThan(80);
+  expect(wind.meadowPixels).toBeGreaterThan(40);
   expect(wind.windPixels).toBeGreaterThan(200);
   expect(wind.lullPixels).toBeGreaterThan(200);
 });

@@ -20,6 +20,12 @@ export interface GpSpectatorBank {
   rise: number;
 }
 
+export interface GpBankProfile {
+  site: GpSpectatorBank;
+  /** Height on the triangles under the crowd, in local bank coordinates. */
+  height(x: number, z: number): number;
+}
+
 const style: Record<string, readonly [number, number, number]> = {
   'poggio-alto': [77, 24, 3.4],
   'cape-wrenna': [61, 21, 2.7],

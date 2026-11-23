@@ -3,6 +3,7 @@ import { clamp } from '../../core/math.ts';
 import { SURFACE, trackPoint, type Track } from '../../simulation/track.ts';
 import type { VegetationSpecies } from './library.ts';
 import { plantHash } from './species.ts';
+import type { GpBankProfile } from '../venue-kit/gp-spectator-bank-sites.ts';
 
 /**
  * Meadow grass along the circuit edge (photographed clump cards baked from
@@ -103,6 +104,45 @@ export function grassPlan(track: Track, options: GrassPlanOptions): GrassClump[]
     }
   }
   return out;
+}
+
+/** Short, broken patches at the unwalked front and rear toes of the viewing
+ * bank. A mown middle aisle, the spectator rows and the access at either end
+ * stay clear. Reuse the venue's meadow atlas and ordinary distance chunks. */
+export function gpBankGrass(
+  { site, height }: GpBankProfile,
+  tiles: number,
+  green: number,
+  dry: number,
+): GrassClump[] {
+  const clumps: GrassClump[] = [];
+  const c = Math.cos(site.yaw),
+    n = Math.sin(site.yaw),
+    seed = Math.round(site.station);
+  const length = site.length * 0.41;
+  for (let i = 0; i * 0.67 < length * 2; i++) {
+    for (let band = 0; band < 4; band++) {
+      const sample = (channel: number) => plantHash(i, band + seed, channel);
+      const z = -length + 0.67 * (i + sample(21));
+      if (Math.abs(z - 3) < 2.5 || sample(22) > 0.6 + 0.2 * Math.sin(z * 0.47 + seed)) continue;
+      const edge = band < 2 ? -0.425 + band * 0.054 : 0.377 + (band - 2) * 0.044;
+      const x = site.side * site.width * (edge + 0.035 * (sample(23) - 0.5));
+      const dryTile = sample(24) < dry && tiles > green;
+      const first = dryTile ? green : 0,
+        count = dryTile ? tiles - green : green;
+      clumps.push({
+        x: site.x + c * x + n * z,
+        z: site.z - n * x + c * z,
+        y: height(x, z) - 0.012,
+        width: 0.32 + 0.28 * sample(25),
+        height: 0.48 + 0.34 * sample(26),
+        yaw: sample(27) * Math.PI * 2,
+        tint: sample(28),
+        tile: Math.min(tiles - 1, first + Math.floor(sample(29) * count)),
+      });
+    }
+  }
+  return clumps;
 }
 
 /** Instanced clumps in lap chunks, drawn within the grass distance. */

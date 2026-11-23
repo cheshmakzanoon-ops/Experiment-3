@@ -17,7 +17,8 @@ import { forestBeltPlan, FOREST_BELTS } from '../studio/forest-belts.ts';
 import { drawnTerrain, terrainFor } from '../terrain.ts';
 import { inServiceFootprint, type ServiceSite } from '../venue-service-plan.ts';
 import { PhotoForest, type PhotoPlant } from './forest.ts';
-import { grassPlan, TrackGrass } from './grass.ts';
+import { gpBankGrass, grassPlan, TrackGrass } from './grass.ts';
+import { inGpSpectatorBank, type GpBankProfile } from '../venue-kit/gp-spectator-bank-sites.ts';
 import type { VegetationLibrary } from './library.ts';
 import { VEGETATION } from './materials.ts';
 import {
@@ -91,6 +92,7 @@ export interface PhotoPlantingOptions {
   kit: { overOtherSection(x: number, z: number, s: number, margin?: number): boolean } | null;
   /** Shrub placements recorded by the venue kit's scatter (non-desert). */
   shrubs?: readonly TreePlacement[];
+  spectatorBanks?: readonly GpBankProfile[];
 }
 
 /** Ground height of the original circuits' apron and terrain. */
@@ -245,9 +247,14 @@ export class PhotoPlanting {
       const ground = options.kit ? cataloguePlantingGround(track) : apronGround(track);
       const tiles = grass.grass.tiles,
         green = Math.ceil(tiles / 2);
+      const banks = options.spectatorBanks ?? [];
+      const sites = banks.map((bank) => bank.site);
+      const dry =
+        palette === 'arid' || palette === 'desert' ? 0.85 : palette === 'flat' ? 0.3 : 0.06;
       const clumps = grassPlan(track, {
         ground,
         allow: (x, z) =>
+          (sites.length === 0 || !inGpSpectatorBank(sites, x, z, 0.4)) &&
           !inStandFootprint(track, x, z, 2) &&
           !inServiceFootprint(services, x, z, 2) &&
           !(exclusion?.(x, z, 1) ?? false),
@@ -255,8 +262,9 @@ export class PhotoPlanting {
         green,
         // Late-summer clumps show bare soil at their foot: dry venues only,
         // a sprinkle elsewhere.
-        dry: palette === 'arid' || palette === 'desert' ? 0.85 : palette === 'flat' ? 0.3 : 0.06,
+        dry,
       });
+      for (const bank of banks) clumps.push(...gpBankGrass(bank, tiles, green, dry));
       this.grass = new TrackGrass(grass, clumps);
       group.add(this.grass.root);
       group.userData.grassClumps = clumps.length;

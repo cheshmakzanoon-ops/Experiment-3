@@ -13,11 +13,14 @@ import {
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { cataloguePlantingGround } from '../../src/rendering/venue-kit/planting-ground.ts';
 import { apronWidth } from '../../src/simulation/gp-course-edges.ts';
+import { VEGETATION, vegetationUniforms } from '../../src/rendering/vegetation/materials.ts';
+import { VegetationLibrary } from '../../src/rendering/vegetation/library.ts';
+import { gpBankGrass, TrackGrass } from '../../src/rendering/vegetation/grass.ts';
 import { disposePhase27Scene } from './phase27c-resources.ts';
 
 /** Isolated trackside camera on the actual Cape Wrenna bank, with the live
  * crowd, weather mast, rail, staged flags and surveyed terrain coordinates. */
-export function captureGpViewingBank() {
+export async function captureGpViewingBank() {
   const track = new Track('clear', false, undefined, CIRCUITS['cape-wrenna']);
   const site = gpSpectatorBankPlan(track)[0],
     kit = new VenueKitContext(track),
@@ -25,7 +28,7 @@ export function captureGpViewingBank() {
   const props = new T.Group(),
     crowd = new T.Group(),
     groups: CrowdCluster[] = [];
-  const sleeve = buildGpSpectatorBank(
+  const { sleeve, profile } = buildGpSpectatorBank(
     track,
     site,
     props,
@@ -106,7 +109,14 @@ export function captureGpViewingBank() {
   const shots: { name: string; image: string; draws: number; triangles: number }[] = [];
   const wind = studioUniforms.studioWind.value.clone(),
     clock = studioUniforms.studioTime.value;
+  let meadow: TrackGrass | undefined;
+  const previousEye = vegetationUniforms.vegEye.value.clone(),
+    previousLod = vegetationUniforms.vegLod.value.clone();
   const snap = (name: string) => {
+    camera.getWorldPosition(vegetationUniforms.vegEye.value);
+    vegetationUniforms.vegLod.value.z = 0.7 * VEGETATION.grass.high;
+    vegetationUniforms.vegLod.value.w = VEGETATION.grass.high;
+    meadow?.update(camera, VEGETATION.grass.high);
     for (const c of groups) c.update(4, camera.position, 0, undefined, camera.fov, 2, true, 420);
     const wind = studioUniforms.studioWind.value;
     wind.z = studioUniforms.studioTime.value;
@@ -136,7 +146,13 @@ export function captureGpViewingBank() {
         count++;
     return count;
   };
+  const library = await VegetationLibrary.load(gl, ['grass-meadow']);
   try {
+    const species = library.get('grass-meadow');
+    if (!species?.grass) throw new Error('Cape Wrenna meadow textures failed to load');
+    const tiles = species.grass.tiles;
+    meadow = new TrackGrass(species, gpBankGrass(profile, tiles, Math.ceil(tiles / 2), 0.06));
+    scene.add(meadow.root);
     studioUniforms.studioTime.value = 7.35;
     studioUniforms.studioWind.value.set(7, 3, 7.35, 0.81);
     const middle = surface.height(0, 0);
@@ -146,7 +162,10 @@ export function captureGpViewingBank() {
     const frontX = -site.side * site.width * 0.17;
     camera.position.copy(at(frontX - site.side * 12, surface.height(frontX, -8) + 1.85, -13));
     camera.lookAt(at(0, surface.height(0, 3) + 1.2, 3));
-    snap('cape-wrenna-supporter-rail');
+    const planted = snap('cape-wrenna-supporter-rail');
+    meadow.root.visible = false;
+    const cut = snap('cape-wrenna-mown-control');
+    meadow.root.visible = true;
     const target = sock.getWorldPosition(new T.Vector3());
     camera.position.copy(target).add(new T.Vector3(-4.1, 2.6, 6));
     camera.lookAt(target.clone().add(new T.Vector3(0, -0.65, 0)));
@@ -159,6 +178,8 @@ export function captureGpViewingBank() {
     const rewind = snap('sector-rewound');
     return {
       captures: shots,
+      meadowClumps: meadow.clumps,
+      meadowPixels: difference(planted, cut),
       windPixels: difference(east, west),
       lullPixels: difference(east, calm),
       windRestore: difference(east, rewind),
@@ -168,6 +189,10 @@ export function captureGpViewingBank() {
     studioUniforms.studioWind.value.copy(wind);
     studioUniforms.studioTime.value = clock;
     weather.dispose();
+    vegetationUniforms.vegEye.value.copy(previousEye);
+    vegetationUniforms.vegLod.value.copy(previousLod);
+    meadow?.dispose();
+    library.dispose();
     surface.geometry.dispose();
     disposePhase27Scene(scene);
     gl.dispose();
