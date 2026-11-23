@@ -1,267 +1,255 @@
-### unit-tests (3) (job 137583953414)
+### unit-tests (3) (job 137925831213)
 --- error digest (first 120 matching lines) ---
-828:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7545671Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/i18n.test.ts^[[2m > ^[[22mthe catalogue and the dictionary gate^[[2m > ^[[22mpasses for all seven dictionaries
-941:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7707857Z     ^[[90m208| ^[[39m    for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
-946:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7712863Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mpoggio-alto retains historical controls outside documented venue-site corrections
-955:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7793385Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-962:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7940086Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mcape-wrenna retains historical controls outside documented venue-site corrections
-971:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7950416Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-978:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7956238Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mhaarveld retains historical controls outside documented venue-site corrections
-987:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7967145Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-994:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7973077Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mmontejaral retains historical controls outside documented venue-site corrections
-1003:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7983752Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-1010:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7989457Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/vehicle-catalogue-growth.test.ts^[[2m > ^[[22mcatalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical
-1022:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8003629Z     ^[[90m 87| ^[[39m    expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
-1035:unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.6990695Z ##[error]Process completed with exit code 1.
+550:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:20.9562381Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7568070Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7568899Z ^[[32m- Expected^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7569808Z ^[[31m+ Received^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7570268Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7571017Z ^[[32m- []^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7571871Z ^[[31m+ [^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7572603Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7573657Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7574956Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7576216Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7577531Z ^[[31m+     "locale": "de",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7578645Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7579619Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7580881Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7582193Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7583780Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7585172Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7586337Z ^[[31m+     "locale": "de",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7587662Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7588818Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7589875Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7591255Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7592370Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7593696Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7594636Z ^[[31m+     "locale": "fr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7595521Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7596278Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7597176Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7598521Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7599765Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7600744Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7601618Z ^[[31m+     "locale": "fr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7602423Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7603095Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7603668Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7604597Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7606010Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7607224Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7608050Z ^[[31m+     "locale": "es",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7608802Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7609523Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7610201Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7611194Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7612334Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7613238Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7614287Z ^[[31m+     "locale": "es",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7615141Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7615796Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7616367Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7617583Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7618916Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7619842Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7620637Z ^[[31m+     "locale": "pt-BR",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7621428Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7622084Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7622660Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7623612Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7624760Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7625666Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7626449Z ^[[31m+     "locale": "pt-BR",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7627549Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7628274Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7628894Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7629823Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7630952Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7631836Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7632609Z ^[[31m+     "locale": "it",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7633367Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7634038Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7634666Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7635650Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7637125Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7638356Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7639356Z ^[[31m+     "locale": "it",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7639986Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7640737Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7641116Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7641809Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7642636Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7643328Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7643890Z ^[[31m+     "locale": "pl",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7644453Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7644949Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7645337Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7646118Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7647417Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7648172Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7648765Z ^[[31m+     "locale": "pl",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7649391Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7649843Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7650210Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7650888Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7651853Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7652524Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7653086Z ^[[31m+     "locale": "tr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7653682Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7654189Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7654606Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7655396Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7656351Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7657373Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7657982Z ^[[31m+     "locale": "tr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7658591Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7659100Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7659482Z ^[[31m+ ]^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7659690Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7660202Z ^[[36m ^[[2m❯^[[22m tests/i18n.test.ts:^[[2m207:48^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7700067Z     ^[[90m205| ^[[39m  ^[[34mit^[[39m(^[[32m'passes for all seven dictionaries'^[[39m^[[33m,^[[39m ^[[35masync^[[39m () ^[[33m=>^[[39m {
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7702439Z     ^[[90m206| ^[[39m    ^[[35mconst^[[39m { problems^[[33m,^[[39m counts^[[33m,^[[39m entries } ^[[33m=^[[39m ^[[35mawait^[[39m ^[[34mcheckAll^[[39m()^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7704771Z     ^[[90m207| ^[[39m    ^[[34mexpect^[[39m(problems^[[33m.^[[39m^[[34mfilter^[[39m((p) ^[[33m=>^[[39m ^[[33m!^[[39mp^[[33m.^[[39mwarning))^[[33m.^[[39m^[[34mtoEqual^[[39m([])^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7706349Z     ^[[90m   | ^[[39m                                               ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7707857Z     ^[[90m208| ^[[39m    for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7708951Z     ^[[90m209| ^[[39m  })^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7709503Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7710119Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7710711Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7712863Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mpoggio-alto retains historical controls outside documented venue-site corrections
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7715971Z ^[[31m^[[1mAssertionError^[[22m: expected '18106d4a8a8094c0d6d010f5c1b3c7b242af5…' to be '329664b920d6ac692b3d0c53ce415e1451f21…' // Object.is equality^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7717461Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7718423Z Expected: ^[[32m"329664b920d6ac692b3d0c53ce415e1451f21989a2bd9a37fa928bb7bf6d5bf0"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7720037Z Received: ^[[31m"18106d4a8a8094c0d6d010f5c1b3c7b242af55103ea197e9c4107a61e0cdf2d4"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7720863Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7721793Z ^[[36m ^[[2m❯^[[22m tests/motocross-broadcast-controls.test.ts:^[[2m220:89^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7781850Z     ^[[90m218| ^[[39m        }))^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7792099Z     ^[[90m219| ^[[39m      }
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7793385Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7794863Z     ^[[90m   | ^[[39m                                                                                        ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7797562Z     ^[[90m221| ^[[39m        signature^[[33m,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7827395Z     ^[[90m222| ^[[39m      )^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7856917Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7877886Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7937915Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7940086Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mcape-wrenna retains historical controls outside documented venue-site corrections
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7943025Z ^[[31m^[[1mAssertionError^[[22m: expected 'c3e5c290ab7072fc3e0ad3a424e2f1b698761…' to be 'f11ead5b8859413f1ad3344e4a6bea96c963b…' // Object.is equality^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7944106Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7944935Z Expected: ^[[32m"f11ead5b8859413f1ad3344e4a6bea96c963bdcf105ff5e0503ede9a37a6d4df"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7946369Z Received: ^[[31m"c3e5c290ab7072fc3e0ad3a424e2f1b6987612d4e950ad8b68c97ae9a34d56a4"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7947416Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7948149Z ^[[36m ^[[2m❯^[[22m tests/motocross-broadcast-controls.test.ts:^[[2m220:89^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7949021Z     ^[[90m218| ^[[39m        }))^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7949533Z     ^[[90m219| ^[[39m      }
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7950416Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7951661Z     ^[[90m   | ^[[39m                                                                                        ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7952495Z     ^[[90m221| ^[[39m        signature^[[33m,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7953142Z     ^[[90m222| ^[[39m      )^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7953472Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7953916Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7954270Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7956238Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mhaarveld retains historical controls outside documented venue-site corrections
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7959638Z ^[[31m^[[1mAssertionError^[[22m: expected 'f65f70a852bc18e91329629663c630e576e73…' to be '2cb66a13f217c6bdeeade8b6e52776a5240e5…' // Object.is equality^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7960768Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7961591Z Expected: ^[[32m"2cb66a13f217c6bdeeade8b6e52776a5240e50c4a43d931192c16c19f8460320"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7963003Z Received: ^[[31m"f65f70a852bc18e91329629663c630e576e73386f8bbde5b466a7347d11c79f7"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7963628Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7964335Z ^[[36m ^[[2m❯^[[22m tests/motocross-broadcast-controls.test.ts:^[[2m220:89^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7965208Z     ^[[90m218| ^[[39m        }))^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7965753Z     ^[[90m219| ^[[39m      }
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7967145Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7968408Z     ^[[90m   | ^[[39m                                                                                        ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7969311Z     ^[[90m221| ^[[39m        signature^[[33m,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7969962Z     ^[[90m222| ^[[39m      )^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7970277Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7970721Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7971086Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7973077Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-broadcast-controls.test.ts^[[2m > ^[[22mreplay-camera control preservation outside MX/SX^[[2m > ^[[22mmontejaral retains historical controls outside documented venue-site corrections
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7975975Z ^[[31m^[[1mAssertionError^[[22m: expected '19d8e8402b813f2d37581f12ff0df33c2bbb6…' to be '9af9ee31f2975f496b29023e421eb3eddaa2f…' // Object.is equality^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7977467Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7978289Z Expected: ^[[32m"9af9ee31f2975f496b29023e421eb3eddaa2f9b0a4016be5c9cfa11f10a3aec3"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7979736Z Received: ^[[31m"19d8e8402b813f2d37581f12ff0df33c2bbb6cef138960ca39b21b009ac7ad14"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7980714Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7981459Z ^[[36m ^[[2m❯^[[22m tests/motocross-broadcast-controls.test.ts:^[[2m220:89^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7982340Z     ^[[90m218| ^[[39m        }))^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7982880Z     ^[[90m219| ^[[39m      }
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7983752Z     ^[[90m220| ^[[39m      expect(createHash('sha256').update(JSON.stringify(historicalRigs…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7984945Z     ^[[90m   | ^[[39m                                                                                        ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7985817Z     ^[[90m221| ^[[39m        signature^[[33m,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7986432Z     ^[[90m222| ^[[39m      )^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7986983Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7987412Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7987781Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7989457Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/vehicle-catalogue-growth.test.ts^[[2m > ^[[22mcatalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7991600Z ^[[31m^[[1mAssertionError^[[22m: gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7992347Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7992655Z Expected: ^[[32m"eca1c71a"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7993231Z Received: ^[[31m"5f121c00"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7993517Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7994152Z ^[[36m ^[[2m❯^[[22m tests/vehicle-catalogue-growth.test.ts:^[[2m85:58^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7995346Z     ^[[90m 83| ^[[39m  it('keeps every machine that existed before the growth bit-identical…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7997332Z     ^[[90m 84| ^[[39m    ^[[35mfor^[[39m (^[[35mconst^[[39m [id^[[33m,^[[39m hash] ^[[35mof^[[39m ^[[33mObject^[[39m^[[33m.^[[39m^[[34mentries^[[39m(^[[33mFROZEN^[[39m))
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.7999580Z     ^[[90m 85| ^[[39m      ^[[34mexpect^[[39m(^[[34mvehicleHash^[[39m(^[[33mVEHICLES^[[39m[id])^[[33m,^[[39m ^[[32m`^[[39m^[[36m${^[[39mid^[[36m}^[[39m^[[32m changed`^[[39m)^[[33m.^[[39m^[[34mtoBe^[[39m(hash)^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8001119Z     ^[[90m   | ^[[39m                                                         ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8002436Z     ^[[90m 86| ^[[39m    // Appended after the existing registry: snapshot indices are unch…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8003629Z     ^[[90m 87| ^[[39m    expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8004195Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8004631Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8005003Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8005012Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8005835Z ^[[2m Test Files ^[[22m ^[[1m^[[31m3 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m190 passed^[[39m^[[22m^[[90m (193)^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8011195Z ^[[2m      Tests ^[[22m ^[[1m^[[31m6 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m1921 passed^[[39m^[[22m^[[90m (1927)^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8077153Z ^[[2m   Start at ^[[22m 08:56:23
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8078817Z ^[[2m   Duration ^[[22m 708.63s^[[2m (transform 8.65s, setup 0ms, collect 152.26s, tests 514.80s, environment 45ms, prepare 15.10s)^[[22m
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8079828Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:11.8223929Z JSON report written to /home/runner/work/_temp/unit-3.json
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.6844376Z (node:2433) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.6845353Z (Use `node --trace-warnings ...` to show where the warning was created)
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.6990695Z ##[error]Process completed with exit code 1.
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7079134Z ##[group]Run actions/upload-artifact@v4
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7079459Z with:
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7079665Z   name: unit-validation-3-of-4
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7080054Z   path: /home/runner/work/_temp/unit-3.json
-unit-tests (3)	UNKNOWN STEP	/home/runner/work/_temp/unit-3.log
-unit-tests (3)	UNKNOWN STEP	
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7080466Z   retention-days: 7
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7080684Z   if-no-files-found: error
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7080918Z   compression-level: 6
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7081131Z   overwrite: false
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7081344Z   include-hidden-files: false
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.7081587Z ##[endgroup]
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.8905761Z (node:6873) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.8907865Z (Use `node --trace-deprecation ...` to show where the warning was created)
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.9055603Z Multiple search paths detected. Calculating the least common ancestor of all paths
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.9059637Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.9061597Z With the provided path, there will be 2 files uploaded
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.9063173Z Artifact name is valid!
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:12.9064023Z Root directory input is valid!
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:13.2475106Z Beginning upload of artifact content to blob storage
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:13.2842897Z (node:6873) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:13.7080004Z Uploaded bytes 116314
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:13.7855868Z Finished uploading artifact content to blob storage!
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:13.7857318Z SHA256 digest of uploaded artifact zip is 27706d6e0e1488f2ba812fdbaea4f5dbc4747d31c77b4d48fe9dd5aa968f3bcb
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:13.7858470Z Finalizing artifact upload
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.6456992Z Artifact unit-validation-3-of-4.zip successfully finalized. Artifact ID 14802863940
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.6458790Z Artifact unit-validation-3-of-4 has been successfully uploaded! Final size is 116314 bytes. Artifact ID is 14802863940
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.6465031Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45142543848/artifacts/14802863940
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.6692734Z Post job cleanup.
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7616628Z [command]/usr/bin/git version
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7661889Z git version 2.56.1
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7702250Z Temporarily overriding HOME='/home/runner/work/_temp/47cae23d-741b-4913-9f66-463b41069947' before making global git config changes
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7703814Z Adding repository directory to the temporary git global config as a safe directory
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7707706Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7753982Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.7793974Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.8082875Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.8111981Z http.https://github.com/.extraheader
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.8129223Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.8188993Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.8497128Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.8544617Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.9008167Z Cleaning up orphan processes
-unit-tests (3)	UNKNOWN STEP	2026-11-23T09:08:14.9445024Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:18.1857817Z  ^[[32m✓^[[39m tests/front-end-light-sound.test.ts ^[[2m(^[[22m^[[2m19 tests^[[22m^[[2m)^[[22m^[[32m 27^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:21.1961362Z  ^[[32m✓^[[39m tests/shadow-proxies.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 2196^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:21.1962431Z    ^[[33m^[[2m✓^[[22m^[[39m leaves large sources casting alone and keeps merged casters within 16-bit indices ^[[33m 721^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:21.1963281Z    ^[[33m^[[2m✓^[[22m^[[39m casts the same shadow triangles from a rival car with about half the draws ^[[33m 1449^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8528220Z  ^[[31m❯^[[39m tests/motocross-broadcast-controls.test.ts ^[[2m(^[[22m^[[2m56 tests^[[22m^[[2m | ^[[22m^[[31m4 failed^[[39m^[[2m)^[[22m^[[33m 2876^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8529287Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mretains explicit historical coverage for every other built-in venue^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8530765Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mlevel-nine, built after the capture, still gets a full set of 20 distinct replay cameras^[[32m 41^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8531961Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mhaut-givre, built after the capture, still gets a full set of 20 distinct replay cameras^[[32m 38^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8533165Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mmarram-field, built after the capture, still gets a full set of 20 distinct replay cameras^[[32m 41^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8534380Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mkalder-dam, built after the capture, still gets a full set of 20 distinct replay cameras^[[32m 27^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8535493Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22msaffron-lane, built after the capture, still gets a full set of 20 distinct replay cameras^[[32m 19^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8536459Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22maurel retains historical controls outside documented venue-site corrections^[[32m 26^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8537400Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mvellamar retains historical controls outside documented venue-site corrections^[[32m 37^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8538408Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mparco-reale retains historical controls outside documented venue-site corrections^[[32m 55^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8539413Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mardennes retains historical controls outside documented venue-site corrections^[[32m 50^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8540605Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mnorthfield retains historical controls outside documented venue-site corrections^[[32m 46^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8541749Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mnorthfield-classic retains historical controls outside documented venue-site corrections^[[32m 41^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8543071Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mkansai retains historical controls outside documented venue-site corrections^[[32m 41^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8544595Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mkansai-east retains historical controls outside documented venue-site corrections^[[32m 18^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8545917Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mriviera retains historical controls outside documented venue-site corrections^[[32m 25^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8547155Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mtexas-hill retains historical controls outside documented venue-site corrections^[[32m 41^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8548599Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mneon-city retains historical controls outside documented venue-site corrections^[[32m 35^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8549945Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mneon-city-reverse retains historical controls outside documented venue-site corrections^[[32m 35^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8551459Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22malpine-pass retains historical controls outside documented venue-site corrections^[[32m 54^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8553132Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22malpine-pass-reverse retains historical controls outside documented venue-site corrections^[[32m 51^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8554437Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mspeedbowl retains historical controls outside documented venue-site corrections^[[32m 31^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8555815Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mspeedbowl-infield retains historical controls outside documented venue-site corrections^[[32m 32^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8557178Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mdesert-canyon retains historical controls outside documented venue-site corrections^[[32m 39^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8558794Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mdesert-canyon-reverse retains historical controls outside documented venue-site corrections^[[32m 40^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8560315Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mcoastal-cliff retains historical controls outside documented venue-site corrections^[[32m 34^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8561820Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mcoastal-cliff-reverse retains historical controls outside documented venue-site corrections^[[32m 36^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8563224Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mdockyard retains historical controls outside documented venue-site corrections^[[32m 34^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8564577Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mdockyard-reverse retains historical controls outside documented venue-site corrections^[[32m 33^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8566043Z ^[[31m   ^[[31m×^[[31m replay-camera control preservation outside MX/SX^[[2m > ^[[22mpoggio-alto retains historical controls outside documented venue-site corrections^[[39m^[[32m 57^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8567312Z ^[[31m     → expected '18106d4a8a8094c0d6d010f5c1b3c7b242af5…' to be '329664b920d6ac692b3d0c53ce415e1451f21…' // Object.is equality^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8568600Z ^[[31m   ^[[31m×^[[31m replay-camera control preservation outside MX/SX^[[2m > ^[[22mcape-wrenna retains historical controls outside documented venue-site corrections^[[39m^[[32m 39^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8569883Z ^[[31m     → expected 'c3e5c290ab7072fc3e0ad3a424e2f1b698761…' to be 'f11ead5b8859413f1ad3344e4a6bea96c963b…' // Object.is equality^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8571406Z ^[[31m   ^[[31m×^[[31m replay-camera control preservation outside MX/SX^[[2m > ^[[22mhaarveld retains historical controls outside documented venue-site corrections^[[39m^[[32m 41^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8572848Z ^[[31m     → expected 'f65f70a852bc18e91329629663c630e576e73…' to be '2cb66a13f217c6bdeeade8b6e52776a5240e5…' // Object.is equality^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8574162Z ^[[31m   ^[[31m×^[[31m replay-camera control preservation outside MX/SX^[[2m > ^[[22mmontejaral retains historical controls outside documented venue-site corrections^[[39m^[[32m 40^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8575458Z ^[[31m     → expected '19d8e8402b813f2d37581f12ff0df33c2bbb6…' to be '9af9ee31f2975f496b29023e421eb3eddaa2f…' // Object.is equality^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8576754Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mhochwald retains historical controls outside documented venue-site corrections^[[32m 160^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8578141Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mloirette retains historical controls outside documented venue-site corrections^[[32m 97^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8579619Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mloirette-club retains historical controls outside documented venue-site corrections^[[32m 33^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8581156Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mserra-verde retains historical controls outside documented venue-site corrections^[[32m 42^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8582343Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mmount-ardlow retains historical controls outside documented venue-site corrections^[[32m 44^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8583700Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22marroyo-oro retains historical controls outside documented venue-site corrections^[[32m 27^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8585111Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mfiume-verde retains historical controls outside documented venue-site corrections^[[32m 35^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8586426Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mduinwijk retains historical controls outside documented venue-site corrections^[[32m 31^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8587732Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mramla-night retains historical controls outside documented venue-site corrections^[[32m 40^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8589070Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mramla-outer retains historical controls outside documented venue-site corrections^[[32m 26^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8590490Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mmirvari retains historical controls outside documented venue-site corrections^[[32m 43^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8591835Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mlantern-bay retains historical controls outside documented venue-site corrections^[[32m 36^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8593130Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mlotus-hill retains historical controls outside documented venue-site corrections^[[32m 44^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8594511Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mgantry-point retains historical controls outside documented venue-site corrections^[[32m 40^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8595959Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mgantry-point-reverse retains historical controls outside documented venue-site corrections^[[32m 38^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8597375Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22msalt-flat retains historical controls outside documented venue-site corrections^[[32m 47^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8598686Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mkestrel-rx retains historical controls outside documented venue-site corrections^[[32m 96^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8600435Z    ^[[32m✓^[[39m replay-camera control preservation outside MX/SX^[[2m > ^[[22mpinewood-stage retains historical controls outside documented venue-site corrections^[[32m 125^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8601923Z    ^[[32m✓^[[39m valley-ridge-mx relocated replay-camera optical contract^[[2m > ^[[22mpreserves each original coverage, lens, tracking and shot descriptor^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8603278Z    ^[[32m✓^[[39m valley-ridge-mx relocated replay-camera optical contract^[[2m > ^[[22maligns every physical-camera eye with the replay rig and retains its authored height^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8604622Z    ^[[32m✓^[[39m valley-ridge-mx relocated replay-camera optical contract^[[2m > ^[[22msees every own source center at rider height over the actual production terrain^[[32m 32^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8606015Z    ^[[32m✓^[[39m arena-nord-sx relocated replay-camera optical contract^[[2m > ^[[22mpreserves each original coverage, lens, tracking and shot descriptor^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8607455Z    ^[[32m✓^[[39m arena-nord-sx relocated replay-camera optical contract^[[2m > ^[[22maligns every physical-camera eye with the replay rig and retains its authored height^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:24.8608732Z    ^[[32m✓^[[39m arena-nord-sx relocated replay-camera optical contract^[[2m > ^[[22msees every own source center at rider height over the actual production terrain^[[32m 35^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:26.9437083Z  ^[[32m✓^[[39m tests/festival-coastal-water.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 1318^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:26.9478865Z    ^[[33m^[[2m✓^[[22m^[[39m Festival coastal water geometry^[[2m > ^[[22msolves the actual sea-level contour and samples all shallow depths from Solvane terrain ^[[33m 420^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:26.9481378Z    ^[[33m^[[2m✓^[[22m^[[39m Festival coastal water geometry^[[2m > ^[[22mcovers the visible coarse-tile shore while opaque terrain occludes the inland overlap ^[[33m 435^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:28.7248379Z  ^[[32m✓^[[39m tests/festival-ground-height.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 275^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5429066Z  ^[[32m✓^[[39m tests/bike-session.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[33m 24086^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5430822Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22mbuilds the bike adapter and bike AI for bike definitions only ^[[33m 687^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5431970Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22mlaps a circuit under AI with lean, gears, tyre wear and valid timing ^[[33m 2486^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5432964Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22mcrash flows through race control: rider down, separation, remount, back on track ^[[33m 1071^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5433925Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22ma hard contact between bikes unseats a rider without non-finite state ^[[33m 647^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5434801Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22mrace control penalises a bike jump start like any entrant ^[[33m 663^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5435627Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22mrear brake is the secondary (clutch) input and decelerates on its own ^[[33m 1183^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5436458Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 motorcycles in real sessions^[[2m > ^[[22mservices a bike in the pit lane and releases it ^[[33m 2021^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5437246Z    ^[[33m^[[2m✓^[[22m^[[39m WP34 snapshot v12 bike block^[[2m > ^[[22mround-trips lean, steer, rider pose and loads; cars carry zeros ^[[33m 922^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5438048Z    ^[[33m^[[2m✓^[[22m^[[39m WP36 bike identity, rules and content^[[2m > ^[[22mvalidates bike content and names what is wrong ^[[33m 2586^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:53.5439015Z    ^[[33m^[[2m✓^[[22m^[[39m WP35 seeded AI bike race^[[2m > ^[[22mfinishes a mixed GP/superbike race with bounded incidents and no stuck rider ^[[33m 11814^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:56.6912572Z  ^[[32m✓^[[39m tests/festival-wheel-construction.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 2373^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:56.6923738Z    ^[[33m^[[2m✓^[[22m^[[39m Festival road wheel construction^[[2m > ^[[22mcontains the brake caliper within the barrel and behind the spokes ^[[33m 627^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:56.6932035Z    ^[[33m^[[2m✓^[[22m^[[39m retains separate tyre contact and brake heat while sharing only equal rigid wheel buffers ^[[33m 1329^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:59.5198415Z  ^[[32m✓^[[39m tests/festival-racecraft.test.ts ^[[2m(^[[22m^[[2m24 tests^[[22m^[[2m)^[[22m^[[33m 2110^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:59.5199423Z    ^[[33m^[[2m✓^[[22m^[[39m festival physical race aero integration^[[2m > ^[[22mfeeds the existing aerodynamic tow into drag, and clears it on cancel and free roam ^[[33m 820^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:59.5200849Z    ^[[33m^[[2m✓^[[22m^[[39m festival physical race aero integration^[[2m > ^[[22mhas no ghost tow from a different bridge deck or an opposite-facing car ^[[33m 321^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:44:59.5201955Z    ^[[33m^[[2m✓^[[22m^[[39m festival physical race aero integration^[[2m > ^[[22mcompletes a tow-and-pass through real steering, pedals, aero, tyres and contact ^[[33m 628^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:00.9524208Z  ^[[32m✓^[[39m tests/presentation-continuity.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 589^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:02.3590641Z  ^[[32m✓^[[39m tests/motocross-roost-contact.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 638^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:11.2072675Z  ^[[32m✓^[[39m tests/open-world-session.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[33m 8087^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:11.2073735Z    ^[[33m^[[2m✓^[[22m^[[39m festival free-roam session^[[2m > ^[[22mspawns on the ground, drives, writes circuit-layout frames and streams within budget ^[[33m 843^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:11.2074994Z    ^[[33m^[[2m✓^[[22m^[[39m festival free-roam session^[[2m > ^[[22mresets an upturned or drowned car onto the nearest road, repaired ^[[33m 431^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:11.2075885Z    ^[[33m^[[2m✓^[[22m^[[39m festival free-roam session^[[2m > ^[[22mraces a sprint against route-following rivals and emits a typed result ^[[33m 3955^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:11.2076789Z    ^[[33m^[[2m✓^[[22m^[[39m festival free-roam session^[[2m > ^[[22mresets onto the route at the legal progress, never ahead of it (a shortcut gains nothing) ^[[33m 863^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:11.2077648Z    ^[[33m^[[2m✓^[[22m^[[39m festival free-roam session^[[2m > ^[[22mmeasures a speed trap and a speed zone as skill challenges ^[[33m 732^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:15.3963842Z  ^[[32m✓^[[39m tests/festival-car-finish.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 3267^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:15.3965605Z    ^[[33m^[[2m✓^[[22m^[[39m Festival car finish ownership and shader integration^[[2m > ^[[22mclones only exterior paint/glass, preserves clean glass/IBL/paint hooks and adds no scene primitives ^[[33m 900^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:15.3966974Z    ^[[33m^[[2m✓^[[22m^[[39m Festival car finish ownership and shader integration^[[2m > ^[[22mrestores exact material slots and releases owned clones once while preserving borrowed textures and other bodies ^[[33m 945^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:15.3968274Z    ^[[33m^[[2m✓^[[22m^[[39m Festival car finish ownership and shader integration^[[2m > ^[[22mrebinds the actual followed Festival car on garage changes with independent scene probes and bounded resources ^[[33m 1418^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8582655Z  ^[[31m❯^[[39m tests/i18n.test.ts ^[[2m(^[[22m^[[2m28 tests^[[22m^[[2m | ^[[22m^[[31m1 failed^[[39m^[[2m)^[[22m^[[33m 998^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8583536Z    ^[[32m✓^[[39m messages: placeholders and plurals^[[2m > ^[[22mfills placeholders and leaves unknown ones visible^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8584558Z    ^[[32m✓^[[39m messages: placeholders and plurals^[[2m > ^[[22mpicks plural branches by the language rules^[[32m 10^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8585330Z    ^[[32m✓^[[39m messages: placeholders and plurals^[[2m > ^[[22msupports exact matches and nested text around plurals^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8586138Z    ^[[32m✓^[[39m messages: placeholders and plurals^[[2m > ^[[22mreads placeholders and plural branches back for the gate^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8586857Z    ^[[32m✓^[[39m messages: placeholders and plurals^[[2m > ^[[22mrejects malformed messages^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8587560Z    ^[[32m✓^[[39m messages: placeholders and plurals^[[2m > ^[[22mknows which plural categories each language needs^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8588214Z    ^[[32m✓^[[39m language choice^[[2m > ^[[22mmaps browser tags to supported languages^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8588856Z    ^[[32m✓^[[39m language choice^[[2m > ^[[22mtakes the first supported language of the ranking, else English^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8589589Z    ^[[32m✓^[[39m language choice^[[2m > ^[[22mresolves auto and explicit settings^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8590293Z    ^[[32m✓^[[39m language choice^[[2m > ^[[22mvalidates the stored setting^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8590969Z    ^[[32m✓^[[39m language choice^[[2m > ^[[22mis part of Settings: older saves and unknown codes read as auto^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8591718Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mis the English text itself under en, with or without a dictionary^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8592425Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mescapes the message text but never the parameters^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8593116Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mloads a dictionary on demand and switches back^[[32m 23^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8593854Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mfalls back to English for a string a dictionary does not have, with English plurals^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8594808Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mkeeps the current language when asked for an unknown one^[[32m 23^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8595531Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mstarts from the saved setting and survives unreadable storage^[[32m 33^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8596174Z    ^[[32m✓^[[39m t() and the dictionaries^[[2m > ^[[22mloads every shipped dictionary^[[32m 94^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8596918Z    ^[[32m✓^[[39m numbers, units and dates in the language^[[2m > ^[[22mkeeps toFixed under English and swaps the decimal mark elsewhere^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8597684Z    ^[[32m✓^[[39m numbers, units and dates in the language^[[2m > ^[[22mformats numbers, units and dates by the language^[[32m 4^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8598457Z    ^[[32m✓^[[39m the catalogue and the dictionary gate^[[2m > ^[[22mfinds every string, with unique keys that all parse^[[32m 249^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8599248Z ^[[31m   ^[[31m×^[[31m the catalogue and the dictionary gate^[[2m > ^[[22mpasses for all seven dictionaries^[[39m^[[33m 312^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8599906Z ^[[31m     → expected [ { locale: 'de', …(4) }, …(13) ] to deeply equal []^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8600745Z    ^[[32m✓^[[39m the catalogue and the dictionary gate^[[2m > ^[[22msupports exactly the seven Latin-script languages besides English^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8601483Z    ^[[32m✓^[[39m the catalogue and the dictionary gate^[[2m > ^[[22mcatches the defects it exists for^[[32m 135^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8602798Z    ^[[32m✓^[[39m the catalogue and the dictionary gate^[[2m > ^[[22mgives Polish the plural branches it needs everywhere^[[32m 100^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8603657Z    ^[[32m✓^[[39m localised surfaces^[[2m > ^[[22mtranslate the first-launch screen and keep the language dial out of the English markup contract^[[32m 4^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8604608Z    ^[[32m✓^[[39m localised surfaces^[[2m > ^[[22mtranslate the paddock plates, the dial labels and the loading stages^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:17.8605261Z    ^[[32m✓^[[39m localised surfaces^[[2m > ^[[22moffer every language under its own name^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:19.2016994Z  ^[[32m✓^[[39m tests/scanned-ground.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 561^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:30.2167035Z  ^[[32m✓^[[39m tests/circuit-catalogue-wave2-review.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[33m 10275^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:30.2168160Z    ^[[33m^[[2m✓^[[22m^[[39m catalogue wave 2 review^[[2m > ^[[22mkeeps the forest ring grid level enough that held cars do not roll ^[[33m 2849^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:30.2168948Z    ^[[33m^[[2m✓^[[22m^[[39m catalogue wave 2 review^[[2m > ^[[22mbacks a wedged car out and rejoins without marshal help ^[[33m 2706^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:30.2169784Z    ^[[33m^[[2m✓^[[22m^[[39m catalogue wave 2 review^[[2m > ^[[22mhas marshals recover a car that cannot get going, and leaves a parked one ^[[33m 4520^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:31.1612202Z  ^[[32m✓^[[39m tests/tire-footprint.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[32m 262^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:39.4252537Z  ^[[32m✓^[[39m tests/festival-activity-progress.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[33m 7553^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:39.4282330Z    ^[[33m^[[2m✓^[[22m^[[39m festival activity physical admission^[[2m > ^[[22mdoes not activate a rolling gate while the car is physically reversing through it ^[[33m 711^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:39.4283649Z    ^[[33m^[[2m✓^[[22m^[[39m festival activity physical admission^[[2m > ^[[22mpublishes actual live zone pace and reaches full measured progress at the real finish ^[[33m 842^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:39.4284683Z    ^[[33m^[[2m✓^[[22m^[[39m festival activity physical admission^[[2m > ^[[22mretries a finished activity with a new run identity and forwards each result only once ^[[33m 536^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:39.4285984Z    ^[[33m^[[2m✓^[[22m^[[39m festival race retry handoff^[[2m > ^[[22mtravels from a real completed race into a new run without replacing the pending result ^[[33m 5319^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:40.6672735Z  ^[[32m✓^[[39m tests/wheel-gun.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 386^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:41.6535356Z  ^[[32m✓^[[39m tests/phase27g-completion.test.ts ^[[2m(^[[22m^[[2m23 tests^[[22m^[[2m)^[[22m^[[32m 156^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:46.4373725Z  ^[[32m✓^[[39m tests/gp-venue-surfaces.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 3624^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:46.4375088Z    ^[[33m^[[2m✓^[[22m^[[39m GP venue asphalt^[[2m > ^[[22mcompiles the polish band, off-line dust and anti-tiling terms only for GP venues ^[[33m 565^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:46.4375920Z    ^[[33m^[[2m✓^[[22m^[[39m GP verge turf and gravel^[[2m > ^[[22minstalls the GP turf and gravel hooks only on the GP palette ^[[33m 785^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:46.4376737Z    ^[[33m^[[2m✓^[[22m^[[39m GP verge turf and gravel^[[2m > ^[[22mextends GP gravel ribbons one quad into the grass with a cover attribute ^[[33m 1488^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0459024Z  ^[[31m❯^[[39m tests/vehicle-catalogue-growth.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m | ^[[22m^[[31m1 failed^[[39m^[[2m)^[[22m^[[33m 3879^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0460582Z    ^[[32m✓^[[39m catalogue growth (cars and road bikes)^[[2m > ^[[22mreaches the 48-model destination with valid, uniquely hashed machines^[[32m 9^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0461562Z ^[[31m   ^[[31m×^[[31m catalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical^[[39m^[[32m 5^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0462651Z ^[[31m     → gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0463471Z    ^[[32m✓^[[39m catalogue growth (cars and road bikes)^[[2m > ^[[22mgives every catalogue machine and added bike a brief, bands and a calibration record^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0464658Z    ^[[32m✓^[[39m catalogue growth (cars and road bikes)^[[2m > ^[[22mregisters every new class with a family, a price and a race ruleset or none^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0465518Z    ^[[32m✓^[[39m calibration margins and trade-offs^[[2m > ^[[22mkeeps every growth machine clear of its band edges at both timesteps^[[32m 7^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0466377Z    ^[[32m✓^[[39m calibration margins and trade-offs^[[2m > ^[[22mpublishes the near-edge list generated from the calibration report^[[32m 1^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0467167Z    ^[[32m✓^[[39m calibration margins and trade-offs^[[2m > ^[[22mkeeps the road hot hatch below its racing counterpart in grip^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0467969Z    ^[[32m✓^[[39m calibration margins and trade-offs^[[2m > ^[[22mtrades GP-R2 braking against GP-R1 launch and top speed^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0468717Z    ^[[32m✓^[[39m calibration margins and trade-offs^[[2m > ^[[22msimulates the turbo lag every brief claims^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0469499Z    ^[[32m✓^[[39m fan-assisted floor (XF-2)^[[2m > ^[[22mholds the car down at rest and loses suction when the floor lifts^[[32m 105^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0470487Z    ^[[32m✓^[[39m XF-2 AI envelope with a damaged floor^[[2m > ^[[22mplans braking inside what the car can do as the fan floor loses its seal^[[32m 167^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0471667Z    ^[[32m✓^[[39m XF-2 AI envelope with a damaged floor^[[2m > ^[[22mtakes the fan share of the envelope from the fan-off calibration fit^[[32m 0^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:51.0472733Z    ^[[33m^[[2m✓^[[22m^[[39m new machines on track^[[2m > ^[[22mdrives a field of the new chassis types without numerical failure ^[[33m 3577^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:53.8049835Z  ^[[32m✓^[[39m tests/motocross-equipment-surface.test.ts ^[[2m(^[[22m^[[2m18 tests^[[22m^[[2m)^[[22m^[[33m 1904^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:53.8051186Z    ^[[33m^[[2m✓^[[22m^[[39m motocross equipment surface and ownership^[[2m > ^[[22mbends shrouds into a crown while keeping physical thickness, mirrored envelopes and UVs ^[[33m 449^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:53.8052702Z    ^[[33m^[[2m✓^[[22m^[[39m motocross equipment surface and ownership^[[2m > ^[[22mdisposing one MX LOD leaves the shared rubber textures usable by the other LOD ^[[33m 653^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:54.1089939Z  ^[[32m✓^[[39m tests/gp-r5-materials.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[32m 90^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:54.8337913Z  ^[[32m✓^[[39m tests/wildcard-board.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 20^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:56.0737418Z  ^[[32m✓^[[39m tests/surface-thermal.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[33m 580^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:56.0765160Z    ^[[33m^[[2m✓^[[22m^[[39m production circuit and festival surface evolution^[[2m > ^[[22mgives festival tire contacts thermal memory and permits actual evaporation after rain ^[[33m 388^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:56.9184617Z  ^[[32m✓^[[39m tests/results-settings.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 135^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:59.3779201Z  ^[[32m✓^[[39m tests/gp-front-contact-steering.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 1739^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:45:59.3780630Z    ^[[33m^[[2m✓^[[22m^[[39m GP front-contact steering^[[2m > ^[[22mpublishes actual lift forces and reproduces a GP launch and release through flashback ^[[33m 1431^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:01.3128360Z  ^[[32m✓^[[39m tests/steel-guardrails.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 1227^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:01.3129509Z    ^[[33m^[[2m✓^[[22m^[[39m A02 authored steel guardrail kit^[[2m > ^[[22mretains the existing full-lap barrier segment coverage without overlapping concrete and steel ^[[33m 819^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:02.1480902Z  ^[[32m✓^[[39m tests/cockpit-detail.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[33m 613^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:02.1482168Z    ^[[33m^[[2m✓^[[22m^[[39m cockpit detail batching^[[2m > ^[[22mencloses every selector vertex throughout rotation without disabling frustum culling ^[[33m 418^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:02.9539922Z  ^[[32m✓^[[39m tests/traffic.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[32m 130^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:03.2019430Z  ^[[32m✓^[[39m tests/live-frame-clock.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[32m 63^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:05.7371323Z  ^[[32m✓^[[39m tests/overhead-garage-service-rig.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 2333^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:05.7372538Z    ^[[33m^[[2m✓^[[22m^[[39m A26 overhead garage services^[[2m > ^[[22mall triangles clear the real passage and all vertices have finite UV/normal data ^[[33m 800^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:05.7373458Z    ^[[33m^[[2m✓^[[22m^[[39m A26 overhead garage services^[[2m > ^[[22mclears all three concurrently integrated A35 parked-equipment envelopes ^[[33m 1063^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:06.8204363Z  ^[[32m✓^[[39m tests/daylight-environment.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 358^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:07.5349024Z  ^[[32m✓^[[39m tests/audio-music-settings.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 17^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:09.3722783Z  ^[[32m✓^[[39m tests/gp-rider-spine.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 1083^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:09.3724520Z    ^[[33m^[[2m✓^[[22m^[[39m GP articulated spine and connected one-piece suit^[[2m > ^[[22mhigh keeps the collar and shoulder skin on the chest, and the seat skin on the pelvis ^[[33m 445^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:10.7406595Z  ^[[32m✓^[[39m tests/gp-paddock-architecture.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[33m 703^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:12.1907889Z  ^[[32m✓^[[39m tests/crew-performance.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 606^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:12.1910337Z    ^[[33m^[[2m✓^[[22m^[[39m uses the same procedural human kit and skeleton in grid preparation and live pit service ^[[33m 303^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:12.3696289Z  ^[[32m✓^[[39m tests/festival-circuit-pace-trace.test.ts ^[[2m(^[[22m^[[2m22 tests^[[22m^[[2m)^[[22m^[[32m 20^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.1895406Z  ^[[32m✓^[[39m tests/motocross-spectators.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 3986^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.1896977Z    ^[[33m^[[2m✓^[[22m^[[39m MX spectators and flag marshals^[[2m > ^[[22mstands onlookers beside the course, outside its run-off and clear of the furniture ^[[33m 1821^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.1898284Z    ^[[33m^[[2m✓^[[22m^[[39m MX spectators and flag marshals^[[2m > ^[[22mgrounds each public rail outside all race lanes and leaves the static metal in the shadow bake ^[[33m 933^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.1899493Z    ^[[33m^[[2m✓^[[22m^[[39m MX spectators and flag marshals^[[2m > ^[[22mthins the standing public independently of race officials on Low and Medium ^[[33m 855^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.1900816Z    ^[[33m^[[2m✓^[[22m^[[39m MX spectators and flag marshals^[[2m > ^[[22mkeeps each official grounded beside their arena-nord-sx post and relays local race control through holds and seeks ^[[33m 305^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.7234637Z  ^[[32m✓^[[39m tests/replay-seek-preparation.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 325^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:17.9707583Z  ^[[32m✓^[[39m tests/reflection-preparation.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 34^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:18.7311322Z  ^[[32m✓^[[39m tests/gp-proximity.test.ts ^[[2m(^[[22m^[[2m23 tests^[[22m^[[2m)^[[22m^[[32m 22^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:20.7496652Z  ^[[32m✓^[[39m tests/gp-edge-design.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[33m 680^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:20.9234207Z  ^[[32m✓^[[39m tests/motocross-landing-challenge.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[32m 9^[[2mms^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-23T18:46:20.9562381Z ##[error]The operation was canceled.
+unit-tests (3)	Unit results, including failures	﻿2026-11-23T18:46:20.9625469Z ##[group]Run actions/upload-artifact@v4
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9625874Z with:
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9626201Z   name: unit-validation-3-of-4
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9626760Z   path: /home/runner/work/_temp/unit-3.json
+unit-tests (3)	Unit results, including failures	/home/runner/work/_temp/unit-3.log
+unit-tests (3)	Unit results, including failures	
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9627289Z   retention-days: 7
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9627616Z   if-no-files-found: error
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9628003Z   compression-level: 6
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9628299Z   overwrite: false
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9628667Z   include-hidden-files: false
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:20.9629005Z ##[endgroup]
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1311567Z (node:3626) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1312800Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1391958Z Multiple search paths detected. Calculating the least common ancestor of all paths
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1396991Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1401144Z With the provided path, there will be 1 file uploaded
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1402444Z Artifact name is valid!
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.1403171Z Root directory input is valid!
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.6231825Z (node:3626) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.6239948Z Beginning upload of artifact content to blob storage
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:21.9647759Z Uploaded bytes 9607
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:22.0656789Z Finished uploading artifact content to blob storage!
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:22.0682173Z SHA256 digest of uploaded artifact zip is 3d4fc352ac3f58471204b0178aa0d3e3c66de05490046e130f6c68bfa5c2192f
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:22.0698375Z Finalizing artifact upload
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:22.4664709Z Artifact unit-validation-3-of-4.zip successfully finalized. Artifact ID 14852031792
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:22.4665753Z Artifact unit-validation-3-of-4 has been successfully uploaded! Final size is 9607 bytes. Artifact ID is 14852031792
+unit-tests (3)	Unit results, including failures	2026-11-23T18:46:22.4666807Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45241152705/artifacts/14852031792
+unit-tests (3)	Post Run actions/checkout@v4	﻿2026-11-23T18:46:22.4826054Z Post job cleanup.
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5695251Z [command]/usr/bin/git version
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5696831Z git version 2.56.1
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5711806Z Temporarily overriding HOME='/home/runner/work/_temp/e5f9d387-a015-4d43-a65c-2dbfe265de20' before making global git config changes
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5713693Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5715653Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5774175Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.5879415Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.6104045Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.6127436Z http.https://github.com/.extraheader
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.6138026Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.6188576Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.6497197Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-23T18:46:22.6520682Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (3)	Complete job	﻿2026-11-23T18:46:22.6969846Z Cleaning up orphan processes
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7192306Z Terminate orphan process: pid (2236) (node)
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7224625Z Terminate orphan process: pid (2237) (tee)
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7252187Z Terminate orphan process: pid (2244) (npm test --shar)
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7281747Z Terminate orphan process: pid (2276) (sh)
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7315671Z Terminate orphan process: pid (2277) (node (vitest))
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7352346Z Terminate orphan process: pid (2301) (esbuild)
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7416246Z Terminate orphan process: pid (3653) (node (vitest 1))
+unit-tests (3)	Complete job	2026-11-23T18:46:22.7457665Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
