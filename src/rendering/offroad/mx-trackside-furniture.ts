@@ -139,7 +139,7 @@ export function planMxTracksideFurniture(track: Track) {
     };
   });
   const cameras = tracksideRigs(track);
-  const floor = indoor ? stadiumFloor(track) : null, p = trackPoint();
+  const floor = indoor ? stadiumFloor(track) : null;
   const sites: MxFurnitureSite[] = [],
     placements: MxFurniturePlacement[] = [];
   let rejected = 0;
