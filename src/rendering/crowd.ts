@@ -1,3 +1,4 @@
+import { gpCrowdCardGeometry, installGpCrowdCard } from './gp-crowd-impostor.ts';
 import { CROWD_WARDROBE_GLSL } from './crowd-wardrobe.ts';
 import { audienceAtlas } from './start-finish-assets.ts';
 import {
@@ -69,7 +70,7 @@ interface CrowdUniforms {
  * and is rendered at exactly one LOD even inside a transition band. Individual
  * silhouettes switch at different distances instead of an entire stand popping.
  * Rewinds and paused camera movement do not accumulate a fading animation. */
-export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
+export function crowdLodRanges(distance: number, out: readonly T.Vector2[], gpCards = false) {
   if (!Number.isFinite(distance) || distance < 0 || out.length !== 4)
     throw new Error('Invalid crowd handoff');
   out.forEach((range) => range.set(0, 0));
@@ -89,7 +90,7 @@ export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
     out[1].set(weight, 1);
     out[2].set(0, weight);
   } else {
-    const weight = smooth(420, 480);
+    const weight = gpCards ? smooth(338, 397) : smooth(420, 480);
     out[2].set(weight, 1);
     out[3].set(0, weight);
   }
@@ -455,13 +456,13 @@ vColor.rgb = vec3(1.);`,
     `apex-procedural-crowd-v16-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}`;
 }
 
-export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
+export function crowdDetail(distance: number, previous: CrowdDetail, gpCards = false): CrowdDetail {
   if (!Number.isFinite(distance) || distance < 0) throw new Error('Invalid crowd distance');
   if (previous === 0 && distance < 58) return 0;
   if (previous === 1 && distance > 46 && distance < 242) return 1;
-  if (previous === 2 && distance > 218 && distance < 480) return 2;
-  if (previous === 3 && distance > 420) return 3;
-  return distance < 52 ? 0 : distance < 230 ? 1 : distance < 450 ? 2 : 3;
+  if (previous === 2 && distance > 218 && distance < (gpCards ? 397 : 480)) return 2;
+  if (previous === 3 && distance > (gpCards ? 338 : 420)) return 3;
+  return distance < 52 ? 0 : distance < 230 ? 1 : distance < (gpCards ? 368 : 450) ? 2 : 3;
 }
 
 /** A spatially culled cluster shares all instance storage across its levels.
@@ -539,7 +540,9 @@ export class CrowdCluster {
       const distanceMaterial = level === 3 ? undefined : new T.MeshDistanceMaterial();
       const uniforms = { ...this.uniforms, crowdLodRange: { value: this.lodRanges[level] },
         ...(this.gpYaw && { crowdGpYaw: this.gpYaw, crowdGpSeats: this.gpSeats }) };
-      if (level === 3) installCrowdImpostorShader(colorMaterial, this.lodRanges[level]);
+      if (level === 3 && gpSeatSide)
+        installGpCrowdCard(colorMaterial, this.lodRanges[level], Math.abs((authoredFamily ?? Math.floor(seed / 7)) % 2));
+      else if (level === 3) installCrowdImpostorShader(colorMaterial, this.lodRanges[level]);
       else {
         installCrowdShader(colorMaterial, uniforms, true);
         installCrowdShader(depth!, uniforms, false);
@@ -552,7 +555,7 @@ export class CrowdCluster {
       if (atlas && level === 0) colorMaterial.addEventListener('dispose', () => atlas.dispose());
       const geometry =
         level === 3
-          ? spectatorImpostorGeometry()
+          ? gpSeatSide ? gpCrowdCardGeometry() : spectatorImpostorGeometry()
           : spectatorGeometry(
               level,
               (authoredFamily ?? Math.floor(seed / 7)) % 2 === 0 ? 'a' : 'b',
@@ -655,8 +658,8 @@ export class CrowdCluster {
         }
       }
     }
-    this.level = crowdDetail(visualDistance, this.level);
-    crowdLodRanges(visualDistance, this.lodRanges);
+    this.level = crowdDetail(visualDistance, this.level, !!this.gpYaw && gpGrid);
+    crowdLodRanges(visualDistance, this.lodRanges, !!this.gpYaw && gpGrid);
     this.levels.forEach((mesh, i) => {
       mesh.visible = this.lodRanges[i].y > this.lodRanges[i].x;
     });

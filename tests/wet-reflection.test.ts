@@ -77,6 +77,7 @@ describe('wet-road planar reflection', () => {
     expect(below.z).toBeLessThan(-below.w);
     expect(above.z).toBeGreaterThan(-above.w);
     expect(reflection.uniforms.wetReflectionState.value.x).toBe(planeY);
+    expect(reflection.uniforms.wetReflectionState.value.w).toBe(0);
     expect(reflection.uniforms.wetReflectionState.value.y).toBe(1);
     // Probe and mirror passes see the road from other viewpoints: the texture
     // and matrix above belong to this camera, so sampling stops until the
@@ -109,6 +110,7 @@ describe('wet-road planar reflection', () => {
     const surface = plane.intersectLine(ray, new T.Vector3())!;
     const projective = reflection.uniforms.wetReflectionMatrix.value;
     expect(project(projective, surface).distanceTo(project(projective, object))).toBeLessThan(1e-7);
+    expect(reflection.uniforms.wetReflectionState.value.w).toBe(1);
     const clipDepth = (p: T.Vector3) => p.clone().project(reflection.camera).z;
     expect(clipDepth(object)).toBeGreaterThan(-1);
     expect(clipDepth(image)).toBeLessThan(-1);
@@ -166,7 +168,7 @@ describe('wet-road planar reflection', () => {
     );
     expect(lit.shader.uniforms.wetReflection.value).toBe(reflection.target.texture);
     expect(plain.shader.fragmentShader).not.toContain('wetReflection');
-    expect(lit.material.customProgramCacheKey()).toContain('wet-planar-v1');
+    expect(lit.material.customProgramCacheKey()).toContain('wet-planar-survey-v2');
     expect(plain.material.customProgramCacheKey()).not.toContain('wet-planar');
     expect(WET_REFLECTION_GLSL).toContain('#ifdef USE_CLEARCOAT');
   });

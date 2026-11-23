@@ -324,6 +324,22 @@ function tailoring(cut: Exclude<GpSuitCut, 'plain'>) {
     crease*.00019*gpSuitWear*creaseResolve;
   diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.018,.023,.029),gpSuitStretch*.87);
   ${lumbarRelief}
+  ${cut === 'torso' ? `// Three broad pinches in the soft flank, running upward into the armhole.
+  // Coordinates are bind metres; the printed hide follows the same spine.
+  float side = sign(vGpSuitBind.x);
+  float flank = smoothstep(.055,.132,abs(vGpSuitBind.x)) *
+    smoothstep(.065,.135,vGpSuitBind.y)*(1.-smoothstep(.30,.397,vGpSuitBind.y));
+  float station = (vGpSuitBind.y+.26*vGpSuitBind.z
+    +.42*(abs(vGpSuitBind.x)-.135)+.85*vGpSuitBind.z*vGpSuitBind.z);
+  float press = clamp(.46*gpSuitLoad.x+.67*gpSuitLoad.y*side+.16*gpSuitLoad.z,0.,1.);
+  float wa=(station-.151+.012*press)/.0105;
+  float wb=(station-.205+.018*press)/.012;
+  float wc=(station-.265+.025*press)/.014;
+  float ridge=exp(-wa*wa)+.82*exp(-wb*wb)+.52*exp(-wc*wc);
+  float resolved=1.-smoothstep(.008,.032,px);
+  float gathers=flank*press*resolved*(1.-gpSuitStretch)*(1.-gpSuitRib);
+  gpSuitHeight+=.0029*gathers*ridge;
+  diffuseColor.rgb*=1.-.056*gathers*ridge;` : ''}
   diffuseColor.rgb*=1.-gpSuitRib*.13-seam*.22;
   diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.55+vec3(.16),stitch*.7);
   gpSuitWear*=creaseResolve*wearTone;
@@ -337,9 +353,12 @@ export function installGpSuitFinish(
   material: T.MeshPhysicalMaterial,
   perforated: boolean,
   cut: GpSuitCut = 'plain',
+  loads?: T.Vector3,
 ) {
-  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v6`;
+  const key = `gp-suit-${perforated ? 'perforated' : 'plain'}-${cut}-v7`;
+  const foldLoad = cut === 'torso' ? { value: loads ?? new T.Vector3() } : undefined;
   chainShaderHook(material, key, (shader) => {
+    if (foldLoad) shader.uniforms.gpSuitLoad = foldLoad;
     const coordinates =
       cut === 'plain'
         ? ''
@@ -374,6 +393,7 @@ ${cut === 'limb' ? '#ifdef USE_SKINNING\nvGpSuitCut = gpSuitCut;\n#else\nvGpSuit
       shader,
       'common',
       `varying vec3 vGpSuitBind;${coordinates}
+${cut === 'torso' ? 'uniform vec3 gpSuitLoad;' : ''}
 float gpSuitHeight;
 float gpSuitPore;
 float gpSuitGrain;

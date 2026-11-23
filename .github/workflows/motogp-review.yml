@@ -52,6 +52,10 @@ on:
       - 'e2e/gp-front-brake.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
       - 'e2e/gp-visor-and-flags.spec.ts'
+      - 'e2e/gp-fan-silhouettes.spec.ts'
+      - 'e2e/fixtures/gp-fan-silhouettes.ts'
+      - 'e2e/gp-road-air.spec.ts'
+      - 'e2e/fixtures/gp-road-air.ts'
       - 'e2e/fixtures/gp-visor-and-flags.ts'
       - 'e2e/gp-fork-crown.spec.ts'
       - 'e2e/gp-course-boards.spec.ts'
@@ -191,7 +195,7 @@ jobs:
           tests/gp-contact-effects.test.ts tests/gp-pit-boards.test.ts
           tests/gp-rider-posture.test.ts tests/gp-rider-spine.test.ts
           tests/gp-road-air.test.ts tests/gp-spectator-banks.test.ts tests/gp-grid-gantry.test.ts
-          tests/road-bike-suspension.test.ts tests/gp-crowd-textile.test.ts
+          tests/road-bike-suspension.test.ts tests/gp-crowd-textile.test.ts tests/gp-crowd-atlas.test.ts
           tests/road-bike-host.test.ts tests/road-motorcycle-art.test.ts
           tests/road-wheel-exposure.test.ts tests/mirrors.test.ts
           tests/gp-chain-integrity.test.ts tests/bike-bodies.test.ts
@@ -249,7 +253,7 @@ jobs:
           - scene: rider-contact
             specs: e2e/gp-rider-contact.spec.ts e2e/gp-visor-and-flags.spec.ts
           - scene: course-construction
-            specs: e2e/gp-course-boards.spec.ts e2e/gp-paddock-architecture.spec.ts e2e/gp-road-air.spec.ts
+            specs: e2e/gp-course-boards.spec.ts e2e/gp-paddock-architecture.spec.ts e2e/gp-fan-silhouettes.spec.ts e2e/gp-road-air.spec.ts
           - scene: dry-riding
             specs: e2e/motogp-riding-flow.spec.ts
           - scene: wet-riding

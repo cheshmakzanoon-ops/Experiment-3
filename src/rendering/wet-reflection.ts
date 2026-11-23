@@ -30,7 +30,7 @@ export interface WetReflectionUniforms {
   wetReflectionMatrix: { value: T.Matrix4 };
   /** World-space unit plane (normal.xyz, constant) of the reflected road. */
   wetReflectionPlane: { value: T.Vector4 };
-  /** x plane height (m), y strength 0..1, z max LOD, w unused. */
+  /** x plane height (m), y strength 0..1, z max LOD, w follows a surveyed GP tangent. */
   wetReflectionState: { value: T.Vector4 };
 }
 
@@ -94,6 +94,7 @@ export class WetRoadReflection {
     const state = this.uniforms.wetReflectionState.value;
     state.x = planeY;
     state.y = 0;
+    state.w = road ? 1 : 0;
     if (!(strength > 0) || !this.enabled || !Number.isFinite(planeY)) return;
     renderer.getDrawingBufferSize(this.size);
     const width = Math.max(64, Math.round(this.size.x * this.scale)),
@@ -188,7 +189,8 @@ if (wetReflectionState.y > 0.0 && material.clearcoat > 0.0) {
   vec4 wetReflectionClip = wetReflectionMatrix * vec4(vFinishWorld, 1.0);
   vec2 wetReflectionUv = wetReflectionClip.xy / wetReflectionClip.w;
   // Ripples and aggregate tilt the film: offset in view space, a few pixels.
-  vec3 wetReflectionTilt = geometryClearcoatNormal - normalize(mat3(viewMatrix) * wetReflectionPlane.xyz);
+  vec3 wetPlaneNormal = normalize(mat3(viewMatrix) * wetReflectionPlane.xyz);
+  vec3 wetReflectionTilt = geometryClearcoatNormal - wetPlaneNormal;
   wetReflectionUv += wetReflectionTilt.xy * 0.06;
   vec2 wetReflectionEdge = smoothstep(vec2(0.0), vec2(0.05), wetReflectionUv) *
     (1.0 - smoothstep(vec2(0.95), vec2(1.0), wetReflectionUv));
@@ -196,6 +198,17 @@ if (wetReflectionState.y > 0.0 && material.clearcoat > 0.0) {
     abs(dot(wetReflectionPlane, vec4(vFinishWorld, 1.0))));
   float wetReflectionWeight = wetReflectionState.y * wetReflectionEdge.x * wetReflectionEdge.y *
     wetReflectionHeight * step(0.0, wetReflectionClip.w);
+  if (wetReflectionState.w > .5) {
+    // At grazing incidence a small surveyed height difference moves the
+    // apparent reflected feature metres along the road. Bank changes also
+    // rotate the reflected ray by twice the normal angle. Fade the local
+    // camera before those distant trees and pit walls detach from the ground.
+    float incidence = max(.065,abs(dot(nonPerturbedNormal,geometryViewDir)));
+    float parallax = abs(dot(wetReflectionPlane,vec4(vFinishWorld,1.))) / incidence;
+    float normalChange = length(nonPerturbedNormal-wetPlaneNormal);
+    wetReflectionWeight *= (1.-smoothstep(.42,3.35,parallax)) *
+      (1.-smoothstep(.07,.27,normalChange));
+  }
   float wetReflectionLod = sqrt(material.clearcoatRoughness) * wetReflectionState.z;
   // D22: wet asphalt stretches reflections vertically (anisotropic film),
   // 7 taps along the reflection's vertical, wider on rougher film.

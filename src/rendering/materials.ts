@@ -261,7 +261,7 @@ export function installWetRoad(
       );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1|road-damp-dust-v1|road-snow-ice-v1${reflection ? '|wet-planar-v1' : ''}`;
+    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1|road-damp-dust-v1|road-snow-ice-v1${reflection ? '|wet-planar-survey-v2' : ''}`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

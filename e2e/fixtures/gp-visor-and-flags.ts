@@ -4,6 +4,7 @@ import { gpEyePose } from '../../src/rendering/gp-helmet-optics.ts';
 import { Rider } from '../../src/rendering/rider.ts';
 import { gpSpectatorFlagMaterial } from '../../src/rendering/gp-spectator-flags.ts';
 import { flagGeometry } from '../../src/rendering/studio/crowd-flags.ts';
+import { studioHookKeys } from '../../src/rendering/studio/shader-hooks.ts';
 import { studioUniforms } from '../../src/rendering/studio/studio-frame.ts';
 
 /** Render the production rider head and instanced supporter cloth in one
@@ -92,7 +93,30 @@ export function captureGpOpticsAndCloth() {
     const calm = snap('supporters-calm');
     studioUniforms.studioWind.value.set(6, 2, 7, .8);
     const eastAgain = snap('supporters-rewound');
-    return {captures, gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
+    scene.remove(flags);
+    anchor.add(head);
+    let torso: T.Mesh | undefined;
+    rider.root.traverse((o) => {
+      if (o instanceof T.SkinnedMesh && studioHookKeys(o.material).some(k => k.includes('-torso-'))) torso = o;
+    });
+    if (!torso) throw new Error('Missing production GP torso skin');
+    // Lock the same cut of leather in space, and change its live rider pose.
+    // This isolates moving gather highlights from the pitch of the entire bike.
+    const garment = new T.Mesh(torso.geometry, torso.material);
+    scene.add(garment);
+    camera.position.set(.58,.30,-.34);
+    camera.lookAt(.09,.235,-.015);
+    const hang = (sign: number) => rider.ride({lean: sign*.85, offset: sign*.25, steer: 0, tuck: .25, braking: .18, speed: 36});
+    hang(1);
+    const loaded = snap('leather-inside-turn');
+    hang(-1);
+    const released = snap('leather-outside-turn');
+    rider.separated(0,0,0);
+    snap('leather-recovery');
+    hang(1);
+    const loadedAgain = snap('leather-turn-rewound');
+    scene.remove(garment);
+    return {captures, gatherPixels: changed(loaded,released), gatherRestore: changed(loaded,loadedAgain), gazePixels: changed(portrait,looking), lidPixels: changed(portrait,blink), eyesRestore: changed(portrait,open),
       facePixels: changed(portrait,liner), faceRestore: changed(portrait,restored),
       windPixels: changed(east,west), calmPixels: changed(east,calm), windRestore: changed(east,eastAgain),
       glError: gl.getContext().getError()};

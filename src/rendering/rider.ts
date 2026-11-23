@@ -478,6 +478,7 @@ export class Rider {
   private readonly gpGarments: GpRiderGarment[] = [];
   private readonly gpSpine?: GpRiderSpine;
   private readonly gpEyes?: T.Vector3;
+  private readonly gpSuitLoads?: T.Vector3;
   private readonly gpPosture = new GpRiderPosture();
   private readonly gpScratch = [new T.Vector3(), new T.Vector3()];
   private readonly gpPelvisFrame = new T.Quaternion();
@@ -535,6 +536,7 @@ export class Rider {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
     const gpSuit = gp && !mx && detail !== 'far';
+    if (gpSuit) this.gpSuitLoads = new T.Vector3();
     const distantRoad = !mx && detail === 'far';
     const distantGp = gp && distantRoad;
     // Textile kit: matte woven fabric with a soft sheen, no lacquer.
@@ -847,6 +849,7 @@ export class Rider {
             material,
             material !== panel,
             material === torsoLeather ? 'torso' : material === leather ? 'limb' : 'plain',
+            this.gpSuitLoads,
           );
         else installGpLeatherFinish(material);
       }
@@ -1714,6 +1717,13 @@ export class Rider {
       [plantedAnkle, contact] = this.gpScratch,
       pelvisFrame = this.gpPelvisFrame.setFromEuler(posture.pelvisAngles),
       plant = posture.plant[0];
+    // The front of the one-piece gathers as the chest flexes. A deployed
+    // inside elbow compresses that flank while the outside panel pulls taut.
+    this.gpSuitLoads?.set(
+      T.MathUtils.smoothstep(posture.chestAngles.x - posture.pelvisAngles.x, 0.025, 0.27),
+      posture.inside[0] - posture.inside[1],
+      braking * (1 - plant),
+    );
     pelvis.copy(posture.pelvis);
     if (plant > 0) {
       // A planted boot must reach the road: settle the hips into the seat
@@ -1890,6 +1900,7 @@ export class Rider {
     this.euler.set(0.12, 0, 0, 'ZYX');
     this.torso.quaternion.slerp(this.q.setFromEuler(this.euler), rise);
     this.gpSpine?.reset();
+    this.gpSuitLoads?.set(0, 0, 0);
     this.motocrossSpine?.reset();
     this.jerseyAirflow?.fill(0);
     this.head.rotation.set(-0.6 + 0.5 * rise, 0, 0);

@@ -169,6 +169,28 @@ describe('GP fitted racing leathers', () => {
     },
   );
 
+  it('loads the inside flank of the skinned torso and releases it on recovery and replay', () => {
+    const rider = new Rider(colours, 'high', 'leathers', 5, true);
+    const material = [...inventory(rider.root).materials].find(m =>
+      studioHookKeys(m).some(key => key.includes('-torso-')),
+    )!;
+    const shader = { ...T.ShaderLib.physical, uniforms: T.UniformsUtils.clone(T.ShaderLib.physical.uniforms) };
+    material.onBeforeCompile(shader as Parameters<T.Material['onBeforeCompile']>[0], {} as T.WebGLRenderer);
+    const load = (shader.uniforms['gpSuitLoad'] as T.IUniform<T.Vector3>).value;
+    const apex = (side: number) => rider.ride({ lean: side*.86, offset: side*.25, speed: 36, steer: 0, tuck: .2, braking: .16 });
+    apex(1);
+    const first = load.clone();
+    apex(-1);
+    expect(first.y).toBeGreaterThan(.8);
+    expect(load.y).toBeCloseTo(-first.y, 7);
+    expect(load.x).toBeCloseTo(first.x, 7);
+    rider.separated(0,0,0);
+    expect(load.lengthSq()).toBe(0);
+    apex(1);
+    expect(load).toEqual(first);
+    rider.dispose();
+  });
+
   it('keeps clone installation honest, filters fine detail and composes wet roughness last', () => {
     const material = tagWeatherSurface(new T.MeshPhysicalMaterial(), 'leather'),
       weather = new WeatherPresentation();

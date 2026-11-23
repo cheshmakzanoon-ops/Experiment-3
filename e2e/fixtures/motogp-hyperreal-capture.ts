@@ -1,4 +1,5 @@
 import type { QualityPreset } from '../../src/rendering/options.ts';
+import type { DrawLedger, DrawBreakdown } from '../../src/rendering/draw-ledger.ts';
 import type { CameraMode } from '../../src/rendering/renderer.ts';
 
 export { installOfflineAssets } from './motogp-race-review.ts';
@@ -28,7 +29,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     { DEFAULT_OPTIONS },
     { RacingRenderer },
     { graphicsPreset },
-    { F, B, BIKE_BASE, carBase },
+    { F, H, B, BIKE_BASE, carBase },
     { GpuFrameGate },
   ] = await Promise.all([
     import('../../src/simulation/world.ts'),
@@ -80,6 +81,9 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
     image: string;
     draws: number;
     triangles: number;
+    presentedSeconds: number;
+    station: number;
+    passes: DrawBreakdown;
     speedKph: number;
     leanDeg: number;
     brake: number;
@@ -88,7 +92,7 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
   // Review-only GPU fence: a CPU rasteriser (llvmpipe) can spend minutes on one
   // full High/Medium circuit frame, so the shipped 120 s stall limit and 45 s
   // preparation deadline are replaced for this capture only.
-  const internals = renderer as unknown as { gpuFrames: InstanceType<typeof GpuFrameGate> };
+  const internals = renderer as unknown as { gpuFrames: InstanceType<typeof GpuFrameGate>; drawLedger: DrawLedger };
   internals.gpuFrames.dispose();
   const gpuFrames = (internals.gpuFrames = new GpuFrameGate(
     renderer.renderer.getContext() as WebGL2RenderingContext,
@@ -145,6 +149,9 @@ export async function captureGPMoments(o: HyperrealCaptureOptions = {}) {
           image,
           draws: renderer.renderer.info.render.calls,
           triangles: renderer.renderer.info.render.triangles,
+          presentedSeconds: current[H.TIME],
+          station: current[base + F.S],
+          passes: internals.drawLedger.snapshot(),
           speedKph: current[base + F.SPEED] * 3.6,
           leanDeg: (current[base + BIKE_BASE + B.LEAN] * 180) / Math.PI,
           brake: current[base + F.BRAKE],
