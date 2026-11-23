@@ -72,10 +72,10 @@ describe('timing and four-wheel boundaries', () => {
   });
 });
 
-function finishingField(track = new Track()) {
+function finishingField(track = new Track(), ruleset: typeof DEFAULT_OPTIONS.ruleset = DEFAULT_OPTIONS.ruleset) {
   const cars = [new Vehicle(0), new Vehicle(1)];
   for (const car of cars) car.place(track, track.length - 2);
-  const race = new RaceDirector(cars, track, { ...DEFAULT_OPTIONS, laps: 2, mode: 'race' });
+  const race = new RaceDirector(cars, track, { ...DEFAULT_OPTIONS, ruleset, laps: 2, mode: 'race' });
   race.phase = PHASE.RACING;
   race.time = race.greenAt + 100;
   for (const lap of race.laps) {
@@ -131,6 +131,26 @@ describe('whole-field classification', () => {
     race.step(0.1);
     expect(race.finishStartedAt).toBeCloseTo(100.025, 7);
     expect(race.order).toEqual([1, 0]);
+  });
+  it('lets a circulating mud-track rider take the flag at the next crossing and bounds a stationary DNF', () => {
+    for (const reachesLine of [true, false]) {
+      const { cars, race } = finishingField(new Track(), 'motocross-moto');
+      race.laps[0].last = 235;
+      cars[1].s = 2;
+      race.step(0.1);
+      for (let i = 0; i < 208; i++) race.step(1);
+      expect(cars[0].retired).toBe(false);
+      if (reachesLine) {
+        cars[0].s = 2;
+        race.step(0.1);
+        expect(cars[0].finishTime).toBeGreaterThan(0);
+      } else {
+        for (let i = 0; i <= 74; i++) race.step(1);
+        expect(cars[0].retired).toBe(true);
+        expect(cars[0].finishTime).toBe(0);
+      }
+      expect(race.phase).toBe(PHASE.FINISHED);
+    }
   });
   it('marks a timed-out competitor DNF without manufacturing a finishing time', () => {
     const { cars, race } = finishingField();

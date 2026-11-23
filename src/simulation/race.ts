@@ -454,8 +454,15 @@ export class RaceDirector {
               this.penalize(i, this.ruleset.tires.penaltySeconds, 'MANDATORY_STOP');
             this.onFinish?.(i);
           }
-          else if (!car.finishTime && this.raceTime - this.finishStartedAt >= this.finishGrace)
-            car.retired = true; // Explicit DNF, never a manufactured finishing time.
+          else if (!car.finishTime) {
+            // An outdoor mud lap can take longer than the road-racing grace.
+            // Give an active moto one measured lap plus a recovery to reach
+            // the flag. The budget cannot grow while a stationary rider waits.
+            const grace = this.ruleset.format?.kind === 'moto' && lap.completed > 0
+              ? Math.max(this.finishGrace, Math.min(this.finishGrace * 2, lap.last * 1.15 + 10))
+              : this.finishGrace;
+            if (this.raceTime - this.finishStartedAt >= grace) car.retired = true;
+          }
         }
       }
       if (this.cars.every((c) => c.finishTime > 0 || c.retired)) {

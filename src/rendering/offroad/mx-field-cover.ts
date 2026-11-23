@@ -76,6 +76,7 @@ export class MxFieldCover {
       nearest = trackPoint();
     if (course)
       for (const [n, berm] of course.spec.berms.entries()) {
+        if (berm.side === undefined) continue;
         const publicSide = n === 0 || n === 3;
         const side = berm.side,
           start = berm.from - (publicSide ? 34 : 12),
