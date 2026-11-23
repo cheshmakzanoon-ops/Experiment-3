@@ -147,21 +147,23 @@ describe('motocross body input through the ordinary controller', () => {
   });
 
   it('migrates saved bindings without taking keys that a player already assigned', () => {
-    const { riderForward: _forward, riderBack: _back, ...old } = DEFAULT_BINDINGS;
+    const { riderForward: _forward, riderBack: _back, rearBrake: _rearBrake, ...old } = DEFAULT_BINDINGS;
     void _forward;
     void _back;
+    void _rearBrake;
     const migrated = validateBindings({ ...old, throttle: 'KeyQ', brake: 'KeyZ' });
     expect(migrated.throttle).toBe('KeyQ');
     expect(migrated.brake).toBe('KeyZ');
     expect(migrated.riderForward).not.toBe('KeyQ');
     expect(migrated.riderBack).not.toBe('KeyZ');
-    expect(new Set(Object.values(migrated)).size).toBe(21);
+    expect(new Set(Object.values(migrated)).size).toBe(Object.keys(DEFAULT_BINDINGS).length);
   });
 
   it('preserves a saved layout that occupies every preferred body-control migration key', () => {
-    const { riderForward: _forward, riderBack: _back, ...old } = DEFAULT_BINDINGS;
+    const { riderForward: _forward, riderBack: _back, rearBrake: _rearBrake, ...old } = DEFAULT_BINDINGS;
     void _forward;
     void _back;
+    void _rearBrake;
     const saved = {
       ...old,
       throttle: 'KeyQ',
@@ -179,7 +181,7 @@ describe('motocross body input through the ordinary controller', () => {
     };
     const migrated = validateBindings(saved);
     expect(migrated).toMatchObject(saved);
-    expect(new Set(Object.values(migrated)).size).toBe(21);
+    expect(new Set(Object.values(migrated)).size).toBe(Object.keys(DEFAULT_BINDINGS).length);
     expect(Object.values(saved)).not.toContain(migrated.riderForward);
     expect(Object.values(saved)).not.toContain(migrated.riderBack);
   });
@@ -217,7 +219,7 @@ describe('body weight across input journals and network controls', () => {
     expect(sanitizeControls({}).ok).toBe(true);
   });
 
-  it('round-trips independent analog weight in the existing seven-byte control budget', () => {
+  it('round-trips independent analog weight with the rear pedal and in the legacy seven-byte layout', () => {
     for (const lean of [-1, -0.83, -0.1, 0, 0.07, 0.58, 1]) {
       const sample = {
         ...controls(),
@@ -225,13 +227,20 @@ describe('body weight across input journals and network controls', () => {
         brake: 0.2,
         steer: -0.4,
         riderLean: lean,
+        rearBrake: 0.32,
         drs: true,
         pit: true,
       };
       const writer = new ByteWriter();
       writeControls(writer, sample);
       expect(writer.finish().byteLength).toBe(CONTROLS_WIRE_BYTES);
-      expect(CONTROLS_WIRE_BYTES).toBe(7);
+      expect(CONTROLS_WIRE_BYTES).toBe(8);
+      const legacy = new ByteWriter();
+      writeControls(legacy, sample, false);
+      expect(legacy.finish().byteLength).toBe(7);
+      const older = readControls(new ByteReader(legacy.finish()), false);
+      expect(older.rearBrake).toBe(0);
+      expect(older.riderLean).toBe(quantizeControls(sample).riderLean);
       const decoded = readControls(new ByteReader(writer.finish()));
       expect(decoded.riderLean).toBeCloseTo(lean, 1);
       expect(Math.abs(decoded.riderLean! - lean)).toBeLessThanOrEqual(1 / 126);

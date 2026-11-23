@@ -15,6 +15,12 @@ export const LANDING_RULES = Object.freeze({
   crossedCrashSpeed: 5.5,
 });
 
+/** A short skip over the last crest still belongs to the roller train.
+ * A full-length jump uses ordinary landing limits, even with a rough run-up. */
+export function exitsRhythmSection(roughTakeoff: boolean, airTime: number, travel: number) {
+  return roughTakeoff && airTime > 0 && airTime < 0.85 && travel >= 0 && travel < 12;
+}
+
 export interface MotocrossLandingFeedback {
   kind: 'clean' | 'firm' | 'hard' | 'nose-low' | 'nose-high' | 'sideways' | 'crash';
   label: string;

@@ -291,7 +291,8 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     // the measured velocity stays inside for the next steering response. A
     // rider aiming at an outside wall still needs the full rejoin brake below.
     const headingError = Math.abs(error);
-    if (this.plan?.clear && c.speed >= 2 && headingError > 0.45 && headingError < 0.65 &&
+    if (c.definition.tireFamily === 'knobby' && this.plan?.clear && c.speed >= 2 &&
+        headingError > 0.45 && headingError < 0.65 &&
         Math.abs(c.lateral) < squarePoint.width - 0.2 && race.control.flags[c.id] === FLAG.GREEN) {
       const across = c.body.velocity.x * squarePoint.nx + c.body.velocity.z * squarePoint.nz;
       if (c.lateral * across < 0 && Math.abs(c.lateral + 0.8 * across) < squarePoint.width - 1 &&

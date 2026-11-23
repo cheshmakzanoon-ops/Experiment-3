@@ -10,6 +10,7 @@ import {
 import { rideLine, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import {
   assessMotocrossLanding,
+  exitsRhythmSection,
   LANDING_RULES,
   motocrossAlignment,
 } from '../src/simulation/offroad/riding-feedback.ts';
@@ -477,6 +478,14 @@ describe('motocross whip and tyre alignment', () => {
 });
 
 describe('motocross landing messages', () => {
+  it('carries rhythm clearance through the final short hop only', () => {
+    expect(exitsRhythmSection(true, 0.45, 7.8)).toBe(true);
+    expect(exitsRhythmSection(false, 0.45, 7.8)).toBe(false);
+    expect(exitsRhythmSection(true, 0.45, 16)).toBe(false);
+    expect(exitsRhythmSection(true, 1.1, 7.8)).toBe(false);
+    expect(exitsRhythmSection(true, NaN, 7.8)).toBe(false);
+  });
+
   it('celebrates slope-matched touchdown and warns about bottoming using the normalized snapshot value', () => {
     expect(assessMotocrossLanding(0.12, 2.1, 0, false).kind).toBe('clean');
     expect(assessMotocrossLanding(0.1, 2.1, 0.7, false).kind).toBe('hard');

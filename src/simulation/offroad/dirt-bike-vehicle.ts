@@ -6,14 +6,14 @@ import { chassisLean } from '../bike-definitions.ts';
 import { DEFAULT_SETUP, type Assist, type Compound, type Setup } from '../config.ts';
 import { MARSHAL } from '../marshal.ts';
 import { MATERIAL } from '../surface-material.ts';
-import { surfaceSample, Track, type SurfaceSample } from '../track.ts';
+import { surfaceSample, Track, trackPoint, type SurfaceSample } from '../track.ts';
 import type { Tire } from '../tire.ts';
 import type { VehicleDefinition } from '../vehicles.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
 import { rollSpeed, RUNUP_TRACTION_ACCELERATION } from './jump-target.ts';
 import type { OffroadBikeSpec } from './types.ts';
-import { LANDING_RULES } from './riding-feedback.ts';
+import { exitsRhythmSection, LANDING_RULES } from './riding-feedback.ts';
 import { hardStopImpulse, landingNormalSpeed } from './contact-impulse.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
@@ -172,6 +172,9 @@ export class DirtBikeVehicle extends BikeVehicle {
   private takeoffSpeed = 0;
   private takeoffX = 0;
   private takeoffZ = 0;
+  private readonly takeoffPoint = trackPoint();
+  private rhythmDeparture = false;
+  private rhythmLanding = false;
   private freeSteps = 0;
   /** A projected terrain overlap keeps its compliant stop until the stroke
    * releases; it must not refill stiff bump-stop travel on the next tick. */
@@ -298,6 +301,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.airborne = false;
     this.airTime = 0;
     this.freeSteps = 0;
+    this.rhythmDeparture = this.rhythmLanding = false;
     this.projectedContact = false;
     this.rearSpin = this.dynamics.speed / this.bikeSpec.rearWheelRadius;
     this.frontSpin = this.dynamics.speed / this.bikeSpec.frontWheelRadius;
@@ -1146,12 +1150,25 @@ export class DirtBikeVehicle extends BikeVehicle {
       slow && !this.airborne ? Math.sign(d.lean || d.steer || 1) : 0,
       dt * 6,
     );
-    if (!this.airborne)
+    if (!this.airborne) {
+      let brace = 0;
+      if (this.playerMotocross && this.assist === 'sport' && this.speed >= 7 && course?.isRough(this.s)) {
+        // Over a whoop the rear rate can kick the nose up while the front
+        // spring unloads. Move the standing athlete forward before takeoff.
+        // The existing finite body stroke and the tyre forces do the work.
+        const frontShare = this.forceFront / Math.max(1, d.mass * G);
+        const rise = clamp(
+          1.6 * (this.pitch - this.roadPitch) + 0.26 * Math.max(0, this.pitchRate),
+          0, 1,
+        );
+        brace = 0.6 * rise * clamp(1 - frontShare / 0.45, 0, 1);
+      }
       this.automaticBody = approach(
         this.automaticBody,
-        clamp(0.45 * this.throttle - 0.55 * this.brake + climb, -1, 1),
+        clamp(0.45 * this.throttle - 0.55 * this.brake + climb + brace, -1, 1),
         dt * 3,
       );
+    }
     this.riderWeight.step(this.playerMotocross ? this.input.riderLean : 0, dt);
     this.riderBody = this.riderWeight.pose(this.automaticBody);
     void track;
@@ -1430,6 +1447,9 @@ export class DirtBikeVehicle extends BikeVehicle {
           bottomSpeed: this.playerMotocross ? this.bottomPeak : 0,
           outcome: 'clean',
         };
+        // A short final hop may carry the ridden bike beyond the last roller.
+        // Its takeoff and scale still identify it as part of the rhythm section.
+        this.rhythmLanding = exitsRhythmSection(this.rhythmDeparture, this.airTime, this.pendingLanding.distance);
         // Publish the touchdown immediately. Its shared record is refined
         // during settlement, avoiding a one-step stale landing in the HUD,
         // roost burst and replay camera on the AIRBORNE falling edge.
@@ -1455,6 +1475,15 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.takeoffSpeed = Math.hypot(this.flightSpeed, this.vy);
         this.takeoffX = d.x;
         this.takeoffZ = d.z;
+        this.rhythmDeparture = false;
+        if (this.playerMotocross && this.lastTrack) {
+          const course = offroadCourse(this.lastTrack.circuit);
+          if (course) {
+            const lateral = this.lastTrack.nearest(d.x, d.z, this.takeoffPoint);
+            const { width, s } = this.takeoffPoint;
+            this.rhythmDeparture = Math.abs(lateral) <= course.legalWidth(width, s, lateral) && course.isRough(s);
+          }
+        }
         // The sprung pitch is the flight pitch (it already carries any
         // wheelie); the core's relative pitch has no say in the air.
         d.pitch = 0;
@@ -1489,7 +1518,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     // real flights are judged on pitch (and only with a real impact).
     // Skimming whoops and rollers the rider expects the hops: wider limits.
     const course = this.lastTrack ? offroadCourse(this.lastTrack.circuit) : null,
-      tolerance = course?.isRough(r.s) ? LANDING_RULES.roughTolerance : 1;
+      tolerance = this.rhythmLanding || course?.isRough(r.s) ? LANDING_RULES.roughTolerance : 1;
     // A hop at rolling pace (over a sharp crest, down a backside) is ridden
     // out: pitch decides only a real jump or a hard touchdown.
     const real = r.takeoffSpeed > LANDING_RULES.rollingHopSpeed;

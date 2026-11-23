@@ -39,6 +39,7 @@ import {
 } from '../simulation/offroad/flow-practice.ts';
 import {
   assessMotocrossLanding,
+  exitsRhythmSection,
   LANDING_RULES,
   motocrossAlignment,
 } from '../simulation/offroad/riding-feedback.ts';
@@ -113,6 +114,9 @@ export class OffroadHud {
   private landingAt = -Infinity;
   private landingSettled = false;
   private landingRough = false;
+  private roughGround = false;
+  private lastGroundX = 0;
+  private lastGroundZ = 0;
   private previousEligible = false;
   private flightEligible = false;
   private flightYaw = 0;
@@ -629,7 +633,7 @@ export class OffroadHud {
       this.landing = null;
       this.landingAt = -Infinity;
       this.landingSettled = false;
-      this.landingRough = false;
+      this.roughGround = this.landingRough = false;
       this.previousEligible = this.flightEligible = false;
       this.flightYaw = this.landingSideways = 0;
       this.landingWhip = false;
@@ -665,7 +669,9 @@ export class OffroadHud {
         this.landingAt = time;
         this.landing = null;
         this.landingSettled = false;
-        this.landingRough = course.isRough(mod(frame[carBase(0) + F.S], track.length));
+        const travel = Math.hypot(frame[player + F.X] - this.lastGroundX, frame[player + F.Z] - this.lastGroundZ);
+        this.landingRough = course.isRough(mod(frame[player + F.S], track.length)) ||
+          exitsRhythmSection(this.roughGround, completedAirTime, travel);
         this.landingWhip = this.flightYaw > 0.18 && this.flightEligible;
         this.landingSideways = Math.abs(alignment(frame, carBase(0)).lateralSpeed);
       }
@@ -705,7 +711,7 @@ export class OffroadHud {
       frame[o + O.BOTTOM],
       frame[player + BIKE_BASE + B.STATE] > 0.5,
       riderSpec,
-      course.isRough(mod(frame[player + F.S], track.length)),
+      Number.isFinite(this.landingAt) ? this.landingRough : course.isRough(mod(frame[player + F.S], track.length)),
       Number.isFinite(this.landingAt) ? this.landingSideways : 0,
     );
     const motocross = course.kind === 'motocross' || course.kind === 'supercross';
@@ -784,6 +790,12 @@ export class OffroadHud {
       this.rhythm.reset();
       this.berms.reset();
       this.flow.reset();
+    }
+    if (!airborne) {
+      const s = frame[player + F.S], lateral = frame[player + F.LATERAL];
+      this.roughGround = Math.abs(lateral) <= course.legalWidth(this.targetPoint.width, s, lateral) && course.isRough(s);
+      this.lastGroundX = frame[player + F.X];
+      this.lastGroundZ = frame[player + F.Z];
     }
     this.wasAirborne = airborne;
     this.previousEligible = eligible && !airborne;
