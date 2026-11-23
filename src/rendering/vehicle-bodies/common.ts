@@ -106,6 +106,7 @@ export function emptyLod(name: string): BuiltLod {
  * the cushion to the pedals at (floor y, pedal z). */
 export interface DriverOptions {
   head?: Parts;
+  formulaShield?: T.MeshPhysicalMaterial;
   wheel?: boolean;
   legs?: { floor: number; pedals: number };
   /** Hands below the helmet centre (x scale); default 0.38. */
@@ -234,9 +235,32 @@ export function addDriver(
     headParts.add(helmetBand(s, 0.014, 0.066, 2.4, 0.0015, far ? 10 : 22), mats.accent, at(0.014));
     headParts.add(
       helmetBand(s, 0.016, 0.054, 2.15, 0.004, far ? 10 : 22),
-      sharedMaterials.visor(),
+      options.formulaShield ?? sharedMaterials.visor(),
       at(0.016),
     );
+    if (options.formulaShield) {
+      // The paired tear-off pegs and visor pivots follow the curved cheeks.
+      // The pair shares the satin trim material in the moving head batch.
+      for (const sign of [-1, 1]) {
+        for (const [angle, h, radius] of [[0.99, 0.018, 0.0052], [1.19, -0.004, 0.0105]]) {
+          const a = sign * angle, surface = helmetRadius(h) + 0.005;
+          const fitting = new T.CylinderGeometry(radius * s, radius * 1.06 * s, 0.003 * s, 10);
+          const normal = new T.Vector3(Math.sin(a), 0, Math.cos(a) / HELMET_LENGTH).normalize();
+          fitting.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 1, 0), normal));
+          headParts.add(
+            fitting,
+            sharedMaterials.trim(),
+            placed(
+              x + Math.sin(a) * surface * s,
+              headY + h * s,
+              headZ + Math.cos(a) * surface * s * HELMET_LENGTH,
+            ),
+          );
+        }
+      }
+      // Narrow rubber gasket ends under the tear-off anchors.
+      headParts.add(helmetBand(s, -.011, .006, 2.21, .0033, 26), sharedMaterials.interior(), at(-.011));
+    }
     // Crown stripe in the accent, from the visor's top edge to the nape.
     if (!far) headParts.add(crownStripe(s, 0.052, -0.012, 0.0075, 10), mats.accent, at());
   } else {

@@ -7,6 +7,8 @@ import { addDriver, type BuiltLod, type CarMaterials, type DriverArmAnchor } fro
 import { rearViewRotation } from './road-mirrors.ts';
 import { roadSteeringWheel } from './road-steering.ts';
 import { DriverArms } from './driver-arms.ts';
+import { GpOpticalRain, installGpOpticalRain } from '../gp-optics-rain.ts';
+import { rivalVisorMaterial } from '../studio/helmet-livery.ts';
 import {
   insetProfile,
   rodGeometry,
@@ -38,6 +40,7 @@ export interface BuiltCabin {
   wheelDetail: T.Object3D[];
   /** Helmet and visor (hidden in the driver's own cockpit view). */
   head: T.Group;
+  formulaShield?: { material: T.MeshPhysicalMaterial; film: GpOpticalRain };
   /** Steering pivot: rotation.z = -F.STEER * layout.wheel.ratio. */
   steering: T.Group;
   /** Glazing seen from the cockpit (renderOrder raised in cockpit view). */
@@ -895,6 +898,8 @@ export function buildOpenWheelCabin(input: {
   mirrorSize: readonly [number, number];
 }) {
   const { layout, mats, shell, opening: op } = input;
+  const formulaShield = input.def.drs ? { material: rivalVisorMaterial(), film: new GpOpticalRain() } : undefined;
+  if (formulaShield) installGpOpticalRain(formulaShield.material, formulaShield.film, true);
   const detailParts = new Parts(),
     headParts = new Parts(),
     detail = new T.Group(),
@@ -930,6 +935,7 @@ export function buildOpenWheelCabin(input: {
     input.openFace,
     {
       head: headParts,
+      formulaShield: formulaShield?.material,
       wheel: false,
       legs: { floor: op.floor, pedals: op.front + 0.55 },
       handDrop: layout.wheel.handDrop,
@@ -960,11 +966,18 @@ export function buildOpenWheelCabin(input: {
   const mirrors = input.mirrorAt.length === 2 ? mirrorFaces(input.mirrorAt, input.mirrorSize) : [];
   for (const m of mirrors) detail.add(m);
   detailParts.build(detail, false);
-  headParts.build(head, true);
+  const headMeshes = headParts.build(head, true);
+  if (formulaShield) {
+    head.position.set(...layout.head);
+    head.position.y -= 0.112 * layout.driverScale;
+    head.position.z -= 0.017 * layout.driverScale;
+    for (const part of headMeshes) part.position.sub(head.position);
+  }
   input.lod.group.add(detail, head);
   return {
     detail,
     head,
+    formulaShield,
     wheelDetail,
     steering: steering.children[0] as T.Group,
     mirrors,

@@ -5,7 +5,7 @@ import { WING_DETACH_HEALTH } from '../../simulation/config.ts';
 import { lampMaterial } from './materials.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { lerp } from '../../core/math.ts';
+import { clamp, lerp } from '../../core/math.ts';
 import {
   F,
   H,
@@ -19,6 +19,8 @@ import {
 } from '../../simulation/protocol.ts';
 import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { ShadowSubstitute } from '../shadow-proxies.ts';
+import { cornerGaze, HEAD_ROLL_GAIN } from '../driver.ts';
+import { driverBodyPose } from '../driver-anatomy.ts';
 import { wheelPhase, wheelValue } from '../wheel-pose.ts';
 import {
   contactCylinderRadius,
@@ -321,6 +323,7 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
 }
 export class VehicleBodies {
   private readonly contactPose = wheelContactPose();
+  private readonly headPose = { compression: 0, headRoll: 0, headPitch: 0 };
   private readonly shadowPoint = new T.Vector3();
   private readonly shadowRotation = new T.Euler();
   private readonly shadowOrientation = new T.Quaternion();
@@ -576,6 +579,34 @@ export class VehicleBodies {
     if (level !== 0) return;
     cabin.steering.rotation.z =
       -lerp(a[o + F.STEER], b[o + F.STEER], alpha) * cabin.layout.wheel.ratio;
+    if (cabin.formulaShield) {
+      const up = this.up.set(0, 1, 0).applyQuaternion(body.root.quaternion);
+      const yaw =
+        up.x * sampleValue(a, b, o + F.WX, alpha) +
+        up.y * sampleValue(a, b, o + F.WY, alpha) +
+        up.z * sampleValue(a, b, o + F.WZ, alpha);
+      const speed = sampleValue(a, b, o + F.SPEED, alpha);
+      const lateral = sampleValue(a, b, o + F.G_LAT, alpha);
+      driverBodyPose(
+        lateral,
+        sampleValue(a, b, o + F.G_LONG, alpha),
+        sampleValue(a, b, o + F.G_VERT, alpha),
+        this.headPose,
+      );
+      const roll = clamp(this.headPose.headRoll * HEAD_ROLL_GAIN, -0.105, 0.105);
+      cabin.head.rotation.set(
+        this.headPose.headPitch,
+        cornerGaze(speed, sampleValue(a, b, o + F.STEER, alpha), yaw),
+        roll,
+      );
+      cabin.formulaShield.film.set(
+        sampleValue(a, b, H.TIME, alpha),
+        frameLiquidRain(snapshotSource(a, b, alpha)),
+        speed,
+        roll,
+        lateral,
+      );
+    }
     // The gloves stay on the rim (and the elbows follow) as the wheel turns.
     cabin.arms?.update(cabin.steering.rotation.z);
     // Only the followed car redraws its instruments (a canvas upload each tick).
@@ -665,6 +696,7 @@ export class VehicleBodies {
     });
     for (const geometry of geometries) geometry.dispose();
     body.lods[0].cabin?.display?.dispose();
+    body.lods[0].cabin?.formulaShield?.material.dispose();
     // Paint, live lamps and wheel shaders belong to this car. Glass, trim,
     // rims, suits and optical covers are shared by the whole catalogue;
     // traversing and disposing every material would invalidate other cars.

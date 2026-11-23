@@ -218,6 +218,7 @@ export class ReducedCar {
     mountTailLampHousing(body, carbon);
     mergeStatic(body);
     mergeStatic(this.front);
+    this.rearFlap.buildDrive(this.rear, carbon, carbon, detail);
     mergeStatic(this.rear);
     this.rearFlap.mount(this.rear);
   }

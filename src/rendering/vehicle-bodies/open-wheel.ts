@@ -19,6 +19,7 @@ import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
 import type { CabinLayout } from './cabin.ts';
 import { buildFrameCabin, buildOpenWheelCabin } from './interior.ts';
+import { buildFormulaFrontWing } from './formula-front-wing.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 
 /** Open-wheel single-seaters (modern feeder formula with halo, sidepods and
@@ -351,34 +352,38 @@ export function buildOpenWheel(
       yw = y(0.1),
       span = s.frontWingSpan ?? 1.75;
     const front = new Parts();
-    front.add(
-      aerofoil(0.32, 0.1, 0.06, span, detail === 0 ? 14 : 6),
-      carbon,
-      placed(0, yw, zw, 0.05),
-    );
-    if (detail < 2) {
-      for (const side of [-1, 1]) {
+    if (cabin?.def.drs) {
+      buildFormulaFrontWing(front, mats, cabin.def.id, span, yw, y(s.noseHeight) - yw, zw, detail);
+    } else {
+      front.add(
+        aerofoil(0.32, 0.1, 0.06, span, detail === 0 ? 14 : 6),
+        carbon,
+        placed(0, yw, zw, 0.05),
+      );
+      if (detail < 2) {
+        for (const side of [-1, 1]) {
+          front.add(
+            aerofoil(0.18, 0.1, 0.05, 0.55, 8),
+            carbon,
+            placed(side * 0.58, yw + 0.06, zw - 0.25, 0.35),
+          );
+          front.add(
+            roundedBox(0.012, 0.22, 0.5, 0.004, 1),
+            carbon,
+            placed(side * (span / 2), yw + 0.06, zw - 0.2),
+          );
+        }
         front.add(
-          aerofoil(0.18, 0.1, 0.05, 0.55, 8),
+          roundedBox(0.04, y(s.noseHeight) - yw, 0.12, 0.01, 1),
           carbon,
-          placed(side * 0.58, yw + 0.06, zw - 0.25, 0.35),
+          placed(0.12, (y(s.noseHeight) + yw) / 2, zw - 0.1),
         );
         front.add(
-          roundedBox(0.012, 0.22, 0.5, 0.004, 1),
+          roundedBox(0.04, y(s.noseHeight) - yw, 0.12, 0.01, 1),
           carbon,
-          placed(side * (span / 2), yw + 0.06, zw - 0.2),
+          placed(-0.12, (y(s.noseHeight) + yw) / 2, zw - 0.1),
         );
       }
-      front.add(
-        roundedBox(0.04, y(s.noseHeight) - yw, 0.12, 0.01, 1),
-        carbon,
-        placed(0.12, (y(s.noseHeight) + yw) / 2, zw - 0.1),
-      );
-      front.add(
-        roundedBox(0.04, y(s.noseHeight) - yw, 0.12, 0.01, 1),
-        carbon,
-        placed(-0.12, (y(s.noseHeight) + yw) / 2, zw - 0.1),
-      );
     }
     const g = new T.Group();
     g.name = 'Front wing (detachable)';

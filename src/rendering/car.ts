@@ -646,6 +646,7 @@ export class FormulaCar {
     } else addTailMechanicalDetail(s, { carbon, dark, metal, paint: this.paint });
     mergeStatic(s);
     mergeStatic(this.frontWing);
+    this.rearFlap.buildDrive(this.rearWing, carbon, metal, 'high');
     mergeStatic(this.rearWing);
     this.rearFlap.mount(this.rearWing);
     const highChildren = [...this.root.children].filter(

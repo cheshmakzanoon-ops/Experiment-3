@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
-import { mergeStatic } from './geometry.ts';
+import { mergeStatic, mesh, rod } from './geometry.ts';
+import { sculptedLoft, type BodySection } from './bodywork.ts';
 
 export type RearSkin = 'rear_paint' | 'rear_carbon';
 
@@ -8,6 +9,18 @@ export type RearSkin = 'rear_paint' | 'rear_carbon';
  * the upper element's trailing edge. Positive Z points towards the nose. */
 const HINGE_Y = 0.607;
 const HINGE_Z = -2.255;
+const BASE_PIN = new T.Vector3(0, 0.613, -2.012);
+const FLAP_PIN = new T.Vector3(0, 0.618, -2.124);
+const UP = new T.Vector3(0, 1, 0);
+const BARREL = 0.063;
+const DRIVE_COVER: readonly BodySection[] = [
+  [-2.016, 0.591, 0.014, 0.026],
+  [-1.997, 0.561, 0.026, 0.064],
+  [-1.963, 0.549, 0.031, 0.073],
+  [-1.921, 0.528, 0.029, 0.055],
+  [-1.876, 0.507, 0.02, 0.031],
+  [-1.827, 0.49, 0.006, 0.008],
+];
 export function formulaFlapAngle(travel: number) {
   return -0.4 * clamp(travel, 0, 1);
 }
@@ -62,6 +75,37 @@ export function separateRearSkin(source: T.BufferGeometry, role: RearSkin) {
 export class FormulaRearFlap {
   readonly hinge = new T.Group();
   readonly skin = new T.Group();
+  private drive?: { axis: T.Group; piston: T.Mesh };
+  private readonly travelVector = new T.Vector3();
+
+  /** Fixed hydraulic cover and two flap-side pickup ears share the existing
+   * carbon and alloy batches. The telescoping rod stays independent. */
+  buildDrive(wing: T.Group, carbon: T.Material, alloy: T.Material, detail: 'high' | 'mid' | 'far') {
+    mesh(wing, sculptedLoft(DRIVE_COVER, 0, 0.32, [], detail === 'high' ? 'mid' : 'far'), carbon);
+    if (detail === 'far') return;
+    const segments = detail === 'high' ? 12 : 8;
+    for (const x of [-0.009, 0.009]) {
+      rod(
+        this.skin,
+        carbon,
+        new T.Vector3(x, 0.589, -2.106),
+        new T.Vector3(x, FLAP_PIN.y, FLAP_PIN.z),
+        0.0056,
+      );
+    }
+    const pin = new T.CylinderGeometry(0.0055, 0.0055, 0.033, segments);
+    pin.rotateZ(Math.PI / 2);
+    mesh(this.skin, pin, alloy, FLAP_PIN.x, FLAP_PIN.y, FLAP_PIN.z);
+    const axis = new T.Group();
+    axis.name = 'Wing flap hydraulic cylinder';
+    axis.position.copy(BASE_PIN);
+    mesh(axis, new T.CylinderGeometry(0.009, 0.012, BARREL, segments), carbon, 0, BARREL / 2);
+    mesh(axis, new T.CylinderGeometry(0.0115, 0.0115, 0.009, segments), alloy, 0, BARREL - 0.0045);
+    mergeStatic(axis);
+    const piston = mesh(axis, new T.CylinderGeometry(0.0055, 0.0055, 1, segments), alloy);
+    piston.name = 'Flap piston up to the pickup pin';
+    this.drive = { axis, piston };
+  }
 
   mount(wing: T.Group) {
     mergeStatic(this.skin);
@@ -70,9 +114,24 @@ export class FormulaRearFlap {
     this.skin.position.copy(this.hinge.position).negate();
     this.hinge.add(this.skin);
     wing.add(this.hinge);
+    if (this.drive) {
+      wing.add(this.drive.axis);
+      this.setTravel(0);
+    }
   }
 
   setTravel(fraction: number) {
     this.hinge.rotation.x = formulaFlapAngle(fraction);
+    if (!this.drive) return;
+    const vector = this.travelVector
+      .copy(FLAP_PIN)
+      .sub(this.hinge.position)
+      .applyQuaternion(this.hinge.quaternion)
+      .add(this.hinge.position)
+      .sub(BASE_PIN);
+    const length = vector.length();
+    this.drive.axis.quaternion.setFromUnitVectors(UP, vector.multiplyScalar(1 / length));
+    this.drive.piston.scale.y = length - BARREL + 0.003;
+    this.drive.piston.position.y = length - this.drive.piston.scale.y / 2;
   }
 }
