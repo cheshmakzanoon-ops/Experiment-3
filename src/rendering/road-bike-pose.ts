@@ -7,12 +7,16 @@ import * as T from 'three';
 import {
   BC,
   ROAD_BIKE_CONTACT,
+  W,
+  WHEEL_BASE,
   WHEEL_CONTACT_BASE,
+  WHEEL_STRIDE,
   hasRoadBikeContact,
   wheelContactBase,
 } from '../simulation/protocol.ts';
 import type { VehicleDefinition } from '../simulation/vehicles.ts';
 import { presentationAlpha, sampleValue, snapshotSource } from './snapshot-interpolation.ts';
+import { gpTyreDeflection } from './gp-tyre-carcass.ts';
 
 export const ROAD_BIKE_RAKE = 0.42,
   ROAD_FORK_OFFSET = 0.03,
@@ -28,6 +32,7 @@ export class RoadBikeContactPose {
   readonly normals = [new T.Vector3(0, 1, 0), new T.Vector3(0, 1, 0)];
   readonly gaps = [0, 0];
   readonly loads = [0, 0];
+  readonly pressures = [0, 0];
   sample(a: Float32Array, b: Float32Array, car: number, alpha: number) {
     let t = presentationAlpha(a, b, car, alpha);
     this.valid = hasRoadBikeContact(snapshotSource(a, b, t), car);
@@ -49,6 +54,7 @@ export class RoadBikeContactPose {
         .normalize();
       this.gaps[i] = sampleValue(a, b, p + BC.GAP, t);
       this.loads[i] = sampleValue(a, b, p + BC.LOAD, t);
+      this.pressures[i] = sampleValue(a, b, car + WHEEL_BASE + i * 2 * WHEEL_STRIDE + W.PRESSURE, t);
     }
     return this;
   }
@@ -102,6 +108,9 @@ export class RoadBikeWheelPose {
   readonly localGround = new T.Plane();
   /** Signed position across each crown, in tyre half-widths. */
   readonly treadContact = [0, 0];
+  /** World road normals and loaded hub-to-plane distance for the rolling mesh. */
+  readonly carcassPlanes = [new T.Vector4(), new T.Vector4()];
+  readonly carcassDeflection = new T.Vector2();
   private readonly axis = new T.Vector3();
   private readonly axle = new T.Vector3();
   private readonly support = new T.Vector3();
@@ -166,6 +175,13 @@ export class RoadBikeWheelPose {
         this.support,
       );
       this.treadContact[i] = this.support.dot(this.axle) / width;
+      const indent = definition.classId === 'gp-bike'
+        ? gpTyreDeflection(contact.loads[i], contact.pressures[i], i === 1)
+          * (1 - T.MathUtils.smoothstep(contact.gaps[i], 0, .012))
+        : 0;
+      this.carcassDeflection.setComponent(i, indent);
+      this.carcassPlanes[i].set(normal.x, normal.y, normal.z, -normal.dot(this.support) - indent);
+      this.support.addScaledVector(normal, indent);
       const distance = normal.dot(hub) + normal.dot(this.support) - normal.dot(contact.points[i]),
         correction = contact.gaps[i] * normal.y - distance;
       if (i === 1) {

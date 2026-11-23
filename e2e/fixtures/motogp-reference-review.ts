@@ -14,6 +14,7 @@ import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts
 import { H } from '../../src/simulation/protocol.ts';
 import { frameLiquidRain } from '../../src/simulation/weather.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
+export { captureGpTyreFootprint } from './gp-tyre-footprint.ts';
 
 /** Isolated production BikeModel, not a replacement game or promotional render. */
 export function captureBikeSequence(

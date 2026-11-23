@@ -49,6 +49,7 @@ import { motorcycleWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './g
 import { GpRiderBody } from './gp-rider-dynamics.ts';
 import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
+import { GpTyreCarcass } from './gp-tyre-carcass.ts';
 import { addRoadPowertrain } from './road-bike-powertrain.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { GPRearSuspension, gpRearBody, gpRearHugger, gpRainLenses, gpRearSwingarm } from './gp-rear-chassis.ts';
@@ -550,6 +551,7 @@ export class BikeMaterials {
   readonly titanium: T.MeshStandardMaterial;
   readonly rubber: T.MeshStandardMaterial;
   readonly tyreFinish: ReturnType<typeof installGpTyreFinish>;
+  gpCarcass?: GpTyreCarcass;
   readonly wheel: T.MeshPhysicalMaterial;
   readonly forkUpper: T.MeshPhysicalMaterial;
   readonly forkLower: T.MeshPhysicalMaterial;
@@ -795,6 +797,7 @@ export class BikeMaterials {
   }
   dispose() {
     this.wheelExposure.dispose();
+    this.gpCarcass?.dispose();
     for (const prints of this.prints.values()) for (const texture of Object.values(prints)) texture.dispose();
     this.prints.clear();
     for (const m of this.list) {
@@ -932,6 +935,7 @@ export class BikeModel {
     calibrateGpMaterials(m, definition.id);
     m.tyreFinish.configure(definition.classId, b);
     const gpPrototype = authored || definition.id === 'gpr2';
+    if (gpPrototype) m.gpCarcass ??= new GpTyreCarcass(m.rubber, m.band);
     if (!gpPrototype) {
       m.disc.color.setHex(classic ? 0x898b8a : 0xa5aaaf);
       m.disc.metalness = 0.82;
@@ -962,10 +966,15 @@ export class BikeModel {
         distant ? 20 : sides,
         distant,
       );
-      add(spin, tyre, m.rubber);
+      const casing = add(spin, tyre, m.rubber);
+      if (gpPrototype && m.gpCarcass) {
+        casing.customDepthMaterial = m.gpCarcass.depth;
+        casing.customDistanceMaterial = m.gpCarcass.distance;
+      }
       if (detail !== 'far') {
         // The compound arcs follow the authored tyre facets as a layer of paint.
-        const ring = add(spin, gpTyreCompoundMarkings(tyre), m.band, 0, 0, 0, false);
+        const marks = gpTyreCompoundMarkings(tyre);
+        const ring = add(spin, gpPrototype ? bindGpTyre(marks, halfWidth) : marks, m.band, 0, 0, 0, false);
         this.rings.push(ring);
       }
       const design = gpPrototype
@@ -2041,6 +2050,7 @@ export class BikeModel {
           v.roadContact,
         )
       : undefined;
+    this.m.gpCarcass?.update(road);
     this.m.tyreFinish.update(v, true, road?.treadContact);
     this.m.wheelExposure.update(v.frontOmega, v.rearOmega);
     // Legacy frames derive visual heave/pitch. A live road body already owns

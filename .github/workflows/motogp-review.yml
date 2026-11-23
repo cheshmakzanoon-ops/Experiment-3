@@ -51,6 +51,7 @@ on:
       - 'e2e/*motogp*'
       - 'e2e/motorcycle-presentation.spec.ts'
       - 'e2e/gp-rear-chassis.spec.ts'
+      - 'e2e/fixtures/gp-tyre-footprint.ts'
       - 'e2e/gp-optical-rain.spec.ts'
       - 'e2e/gp-front-brake.spec.ts'
       - 'e2e/gp-rider-contact.spec.ts'
@@ -160,6 +161,8 @@ jobs:
           node --experimental-transform-types scripts/source-stability.ts --
           npx eslint
           src/rendering/gp-brake-rotor.ts src/rendering/gp-radial-caliper.ts
+          src/rendering/gp-tyre-carcass.ts src/rendering/gp-rubber-imprint.ts
+          src/rendering/gp-slip-marks.ts e2e/fixtures/gp-tyre-footprint.ts
           src/rendering/gp-front-hydraulics.ts src/rendering/gp-rider-garment.ts
           src/rendering/bike.ts src/rendering/gp-rider-glove.ts src/rendering/rider.ts
           src/rendering/venue-kit/gp-course-bridge.ts src/rendering/venue-kit/structures.ts

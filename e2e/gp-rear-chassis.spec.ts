@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureBikeSequence } from './fixtures/motogp-reference-review.ts';
+import type { captureGpTyreFootprint } from './fixtures/gp-tyre-footprint.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
 let fixtureScript: string;
@@ -78,3 +79,44 @@ for (const id of ['gpr1', 'gpr2']) {
     expect(errors).toEqual([]);
   });
 }
+
+test('GP rear contact broadens under load and follows the road through spin, lean and replay', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.setContent('<title>Loaded GP tyre profile</title>');
+  await page.addScriptTag({ content: fixtureScript });
+  const { samples, glError } = await page.evaluate(() =>
+    (
+      window as unknown as {
+        MotoGPReview: { captureGpTyreFootprint: typeof captureGpTyreFootprint };
+      }
+    ).MotoGPReview.captureGpTyreFootprint(),
+  );
+  for (const s of samples)
+    await info.attach(s.name, {
+      body: Buffer.from(s.image.split(',')[1], 'base64'),
+      contentType: 'image/png',
+    });
+  await info.attach('footprint.json', {
+    body: JSON.stringify(
+      samples.map(({ image, ...data }) => ({ ...data, imageBytes: image.length })),
+    ),
+    contentType: 'application/json',
+  });
+  const [free, drive, rotated, inflated, corner, lift, rewind] = samples;
+  expect(drive.contactPixels).toBeGreaterThan(free.contactPixels + 45);
+  expect(inflated.contactPixels).toBeLessThan(drive.contactPixels);
+  expect(Math.abs(rotated.contactPixels - drive.contactPixels)).toBeLessThan(32);
+  expect(corner.contactPixels).toBeGreaterThan(60);
+  expect(lift.contactPixels).toBe(0);
+  expect(lift.minimumClearanceMm).toBeGreaterThan(55);
+  expect(samples.every((s) => s.belowRoad === 0)).toBe(true);
+  expect(rewind.hash).toBe(drive.hash);
+  expect(glError).toBe(0);
+  expect(errors).toEqual([]);
+});

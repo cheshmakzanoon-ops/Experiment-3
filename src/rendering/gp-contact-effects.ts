@@ -45,6 +45,8 @@ const POSE_FIELDS = [
   BIKE_BASE + B.RIDER_OFFSET,
   BIKE_BASE + B.STEER,
   WHEEL_CONTACT_BASE,
+  WHEEL_BASE + W.PRESSURE,
+  WHEEL_BASE + 2 * WHEEL_STRIDE + W.PRESSURE,
   ...[0, 2].flatMap((wheel) =>
     Array.from({ length: WHEEL_CONTACT_STRIDE }, (_, field) => wheelContactBase(0, wheel) + field),
   ),
