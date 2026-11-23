@@ -1,3 +1,5 @@
+import { formulaTreadState, sampleFormulaTread, type FormulaTreadState } from '../tire-finish.ts';
+import { frameLiquidRain } from '../../simulation/weather.ts';
 import { formulaFlapAngle } from '../formula-rear-flap.ts';
 import { WING_DETACH_HEALTH } from '../../simulation/config.ts';
 import { lampMaterial } from './materials.ts';
@@ -75,6 +77,7 @@ interface Built {
   proxy: T.Mesh;
   lods: BuiltLod[];
   wheels: WheelAssembly[][];
+  formulaTyres?: FormulaTreadState[];
   links: { mesh: T.Mesh; link: Link }[][];
   materials: CarMaterials;
   frame: BodyFrame;
@@ -157,6 +160,9 @@ export function buildVehicleBody(
   const lods: BuiltLod[] = [],
     wheels: WheelAssembly[][] = [],
     links: { mesh: T.Mesh; link: Link }[][] = [];
+  const formulaTyres = definition.drs
+    ? definition.wheelPositions.map((_, i) => formulaTreadState(sheet.wheels.width[i < 2 ? 0 : 1] / 2))
+    : undefined;
   const linkGeometry = new T.CylinderGeometry(0.011, 0.011, 1, 6, 1, true);
   for (const detail of [0, 1, 2] as Detail[]) {
     const lod = emptyLod(`LOD ${detail} (${LOD_NAMES[detail]})`);
@@ -178,6 +184,7 @@ export function buildVehicleBody(
         !!closed && festivalDetailFor(definition, closed),
         wheelGeometry,
         definition.classId === 'road',
+        formulaTyres?.[i],
       );
       assembly.pivot.position.set(p[0], i < 2 ? frame.hubFront : frame.hubRear, p[2]);
       lod.group.add(assembly.pivot);
@@ -208,6 +215,7 @@ export function buildVehicleBody(
     proxy,
     lods,
     wheels,
+    formulaTyres,
     links,
     materials,
     frame,
@@ -402,6 +410,15 @@ export class VehicleBodies {
           1,
           Math.max(0, sampleOffroadField(a, b, o, O.MOISTURE, t) * 1.6),
         );
+      }
+      if (body.formulaTyres) {
+        const rain = frameLiquidRain(source);
+        const speed = sampleValue(a, b, o + F.SPEED, t);
+        const compound = Math.round(source[o + F.COMPOUND]);
+        for (let i = 0; i < body.formulaTyres.length; i++) {
+          const wheel = o + WHEEL_BASE + i * WHEEL_STRIDE;
+          sampleFormulaTread(body.formulaTyres[i], a, b, o, wheel, t, compound, rain, speed, true);
+        }
       }
       const level = Math.max(0, Math.min(2, Math.round(cars[id].lodLevel ?? 0)));
       if (level !== body.level) {

@@ -37,7 +37,25 @@ float dirtMask = mix(dirt * .36, (1. - step(dirt, grainHash)) * speck, grainDeta
 speck = mix(.36, speck, grainDetail);
 float wearDetail = 1. - smoothstep(.4, 2., tireAcrossPixel * 55.);
 float wearLines = .5 + .5 * sin(tireAcross * 55.) * wearDetail;
-float damage = clamp(treadCondition.z + treadCondition.w, 0., 1.);
+// A hot blister tears out pockets; cold graining rolls rubber into diagonal
+// ridges. Keep their shapes bound to the tyre and converge to coverage before
+// either the fragment footprint or shutter exposure undersamples them.
+float tireWearRelief = 0.;
+float tireWearTone = 1.;
+if (treadCondition.z + treadCondition.w + treadFlat > .0001) {
+  float resolved = grainDetail * (1. - smoothstep(.18, .95, treadSide.x));
+  float blister = clamp(treadCondition.z, 0., 1.) * mix(.22, speck * smoothstep(.54,.8,grainHash), resolved);
+  float ridgePhase = tireAcross * 20. + sin(6.2831853 * tireAngle * 7.) * 1.3;
+  float ridges = apexStripeCoverage(ridgePhase, tireAcrossPixel * 20. + tireAngularPixel * 58., .14);
+  float grain = clamp(treadCondition.w, 0., 1.) * mix(.14, ridges * (.45 + .55 * speck), resolved);
+  // Phase zero is the downward contact at which the carcass has maximum
+  // flat-spot deflection. This lighter scrub flats off as it rotates away.
+  float scar = (1. - smoothstep(.019, .083, abs(fract(tireAngle + 1.) - .5)))
+             * (1. - smoothstep(.4, .9, abs(tireAcross)));
+  float flatWear = clamp(treadFlat,0.,1.) * mix(.085, scar, 1.-treadSide.x);
+  tireWearTone += tireCrown * (-.35 * blister + .24 * grain + .35 * flatWear);
+  tireWearRelief = tireCrown * resolved * (-.0007 * blister + .00038 * grain);
+}
 diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.10, .073, .042), dirtMask * .85);
-diffuseColor.rgb *= 1. - (clamp(treadCondition.y, 0., 1.) * wearLines * .22 + damage * speck * .35);
+diffuseColor.rgb *= tireWearTone * (1. - clamp(treadCondition.y, 0., 1.) * wearLines * .22);
 diffuseColor.rgb *= (1. - tireGroove * .56) * (1. - tireWet * .12);

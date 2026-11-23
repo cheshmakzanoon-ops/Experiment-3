@@ -5,6 +5,7 @@ import { revolveX, roundedBox, type Pt } from './loft.ts';
 import { discMaterial, sharedMaterials, tyreMaterial, type TreadPattern } from './materials.ts';
 import { caliperTint, finishRoadRotor } from './road-brakes.ts';
 import { wheelExposureTurns } from '../road-wheel-exposure.ts';
+import { treadMaterial, type FormulaTreadState } from '../tire-finish.ts';
 import { RecordedTire } from '../recorded-tire.ts';
 import type { WheelContactPose } from '../wheel-contact.ts';
 
@@ -548,6 +549,7 @@ export class WheelAssembly {
     // independent at every corner, even when two rims have the same shape.
     geometryCache?: Map<string, T.BufferGeometry>,
     roadRubber = false,
+    formulaRubber?: FormulaTreadState,
   ) {
     this.radius = radius;
     const half = sheet.width[front ? 0 : 1] / 2;
@@ -569,7 +571,10 @@ export class WheelAssembly {
     const rubber = tyreMaterial(
       sheet.tread,
       roadRubber ? { radius, rim: sheet.rimRadius, width: half * 2 } : undefined,
+      !!formulaRubber,
     );
+    if (formulaRubber)
+      treadMaterial(half, { material: rubber.material, radius, state: formulaRubber });
     if (roadRubber) this.mould = rubber.mould;
     this.pose = rubber.pose;
     this.pose.value.set(0, 0, radius, 0);

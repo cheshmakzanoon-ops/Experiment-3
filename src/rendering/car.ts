@@ -52,8 +52,7 @@ import { liveryCustomised, validateLivery, type Livery } from '../storage/livery
 import { setSuppliedLivery, suppliedLookdevReport } from './studio/supplied-lookdev.ts';
 import { TireCarcass } from './tire-carcass.ts';
 import { anthraciteRimMaterial, wheelCoverMaterial } from './studio/wheel-blur.ts';
-import { wheelBlur } from './studio/tyre-letters.ts';
-import { bindTireSurface, tireHeatAppearance, tireWetAppearance } from './tire-finish.ts';
+import { bindTireSurface, sampleFormulaTread } from './tire-finish.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import {
   contactCylinderRadius,
@@ -78,7 +77,6 @@ import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
 const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLAYER__ === true;
-const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
   private readonly contactPose = wheelContactPose();
   private readonly slotRoot = new MxPresentationRoot();
@@ -783,27 +781,12 @@ export class FormulaCar {
     // snapshots before any LOD return; pit swaps and replay seeks cannot leave
     // reduced tyres clean/slick while the near representation is worn or wet.
     const compoundIndex = Math.round(source[o + F.COMPOUND]);
-    const compound = COMPOUND_STYLES[compoundIndex] ?? COMPOUNDS.medium;
+    const rain = frameLiquidRain(source);
+    const tyreSpeed = sampleValue(a, b, o + F.SPEED, t);
     for (let i = 0; i < 4; i++) {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-      this.rings[i].color.setHex(compound.color);
-      // D12 sidewall band in the compound colour; art smears with wheel speed.
-      this.treads[i].band.value.setHex(compound.color);
-      this.treads[i].side.value.x = wheelBlur(wheelValue(a, b, o, p, W.OMEGA, t));
-      this.treads[i].condition.value.set(
-        wheelValue(a, b, o, p, W.DIRT, t),
-        wheelValue(a, b, o, p, W.WEAR, t),
-        wheelValue(a, b, o, p, W.BLISTERING, t),
-        wheelValue(a, b, o, p, W.GRAINING, t),
-      );
-      this.treads[i].surface.value.x = tireWetAppearance(
-        frameLiquidRain(b),
-        wheelValue(a, b, o, p, W.WATER, t),
-        wheelValue(a, b, o, p, W.LOAD, t),
-        b[o + F.SPEED],
-      );
-      this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
-      this.treads[i].heat.value = tireHeatAppearance(wheelValue(a, b, o, p, W.SURFACE_TEMP, t));
+      sampleFormulaTread(this.treads[i], a, b, o, p, t, compoundIndex, rain, tyreSpeed);
+      this.rings[i].color.copy(this.treads[i].band.value);
       // The reduced wheels share these rotor materials, including during a replay seek.
       const discTemp = wheelValue(a, b, o, p, W.DISC_TEMP, t);
       this.discs[i].emissiveIntensity = clamp((discTemp - 500) / 450, 0, 2);

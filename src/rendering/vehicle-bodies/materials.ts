@@ -302,7 +302,7 @@ export type TreadPattern = 'slick' | 'road' | 'block' | 'rib';
  * The tyre mesh does not spin (its bulge stays at the road); the tread and
  * sidewall marks roll with `pose.x` (wheel phase). pose = (phase, deflection
  * m, tyre radius m, sidewall bulge m). */
-export function tyreMaterial(pattern: TreadPattern, size?: RoadTyreSize) {
+export function tyreMaterial(pattern: TreadPattern, size?: RoadTyreSize, poseOnly = false) {
   const material = new T.MeshStandardMaterial({ color: 0x1c1d1f, roughness: 0.86, metalness: 0 });
   const pose = { value: new T.Vector4(0, 0, 0.33, 0) };
   material.userData.weatherExposure = 1;
@@ -327,7 +327,7 @@ export function tyreMaterial(pattern: TreadPattern, size?: RoadTyreSize) {
           : `max(groove(across, 0.25, 0.02), max(groove(across, -0.25, 0.02), groove(across, 0.0, 0.02)))`;
   chainShaderHook(
     material,
-    `vehicle-tyre-${pattern}${size ? '-road' : ''}${stamp ? '-stamp' : ''}-v2`,
+    `vehicle-tyre-${pattern}${poseOnly ? '-pose' : ''}${size ? '-road' : ''}${stamp ? '-stamp' : ''}-v2`,
     (shader) => {
       if (size) shader.uniforms.tyreMould = mould;
       if (stamp) shader.uniforms.tyreStamp = { value: stamp.texture };
@@ -354,6 +354,7 @@ export function tyreMaterial(pattern: TreadPattern, size?: RoadTyreSize) {
       }`,
         'vertex',
       );
+      if (poseOnly) return;
       injectDeclarations(
         shader,
         'common',

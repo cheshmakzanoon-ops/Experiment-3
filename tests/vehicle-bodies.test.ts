@@ -289,3 +289,57 @@ it('moves the Formula upper plane and the same shadow vertices in a cold mirror 
   }
   bodies.clear();
 });
+
+it('fits wet compounds and per-wheel damage to every Formula feed level and reads a pit swap backwards', () => {
+  const bodies = new VehicleBodies();
+  const frame = new Float32Array(HEADER + CAR_STRIDE),
+    o = carBase(0);
+  const hosts = [{ root: new T.Group(), lodLevel: 0 }];
+  frame[H.CARS] = 1;
+  frame[H.AMBIENT] = 18;
+  frame[H.RAIN] = 20;
+  frame[o + F.SPEED] = 38;
+  frame[o + F.COMPOUND] = 4;
+  for (const model of ['jf2', 'fr3', 'fx26']) {
+    frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(model);
+    for (let i = 0; i < 4; i++) {
+      const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
+      frame[w + W.ROTATION] = (i + 1) * 0.32;
+      frame[w + W.FLAT] = (0.45 * i) / 3;
+      frame[w + W.GRAINING] = 0.1 * (i + 1);
+      frame[w + W.BLISTERING] = 0.2 * (3 - i);
+      frame[w + W.SURFACE_TEMP] = 101;
+    }
+    bodies.update(frame, frame, 1, hosts);
+    const built = bodies.bodies.get(0)!;
+    for (const [i, state] of built.formulaTyres!.entries()) {
+      expect(state.surface.value.toArray().slice(0, 2)).toEqual([1, 2]);
+      expect(state.heat.value).toBe(1);
+      expect(state.flat.value).toBeCloseTo((0.45 * i) / 3);
+      expect(state.condition.value.w).toBeCloseTo(0.1 * (i + 1));
+      expect(state.roll.value.x).toBeCloseTo(Math.cos((i + 1) * 0.32));
+      for (const wheels of built.wheels) {
+        const shader = {
+          vertexShader: T.ShaderLib.standard.vertexShader,
+          fragmentShader: T.ShaderLib.standard.fragmentShader,
+          uniforms: {},
+        } as T.WebGLProgramParametersWithUniforms;
+        (wheels[i].tyre.material as T.Material).onBeforeCompile(shader, {} as T.WebGLRenderer);
+        expect(shader.uniforms.treadFlat).toBe(state.flat);
+        expect(shader.uniforms.treadRoll).toBe(state.roll);
+        expect(shader.vertexShader).toContain('recordedTirePosition');
+        expect(shader.fragmentShader).toContain('tireWearRelief');
+      }
+    }
+    const dry = frame.slice();
+    dry[H.RAIN] = 0;
+    dry[o + F.COMPOUND] = 1;
+    bodies.update(dry, dry, 1, hosts);
+    bodies.showFeedDetail(() => 2);
+    expect(built.formulaTyres![2].surface.value.y).toBe(0);
+    bodies.restoreFeedDetail();
+    bodies.update(frame, frame, 1, hosts);
+    expect(built.formulaTyres![2].surface.value.y).toBe(2);
+  }
+  bodies.clear();
+});
