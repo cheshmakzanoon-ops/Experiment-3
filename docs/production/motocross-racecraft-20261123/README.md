@@ -22,6 +22,10 @@ In Arena Nord the floodlit clay reflects warm light onto the underside of the ri
 
 ## Recorded riding motion
 
+![Player-controlled chase and cockpit views at Valley Ridge and Arena Nord](race-cameras.jpg)
+
+The outdoor chase view approaches Ridge Table at 30 km/h with the 2K sky, tyre marks and bike shadow visible on Medium. Inside Arena Nord the player leaves the gate alongside the other seven riders at 40 km/h on Low. The right-hand images show where the bars, front mudguard and edge of the track sit in the cockpit view. All four frames came from the normal race menu with player throttle and camera controls.
+
 ![MX250 rider and suspension replaying the Valley Ridge whoops in a fixed side view](rhythm-section.webp)
 
 The side view replays three seconds of a Valley Ridge MX250 run, sampled at 20 Hz from the 120 Hz simulation. It covers course stations 527–565 m. The studio camera follows the bike and the inspection floor represents the local ground height. The recording supplies the chassis pitch and clearance, axle travel, wheel rotation, throttle, steering and rider pose. Twenty-six of the 60 samples are airborne.
@@ -36,7 +40,10 @@ The side view replays three seconds of a Valley Ridge MX250 run, sampled at 20 H
 | Six-lap replay | Three seeds × two weather conditions × two venues, each run twice with eight riders. All 192 rider entries finished. Each pair matched on finish tick, the sampled riding trace and final terrain. |
 | Tick-timed player controls | Both venues ran the same 24 seconds of throttle, steering, body and brake inputs with seven constant worker wake rates from 24 to 240 Hz and one irregular schedule. All 360 sampled snapshots and the final dirt field matched for each venue. |
 | Ridden Sport handling | The actual player contact and flight solver completed two laps of each venue with the course planner supplying ground controls. Both runs met the existing zero-fall and under-one-second stall criteria. |
-| Normal race entry | The Low preset reached the eight-rider gate at both venues. Ordinary player throttle put the followed bike above 3 m/s, the camera changed on screen, and the race paused. |
+| Normal race entry | Low at both venues and Medium at Valley Ridge reached the eight-rider gate. Player throttle accelerated the bike, the camera changed on screen, and the race paused. |
+| Valley Ridge browser ride | On Low, Mesa recorded both body controls and 7.17 m/s on player throttle. After the player enabled the AI demonstration, the bike travelled 225.2 m, completed a 0.50 s flight, and touched down. Chase, cockpit, pause and return to the paddock all passed. |
+| Arena Nord browser ride | Starting directly in Arena Nord on Low, the MX250 passed the same body control, player throttle, flight, touchdown and camera checks. It paused at 46.5 s and returned to its selected-machine paddock. |
+| Production package | The full Vite product build and asset audit passed. All 2,222 inputs from the TypeScript project configuration passed compiler checks in 25 groups. The single-process check exceeded this runner's memory. |
 | High-detail WebGL inspection | The complete MX250 model contained 139,983 triangles and the MX450 contained 138,343. Both brake close-ups reported zero WebGL errors. Returning to the initial front-wheel angle restored the initial pixel hash. |
 | Weather and reflections | On Low, Medium and High, the real HDR loader and reflection renderer drew clear, half-blended and rainy skies. Returning to clear restored the exact initial pixels at every preset. |
 | Dirt-grid materials | The eight-rider grid avoids 56 unused road fairing and number-plate textures, with 11 MiB of uncompressed base-level image data. The dirt bikes retain their own printed plates and the tyre, saddle and metal surfaces they draw. |
@@ -44,7 +51,7 @@ The side view replays three seconds of a Valley Ridge MX250 run, sampled at 20 H
 
 During 120 racing seconds per venue on a shared Intel Xeon Platinum 8573C, 95% of physics steps took at most 1.50 ms outdoors and 1.43 ms indoors. This CPU measurement covers the eight-rider simulation. The browser's render loop and display latency need separate measurements. [Timing samples](physics-step-timing.json)
 
-The gate images are from the ordinary race menu at Low quality. The model and soil inspections use High detail in controlled lighting. Browser rendering used Chromium and SwiftShader. A PS5 or comparable physical GPU still needs a frame-time and visual comparison before assigning a console performance rating.
+The gate images are from the ordinary race menu at Low quality. The model and soil inspections use High detail in controlled lighting. Browser rendering used Chromium with SwiftShader and Mesa llvmpipe. On High, both software renderers lost the graphics context while preparing the outdoor venue reflections for eight riders. On Low, SwiftShader lost its context after 223 m of outdoor riding. Mesa completed the outdoor ride and lost its context while preparing the next venue in the same tab. A physical GPU run is needed to measure sustained display frame times and input latency and to compare the result with the console references.
 
 [Jump calibration](../../offroad-calibration.json) · [Race reports](../../offroad-races.json) · [Six-lap traces](six-lap-verification.json)
 
