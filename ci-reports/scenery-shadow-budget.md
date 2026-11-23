@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45090298336
-- commit: `5fb1b0b622` · Attach GP exhaust shimmer to the two machines’ formed outlets
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45091021708
+- commit: `9b20cb17e4` · Detail GP escape beds and retain the racing helmet geometry budget
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-23T00:41:59Z · updated: 2026-11-23T00:52:06Z
+- started: 2026-11-23T00:49:33Z · updated: 2026-11-23T00:58:13Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 7 |  |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | success | 6 |  |
+| browser (sunset) | success | 6 |  |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (day) | success | 7 |  |
