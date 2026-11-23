@@ -941,8 +941,8 @@ export class CircuitScene {
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);
     o.castShadow = false;
-    if (options.stripes && this.track.gpEdges)
-      installGpKerbDetail(o, indices, rows, cols, ascending);
+    if (options.stripes && (this.track.gpEdges || this.formulaCourse?.edges))
+      installGpKerbDetail(o, indices, rows, cols, ascending, this.track.gpEdges ? undefined : this.formulaCourse!.active);
     // Narrow ribbons (painted lines, kerbs) record their measured width and a
     // centreline sampled about every 4 m for the probe detail survey.
     let width = 0;

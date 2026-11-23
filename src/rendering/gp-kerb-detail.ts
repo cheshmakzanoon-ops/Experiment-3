@@ -13,6 +13,7 @@ export function installGpKerbDetail(
   rows: number,
   columns: number,
   ascending: boolean,
+  field?: { value: number },
 ) {
   const full = original.length;
   if (full === 0 || rows < 12) return;
@@ -55,7 +56,7 @@ export function installGpKerbDetail(
   g.computeBoundingSphere();
   mesh.onBeforeRender = (_renderer, _scene, camera) => {
     let distance = 0;
-    if (camera instanceof PerspectiveCamera) {
+    if ((!field || field.value > 0) && camera instanceof PerspectiveCamera) {
       bounds.copy(g.boundingSphere!).applyMatrix4(mesh.matrixWorld);
       eye.setFromMatrixPosition(camera.matrixWorld);
       distance = cameraDetailDistance(Math.max(0, bounds.distanceToPoint(eye)), camera);

@@ -1,3 +1,4 @@
+import { FORMULA_CHASE, FormulaChaseSightline } from './formula-chase.ts';
 import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { loadLazyData } from '../core/lazy-data.ts';
 import { loadAurelQuarry } from './aurel-quarry.ts';
@@ -344,6 +345,7 @@ export class RacingRenderer {
   readonly vehicleBodies = new VehicleBodies();
   /** Motorcycle entrants (WP34): procedural bikes and riders over the snapshot pose. */
   readonly bikeShells: BikeShells;
+  private readonly formulaSightline = new FormulaChaseSightline();
   private readonly gpRoadPreview = new MotorcycleRoadPreview();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
   reducedMotion = false;
@@ -1039,7 +1041,9 @@ export class RacingRenderer {
     this.shadowProxies.add(...car.shadowFrames());
   }
   setCars(n: number, frame?: Float32Array) {
-    if (frame) this.circuit.formulaCourse?.select(frame, n);
+    const formulaCourse = this.circuit.formulaCourse;
+    if (frame && formulaCourse && formulaCourse.select(frame, n))
+      this.photoSky?.setQuality(this.preset, formulaCourse.root.visible);
     // The unlabelled first slot on a dirt circuit is created during venue
     // construction. The next real snapshot determines which body it needs.
     const mxVenue = isMotocrossVenue(this.circuit.track);
@@ -1578,7 +1582,7 @@ export class RacingRenderer {
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.environment.highDetail = g.reflections === 'local';
-    this.photoSky?.setQuality(preset);
+    this.photoSky?.setQuality(preset, this.circuit.formulaCourse?.root.visible === true);
     scannedGround.attach(this.renderer, preset);
     setMxQuality(preset);
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
@@ -1841,7 +1845,7 @@ export class RacingRenderer {
             this.reducedMotion,
           )
         : null;
-    const chase = bikeView ?? CHASE;
+    const chase = bikeView ?? (followedDefinition.drs ? FORMULA_CHASE : CHASE);
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
     const roadBikeSubject = bikeFollow && !followedDefinition.bike?.offroad;
@@ -2288,6 +2292,10 @@ export class RacingRenderer {
             T.MathUtils.lerp(chase.lookAhead, CHASE_PIT.lookAhead, pit),
           );
         this.gaze.y += T.MathUtils.lerp(chase.lookLift, CHASE_PIT.lookLift, pit);
+        if (followedDefinition.drs && !this.reducedMotion && !menu && !this.pitView && !boxed)
+          this.formulaSightline.apply(
+            this.circuit.track, presented[o + F.S], presented[o + F.LATERAL], speed, this.direction, this.gaze,
+          );
         if (gpFollow && !menu && !this.photo && !pregame) {
           // Bounded load response (pull-back on drive, close-in and forward
           // pitch on braking) and fine high-speed vibration, in the rig frame.

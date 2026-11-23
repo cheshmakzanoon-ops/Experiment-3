@@ -2,7 +2,7 @@ import * as T from 'three';
 import { describe, it, expect } from 'vitest';
 import { installGpKerbDetail } from '../src/rendering/gp-kerb-detail.ts';
 
-function grid(ascending: boolean, opening: boolean) {
+function grid(ascending: boolean, opening: boolean, field?: { value: number }) {
   const rows = 90,
     cols = 6,
     indices: number[] = [],
@@ -25,7 +25,7 @@ function grid(ascending: boolean, opening: boolean) {
   geo.computeVertexNormals();
   const object = new T.Mesh(geo, new T.MeshBasicMaterial());
   const fine = indices.slice();
-  installGpKerbDetail(object, indices, rows, cols, ascending);
+  installGpKerbDetail(object, indices, rows, cols, ascending, field);
   const draw = (z: number, fov = 58, aspect = 1.6, ortho = false) => {
     const camera = ortho ? new T.OrthographicCamera() : new T.PerspectiveCamera(fov, aspect);
     camera.position.set(0, 1, z);
@@ -91,4 +91,16 @@ describe('GP kerb detail at racing, photo and reflection distances', () => {
     object.position.z = 120;
     expect(draw(130)).toEqual(fine);
   });
+});
+
+it('uses distance detail on Formula fields and restores the full ribbon on a discipline change', () => {
+  const field = { value: 1 };
+  const { draw, fine } = grid(true, false, field);
+  const far = draw(190);
+  expect(far.length).toBeLessThan(fine.length * 0.13);
+  field.value = 0;
+  expect(draw(190)).toEqual(fine);
+  field.value = 1;
+  expect(draw(190)).toEqual(far);
+  expect(draw(4)).toEqual(fine);
 });

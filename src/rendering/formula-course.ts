@@ -114,10 +114,11 @@ export function formulaTimingPaint(track: Track, station: FormulaStation) {
 
 export class FormulaCourse {
   readonly root = new T.Group();
-  readonly active = { value: 1 };
+  readonly active = { value: 0 };
   readonly edges: FormulaEdgeProfile | null;
   constructor(readonly track: Track) {
     this.root.name = 'Formula timing stations';
+    this.root.visible = false;
     this.edges = track.gpEdges ? null : FormulaEdgeProfile.forTrack(track);
   }
   select(frame: Float32Array, count: number) {
@@ -128,8 +129,10 @@ export class FormulaCourse {
         break;
       }
     }
+    if (active === this.root.visible) return false;
     this.root.visible = active;
     this.active.value = active ? 1 : 0;
+    return true;
   }
   build() {
     const stations = formulaStations(this.track);
