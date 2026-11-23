@@ -244,6 +244,7 @@ export class HelmetTethers {
   private readonly neck = new T.Vector3(0, 0.17, -0.4);
   private pitch = NaN;
   private roll = NaN;
+  private yaw = NaN;
   constructor(material: T.Material) {
     this.root.name = 'Helmet-to-neck-restraint webbing';
     for (const side of [-1, 1]) {
@@ -273,12 +274,13 @@ export class HelmetTethers {
     }
     this.update(0, 0);
   }
-  update(pitch: number, roll: number) {
-    if (!Number.isFinite(pitch + roll)) throw new Error('Invalid helmet restraint pose');
-    if (pitch === this.pitch && roll === this.roll) return;
+  update(pitch: number, roll: number, yaw = 0) {
+    if (!Number.isFinite(pitch + roll + yaw)) throw new Error('Invalid helmet restraint pose');
+    if (pitch === this.pitch && roll === this.roll && yaw === this.yaw) return;
+    this.yaw = yaw;
     this.pitch = pitch;
     this.roll = roll;
-    this.rotation.setFromEuler(this.euler.set(pitch, 0, roll));
+    this.rotation.setFromEuler(this.euler.set(pitch, yaw, roll));
     for (const strap of this.straps) {
       const side = strap.userData.side as number;
       helmetTetherPost(side, this.end).applyQuaternion(this.rotation).add(this.neck);

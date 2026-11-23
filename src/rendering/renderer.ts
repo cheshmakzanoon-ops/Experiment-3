@@ -2157,7 +2157,6 @@ export class RacingRenderer {
           else
             this.desired
               .copy(car.suppliedPlayer.pod)
-              .add(this.inertia.offset)
               .add(this.temporary.set(0, TCAM_LIFT_M, 0));
           this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
         } else {
@@ -2168,7 +2167,10 @@ export class RacingRenderer {
             this.desired,
           );
         }
-        const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
+        const orientation =
+          cameraMode === 'pod' && !cabin && !bikeFollow
+            ? car.root.quaternion
+            : this.viewOrientation.update(car.root.quaternion, cameraDt);
         if (cabin)
           cabinDirection(cameraMode === 'cockpit' ? cabin.cockpit : cabin.mount, this.direction);
         else if (cameraMode === 'cockpit' && car.suppliedPlayer) cockpitDirection(this.direction);

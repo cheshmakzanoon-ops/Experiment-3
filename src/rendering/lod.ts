@@ -1,3 +1,4 @@
+import { mountFormulaCameraPod } from './formula-camera-pod.ts';
 import { mountTailLampHousing } from './formula-tail-lamp.ts';
 import { mountAuthoredWing } from './car-assembly.ts';
 import { FormulaRearFlap } from './formula-rear-flap.ts';
@@ -213,6 +214,7 @@ export class ReducedCar {
       mergeStatic(spin);
       spin.add(tire);
     }
+    mountFormulaCameraPod(body, paint, carbon, rubber, detail);
     mountTailLampHousing(body, carbon);
     mergeStatic(body);
     mergeStatic(this.front);

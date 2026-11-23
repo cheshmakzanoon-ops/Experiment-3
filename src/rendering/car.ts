@@ -1,3 +1,4 @@
+import { mountFormulaCameraPod } from './formula-camera-pod.ts';
 import { mountTailLamp, mountTailLampHousing } from './formula-tail-lamp.ts';
 import { FormulaRearFlap } from './formula-rear-flap.ts';
 import type { RivalLevels } from './a61-rival.ts';
@@ -62,7 +63,7 @@ import {
 import { sampleChassisPose, sampleValue, snapshotSource } from './snapshot-interpolation.ts';
 import * as T from 'three';
 import { MxPresentationRoot } from './offroad/mx-presentation-root.ts';
-import { DriverRig } from './driver.ts';
+import { cornerGaze, DriverRig } from './driver.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
 import { drawSteeringDisplay, shiftLight, SteeringDisplayClock } from './steering-display.ts';
 import { carbonMaterial, treadMaterial } from './materials.ts';
@@ -347,6 +348,7 @@ export class FormulaCar {
       mesh(s, wingElement(1.41, 0.23, 0.018, 0.011, 0.015, 0.008), carbon, 0, -0.12, -2.06);
       mesh(s, wingElement(1.36, 0.17, 0.018, 0.009, 0.02, 0.009), carbon, 0, -0.05, -2.18);
     }
+    mountFormulaCameraPod(s, this.paint, carbon, dark, 'high');
     mountTailLampHousing(s, carbon);
     const tailLamp = mountTailLamp(this.root);
     this.rearSignal = tailLamp;
@@ -869,7 +871,13 @@ export class FormulaCar {
     cockpit: boolean,
   ) {
     const source = snapshotSource(a, b, t);
-    this.steering.rotation.z = -lerp(a[o + F.STEER], b[o + F.STEER], t) * 2.2;
+    const steer = sampleValue(a, b, o + F.STEER, t);
+    this.steering.rotation.z = -steer * 2.2;
+    const up = this.v.set(0, 1, 0).applyQuaternion(this.root.quaternion);
+    const yawRate =
+      up.x * sampleValue(a, b, o + F.WX, t) +
+      up.y * sampleValue(a, b, o + F.WY, t) +
+      up.z * sampleValue(a, b, o + F.WZ, t);
     this.driver.update(
       time,
       source[o + F.GEAR],
@@ -877,8 +885,9 @@ export class FormulaCar {
       lerp(a[o + F.G_LAT], b[o + F.G_LAT], t),
       lerp(a[o + F.G_LONG], b[o + F.G_LONG], t),
       lerp(a[o + F.G_VERT], b[o + F.G_VERT], t),
+      cornerGaze(sampleValue(a, b, o + F.SPEED, t), steer, yawRate),
     );
-    this.helmet.rotation.set(this.driver.headPitch, 0, this.driver.headRoll);
+    this.helmet.rotation.set(this.driver.headPitch, this.driver.headYaw, this.driver.headRoll);
     this.cockpitControls.update(source, o);
     this.helmet.visible = !cockpit;
     for (let i = 0; i < 4; i++) {

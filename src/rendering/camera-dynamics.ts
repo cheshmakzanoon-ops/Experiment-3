@@ -1,4 +1,5 @@
 import { Quaternion, Vector3 } from 'three';
+import { POD_EYE } from './formula-camera-pod.ts';
 import { clamp } from '../core/math.ts';
 
 /** Analytic critically-damped spring driven by presented acceleration. Forces
@@ -90,8 +91,9 @@ export class InertialCamera {
     return this.offset;
   }
   eye(position: Vector3, orientation: Quaternion, pod: boolean, out: Vector3) {
-    out.set(0, pod ? 0.87 : 0.41, pod ? -0.78 : -0.48);
-    return out.add(this.offset).applyQuaternion(orientation).add(position);
+    out.set(0, pod ? POD_EYE.y : 0.41, pod ? POD_EYE.z : -0.48);
+    if (!pod) out.add(this.offset);
+    return out.applyQuaternion(orientation).add(position);
   }
 }
 

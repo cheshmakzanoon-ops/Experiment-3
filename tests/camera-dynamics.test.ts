@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { CameraClock, InertialCamera } from '../src/rendering/camera-dynamics.ts';
+import { POD_EYE, mountFormulaCameraPod } from '../src/rendering/formula-camera-pod.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
 import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts';
@@ -248,5 +249,40 @@ describe('production cockpit force timeline', () => {
     }
     expect(a).toEqual(untouched[0]);
     expect(b).toEqual(untouched[1]);
+  });
+});
+
+describe('roll-hoop broadcast camera', () => {
+  it('keeps the optical window on the rigid chassis through a braking impulse at every model distance', () => {
+    const rig = new InertialCamera();
+    rig.offset.set(0.035, -0.022, 0.043);
+    const origin = new T.Vector3(10, 4, -63);
+    const orientation = new T.Quaternion().setFromEuler(new T.Euler(0.2, -1.1, 0.13));
+    const eye = new T.Vector3(0, POD_EYE.y, POD_EYE.z);
+    expect(
+      rig
+        .eye(origin, orientation, true, new T.Vector3())
+        .distanceTo(eye.clone().applyQuaternion(orientation).add(origin)),
+    ).toBeLessThan(1e-8);
+    const material = new T.MeshStandardMaterial();
+    for (const lod of ['high', 'mid', 'far'] as const) {
+      const root = new T.Group();
+      mountFormulaCameraPod(root, material, material, material, lod);
+      const bounds = new T.Box3().setFromObject(root);
+      expect(bounds.max.x - bounds.min.x).toBeCloseTo(0.28, 3);
+      expect(bounds.max.y).toBeGreaterThan(eye.y);
+      expect(bounds.min.y).toBeLessThan(0.69);
+      root.traverse((obj) => {
+        if (!(obj instanceof T.Mesh)) return;
+        const p = obj.geometry.getAttribute('position');
+        const point = new T.Vector3();
+        for (let i = 0; i < p.count; i++) {
+          point.fromBufferAttribute(p, i).applyMatrix4(obj.matrixWorld);
+          if (point.y > eye.y - 0.04) expect(point.z).toBeLessThan(eye.z + 0.002);
+        }
+        obj.geometry.dispose();
+      });
+    }
+    material.dispose();
   });
 });

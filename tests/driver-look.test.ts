@@ -12,7 +12,7 @@ import {
 } from '../src/rendering/studio/helmet-livery.ts';
 import { applySuppliedCharacterLookdev } from '../src/rendering/studio/supplied-character-lookdev.ts';
 import { driverMaterials } from '../src/rendering/driver-materials.ts';
-import { HEAD_ROLL_GAIN } from '../src/rendering/driver.ts';
+import { cornerGaze, HEAD_ROLL_GAIN } from '../src/rendering/driver.ts';
 import { hansUprightGeometry, standUpCollarGeometry } from '../src/rendering/driver-anatomy.ts';
 import { HANS_ANCHOR } from '../src/rendering/driver-restraints.ts';
 import {
@@ -186,5 +186,17 @@ describe('supplied driver look-dev', () => {
     expect(
       applySuppliedCharacterLookdev(new T.MeshStandardMaterial({ name: 'F1CP_MAT_Visor' })),
     ).toBe(false);
+  });
+});
+
+describe('apex sightline', () => {
+  it('faces forward at rest and follows the measured rotation through countersteer', () => {
+    expect(cornerGaze(0, 0.5, 1)).toBe(0);
+    expect(cornerGaze(2, -0.5, -1)).toEqual(-0);
+    const yaw = cornerGaze(40, -0.06, 0.75);
+    expect(yaw).toBeGreaterThan(0.1);
+    expect(cornerGaze(40, 0.06, -0.75)).toBe(-yaw);
+    expect(cornerGaze(4, -0.06, 0.75)).toBeCloseTo(yaw * 0.25);
+    expect(Math.abs(cornerGaze(85, 0.6, 12))).toBeLessThanOrEqual(0.28);
   });
 });

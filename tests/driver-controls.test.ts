@@ -116,13 +116,14 @@ describe('Coupled cockpit contact surfaces', () => {
       (o) => (o as T.Mesh).geometry.getAttribute('position').array,
     );
     let before: number[][] = [];
-    for (const [pitch, roll] of [
-      [0.04, -0.05],
-      [-0.054, 0.065],
-      [0, 0],
-      [0.04, -0.05],
+    for (const [pitch, roll, yaw] of [
+      [0.04, -0.05, 0.19],
+      [-0.054, 0.065, -0.24],
+      [0, 0, 0],
+      [0, 0, 0.18],
+      [0.04, -0.05, 0.19],
     ]) {
-      tethers.update(pitch, roll);
+      tethers.update(pitch, roll, yaw);
       for (let i = 0; i < 2; i++) {
         const p = (tethers.root.children[i] as T.Mesh).geometry.getAttribute('position');
         expect(p.array).toBe(buffers[i]);
@@ -131,7 +132,7 @@ describe('Coupled cockpit contact surfaces', () => {
           .add(new T.Vector3().fromBufferAttribute(p, 17))
           .multiplyScalar(0.5);
         const expected = helmetTetherPost(i ? 1 : -1)
-          .applyEuler(new T.Euler(pitch, 0, roll))
+          .applyEuler(new T.Euler(pitch, yaw, roll))
           .add(new T.Vector3(0, 0.17, -0.4));
         expect(centre.distanceTo(expected)).toBeLessThan(1e-7);
       }

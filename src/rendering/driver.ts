@@ -91,6 +91,12 @@ interface Arm {
 }
 const UPPER = 0.37,
   LOWER = 0.36;
+/** Look through the turn. Measured yaw leads the gaze even during countersteer.
+ * Both cues come from the recorded instant, including a backwards replay seek. */
+export function cornerGaze(speed: number, roadSteer: number, yawRate: number) {
+  const moving = clamp((speed - 2) / 8, 0, 1);
+  return moving * 0.28 * Math.tanh((0.19 * yawRate + 0.27 * roadSteer) / 0.28);
+}
 export class DriverRig {
   readonly root = new T.Group();
   readonly actions = new DriverActions();
@@ -103,6 +109,7 @@ export class DriverRig {
   private paddleOffset = new T.Matrix4();
   headRoll = 0;
   headPitch = 0;
+  headYaw = 0;
   private bodyPose = { compression: 0, headRoll: 0, headPitch: 0 };
   private target = new T.Vector3();
   private delta = new T.Vector3();
@@ -185,14 +192,23 @@ export class DriverRig {
     );
     mesh.scale.y = length;
   }
-  update(time: number, gear: number, mode: number, lateralG = 0, longitudinalG = 0, verticalG = 1) {
+  update(
+    time: number,
+    gear: number,
+    mode: number,
+    lateralG = 0,
+    longitudinalG = 0,
+    verticalG = 1,
+    gaze = 0,
+  ) {
     const pose = driverBodyPose(lateralG, longitudinalG, verticalG, this.bodyPose);
     this.body.scale.y = 1 - pose.compression;
     this.body.position.y = 0.015 * pose.compression;
     // D16: a stronger head roll into the corner (about 6 deg at 5 g).
     this.headRoll = T.MathUtils.clamp(pose.headRoll * HEAD_ROLL_GAIN, -0.105, 0.105);
     this.headPitch = pose.headPitch;
-    this.tethers.update(this.headPitch, this.headRoll);
+    this.headYaw = gaze;
+    this.tethers.update(this.headPitch, this.headRoll, this.headYaw);
     this.actions.sample(time, gear, mode);
     this.steering.updateMatrix();
     for (const [index, arm] of this.arms.entries()) {
