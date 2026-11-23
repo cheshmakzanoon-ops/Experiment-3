@@ -1,5 +1,29 @@
 # MotoGP circuit and motorcycle review
 
+## Tyres, rider controls and race-day weather
+
+![Matched trackside frames at Poggio Alto show heavy dark arcs on the left and the revised racing line on the right](poggio-tyre-rubber.jpg)
+
+Four riders enter the same Poggio Alto corner on High. The followed bike is travelling at 58.4 km/h and leaning 21.6°. The earlier frame is on the left. On the right, the worn surface has soft edges and each axle can leave a fresh mark from its measured tyre slip. Across the 21,763 road pixels selected from the old marks, mean darkening fell from 7.69 to 2.89 on a 0–255 luminance scale. The adjacent road changed by 0.16. The new frame contains 356 live mark segments in one draw call.
+
+![Four side-on slick profiles show how the contact patch changes under load and disappears as the wheel lifts](gp-slick-contact.png)
+
+The tyre shader uses the load, inflation pressure and measured road plane at each axle. This side-on inspection resolves one millimetre per pixel. The visible footprint grew from 38 mm unloaded to 120 mm at 1,650 N. Raising the inflation pressure at that load reduced deflection from 8.51 to 6.56 mm. The lifted wheel cleared the plane by 63 mm.
+
+![The GP-R2 fuel tank and helmet visor above the GP-R1 left-hand control and rear carrier](gp-prototype-controls.jpg)
+
+The tank has a recessed filler latch, socket heads and molded knee grips. The helmet has two jaw intakes and a replaceable visor film with a folded release tab on the left retaining post. At the rear wheel, five open windows and five recessed wrench sockets rotate with the carrier. Its hollow collar seats inside the wheel hub. The complete High models submit 109,980 triangles for the GP-R1 and 109,382 for the GP-R2, including the repeated chain plates and rollers.
+
+![A two-second GP-R1 launch showing the rider releasing the clutch and the chain taking up drive](gp-clutch-launch.webp)
+
+Both camera views use the same 48 samples from a 120 Hz simulation. The rider holds 80% throttle and releases the manual clutch over one second. The left hand follows the lever as plate torque rises and the bike reaches 43.3 km/h. The drive and return runs share up to 16 mm of free-span deflection. The boot pedal operates the rear brake independently. In automatic mode the original secondary brake binding remains available. [Frame measurements](gp-clutch-launch.json)
+
+![Haarveld’s seated crowd on stepped concrete terraces and Cape Wrenna’s rail-mounted umbrellas](gp-trackside-spectators.jpg)
+
+At Haarveld, closed concrete risers support the seats and three shallow steps connect each pair of rows in the aisles. At Cape Wrenna, four umbrellas on the first bank unfold in a shower and follow the wind. Holding the weather or rewinding to dry reproduced the original pixels. In a separate shadow measurement at race shadow-map density, the 10–90% edge width below an eight-metre canopy grew from 5 cm in sun to 14 cm under thin cloud and 30.5 cm in a shower. A plate eight centimetres above the road kept its 5 cm edge in all three conditions.
+
+## Circuit cameras
+
 ![The GP cockpit at Haarveld, leaning into the sunset at 122 km/h](haarveld-cockpit.jpg)
 
 The GP-R1 enters a bend at Haarveld at 122 km/h and 22.3° of lean. The steering-mounted display shows the same speed as the simulation. The race stills use the production simulation and Three.js renderer on High with seed 34100 and alternating GP-R1 and GP-R2 machines. They are 800 × 450 unless a different resolution is given.
