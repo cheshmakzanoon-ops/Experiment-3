@@ -1209,3 +1209,32 @@ it('poses the mirror cameras on the car for profiling, wherever they were last r
   );
   reflection.dispose();
 });
+
+it('holds a Formula grid reflection through a cockpit cut while a replay seek captures all six new faces', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture();
+  const scene = new T.Scene(),
+    car = new T.Group(),
+    paint = new T.MeshStandardMaterial();
+  const capture = (time: number, cockpit: boolean, live: boolean) => {
+    reflection.beginFrame(time, cockpit, live, true);
+    reflection.updateProbe(gl, scene, car, [paint], true);
+  };
+  try {
+    capture(0, false, false);
+    const first = paint.envMap;
+    capture(0, true, false);
+    capture(0.008333, false, true);
+    expect(paint.envMap).toBe(first);
+    expect(faces).toHaveLength(6);
+    expect(reflection.probeDiagnostics.starts.immediate).toBe(1);
+    capture(10, true, false);
+    expect(faces).toHaveLength(12);
+    expect(paint.envMap).not.toBe(first);
+    capture(3, false, false);
+    expect(faces).toHaveLength(18);
+  } finally {
+    reflection.dispose();
+    paint.dispose();
+  }
+});

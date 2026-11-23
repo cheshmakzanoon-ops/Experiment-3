@@ -971,3 +971,76 @@ it.each([
     expect(target.installFormulaArt.mock.calls.map(([car]) => car.id)).toEqual([1, 0]);
   },
 );
+
+it.each([false, true])(
+  'retires all six Formula grid faces and retains a valid map with temporal history %s',
+  async (history) => {
+    const { calls, sample, target, typed } = fixture('fx26');
+    const colour = new T.WebGLRenderTarget(960, 540, { samples: 4 });
+    let faces = 0;
+    const rig = Object.assign(target, {
+      follow: 0,
+      graphics: { reflections: 'local', temporalAA: history },
+      scenePass: { target: colour },
+      reflection: {
+        localProbeActive: true,
+        get gridCapturePending() {
+          return faces > 0 && faces < 6;
+        },
+        probeDiagnostics: { capturedAt: 0, starts: { immediate: 1 } },
+      },
+      warmupFormulaCockpitColour: null as { width: number } | null,
+      resetPresentationState: vi.fn(),
+    });
+    Object.assign(target.renderer, { shadowMap: { enabled: true } });
+    const draw = target.draw.getMockImplementation()!;
+    const rectangles: number[][] = [];
+    target.draw.mockImplementation((...args) => {
+      if (args[7] === 'venue-probe') faces++;
+      if (args[7] === 'held-colour')
+        rectangles.push((colour.scissorTest ? colour.scissor : colour.viewport).toArray());
+      draw(...args);
+    });
+    try {
+      const before = sample.slice();
+      expect(
+        await RacingRenderer.prototype.prepare.call(
+          typed,
+          sample,
+          vi.fn(),
+          () => false,
+          async () => {},
+          false,
+        ),
+      ).toBe(true);
+      expect(sample).toEqual(before);
+      expect(faces).toBe(6);
+      expect(target.warmShadowCasters).toHaveBeenCalledWith(true);
+      const passes = calls.filter((call) =>
+        ['venue-probe', 'venue-shadows', 'held-colour', 'gpu-ready'].includes(call),
+      );
+      expect(passes).toEqual([
+        ...Array.from({ length: 6 }, () => ['venue-probe', 'gpu-ready']).flat(),
+        'venue-shadows',
+        'gpu-ready',
+        'held-colour',
+        'gpu-ready',
+        'venue-shadows',
+        'gpu-ready',
+        'held-colour',
+        'gpu-ready',
+      ]);
+      expect(rectangles).toEqual([
+        [320, 170, 320, 200],
+        history ? [0, 0, 960, 540] : [320, 170, 320, 200],
+      ]);
+      expect(rig.warmupFormulaCockpitColour?.width ?? null).toBe(history ? null : 320);
+      expect(colour.scissorTest).toBe(false);
+      expect(target.mode).toBe('pod');
+      expect(rig.resetPresentationState).toHaveBeenCalledOnce();
+      expect(rig.reset).not.toHaveBeenCalled();
+    } finally {
+      colour.dispose();
+    }
+  },
+);

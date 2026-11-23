@@ -1131,6 +1131,7 @@ export class RacingRenderer {
   private warmupRoadColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private warmupDirtCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private warmupGPCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
+  private warmupFormulaCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private preparedDirtProbeStarts: number | null = null;
   private preparedGPProbeStarts: number | null = null;
   preparationTimeoutMs = 90000;
@@ -1181,6 +1182,7 @@ export class RacingRenderer {
       this.warmupRoadColour = null;
       this.warmupDirtCockpitColour = null;
       this.warmupGPCockpitColour = null;
+      this.warmupFormulaCockpitColour = null;
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
       if (!Number.isInteger(total) || total < 1 || total > 12)
@@ -1198,7 +1200,8 @@ export class RacingRenderer {
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
       const gpGrid = gpGridForFrame(frame);
-      this.circuit.setGrandPrixGrid(gpGrid, !gpGrid && formulaGridForFrame(frame));
+      const formulaGrid = !gpGrid && formulaGridForFrame(frame);
+      this.circuit.setGrandPrixGrid(gpGrid, formulaGrid);
       if (this.tyreEquipment && isGpCourse(this.circuit.track))
         this.tyreEquipment.root.visible = !gpGrid;
       // Construct the actual motorcycle materials before compileAsync. Building
@@ -1301,7 +1304,8 @@ export class RacingRenderer {
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;
-      const boundedDepth = roadField || isMotocrossVenue(this.circuit.track);
+      const localFormula = formulaGrid && this.graphics?.reflections === 'local';
+      const boundedDepth = roadField || isMotocrossVenue(this.circuit.track) || localFormula;
       const shadowPass = this.warmShadowCasters(boundedDepth);
       if (boundedDepth && shadowPass) {
         // The whole-circuit map exists only to link depth variants. Let its
@@ -1311,11 +1315,12 @@ export class RacingRenderer {
         if (cancelled()) return false;
       }
       const camera = this.mode;
-      const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
-      const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
-      // A GP cockpit can warm its fragment programs on a tile. Full-frame
+      const splitGridViews = boundedDepth && this.graphics?.reflections === 'local';
+      const splitShadows = splitGridViews && this.renderer.shadowMap?.enabled;
+      const gridName = roadField ? 'GP' : formulaGrid ? 'Formula' : 'motocross';
+      // Road-racing cockpits can warm their fragment programs on a tile. Full-frame
       // history consumers keep their complete first cockpit image.
-      const tileGPCockpit = gpGrid && !this.graphics?.temporalAA &&
+      const tileRoadCockpit = (gpGrid || formulaGrid) && !this.graphics?.temporalAA &&
         !this.graphics?.aoTemporal && !this.graphics?.ssr;
       let retainGridProbe = false;
       try {
@@ -1328,10 +1333,10 @@ export class RacingRenderer {
           await yieldFrame();
           if (cancelled()) return false;
           this.changeCamera(mode);
-          if (mode === 'chase' && splitMotorcycleViews) {
+          if (mode === 'chase' && splitGridViews) {
             // The held starting grid needs one complete cubemap. Retire its six
             // scenery views before submitting near shadows and the colour image.
-            progress(roadField ? 'Capturing GP venue reflections…' : 'Capturing motocross venue reflections…');
+            progress(`Capturing ${gridName} venue reflections…`);
             do {
               this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-probe');
               this.gpuFrames.submittedFrame();
@@ -1340,7 +1345,7 @@ export class RacingRenderer {
             } while (!roadField && this.reflection.gridCapturePending);
           }
           if (splitShadows) {
-            progress(`Rendering ${roadField ? 'GP' : 'motocross'} ${mode} shadow maps…`);
+            progress(`Rendering ${gridName} ${mode} shadow maps…`);
             this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-shadows');
             this.gpuFrames.submittedFrame();
             await this.waitForPreparedFrame(cancelled, yieldFrame);
@@ -1353,20 +1358,21 @@ export class RacingRenderer {
           // These offscreen views link the real materials against the production
           // colour and MSAA attachments. The first visible grid is drawn
           // after preparation restores the camera and the full target scissor.
-          if (splitShadows && (mode === 'chase' || !roadField || tileGPCockpit)) {
+          if (splitShadows && (mode === 'chase' || (!roadField && !formulaGrid) || tileRoadCockpit)) {
             const tile = warmRoadGridColour(this.scenePass.target, drawGrid);
             if (mode === 'chase') this.warmupRoadColour = tile;
             else if (roadField) this.warmupGPCockpitColour = tile;
+            else if (formulaGrid) this.warmupFormulaCockpitColour = tile;
             else this.warmupDirtCockpitColour = tile;
           } else {
             drawGrid();
           }
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
-            if (roadField && splitMotorcycleViews) {
+            if ((roadField || formulaGrid) && splitGridViews) {
               // Finish the chase colour submission before the separate crew
               // upload replaces its fence.
-              progress('Finishing the GP starting-grid view…');
+              progress(`Finishing the ${gridName} starting-grid view…`);
               await this.waitForPreparedFrame(cancelled, yieldFrame);
               if (cancelled()) return false;
             }
@@ -1390,11 +1396,15 @@ export class RacingRenderer {
         }
         // The grid capture excludes the bikes and crew. A mirrorless rider's
         // cockpit and chase views sample the same six world-space faces.
-        if (splitMotorcycleViews && frame[H.TICK] === 0 && this.follow === 0 &&
+        if (splitGridViews && frame[H.TICK] === 0 && this.follow === 0 &&
             (gpGrid || !roadField) && this.reflection.localProbeActive) {
           const probe = this.reflection.probeDiagnostics;
           if (probe.capturedAt === frame[H.TIME]) {
-            if (gpGrid && this.bikeShells.gpPresentation(0)?.rearViews.length === 0) {
+            if (formulaGrid) {
+              // Venue radiance belongs to the car position. Both grid lenses
+              // have sampled this same complete cubemap at the paused tick.
+              retainGridProbe = true;
+            } else if (gpGrid && this.bikeShells.gpPresentation(0)?.rearViews.length === 0) {
               this.preparedGPProbeStarts = probe.starts.immediate;
               retainGridProbe = true;
             } else if (!roadField && this.bikeShells.motocrossPresentation(0)) {
@@ -2613,6 +2623,7 @@ export class RacingRenderer {
       // A delayed live Formula frame still follows the same car. Let the
       // staged cubemap finish while its previous complete map stays bound.
       (racingMotorcycle || followedDefinition.drs) && !menu && !this.photo && !replay,
+      formulaGrid && !menu && !this.photo,
     );
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);
@@ -2701,7 +2712,7 @@ export class RacingRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
         motocrossFollow && !menu && !this.photo && !replay && !wetReflection &&
           this.gpuFrames.completionLatencyMs > 50,
-        pass === 'venue-probe' && motocrossFollow && isMotocrossVenue(this.circuit.track),
+        pass === 'venue-probe' && (formulaGrid || (motocrossFollow && isMotocrossVenue(this.circuit.track))),
       );
       if (pass === 'venue-probe') return;
       if (pass === 'venue-shadows') {
@@ -3331,6 +3342,7 @@ export class RacingRenderer {
       warmupRoadColour: this.warmupRoadColour,
       warmupDirtCockpitColour: this.warmupDirtCockpitColour,
       warmupGPCockpitColour: this.warmupGPCockpitColour,
+      warmupFormulaCockpitColour: this.warmupFormulaCockpitColour,
       preparedDirtProbeStarts: this.preparedDirtProbeStarts,
       preparedGPProbeStarts: this.preparedGPProbeStarts,
       warmupPitPasses: this.warmupPitPasses,

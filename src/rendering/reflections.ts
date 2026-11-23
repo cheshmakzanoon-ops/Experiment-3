@@ -310,7 +310,7 @@ export class ReflectionSystem {
       sceneryPending: this.capturedSceneryRevision !== this.sceneryRevision,
     };
   }
-  beginFrame(time: number, cockpit: boolean, continuousDriving = false) {
+  beginFrame(time: number, cockpit: boolean, continuousDriving = false, sameVenueProbe = false) {
     if (!Number.isFinite(time)) throw new Error('Invalid reflection presentation time');
     if (
       !Number.isFinite(this.clock) ||
@@ -319,9 +319,14 @@ export class ReflectionSystem {
       // individual faces until the next full map is ready. Photo and replay
       // seeks need a complete map at their requested instant.
       (!continuousDriving && time - this.clock > 2) ||
-      cockpit !== this.enabled
-    )
+      (cockpit !== this.enabled && !sameVenueProbe)
+    ) {
       this.invalidate();
+    } else if (cockpit !== this.enabled) {
+      // A stationary Formula cubemap excludes the whole grid. Changing the
+      // mirror lens needs fresh rear views, while the paint keeps its radiance.
+      this.views.invalidate();
+    }
     this.clock = time;
     this.enabled = cockpit;
     for (const mirror of this.mirrors) mirror.visible = cockpit;
