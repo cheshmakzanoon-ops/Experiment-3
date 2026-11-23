@@ -38,9 +38,13 @@ Fans reach the standing rows through the central opening and a service aisle beh
 
 ## Circuit cameras
 
-![A GP-R2 exits Lookout Rise in the rain at Cape Wrenna, in second place at 72 km/h](cape-wrenna-high-wet-race.jpg)
+| Lookout Rise exit, 72 km/h | Cold Spot approach, 156 km/h |
+| --- | --- |
+| ![A GP-R2 exits Lookout Rise in the rain, in second place at 72 km/h](cape-wrenna-high-wet-race.jpg) | ![The GP-R2 approaches Cold Spot at 156 km/h on the final wet-race build, with one millimetre of water on the circuit](cape-wrenna-cold-spot.jpg) |
 
 Four GP-R2s started this race through the player menu with wet tyres and the High preset. The chase camera caught the rider exiting Lookout Rise at 72 km/h and 25° of right lean. At native 960 × 540, the renderer used 4× MSAA, ambient occlusion and 2048-pixel shadow maps. The moving sample recorded ten tyre-spray particles and 516 raindrops. [Original frame, diagnostics and browser test](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45137496302/job/137567860320)
+
+The second frame comes from the same menu-driven test on the final tyre shader. The rider approaches Cold Spot in second gear at 156 km/h in 24 mm/h of rain. The circuit reports an average water depth of 1.01 mm. This run completed grid preparation in 112.05 s, including 9.12 s waiting for cockpit GPU work. [Original frame and diagnostics](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45141060535/job/137582121615)
 
 ![Aurel race broadcast with the GP-R1 at 149 km/h and several riders on the main straight](aurel-live-race.jpg)
 
@@ -143,6 +147,7 @@ These 1280 × 800 screenshots came from the production build’s dry and wet pra
 | Twelve riders, two wet laps of Cape Wrenna, fixed 120 Hz | All twelve riders finished without a fall in each run. The combined race and track-surface digest matched after 63,484 steps. [Results for every entrant](cape-full-field-replay.json) |
 | Eight riders, two wet laps of Poggio Alto, fixed 120 Hz | Both runs classified all eight riders with zero falls and the same replay digest after 70,897 steps. |
 | One-lap races at Aurel, Cape Wrenna, Haarveld and Poggio Alto, twelve riders per circuit | All 48 entrants finished with zero falls. Peak speeds were 243.9, 278.5, 232.4 and 293.4 km/h respectively. Cape Wrenna and Haarveld ran in rain. Aurel and Poggio Alto ran in clear weather. |
+| Four-rider wet Cape Wrenna grid, High at 960 × 540, Mesa software rendering | The hidden cockpit colour pass covered 64,000 pixels. The first visible view covered all 518,400 pixels in the separate 4× MSAA framebuffer check. In two hosted runs, the wait for cockpit GPU work fell from 27.42 s to 9.13 s and total grid preparation from 130.57 s to 113.36 s. [Earlier capture](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45137496302/job/137567860320) · [Revised capture](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45140263156/job/137576801703) |
 
 The revised twelve-rider grid, the Full HD corner and the menu-driven practices share one gameplay revision. The tower and pavilion pairs preserve the original captures from those stages of development. [Gameplay commit](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/d02273c9fe8a25ce55c9baa6b45734befce3fee9)
 
