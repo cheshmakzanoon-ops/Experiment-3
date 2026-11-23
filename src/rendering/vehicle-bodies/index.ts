@@ -655,6 +655,12 @@ export class VehicleBodies {
     }
     this.feedShown.length = 0;
   }
+  /** Local race reflections follow the actual painted shell. A previously
+   * assigned body can remain cached but invisible after a replay/model cut. */
+  formulaProbeFor(id: number) {
+    const body = this.bodies.get(id);
+    return body?.root.visible && body.definition.drs ? body : null;
+  }
   /** The followed body's rear-view feed surfaces and the root that orients
    * them, while it is drawn near (null: none, or not a catalogue body). */
   mirrorsFor(id: number) {

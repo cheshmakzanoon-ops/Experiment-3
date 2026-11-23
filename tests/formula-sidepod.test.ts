@@ -2,9 +2,12 @@ import * as T from 'three';
 import { expect, it } from 'vitest';
 import { DEFAULT_LIVERY } from '../src/storage/livery.ts';
 import { bodyLook } from '../src/rendering/vehicle-bodies/colourways.ts';
-import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
+import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
+import { Simulation } from '../src/simulation/world.ts';
+import { carBase, R, RACE_BASE } from '../src/simulation/protocol.ts';
 import { bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
-import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
+import { buildVehicleBody, VehicleBodies } from '../src/rendering/vehicle-bodies/index.ts';
 import { sharedMaterials } from '../src/rendering/vehicle-bodies/materials.ts';
 
 it.each(['fr3', 'fx26', 'jf2'])(
@@ -52,3 +55,31 @@ it.each(['fr3', 'fx26', 'jf2'])(
     expect(bodyLook(id, 3, sheet, entry)).toEqual(bodyLook(id, 3, sheet));
   },
 );
+
+it('binds each feeder car’s actual paint to the venue probe and releases it on a replay cut', () => {
+  const bodies = new VehicleBodies();
+  const world = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
+  const frame = world.makeFrame(),
+    slot = { root: new T.Group(), lodLevel: 0 };
+  const pose = (id: string) => {
+    frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+    bodies.update(frame, frame, 1, [slot], false);
+    return bodies.formulaProbeFor(0);
+  };
+  try {
+    const first = pose('fx26')!;
+    expect(first.root.parent).toBe(bodies.root);
+    expect([first.materials.paint, first.materials.accent]).toMatchObject([
+      { isMeshPhysicalMaterial: true },
+      { isMeshPhysicalMaterial: true },
+    ]);
+    const next = pose('fr3')!;
+    expect(next.root).not.toBe(first.root);
+    expect(next.materials.paint).not.toBe(first.materials.paint);
+    expect(pose('apx01')).toBeNull();
+    expect(pose('jf2')!.root.visible).toBe(true);
+    expect(pose('tc1')).toBeNull();
+  } finally {
+    bodies.clear();
+  }
+});

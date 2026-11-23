@@ -517,7 +517,7 @@ export class RacingRenderer {
   /** Rear-view surfaces bound to the mirror feeds, and the root that orients
    * them (the followed catalogue body's own mirrors, else the Formula car's). */
   private mirrorSurfaces: readonly T.Mesh[] = [];
-  private readonly bikeProbeMaterials: T.MeshStandardMaterial[] = [];
+  private readonly vehicleProbeMaterials: T.MeshStandardMaterial[] = [];
   private readonly noMirrorSurfaces: readonly T.Mesh[] = [];
   private mirrorRoot: T.Object3D | null = null;
   /** The followed machine's cabin (null: the Formula car or a motorcycle). */
@@ -1883,9 +1883,9 @@ export class RacingRenderer {
     const paint = followedBike && this.bikeShells.gpProbePaint(this.follow);
     let reflectionMaterials = this.reflectionMaterials[this.follow];
     if (paint) {
-      this.bikeProbeMaterials.length = 0;
-      this.bikeProbeMaterials.push(...paint, this.circuit.roadMaterial);
-      reflectionMaterials = this.bikeProbeMaterials;
+      this.vehicleProbeMaterials.length = 0;
+      this.vehicleProbeMaterials.push(...paint, this.circuit.roadMaterial);
+      reflectionMaterials = this.vehicleProbeMaterials;
     }
     if (this.reflectionFollow !== this.follow) {
       this.reflection.invalidate();
@@ -1996,7 +1996,6 @@ export class RacingRenderer {
           iblUniforms.apexSkyIrradianceSaturation.value,
         ) ?? null);
     if (photoSaturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = photoSaturation;
-    this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment, specularIBL);
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
@@ -2478,6 +2477,16 @@ export class RacingRenderer {
       camera: this.camera.position,
       detailDistance: cabinDetailDistance(this.quality),
     });
+    const formulaBody = followedDefinition.drs
+      ? this.vehicleBodies?.formulaProbeFor(this.follow)
+      : null;
+    if (formulaBody) {
+      const { paint, accent } = formulaBody.materials;
+      this.vehicleProbeMaterials.length = 0;
+      this.vehicleProbeMaterials.push(paint, accent, this.circuit.roadMaterial);
+      reflectionMaterials = this.vehicleProbeMaterials;
+    }
+    this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment, specularIBL);
     // Select the followed model's real glass. Racing motorcycles have no
     // road mirrors. The showroom host can still carry Formula glass underneath.
     const bodyMirrors = this.vehicleBodies?.mirrorsFor(this.follow) ?? null;
@@ -2673,16 +2682,16 @@ export class RacingRenderer {
       const wetReflection = wheelWater > 0.04 || frameLiquidRain(b) > 0.01;
       const mxModel = motocrossFollow ? this.bikeShells.motocrossPresentation(this.follow) : undefined;
       if (mxModel) {
-        this.bikeProbeMaterials.length = 0;
-        this.bikeProbeMaterials.push(...mxModel.probeSurfaces, this.circuit.roadMaterial);
-        reflectionMaterials = this.bikeProbeMaterials;
+        this.vehicleProbeMaterials.length = 0;
+        this.vehicleProbeMaterials.push(...mxModel.probeSurfaces, this.circuit.roadMaterial);
+        reflectionMaterials = this.vehicleProbeMaterials;
       }
-      this.refreshReflectionExclusions(car, !!followedBike || !!mxModel);
+      this.refreshReflectionExclusions(car, !!followedBike || !!mxModel, followedDefinition.drs);
       this.drawLedger.mark('probe');
       this.reflection.updateProbe(
         this.renderer,
         this.scene,
-        mxModel?.root ?? followedBike?.root ?? car.root,
+        mxModel?.root ?? followedBike?.root ?? formulaBody?.root ?? car.root,
         reflectionMaterials,
         this.graphics.reflections === 'local' && !menu && !studio,
         wetReflection ? 0.55 : 1.5,
@@ -3010,7 +3019,9 @@ export class RacingRenderer {
     this.mirrorDetailShown.length = 0;
     this.vehicleBodies?.restoreFeedDetail();
   }
-  private refreshReflectionExclusions(subject: FormulaCar | RoadBikeHost, motorcycleSubject = false) {
+  private refreshReflectionExclusions(
+    subject: FormulaCar | RoadBikeHost, motorcycleSubject = false, formulaSubject = false,
+  ) {
     const smallDetail = [
       this.pitCrew.root,
       this.gridPreparation.root,
@@ -3036,6 +3047,9 @@ export class RacingRenderer {
     // at 128 px) keeps static scenery only. The subject car is hidden by the probe itself.
     probe.push(this.effects.group);
     if (motorcycleSubject) probe.push(this.bikeShells.root);
+    // The probe is a scene-only capture. Catalogue Formula cars sit under a
+    // separate scene root from the APX hosts. Mirrors still draw the rivals.
+    if (formulaSubject && this.vehicleBodies) probe.push(this.vehicleBodies.root);
     this.circuit.offroad?.appendCaptureExclusions(probe, 'probe');
     for (const other of this.cars) if (other !== subject) probe.push(other.root);
     if (this.ghost) {
@@ -3372,7 +3386,9 @@ export class RacingRenderer {
             cockpitFov: this.cabin.cockpit.fov,
           }
         : null,
-      reflectionIntensity: this.reflectionMaterials[this.follow]?.[0]?.envMapIntensity ?? null,
+      reflectionIntensity:
+        this.vehicleBodies?.formulaProbeFor(this.follow)?.materials.paint.envMapIntensity ??
+        this.reflectionMaterials[this.follow]?.[0]?.envMapIntensity ?? null,
       visibleSkyIntensity: this.sky.material.uniforms.probeSkyIntensity.value,
       motionBlur: this.motionBlur.diagnostics(),
       scenePass: this.scenePass.diagnostics(),
