@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import { clamp, mod } from '../core/math.ts';
+import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 import { inStandFootprint } from './grandstand.ts';
@@ -94,15 +95,20 @@ export function broadcastRadius(frame: Float32Array, followed: number) {
 export function tracksideRigs(track: Track): readonly CameraRig[] {
   const p = trackPoint(),
     spacing = track.length / TRACKSIDE_PLATFORMS.length;
-  const rigs = TRACKSIDE_PLATFORMS.map(([side, height, fov], id): CameraRig => {
+  const gp = isGpCourse(track);
+  const rigs = TRACKSIDE_PLATFORMS.map(([authoredSide, height, fov], id): CameraRig => {
     const centerS = id * spacing;
     track.at(centerS + spacing * 0.18, p);
-    let offset = side * (p.width + 18);
+    const gpGrid = gp && id === 0;
+    // The grid head sits on the public-side service strip. Its lens clears the
+    // inclined 4.5 m catch-fence return even at wheel height on the near lane.
+    const side = gpGrid ? -track.pit.side : authoredSide;
+    let offset = side * (gpGrid ? track.boundaryAt(p, side) + 2.15 : p.width + 18);
     // Old lens sites were underneath or beside stand canopies. Author a permanent
     // front-walkway pedestal, outside the protected road and in front of the
     // canopy edge. The visible infrastructure consumes this SAME site; never
     // hide the stand or move a camera dynamically to mask an obstruction.
-    if (inStandFootprint(track, p.x + p.nx * offset, p.z + p.nz * offset, 1.2, 22))
+    if (!gpGrid && inStandFootprint(track, p.x + p.nx * offset, p.z + p.nz * offset, 1.2, 22))
       offset = side * (track.boundary(centerS + spacing * 0.18, side) + 3.4);
     const shot: CameraRig['shot'] =
       id === 0
@@ -117,7 +123,11 @@ export function tracksideRigs(track: Track): readonly CameraRig[] {
       id,
       centerS,
       coverageM: spacing + 16,
-      position: new Vector3(p.x + p.nx * offset, p.y + height, p.z + p.nz * offset),
+      position: new Vector3(
+        p.x + p.nx * offset,
+        p.y + (gpGrid ? p.bank * clamp(offset, -12, 12) + 7.1 : height),
+        p.z + p.nz * offset,
+      ),
       baseFov: fov,
       trackingHz: style.panHz,
       zoomHz: style.zoomHz,
