@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45094604207
-- commit: `5ec506e068` · Preserve spectator silhouettes at distance and load the rider’s inside leather flank
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45096209324
+- commit: `44a627fc2b` · Fit GP race instruments, wheel hardware and trackside wind telemetry
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-23T01:26:39Z · updated: 2026-11-23T01:44:17Z
+- started: 2026-11-23T01:43:58Z · updated: 2026-11-23T01:50:10Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| offroad-scenarios | success | 5 |  |
-| unit-tests (3) | cancelled | 1 | Complete unit-suite partition without source changes |
-| unit-tests (2) | cancelled | 11 | Complete unit-suite partition without source changes |
-| unit-tests (1) | cancelled | 0 | Complete unit-suite partition without source changes |
-| unit-tests (4) | cancelled | 1 | Complete unit-suite partition without source changes |
-| scenarios | cancelled | 0 | Run actions/setup-node@v4 |
-| validate | cancelled | 0 | Lint, validate content, typecheck and build without source changes |
+| unit-tests (2) | cancelled | 5 |  |
+| unit-tests (3) | cancelled | 5 |  |
+| scenarios | cancelled | 5 |  |
+| unit-tests (4) | cancelled | 5 |  |
+| unit-tests (1) | cancelled | 5 |  |
+| validate | cancelled | 5 |  |
+| offroad-scenarios | cancelled | 5 |  |
+| browser | cancelled | 0 |  |
 | wet-presentation | cancelled | 0 |  |
-| owner-qa | cancelled | 0 |  |
-| browser | cancelled | -1 |  |
 | publish | cancelled | 0 |  |
+| owner-qa | cancelled | 0 |  |
