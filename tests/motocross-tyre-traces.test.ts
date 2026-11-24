@@ -179,6 +179,43 @@ describe('fresh motocross tyre impressions', () => {
       h.dispose();
     }
   });
+  it('piles the measured skid to the side of travel and restores its wetness when seeking', () => {
+    const h = field();
+    try {
+      const geometry = h.marks.mesh.geometry;
+      const shear = geometry.getAttribute('mxShear');
+      const print = geometry.getAttribute('mxTrace');
+      const sample = (start: number) =>
+        Array.from({ length: h.marks.recordedSegments - start }, (_, i) =>
+          shear.getX((start + i) * 4),
+        );
+      h.frame[h.o + OFFROAD_BASE + O.MOISTURE] = 0.74;
+      h.drive(60, 0);
+      h.drive(60.8, 0.05, 0.65);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      const right = sample(0),
+        first = h.marks.recordedSegments;
+      expect(first).toBeGreaterThan(0);
+      expect(Math.min(...right)).toBeGreaterThan(0.8);
+      expect(shear.getY(0)).toBeCloseTo(0.74, 2);
+      h.drive(61.6, 0.1, 0);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(Math.max(...sample(first))).toBeLessThan(-0.8);
+      const second = h.marks.recordedSegments;
+      h.frame[h.o + WHEEL_BASE + W.ANGLE] = 0.6;
+      h.drive(62.4, 0.15, 0);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(sample(second).every((v) => v === 0)).toBe(true);
+      expect(print.getZ(second * 4)).toBe(0);
+      const held = Array.from(shear.array);
+      h.marks.show(0, h.surface);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(Array.from(shear.array)).toEqual(held);
+    } finally {
+      h.dispose();
+    }
+  });
+
   it('submits only unexpired quads in one indexed draw when their GPU slots wrap', () => {
     const h = field();
     const geometry = h.marks.mesh.geometry,
@@ -334,6 +371,11 @@ describe('fresh motocross tyre impressions', () => {
       expect(h.marks.recordedSegments).toBe(start);
       h.drive(100.72, 1.1);
       expect(h.marks.recordedSegments).toBeGreaterThan(start);
+      const beforeRetirement = h.marks.recordedSegments;
+      h.frame[h.o + F.RETIRED] = 1;
+      h.drive(101.44, 1.15);
+      expect(h.marks.recordedSegments).toBe(beforeRetirement);
+      h.frame[h.o + F.RETIRED] = 0;
       h.drive(30, 0.01);
       expect(h.marks.recordedSegments).toBe(0);
       h.marks.show(3, h.surface);

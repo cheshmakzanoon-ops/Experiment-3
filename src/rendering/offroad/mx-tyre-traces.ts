@@ -32,7 +32,8 @@ import type { TerrainView } from './terrain-view.ts';
 const PAGE = 1024,
   ARCHIVE = 262144,
   ACTIVE = 8192,
-  STRIDE = 14,
+  STRIDE = 16,
+  SHOULDER = 1.55,
   LIFE = 12;
 const SOIL = new Set<number>([MATERIAL.DIRT, MATERIAL.MUD, MATERIAL.SAND, MATERIAL.GRAVEL_ROAD]);
 interface Sample {
@@ -47,6 +48,7 @@ interface Sample {
   rootZ: number;
   steer: number;
   x: number;
+  y: number;
   z: number;
   phase: number;
   omega: number;
@@ -62,8 +64,14 @@ function traceMaterial() {
     name: 'MX fresh tyre impressions in soil',
     transparent: true,
     depthWrite: false,
-    blending: T.MultiplyBlending,
-    premultipliedAlpha: true,
+    // Receive the lit ground through the destination factor. A fresh cut
+    // darkens it and the displaced rim can also catch light. Preserve the
+    // framebuffer alpha in both the HDR scene and the direct canvas path.
+    blending: T.CustomBlending,
+    blendSrc: T.DstColorFactor,
+    blendDst: T.OneMinusSrcAlphaFactor,
+    blendSrcAlpha: T.ZeroFactor,
+    blendDstAlpha: T.OneFactor,
     side: T.DoubleSide,
     forceSinglePass: true,
     polygonOffset: true,
@@ -73,12 +81,17 @@ function traceMaterial() {
     uniforms: { raceTime: { value: 0 } },
     vertexShader: /* glsl */ `
       attribute vec4 mxTrace;
+      attribute vec2 mxShear;
       varying vec2 vTread;
       varying vec3 vPrint;
+      varying vec2 vContactShear;
+      varying vec2 vSoilPosition;
       uniform float raceTime;
       void main() {
         float age = raceTime - mxTrace.x;
         vTread = uv;
+        vContactShear = mxShear;
+        vSoilPosition = position.xz;
         vPrint = vec3(mxTrace.y * (1.0 - smoothstep(4.0, 12.0, age)), mxTrace.zw);
         gl_Position = (age < -0.0005 || age >= 12.0) ? vec4(2.0, 2.0, 2.0, 1.0)
           : projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -86,7 +99,14 @@ function traceMaterial() {
     fragmentShader: /* glsl */ `
       varying vec2 vTread;
       varying vec3 vPrint;
+      varying vec2 vContactShear;
+      varying vec2 vSoilPosition;
       ${SM_ROAD_GROOVE_GLSL}
+      float soilChip(vec2 p) {
+        vec3 q = fract(p.xyx * .1031);
+        q += dot(q, q.yzx + 33.33);
+        return fract((q.x + q.y) * q.z);
+      }
       void main() {
         float u = abs(vTread.x);
         float footprint = 1.0 - smoothstep(0.78, 1.0, u);
@@ -113,10 +133,26 @@ function traceMaterial() {
           float visibleGroove = groove * (1. - smoothstep(.003, .012, pixel));
           press = mix(.56 * (1. - .82 * visibleGroove), .64, vPrint.y);
         }
-        float coverage = footprint * press * vPrint.x * (1.0 - smoothstep(0.5, 2.0, fwidth(vTread.x)));
-        // Modulate the already lit dirt, retaining its colour, shadows, wet
-        // highlights and photographic detail underneath each cut in the soil.
-        gl_FragColor = vec4(vec3(1.0) - vec3(0.43, 0.46, 0.48) * coverage, 1.0);
+        float resolvedAcross = 1.0 - smoothstep(0.5, 2.0, fwidth(vTread.x));
+        float coverage = footprint * press * vPrint.x * resolvedAcross;
+        // Soil rolls up on the leading side of a sideways-sliding tyre. The
+        // torn edge is anchored to the ground even when a wheel locks solid.
+        float scrub = abs(vContactShear.x);
+        float leading = vTread.x * sign(vContactShear.x);
+        vec2 chip = vSoilPosition * 27.0;
+        vec2 weight = smoothstep(vec2(0.0), vec2(1.0), fract(chip));
+        vec2 cell = floor(chip);
+        float grain = mix(mix(soilChip(cell), soilChip(cell + vec2(1, 0)), weight.x),
+          mix(soilChip(cell + vec2(0, 1)), soilChip(cell + 1.0), weight.x), weight.y);
+        grain = mix(grain, 0.5, smoothstep(0.35, 1.2, length(fwidth(chip))));
+        float lip = 0.91 + scrub * (0.09 + 0.19 * grain);
+        float ridge = (1.0 - smoothstep(0.045, 0.23, abs(leading - lip))) * (0.32 + 0.68 * grain);
+        float crease = 1.0 - smoothstep(0.025, 0.15, abs(leading - lip + 0.17));
+        float displaced = scrub * vPrint.x * resolvedAcross;
+        float open = ridge * displaced * (0.27 - 0.14 * vContactShear.y);
+        float shade = crease * displaced * 0.29;
+        gl_FragColor = vec4(vec3(0.10, 0.07, 0.05) * coverage + vec3(1.0, 0.92, 0.78) * open,
+          coverage * 0.53 + shade);
       }`,
   });
 }
@@ -128,6 +164,7 @@ export class MxTyreTraces {
   private readonly patch = mxWheelPatch();
   private readonly road = trackPoint();
   private readonly side = new T.Vector3();
+  private readonly bodyNormal = new T.Vector3();
   private readonly bodyInverse = new T.Quaternion();
   private readonly heightCells = new Int32Array(ACTIVE * 4);
   private readonly terrainUV = new Float32Array(ACTIVE * 8);
@@ -138,6 +175,9 @@ export class MxTyreTraces {
     T.DynamicDrawUsage,
   );
   private readonly print = new T.BufferAttribute(new Float32Array(ACTIVE * 16), 4).setUsage(
+    T.DynamicDrawUsage,
+  );
+  private readonly shear = new T.Int8BufferAttribute(new Int8Array(ACTIVE * 8), 2, true).setUsage(
     T.DynamicDrawUsage,
   );
   private first = 0;
@@ -160,6 +200,7 @@ export class MxTyreTraces {
     g.setAttribute('position', this.position);
     g.setAttribute('uv', this.uv);
     g.setAttribute('mxTrace', this.print);
+    g.setAttribute('mxShear', this.shear);
     g.setIndex(new T.BufferAttribute(indices, 1));
     g.setDrawRange(0, 0);
     this.mesh = new T.Mesh(g, traceMaterial());
@@ -209,6 +250,7 @@ export class MxTyreTraces {
           load = frame[w + W.LOAD];
         if (
           !def.bike?.offroad ||
+          frame[o + F.RETIRED] > 0.5 ||
           speed < 0.4 ||
           frame[o + OFFROAD_BASE + O.AIRBORNE] > 0.5 ||
           load < 55 ||
@@ -260,7 +302,7 @@ export class MxTyreTraces {
             .set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW])
             .conjugate();
           contactAngle = smRoadContactAngle(
-            this.side.copy(p.normal).applyQuaternion(this.bodyInverse),
+            this.bodyNormal.copy(p.normal).applyQuaternion(this.bodyInverse),
             front,
             steer,
           );
@@ -290,14 +332,21 @@ export class MxTyreTraces {
               ? mod(contactAngle - old.contactAngle + Math.PI, TAU) - Math.PI
               : 0;
             const spin = (revolutions - contactShift / TAU) * repeats;
-            const slip = clamp(
-              Math.max(Math.abs(frame[w + W.SLIP]) * 1.7, Math.abs(frame[w + W.ANGLE]) * 1.9),
-              0,
-              1,
-            );
+            // The contact path measures actual lateral travel, including
+            // a countersteering front or a pack rider. A steering command
+            // alone need not mean the tyre slid sideways over the ground.
+            const dy = p.position.y - old.y;
+            const cross =
+              ((p.position.x - old.x) * this.side.x +
+                dy * this.side.y +
+                (p.position.z - old.z) * this.side.z) /
+              Math.hypot(distance, dy);
+            const crossSlip = Math.max(0, Math.abs(cross) - 0.055);
+            const shear = Math.sign(cross) * clamp(crossSlip / 0.42, 0, 1);
+            const slip = clamp(Math.max(Math.abs(frame[w + W.SLIP]) * 1.7, crossSlip * 1.9), 0, 1);
+            const moisture = clamp(frame[o + OFFROAD_BASE + O.MOISTURE], 0, 1);
             const strength =
-              clamp(0.23 + load / 1350 + frame[o + OFFROAD_BASE + O.MOISTURE] * 0.28, 0.23, 0.93) *
-              (roadTyre ? 0.55 : 1);
+              clamp(0.23 + load / 1350 + moisture * 0.28, 0.23, 0.93) * (roadTyre ? 0.55 : 1);
             const steps = Math.ceil(distance / 0.65);
             for (let step = 0; step < steps; step++) {
               const a = step / steps,
@@ -319,6 +368,8 @@ export class MxTyreTraces {
               page[off + 11] = strength;
               page[off + 12] = slip;
               page[off + 13] = pattern;
+              page[off + 14] = shear;
+              page[off + 15] = moisture;
               this.end++;
               this.first = Math.max(this.first, this.end - ARCHIVE);
             }
@@ -333,6 +384,7 @@ export class MxTyreTraces {
         next.rootZ = rz;
         next.steer = steer;
         next.x = p.position.x;
+        next.y = p.position.y;
         next.z = p.position.z;
         next.s = p.station;
         next.l = p.lateral;
@@ -367,7 +419,7 @@ export class MxTyreTraces {
       }
       if (fresh) {
         const at = off + (v < 2 ? 1 : 5),
-          side = v % 2 ? 1 : -1;
+          side = v % 2 ? SHOULDER : -SHOULDER;
         const s = data[at] + data[at + 2] * side,
           l = data[at + 1] + data[at + 3] * side;
         this.heightCells[vertex] = surface.heightCellAt?.(s, l) ?? -1;
@@ -382,6 +434,7 @@ export class MxTyreTraces {
         );
         this.uv.setXY(vertex, side, data[off + (v < 2 ? 9 : 10)]);
         this.print.setXYZW(vertex, data[off], data[off + 11], data[off + 12], data[off + 13]);
+        this.shear.setXY(vertex, data[off + 14], data[off + 15]);
       }
       changed = true;
       this.position.setY(
@@ -429,6 +482,7 @@ export class MxTyreTraces {
     this.upload(this.position, changedFrom, changedTo);
     this.upload(this.uv, insert, end);
     this.upload(this.print, insert, end);
+    this.upload(this.shear, insert, end);
     this.mesh.geometry.setDrawRange((first % ACTIVE) * 6, (end - first) * 6);
     this.drawnEnd = end;
     this.shown = time;
