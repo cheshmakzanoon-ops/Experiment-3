@@ -1,255 +1,257 @@
-### owner-qa (1) (job 138232804015)
+### owner-qa (1) (job 138236928746)
 --- error digest (first 120 matching lines) ---
-610:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:15:48.6478689Z ##[error]The operation was canceled.
+611:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7842715Z   ✘   1 e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (5.2m)
+615:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7846267Z Error: expect.toContainText: Test timeout of 300000ms exceeded.
+618:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:44.5227183Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0928207Z libxfixes3 set to manually installed.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0928609Z libxkbcommon0 is already the newest version (1.6.0-1build1).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0929004Z libxkbcommon0 set to manually installed.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0929421Z libxrandr2 is already the newest version (2:1.5.2-2build1).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0929797Z libxrandr2 set to manually installed.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0930366Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0930924Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0931488Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0931904Z libfontconfig1 set to manually installed.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0932349Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0932774Z libfreetype6 set to manually installed.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0933192Z fonts-liberation is already the newest version (1:2.1.5-3).
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0933619Z fonts-liberation set to manually installed.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0934024Z The following additional packages will be installed:
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0934545Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0934996Z Recommended packages:
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.0935275Z   fonts-ipafont-mincho fonts-tlwg-loma
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1141782Z The following NEW packages will be installed:
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1142636Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1152152Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1152655Z   xfonts-utils
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1157979Z The following packages will be upgraded:
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1166371Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1375748Z 4 upgraded, 9 newly installed, 0 to remove and 68 not upgraded.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1376510Z Need to get 32.1 MB of archives.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1377252Z After this operation, 79.7 MB of additional disk space will be used.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.1378077Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.2185863Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.2543371Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.2942375Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.3041570Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.3448102Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.3957857Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.4042308Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.4128873Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.4212955Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.4921450Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.5075811Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.5171367Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.5279473Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8181487Z Fetched 32.1 MB in 0s (79.1 MB/s)
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8436589Z Selecting previously unselected package fonts-ipafont-gothic.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8715283Z (Reading database ... 
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8716161Z (Reading database ... 5%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8716654Z (Reading database ... 10%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8717378Z (Reading database ... 15%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8717964Z (Reading database ... 20%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8718521Z (Reading database ... 25%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8719184Z (Reading database ... 30%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8719724Z (Reading database ... 35%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8720676Z (Reading database ... 40%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8721004Z (Reading database ... 45%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8721298Z (Reading database ... 50%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:52.8763379Z (Reading database ... 55%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:53.0779700Z (Reading database ... 60%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:53.2676516Z (Reading database ... 65%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:53.4319075Z (Reading database ... 70%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:53.6359339Z (Reading database ... 75%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:53.7794920Z (Reading database ... 80%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.0274819Z (Reading database ... 85%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.2384800Z (Reading database ... 90%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.4330364Z (Reading database ... 95%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.4330989Z (Reading database ... 100%
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.4331783Z (Reading database ... 217092 files and directories currently installed.)
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.4376431Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.4480899Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.6856558Z Selecting previously unselected package fonts-freefont-ttf.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.6998154Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.7006813Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.7887316Z Selecting previously unselected package fonts-tlwg-loma-otf.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.8030055Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.8038070Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.8277962Z Selecting previously unselected package fonts-unifont.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.8421297Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.8429175Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.9576793Z Selecting previously unselected package fonts-wqy-zenhei.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.9721775Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:54.9838649Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.4879265Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.5046360Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.5621942Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.5656927Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.6084369Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.6109997Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.6556920Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.6580556Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.8334510Z Selecting previously unselected package xfonts-encodings.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.8481818Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.8489956Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.8802674Z Selecting previously unselected package xfonts-utils.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.8948135Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.8955984Z Unpacking xfonts-utils (1:7.7+6build3) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.9344916Z Selecting previously unselected package xfonts-cyrillic.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.9490420Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.9501960Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:55.9863928Z Selecting previously unselected package xfonts-scalable.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0012721Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0022635Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0537749Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0563136Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0586647Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0666393Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0792364Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0813280Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0834736Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0856373Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0924271Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0943017Z Setting up fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0964684Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.0986160Z Setting up xfonts-utils (1:7.7+6build3) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.1031789Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.1332248Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.1618121Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.1938791Z Processing triggers for man-db (2.12.0-4build2) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.1963167Z Not building database; man-db/auto-update is not 'true'.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.1977731Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9870349Z 
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9871336Z Running kernel seems to be up-to-date.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9871834Z 
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9872098Z No services need to be restarted.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9872427Z 
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9872669Z No containers need to be restarted.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9873284Z 
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9873580Z No user sessions are running outdated binaries.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9873944Z 
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:56.9874429Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.0925654Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.2445969Z |                                                                                |   0% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.3774655Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.4585576Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.5357846Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.6017566Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.6612743Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.7211607Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.7843656Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.8451636Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.9028550Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:11:58.9565942Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.2178587Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.2180928Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3494297Z |                                                                                |   0% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3542326Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3599762Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3701851Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3788149Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3838495Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3890003Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3926020Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3956293Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.3989345Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.4030943Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.4578554Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.4581193Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.5838717Z |                                                                                |   0% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.6716903Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.7288418Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.7765247Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.8229579Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.8621177Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.8980063Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.9338756Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:02.9724448Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:03.0103636Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:03.0463851Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:12:04.7734923Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-24T05:12:04.8684393Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=1/4
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8687674Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=1/4^[[0m
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8709267Z shell: /usr/bin/bash -e {0}
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8709533Z env:
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8709788Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8710075Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8710508Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.8710749Z ##[endgroup]
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.9698142Z 
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.9700986Z > apex-formula-laboratory@0.1.0 test:e2e
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.9705068Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=1/4
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:04.9708340Z 
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:07.1010707Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:11.3056576Z 
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:11.3057341Z Running 11 tests using 1 worker, shard 1 of 4
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:11.3060083Z 
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:11.9509886Z [browser-progress] START  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:12:41.3085223Z [browser-progress] 29s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Expect "toBeVisible"
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:13:11.3164305Z [browser-progress] 59s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Expect "toBeVisible"
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:13:41.3440982Z [browser-progress] 89s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Expect "toBeVisible"
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:14:11.3526325Z [browser-progress] 119s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryPrimary')
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:14:41.3817349Z [browser-progress] 149s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryPrimary')
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:15:11.3824427Z [browser-progress] 179s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryAccent')
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:15:41.4127345Z [browser-progress] 209s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryAccent')
-owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:15:48.6478689Z ##[error]The operation was canceled.
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-24T05:15:48.6592761Z ##[group]Run actions/upload-artifact@v4
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6593285Z with:
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6593608Z   name: owner-qa-1-of-4
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6594272Z   path: test-results/
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.6696746Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.6697130Z Recommended packages:
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.6697427Z   fonts-ipafont-mincho fonts-tlwg-loma
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8259320Z The following NEW packages will be installed:
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8260492Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8271084Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8271655Z   xfonts-utils
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8276136Z The following packages will be upgraded:
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8281198Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8448557Z 4 upgraded, 9 newly installed, 0 to remove and 65 not upgraded.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8448992Z Need to get 32.1 MB of archives.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8449423Z After this operation, 79.7 MB of additional disk space will be used.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.8449873Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.9245113Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.9579192Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:49.9952282Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.0133121Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.0398384Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.0959121Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.1092890Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.1196353Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.1301653Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.1968586Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.2085123Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.2185623Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.2318233Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:50.9817651Z Fetched 32.1 MB in 0s (80.6 MB/s)
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.0619448Z Selecting previously unselected package fonts-ipafont-gothic.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1662046Z (Reading database ... 
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1662421Z (Reading database ... 5%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1662937Z (Reading database ... 10%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1663246Z (Reading database ... 15%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1663515Z (Reading database ... 20%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1663772Z (Reading database ... 25%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1664718Z (Reading database ... 30%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1664996Z (Reading database ... 35%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1665260Z (Reading database ... 40%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1665545Z (Reading database ... 45%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.1665818Z (Reading database ... 50%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.2054441Z (Reading database ... 55%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.6354620Z (Reading database ... 60%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.8003209Z (Reading database ... 65%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:51.9923837Z (Reading database ... 70%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:52.2168763Z (Reading database ... 75%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:52.4184883Z (Reading database ... 80%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:53.2660450Z (Reading database ... 85%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:54.6868296Z (Reading database ... 90%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:55.8366193Z (Reading database ... 95%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:55.8366743Z (Reading database ... 100%
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:55.8367340Z (Reading database ... 216720 files and directories currently installed.)
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:55.8407830Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:55.8507715Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.0447160Z Selecting previously unselected package fonts-freefont-ttf.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.0551174Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.0554142Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.1253846Z Selecting previously unselected package fonts-tlwg-loma-otf.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.1356043Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.1358917Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.1513533Z Selecting previously unselected package fonts-unifont.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.1613074Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.1617897Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.2572006Z Selecting previously unselected package fonts-wqy-zenhei.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.2672813Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.2752371Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.6923939Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7036182Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7397056Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7418633Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7681503Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7696757Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7968015Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.7982620Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.9399947Z Selecting previously unselected package xfonts-encodings.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.9506553Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.9511444Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.9690633Z Selecting previously unselected package xfonts-utils.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.9788913Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:56.9793056Z Unpacking xfonts-utils (1:7.7+6build3) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.0795459Z Selecting previously unselected package xfonts-cyrillic.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.0895653Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.0899662Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1091252Z Selecting previously unselected package xfonts-scalable.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1189175Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1193150Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1463897Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1477036Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1487358Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1536697Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1614004Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1625215Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1634796Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1645321Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1687029Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1696278Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1707519Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1718384Z Setting up xfonts-utils (1:7.7+6build3) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1745725Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.1976296Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:20:57.2164073Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:01.6674189Z Processing triggers for man-db (2.12.0-4build2) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:01.6696967Z Not building database; man-db/auto-update is not 'true'.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:01.6707883Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5870033Z 
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5870674Z Running kernel seems to be up-to-date.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5870940Z 
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5871122Z No services need to be restarted.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5871345Z 
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5871544Z No containers need to be restarted.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5872040Z 
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5872220Z No user sessions are running outdated binaries.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5872433Z 
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:02.5872666Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.4896745Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.5941510Z |                                                                                |   0% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.6645495Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.7048496Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.7521715Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.8036125Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.8553148Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.9012545Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:03.9569747Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:04.0065801Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:04.0516353Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:04.0955175Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.8419883Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.8421382Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9420042Z |                                                                                |   0% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9452254Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9481395Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9495608Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9503947Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9515371Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9525515Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9531698Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9539420Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9544929Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9552080Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9934028Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:06.9936099Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.0911282Z |                                                                                |   0% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.1336837Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.1695011Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.1929299Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.2181681Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.2386112Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.2568399Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.2759866Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.2945383Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.3182100Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:07.3380617Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
+owner-qa (1)	Run npx playwright install --with-deps chromium	2026-11-24T05:21:08.8202345Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-24T05:21:08.8763195Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=1/4
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8765465Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=1/4^[[0m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8793616Z shell: /usr/bin/bash -e {0}
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8793906Z env:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8794315Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8794596Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8794882Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.8795114Z ##[endgroup]
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.9499604Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.9500700Z > apex-formula-laboratory@0.1.0 test:e2e
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.9502417Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=1/4
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:08.9503605Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:11.6237990Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:14.4750940Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:14.4752217Z Running 11 tests using 1 worker, shard 1 of 4
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:14.4752585Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:14.8831189Z [browser-progress] START  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:21:44.4858891Z [browser-progress] 30s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:22:14.5109799Z [browser-progress] 60s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:22:44.5237853Z [browser-progress] 90s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryPrimary')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:23:14.5548056Z [browser-progress] 120s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryPrimary')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:23:44.5833694Z [browser-progress] 150s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Evaluate locator('#liveryAccent')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:24:14.6008228Z [browser-progress] 180s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Fill "42" locator('#liveryNumber')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:24:44.6020601Z [browser-progress] 210s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Fill "NORTH STAR" locator('#liverySponsor')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:25:14.6328559Z [browser-progress] 240s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Fill "NORTH STAR" locator('#liverySponsor')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:25:44.6588217Z [browser-progress] 270s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Select option locator('#liveryPattern')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:14.6747783Z [browser-progress] 300s  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload / Expect "toContainText"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7842715Z   ✘   1 e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (5.2m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7844081Z [browser-failure]  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7844870Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7845472Z [browser-failure]  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7846267Z Error: expect.toContainText: Test timeout of 300000ms exceeded.
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:41.7846735Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:43:46
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:42.2146718Z [browser-progress] START  >  > 07-reference-tools.spec.ts > reference tools: headquarters operations commit real economy and setup changes
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T05:26:44.5227183Z ##[error]The operation was canceled.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-24T05:26:44.5440594Z ##[group]Run actions/upload-artifact@v4
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5440962Z with:
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5441338Z   name: owner-qa-1-of-4
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5441894Z   path: test-results/
 owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
 owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
 owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
 owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6595017Z   retention-days: 7
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6595374Z   if-no-files-found: warn
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6595787Z   compression-level: 6
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6596176Z   overwrite: false
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6596568Z   include-hidden-files: false
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6596989Z env:
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6597337Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6597830Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6598262Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.6598645Z ##[endgroup]
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9769696Z (node:3527) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9815141Z (Use `node --trace-deprecation ...` to show where the warning was created)
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9935617Z Multiple search paths detected. Calculating the least common ancestor of all paths
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9941304Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9943446Z With the provided path, there will be 2 files uploaded
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9947619Z Artifact name is valid!
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:48.9957300Z Root directory input is valid!
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.2628171Z Beginning upload of artifact content to blob storage
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.3013737Z (node:3527) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.3367917Z Uploaded bytes 862
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.3767960Z Finished uploading artifact content to blob storage!
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.3769855Z SHA256 digest of uploaded artifact zip is 7c48b85755eb37748293ac70e1a71f82460e74827ebf3fcdeb1dcafd8512349b
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.3772378Z Finalizing artifact upload
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.8180497Z Artifact owner-qa-1-of-4.zip successfully finalized. Artifact ID 14892432011
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.8200073Z Artifact owner-qa-1-of-4 has been successfully uploaded! Final size is 862 bytes. Artifact ID is 14892432011
-owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:15:49.8202265Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45330961378/artifacts/14892432011
-owner-qa (1)	Post Run actions/checkout@v4	﻿2026-11-24T05:15:49.8369627Z Post job cleanup.
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0105742Z [command]/usr/bin/git version
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0323130Z git version 2.56.1
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0327114Z Temporarily overriding HOME='/home/runner/work/_temp/1e7ef371-f283-4316-affc-72e4253b9c69' before making global git config changes
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0329096Z Adding repository directory to the temporary git global config as a safe directory
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0391654Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0394131Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0396996Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0766604Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0850330Z http.https://github.com/.extraheader
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.0916275Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.1031615Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.1823663Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:15:50.1979901Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-owner-qa (1)	Complete job	﻿2026-11-24T05:15:50.2429819Z Cleaning up orphan processes
-owner-qa (1)	Complete job	2026-11-24T05:15:50.2918104Z Terminate orphan process: pid (3268) (npm run test:e2)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.2962546Z Terminate orphan process: pid (3279) (sh)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3002837Z Terminate orphan process: pid (3280) (node)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3071857Z Terminate orphan process: pid (3296) (sh)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3111744Z Terminate orphan process: pid (3297) (npm run preview --port 4173)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3155630Z Terminate orphan process: pid (3308) (sh)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3202039Z Terminate orphan process: pid (3309) (node)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3247582Z Terminate orphan process: pid (3317) (esbuild)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3303551Z Terminate orphan process: pid (3402) (node)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3346890Z Terminate orphan process: pid (3415) (headless_shell)
-owner-qa (1)	Complete job	2026-11-24T05:15:50.3481565Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5442474Z   retention-days: 7
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5442780Z   if-no-files-found: warn
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5443064Z   compression-level: 6
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5443491Z   overwrite: false
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5443781Z   include-hidden-files: false
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5444105Z env:
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5444527Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5444922Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5445282Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.5445582Z ##[endgroup]
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.7657904Z (node:3541) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.7717285Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.8486919Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.8657148Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.8668823Z With the provided path, there will be 3 files uploaded
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.8726543Z Artifact name is valid!
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:44.8730622Z Root directory input is valid!
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:45.1656295Z Beginning upload of artifact content to blob storage
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:45.4348346Z (node:3541) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:45.6516576Z Uploaded bytes 8388608
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:45.8782880Z Uploaded bytes 16777216
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.2151591Z Uploaded bytes 25165824
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.4538173Z Uploaded bytes 33554432
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.4828839Z Uploaded bytes 34502280
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.5005148Z Finished uploading artifact content to blob storage!
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.5006386Z SHA256 digest of uploaded artifact zip is 3adc2e17804ae5bf8a1a2b49df7ed168287c1d45cc263fa85875b48b34cafd97
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.5007345Z Finalizing artifact upload
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.8211154Z Artifact owner-qa-1-of-4.zip successfully finalized. Artifact ID 14892752341
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.8211845Z Artifact owner-qa-1-of-4 has been successfully uploaded! Final size is 34502280 bytes. Artifact ID is 14892752341
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T05:26:46.8216162Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45332038930/artifacts/14892752341
+owner-qa (1)	Post Run actions/checkout@v4	﻿2026-11-24T05:26:46.8449945Z Post job cleanup.
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9397507Z [command]/usr/bin/git version
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9427040Z git version 2.56.1
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9490800Z Temporarily overriding HOME='/home/runner/work/_temp/098cf646-0b9d-45b1-8f26-0d60be08ee65' before making global git config changes
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9491745Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9492493Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9493730Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:46.9521562Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:47.0246699Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:47.0248747Z http.https://github.com/.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:47.0277003Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:47.0279453Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:47.0570290Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-24T05:26:47.0646182Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (1)	Complete job	﻿2026-11-24T05:26:47.1164008Z Cleaning up orphan processes
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1435288Z Terminate orphan process: pid (3158) (npm run test:e2)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1696257Z Terminate orphan process: pid (3169) (sh)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1726148Z Terminate orphan process: pid (3170) (node)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1752043Z Terminate orphan process: pid (3186) (sh)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1777230Z Terminate orphan process: pid (3187) (npm run preview --port 4173)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1804091Z Terminate orphan process: pid (3198) (sh)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1832297Z Terminate orphan process: pid (3199) (node)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1860338Z Terminate orphan process: pid (3207) (esbuild)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1913534Z Terminate orphan process: pid (3465) (node)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.1938529Z Terminate orphan process: pid (3478) (headless_shell)
+owner-qa (1)	Complete job	2026-11-24T05:26:47.2006478Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
