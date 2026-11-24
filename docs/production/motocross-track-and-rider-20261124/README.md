@@ -62,11 +62,11 @@ When a dry, stationary race view is late, the renderer reserves more frames for 
 
 ## Race verification
 
-The focused suite passed all 957 checks across 97 files, including 916 motocross checks, 35 reflection checks and six spoke-exposure checks. The off-road calibration passed all 20 jump cases and all 11 race scenarios. In the seeded eight-rider races, Valley Ridge recorded one crash and Arena Nord recorded three. Both fields finished with no retirements. The replay-cadence check made 1,520 matrix comparisons per bike and venue pairing, 6,080 total, with zero matrix-element difference.
+The focused suite passed all 957 checks across 97 files, including 916 motocross checks, 35 reflection checks and six spoke-exposure checks. All 35 WebGL model and trackside checks passed on the finished geometry, covering the three detail levels, control contact, reversible wheel and rider motion, roof lighting and held shadows. The off-road calibration passed all 20 jump cases and all 11 race scenarios. In the seeded eight-rider races, Valley Ridge recorded one crash and Arena Nord recorded three. Both fields finished with no retirements. The replay-cadence check made 1,520 matrix comparisons per bike and venue pairing, 6,080 total, with zero matrix-element difference.
 
 Three prepared eight-rider camera cuts took 0.77, 0.87 and 0.95 ms for the CPU pose update on the test host. The figure excludes scene preparation and GPU drawing.
 
-The eight-rider gameplay checks completed both venues at 1280 × 800 on Low and High, and at 960 × 600 on High. The gallery uses the 1280 × 800 High captures. The standard 45-second screenshot window expired on High at the larger size. An isolated run completed both venues on SwiftShader with a 180-second screenshot window. The race captures use the production menu, worker, gate, manual controls and race cameras. The isolated before-and-after images use deterministic camera positions for comparison. GPU timings from software rendering cannot establish a console frame rate.
+The eight-rider gameplay checks completed both venues at 1280 × 800 on Low and High, and at 960 × 600 on High. The gallery uses the 1280 × 800 High captures from the finished control geometry in `884fceb`. That full-size run returned from both races to the selected-machine paddock. The standard 45-second screenshot window expired on High at the larger size. An isolated run completed both venues on SwiftShader with a 180-second screenshot window. The race captures use the production menu, worker, gate, manual controls and race cameras. The isolated before-and-after images use deterministic camera positions for comparison. GPU timings from software rendering cannot establish a console frame rate.
 
 ### Twelve-rider races
 
