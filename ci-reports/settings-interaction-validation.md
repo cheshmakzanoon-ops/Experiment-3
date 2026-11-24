@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45404807726
-- commit: `17c16aeddc` · engine: harden renderer preparation, texture refresh, and GPU resource ownership
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45406562627
+- commit: `9dc4811ff9` · engine: preserve audio, haptic, and replay ownership across session transitions
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-24T13:34:22Z · updated: 2026-11-24T13:41:11Z
+- started: 2026-11-24T13:44:31Z · updated: 2026-11-24T14:12:15Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | failure | 5 | Original menu regression and transition ownership, without forced clicks or retries |
-| qa | skipped | 0 |  |
+| settings | success | 4 |  |
+| qa | failure | 16 | Review-tool specs of the settings and menu regression, on the QA build |
