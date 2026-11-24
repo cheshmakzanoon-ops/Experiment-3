@@ -1,1 +1,234 @@
-logs unavailable (expired or not accessible)
+### validate (job 138261570155)
+--- error digest (first 120 matching lines) ---
+208:validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:28.3260149Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+validate	Set up job	﻿2026-11-24T06:35:31.5259586Z Current runner version: '2.338.2'
+validate	Set up job	2026-11-24T06:35:31.5276807Z ##[group]Runner Image Provisioner
+validate	Set up job	2026-11-24T06:35:31.5277440Z Hosted Compute Agent
+validate	Set up job	2026-11-24T06:35:31.5277919Z Version: 20261111.635
+validate	Set up job	2026-11-24T06:35:31.5278360Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+validate	Set up job	2026-11-24T06:35:31.5278934Z Build Date: 2026-11-11T01:49:01Z
+validate	Set up job	2026-11-24T06:35:31.5279415Z Worker ID: {2108e70b-9309-4bc9-9ddc-1a3953715b3e}
+validate	Set up job	2026-11-24T06:35:31.5279905Z Region: us-west-2
+validate	Set up job	2026-11-24T06:35:31.5280313Z Cloud: AWS
+validate	Set up job	2026-11-24T06:35:31.5280682Z ##[endgroup]
+validate	Set up job	2026-11-24T06:35:31.5281704Z ##[group]Operating System
+validate	Set up job	2026-11-24T06:35:31.5282133Z Ubuntu
+validate	Set up job	2026-11-24T06:35:31.5282505Z 24.04.5
+validate	Set up job	2026-11-24T06:35:31.5282873Z LTS
+validate	Set up job	2026-11-24T06:35:31.5283505Z ##[endgroup]
+validate	Set up job	2026-11-24T06:35:31.5284036Z ##[group]Runner Image
+validate	Set up job	2026-11-24T06:35:31.5284486Z Image: ubuntu-24.04
+validate	Set up job	2026-11-24T06:35:31.5284893Z Version: 20261116.133.1
+validate	Set up job	2026-11-24T06:35:31.5285645Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+validate	Set up job	2026-11-24T06:35:31.5286886Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+validate	Set up job	2026-11-24T06:35:31.5287578Z ##[endgroup]
+validate	Set up job	2026-11-24T06:35:31.5288363Z ##[group]GITHUB_TOKEN Permissions
+validate	Set up job	2026-11-24T06:35:31.5290006Z Contents: read
+validate	Set up job	2026-11-24T06:35:31.5290404Z Metadata: read
+validate	Set up job	2026-11-24T06:35:31.5290829Z ##[endgroup]
+validate	Set up job	2026-11-24T06:35:31.5292283Z Secret source: Actions
+validate	Set up job	2026-11-24T06:35:31.5292904Z Cache mode: write
+validate	Set up job	2026-11-24T06:35:31.5293645Z Prepare workflow directory
+validate	Set up job	2026-11-24T06:35:31.5517315Z Prepare all required actions
+validate	Set up job	2026-11-24T06:35:31.5552911Z Getting action download info
+validate	Set up job	2026-11-24T06:35:31.9813857Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+validate	Set up job	2026-11-24T06:35:33.8377590Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+validate	Set up job	2026-11-24T06:35:34.0682650Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+validate	Set up job	2026-11-24T06:35:34.3975941Z Complete job name: validate
+validate	Run actions/checkout@v4	﻿2026-11-24T06:35:34.4549481Z ##[group]Run actions/checkout@v4
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4550003Z with:
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4550327Z   repository: cheshmakzanoon-ops/Experiment-3
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4552354Z   token: ***
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4552631Z   ssh-strict: true
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4552883Z   ssh-user: git
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4553425Z   persist-credentials: true
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4553742Z   clean: true
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4554007Z   sparse-checkout-cone-mode: true
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4554347Z   fetch-depth: 1
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4554625Z   fetch-tags: false
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4554884Z   show-progress: true
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4555171Z   lfs: false
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4555413Z   submodules: false
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4555679Z   set-safe-directory: true
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4555965Z   allow-unsafe-pr-checkout: false
+validate	Run actions/checkout@v4	2026-11-24T06:35:34.4556378Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:36.9367265Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+validate	Run actions/checkout@v4	2026-11-24T06:35:36.9368621Z ##[group]Getting Git version info
+validate	Run actions/checkout@v4	2026-11-24T06:35:36.9369038Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+validate	Run actions/checkout@v4	2026-11-24T06:35:36.9369677Z [command]/usr/bin/git version
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2051889Z git version 2.56.1
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2065089Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2075995Z Temporarily overriding HOME='/home/runner/work/_temp/700f2b7e-4852-452f-a660-a8b77ed8a1fa' before making global git config changes
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2076824Z Adding repository directory to the temporary git global config as a safe directory
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2079779Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2398909Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2400735Z ##[group]Initializing the repository
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.2404542Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3472100Z hint: Using 'master' as the name for the initial branch. This default branch name
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3472875Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3473497Z hint: to use in all of your new repositories, which will suppress this warning,
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3474066Z hint: call:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3474275Z hint:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3474607Z hint: 	git config --global init.defaultBranch <name>
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3474933Z hint:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3475195Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3475694Z hint: 'development'. The just-created branch can be renamed via this command:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3476023Z hint:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3476241Z hint: 	git branch -m <name>
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3476528Z hint:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3476817Z hint: Disable this message with "git config set advice.defaultBranchName false"
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3478170Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3486067Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3540442Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3540978Z ##[group]Disabling automatic garbage collection
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3543163Z [command]/usr/bin/git config --local gc.auto 0
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3568543Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3569215Z ##[group]Setting up auth
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3573736Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.3601781Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.6916636Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.6940061Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.7090165Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.7113257Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.7261476Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.7288837Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.7289327Z ##[group]Fetching the repository
+validate	Run actions/checkout@v4	2026-11-24T06:35:37.7302182Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +2f4b44f48f602f8472d651e3984057b6c5de68f3:refs/remotes/origin/main
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2391729Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2392447Z  * [new ref]         2f4b44f48f602f8472d651e3984057b6c5de68f3 -> origin/main
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2396386Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2396964Z ##[group]Determining the checkout info
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2398542Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2403866Z [command]/usr/bin/git sparse-checkout disable
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2479805Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2513418Z ##[group]Checking out the ref
+validate	Run actions/checkout@v4	2026-11-24T06:35:48.2513918Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.2629114Z Updating files:  49% (4699/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.2671500Z Updating files:  50% (4761/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.2851889Z Updating files:  51% (4856/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.2961407Z Updating files:  52% (4951/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3042608Z Updating files:  53% (5047/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3105813Z Updating files:  54% (5142/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3156162Z Updating files:  55% (5237/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3209972Z Updating files:  56% (5332/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3263930Z Updating files:  57% (5427/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3297237Z Updating files:  58% (5523/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3414256Z Updating files:  59% (5618/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3542296Z Updating files:  60% (5713/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3604806Z Updating files:  61% (5808/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3708169Z Updating files:  62% (5904/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.3872717Z Updating files:  63% (5999/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.4050647Z Updating files:  64% (6094/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.4297017Z Updating files:  65% (6189/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.4647673Z Updating files:  66% (6284/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.4847961Z Updating files:  67% (6380/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.5015990Z Updating files:  68% (6475/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.5340631Z Updating files:  69% (6570/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.5560103Z Updating files:  70% (6665/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.5602098Z Updating files:  71% (6760/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.5646525Z Updating files:  72% (6856/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.5874907Z Updating files:  73% (6951/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.6415906Z Updating files:  74% (7046/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:49.7691818Z Updating files:  75% (7141/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.0570214Z Updating files:  76% (7236/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.0935238Z Updating files:  77% (7332/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1009401Z Updating files:  78% (7427/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1050967Z Updating files:  79% (7522/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1315261Z Updating files:  80% (7617/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1508935Z Updating files:  81% (7713/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1576884Z Updating files:  82% (7808/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1712179Z Updating files:  83% (7903/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1757766Z Updating files:  84% (7998/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1896927Z Updating files:  85% (8093/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1946072Z Updating files:  86% (8189/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.1993574Z Updating files:  87% (8284/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2043489Z Updating files:  88% (8379/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2091810Z Updating files:  89% (8474/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2141248Z Updating files:  90% (8569/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2185574Z Updating files:  91% (8665/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2225174Z Updating files:  92% (8760/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2265178Z Updating files:  93% (8855/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2305240Z Updating files:  94% (8950/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2347939Z Updating files:  95% (9045/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2390260Z Updating files:  96% (9141/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2431199Z Updating files:  97% (9236/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2471301Z Updating files:  98% (9331/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2512093Z Updating files:  99% (9426/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2512485Z Updating files: 100% (9521/9521)
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2512855Z Updating files: 100% (9521/9521), done.
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2591362Z Switched to a new branch 'main'
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2599293Z branch 'main' set up to track 'origin/main'.
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2663492Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2710195Z [command]/usr/bin/git log -1 --format=%H
+validate	Run actions/checkout@v4	2026-11-24T06:35:50.2730109Z 2f4b44f48f602f8472d651e3984057b6c5de68f3
+validate	Run actions/setup-node@v4	﻿2026-11-24T06:35:50.2934854Z ##[group]Run actions/setup-node@v4
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2935128Z with:
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2935379Z   node-version: 22
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2935594Z   cache: npm
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2935803Z   always-auth: false
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2936048Z   check-latest: false
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2937839Z   token: ***
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.2938037Z ##[endgroup]
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.6086484Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.6090233Z (node:2141) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.6090994Z (Use `node --trace-deprecation ...` to show where the warning was created)
+validate	Run actions/setup-node@v4	2026-11-24T06:35:50.6092889Z ##[group]Environment details
+validate	Run actions/setup-node@v4	2026-11-24T06:35:53.8274351Z node: v22.23.5
+validate	Run actions/setup-node@v4	2026-11-24T06:35:53.8274779Z npm: 10.9.9
+validate	Run actions/setup-node@v4	2026-11-24T06:35:53.8275175Z yarn: 1.22.22
+validate	Run actions/setup-node@v4	2026-11-24T06:35:53.8275939Z ##[endgroup]
+validate	Run actions/setup-node@v4	2026-11-24T06:35:53.8289573Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+validate	Run actions/setup-node@v4	2026-11-24T06:35:54.0495806Z /home/runner/.npm
+validate	Run actions/setup-node@v4	2026-11-24T06:35:54.3211818Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+validate	Run actions/setup-node@v4	2026-11-24T06:35:54.3294512Z (node:2141) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+validate	Run actions/setup-node@v4	2026-11-24T06:35:55.6577903Z Received 0 of 34424064 (0.0%), 0.0 MBs/sec
+validate	Run actions/setup-node@v4	2026-11-24T06:35:56.3586432Z Received 34424064 of 34424064 (100.0%), 19.3 MBs/sec
+validate	Run actions/setup-node@v4	2026-11-24T06:35:56.3587186Z Cache Size: ~33 MB (34424064 B)
+validate	Run actions/setup-node@v4	2026-11-24T06:35:56.3609447Z [command]/usr/bin/tar -xf /home/runner/work/_temp/f851dbf2-aad0-4fce-8461-92d2d68cf41b/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+validate	Run actions/setup-node@v4	2026-11-24T06:35:56.3975205Z Cache restored successfully
+validate	Run actions/setup-node@v4	2026-11-24T06:35:56.3987617Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-24T06:35:56.4122854Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:35:56.4123935Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:35:56.6773412Z shell: /usr/bin/bash -e {0}
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:35:56.6773762Z ##[endgroup]
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:36:00.0083734Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:36:00.2604513Z 
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:36:00.2605310Z added 194 packages in 3s
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:36:00.8661304Z (node:2191) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:36:00.8662155Z (Use `node --trace-warnings ...` to show where the warning was created)
+validate	Lint, validate content, typecheck and build without source changes	﻿2026-11-24T06:36:00.8781363Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:00.8782205Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'^[[0m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:00.8809867Z shell: /usr/bin/bash -e {0}
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:00.8810139Z ##[endgroup]
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:01.6211348Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:01.6212317Z > apex-formula-laboratory@0.1.0 lint
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:01.6212861Z > eslint src tests e2e scripts
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:01.6213423Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:26.0730551Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:26.0731543Z > apex-formula-laboratory@0.1.0 validate:content
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:26.0732211Z > node --experimental-transform-types scripts/validate-content.ts
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:26.0732525Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T06:36:28.3260149Z ##[error]The operation was canceled.
+validate	Post Run actions/checkout@v4	﻿2026-11-24T06:36:28.3417640Z Post job cleanup.
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4163767Z [command]/usr/bin/git version
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4198214Z git version 2.56.1
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4228455Z Temporarily overriding HOME='/home/runner/work/_temp/1328bdd4-ef4a-4707-ba22-92603e5e06c4' before making global git config changes
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4254243Z Adding repository directory to the temporary git global config as a safe directory
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4255564Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4269686Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4298215Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4533781Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4556652Z http.https://github.com/.extraheader
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4580414Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4609788Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4842452Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+validate	Post Run actions/checkout@v4	2026-11-24T06:36:28.4876215Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+validate	Complete job	﻿2026-11-24T06:36:28.5183457Z Cleaning up orphan processes
+validate	Complete job	2026-11-24T06:36:28.5348163Z Terminate orphan process: pid (2226) (node)
+validate	Complete job	2026-11-24T06:36:28.5376823Z Terminate orphan process: pid (2233) (bash)
+validate	Complete job	2026-11-24T06:36:28.5400509Z Terminate orphan process: pid (2262) (npm run validate:content)
+validate	Complete job	2026-11-24T06:36:28.5426935Z Terminate orphan process: pid (2273) (sh)
+validate	Complete job	2026-11-24T06:36:28.5460729Z Terminate orphan process: pid (2274) (node)
+validate	Complete job	2026-11-24T06:36:28.5529581Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

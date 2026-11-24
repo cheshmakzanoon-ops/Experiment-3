@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45339527082
-- commit: `78f1dfe47b` · Fit Valley Ridge banner eyelets and pole lashings and shade their reverse-side ink and woven hems
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45340116365
+- commit: `2f4b44f48f` · Tessellate motocross boot protection to its physical size and restore the complete rider geometry budget
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-24T06:18:53Z · updated: 2026-11-24T06:20:09Z
+- started: 2026-11-24T06:23:39Z · updated: 2026-11-24T06:36:32Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| offroad-scenarios | cancelled | 0 |  |
-| scenarios | cancelled | 0 |  |
-| validate | cancelled | 0 |  |
-| unit-tests (3) | cancelled | 0 |  |
-| unit-tests (2) | cancelled | 0 |  |
-| unit-tests (4) | cancelled | 0 |  |
-| unit-tests (1) | cancelled | 0 |  |
-| wet-presentation | cancelled | 0 |  |
+| validate | cancelled | 1 | Lint, validate content, typecheck and build without source changes |
+| scenarios | cancelled | 12 |  |
+| unit-tests (1) | cancelled | 12 |  |
+| unit-tests (3) | cancelled | 12 |  |
+| offroad-scenarios | cancelled | 12 |  |
+| unit-tests (2) | cancelled | 12 |  |
+| unit-tests (4) | cancelled | 12 |  |
 | owner-qa | cancelled | 0 |  |
 | browser | cancelled | 0 |  |
-| publish | cancelled | -1 |  |
+| wet-presentation | cancelled | 0 |  |
+| publish | cancelled | 0 |  |
