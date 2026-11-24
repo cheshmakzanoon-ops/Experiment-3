@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path';
 import type {
   captureMotocrossBike,
   captureMotocrossFieldSharing,
+  measureGoggleTransmission,
 } from './fixtures/motocross-bike-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
@@ -17,6 +18,7 @@ type CaptureOptions = {
 };
 type CaptureResult = ReturnType<typeof captureMotocrossBike>[number];
 type Review = {
+  goggle: (detail: 'high' | 'mid') => Promise<ReturnType<typeof measureGoggleTransmission>>;
   field: () => Promise<ReturnType<typeof captureMotocrossFieldSharing>>;
   capture: (options: CaptureOptions) => Promise<ReturnType<typeof captureMotocrossBike>>;
   attach: (name: string, result: CaptureResult) => Promise<void>;
@@ -120,7 +122,10 @@ const test = base.extend<{ review: Review }>({
           }
         ).MotocrossReview.captureMotocrossFieldSharing(),
       );
-    await use({ capture, attach, field });
+    const goggle = (detail: 'high' | 'mid') => page.evaluate((lod) =>
+      (window as unknown as { MotocrossReview: { measureGoggleTransmission: typeof measureGoggleTransmission } })
+        .MotocrossReview.measureGoggleTransmission(lod), detail);
+    await use({ capture, attach, field, goggle });
     expect(errors).toEqual([]);
   },
 });
@@ -531,4 +536,18 @@ test('held gate shadows match a normal motocross colour frame pixel for pixel', 
   expect(shots[2].hash).toBe(shots[3].hash);
   expect(shots[0].hash).toBe(shots[4].hash);
   expect(shots.map((s) => s.glError)).toEqual([0, 0, 0, 0, 0]);
+});
+
+test('wet roost blocks light through individual deposits on both production goggle lenses', async ({ review }, info) => {
+  for (const detail of ['high', 'mid'] as const) {
+    const measured = await review.goggle(detail);
+    await info.attach(detail + '-transmission.json', { body: JSON.stringify(measured), contentType: 'application/json' });
+    expect(measured.clearPixels).toBeGreaterThan(3000);
+    expect(measured.usedOpaque).toBeGreaterThan(80);
+    expect(measured.wetOpaque).toBeGreaterThan(measured.usedOpaque);
+    expect(measured.wetClear).toBeGreaterThan(measured.clearPixels * 0.65);
+    expect(measured.changedOnReturn).toBe(0);
+    expect(measured.calls).toBe(1);
+    expect(measured.glError).toBe(0);
+  }
 });

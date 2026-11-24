@@ -25,6 +25,7 @@ export function tagMudExposure(material: T.Material, amount: number) {
   exposure.set(material, amount);
 }
 const DECLARATIONS = /* glsl */ `
+#define MX_HAS_RECORDED_COAT
 varying vec3 vOffroadMudPos;
 uniform float offroadMud;
 uniform float offroadMudWet;

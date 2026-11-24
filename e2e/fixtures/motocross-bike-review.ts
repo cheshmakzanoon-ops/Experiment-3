@@ -567,3 +567,5 @@ export function captureMotocrossFieldSharing() {
     renderer.forceContextLoss();
   }
 }
+
+export { measureGoggleTransmission } from './motocross-goggle-transmission.ts';

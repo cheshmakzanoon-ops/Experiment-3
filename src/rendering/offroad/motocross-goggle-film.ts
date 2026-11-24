@@ -8,13 +8,19 @@ export function installMxGoggleFilm(material: T.MeshPhysicalMaterial) {
   material.ior = 1.58;
   material.transparent = true;
   material.depthWrite = false;
-  chainShaderHook(material, 'mx-goggle-film-v2', (shader) => {
+  chainShaderHook(material, 'mx-goggle-film-v3', (shader) => {
     injectDeclarations(shader, 'common', 'varying vec2 vMxLensUv;', 'vertex');
     injectAfter(shader, 'begin_vertex', 'vMxLensUv = uv;', 'vertex');
     injectDeclarations(
       shader,
       'common',
-      'varying vec2 vMxLensUv; float mxFilmEdge, mxLensBrow;',
+      `varying vec2 vMxLensUv;
+      float mxFilmEdge, mxLensBrow, mxLensSpatter;
+      vec3 mxLensSeed(vec2 cell) {
+        vec3 p = fract(cell.xyx * vec3(.1031, .1030, .0973));
+        p += dot(p, p.yxz + 33.33);
+        return fract((p.xxy + p.yzz) * p.zyx);
+      }`,
       'fragment',
     );
     // Darker at the brow and edges. Through the centre a camera can see the
@@ -23,6 +29,10 @@ export function installMxGoggleFilm(material: T.MeshPhysicalMaterial) {
       float mxGrazing = 1.0 - saturate(abs(dot(normal, normalize(vViewPosition))));
       diffuseColor.a = mix(0.40 + 0.15 * mxLensBrow, 0.94, mxGrazing * mxGrazing);
       diffuseColor.a += (1.0 - diffuseColor.a) * 0.22 * mxFilmEdge;
+      #ifdef MX_HAS_RECORDED_COAT
+        // Wet earth on the outer tear-off occludes the eyes behind it.
+        diffuseColor.a = mix(diffuseColor.a, 0.99, max(mxLensSpatter, offroadMudMask));
+      #endif
     `, 'fragment');
     injectAfter(
       shader,
@@ -39,17 +49,45 @@ export function installMxGoggleFilm(material: T.MeshPhysicalMaterial) {
       diffuseColor.rgb *= mix(vec3(1.18,1.12,1.01),vec3(0.55,0.74,0.86),
         0.70*mxLensBrow + 0.30*side*side);
       diffuseColor.rgb = mix(diffuseColor.rgb,vec3(0.10,0.16,0.17),0.32*mxFilmEdge);
+      mxLensSpatter = 0.0;
+      #ifdef MX_HAS_RECORDED_COAT
+        // Discrete, millimetre-scale flecks land on the outer sheet. Keep
+        // their positions fixed as the recorded coat builds or is rewound.
+        vec2 grid = vMxLensUv * vec2(17.0, 5.5);
+        float footprint = max(length(fwidth(grid)), 0.015);
+        if (offroadMud > 0.01) {
+          vec3 seed = mxLensSeed(floor(grid));
+          vec2 local = fract(grid) - (0.26 + 0.48 * seed.xy);
+          local.x += (seed.z - 0.5) * local.y * 0.60;
+          local.y *= 0.8 + 0.56 * seed.x;
+          float radius = 0.095 + 0.13 * seed.y;
+          float d = length(local);
+          float coverage = 1.0 - smoothstep(radius - 0.03, radius + 0.03 + footprint * 0.5, d);
+          float mean = 3.14159 * radius * radius / (0.8 + 0.56 * seed.x);
+          coverage = mix(coverage, mean, smoothstep(0.24, 0.85, footprint));
+          float load = offroadMud * (0.43 + 0.46 * offroadMudWet) * (1.0 - 0.17 * mxLensBrow);
+          mxLensSpatter = coverage * smoothstep(seed.z * 0.91, seed.z * 0.91 + 0.12, load);
+          vec3 soil = mix(vec3(.205,.145,.086), vec3(.080,.051,.029), offroadMudWet);
+          diffuseColor.rgb = mix(diffuseColor.rgb, soil * (0.79 + seed.x * 0.46), mxLensSpatter);
+        }
+      #endif
     }`,
       'fragment',
     );
+    injectAfter(shader, 'roughnessmap_fragment', `
+      #ifdef MX_HAS_RECORDED_COAT
+        roughnessFactor = mix(roughnessFactor, mix(.89, .48, offroadMudWet), mxLensSpatter);
+      #endif`, 'fragment');
     injectAfter(
       shader,
       'lights_physical_fragment',
       /* glsl */ `
 #ifdef USE_IRIDESCENCE
+      material.iridescence *= 1.0 - mxLensSpatter;
       material.iridescenceThickness = mix(205.0,295.0,0.65*mxLensBrow+0.35*abs(vMxLensUv.x*2.0-1.0));
 #endif
 #ifdef USE_CLEARCOAT
+      material.clearcoat *= 1.0 - mxLensSpatter;
       material.clearcoatRoughness = min(1.0,material.clearcoatRoughness+0.12*mxFilmEdge);
 #endif`,
       'fragment',
