@@ -10,15 +10,18 @@ import type { Compound, Controls, SessionOptions } from '../simulation/config.ts
  * simulation tick it was applied before (`Simulation.tick` at that moment):
  * driver controls (including the pause reset and the 0.4 watchdog brake), pit
  * requests and the AI-demonstration toggle. `Resimulation` replays the log in
- * slices of `FLASHBACK.slice` steps so the worker stays responsive.
+ * slices bounded by both `FLASHBACK.slice` steps and a wall-time work budget
+ * so the worker stays responsive without dropping any recorded ticks.
  */
 export const FLASHBACK = Object.freeze({
   /** How far back a flashback may go (s). */
   window: 30,
   /** Flashbacks per race. */
   perRace: 5,
-  /** Physics steps per worker turn while re-simulating. */
+  /** Maximum physics steps per worker turn while re-simulating. */
   slice: 2000,
+  /** Yield between complete ticks after this many milliseconds of work. */
+  maxWorkMs: 8,
   dt: 1 / 120,
 });
 
@@ -96,25 +99,58 @@ export function applyEntry(simulation: Simulation, entry: FlashbackEntry) {
   else simulation.autoPlayer = entry.value;
 }
 
-/** Re-simulate a session from its start to `target` ticks, in slices. */
+export interface ResimulationOptions {
+  /** Positive wall-time budget per run; one indivisible tick may exceed it. */
+  maxWorkMs?: number;
+  /** Monotonic milliseconds. A fixed clock makes step-capped tests repeatable. */
+  now?: () => number;
+}
+
+/** Re-simulate a session from its start to `target` ticks, in slices.
+ * Yielding retains all pending ticks and their input order for the next run. */
 export class Resimulation {
   readonly simulation: Simulation;
   private index = 0;
+  private readonly maxWorkMs: number;
+  private readonly now: () => number;
   constructor(
     options: SessionOptions,
     private readonly entries: readonly FlashbackEntry[],
     readonly target: number,
+    work: ResimulationOptions = {},
   ) {
-    if (!Number.isInteger(target) || target < 0) throw new Error('Invalid flashback tick');
+    if (!Number.isSafeInteger(target) || target < 0) throw new Error('Invalid flashback tick');
+    this.maxWorkMs = work.maxWorkMs ?? FLASHBACK.maxWorkMs;
+    this.now = work.now ?? (() => performance.now());
+    if (!Number.isFinite(this.maxWorkMs) || this.maxWorkMs <= 0 || typeof this.now !== 'function')
+      throw new Error('Invalid flashback work options');
     this.simulation = new Simulation(options);
   }
   get done() {
     return this.simulation.tick >= this.target;
   }
-  /** Advance at most `steps` physics steps; true once the target tick is reached. */
+  /** Advance at most `steps` physics steps within the work budget. A nonzero
+   * cap always permits one complete tick; true once the target is reached. */
   run(steps: number = FLASHBACK.slice) {
+    if (!Number.isSafeInteger(steps) || steps < 0) throw new Error('Invalid flashback step count');
+    if (steps === 0 || this.done) return this.done;
     const sim = this.simulation;
+    const start = this.now();
+    let lastWorkTime = start;
     for (let n = 0; n < steps && sim.tick < this.target; n++) {
+      if (n > 0) {
+        const workTime = this.now();
+        // A broken budget clock cannot authorize a long batch. Complete the
+        // first tick before yielding so every nonempty run still progresses.
+        if (
+          !Number.isFinite(start) ||
+          !Number.isFinite(workTime) ||
+          workTime < lastWorkTime ||
+          workTime - start >= this.maxWorkMs
+        )
+          break;
+        lastWorkTime = workTime;
+      }
       while (this.index < this.entries.length && this.entries[this.index].tick <= sim.tick)
         applyEntry(sim, this.entries[this.index++]);
       sim.step(FLASHBACK.dt);

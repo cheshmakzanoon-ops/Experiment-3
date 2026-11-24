@@ -9,6 +9,8 @@ The user requested 60 agents in 10 waves, with six distinct agent assignments
 per wave. Available execution capacity is three workers plus the coordinating
 agent, so each wave runs in two batches of three. The coordinator reviews,
 integrates, validates, commits, and pushes the completed work to `main`.
+Independent tasks from the following wave may start while the previous wave's
+last verification completes; file ownership and commits remain separate.
 
 **Excluded:** 3D models, characters, authored environments, geometry, scene
 decoration, textures, material appearance, asset exports, vehicle specifications,
@@ -47,8 +49,8 @@ Specific assignments are refined against findings from preceding waves.
 |---|---:|---|---|
 | 1 | 1–6 | Fixed-step scheduling, input cadence, live/replay timing, worker snapshots | Complete |
 | 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | Complete |
-| 3 | 13–18 | Collision queries, numerical stability, simulation throughput | In progress |
-| 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Pending |
+| 3 | 13–18 | Collision queries, numerical stability, simulation throughput | Complete |
+| 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | In progress |
 | 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Pending |
 | 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Pending |
 | 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Pending |
@@ -67,6 +69,10 @@ pretest scripts. Asset contents are not regenerated or modified.
 Wave results, test commands, limitations, and commits are recorded here as work
 is integrated. Agent-specific receipts are maintained in the accompanying task
 ledger.
+
+Published checkpoints so far: `db3b4f1` and `09fd6d2` (wave 1), followed by
+`c865e21` (wave 2). Automated CI-report commits are preserved between engine
+checkpoints; publication never force-updates `main`.
 
 ### Baseline and first batch
 
@@ -127,6 +133,58 @@ the project compiler options in a scoped project (1,470 files, approximately
 attempts were terminated by the host memory limit; they are not passing checks.
 Final validation will cover the full project again, using separate root groups
 if the memory constraint persists.
+
+### Wave 3 — simulation work and deterministic boundaries
+
+General BVH raycasts retain their original traversal but resolve the winning
+contact's point and normal once. A controlled 128-ray layered fixture retains
+66,048 triangle checks while reducing point resolutions and normalizations
+from 8,448 to 128 each. A proposed near-first traversal was rejected after an
+adversarial tolerance case changed its contact result; its provisional triangle
+count reduction is not part of the delivered improvement.
+
+Collision broadphase now checks conservative live y/z bounds before detailed
+SAT tests, preserving frozen x ordering and refreshing bounds after impulses.
+Swept queries cache unchanged radii and center intervals, and calculate a
+contact point only at the existing hit threshold. Seeded reference comparisons
+include grazing contacts and correction chains. On controlled 64-vehicle
+separated fixtures, endpoint SAT calls fall from 2,016 to zero and swept radius
+evaluations from 4,096 to 64. These are operation counts on fixtures, not FPS
+claims or a change to the game's supported grid size.
+
+Terrain cache residency and pending work are bounded. Invalid residency budgets
+are rejected, recently sampled tiles regain LRU priority after prefetch, and
+queued synchronous misses are removed. Exact sampled heights and normals remain
+unchanged across eviction and regeneration.
+
+Flashback now yields between complete ticks at an 8 ms work budget or the
+existing step cap. It never drops recorded ticks or changes the 120 Hz timestep.
+A 720-tick variable-cost replay and its 120-tick continuation match the unsliced
+reference. One expensive tick and constructor work remain indivisible.
+
+The first wave 3 integration run passed **92 tests across eight suites**,
+including real worker pause barriers and flashback reconstruction for road
+motorcycles, motocross, and a road car.
+
+Snapshot encoding now scatters ranks in one pass and uses a stable vehicle-index
+lookup. At 12 entrants, order-element reads fall from 78 to 12 and registry
+linear searches from 12 to zero. The tradeoff is one additional rank-slot write
+per listed entrant. Twenty-four seeded snapshots across eight vehicle/session
+scenarios match the original writer byte for byte, including reused subarrays.
+All 14 new encoding tests and five existing targeted checks passed.
+
+Festival renderer loaders now share an in-flight photographic load and release
+resources that resolve after disposal. Successful installation and scene data
+are unchanged. Renderer/session lifecycle integration passed 45 tests. These
+loaders may still finish underlying downloads after cancellation; their results
+can no longer repopulate the closed renderer.
+
+Wave 3's simulation/worker source and tests passed TypeScript checking as one
+400-file project with the repository's compiler options (about 248 MiB compiler
+memory). Scoped lint passed for every assignment. Local checks of the large
+renderer dependency graph were terminated by host memory pressure, including a
+serialized attempt; they are not recorded as passing. The repository CI's full
+compiler/build job is required to close that verification gap.
 
 ### Pre-existing broad-suite findings
 

@@ -213,18 +213,20 @@ export interface TileCacheStats {
 /** LRU cache of LOD0 (physics) height tiles with a hard residency budget.
  * `prefetch` generates missing tiles near the cars ahead of use within a
  * time budget; a query on a missing tile builds it synchronously (counted
- * as a stall). Eviction never drops a tile requested this tick. */
+ * as a stall). Pending work is also bounded by the residency budget. */
 export class TerrainTileCache {
   private readonly tiles = new Map<number, Float32Array>();
-  private readonly pending: number[] = [];
-  private readonly queued = new Set<number>();
+  private pending = new Set<number>();
   readonly stats: TileCacheStats;
   private lastKey = NaN;
+  private newestKey = NaN;
   private lastTile: Float32Array | null = null;
   constructor(
     readonly carver: TerrainCarver,
     readonly budget = 64,
   ) {
+    if (!Number.isSafeInteger(budget) || budget < 1)
+      throw new RangeError('Terrain tile budget must be a positive safe integer');
     this.stats = {
       resident: 0,
       peakResident: 0,
@@ -249,7 +251,10 @@ export class TerrainTileCache {
     this.stats.generated++;
     this.stats.generationMs += ms;
     this.stats.worstGenerationMs = Math.max(this.stats.worstGenerationMs, ms);
+    // A synchronous query can finish work that was queued for prefetch.
+    this.pending.delete(key);
     this.tiles.set(key, heights);
+    this.newestKey = key;
     while (this.tiles.size > this.budget) {
       // Map iteration order is insertion order: the first key is the LRU.
       const oldest = this.tiles.keys().next().value as number;
@@ -266,12 +271,15 @@ export class TerrainTileCache {
   }
   private tile(ix: number, iz: number) {
     const key = TerrainTileCache.key(ix, iz);
-    if (key === this.lastKey && this.lastTile) return this.lastTile;
+    // Prefetch can append tiles between samples of the same point. Only
+    // bypass the LRU refresh while the last sampled tile is still newest.
+    if (key === this.lastKey && key === this.newestKey && this.lastTile) return this.lastTile;
     let tile = this.tiles.get(key);
     if (tile) {
       // Refresh LRU position.
       this.tiles.delete(key);
       this.tiles.set(key, tile);
+      this.newestKey = key;
     } else {
       this.stats.stalls++;
       tile = this.generate(key);
@@ -297,45 +305,58 @@ export class TerrainTileCache {
   has(x: number, z: number) {
     return this.tiles.has(TerrainTileCache.key(Math.floor(x / TILE_SIZE), Math.floor(z / TILE_SIZE)));
   }
-  /** Queue tiles around (x, z) and along the velocity (lookahead seconds). */
+  /** Queue tiles around (x, z) and along the velocity (lookahead seconds).
+   * Recent requests take priority; retain older work only while it fits. */
   want(x: number, z: number, vx: number, vz: number, lookahead = 3) {
+    const pending = new Set<number>();
+    const queue = (ix: number, iz: number) => {
+      if (pending.size >= this.budget) return;
+      const key = TerrainTileCache.key(ix, iz);
+      if (!this.tiles.has(key)) pending.add(key);
+    };
     const points: [number, number][] = [[x, z]];
     for (const t of [1, 2, 3]) points.push([x + (vx * lookahead * t) / 3, z + (vz * lookahead * t) / 3]);
     for (const [px, pz] of points) {
       const ix = Math.floor(px / TILE_SIZE),
         iz = Math.floor(pz / TILE_SIZE);
+      // A small budget must first cover the point itself, then neighbours.
+      queue(ix, iz);
       for (let dx = -1; dx <= 1; dx++)
         for (let dz = -1; dz <= 1; dz++) {
           // Only the neighbours the point is close to.
           const cx = (ix + dx + 0.5) * TILE_SIZE,
             cz = (iz + dz + 0.5) * TILE_SIZE;
           if (Math.max(Math.abs(cx - px), Math.abs(cz - pz)) > TILE_SIZE * 0.5 + 64) continue;
-          const key = TerrainTileCache.key(ix + dx, iz + dz);
-          if (this.tiles.has(key) || this.queued.has(key)) continue;
-          this.queued.add(key);
-          this.pending.push(key);
+          queue(ix + dx, iz + dz);
         }
     }
+    for (const key of this.pending) {
+      if (pending.size >= this.budget) break;
+      pending.add(key);
+    }
+    this.pending = pending;
   }
-  /** Generate queued tiles for at most `budgetMs` (at least one). */
+  /** A positive time budget generates at least one queued tile. Stop after
+   * the first generation that exhausts it; zero disables prefetch. */
   prefetch(budgetMs: number) {
+    if (!(budgetMs > 0)) return;
     const start = performance.now();
-    while (this.pending.length && performance.now() - start < budgetMs) {
-      const key = this.pending.shift()!;
-      this.queued.delete(key);
+    for (const key of this.pending) {
+      this.pending.delete(key);
       if (this.tiles.has(key)) continue;
       this.generate(key);
       this.stats.prefetched++;
+      if (performance.now() - start >= budgetMs) break;
     }
   }
   get queuedCount() {
-    return this.pending.length;
+    return this.pending.size;
   }
   clear() {
     this.tiles.clear();
-    this.pending.length = 0;
-    this.queued.clear();
+    this.pending.clear();
     this.lastKey = NaN;
+    this.newestKey = NaN;
     this.lastTile = null;
     this.stats.resident = 0;
   }

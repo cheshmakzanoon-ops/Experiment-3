@@ -157,6 +157,7 @@ export class FestivalRenderer {
   readonly vegetation = new Vegetation();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
+  private photoLoading: Promise<boolean> | null = null;
   readonly water: Water;
   readonly markers: EventMarkers;
   readonly cars = new FestivalCars();
@@ -428,35 +429,47 @@ export class FestivalRenderer {
   /** Load the photographic trees and shrubs (not on LOW); call before the
    * world streams so every tile is planted the same way. Failures keep the
    * procedural crowns. */
-  async loadPhotoVegetation() {
-    if (this.photoVegetation || !photoVegetationEnabled(this.preset)) return false;
-    try {
-      const library = await VegetationLibrary.load(
-        this.renderer,
-        speciesForPalette(FESTIVAL_PALETTE, true, true),
-      );
-      if (!library.trees.length) {
-        library.dispose();
+  loadPhotoVegetation(): Promise<boolean> {
+    if (this.disposed || this.photoVegetation || !photoVegetationEnabled(this.preset))
+      return Promise.resolve(false);
+    if (this.photoLoading) return this.photoLoading;
+    this.photoLoading = VegetationLibrary.load(
+      this.renderer,
+      speciesForPalette(FESTIVAL_PALETTE, true, true),
+    )
+      .then((library) => {
+        if (this.disposed || !library.trees.length) {
+          library.dispose();
+          return false;
+        }
+        this.photoVegetation = library;
+        this.dressing.usePhotoVegetation(library);
+        // Trees never stand on roads: the natural ground alone (cheap per tile).
+        this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
+        this.shadows.invalidate();
+        this.streetLights.invalidate();
+        this.reflection.sceneryChanged();
+        return true;
+      })
+      .catch((error: unknown) => {
+        if (!this.disposed) console.warn('Festival photographic vegetation unavailable:', error);
         return false;
-      }
-      this.photoVegetation = library;
-      this.dressing.usePhotoVegetation(library);
-      // Trees never stand on roads: the natural ground alone (cheap per tile).
-      this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
-      this.shadows.invalidate();
-      this.streetLights.invalidate();
-      this.reflection.sceneryChanged();
-      return true;
-    } catch (error) {
-      console.warn('Festival photographic vegetation unavailable:', error);
-      return false;
-    }
+      })
+      .finally(() => {
+        this.photoLoading = null;
+      });
+    return this.photoLoading;
   }
   loadAuthoredDetails(): Promise<boolean> {
+    if (this.disposed) return Promise.resolve(false);
     if (this.details) return Promise.resolve(true);
     if (this.detailLoading) return this.detailLoading;
     this.detailLoading = SolvaneDetails.load(this.world, this.structures, () => this.disposed)
       .then((kit) => {
+        if (this.disposed) {
+          kit.dispose();
+          return false;
+        }
         this.details = kit;
         this.atmosphere.install(kit.root);
         this.scene.add(kit.root);

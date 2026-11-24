@@ -13,6 +13,11 @@ export class CollisionSolver {
   private sweepEligible: boolean[] = [];
   private sweepMinX: number[] = [];
   private sweepMaxX: number[] = [];
+  private sweepRadius: number[] = [];
+  private sweepMinY: number[] = [];
+  private sweepMaxY: number[] = [];
+  private sweepMinZ: number[] = [];
+  private sweepMaxZ: number[] = [];
   private pendingSweep = false;
   private order: number[] = [];
   private contact = new BoxContact();
@@ -160,6 +165,9 @@ export class CollisionSolver {
         // Frozen candidate extents keep depenetration from invalidating the
         // sort order and its early-out within this pass.
         if (this.sweepMinX[j] > this.sweepMaxX[i]) break;
+        // These unsorted axes use live bounds: an earlier impulse can push
+        // a box into a later candidate during this same ordered pass.
+        if (A.minY > B.maxY || B.minY > A.maxY || A.minZ > B.maxZ || B.minZ > A.maxZ) continue;
         if (this.contact.intersect(A, B)) {
           this.impulse(a, cars[j], this.contact.point, this.contact.normal, this.contact.depth);
           A.update(a.body);
@@ -230,6 +238,7 @@ export class CollisionSolver {
         travel = Math.sqrt(start.center.distanceSq(end.center)),
         speed = Math.max(this.capturedSpeed[i], car.body.velocity.length()),
         spin = Math.max(this.capturedSpin[i], car.body.omega.length());
+      this.sweepRadius[i] = Math.hypot(...start.half);
       // Resets inside an adapter step have no physical velocity connecting
       // their poses. The allowance admits small contact/suspension corrections.
       this.sweepEligible[i] =
@@ -241,11 +250,17 @@ export class CollisionSolver {
       for (let i = 0; i < cars.length; i++) {
         const start = this.starts[i],
           end = this.boxes[i],
-          radius = Math.hypot(...start.half);
+          radius = this.sweepRadius[i];
         // A centre segment expanded by the bounding sphere also contains
         // every intermediate rotation outside the two endpoint AABBs.
         this.sweepMinX[i] = Math.min(start.center.x, end.center.x) - radius;
         this.sweepMaxX[i] = Math.max(start.center.x, end.center.x) + radius;
+        // Cache centre intervals once per event, not once per candidate
+        // pair. Keep the radius sum/comparison arithmetic unchanged below.
+        this.sweepMinY[i] = Math.min(start.center.y, end.center.y);
+        this.sweepMaxY[i] = Math.max(start.center.y, end.center.y);
+        this.sweepMinZ[i] = Math.min(start.center.z, end.center.z);
+        this.sweepMaxZ[i] = Math.max(start.center.z, end.center.z);
       }
       this.order.sort((a, b) => this.sweepMinX[a] - this.sweepMinX[b] || cars[a].id - cars[b].id);
       let fraction = Infinity,
@@ -304,16 +319,12 @@ export class CollisionSolver {
     this.sweepLimitReached = true;
   }
   private sweptBoundsOverlap(i: number, j: number) {
-    const a = this.starts[i].center,
-      endA = this.boxes[i].center,
-      b = this.starts[j].center,
-      endB = this.boxes[j].center,
-      radius = Math.hypot(...this.starts[i].half) + Math.hypot(...this.starts[j].half);
+    const radius = this.sweepRadius[i] + this.sweepRadius[j];
     return (
-      Math.min(a.y, endA.y) <= Math.max(b.y, endB.y) + radius &&
-      Math.min(b.y, endB.y) <= Math.max(a.y, endA.y) + radius &&
-      Math.min(a.z, endA.z) <= Math.max(b.z, endB.z) + radius &&
-      Math.min(b.z, endB.z) <= Math.max(a.z, endA.z) + radius
+      this.sweepMinY[i] <= this.sweepMaxY[j] + radius &&
+      this.sweepMinY[j] <= this.sweepMaxY[i] + radius &&
+      this.sweepMinZ[i] <= this.sweepMaxZ[j] + radius &&
+      this.sweepMinZ[j] <= this.sweepMaxZ[i] + radius
     );
   }
   private approachingAt(cars: Vehicle[], i: number, j: number) {

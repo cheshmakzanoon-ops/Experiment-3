@@ -327,7 +327,8 @@ export class Simulation {
       out[o + F.G_LONG] = c.gLong;
       out[o + F.G_LAT] = c.gLat;
       out[o + F.G_VERT] = c.gVert;
-      out[o + F.RANK] = this.race.order.indexOf(id) + 1;
+      // An absent entrant has rank zero, including on a recycled frame.
+      out[o + F.RANK] = 0;
       out[o + F.FINISH] = c.finishTime;
       out[o + F.WAKE] = c.wake;
       out[o + F.SLIP_ENERGY] = c.tires.reduce((sum, w) => sum + w.energy, 0);
@@ -456,6 +457,13 @@ export class Simulation {
         out[p + W.STEER] = c.wheelSteering[i];
         out[p + W.CAMBER] = c.wheelCamber[i];
       }
+    }
+    // Scatter the order once rather than searching it for every entrant.
+    // Walking backwards retains indexOf's first-occurrence rank for duplicates.
+    for (let position = this.race.order.length - 1; position >= 0; position--) {
+      const id = this.race.order[position];
+      if (Number.isInteger(id) && id >= 0 && id < this.cars.length)
+        out[carBase(id) + F.RANK] = position + 1;
     }
     return out;
   }

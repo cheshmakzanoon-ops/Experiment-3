@@ -177,7 +177,8 @@ setInterval(() => {
   const now = performance.now();
   if (rewind) {
     clock.rebase(now);
-    // Re-simulate in slices (~2000 steps per turn) so messages keep flowing.
+    // Yield between complete ticks at the work budget or 2000-step cap so
+    // cancellation and progress messages keep flowing during long rewinds.
     try {
       const job = rewind;
       if (job.run()) {

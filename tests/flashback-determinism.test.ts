@@ -55,7 +55,8 @@ describe('flashback determinism', () => {
     expect(log.entries.length).toBeGreaterThan(8);
     expect(log.entries.some((e) => e.kind === 'input' && e.input.brake === 0.4)).toBe(true);
     for (let pass = 0; pass < 2; pass++) {
-      const replay = new Resimulation(OPTIONS, log.entries, TICKS);
+      // Fixed batching is intentional here; wall-budget slicing is tested separately.
+      const replay = new Resimulation(OPTIONS, log.entries, TICKS, { now: () => 0 });
       let checked = 0;
       while (!replay.done) {
         replay.run(250);
@@ -75,7 +76,7 @@ describe('flashback determinism', () => {
       frames = new Map<number, Uint32Array>();
     drive(live, log, TICKS, frames);
     const target = 2000;
-    const rewind = new Resimulation(OPTIONS, log.entries, target);
+    const rewind = new Resimulation(OPTIONS, log.entries, target, { now: () => 0 });
     let slices = 1;
     while (!rewind.run(FLASHBACK.slice)) slices++;
     expect(slices).toBe(Math.ceil(target / FLASHBACK.slice));

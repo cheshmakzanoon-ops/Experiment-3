@@ -393,13 +393,14 @@ export const VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.free
   ...DIRT_BIKES,
 });
 export const VEHICLE_IDS = Object.freeze(Object.keys(VEHICLES));
+const VEHICLE_INDICES = new Map(VEHICLE_IDS.map((id, index) => [id, index]));
 export const DEFAULT_VEHICLE_ID = 'apx01';
 export function vehicleDefinition(id: unknown): VehicleDefinition {
   return typeof id === 'string' && Object.hasOwn(VEHICLES, id) ? VEHICLES[id] : FORMULA_APX01;
 }
 /** Stable small integer carried in snapshots (protocol R.VEHICLE). */
 export function vehicleIndex(id: string) {
-  return Math.max(0, VEHICLE_IDS.indexOf(id));
+  return VEHICLE_INDICES.get(id) ?? 0;
 }
 export function vehicleAt(index: number): VehicleDefinition {
   return vehicleDefinition(VEHICLE_IDS[index]);

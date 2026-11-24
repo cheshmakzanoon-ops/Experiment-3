@@ -10,6 +10,10 @@ export class ChassisBox {
   readonly orientation = new Quat();
   minX = 0;
   maxX = 0;
+  minY = 0;
+  maxY = 0;
+  minZ = 0;
+  maxZ = 0;
   update(body: RigidBody) {
     this.center.copy(body.position);
     this.orientation.x = body.orientation.x;
@@ -92,12 +96,30 @@ export class ChassisBox {
         this.axes[i].set(Number(i === 0), Number(i === 1), Number(i === 2)),
         this.axes[i],
       );
-    const radius =
-      Math.abs(this.axes[0].x) * this.half[0] +
-      Math.abs(this.axes[1].x) * this.half[1] +
-      Math.abs(this.axes[2].x) * this.half[2];
-    this.minX = this.center.x - radius;
-    this.maxX = this.center.x + radius;
+    const radiusX =
+        Math.abs(this.axes[0].x) * this.half[0] +
+        Math.abs(this.axes[1].x) * this.half[1] +
+        Math.abs(this.axes[2].x) * this.half[2],
+      radiusY =
+        Math.abs(this.axes[0].y) * this.half[0] +
+        Math.abs(this.axes[1].y) * this.half[1] +
+        Math.abs(this.axes[2].y) * this.half[2],
+      radiusZ =
+        Math.abs(this.axes[0].z) * this.half[0] +
+        Math.abs(this.axes[1].z) * this.half[1] +
+        Math.abs(this.axes[2].z) * this.half[2];
+    this.minX = this.center.x - radiusX;
+    this.maxX = this.center.x + radiusX;
+    // The extra broadphase axes must admit the SAT's near-parallel-axis
+    // cutoff and rounding at grazing contacts, including large coordinates.
+    // Keep x exact: its original bounds also determine candidate ordering.
+    const padding =
+      1e-7 * (this.half[0] + this.half[1] + this.half[2]) +
+      4 * Number.EPSILON * Math.max(1, Math.abs(this.center.y), Math.abs(this.center.z));
+    this.minY = this.center.y - radiusY - padding;
+    this.maxY = this.center.y + radiusY + padding;
+    this.minZ = this.center.z - radiusZ - padding;
+    this.maxZ = this.center.z + radiusZ + padding;
   }
   radius(n: Vec3) {
     return (
@@ -148,8 +170,10 @@ export class BoxContact {
     return Number.isFinite(this.depth);
   }
   /** Greatest separating-axis gap. Positive is a conservative lower bound
-   * on separation; negative is overlap. The normal points from B toward A. */
-  separation(a: ChassisBox, b: ChassisBox) {
+   * on separation; negative is overlap. The normal points from B toward A.
+   * A finite point threshold skips support/clamping work while separated;
+   * callers may read the point only when the returned gap is at or below it. */
+  separation(a: ChassisBox, b: ChassisBox, pointThreshold = Infinity) {
     this.delta.copy(a.center).sub(b.center);
     let gap = -Infinity;
     for (let k = 0; k < 15; k++) {
@@ -167,7 +191,7 @@ export class BoxContact {
       }
     }
     this.depth = -gap;
-    this.contactPoint(a, b);
+    if (gap <= pointThreshold) this.contactPoint(a, b);
     return gap;
   }
   private contactPoint(a: ChassisBox, b: ChassisBox) {
@@ -222,7 +246,7 @@ export class SweptBoxContact {
       this.iterations = iteration + 1;
       this.a.interpolate(startA, endA, fraction);
       this.b.interpolate(startB, endB, fraction);
-      const gap = this.contact.separation(this.a, this.b);
+      const gap = this.contact.separation(this.a, this.b, 1e-5);
       if (gap <= 1e-5) {
         // Existing contact belongs to the endpoint solver unless its actual
         // interpolated contact-point motion is approaching. This includes

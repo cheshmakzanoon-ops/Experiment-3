@@ -29,12 +29,23 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 
 | Agent | Assignment | Result |
 |---|---|---|
-| 13 | BVH nearest-hit traversal performance and deterministic reference checks | Running |
-| 14 | Collision broad-phase filtering and contact invariants | Running |
-| 15 | Terrain residency queue, cache bounds and prefetch scheduling (no height/geometry changes) | Running |
-| 16 | Flashback resimulation CPU slicing without dropping recorded ticks | Queued |
-| 17 | Snapshot encoding/validation hot path and allocation behavior | Queued |
-| 18 | Festival late-loader ownership after renderer disposal (no scene changes) | Queued |
+| 13 | BVH nearest-hit traversal performance and deterministic reference checks | Deferred final contact details; 40 tests passed; near-first proposal rejected by edge-case regression |
+| 14 | Collision broad-phase filtering and contact invariants | Added conservative live y/z filtering, cached swept bounds, deferred swept contact details; final 36 focused tests passed |
+| 15 | Terrain residency queue, cache bounds and prefetch scheduling (no height/geometry changes) | Fixed invalid budgets, stale/LRU work and bounded recent-area prefetch; 20 new and 2 existing tests passed |
+| 16 | Flashback resimulation CPU slicing without dropping recorded ticks | Added 8 ms between-tick yielding and preserved deterministic continuation; 14 tests passed |
+| 17 | Snapshot encoding/validation hot path and allocation behavior | Linear rank scatter and cached registry lookup preserve exact snapshot bytes; 14 new and 5 existing targeted tests passed |
+| 18 | Festival late-loader ownership after renderer disposal (no scene changes) | Fixed late resource installation and deduplicated concurrent photo loads; 45 renderer/session tests passed |
+
+## Wave 4 — cancellation, worker transport, and protocol boundaries
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 19 | Host cancellation of pending Festival startup | Running |
+| 20 | Binary buffer growth, bounds and integer decoding | Running |
+| 21 | Circuit snapshot transfer-pool ownership and backpressure | Running |
+| 22 | Festival snapshot transfer-pool integration and stale return handling | Queued |
+| 23 | Terrain-streamer request transport, worker failure and cancellation bookkeeping | Queued; caller already bounds in-flight work, so no silent queue cap |
+| 24 | Network control decoding and channel/shape validation | Queued |
 
 ## Remaining waves
 

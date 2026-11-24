@@ -96,6 +96,8 @@ export class TriangleBVH {
   private order: number[];
   private centroids: Float64Array;
   private stack = new Int32Array(128);
+  private hitU = 0;
+  private hitW = 0;
   private readonly verticalCells: (VerticalCell | undefined)[] = [];
   private readonly down = new Vec3(0, -1, 0);
   private readonly verticalColumn = new VerticalRayColumn();
@@ -187,6 +189,13 @@ export class TriangleBVH {
     out.distance = maximum;
     out.triangle = -1;
     this.trianglesTested = 0;
+    // Preserve the existing behavior even when callers reuse an output vector
+    // as a ray input: those queries must keep resolving intermediate hits.
+    const deferDetails =
+      origin !== out.point &&
+      origin !== out.normal &&
+      direction !== out.point &&
+      direction !== out.normal;
     let size = 1;
     this.stack[0] = 0;
     while (size) {
@@ -199,9 +208,13 @@ export class TriangleBVH {
         continue;
       }
       for (let j = node.start; j < node.end; j++)
-        this.triangle(this.order[j], origin, direction, out);
+        this.triangle(this.order[j], origin, direction, out, deferDetails);
     }
-    return out.triangle !== -1;
+    if (out.triangle === -1) return false;
+    // As in the vertical path, only the final winner needs a contact point and
+    // normal. Keep traversal order: tolerated edge hits can precede their AABB.
+    if (deferDetails) this.resolveHit(origin, direction, out);
+    return true;
   }
   /** Suspension samples on the paved ribbon are vertical. Nearby probes can
    * share the horizontally eligible leaves, even across different road decks.
@@ -403,7 +416,7 @@ export class TriangleBVH {
     face.minZ = Math.min(az, v[b + 2], v[c + 2]) - padZ;
     face.maxZ = Math.max(az, v[b + 2], v[c + 2]) + padZ;
   }
-  private triangle(t: number, o: Vec3, d: Vec3, hit: RayHit) {
+  private triangle(t: number, o: Vec3, d: Vec3, hit: RayHit, deferDetails: boolean) {
     this.trianglesTested++;
     const v = this.vertices,
       idx = this.indices;
@@ -440,7 +453,18 @@ export class TriangleBVH {
       return;
     hit.distance = distance;
     hit.triangle = t;
-    hit.point.copy(o).addScaled(d, distance);
+    this.hitU = u;
+    this.hitW = w;
+    if (!deferDetails) this.resolveHit(o, d, hit);
+  }
+  private resolveHit(o: Vec3, d: Vec3, hit: RayHit) {
+    const t = hit.triangle,
+      a = this.indices[t * 3] * 3,
+      b = this.indices[t * 3 + 1] * 3,
+      c = this.indices[t * 3 + 2] * 3,
+      u = this.hitU,
+      w = this.hitW;
+    hit.point.copy(o).addScaled(d, hit.distance);
     if (this.normals) {
       const n = this.normals;
       hit.normal
@@ -450,7 +474,16 @@ export class TriangleBVH {
           n[a + 2] * (1 - u - w) + n[b + 2] * u + n[c + 2] * w,
         )
         .normalize();
-    } else hit.normal.set(ey * fz - ez * fy, ez * fx - ex * fz, ex * fy - ey * fx).normalize();
+    } else {
+      const v = this.vertices,
+        ex = v[b] - v[a],
+        ey = v[b + 1] - v[a + 1],
+        ez = v[b + 2] - v[a + 2],
+        fx = v[c] - v[a],
+        fy = v[c + 1] - v[a + 1],
+        fz = v[c + 2] - v[a + 2];
+      hit.normal.set(ey * fz - ez * fy, ez * fx - ex * fz, ex * fy - ey * fx).normalize();
+    }
     if (hit.normal.dot(d) > 0) hit.normal.scale(-1);
   }
 }
