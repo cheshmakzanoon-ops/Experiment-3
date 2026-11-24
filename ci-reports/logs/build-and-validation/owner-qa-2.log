@@ -1,259 +1,267 @@
-### owner-qa (2) (job 138515057436)
+### owner-qa (2) (job 138543129861)
 --- error digest (first 120 matching lines) ---
-617:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0174596Z   ✘   3 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames (5.2m)
-621:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0227492Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-636:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4083362Z   ✘   4 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames (5.2m)
-640:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4090247Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-664:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:56:14.3272419Z ##[error]The operation was canceled.
+618:owner-qa (2)	UNKNOWN STEP	2026-11-24T15:26:24.1712906Z   ✘   3 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames (5.2m)
+621:owner-qa (2)	UNKNOWN STEP	2026-11-24T15:26:24.1714954Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+635:owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3697318Z   ✘   4 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames (5.2m)
+639:owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3702405Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+714:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9283089Z   ✘  11 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night (10.1m)
+718:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9286425Z Error: locator.click: Test timeout of 600000ms exceeded.
+728:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9817370Z   1) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+732:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9818640Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+751:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9826715Z   2) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+755:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9827741Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+774:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9835751Z   3) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ────
+778:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9836791Z     Error: locator.click: Test timeout of 600000ms exceeded.
+812:owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2123338Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:24.1724163Z (Reading database ... 85%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:26.2302610Z (Reading database ... 90%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:27.9327275Z (Reading database ... 95%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:27.9328199Z (Reading database ... 100%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:27.9328859Z (Reading database ... 216720 files and directories currently installed.)
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:27.9371938Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:27.9469857Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.1395273Z Selecting previously unselected package fonts-freefont-ttf.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.1495365Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.1499267Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.2181417Z Selecting previously unselected package fonts-tlwg-loma-otf.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.2281113Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.2285088Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.2437653Z Selecting previously unselected package fonts-unifont.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.2533628Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.2538790Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.3480352Z Selecting previously unselected package fonts-wqy-zenhei.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.3577763Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.3656572Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.7766226Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.7881146Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.8828922Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.8852961Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.9118366Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.9135893Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.9411189Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:28.9430237Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.0890613Z Selecting previously unselected package xfonts-encodings.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.0991761Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.0995499Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.1173591Z Selecting previously unselected package xfonts-utils.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.1267952Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.1272029Z Unpacking xfonts-utils (1:7.7+6build3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.2608456Z Selecting previously unselected package xfonts-cyrillic.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.2702902Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.2708624Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.2898075Z Selecting previously unselected package xfonts-scalable.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.2991890Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.2996351Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3268553Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3279299Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3289183Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3337237Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3409919Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3420894Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3431415Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3443116Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3485337Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3493970Z Setting up fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3504455Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3514955Z Setting up xfonts-utils (1:7.7+6build3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3545469Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3792823Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:29.3984666Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:36.1964496Z Processing triggers for man-db (2.12.0-4build2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:36.1989845Z Not building database; man-db/auto-update is not 'true'.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:36.1999616Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0901233Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0902181Z Running kernel seems to be up-to-date.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0902658Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0902857Z No services need to be restarted.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0903067Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0903234Z No containers need to be restarted.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0903693Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0903873Z No user sessions are running outdated binaries.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0904080Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.0904566Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:37.8889752Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.0917846Z |                                                                                |   0% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.3516485Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.4747704Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.6010513Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.7254047Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.8379459Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:38.9678529Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:39.0922850Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:39.2263487Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:39.3571331Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:39.4883385Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.1750939Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.1752332Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.3820539Z |                                                                                |   0% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.4328656Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.4597210Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.4742286Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.4834072Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.4921902Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.4997730Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.5055545Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.5103367Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.5142270Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.5176725Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.5561886Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.5563732Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.7601078Z |                                                                                |   0% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:42.9731920Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.0517121Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.1403958Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.2242439Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.3361092Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.4289160Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.4977771Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.5834949Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.6717366Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:43.7576208Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-24T14:36:45.2003061Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-24T14:36:45.2569456Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=2/4
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2571674Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=2/4^[[0m
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2598077Z shell: /usr/bin/bash -e {0}
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2598348Z env:
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2598697Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2598982Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2599235Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.2599458Z ##[endgroup]
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.3272316Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.3272852Z > apex-formula-laboratory@0.1.0 test:e2e
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.3275497Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=2/4
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:45.3277241Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:49.3006640Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:52.0469696Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:52.0470637Z Running 11 tests using 1 worker, shard 2 of 4
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:52.0470971Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:52.5259021Z [browser-progress] START  >  > 14-phase27e.spec.ts > reference comparison UI requires a real capture and explicit reviewer without hiding original routes
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:03.3848342Z   ✓   1 e2e/14-phase27e.spec.ts:60:1 › reference comparison UI requires a real capture and explicit reviewer without hiding original routes (10.8s)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:03.3920383Z [browser-progress] START  >  > 14-phase27e.spec.ts > optional review video uses the real browser encoder and reports unsupported encoders explicitly
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:13.4519971Z   ✓   2 e2e/14-phase27e.spec.ts:113:1 › optional review video uses the real browser encoder and reports unsupported encoders explicitly (10.1s)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:13.4532516Z [browser-progress] START  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:22.0491612Z [browser-progress] 9s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Add script tag
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:52.0816121Z [browser-progress] 39s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:38:22.1098055Z [browser-progress] 69s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:38:52.1445842Z [browser-progress] 99s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:39:22.1726262Z [browser-progress] 129s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:39:52.2022635Z [browser-progress] 159s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:40:22.2328106Z [browser-progress] 189s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:40:52.2625844Z [browser-progress] 219s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:41:22.2918317Z [browser-progress] 249s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:41:52.3235873Z [browser-progress] 279s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:22.3266218Z [browser-progress] 309s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Fixture "context"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0174596Z   ✘   3 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames (5.2m)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0185859Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0215678Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0225908Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0227492Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.0228068Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:49.5280649Z [browser-progress] START  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:52.3309543Z [browser-progress] 3s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Create page
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:43:22.3528294Z [browser-progress] 33s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:43:52.3835122Z [browser-progress] 63s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:44:22.4146210Z [browser-progress] 93s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:44:52.4446034Z [browser-progress] 123s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:45:22.4741565Z [browser-progress] 153s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:45:52.5053169Z [browser-progress] 183s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:46:22.5339186Z [browser-progress] 213s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:46:52.5656317Z [browser-progress] 243s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:47:22.5937629Z [browser-progress] 273s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:47:52.5968688Z [browser-progress] 303s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / After Hooks
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:22.6224545Z [browser-progress] 333s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames / Fixture "browser"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4083362Z   ✘   4 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames (5.2m)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4087682Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4088560Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4089483Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4090247Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:32.4091212Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:33.3090763Z [browser-progress] START  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:52.6386405Z [browser-progress] 19s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Expect "toBeVisible"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:49:22.6431153Z [browser-progress] 49s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Expect "toContainText"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:49:52.6733618Z [browser-progress] 79s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Expect "toContainText"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:50:16.9612613Z   ✓   5 e2e/15-review-journey.spec.ts:17:1 › reference capture uses the actual production PNG and can be unlinked without overwriting its audit (1.7m)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:50:16.9635045Z [browser-progress] START  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:50:22.6816092Z [browser-progress] 6s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBeVisible"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:50:52.6804828Z [browser-progress] 36s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBeHidden"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:51:22.6808041Z [browser-progress] 66s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toMatch"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:51:52.6817465Z [browser-progress] 96s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toMatch"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:52:22.6826300Z [browser-progress] 126s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBe"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:52:52.6858296Z [browser-progress] 156s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Fixture "context"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:52:53.6858678Z   ✓   6 e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change (2.6m)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:52:53.9096584Z [browser-progress] START  >  > 39-supplied-player.spec.ts > owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:22.7076628Z [browser-progress] 29s  >  > 39-supplied-player.spec.ts > owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:52.7109436Z [browser-progress] 59s  >  > 39-supplied-player.spec.ts > owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind / Fixture "context"
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:52.8297098Z   ✓   7 e2e/39-supplied-player.spec.ts:8:1 › owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind (58.9s)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:52.8582482Z [browser-progress] START  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:54:22.7287147Z [browser-progress] 30s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:54:52.7578727Z [browser-progress] 60s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:55:22.7878469Z [browser-progress] 90s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:55:52.8187438Z [browser-progress] 120s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:56:14.3272419Z ##[error]The operation was canceled.
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-24T14:56:14.3443245Z ##[group]Run actions/upload-artifact@v4
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3443759Z with:
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3444078Z   name: owner-qa-2-of-4
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3474889Z   path: test-results/
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3475493Z   retention-days: 7
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3475829Z   if-no-files-found: warn
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3476170Z   compression-level: 6
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3476540Z   overwrite: false
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3476881Z   include-hidden-files: false
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3477250Z env:
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3477568Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3478120Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3478512Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3478869Z ##[endgroup]
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.5996817Z (node:3863) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.5997946Z (Use `node --trace-deprecation ...` to show where the warning was created)
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.6579308Z Multiple search paths detected. Calculating the least common ancestor of all paths
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.6581188Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.6582069Z With the provided path, there will be 4 files uploaded
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.6582798Z Artifact name is valid!
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.6583184Z Root directory input is valid!
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.2860282Z Beginning upload of artifact content to blob storage
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.6040201Z (node:3863) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:16.7152414Z Uploaded bytes 8388608
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.0831574Z Uploaded bytes 16777216
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.2880134Z Uploaded bytes 25165824
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.6090255Z Uploaded bytes 31979610
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.7076981Z Finished uploading artifact content to blob storage!
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.7080604Z SHA256 digest of uploaded artifact zip is cd16a94c3bc2f3ec32f5894a30410a5d3933bd7ade6d0c35836446c36e0eec36
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.7109619Z Finalizing artifact upload
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:18.2041940Z Artifact owner-qa-2-of-4.zip successfully finalized. Artifact ID 14932409394
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:18.2044738Z Artifact owner-qa-2-of-4 has been successfully uploaded! Final size is 31979610 bytes. Artifact ID is 14932409394
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:18.2046072Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45413157564/artifacts/14932409394
-owner-qa (2)	Post Run actions/checkout@v4	﻿2026-11-24T14:56:18.2229657Z Post job cleanup.
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3415439Z [command]/usr/bin/git version
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3462454Z git version 2.56.1
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3533115Z Temporarily overriding HOME='/home/runner/work/_temp/a645c51f-8607-4116-a6a6-648ae234adf4' before making global git config changes
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3535197Z Adding repository directory to the temporary git global config as a safe directory
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3536310Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3625521Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.3694807Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.4000683Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.4055972Z http.https://github.com/.extraheader
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.4098333Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.4136949Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.4592989Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-24T14:56:18.4637970Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-owner-qa (2)	Complete job	﻿2026-11-24T14:56:18.5242502Z Cleaning up orphan processes
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5460135Z Terminate orphan process: pid (3167) (npm run test:e2)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5490781Z Terminate orphan process: pid (3178) (sh)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5520825Z Terminate orphan process: pid (3179) (node)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5549786Z Terminate orphan process: pid (3195) (sh)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5578354Z Terminate orphan process: pid (3196) (npm run preview --port 4173)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5629820Z Terminate orphan process: pid (3207) (sh)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5707446Z Terminate orphan process: pid (3208) (node)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5766463Z Terminate orphan process: pid (3216) (esbuild)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5818749Z Terminate orphan process: pid (3662) (node)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5839336Z Terminate orphan process: pid (3675) (headless_shell)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.5904966Z Terminate orphan process: pid (3814) (esbuild)
-owner-qa (2)	Complete job	2026-11-24T14:56:18.6004991Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3699571Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3700519Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3701391Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3702405Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:06.3702954Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:07.2936705Z [browser-progress] START  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:20.0512356Z [browser-progress] 13s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Expect "toBeVisible"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:32:50.0509272Z [browser-progress] 43s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Fill "002" locator('#referenceSearch')
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:33:20.0780537Z [browser-progress] 73s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Expect "toContainText"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:33:50.0791595Z [browser-progress] 103s  >  > 15-review-journey.spec.ts > reference capture uses the actual production PNG and can be unlinked without overwriting its audit / Click getByRole('button', { name: 'EXPORT ALL 100 COMPARISONS' })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:33:51.1605115Z   ✓   5 e2e/15-review-journey.spec.ts:17:1 › reference capture uses the actual production PNG and can be unlinked without overwriting its audit (1.7m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:33:51.1682367Z [browser-progress] START  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:34:20.1072654Z [browser-progress] 29s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBeVisible"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:34:50.1210755Z [browser-progress] 59s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:35:20.1195360Z [browser-progress] 89s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toMatch"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:35:50.1207465Z [browser-progress] 119s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:36:20.1214655Z [browser-progress] 149s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Click getByRole('button', { name: 'EXPORT FRAME JSON', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:36:31.4372264Z   ✓   6 e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change (2.7m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:36:31.5752584Z [browser-progress] START  >  > 39-supplied-player.spec.ts > owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:36:50.1362014Z [browser-progress] 19s  >  > 39-supplied-player.spec.ts > owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:37:20.1648710Z [browser-progress] 49s  >  > 39-supplied-player.spec.ts > owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:37:31.1072684Z   ✓   7 e2e/39-supplied-player.spec.ts:8:1 › owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind (59.5s)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:37:31.1302389Z [browser-progress] START  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:37:50.1706470Z [browser-progress] 19s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:38:20.2012917Z [browser-progress] 49s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:38:50.2307855Z [browser-progress] 79s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:39:20.2608317Z [browser-progress] 109s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:39:50.2912984Z [browser-progress] 139s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:40:20.3222525Z [browser-progress] 169s  >  > 41-player-render-budget.spec.ts > supplied player: actual surface-pass pixels and bounded restorable imported texture budgets / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:40:22.6872820Z   ✓   8 e2e/41-player-render-budget.spec.ts:7:1 › supplied player: actual surface-pass pixels and bounded restorable imported texture budgets (2.9m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:40:22.6982787Z [browser-progress] START  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:40:50.3412885Z [browser-progress] 28s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:41:20.3686214Z [browser-progress] 58s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:41:50.4000448Z [browser-progress] 88s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:42:20.4312861Z [browser-progress] 118s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:42:50.4613470Z [browser-progress] 148s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:43:04.1672541Z   ✓   9 e2e/42-full-scene-index-budget.spec.ts:25:1 › production grid index compaction preserves every held HDR channel and bounded buffers (2.7m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:43:04.1853624Z [browser-progress] START  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:43:20.4812247Z [browser-progress] 16s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Expect "toBeVisible"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:43:50.4804164Z [browser-progress] 46s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:44:20.5002281Z [browser-progress] 76s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:44:50.5022912Z [browser-progress] 106s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:45:20.5016280Z [browser-progress] 136s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:45:50.5033960Z [browser-progress] 166s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:46:20.5152249Z [browser-progress] 196s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click locator('#modal [data-action="lighting:day"]')
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:46:50.5279876Z [browser-progress] 226s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click locator('#modal [data-action="lighting:day"]')
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:47:20.5383046Z [browser-progress] 256s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:47:50.5666596Z [browser-progress] 286s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:48:20.5928196Z [browser-progress] 316s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:48:50.6002058Z [browser-progress] 346s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:49:20.6310549Z [browser-progress] 376s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:49:50.6572006Z [browser-progress] 406s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'RETURN / ESC', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:50:20.6768867Z [browser-progress] 436s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'RESUME SESSION', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:50:50.7072847Z [browser-progress] 467s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'RESUME SESSION', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:51:20.7243058Z [browser-progress] 497s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Expect "toBeGreaterThan"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:51:48.6862084Z   ✓  10 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day (8.7m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:51:48.6918928Z [browser-progress] START  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:51:50.7252149Z [browser-progress] 2s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Create context
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:52:20.7562201Z [browser-progress] 32s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Create context
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:52:50.7862419Z [browser-progress] 62s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Expect "toBeVisible"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:53:20.7860680Z [browser-progress] 92s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:53:50.7858908Z [browser-progress] 122s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:54:20.7858678Z [browser-progress] 152s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:54:50.7867419Z [browser-progress] 182s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Expect "toBe"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:55:20.7871851Z [browser-progress] 212s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Evaluate
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:55:50.7923804Z [browser-progress] 242s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:56:20.8240687Z [browser-progress] 272s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:56:50.8335513Z [browser-progress] 302s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="modalClose"]')
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:57:20.8559918Z [browser-progress] 332s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'PHOTO STUDIO', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:57:50.8862582Z [browser-progress] 362s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'PHOTO STUDIO', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:58:20.9005431Z [browser-progress] 392s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:58:50.9316246Z [browser-progress] 422s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:59:20.9522058Z [browser-progress] 452s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T15:59:50.9504662Z [browser-progress] 482s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:00:20.9832166Z [browser-progress] 512s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:00:50.9982143Z [browser-progress] 542s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'RETURN / ESC', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:01:21.0057559Z [browser-progress] 572s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'RESUME SESSION', exact: true })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:01:51.0074289Z [browser-progress] 602s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / After Hooks
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9283089Z   ✘  11 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night (10.1m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9284144Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9284790Z ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9285455Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9286425Z Error: locator.click: Test timeout of 600000ms exceeded.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9286770Z Call log:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9287294Z ^[[2m  - waiting for getByRole('button', { name: 'RESUME SESSION', exact: true })^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9288058Z ^[[2m    - locator resolved to <button class="primary" data-action="resume">RESUME SESSION</button>^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9288567Z ^[[2m  - attempting click action^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9289000Z ^[[2m    - waiting for element to be visible, enabled and stable^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9289221Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9289437Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:115:77
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9805539Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9808892Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9817370Z   1) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9817892Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9818140Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9818424Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9818640Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9818910Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9819091Z       145 |     const errors = await load(page);
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9819554Z       146 |     await page.setViewportSize({ width: 960, height: 540 });
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9819995Z     > 147 |     const result = await page.evaluate(
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9820583Z           |                               ^
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9820883Z       148 |       (night) =>
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9821394Z       149 |         (window as unknown as { Phase27E: typeof Fixture }).Phase27E.reviewRendererProbe(night),
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9821876Z       150 |       night,
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9822325Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9822656Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9823182Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9823850Z     test-results/14-phase27e-full-productio-65883-w-metrics-in-wet-day-frames/trace.zip
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9824303Z     Usage:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9824721Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9825163Z         npx playwright show-trace test-results/14-phase27e-full-productio-65883-w-metrics-in-wet-day-frames/trace.zip
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9825614Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9826005Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9826272Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9826715Z   2) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9827131Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9827345Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9827565Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9827741Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9827983Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9828132Z       145 |     const errors = await load(page);
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9828578Z       146 |     await page.setViewportSize({ width: 960, height: 540 });
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9829046Z     > 147 |     const result = await page.evaluate(
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9829380Z           |                               ^
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9829675Z       148 |       (night) =>
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9830435Z       149 |         (window as unknown as { Phase27E: typeof Fixture }).Phase27E.reviewRendererProbe(night),
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9830927Z       150 |       night,
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9831353Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9831683Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9832108Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9832774Z     test-results/14-phase27e-full-productio-5c4c3-metrics-in-wet-night-frames/trace.zip
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9833244Z     Usage:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9833374Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9833839Z         npx playwright show-trace test-results/14-phase27e-full-productio-5c4c3-metrics-in-wet-night-frames/trace.zip
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9834554Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9834987Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9835288Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9835751Z   3) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9836137Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9836356Z     ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9836589Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9836791Z     Error: locator.click: Test timeout of 600000ms exceeded.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9837149Z     Call log:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9837635Z     ^[[2m  - waiting for getByRole('button', { name: 'RESUME SESSION', exact: true })^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9838431Z     ^[[2m    - locator resolved to <button class="primary" data-action="resume">RESUME SESSION</button>^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9839039Z     ^[[2m  - attempting click action^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9839527Z     ^[[2m    - waiting for element to be visible, enabled and stable^[[22m
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9839824Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9839831Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9840117Z       113 |     await page.getByRole('button', { name: 'RETURN / ESC', exact: true }).click();
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9842220Z       114 |     await expect.poll(async () => (await read()).state).toBe('paused');
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9842846Z     > 115 |     await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9843490Z           |                                                                             ^
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9843866Z       116 |     await page.keyboard.press('g');
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9844203Z       117 |     await expect
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9844648Z       118 |       .poll(async () => (await read()).frame?.[H.TIME] ?? 0, { timeout: 150000 })
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9845219Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:115:77
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9845543Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9845983Z     Error Context: test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/error-context.md
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9846477Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9847127Z     attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9847831Z     test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/trace.zip
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9848277Z     Usage:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9848397Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9848840Z         npx playwright show-trace test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/trace.zip
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9849310Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9849717Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9850057Z 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9850644Z   Slow test file: e2e/53-a61-rival.spec.ts (18.9m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9851246Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9851715Z   3 failed
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9852498Z     e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9853357Z     e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9854111Z     e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ─────
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:14.9854607Z   8 passed (42.0m)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2123338Z ##[error]Process completed with exit code 1.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2182583Z ##[group]Run actions/upload-artifact@v4
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2182800Z with:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2182973Z   name: owner-qa-2-of-4
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2183266Z   path: test-results/
+owner-qa (2)	UNKNOWN STEP	playwright-report/
+owner-qa (2)	UNKNOWN STEP	browser-backend.json
+owner-qa (2)	UNKNOWN STEP	browser-progress.json
+owner-qa (2)	UNKNOWN STEP	
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2183588Z   retention-days: 7
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2183755Z   if-no-files-found: warn
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2183936Z   compression-level: 6
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2184103Z   overwrite: false
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2184278Z   include-hidden-files: false
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2184473Z env:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2184629Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2184828Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2185017Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.2185189Z ##[endgroup]
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3437241Z (node:4053) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3438228Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3564319Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3566785Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3567814Z With the provided path, there will be 53 files uploaded
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3568576Z Artifact name is valid!
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.3569037Z Root directory input is valid!
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.7093780Z Beginning upload of artifact content to blob storage
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:15.9354130Z (node:4053) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:16.3154725Z Uploaded bytes 8388608
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:16.4799691Z Uploaded bytes 16777216
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:16.5685886Z Uploaded bytes 25165824
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:16.7686090Z Uploaded bytes 33554432
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:16.9881528Z Uploaded bytes 41943040
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:17.2044439Z Uploaded bytes 50331648
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:17.4840023Z Uploaded bytes 58720256
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:17.7969322Z Uploaded bytes 67108864
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:18.0250124Z Uploaded bytes 75497472
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:18.1059860Z Uploaded bytes 83886080
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:18.3289537Z Uploaded bytes 92274688
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:18.6577230Z Uploaded bytes 100663296
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:18.7596832Z Uploaded bytes 109051904
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:19.0471694Z Uploaded bytes 117440512
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:19.2145693Z Uploaded bytes 125829120
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:19.4222937Z Uploaded bytes 134217728
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:19.7626780Z Uploaded bytes 142606336
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:19.8897516Z Uploaded bytes 150994944
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:20.1868757Z Uploaded bytes 159383552
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:20.3397353Z Uploaded bytes 167772160
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:20.5485365Z Uploaded bytes 176160768
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:20.8076083Z Uploaded bytes 184549376
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:20.9637919Z Uploaded bytes 192937984
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.1367976Z Uploaded bytes 197655269
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.1616472Z Finished uploading artifact content to blob storage!
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.1618792Z SHA256 digest of uploaded artifact zip is 9b25807a3feea6dc637e7b1f69997595be486e0a103cebace32407a9adda32fe
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.1619591Z Finalizing artifact upload
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.5863175Z Artifact owner-qa-2-of-4.zip successfully finalized. Artifact ID 14938558664
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.5863766Z Artifact owner-qa-2-of-4 has been successfully uploaded! Final size is 197655269 bytes. Artifact ID is 14938558664
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.5869755Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620548/artifacts/14938558664
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6047275Z Post job cleanup.
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6697295Z [command]/usr/bin/git version
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6733772Z git version 2.56.1
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6764067Z Temporarily overriding HOME='/home/runner/work/_temp/0205e6a9-aab7-4ad7-bfa0-ece10d666ca1' before making global git config changes
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6764740Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6769372Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6799709Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.6831820Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7002435Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7016941Z http.https://github.com/.extraheader
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7029673Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7047864Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7214624Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7234230Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7561877Z Cleaning up orphan processes
+owner-qa (2)	UNKNOWN STEP	2026-11-24T16:02:21.7798048Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

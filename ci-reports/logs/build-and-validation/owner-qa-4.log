@@ -1,259 +1,265 @@
-### owner-qa (4) (job 138515057146)
+### owner-qa (4) (job 138543129853)
 --- error digest (first 120 matching lines) ---
-616:owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9686547Z   ✘   1 e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.2m)
-618:owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9691510Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-675:owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4621297Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-677:owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4623311Z   ✘   8 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.2m)
-685:owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:56:14.3751604Z ##[error]The operation was canceled.
+617:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5839853Z   ✘   1 e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.2m)
+619:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5842375Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+675:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7098485Z   ✘   8 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.3m)
+677:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7100378Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+703:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0587479Z   1) e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks › Expect "poll toBeGreaterThan" 
+705:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0588823Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+713:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0591201Z       78 |       .poll(async () => ((await diagnostics()).frame?.[carBase(0) + F.STEER] ?? 0) * direction)
+717:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0592739Z       81 |       .poll(async () => ((await diagnostics()).renderer?.driverPose.wheelRadians ?? 0) * -direction)
+736:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0600183Z   2) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence 
+740:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0601924Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+763:owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3126505Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.1299034Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.1303204Z Unpacking xfonts-utils (1:7.7+6build3) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.2571584Z Selecting previously unselected package xfonts-cyrillic.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.2673216Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.2677231Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.2872471Z Selecting previously unselected package xfonts-scalable.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.2972585Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.2977200Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3240247Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3253643Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3263638Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3313023Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3386370Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3398047Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3407736Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3423382Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3463320Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3471637Z Setting up fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3484181Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3493383Z Setting up xfonts-utils (1:7.7+6build3) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3520285Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3753291Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:21.3945588Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:25.4402119Z Processing triggers for man-db (2.12.0-4build2) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:25.4426820Z Not building database; man-db/auto-update is not 'true'.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:25.4435001Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1697392Z 
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1698446Z Running kernel seems to be up-to-date.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1698792Z 
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1699132Z No services need to be restarted.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1699396Z 
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1699549Z No containers need to be restarted.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1700015Z 
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1700155Z No user sessions are running outdated binaries.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1700405Z 
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.1700650Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:26.9977573Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:27.2070770Z |                                                                                |   0% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:27.4810348Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:27.6266501Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:27.7654982Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:27.9032839Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:28.0504597Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:28.1699223Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:28.3081500Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:28.4253378Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:28.6020155Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:28.7555708Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.4622583Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.4624522Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6091418Z |                                                                                |   0% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6233417Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6336464Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6361046Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6377379Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6415825Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6427133Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6436767Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6452364Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6473542Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6482805Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6873948Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.6875470Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.8442658Z |                                                                                |   0% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.9361711Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:31.9886745Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.0464775Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.0943666Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.1526245Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.2012159Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.2686599Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.3374245Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.3905804Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:32.4420932Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-owner-qa (4)	Run npx playwright install --with-deps chromium	2026-11-24T14:29:33.9004221Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-24T14:29:33.9571033Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=4/4
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9573872Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=4/4^[[0m
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9601890Z shell: /usr/bin/bash -e {0}
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9602246Z env:
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9602599Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9603023Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9603322Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:33.9603577Z ##[endgroup]
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:34.0286080Z 
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:34.0286594Z > apex-formula-laboratory@0.1.0 test:e2e
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:34.0288201Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=4/4
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:34.0289438Z 
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:36.8324814Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:39.5750271Z 
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:39.5751395Z Running 10 tests using 1 worker, shard 4 of 4
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:39.5751804Z 
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:29:39.9854096Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:30:09.5865231Z [browser-progress] 30s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeVisible"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:30:39.6024701Z [browser-progress] 60s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:31:09.6044762Z [browser-progress] 90s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:31:39.6027197Z [browser-progress] 120s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:32:09.6030958Z [browser-progress] 150s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:32:39.6054908Z [browser-progress] 180s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:33:09.6056436Z [browser-progress] 210s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBe"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:33:39.6080839Z [browser-progress] 240s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:34:09.6075074Z [browser-progress] 270s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:34:39.6314979Z [browser-progress] 300s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 1: a
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:35:09.6326524Z [browser-progress] 330s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:35:39.6355156Z [browser-progress] 360s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:09.6621226Z [browser-progress] 390s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 2: d
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:36:39.6647446Z [browser-progress] 420s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / After Hooks
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9686547Z   ✘   1 e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.2m)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9690590Z [browser-failure]  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9691510Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9691871Z 
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9692236Z Expected: > ^[[32m0.5^[[39m
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9692637Z Received:   ^[[31m-0.6108652381980153^[[39m
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9692830Z 
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9693153Z Call Log:
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9693418Z - Test timeout of 420000ms exceeded
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:06.9693895Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/24-coupled-driver.spec.ts:80:5
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:07.3841972Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > 27H.2 normal application rejects a missing driver without silently displaying legacy geometry
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:09.6632361Z [browser-progress] 2s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application rejects a missing driver without silently displaying legacy geometry / Expect "toBeVisible"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:10.5104206Z   ✓   2 e2e/24-coupled-driver.spec.ts:157:1 › 27H.2 normal application rejects a missing driver without silently displaying legacy geometry (3.0s)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:10.5134784Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:13.8791734Z   ✓   3 e2e/24-coupled-driver.spec.ts:169:1 › normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build) (3.4s)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:14.3256657Z [browser-progress] START  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:37:39.6880018Z [browser-progress] 25s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toBeVisible"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:38:09.6964843Z [browser-progress] 55s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:38:39.6974453Z [browser-progress] 85s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toMatch"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:39:09.6967408Z [browser-progress] 115s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toBeGreaterThan"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:39:27.4295141Z   ✓   4 e2e/application.spec.ts:418:1 › manual right steering and live rear-view passes work without autopilot (2.2m)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:39:27.4356160Z [browser-progress] START  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:39:39.7114922Z [browser-progress] 12s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Expect "toBeVisible"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:40:09.7159143Z [browser-progress] 42s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Reload
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:40:39.7427406Z [browser-progress] 72s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Expect "toBeVisible"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:40:48.3734705Z   ✓   5 e2e/application.spec.ts:463:1 › keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes (1.3m)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:40:48.4888444Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:41:09.7565139Z [browser-progress] 21s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:41:39.7856588Z [browser-progress] 51s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:09.7886726Z [browser-progress] 81s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:42:39.8005074Z [browser-progress] 111s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-9.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:43:09.8124638Z [browser-progress] 141s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-4-3.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:43:39.8396960Z [browser-progress] 171s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-4-3.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:44:09.8695457Z [browser-progress] 201s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-10.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:44:22.8931664Z   ✓   6 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence (3.6m)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:44:22.8968559Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:44:39.8714273Z [browser-progress] 17s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:45:09.9010568Z [browser-progress] 47s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:45:39.9306726Z [browser-progress] 77s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:46:09.9424581Z [browser-progress] 107s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-left-lock.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:46:39.9484830Z [browser-progress] 137s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-right-lock.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:47:09.9488614Z [browser-progress] 167s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-paused.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:47:39.9790392Z [browser-progress] 197s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-paused.json"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:47:42.5529791Z   ✓   7 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: controls, full circuit and camera framing evidence (3.3m)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:47:42.5560346Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:10.0005146Z [browser-progress] 27s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:48:40.0281391Z [browser-progress] 57s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:49:10.0591732Z [browser-progress] 88s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:49:40.0880275Z [browser-progress] 118s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:50:10.1194456Z [browser-progress] 148s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:50:40.1484925Z [browser-progress] 178s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:51:10.1776428Z [browser-progress] 208s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:51:40.2104356Z [browser-progress] 238s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:52:10.2379239Z [browser-progress] 268s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:52:40.2714773Z [browser-progress] 298s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:10.2820711Z [browser-progress] 328s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Fixture "browser"
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4618865Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4620003Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4620596Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4621297Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4621999Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.4623311Z   ✘   8 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.2m)
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:29.9675926Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:53:40.2826280Z [browser-progress] 10s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:54:10.3127063Z [browser-progress] 40s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:54:40.3426260Z [browser-progress] 70s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:55:10.3727951Z [browser-progress] 100s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:55:40.4044959Z [browser-progress] 130s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:56:10.4355176Z [browser-progress] 160s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
-owner-qa (4)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-24T14:56:14.3751604Z ##[error]The operation was canceled.
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-24T14:56:14.3916882Z ##[group]Run actions/upload-artifact@v4
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3917325Z with:
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3917631Z   name: owner-qa-4-of-4
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3918184Z   path: test-results/
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3918796Z   retention-days: 7
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3919099Z   if-no-files-found: warn
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3919504Z   compression-level: 6
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3919829Z   overwrite: false
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3920227Z   include-hidden-files: false
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3920564Z env:
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3920852Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3921257Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3921649Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.3922015Z ##[endgroup]
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.7024690Z (node:4073) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.7038456Z (Use `node --trace-deprecation ...` to show where the warning was created)
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.9903968Z Multiple search paths detected. Calculating the least common ancestor of all paths
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:14.9976891Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.0000218Z With the provided path, there will be 9 files uploaded
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.0019552Z Artifact name is valid!
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.0043549Z Root directory input is valid!
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.2153468Z Beginning upload of artifact content to blob storage
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:15.6626063Z (node:4073) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:16.7883299Z Uploaded bytes 8388608
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.1694143Z Uploaded bytes 16777216
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.4894355Z Uploaded bytes 25165824
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.7314152Z Uploaded bytes 33554432
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:17.8024125Z Uploaded bytes 41943040
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:18.6854385Z Uploaded bytes 50331648
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:19.9607788Z Uploaded bytes 58720256
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:20.3383988Z Uploaded bytes 67108864
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:20.8956626Z Uploaded bytes 75497472
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:21.1638229Z Uploaded bytes 83886080
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:21.4763996Z Uploaded bytes 92274688
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:21.6764188Z Uploaded bytes 100663296
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:21.7634229Z Uploaded bytes 109051904
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:21.9401643Z Uploaded bytes 112073530
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:22.0384201Z Finished uploading artifact content to blob storage!
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:22.0414025Z SHA256 digest of uploaded artifact zip is fdfb61770af0245c9ad69e542a9e69c1e1d42fe33d980f2218d039eaf330b035
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:22.0443599Z Finalizing artifact upload
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:22.6493619Z Artifact owner-qa-4-of-4.zip successfully finalized. Artifact ID 14933612397
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:22.6523924Z Artifact owner-qa-4-of-4 has been successfully uploaded! Final size is 112073530 bytes. Artifact ID is 14933612397
-owner-qa (4)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-24T14:56:22.6553755Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45413157564/artifacts/14933612397
-owner-qa (4)	Post Run actions/checkout@v4	﻿2026-11-24T14:56:22.7306278Z Post job cleanup.
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9214012Z [command]/usr/bin/git version
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9243747Z git version 2.56.1
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9403960Z Temporarily overriding HOME='/home/runner/work/_temp/924f354a-31a9-4f58-aea3-e2817f0e69dd' before making global git config changes
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9421776Z Adding repository directory to the temporary git global config as a safe directory
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9454040Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9532774Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:22.9605085Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:23.0304147Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:23.0322272Z http.https://github.com/.extraheader
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:23.0423648Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:23.0485465Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:23.1024396Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-owner-qa (4)	Post Run actions/checkout@v4	2026-11-24T14:56:23.1114127Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-owner-qa (4)	Complete job	﻿2026-11-24T14:56:23.2038103Z Cleaning up orphan processes
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2405392Z Terminate orphan process: pid (3164) (npm run test:e2)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2464038Z Terminate orphan process: pid (3175) (sh)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2521275Z Terminate orphan process: pid (3176) (node)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2598494Z Terminate orphan process: pid (3192) (sh)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2654670Z Terminate orphan process: pid (3193) (npm run preview --port 4173)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2734061Z Terminate orphan process: pid (3204) (sh)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2760139Z Terminate orphan process: pid (3205) (node)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.2800394Z Terminate orphan process: pid (3213) (esbuild)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.3021716Z Terminate orphan process: pid (3966) (node)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.3079106Z Terminate orphan process: pid (3979) (headless_shell)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.3164973Z Terminate orphan process: pid (4032) (esbuild)
-owner-qa (4)	Complete job	2026-11-24T14:56:23.3236338Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:38.6846863Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:38.6847464Z > apex-formula-laboratory@0.1.0 test:e2e
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:38.6849127Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=4/4
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:38.6850242Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:42.1619282Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:45.0757087Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:45.0758400Z Running 10 tests using 1 worker, shard 4 of 4
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:45.0758748Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:17:45.4934538Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:18:15.0862852Z [browser-progress] 30s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:18:45.1012435Z [browser-progress] 60s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:19:15.1012540Z [browser-progress] 90s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:19:45.1012432Z [browser-progress] 120s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:20:15.1015001Z [browser-progress] 150s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:20:45.1023313Z [browser-progress] 180s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:21:15.1043119Z [browser-progress] 210s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBe"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:21:45.1047110Z [browser-progress] 240s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:22:15.1052880Z [browser-progress] 270s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:22:45.1229134Z [browser-progress] 300s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 1: a
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:23:15.1242702Z [browser-progress] 330s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:23:45.1262467Z [browser-progress] 360s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:24:15.1481169Z [browser-progress] 390s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 2: d
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:24:45.1498080Z [browser-progress] 420s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / After Hooks
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:15.1648885Z [browser-progress] 450s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Fixture "browser"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5839853Z   ✘   1 e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.2m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5841191Z [browser-failure]  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5842375Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5842715Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5842848Z Expected: > ^[[32m0.5^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5843215Z Received:   ^[[31m-0.6108652381980153^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5843386Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5843511Z Call Log:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5843766Z - Test timeout of 420000ms exceeded
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:19.5844219Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/24-coupled-driver.spec.ts:80:5
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:20.0142555Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > 27H.2 normal application rejects a missing driver without silently displaying legacy geometry
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:23.2756798Z   ✓   2 e2e/24-coupled-driver.spec.ts:157:1 › 27H.2 normal application rejects a missing driver without silently displaying legacy geometry (3.2s)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:23.2794713Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:26.7359307Z   ✓   3 e2e/24-coupled-driver.spec.ts:169:1 › normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build) (3.4s)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:27.1903555Z [browser-progress] START  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:25:45.1845666Z [browser-progress] 18s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:26:15.1833782Z [browser-progress] 48s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:26:45.1864530Z [browser-progress] 78s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:27:15.1885684Z [browser-progress] 108s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:27:43.9087646Z   ✓   4 e2e/application.spec.ts:418:1 › manual right steering and live rear-view passes work without autopilot (2.3m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:27:43.9114059Z [browser-progress] START  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:27:45.1909103Z [browser-progress] 1s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Create context
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:28:15.2164654Z [browser-progress] 31s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:28:45.2238703Z [browser-progress] 61s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:29:15.2283050Z [browser-progress] 91s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Fixture "context"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:29:16.3313053Z   ✓   5 e2e/application.spec.ts:463:1 › keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes (1.5m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:29:16.4583493Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:29:45.2472651Z [browser-progress] 29s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:30:15.2780678Z [browser-progress] 59s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:30:45.3074249Z [browser-progress] 89s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:31:15.3201982Z [browser-progress] 119s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-9.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:31:45.3362412Z [browser-progress] 149s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-4-3.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:32:15.3342822Z [browser-progress] 179s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-10.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:32:45.3636417Z [browser-progress] 209s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-10.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:32:57.4583067Z   ✓   6 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence (3.7m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:32:57.4633892Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:33:15.3762665Z [browser-progress] 18s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:33:45.4034098Z [browser-progress] 48s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:34:15.4342560Z [browser-progress] 78s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:34:45.4424311Z [browser-progress] 108s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-left-lock.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:35:15.4482511Z [browser-progress] 138s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-right-lock.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:35:45.4756018Z [browser-progress] 168s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-right-lock.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:36:15.5063410Z [browser-progress] 198s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-paused.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:36:21.1217560Z   ✓   7 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: controls, full circuit and camera framing evidence (3.4m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:36:21.1245070Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:36:45.5213194Z [browser-progress] 24s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:37:15.5506554Z [browser-progress] 54s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:37:45.5804429Z [browser-progress] 84s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:38:15.6132403Z [browser-progress] 114s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:38:45.6422750Z [browser-progress] 145s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:39:15.6719066Z [browser-progress] 175s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:39:45.7022789Z [browser-progress] 205s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:40:15.7322518Z [browser-progress] 235s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:40:45.7617546Z [browser-progress] 265s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:41:15.7932746Z [browser-progress] 295s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:41:45.8014063Z [browser-progress] 325s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Fixture "browser"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7096967Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7097811Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7098485Z   ✘   8 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.3m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7099575Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7100378Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:10.7101360Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:11.2379216Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:15.8055942Z [browser-progress] 5s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Create page
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:42:45.8207632Z [browser-progress] 35s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:43:15.8522923Z [browser-progress] 65s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:43:45.8724243Z [browser-progress] 95s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:44:15.9032709Z [browser-progress] 125s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:44:45.9324478Z [browser-progress] 155s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:45:15.9652822Z [browser-progress] 185s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:45:45.9943345Z [browser-progress] 215s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:46:16.0043184Z [browser-progress] 245s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Attach "p0-braking.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:46:46.0338036Z [browser-progress] 275s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Attach "p0-braking.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:46:50.0520930Z   ✓   9 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: braking, full circuit and camera framing evidence (4.6m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:46:50.0562755Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:47:16.0522183Z [browser-progress] 26s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:47:46.0842814Z [browser-progress] 56s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:48:16.1122912Z [browser-progress] 86s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:48:46.1414797Z [browser-progress] 116s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:49:16.1629767Z [browser-progress] 146s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-sunset.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:49:46.1782728Z [browser-progress] 176s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-night.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:50:16.2074438Z [browser-progress] 206s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-night.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:50:46.2242756Z [browser-progress] 236s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-wet-night.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:04.9285199Z   ✓  10 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence (4.2m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0575444Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0578681Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0587479Z   1) e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks › Expect "poll toBeGreaterThan" 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0588337Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0588823Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0589256Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0589440Z     Expected: > ^[[32m0.5^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0589896Z     Received:   ^[[31m-0.6108652381980153^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0590139Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0590275Z     Call Log:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0590725Z     - Test timeout of 420000ms exceeded
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0590888Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0591201Z       78 |       .poll(async () => ((await diagnostics()).frame?.[carBase(0) + F.STEER] ?? 0) * direction)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0591745Z       79 |       .toBeGreaterThan(0.3);
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0592034Z     > 80 |     await expect
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0592297Z          |     ^
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0592739Z       81 |       .poll(async () => ((await diagnostics()).renderer?.driverPose.wheelRadians ?? 0) * -direction)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0593185Z       82 |       .toBeGreaterThan(0.5);
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0593482Z       83 |     const pose = await diagnostics();
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0594216Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/24-coupled-driver.spec.ts:80:5
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0594477Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0594817Z     attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0595402Z     test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/video.webm
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0595980Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0596219Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0596529Z     Error Context: test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/error-context.md
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0596897Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0597273Z     attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0597800Z     test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0598333Z     Usage:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0598439Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0598783Z         npx playwright show-trace test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0599285Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0599573Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0599821Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0600183Z   2) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0600508Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0601466Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0601724Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0601924Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0602118Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0602244Z       49 |       });
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0602507Z       50 |     });
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0602812Z     > 51 |     const report = await page.evaluate((group) => {
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0603165Z          |                               ^
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0603476Z       52 |       const api = window as unknown as {
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0603936Z       53 |         CockpitSurvey: { cockpitFramingSurvey: typeof cockpitFramingSurvey };
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0604376Z       54 |         recordCockpit: (row: CockpitSurveyRow) => Promise<void>;
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0604871Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0605139Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0605472Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0605998Z     test-results/p0-cockpit-framing-P0-actu-226bd-and-camera-framing-evidence/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0606440Z     Usage:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0606547Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0606894Z         npx playwright show-trace test-results/p0-cockpit-framing-P0-actu-226bd-and-camera-framing-evidence/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0607260Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0607579Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0607801Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0607956Z   2 failed
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0608569Z     e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0609360Z     e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence 
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.0609788Z   8 passed (33.4m)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3126505Z ##[error]Process completed with exit code 1.
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3191833Z ##[group]Run actions/upload-artifact@v4
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3192131Z with:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3192360Z   name: owner-qa-4-of-4
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3192721Z   path: test-results/
+owner-qa (4)	UNKNOWN STEP	playwright-report/
+owner-qa (4)	UNKNOWN STEP	browser-backend.json
+owner-qa (4)	UNKNOWN STEP	browser-progress.json
+owner-qa (4)	UNKNOWN STEP	
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3193138Z   retention-days: 7
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3193388Z   if-no-files-found: warn
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3193639Z   compression-level: 6
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3193863Z   overwrite: false
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3194136Z   include-hidden-files: false
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3194383Z env:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3194604Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3194879Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3195174Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.3195416Z ##[endgroup]
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4440767Z (node:4123) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4442073Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4618473Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4619534Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4620003Z With the provided path, there will be 46 files uploaded
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4620813Z Artifact name is valid!
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:05.4621091Z Root directory input is valid!
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:06.0739789Z Beginning upload of artifact content to blob storage
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:06.2971937Z (node:4123) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:07.3806002Z Uploaded bytes 8388608
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:07.6876611Z Uploaded bytes 16777216
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:07.7967824Z Uploaded bytes 25165824
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:07.9409901Z Uploaded bytes 33554432
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.0624107Z Uploaded bytes 41943040
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.1138108Z Uploaded bytes 50331648
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.1384968Z Uploaded bytes 58720256
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.4954799Z Uploaded bytes 67108864
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.5126160Z Uploaded bytes 75497472
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.6821110Z Uploaded bytes 83886080
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:08.9193580Z Uploaded bytes 92274688
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:09.2680271Z Uploaded bytes 100663296
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:09.5514548Z Uploaded bytes 109051904
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:09.6267472Z Uploaded bytes 117440512
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:09.7867850Z Uploaded bytes 125829120
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:10.0830825Z Uploaded bytes 134217728
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:10.2172424Z Uploaded bytes 142606336
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:10.4672665Z Uploaded bytes 150994944
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:10.6585670Z Uploaded bytes 159383552
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:10.8811002Z Uploaded bytes 167772160
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:11.1879991Z Uploaded bytes 176160768
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:11.3852511Z Uploaded bytes 184549376
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:11.5837763Z Uploaded bytes 192937984
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:11.7904508Z Uploaded bytes 201326592
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:12.0238061Z Uploaded bytes 209715200
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:12.2376964Z Uploaded bytes 218103808
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:12.4709523Z Uploaded bytes 226492416
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:12.6700062Z Uploaded bytes 234881024
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:12.9433876Z Uploaded bytes 243269632
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.0332869Z Uploaded bytes 243354877
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.1248222Z Finished uploading artifact content to blob storage!
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.1250091Z SHA256 digest of uploaded artifact zip is 09e1f553fe2059c6e6ff85b245d2214b5f10a9807d6c0c345388a642d1107d51
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.1253826Z Finalizing artifact upload
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.6961887Z Artifact owner-qa-4-of-4.zip successfully finalized. Artifact ID 14939186446
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.6962709Z Artifact owner-qa-4-of-4 has been successfully uploaded! Final size is 243354877 bytes. Artifact ID is 14939186446
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.6969240Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620548/artifacts/14939186446
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7169093Z Post job cleanup.
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7827661Z [command]/usr/bin/git version
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7863853Z git version 2.56.1
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7894237Z Temporarily overriding HOME='/home/runner/work/_temp/17dac819-fa97-4f8b-b204-c06f2697240c' before making global git config changes
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7895405Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7897083Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7932600Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.7970218Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8221387Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8245431Z http.https://github.com/.extraheader
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8253879Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8307520Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8532337Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8579986Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.8849512Z Cleaning up orphan processes
+owner-qa (4)	UNKNOWN STEP	2026-11-24T15:51:13.9075396Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
