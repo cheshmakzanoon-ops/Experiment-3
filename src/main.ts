@@ -157,6 +157,7 @@ import { wildcardEntry } from './career/wildcard-series.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
 import { SessionStartOwner } from './session/session-start-owner.ts';
+import { WorkerReadiness } from './session/worker-readiness.ts';
 import { emitGameEvent } from './steam/events.ts';
 import { emitLapRecord, emitRaceFinished, emitSessionStarted } from './steam/hooks.ts';
 import { startAchievements } from './steam/runtime.ts';
@@ -343,7 +344,7 @@ export class GameApp {
   private graphClock = 0;
   private telemetryReturn: State = 'paused';
   private errorStopped = false;
-  private readyResolve: (() => void) | null = null;
+  private circuitStartup: WorkerReadiness | null = null;
   private initTimeout = 0;
   constructor() {
     startAchievements({ store: this.store, toast: (message) => this.ui.toast(message) });
@@ -1147,6 +1148,7 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
+    if (this.disposed || this.errorStopped) return;
     // Steam demo: whichever door the session came through (paddock form, CONTINUE, career,
     // Wildcard board, meeting), content outside the slice stops here.
     const locked = demoSessionLock(options, career?.event?.key ?? null);
@@ -1161,291 +1163,332 @@ export class GameApp {
       return;
     }
     if (this.state === 'loading' && this.worker) return;
-    // Any session the meeting did not start itself ends the meeting.
-    this.meetings.sessionStarting();
-    this.gridClock.reset();
-    this.gridAutomatic = false;
-    this.gridBriefingOpen = false;
-    this.dirtGateRelease = null;
-    this.gridPanel?.hide();
-    this.renderer?.gridPerformance.reset();
-    this.ui.gridPresentationAvailable = false;
-    if (this.renderer) {
-      this.renderer.gridPresentationTime = null;
-      this.renderer.gridPrepared = false;
-    }
-    if (programme) this.programme.start();
-    else this.programme.stop();
-    this.renderer?.setPhoto(null);
-    this.photoStudio.close();
-    this.frozenPhoto = null;
-    this.captureRequested = false;
-    this.sessionId = crypto.randomUUID();
-    this.career.begin(career, this.sessionId);
-    this.radio.reset();
-    this.radioCaption.show(null);
-    this.usedDemonstration = false;
-    this.ui.closeModal();
-    this.ui.telemetryModal.close();
-    this.performanceCapture.interrupt('Session restarted');
-    this.interruptReview('Session restarted');
-    this.state = 'loading';
-    this.ui.showMode('loading');
-    this.ui.loading('Preparing grid, race timing and recording buffers…');
-    this.ui.loadingSession(options);
-    this.ui.loadingScene(options, {
-      wildcard: career?.event?.key.startsWith('wildcard.')
-        ? wildcardEntry(career.event.key.slice('wildcard.'.length))
-        : undefined,
-      night:
-        resolveLighting(
-          sessionLight(this.lightChoice, career?.light ?? null),
-          !!circuitDefinition(options.circuit).catalogue?.night,
-        ) === 'night',
-    });
-    this.input.setEnabled(false);
-    // The inlined physics worker is its own chunk: only a session needs it, so
-    // fetch it while audio and the circuit prepare (awaited before the worker starts).
-    const physicsWorker = import('./workers/physics.worker.ts?worker&inline');
-    physicsWorker.catch(() => undefined); // The await below reports a failure.
-    this.audio.stop();
-    try {
-      await this.audio.start();
-      // The browser's autoplay policy holds the sound until a key press, click or tap; a
-      // gamepad button does not count. Say so once instead of racing in silence.
-      if (this.audio.locked)
-        this.ui.toast(t('Sound starts after your next key press or click.'));
-    } catch (e) {
-      this.ui.toast(
-        `Audio unavailable: ${e instanceof Error ? e.message : String(e)}. Racing remains available.`,
-      );
-    }
-    if (this.disposed) return;
-    const circuit = circuitDefinition(options.circuit).id;
-    // The worker falls back to Formula for incomplete or unknown vehicle lists.
-    const gpGrid = gpGridForVehicles(validateOptions(options).vehicles);
-    if (!(await this.switchCircuit(circuit, gpGrid)) || this.disposed) return;
-    this.applyLight(career?.light ?? null);
-    const { default: PhysicsWorker } = await physicsWorker;
-    if (this.disposed) return;
-    this.options = {
-      ...options,
-      circuit,
-      // Time Trial is a solo session: the worker validates the same rule.
-      opponents: options.mode === 'time-trial' ? 0 : options.opponents,
-      // A career session may race a saved per-vehicle preset (src/career/economy.ts).
-      setup: { ...(this.career.sessionSetup() ?? this.settings.setup) },
-    };
-    this.menuMachineFrame = null;
-    this.ui.options = this.options;
-    this.auto = false;
-    this.ers = 1;
-    this.exporter.cancel();
-    if (this.replay) void this.replay.dispose();
-    this.replay = null;
-    this.flashbacks = 0;
-    this.flashbackMode = this.flashbackPending = false;
-    this.liveSurface = null;
-    this.recordingWarnings = [];
-    this.telemetry = null;
-    this.replayA = null;
-    this.replayB = null;
-    this.comparison = false;
-    this.current = null;
-    this.previous = null;
-    this.liveFrames.reset();
-    this.renderer?.reset();
-    this.renderer?.circuit.gpSlipMarks?.clear();
-    this.worker?.terminate();
-    if (this.renderer) this.renderer.engineering = null;
+    // Revoke the previous start before any asynchronous preparation can resume.
     const generation = ++this.generation;
-    this.workerPause = new PauseHandshake();
-    this.worker = new PhysicsWorker({ name: 'apex-physics' });
-    this.worker.onerror = (e) => this.fail(new Error(`Physics worker: ${e.message}`));
-    this.worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
-      if (generation !== this.generation) return;
-      const message = event.data;
-      if (message.type === 'pauseState') {
-        try {
-          this.workerPause.accept(message, this.current?.[H.TICK]);
-        } catch (error) {
-          this.fail(error);
-        }
-        return;
+    this.circuitStartup?.close();
+    clearTimeout(this.initTimeout);
+    this.initTimeout = 0;
+    const startup = new WorkerReadiness(generation);
+    this.circuitStartup = startup;
+    const cancelled = () =>
+      this.errorStopped || this.disposed || generation !== this.generation;
+    try {
+      // Any session the meeting did not start itself ends the meeting.
+      this.meetings.sessionStarting();
+      this.gridClock.reset();
+      this.gridAutomatic = false;
+      this.gridBriefingOpen = false;
+      this.dirtGateRelease = null;
+      this.gridPanel?.hide();
+      this.renderer?.gridPerformance.reset();
+      this.ui.gridPresentationAvailable = false;
+      if (this.renderer) {
+        this.renderer.gridPresentationTime = null;
+        this.renderer.gridPrepared = false;
       }
-      if (message.type === 'engineering') {
-        if (!isEngineeringSample(message.sample)) {
-          this.fail(new Error('Invalid engineering response'));
+      if (programme) this.programme.start();
+      else this.programme.stop();
+      this.renderer?.setPhoto(null);
+      this.photoStudio.close();
+      this.frozenPhoto = null;
+      this.captureRequested = false;
+      this.sessionId = crypto.randomUUID();
+      this.career.begin(career, this.sessionId);
+      this.radio.reset();
+      this.radioCaption.show(null);
+      this.usedDemonstration = false;
+      this.ui.closeModal();
+      this.ui.telemetryModal.close();
+      this.performanceCapture.interrupt('Session restarted');
+      this.interruptReview('Session restarted');
+      this.state = 'loading';
+      this.ui.showMode('loading');
+      this.ui.loading('Preparing grid, race timing and recording buffers…');
+      this.ui.loadingSession(options);
+      this.ui.loadingScene(options, {
+        wildcard: career?.event?.key.startsWith('wildcard.')
+          ? wildcardEntry(career.event.key.slice('wildcard.'.length))
+          : undefined,
+        night:
+          resolveLighting(
+            sessionLight(this.lightChoice, career?.light ?? null),
+            !!circuitDefinition(options.circuit).catalogue?.night,
+          ) === 'night',
+      });
+      this.input.setEnabled(false);
+      // The inlined physics worker is its own chunk: only a session needs it, so
+      // fetch it while audio and the circuit prepare (awaited before the worker starts).
+      const physicsWorker = import('./workers/physics.worker.ts?worker&inline');
+      physicsWorker.catch(() => undefined); // The await below reports a failure.
+      this.audio.stop();
+      try {
+        await startup.lifetime.wait(this.audio.start());
+        if (cancelled()) return;
+        // The browser's autoplay policy holds the sound until a key press, click or tap; a
+        // gamepad button does not count. Say so once instead of racing in silence.
+        if (this.audio.locked)
+          this.ui.toast(t('Sound starts after your next key press or click.'));
+      } catch (e) {
+        if (cancelled()) throw e;
+        this.ui.toast(
+          `Audio unavailable: ${e instanceof Error ? e.message : String(e)}. Racing remains available.`,
+        );
+      }
+      if (cancelled()) return;
+      const circuit = circuitDefinition(options.circuit).id;
+      // The worker falls back to Formula for incomplete or unknown vehicle lists.
+      const gpGrid = gpGridForVehicles(validateOptions(options).vehicles);
+      if (!(await startup.lifetime.wait(this.switchCircuit(circuit, gpGrid))) || cancelled()) return;
+      this.applyLight(career?.light ?? null);
+      const { default: PhysicsWorker } = await startup.lifetime.wait(physicsWorker);
+      if (cancelled()) return;
+      this.options = {
+        ...options,
+        circuit,
+        // Time Trial is a solo session: the worker validates the same rule.
+        opponents: options.mode === 'time-trial' ? 0 : options.opponents,
+        // A career session may race a saved per-vehicle preset (src/career/economy.ts).
+        setup: { ...(this.career.sessionSetup() ?? this.settings.setup) },
+      };
+      this.menuMachineFrame = null;
+      this.ui.options = this.options;
+      this.auto = false;
+      this.ers = 1;
+      this.exporter.cancel();
+      if (this.replay) void this.replay.dispose();
+      this.replay = null;
+      this.flashbacks = 0;
+      this.flashbackMode = this.flashbackPending = false;
+      this.liveSurface = null;
+      this.recordingWarnings = [];
+      this.telemetry = null;
+      this.replayA = null;
+      this.replayB = null;
+      this.comparison = false;
+      this.current = null;
+      this.previous = null;
+      this.liveFrames.reset();
+      this.renderer?.reset();
+      this.renderer?.circuit.gpSlipMarks?.clear();
+      this.worker?.terminate();
+      if (this.renderer) this.renderer.engineering = null;
+      this.workerPause = new PauseHandshake();
+      this.worker = new PhysicsWorker({ name: 'apex-physics' });
+      this.worker.onerror = (e) => {
+        if (!cancelled()) this.fail(new Error(`Physics worker: ${e.message}`));
+      };
+      this.worker.onmessageerror = () => {
+        if (!cancelled()) this.fail(new Error('Physics worker message could not be decoded.'));
+      };
+      this.worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
+        if (cancelled()) return;
+        const message = event.data;
+        if (message.type === 'pauseState') {
+          try {
+            this.workerPause.accept(message, this.current?.[H.TICK]);
+          } catch (error) {
+            this.fail(error);
+          }
           return;
         }
-        if (this.renderer) this.renderer.engineering = message.sample;
-        return;
-      }
-      if (message.type === 'error') {
-        this.fail(new Error(message.message));
-        return;
-      }
-      if (message.type === 'telemetry') {
-        this.telemetry?.appendBatch(new Float32Array(message.buffer), message.rows);
-        this.post({ type: 'recycleTelemetry', buffer: message.buffer }, [message.buffer]);
-        return;
-      }
-      if (message.type === 'recordingWarning') {
-        this.recordingWarnings.push(message.message);
-        this.ui.toast(message.message);
-        return;
-      }
-      if (message.type === 'replayFrames') {
-        const data = new Float32Array(message.buffer);
-        if (this.replay) {
-          const stride = this.replay.stride;
-          if (
-            !Number.isInteger(message.rows) ||
-            message.rows < 0 ||
-            message.rows * stride > data.length
-          ) {
-            this.fail(new Error('Invalid replay batch'));
-          } else
-            for (let i = 0; i < message.rows; i++)
-              this.replay.append(data.subarray(i * stride, (i + 1) * stride));
+        if (message.type === 'engineering') {
+          if (!isEngineeringSample(message.sample)) {
+            this.fail(new Error('Invalid engineering response'));
+            return;
+          }
+          if (this.renderer) this.renderer.engineering = message.sample;
+          return;
         }
-        this.post({ type: 'recycleReplay', buffer: message.buffer }, [message.buffer]);
-        return;
-      }
-      if (message.type === 'surface') {
-        this.liveSurface = {
-          water: message.water,
-          rubber: message.rubber,
-          marbles: message.marbles,
-          frozen: message.frozen,
-          time: message.time,
-        };
-        this.replay?.recordSurface(
-          message.water,
-          message.rubber,
-          message.time,
-          message.marbles,
-          message.frozen,
-        );
-        if (this.state !== 'replay')
-          this.renderer?.circuit.updateSurface(
+        if (message.type === 'error') {
+          this.fail(new Error(message.message));
+          return;
+        }
+        if (message.type === 'telemetry') {
+          this.telemetry?.appendBatch(new Float32Array(message.buffer), message.rows);
+          this.post({ type: 'recycleTelemetry', buffer: message.buffer }, [message.buffer]);
+          return;
+        }
+        if (message.type === 'recordingWarning') {
+          this.recordingWarnings.push(message.message);
+          this.ui.toast(message.message);
+          return;
+        }
+        if (message.type === 'replayFrames') {
+          const data = new Float32Array(message.buffer);
+          if (this.replay) {
+            const stride = this.replay.stride;
+            if (
+              !Number.isInteger(message.rows) ||
+              message.rows < 0 ||
+              message.rows * stride > data.length
+            ) {
+              this.fail(new Error('Invalid replay batch'));
+            } else
+              for (let i = 0; i < message.rows; i++)
+                this.replay.append(data.subarray(i * stride, (i + 1) * stride));
+          }
+          this.post({ type: 'recycleReplay', buffer: message.buffer }, [message.buffer]);
+          return;
+        }
+        if (message.type === 'surface') {
+          this.liveSurface = {
+            water: message.water,
+            rubber: message.rubber,
+            marbles: message.marbles,
+            frozen: message.frozen,
+            time: message.time,
+          };
+          this.replay?.recordSurface(
             message.water,
             message.rubber,
+            message.time,
             message.marbles,
             message.frozen,
           );
-        // Terrain venues: rut keyframes, kept for replays (WP41).
-        this.renderer?.circuit.offroad?.record(
-          message.terrain,
-          message.time,
-          this.state !== 'replay',
-        );
+          if (this.state !== 'replay')
+            this.renderer?.circuit.updateSurface(
+              message.water,
+              message.rubber,
+              message.marbles,
+              message.frozen,
+            );
+          // Terrain venues: rut keyframes, kept for replays (WP41).
+          this.renderer?.circuit.offroad?.record(
+            message.terrain,
+            message.time,
+            this.state !== 'replay',
+          );
+          return;
+        }
+        if (message.type === 'flashback') {
+          this.completeFlashback(message.time);
+          return;
+        }
+        try {
+          this.accept(message.buffer, generation);
+        } catch (error) {
+          this.fail(error);
+        }
+      };
+      // Count only time the main thread was free to receive the worker's first
+      // snapshot: shader compilation on a slow GPU can block it for longer than
+      // the worker needs, which is not a worker failure.
+      let waited = 0,
+        checked = performance.now();
+      const checkWorker = () => {
+        if (cancelled() || this.state !== 'loading' || !startup.pending) return;
+        const now = performance.now();
+        waited += Math.min(now - checked, 6000);
+        checked = now;
+        if (waited < 45000) this.initTimeout = window.setTimeout(checkWorker, 5000);
+        else
+          this.fail(
+            new Error(
+              'Physics worker did not initialize. Check that module workers are supported by the browser.',
+            ),
+          );
+      };
+      this.initTimeout = window.setTimeout(checkWorker, 5000);
+      this.post({ type: 'init', options: this.options });
+      startup.lifetime.check();
+      this.post({ type: 'engineering', enabled: this.renderer?.debug ?? false });
+      await startup.ready;
+      if (cancelled()) return;
+      clearTimeout(this.initTimeout);
+      this.initTimeout = 0;
+      if (!this.renderer || !this.current)
+        throw new Error('Session initialization has no render state');
+      const warmed = await startup.lifetime.wait(
+        this.renderer.prepare(
+          this.current,
+          (message) => {
+            if (!cancelled()) this.ui.loading(message);
+          },
+          cancelled,
+          undefined,
+          rulesetFor(this.options).service.pitStops,
+        ),
+      );
+      if (!warmed || cancelled()) return;
+      const cars = this.options.opponents + 1;
+      this.replay = new SessionReplay(cars, undefined, (message) => {
+        if (generation !== this.generation) return;
+        this.recordingWarnings.push(message);
+        this.ui.toast(message);
+      });
+      // The initial surface is retained even before the first full recording batch.
+      const initialTrack = new Track(this.options.weather, false, undefined, this.track.circuit);
+      const initialFrozen = initialTrack.cold ? initialTrack.frozen : undefined;
+      this.liveSurface = {
+        water: initialTrack.water,
+        rubber: initialTrack.rubber,
+        marbles: initialTrack.marbles,
+        frozen: initialFrozen,
+        time: 0,
+      };
+      this.replay.recordSurface(
+        initialTrack.water,
+        initialTrack.rubber,
+        0,
+        initialTrack.marbles,
+        initialFrozen,
+      );
+      this.telemetry = new TelemetryRecorder();
+      this.replayA = this.replay.makeFrame();
+      this.replayB = this.replay.makeFrame();
+      this.renderer.setLivery(this.team.livery);
+      await startup.lifetime.wait(this.prepareTimeTrial(generation));
+      if (cancelled()) return;
+      this.state = 'driving';
+      emitSessionStarted(
+        options,
+        'circuit',
+        career?.event?.key.startsWith('wildcard.')
+          ? career.event.key.slice('wildcard.'.length)
+          : undefined,
+      );
+      const referenceCamera = this.referenceSession.beginSession(this.sessionId);
+      if (referenceCamera) this.renderer.changeCamera(referenceCamera);
+      this.ui.get('loading').hidden = true;
+      this.ui.showMode('driving');
+      // Retain the real paused grid snapshot before the worker is released.
+      // A slow first rendered frame must not erase the start-light phase.
+      this.observeSession();
+      // A normal paddock action lets the player prepare cameras, controls and
+      // recording before the real countdown. The initialized worker stays paused;
+      // no elapsed race time, injected snapshot or alternate simulation is used.
+      if (holdOnGrid || (racingSession(this.options.mode) && !this.settings.quickStart)) {
+        this.pause();
+        if (!holdOnGrid) this.openRaceBriefing();
         return;
       }
-      if (message.type === 'flashback') {
-        this.completeFlashback(message.time);
-        return;
+      this.input.setEnabled(true);
+      (document.activeElement as HTMLElement)?.blur();
+      this.post({ type: 'pause', value: false });
+      this.inputPump.poll();
+    } catch (error) {
+      // Replaced or disposed starts may reject after their new owner is live.
+      if (this.disposed || generation !== this.generation) return;
+      this.fail(error);
+      throw error;
+    } finally {
+      // A departed start must never clear its replacement's timer or gate.
+      if (this.circuitStartup === startup) {
+        this.circuitStartup = null;
+        clearTimeout(this.initTimeout);
+        this.initTimeout = 0;
       }
-      this.accept(message.buffer);
-    };
-    const ready = new Promise<void>((resolve) => (this.readyResolve = resolve));
-    // Count only time the main thread was free to receive the worker's first
-    // snapshot: shader compilation on a slow GPU can block it for longer than
-    // the worker needs, which is not a worker failure.
-    let waited = 0,
-      checked = performance.now();
-    const checkWorker = () => {
-      if (generation !== this.generation || this.state !== 'loading' || !this.readyResolve) return;
-      const now = performance.now();
-      waited += Math.min(now - checked, 6000);
-      checked = now;
-      if (waited < 45000) this.initTimeout = window.setTimeout(checkWorker, 5000);
-      else
-        this.fail(
-          new Error(
-            'Physics worker did not initialize. Check that module workers are supported by the browser.',
-          ),
-        );
-    };
-    this.initTimeout = window.setTimeout(checkWorker, 5000);
-    this.post({ type: 'init', options: this.options });
-    this.post({ type: 'engineering', enabled: this.renderer?.debug ?? false });
-    await ready;
-    clearTimeout(this.initTimeout);
-    if (this.errorStopped || this.disposed || generation !== this.generation) return;
-    if (!this.renderer || !this.current)
-      throw new Error('Session initialization has no render state');
-    const warmed = await this.renderer.prepare(
-      this.current,
-      (message) => this.ui.loading(message),
-      () => this.errorStopped || this.disposed || generation !== this.generation,
-      undefined,
-      rulesetFor(this.options).service.pitStops,
-    );
-    if (!warmed || this.errorStopped || this.disposed || generation !== this.generation) return;
-    const cars = this.options.opponents + 1;
-    this.replay = new SessionReplay(cars, undefined, (message) => {
-      if (generation !== this.generation) return;
-      this.recordingWarnings.push(message);
-      this.ui.toast(message);
-    });
-    // The initial surface is retained even before the first full recording batch.
-    const initialTrack = new Track(this.options.weather, false, undefined, this.track.circuit);
-    const initialFrozen = initialTrack.cold ? initialTrack.frozen : undefined;
-    this.liveSurface = {
-      water: initialTrack.water,
-      rubber: initialTrack.rubber,
-      marbles: initialTrack.marbles,
-      frozen: initialFrozen,
-      time: 0,
-    };
-    this.replay.recordSurface(
-      initialTrack.water,
-      initialTrack.rubber,
-      0,
-      initialTrack.marbles,
-      initialFrozen,
-    );
-    this.telemetry = new TelemetryRecorder();
-    this.replayA = this.replay.makeFrame();
-    this.replayB = this.replay.makeFrame();
-    this.renderer.setLivery(this.team.livery);
-    await this.prepareTimeTrial(generation);
-    if (this.errorStopped || this.disposed || generation !== this.generation) return;
-    this.state = 'driving';
-    emitSessionStarted(
-      options,
-      'circuit',
-      career?.event?.key.startsWith('wildcard.')
-        ? career.event.key.slice('wildcard.'.length)
-        : undefined,
-    );
-    const referenceCamera = this.referenceSession.beginSession(this.sessionId);
-    if (referenceCamera) this.renderer.changeCamera(referenceCamera);
-    this.ui.get('loading').hidden = true;
-    this.ui.showMode('driving');
-    // Retain the real paused grid snapshot before the worker is released.
-    // A slow first rendered frame must not erase the start-light phase.
-    this.observeSession();
-    // A normal paddock action lets the player prepare cameras, controls and
-    // recording before the real countdown. The initialized worker stays paused;
-    // no elapsed race time, injected snapshot or alternate simulation is used.
-    if (holdOnGrid || (racingSession(this.options.mode) && !this.settings.quickStart)) {
-      this.pause();
-      if (!holdOnGrid) this.openRaceBriefing();
-      return;
+      startup.close();
     }
-    this.input.setEnabled(true);
-    (document.activeElement as HTMLElement)?.blur();
-    this.post({ type: 'pause', value: false });
-    this.inputPump.poll();
   }
   /** Load this circuit's saved personal-best ghost for a Time Trial session. */
   private async prepareTimeTrial(generation: number) {
     this.ui.timeTrial = null;
     this.renderer?.setGhost(null);
-    await this.records.prepare(this.options, this.track, () => generation === this.generation);
-    if (generation === this.generation) this.ui.timeTrial = this.records.trial;
+    const current = () =>
+      !this.errorStopped && !this.disposed && generation === this.generation;
+    await this.records.prepare(this.options, this.track, current);
+    if (current()) this.ui.timeTrial = this.records.trial;
   }
   /** Pose the ghost at the presented lap time (same interpolation as the car). */
   private presentGhost(a: Float32Array, b: Float32Array, alpha: number) {
@@ -1456,7 +1499,8 @@ export class GameApp {
         : null,
     );
   }
-  private accept(buffer: ArrayBuffer) {
+  private accept(buffer: ArrayBuffer, generation: number) {
+    if (this.errorStopped || this.disposed || generation !== this.generation) return;
     const next = new Float32Array(buffer);
     if (this.current) {
       if (this.previous && this.previous !== this.current) {
@@ -1490,10 +1534,7 @@ export class GameApp {
     }
     if (this.state !== 'driving' && this.state !== 'paused') this.radioCaption.show(null);
     if (this.state !== 'driving') this.rumble.stop(this.input.activePad());
-    if (this.readyResolve) {
-      this.readyResolve();
-      this.readyResolve = null;
-    }
+    this.circuitStartup?.accept(generation);
   }
   private observeSession() {
     // Evidence tooling costs nothing per frame until it is armed.
@@ -3405,8 +3446,14 @@ export class GameApp {
     }
   }
   private fail(error: unknown) {
+    if (this.errorStopped || this.disposed) return;
+    this.errorStopped = true;
+    const startup = this.circuitStartup;
+    this.circuitStartup = null;
+    startup?.close(error instanceof Error ? error : new Error(String(error)));
+    clearTimeout(this.initTimeout);
+    this.initTimeout = 0;
     this.referenceSession?.interrupt('Application error.');
-    if (this.errorStopped) return;
     this.sessionReview.stop('Application error', true);
     this.tabEvidence.observe(
       'application-error',
@@ -3414,10 +3461,8 @@ export class GameApp {
     );
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
-    this.errorStopped = true;
     this.festivalOwner.cancel();
     this.endDemoClock();
-    clearTimeout(this.initTimeout);
     this.worker?.terminate();
     this.input.setEnabled(false);
     this.audio.stop();
@@ -3543,6 +3588,9 @@ export class GameApp {
     // pending start. One failed owner must not strand unrelated live resources.
     this.disposed = true;
     this.generation++;
+    const startup = this.circuitStartup;
+    this.circuitStartup = null;
+    startup?.close();
     const failures: unknown[] = [];
     const release = (cleanup: () => void) => {
       try {
@@ -3566,7 +3614,10 @@ export class GameApp {
     release(() => this.festivalOwner.cancel());
     release(() => this.endDemoClock());
     release(() => cancelAnimationFrame(this.timer));
-    release(() => clearTimeout(this.initTimeout));
+    release(() => {
+      clearTimeout(this.initTimeout);
+      this.initTimeout = 0;
+    });
     release(() => this.worker?.terminate());
     release(() => this.mediaView?.dispose());
     release(() => this.referenceSession.dispose());

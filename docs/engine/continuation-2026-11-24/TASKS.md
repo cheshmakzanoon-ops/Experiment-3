@@ -4,18 +4,18 @@ Every numbered row is a distinct agent spawned for this continuation. The coordi
 
 | Agent | Wave | Assignment | Status |
 |---|---|---|---|
-| 01 | 1 | Runtime workers, clocks, delivery and backpressure audit | Running |
-| 02 | 1 | Physics algorithms, collision queries and allocation audit | Running |
-| 03 | 1 | Replay, telemetry, storage and bounded-memory audit | Running |
-| 04 | 1 | Awaiting evidence-based assignment | Pending |
-| 05 | 1 | Awaiting evidence-based assignment | Pending |
-| 06 | 1 | Awaiting evidence-based assignment | Pending |
-| 07 | 2 | Awaiting evidence-based assignment | Pending |
-| 08 | 2 | Awaiting evidence-based assignment | Pending |
-| 09 | 2 | Awaiting evidence-based assignment | Pending |
+| 01 | 1 | Runtime workers, clocks, delivery and backpressure audit | Complete: four reproduced defects |
+| 02 | 1 | Physics algorithms, collision queries and allocation audit | Complete: three measured/reproduced leads |
+| 03 | 1 | Replay, telemetry, storage and bounded-memory audit | Complete: two reproduced corruption/recovery defects |
+| 04 | 1 | Network history, interpolation and metrics audit | Complete: three reachable retention/ownership findings |
+| 05 | 1 | Controller ownership and audio event scheduling audit | Complete: three reproduced defects |
+| 06 | 1 | Resource build queue and GPU timing audit | Complete: two reproduced lifecycle defects |
+| 07 | 2 | Recording publication tokens and reentrant failure recovery | Complete: 22 new cases; 93 focused tests passed |
+| 08 | 2 | Fatal Festival worker/session failure propagation | Complete: 16 new cases; 61 focused tests passed |
+| 09 | 2 | Circuit startup readiness settlement and cancellation | Complete: 27 new cases; 64 focused tests passed |
 | 10 | 2 | Awaiting evidence-based assignment | Pending |
-| 11 | 2 | Awaiting evidence-based assignment | Pending |
-| 12 | 2 | Awaiting evidence-based assignment | Pending |
+| 11 | 2 | Cache invariant quaternion interpolation in swept collision | Running |
+| 12 | 2 | Save mirror transaction completeness and restart recovery | Running |
 | 13 | 3 | Awaiting evidence-based assignment | Pending |
 | 14 | 3 | Awaiting evidence-based assignment | Pending |
 | 15 | 3 | Awaiting evidence-based assignment | Pending |

@@ -21,8 +21,8 @@ No 3D models, character models, authored environments, textures, materials, trac
 
 | Wave | Agents | Focus | Status |
 |---|---|---|---|
-| 1 | 01–06 | Remaining defects and performance opportunities across the shared engine | In progress |
-| 2 | 07–12 | Implement the highest-priority runtime and data-transport findings | Pending audit |
+| 1 | 01–06 | Remaining defects and performance opportunities across the shared engine | Complete: 17 independently recorded findings |
+| 2 | 07–12 | Critical worker, recording and persistence repairs; collision sweep work | In progress |
 | 3 | 13–18 | Simulation queries and deterministic hot-path improvements | Pending audit |
 | 4 | 19–24 | Replay, telemetry, persistence and long-session memory | Pending audit |
 | 5 | 25–30 | Network interpolation, codecs and bounded work | Pending audit |
@@ -44,3 +44,15 @@ The preceding programme reports four pre-existing broad-suite failures. Those hi
 
 Implementation and validation results will be added as each wave completes. See [the task ledger](TASKS.md) for the actual agent record.
 
+
+### Wave 1: evidence selected for implementation
+
+The six reports in [audits](audits/) reproduce lost shift edges, surface-channel backlog, fatal-session and startup-settlement failures, stale recording-buffer ownership, save-mirror revision gaps, command/metric history growth, controller takeover, stale audio events, low-rate audio cadence loss, build-queue cancellation and GPU timer faults. They also measure redundant BVH construction and swept-collision interpolation work. Integration-only state-alias findings and extreme numerical solver cases are explicitly distinguished from normal gameplay.
+
+The baseline focused networking/interpolation run passed all 38 cases in three suites. Whole-project TypeScript checks exceeded the local process memory limit at the unmodified baseline (default and bounded heaps); remote CI will be used for the complete compiler/build gate. This is an environment limit, not a passing compiler result.
+
+### Wave 2: first implementation batch
+
+Recording transport now uses publication identity when recovering failed sends and retains independently captured newer pages. Festival errors explicitly distinguish terminal runtime/transport failure from recoverable command rejection. Circuit first-frame readiness belongs to one startup generation and settles on failure, timeout, replacement or disposal; cancellation also covers asynchronous preparation.
+
+Focused runs passed 93 recording cases, 61 Festival cases, and 64 startup/lifecycle cases. These overlapping suite totals are not added into a unique-test claim. Existing media/geometry definitions and simulation tuning are unchanged.

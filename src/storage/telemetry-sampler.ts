@@ -18,7 +18,8 @@ export const RECORDING_TRANSPORT_MAX_PAGES = 60;
 class ElasticTransferPool {
   private readonly pool: Float32Array[] = [];
   private readonly localBuffers = new WeakSet<ArrayBuffer>();
-  private readonly transferred = new Set<ArrayBuffer>();
+  private readonly transferred = new Map<ArrayBuffer, number>();
+  private publication = 0;
   private allocated = 0;
   constructor(
     private readonly length: number,
@@ -46,13 +47,18 @@ class ElasticTransferPool {
     return this.pool.pop() ?? (this.allocated < this.maxPages ? this.allocate() : undefined);
   }
   beginTransfer(buffer: ArrayBuffer) {
-    this.transferred.add(buffer);
+    const publication = ++this.publication;
+    this.transferred.set(buffer, publication);
+    return publication;
   }
-  cancelTransfer(buffer: ArrayBuffer) {
+  cancelTransfer(buffer: ArrayBuffer, publication: number) {
     // A throwing postMessage leaves ownership here unless it already detached
     // the page. A synchronous consumer may also have recycled it before throwing.
+    // Only this publication may recover the buffer: a nested send can already
+    // have published the same attached buffer to a different consumer.
     return (
       buffer.byteLength === this.length * Float32Array.BYTES_PER_ELEMENT &&
+      this.transferred.get(buffer) === publication &&
       this.transferred.delete(buffer)
     );
   }
@@ -66,7 +72,7 @@ class ElasticTransferPool {
       // are active, idle or retired; accepting one twice aliases live recordings
       // and can incorrectly shrink the allocation count below outstanding pages.
       if (this.localBuffers.has(buffer)) return;
-      for (const candidate of this.transferred) {
+      for (const candidate of this.transferred.keys()) {
         if (candidate.byteLength === 0) {
           outgoing = candidate;
           break;
@@ -90,6 +96,8 @@ class ElasticTransferPool {
   }
 }
 
+type RecordingBatch = { page: Float32Array; rows: number };
+
 /** Captures every second physics tick, irrespective of snapshot recycling or
  * render FPS. Transferable pages begin with a six-page reserve and can grow to
  * a bounded sixty-page reserve when the main thread is stalled. Full pages
@@ -100,12 +108,16 @@ export class TelemetrySampler {
   private telemetryPool: ElasticTransferPool;
   private page: Float32Array | undefined;
   private rows = 0;
+  // Failed sends can coexist with newer pages captured by a synchronous
+  // callback. These batches still consume their original bounded pool pages.
+  private readonly telemetryRetries: RecordingBatch[] = [];
   private scratch: Float32Array;
   private lastTick = -1;
   private warned = false;
   private replayPool: ElasticTransferPool;
   private replayPage: Float32Array | undefined;
   private replayRows = 0;
+  private readonly replayRetries: RecordingBatch[] = [];
   private replayWarned = false;
   constructor(
     private simulation: Simulation,
@@ -124,8 +136,8 @@ export class TelemetrySampler {
     if (tick % 2 || tick === this.lastTick) return;
     // A failed send can leave a full page owned here. Retry it before appending
     // another row, so the retry cannot overflow or overwrite the captured batch.
-    if (this.rows === TELEMETRY_BATCH_ROWS) this.flush();
-    if (this.replayRows === 15) this.flushReplay();
+    if (this.telemetryRetries.length || this.rows === TELEMETRY_BATCH_ROWS) this.flush();
+    if (this.replayRetries.length || this.replayRows === 15) this.flushReplay();
     this.lastTick = tick;
     this.simulation.writeFrame(this.scratch, stepMs, droppedSeconds);
     // Stage both streams before delivery, so a failed replay send cannot skip
@@ -146,19 +158,32 @@ export class TelemetrySampler {
     if (this.rows === TELEMETRY_BATCH_ROWS) this.flush();
   }
   flush() {
+    while (this.telemetryRetries.length) {
+      const batch = this.telemetryRetries.shift()!;
+      this.publishTelemetry(batch.page, batch.rows);
+    }
     if (!this.page || !this.rows) return;
     const page = this.page,
-      rows = this.rows,
-      buffer = page.buffer as ArrayBuffer;
+      rows = this.rows;
     this.page = undefined;
     this.rows = 0;
-    this.telemetryPool.beginTransfer(buffer);
+    this.publishTelemetry(page, rows);
+  }
+  private publishTelemetry(page: Float32Array, rows: number) {
+    const buffer = page.buffer as ArrayBuffer;
+    const publication = this.telemetryPool.beginTransfer(buffer);
     try {
       this.send(buffer, rows);
     } catch (error) {
-      if (this.telemetryPool.cancelTransfer(buffer)) {
-        this.page = page;
-        this.rows = rows;
+      if (this.telemetryPool.cancelTransfer(buffer, publication)) {
+        if (!this.page && !this.telemetryRetries.length) {
+          this.page = page;
+          this.rows = rows;
+        } else {
+          // Keep newer captures intact and retry this older batch first. A
+          // newer batch already delivered by reentry cannot be reordered.
+          this.telemetryRetries.unshift({ page, rows });
+        }
       }
       throw error;
     }
@@ -177,19 +202,30 @@ export class TelemetrySampler {
     this.replayRows++;
   }
   flushReplay() {
+    while (this.replayRetries.length) {
+      const batch = this.replayRetries.shift()!;
+      this.publishReplay(batch.page, batch.rows);
+    }
     if (!this.replayPage || !this.replayRows) return;
     const page = this.replayPage,
-      rows = this.replayRows,
-      buffer = page.buffer as ArrayBuffer;
+      rows = this.replayRows;
     this.replayPage = undefined;
     this.replayRows = 0;
-    this.replayPool.beginTransfer(buffer);
+    this.publishReplay(page, rows);
+  }
+  private publishReplay(page: Float32Array, rows: number) {
+    const buffer = page.buffer as ArrayBuffer;
+    const publication = this.replayPool.beginTransfer(buffer);
     try {
       this.sendReplay(buffer, rows);
     } catch (error) {
-      if (this.replayPool.cancelTransfer(buffer)) {
-        this.replayPage = page;
-        this.replayRows = rows;
+      if (this.replayPool.cancelTransfer(buffer, publication)) {
+        if (!this.replayPage && !this.replayRetries.length) {
+          this.replayPage = page;
+          this.replayRows = rows;
+        } else {
+          this.replayRetries.unshift({ page, rows });
+        }
       }
       throw error;
     }

@@ -170,6 +170,8 @@ export class FestivalSession {
     this.worker.onmessage = (event: MessageEvent<FromOpenWorld>) => this.receive(event.data);
     this.worker.onerror = (event) =>
       this.fail(new Error(event.message || 'Festival worker failed'), true);
+    this.worker.onmessageerror = () =>
+      this.fail(new Error('Festival message could not be decoded'), true);
     this.tiles.onerror = (event) =>
       this.fail(new Error(event.message || 'Festival terrain worker failed'), true);
     this.tiles.onmessageerror = () =>
@@ -487,7 +489,7 @@ export class FestivalSession {
         break;
       }
       case 'error':
-        this.fail(new Error(msg.message));
+        this.fail(new Error(msg.message), msg.fatal === true);
         break;
     }
   }
@@ -757,6 +759,9 @@ export class FestivalSession {
     });
     release(() => {
       this.worker.onerror = null;
+    });
+    release(() => {
+      this.worker.onmessageerror = null;
     });
     release(() => {
       this.tiles.onerror = null;

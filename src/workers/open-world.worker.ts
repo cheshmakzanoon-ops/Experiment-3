@@ -86,7 +86,17 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         break;
       case 'command': {
         const before = simulation?.cars.length;
-        simulation?.command(msg.command);
+        try {
+          simulation?.command(msg.command);
+        } catch (error) {
+          // Command validation can fail without invalidating the simulation.
+          // Publication/transport errors below still belong to the fatal path.
+          const message = error instanceof Error ? error.message : String(error);
+          if (msg.requestId !== undefined)
+            send({ type: 'command-result', requestId: msg.requestId, error: message });
+          else send({ type: 'error', message, fatal: false });
+          break;
+        }
         // A field change or teleport: deliver the new state at once.
         if (simulation && (simulation.cars.length !== before || paused)) snapshot(true);
         status();
@@ -100,10 +110,8 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         break;
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (msg.type === 'command' && msg.requestId !== undefined) {
-      send({ type: 'command-result', requestId: msg.requestId, error: message });
-    } else send({ type: 'error', message });
+    paused = true;
+    send({ type: 'error', message: error instanceof Error ? error.message : String(error), fatal: true });
   }
 };
 setInterval(() => {
@@ -135,6 +143,7 @@ setInterval(() => {
     send({
       type: 'error',
       message: error instanceof Error ? (error.stack ?? error.message) : String(error),
+      fatal: true,
     });
   }
 }, 4);

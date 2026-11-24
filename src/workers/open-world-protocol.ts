@@ -22,7 +22,9 @@ export type FromOpenWorld =
   | { type: 'status'; status: FestivalStatus }
   | { type: 'result'; result: FestivalResult }
   | { type: 'command-result'; requestId: number; error?: string }
-  | { type: 'error'; message: string };
+  /** Fatal simulation/transport failures close the session. Omitted `fatal`
+   * preserves the recoverable meaning of older command-error messages. */
+  | { type: 'error'; message: string; fatal?: boolean };
 
 /** Messages to the terrain tile worker (render meshes). */
 export interface TileRequest {
