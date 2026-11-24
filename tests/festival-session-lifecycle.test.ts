@@ -8,6 +8,7 @@ import type { FromOpenWorld, ToOpenWorld } from '../src/workers/open-world-proto
 interface WorkerDouble {
   onmessage: ((event: { data: FromOpenWorld }) => void) | null;
   onerror: ((event: { message: string }) => void) | null;
+  onmessageerror: ((event: object) => void) | null;
   terminate: Mock<() => void>;
   postMessage: Mock<(message: ToOpenWorld) => void>;
 }
@@ -22,6 +23,7 @@ const doubles = vi.hoisted(() => {
     const instance: WorkerDouble = {
       onmessage: null as ((event: { data: FromOpenWorld }) => void) | null,
       onerror: null as ((event: { message: string }) => void) | null,
+      onmessageerror: null,
       terminate: vi.fn(),
       postMessage: vi.fn((message: ToOpenWorld) => state.onPost?.(instance, message)),
     };
@@ -300,16 +302,22 @@ describe('FestivalSession lifetime', () => {
     },
   );
 
-  it('rejects startup immediately on an early worker failure, even while an asset loader remains pending', async () => {
+  it.each(['simulation', 'terrain', 'terrain-message'] as const)('rejects startup immediately on an early %s failure, even while an asset loader remains pending', async (kind) => {
     const pending = deferred<boolean>();
     renderer.loadPhotoVegetation.mockReturnValue(pending.promise);
     const run = start();
     await advanceUntil(() => renderer.loadPhotoVegetation.mock.calls.length > 0);
-    doubles.workers[0].onerror!({ message: 'Worker crashed during loading' });
+    const message = kind === 'terrain-message'
+      ? 'Festival terrain message could not be decoded'
+      : 'Worker crashed during loading';
+    if (kind === 'simulation') doubles.workers[0].onerror!({ message });
+    else if (kind === 'terrain') doubles.tiles[0].onerror!({ message });
+    else doubles.tiles[0].onmessageerror!({});
     await vi.advanceTimersByTimeAsync(0);
-    expect(run.outcome).toMatchObject({ error: new Error('Worker crashed during loading') });
+    expect(run.outcome).toMatchObject({ error: new Error(message) });
     expect(renderer.dispose).toHaveBeenCalledOnce();
-    expect(run.host.toast).toHaveBeenCalledWith('Festival error: Worker crashed during loading');
+    expect(run.host.toast).toHaveBeenCalledWith(`Festival error: ${message}`);
+    expect(run.host.exit).not.toHaveBeenCalled();
     pending.resolve(true);
     await vi.advanceTimersByTimeAsync(1000);
     expect(doubles.hud).not.toHaveBeenCalled();
@@ -368,7 +376,7 @@ describe('FestivalSession lifetime', () => {
     expect(run.host.loaded).not.toHaveBeenCalled();
   });
 
-  it.each(['dispose', 'protocol', 'worker', 'post'] as const)('settles command waits and clears their timer on %s failure', async (reason) => {
+  it.each(['dispose', 'protocol', 'worker', 'post', 'terrain', 'terrain-message'] as const)('settles command waits and clears their timer on %s failure', async (reason) => {
     const run = start();
     await advanceUntil(() => run.outcome !== undefined);
     const session = liveSession(run), worker = doubles.workers[0];
@@ -378,12 +386,15 @@ describe('FestivalSession lifetime', () => {
     if (reason === 'dispose') session.dispose();
     if (reason === 'protocol') worker.onmessage!({ data: { type: 'error', message: 'Simulation command failed' } });
     if (reason === 'worker') worker.onerror!({ message: 'Worker stopped' });
+    if (reason === 'terrain') doubles.tiles[0].onerror!({ message: 'Terrain worker stopped' });
+    if (reason === 'terrain-message') doubles.tiles[0].onmessageerror!({});
     await vi.advanceTimersByTimeAsync(0);
     expect(rejected).toHaveBeenCalledOnce();
     expect(rejected.mock.calls[0][0]).toBeInstanceOf(Error);
     expect(vi.getTimerCount()).toBe(0);
     expect(session.drivingInputEnabled).toBe(reason === 'protocol');
     expect(renderer.dispose).toHaveBeenCalledTimes(reason === 'protocol' ? 0 : 1);
+    expect(run.host.exit).toHaveBeenCalledTimes(reason === 'dispose' || reason === 'protocol' ? 0 : 1);
     await vi.advanceTimersByTimeAsync(9000);
     expect(rejected).toHaveBeenCalledOnce();
   });
@@ -408,6 +419,7 @@ describe('FestivalSession lifetime', () => {
     await advanceUntil(() => run.outcome !== undefined);
     const session = liveSession(run), worker = doubles.workers[0];
     const receive = worker.onmessage!, failure = worker.onerror!;
+    const tileFailure = doubles.tiles[0].onerror!, tileMessageFailure = doubles.tiles[0].onmessageerror!;
     const progress = renderer.prepareGpu.mock.calls[0][1];
     session.dispose();
     session.dispose();
@@ -417,6 +429,8 @@ describe('FestivalSession lifetime', () => {
     receive({ data: { type: 'result', result: { completed: true, eventId: 'coast-trap', stars: 3, time: 1 } as FestivalResult } });
     receive({ data: { type: 'error', message: 'Queued error' } });
     failure({ message: 'Queued crash' });
+    tileFailure({ message: 'Queued terrain crash' });
+    tileMessageFailure({});
     progress('Late GPU progress');
     rider.shells.install();
     session.frame(100);
@@ -425,6 +439,7 @@ describe('FestivalSession lifetime', () => {
     expect(session.drivingInputEnabled).toBe(false);
     expect(run.host.loading).toHaveBeenCalledTimes(loading);
     expect(run.host.toast).not.toHaveBeenCalled();
+    expect(run.host.exit).not.toHaveBeenCalled();
     expect(run.host.onResult).not.toHaveBeenCalled();
     expect(run.host.save).not.toHaveBeenCalled();
     expect(doubles.observe).not.toHaveBeenCalled();
@@ -432,6 +447,8 @@ describe('FestivalSession lifetime', () => {
     expect(renderer.draw).not.toHaveBeenCalled();
     expect(worker.onmessage).toBeNull();
     expect(worker.onerror).toBeNull();
+    expect(doubles.tiles[0].onerror).toBeNull();
+    expect(doubles.tiles[0].onmessageerror).toBeNull();
     expect(worker.terminate).toHaveBeenCalledOnce();
     expect(hud.dispose).toHaveBeenCalledOnce();
   });

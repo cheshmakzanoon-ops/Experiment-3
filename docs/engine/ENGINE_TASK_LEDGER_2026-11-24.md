@@ -40,12 +40,23 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 
 | Agent | Assignment | Result |
 |---|---|---|
-| 19 | Host cancellation of pending Festival startup | Running |
-| 20 | Binary buffer growth, bounds and integer decoding | Running |
-| 21 | Circuit snapshot transfer-pool ownership and backpressure | Running |
-| 22 | Festival snapshot transfer-pool integration and stale return handling | Queued |
-| 23 | Terrain-streamer request transport, worker failure and cancellation bookkeeping | Queued; caller already bounds in-flight work, so no silent queue cap |
-| 24 | Network control decoding and channel/shape validation | Queued |
+| 19 | Host cancellation of pending Festival startup | Integrated lazy-session owner, stale callback guards and cancellation handoff; 55 focused tests passed |
+| 20 | Binary buffer growth, bounds and integer decoding | Fixed zero-capacity growth, invalid read lengths and unsafe varints; 48 tests passed |
+| 21 | Circuit snapshot transfer-pool ownership and backpressure | Shared ownership-aware pool and circuit adoption; 40 tests passed |
+| 22 | Festival snapshot transfer-pool integration and stale return handling | Adopted shared pool with field-size reset and traffic pairing; 14 tests passed |
+| 23 | Terrain-streamer request transport, worker failure and cancellation bookkeeping | Fixed rollback, terminal errors and teardown; 20 tests passed; root integrated fatal session propagation |
+| 24 | Network control decoding and channel/shape validation | Added reliable-channel and nested server-control validation; 130 focused tests passed |
+
+## Wave 5 — recording and persistence
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 25 | Replay IndexedDB connection, disposal and late open ownership | Fixed terminal disposal, late opens and transaction abort cleanup; 18 tests passed |
+| 26 | SaveStore connection retry, blocked opens and transaction recovery | Fixed retry/ownership, transaction completion and atomic scheduling failures; 35 tests passed |
+| 27 | Telemetry export cancellation, backpressure and asynchronous ownership | Running |
+| 28 | Diagnostic recording ring capacity and bulk append work | Running |
+| 29 | Session replay paging, truncation and asynchronous failure audit | Running |
+| 30 | Desktop save mirror transaction completion and revision ordering | Queued |
 
 ## Remaining waves
 

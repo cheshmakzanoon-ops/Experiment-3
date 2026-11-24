@@ -156,6 +156,7 @@ import { CareerController, type CareerSession } from './career/controller.ts';
 import { wildcardEntry } from './career/wildcard-series.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
+import { SessionStartOwner } from './session/session-start-owner.ts';
 import { emitGameEvent } from './steam/events.ts';
 import { emitLapRecord, emitRaceFinished, emitSessionStarted } from './steam/hooks.ts';
 import { startAchievements } from './steam/runtime.ts';
@@ -199,8 +200,13 @@ export class GameApp {
   private sessionId = '';
   private usedDemonstration = false;
   /** Festival free roam: while set it owns input, frames and the canvas. */
-  private festival: FestivalSession | null = null;
-  private festivalStarting = false;
+  private readonly festivalOwner = new SessionStartOwner<FestivalSession>();
+  private get festival() {
+    return this.festivalOwner.session;
+  }
+  private get festivalStarting() {
+    return this.festivalOwner.starting;
+  }
   private leaderboards: LeaderboardRuntime | null = null;
   /** RECORDS screen: what was read when it opened, so its tabs do not read the save again. */
   private recordsView: RecordsView | null = null;
@@ -947,87 +953,104 @@ export class GameApp {
     options: SessionOptions,
     career: { travel: string | null; loaner: boolean } | null = null,
   ) {
-    if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
+    if (
+      this.disposed ||
+      this.errorStopped ||
+      this.festival ||
+      this.festivalStarting ||
+      !this.renderer ||
+      !this.canvas
+    )
+      return;
     const locked = demoSessionLock({ circuit: options.circuit, mode: 'festival', vehicles: options.vehicles });
     if (locked) {
       this.ui.toast(t('{locked}. Wishlist the full game on Steam.', { locked }));
       return;
     }
-    this.festivalStarting = true;
     const renderer = this.renderer;
-    // The festival opens in the player's LIGHT choice (AUTO is daylight there).
-    this.applyLight(null, false);
+    const canvas = this.canvas;
     // Each festival session has its own identity: results carry run ids
     // under it, and the career pays each run once.
     const session = crypto.randomUUID();
-    this.career.beginFestival({
-      career: !!career,
-      loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null,
+    await this.festivalOwner.start({
+      load: () => {
+        // The festival opens in the player's LIGHT choice (AUTO is daylight there).
+        this.applyLight(null, false);
+        this.career.beginFestival({
+          career: !!career,
+          loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null,
+        });
+        return import('./session/free-roam.ts');
+      },
+      create: ({ FestivalSession, FESTIVAL_SAVE_KEY }, startup) => {
+        this.ui.showMode('loading');
+        this.ui.loadingScene(options, {
+          night: resolveLighting(this.lightChoice, false, renderer.lighting) === 'night',
+        });
+        return FestivalSession.start(
+          {
+            canvas,
+            renderer: renderer.renderer,
+            element: document.getElementById('app')!,
+            quality: this.settings.quality,
+            graphics: this.settings.graphics,
+            reducedMotion: this.settings.reducedMotion || systemReducedMotion(),
+            shake: this.settings.shake,
+            lighting: renderer.lighting,
+            loading: startup.guard((text) => this.ui.loading(text)),
+            loaded: startup.guard(() => {
+              const screen = this.ui.get('loading');
+              screen.hidden = true;
+              screen.setAttribute('aria-busy', 'false');
+              // The world is live: the mode must stop saying "loading" (Steam rich
+              // presence and any observer read it from #app[data-mode]).
+              this.ui.showMode('festival');
+            }),
+            toast: startup.guard((message) => this.ui.toast(message)),
+            exit: startup.guard(() => this.exitFestival()),
+            livery: () => startup.current() ? this.team.livery : null,
+            // Driving input off while a festival menu is open (keyboard focus
+            // reaches its buttons), as in the circuit pause.
+            driving: startup.guard((on) => this.input.setEnabled(on)),
+            audio: {
+              start: async () => {
+                if (startup.current()) await this.audio.start();
+              },
+              stop: startup.guard(() => this.audio.stop()),
+              update: startup.guard((frame, cockpit, playing, view, liveHuman) =>
+                this.audio.update(frame, cockpit, playing, view, liveHuman)),
+            },
+            // Career hook: a typed FestivalResult per finished/abandoned event.
+            onResult: startup.guard((result) =>
+              window.dispatchEvent(new CustomEvent('festival-result', { detail: result }))),
+            load: async () => startup.current() ? this.store.read(FESTIVAL_SAVE_KEY) : null,
+            save: async (state) => {
+              if (startup.current()) await this.store.write(FESTIVAL_SAVE_KEY, state);
+            },
+          },
+          {
+            signal: startup.signal,
+            vehicle: options.vehicles?.[0],
+            weather: options.weather,
+            assist: options.assist,
+            seed: options.seed,
+            session,
+            travel: career?.travel ?? undefined,
+            // The career's loan is not the player's choice of festival machine.
+            loaner: career?.loaner ?? false,
+          },
+        );
+      },
+      ready: (festival) => {
+        this.input.setEnabled(festival.drivingInputEnabled);
+        // The launch button may remain focused after its screen is hidden.
+        // Widgets retain their keys, so release it only when driving takes over.
+        if (festival.drivingInputEnabled) (document.activeElement as HTMLElement)?.blur();
+        this.beginDemoClock();
+        emitSessionStarted(options, 'festival');
+      },
+      failed: () => this.exitFestival(),
     });
-    try {
-      const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
-      this.ui.showMode('loading');
-      this.ui.loadingScene(options, {
-        night: resolveLighting(this.lightChoice, false, renderer.lighting) === 'night',
-      });
-      this.festival = await FestivalSession.start(
-        {
-          canvas: this.canvas,
-          renderer: renderer.renderer,
-          element: document.getElementById('app')!,
-          quality: this.settings.quality,
-          graphics: this.settings.graphics,
-          reducedMotion: this.settings.reducedMotion || systemReducedMotion(),
-          shake: this.settings.shake,
-          lighting: renderer.lighting,
-          loading: (text) => this.ui.loading(text),
-          loaded: () => {
-            const screen = this.ui.get('loading');
-            screen.hidden = true;
-            screen.setAttribute('aria-busy', 'false');
-            // The world is live: the mode must stop saying "loading" (Steam rich
-            // presence and any observer read it from #app[data-mode]).
-            this.ui.showMode('festival');
-          },
-          toast: (message) => this.ui.toast(message),
-          exit: () => this.exitFestival(),
-          livery: () => this.team.livery,
-          // Driving input off while a festival menu is open (keyboard focus
-          // reaches its buttons), as in the circuit pause.
-          driving: (on) => this.input.setEnabled(on),
-          audio: {
-            start: () => this.audio.start(),
-            stop: () => this.audio.stop(),
-            update: (frame, cockpit, playing, view, liveHuman) =>
-              this.audio.update(frame, cockpit, playing, view, liveHuman),
-          },
-          // Career hook: a typed FestivalResult per finished/abandoned event.
-          onResult: (result) =>
-            window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
-          load: () => this.store.read(FESTIVAL_SAVE_KEY),
-          save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
-        },
-        {
-          vehicle: options.vehicles?.[0],
-          weather: options.weather,
-          assist: options.assist,
-          seed: options.seed,
-          session,
-          travel: career?.travel ?? undefined,
-          // The career's loan is not the player's choice of festival machine.
-          loaner: career?.loaner ?? false,
-        },
-      );
-      this.input.setEnabled(this.festival.drivingInputEnabled);
-      this.beginDemoClock();
-      emitSessionStarted(options, 'festival');
-    } catch (error) {
-      this.festival = null;
-      this.exitFestival();
-      throw error;
-    } finally {
-      this.festivalStarting = false;
-    }
   }
   /** Steam demo: the coast visit is timed (src/release/demo.ts). Nothing happens in the full game. */
   private beginDemoClock() {
@@ -1103,12 +1126,12 @@ export class GameApp {
     if (!outcome.ok) this.ui.toast(outcome.message);
   }
   private exitFestival() {
+    this.festivalOwner.cancel();
     this.endDemoClock();
-    this.festival?.dispose();
-    this.festival = null;
-    this.career.endFestival();
     this.input.setEnabled(false);
     this.audio.stop();
+    if (this.disposed || this.errorStopped) return;
+    this.career.endFestival();
     // The festival shared the GL context: restore the circuit presentation.
     this.renderer?.setQuality(this.settings.quality, this.settings.graphics);
     this.state = 'menu';
@@ -3387,6 +3410,8 @@ export class GameApp {
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
     this.errorStopped = true;
+    this.festivalOwner.cancel();
+    this.endDemoClock();
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
     this.input.setEnabled(false);
@@ -3520,8 +3545,8 @@ export class GameApp {
     this.exporter.cancel();
     if (this.replay) void this.replay.dispose();
     this.inputPump.dispose();
-    this.festival?.dispose();
-    this.festival = null;
+    this.festivalOwner.cancel();
+    this.endDemoClock();
     cancelAnimationFrame(this.timer);
     clearTimeout(this.initTimeout);
     this.worker?.terminate();

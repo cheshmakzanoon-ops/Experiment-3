@@ -170,6 +170,10 @@ export class FestivalSession {
     this.worker.onmessage = (event: MessageEvent<FromOpenWorld>) => this.receive(event.data);
     this.worker.onerror = (event) =>
       this.fail(new Error(event.message || 'Festival worker failed'), true);
+    this.tiles.onerror = (event) =>
+      this.fail(new Error(event.message || 'Festival terrain worker failed'), true);
+    this.tiles.onmessageerror = () =>
+      this.fail(new Error('Festival terrain message could not be decoded'), true);
     this.lifetime.signal.addEventListener('abort', () => this.dispose(), { once: true });
     window.addEventListener('keydown', this.photoKeys, true);
     const options = { signal: this.lifetime.signal };
@@ -420,10 +424,14 @@ export class FestivalSession {
   }
   private fail(error: Error, fatal = false) {
     if (this.disposed) return;
+    const leave = fatal && !this.booting;
     this.settleReady(error);
     this.rejectCommands(error);
     if (this.booting || fatal) this.lifetime.close(error);
     this.host.toast(`Festival error: ${error.message}`);
+    // A running host must release the closed session's canvas/input ownership.
+    // Startup failures instead propagate through start() to the host owner.
+    if (leave) this.host.exit();
   }
   private receive(msg: FromOpenWorld) {
     if (this.disposed) return;
@@ -725,6 +733,8 @@ export class FestivalSession {
     this.host.audio?.stop();
     this.worker.onmessage = null;
     this.worker.onerror = null;
+    this.tiles.onerror = null;
+    this.tiles.onmessageerror = null;
     this.worker.terminate();
     this.tiles.terminate();
     this.traffic?.dispose();

@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { FixedStepClock } from './fixed-step-clock.ts';
+import { FrameBufferPool } from './frame-buffer-pool.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import { OpenWorldSimulation } from '../simulation/open-world/session.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
@@ -21,27 +22,27 @@ const clock = new FixedStepClock();
  * when an event adds rivals and shrinks when it ends: the pool is refilled at
  * the new size then, because buffers of the old size coming back from the
  * main thread are dropped and would otherwise leave it empty for good. */
-const POOL_SIZE = 4;
-let pool: ArrayBuffer[] = [],
+let pool: FrameBufferPool | null = null,
   poolBytes = 0;
 const send = (msg: FromOpenWorld, transfer: Transferable[] = []) => scope.postMessage(msg, transfer);
 const frameBytes = () => (HEADER + (simulation?.cars.length ?? 1) * CAR_STRIDE) * 4;
 function fillPool(bytes: number) {
-  pool = Array.from({ length: POOL_SIZE }, () => new ArrayBuffer(bytes));
+  pool = new FrameBufferPool(bytes, 4, 6);
   poolBytes = bytes;
 }
 function snapshot(required = false) {
-  if (!simulation) return;
+  const current = simulation;
+  if (!current) return;
   const bytes = frameBytes();
   if (bytes !== poolBytes) fillPool(bytes);
-  if (!pool.length && !required) return;
-  const buffer = pool.pop() ?? new ArrayBuffer(bytes);
-  simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
-  // Ambient traffic rides with the frame it belongs to (a few hundred bytes).
-  if (simulation.traffic.cars.length) {
-    const traffic = simulation.trafficFrame().buffer as ArrayBuffer;
-    send({ type: 'frame', buffer, traffic }, [buffer, traffic]);
-  } else send({ type: 'frame', buffer }, [buffer]);
+  pool!.publish((buffer) => {
+    current.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
+    // Ambient traffic rides with the frame it belongs to (a few hundred bytes).
+    if (current.traffic.cars.length) {
+      const traffic = current.trafficFrame().buffer as ArrayBuffer;
+      send({ type: 'frame', buffer, traffic }, [buffer, traffic]);
+    } else send({ type: 'frame', buffer }, [buffer]);
+  }, required);
 }
 function status() {
   if (!simulation) return;
@@ -95,7 +96,7 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
       }
       case 'recycle':
         // A buffer of a previous field size is dropped (the pool was refilled).
-        if (simulation && msg.buffer.byteLength === poolBytes && pool.length < POOL_SIZE + 2) pool.push(msg.buffer);
+        if (simulation && msg.buffer.byteLength === poolBytes) pool?.recycle(msg.buffer);
         break;
     }
   } catch (error) {

@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { FixedStepClock } from './fixed-step-clock.ts';
+import { FrameBufferPool } from './frame-buffer-pool.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
@@ -13,7 +14,7 @@ let simulation: Simulation | null = null,
   lastInput = performance.now(),
   stepMs = 0;
 const clock = new FixedStepClock();
-let pool: ArrayBuffer[] = [];
+let pool: FrameBufferPool | null = null;
 let telemetry: TelemetrySampler | null = null;
 // D31 flashback: every applied input, the session options and a running rewind.
 let log = new InputLog(),
@@ -68,14 +69,15 @@ function engineering() {
   if (sample) send({ type: 'engineering', sample });
 }
 function snapshot(required = false) {
-  if (!simulation || (pool.length === 0 && !required)) return;
+  if (!simulation || !pool) return;
   // A paused consumer may still hold every transferable frame. Only an explicit
-  // pause barrier or a player pit-service transition may allocate a snapshot;
-  // normal frame delivery stays pooled.
-  const buffer =
-    pool.pop() ?? new ArrayBuffer((HEADER + simulation.cars.length * CAR_STRIDE) * 4);
-  simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
-  send({ type: 'frame', buffer }, [buffer]);
+  // pause barrier, flashback completion or player pit-service transition may
+  // allocate a snapshot; normal frame delivery stays pooled.
+  const current = simulation;
+  pool.publish((buffer) => {
+    current.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
+    send({ type: 'frame', buffer }, [buffer]);
+  }, required);
 }
 scope.onmessage = (event: MessageEvent<ClientMessage>) => {
   try {
@@ -95,10 +97,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         paused = true;
         lastInput = performance.now();
         clock.reset(lastInput);
-        pool = Array.from(
-          { length: 5 },
-          () => new ArrayBuffer((HEADER + simulation!.cars.length * CAR_STRIDE) * 4),
-        );
+        pool = new FrameBufferPool((HEADER + simulation.cars.length * CAR_STRIDE) * 4, 5, 6);
         lastSent = -1;
         lastSurface = -1;
         lastPitPhase = simulation.cars[0].pitPhase;
@@ -160,12 +159,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         telemetry?.recycle(msg.buffer);
         break;
       case 'recycle':
-        if (
-          simulation &&
-          msg.buffer.byteLength === (HEADER + simulation.cars.length * CAR_STRIDE) * 4 &&
-          pool.length < 6
-        )
-          pool.push(msg.buffer);
+        pool?.recycle(msg.buffer);
         break;
     }
   } catch (error) {

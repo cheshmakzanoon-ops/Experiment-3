@@ -13,7 +13,7 @@ export class ByteWriter {
   }
   private reserve(n: number) {
     if (this.length + n <= this.buffer.length) return;
-    let size = this.buffer.length * 2;
+    let size = Math.max(1, this.buffer.length * 2);
     while (size < this.length + n) size *= 2;
     const next = new Uint8Array(size);
     next.set(this.buffer.subarray(0, this.length));
@@ -142,12 +142,14 @@ export class ByteReader {
     for (let i = 0; i < 8; i++) {
       const byte = this.u8();
       value += (byte & 0x7f) * scale;
+      if (!Number.isSafeInteger(value)) throw new DecodeError('varint exceeds safe integer range');
       if (!(byte & 0x80)) return value;
       scale *= 128;
     }
     throw new DecodeError('varint is too long');
   }
   bytes(n: number) {
+    if (!Number.isSafeInteger(n) || n < 0) throw new DecodeError('Invalid byte length');
     this.need(n);
     const out = this.data.slice(this.offset, this.offset + n);
     this.offset += n;

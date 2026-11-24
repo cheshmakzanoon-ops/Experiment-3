@@ -1,7 +1,12 @@
 import { ByteReader, ByteWriter, DecodeError } from './bytes.ts';
 import { LIMITS } from './constants.ts';
 import { readInputPacket, writeInputPacket, type InputPacket } from './input.ts';
-import { validateClientControl, type ClientControl, type ServerControl } from './messages.ts';
+import {
+  validateClientControl,
+  validateServerControl,
+  type ClientControl,
+  type ServerControl,
+} from './messages.ts';
 import { readSnapshot, writeSnapshot, type Snapshot } from './snapshot.ts';
 import type { Channel } from './transport.ts';
 
@@ -120,10 +125,11 @@ export function decodeServerMessage(data: Uint8Array, channel: Channel): Decoded
       return { ok: true, value: { type: 'snapshot', snapshot } };
     }
     if (data[0] === MSG.CONTROL) {
-      const parsed = JSON.parse(decoder.decode(data.subarray(1))) as ServerControl;
-      if (!parsed || typeof parsed !== 'object' || typeof parsed.kind !== 'string')
-        return { ok: false, reason: 'invalid control message' };
-      return { ok: true, value: { type: 'control', control: parsed } };
+      if (channel !== 'reliable') return { ok: false, reason: 'control messages must be reliable' };
+      const parsed: unknown = JSON.parse(decoder.decode(data.subarray(1)));
+      const control = validateServerControl(parsed);
+      if (typeof control === 'string') return { ok: false, reason: control };
+      return { ok: true, value: { type: 'control', control } };
     }
     return { ok: false, reason: `unknown message type ${data[0]}` };
   } catch (error) {

@@ -64,8 +64,9 @@ function fixture(maxTiles = 5, withTrees = false) {
     cancelled: number[] = [],
     removed = vi.fn();
   const worker = {
-    addEventListener: (_: string, listener: typeof receive) => {
-      receive = listener;
+    addEventListener: (type: string, listener: typeof receive, options?: AddEventListenerOptions) => {
+      if (type === 'message') receive = listener;
+      options?.signal?.addEventListener('abort', () => removed(type, listener), { once: true });
     },
     removeEventListener: removed,
     postMessage: (message: ToTileWorker) => {
@@ -303,7 +304,11 @@ describe('Festival terrain hierarchy transitions', () => {
     f.terrain.dispose();
     f.deliver(late);
     expect(dispose).toHaveBeenCalledTimes(1);
-    expect(f.removed).toHaveBeenCalledTimes(1);
+    expect(f.removed.mock.calls.map(([type]) => type).sort()).toEqual([
+      'error',
+      'message',
+      'messageerror',
+    ]);
     expect(f.terrain.root.children).toHaveLength(0);
     expect(f.terrain.stats.resident).toBe(0);
     expect(f.terrain.stats.morphBytes).toBe(0);

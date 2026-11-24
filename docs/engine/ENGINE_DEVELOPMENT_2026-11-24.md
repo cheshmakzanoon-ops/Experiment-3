@@ -50,8 +50,8 @@ Specific assignments are refined against findings from preceding waves.
 | 1 | 1–6 | Fixed-step scheduling, input cadence, live/replay timing, worker snapshots | Complete |
 | 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | Complete |
 | 3 | 13–18 | Collision queries, numerical stability, simulation throughput | Complete |
-| 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | In progress |
-| 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Pending |
+| 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Complete |
+| 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | In progress |
 | 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Pending |
 | 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Pending |
 | 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Pending |
@@ -185,6 +185,50 @@ memory). Scoped lint passed for every assignment. Local checks of the large
 renderer dependency graph were terminated by host memory pressure, including a
 serialized attempt; they are not recorded as passing. The repository CI's full
 compiler/build job is required to close that verification gap.
+
+That gap is now closed: on published wave 3 commit
+`f4deef71c6be959f19f97df6a3ba4554da5057f2`, the full CI `validate` job passed
+repository-wide lint, content validation, TypeScript checking, and production
+build validation. Receipt:
+https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45398957235/job/138462387258
+
+### Wave 4 — host cancellation, transport and protocol validation
+
+Application-level Festival ownership begins before the lazy module loads and
+remains linked to the running session. Exit, disposal and fatal failure revoke
+host callbacks and abort startup. Late sessions are disposed; old callbacks
+cannot change a replacement run. Keyboard focus is released when driving takes
+over. Host/session integration passed 43 tests after the coordinator connected
+fatal terrain-worker errors and undecodable messages to cleanup and menu exit.
+
+Circuit and Festival workers share `FrameBufferPool`: duplicate or wrong-sized
+returns are rejected, attached storage is recovered when writing/posting fails,
+and detached transfers retain capacity credit without retaining detached wrapper
+objects. Required pause, pit, flashback and applicable Festival state snapshots
+still deliver with an exhausted ordinary pool. Circuit verification passed 40
+tests; Festival verification passed 14, including real transferable buffers.
+The existing wire protocol does not authenticate same-size returns by sender or
+session, and this change makes no such guarantee.
+
+Terrain streaming now rolls back failed sends, retires cancellation ownership
+before posting, clears terminal worker failures, and ignores late replies.
+Twenty transport/transition tests passed. Geometry, payloads, LOD transitions,
+quality budgets and scene content are unchanged.
+
+Binary utilities now grow from zero capacity, reject malformed byte counts
+without poisoning the read cursor, and reject unsafe decoded integers. Both
+directions of network control decoding enforce their channel/shape contracts.
+Server-control validation preserves real producer sentinels and legacy optional
+fields while rejecting malformed nested state. Binary/codec tests passed 48;
+server-control/lifecycle/resilience tests passed 130. These are improvements to
+the repository's existing networking prototype, not a new multiplayer service.
+
+Wave 4's worker, network, terrain-streamer and startup-owner source/test graph
+passed the project TypeScript options (999 files, about 396 MiB compiler
+memory). The full application/renderer graph remains delegated to CI because
+local attempts were terminated by host memory pressure. All changed files have
+scoped lint and behavior coverage; the whole-project CI receipt is tracked after
+publication.
 
 ### Pre-existing broad-suite findings
 

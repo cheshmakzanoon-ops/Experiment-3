@@ -91,6 +91,8 @@ export class TerrainStreamer {
   private inFlight = 0;
   private clock = NaN;
   private disposed = false;
+  private workerFailed = false;
+  private readonly workerListeners = new AbortController();
   private readonly indices = new Map<number, T.BufferAttribute>();
   private drawnTiles = new Set<number>();
   /** Changes when the displayed covering set or its morph silhouette changes.
@@ -125,17 +127,44 @@ export class TerrainStreamer {
     // FrontSide material to BackSide in the shadow pass, dropping sun-facing
     // slopes. Cast both faces into the far map; visible terrain stays FrontSide.
     this.material.shadowSide = T.DoubleSide;
-    worker.addEventListener('message', this.receive);
+    const options = { signal: this.workerListeners.signal };
+    worker.addEventListener('error', this.failWorker, options);
+    worker.addEventListener('messageerror', this.failWorker, options);
+    worker.addEventListener('message', this.receive, options);
+  }
+  /** Every request owns exactly one slot, released before processing a reply
+   * or sending cancellation so late responses cannot claim it a second time. */
+  private releaseRequest(id: number) {
+    const tile = this.byId.get(id);
+    if (!tile) return;
+    this.byId.delete(id);
+    this.inFlight--;
+    tile.requested = false;
+    tile.id = 0;
+    return tile;
+  }
+  private failWorker = () => {
+    if (this.disposed || this.workerFailed) return;
+    this.workerFailed = true;
+    this.workerListeners.abort();
+    for (const id of this.byId.keys()) this.releaseRequest(id);
+  };
+  private cancel(t: Tile) {
+    const id = t.id;
+    if (!this.releaseRequest(id)) return;
+    try {
+      this.worker.postMessage({ type: 'cancel', id } satisfies ToTileWorker);
+    } catch {
+      // The worker may already be gone. Local ownership is still retired,
+      // and a queued reply must remain harmless if cancellation was not sent.
+    }
   }
   private receive = (event: MessageEvent<FromTileWorker>) => {
-    if (this.disposed) return;
+    if (this.disposed || this.workerFailed) return;
     const msg = event.data;
-    const tile = this.byId.get(msg.id);
+    const tile = this.releaseRequest(msg.id);
     // A cancelled worker reply must not decrement a different live request.
     if (!tile) return;
-    this.byId.delete(msg.id);
-    this.inFlight = Math.max(0, this.inFlight - 1);
-    tile.requested = false;
     if (msg.type === 'error') return;
     tile.data = msg;
     tile.mesh = this.build(tile, msg);
@@ -292,17 +321,17 @@ export class TerrainStreamer {
     return t;
   }
   private request(t: Tile, priority: number) {
-    if (t.requested || t.mesh) return false;
+    if (this.disposed || this.workerFailed || t.requested || t.mesh) return false;
     if (this.inFlight >= this.budget.inFlight && priority > 0) return false;
     const size = TILE_SIZE * 2 ** t.level;
+    const id = this.nextId++;
     t.requested = true;
-    t.id = this.nextId++;
-    this.byId.set(t.id, t);
+    t.id = id;
+    this.byId.set(id, t);
     this.inFlight++;
-    this.stats.requested++;
     const message: ToTileWorker = {
       type: 'tile',
-      id: t.id,
+      id,
       x0: ORIGIN + t.ix * size,
       z0: ORIGIN + t.iz * size,
       size,
@@ -312,7 +341,13 @@ export class TerrainStreamer {
       // shrubs and the far level only).
       colliders: t.level === 0,
     };
-    this.worker.postMessage(message);
+    try {
+      this.worker.postMessage(message);
+    } catch {
+      this.releaseRequest(id);
+      return false;
+    }
+    this.stats.requested++;
     return true;
   }
   private distanceToTile(t: Tile) {
@@ -450,12 +485,7 @@ export class TerrainStreamer {
       if (protectedTiles.size + extra <= limit) for (const child of group.children) keep(child);
     }
     for (const t of this.tiles.values())
-      if (t.requested && !protectedTiles.has(t)) {
-        this.worker.postMessage({ type: 'cancel', id: t.id } satisfies ToTileWorker);
-        this.byId.delete(t.id);
-        this.inFlight--;
-        t.requested = false;
-      }
+      if (t.requested && !protectedTiles.has(t)) this.cancel(t);
     this.evict(protectedTiles);
     const requests = [...protectedTiles].filter((t) => !t.mesh && !t.requested);
     requests.sort(
@@ -541,9 +571,8 @@ export class TerrainStreamer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    this.worker.removeEventListener('message', this.receive);
-    for (const t of this.byId.values())
-      this.worker.postMessage({ type: 'cancel', id: t.id } satisfies ToTileWorker);
+    this.workerListeners.abort();
+    for (const t of this.byId.values()) this.cancel(t);
     for (const t of this.tiles.values()) t.mesh?.geometry.dispose();
     this.tiles.clear();
     this.byId.clear();
