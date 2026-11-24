@@ -30,9 +30,11 @@ export function buildMotocrossBoundary(track: Track) {
   root.name = 'MX physical boundary padding';
   const p = trackPoint(),
     q = trackPoint(),
-    rows: T.Matrix4[][] = [[], []];
-  let rejected = 0;
+    sections = [new Map<string, T.Matrix4[]>(), new Map<string, T.Matrix4[]>()];
+  let rejected = 0, pads = 0;
   const { width, height, length, spacing } = MX_BOUNDARY;
+  // The wider outdoor sight lines benefit from fewer, larger batches.
+  const cellSize = surface.course.kind === 'motocross' ? 64 : 48;
   for (let s = spacing / 2; s < track.length; s += spacing) {
     track.at(s, p);
     for (const side of [-1, 1] as const) {
@@ -66,26 +68,35 @@ export function buildMotocrossBoundary(track: Track) {
       }
       // The canvas sits slightly into the soil along its surface normal.
       // On a takeoff or berm all four corners follow the course grade.
-      rows[Math.floor(s / (spacing * 3)) % 2].push(
-        mxFootprintMatrix(track, x, z, Math.atan2(p.tx, p.tz), width, length, height / 2 - 0.012),
-      );
+      const family = sections[Math.floor(s / (spacing * 3)) % 2];
+      const key = Math.floor(x / cellSize) + ',' + Math.floor(z / cellSize);
+      let run = family.get(key);
+      if (!run) {
+        run = [];
+        family.set(key, run);
+      }
+      run.push(mxFootprintMatrix(track, x, z, Math.atan2(p.tx, p.tz), width, length, height / 2 - 0.012));
+      pads++;
     }
   }
-  // The authored canvas remains inside the unchanged physical pad envelope.
-  // Mid detail is 256 triangles, shared by every instance in both batches.
+  // Each camera and each directional shadow can reject an entire area
+  // before evaluating its six fitted hem morphs. All sections share the
+  // original cage and the two printed fabrics, including in reflections.
   const geometry = mxPaddingGeometry();
   prepareMxPadContact(geometry);
-  for (let index = 0; index < rows.length; index++) {
-    if (!rows[index].length) continue;
-    const material = mxPaddingMaterial(index === 1);
-    const mesh = new T.InstancedMesh(geometry, material, rows[index].length);
-    mesh.name = `MX boundary pads ${index ? 'pale' : 'dark'}`;
-    fitMxPadContact(track, mesh, rows[index]);
-    mesh.castShadow = mesh.receiveShadow = true;
-    mesh.computeBoundingSphere();
-    root.add(mesh);
+  for (const [tint, cells] of sections.entries()) {
+    if (!cells.size) continue;
+    const material = mxPaddingMaterial(tint === 1);
+    for (const [cell, matrices] of cells) {
+      const mesh = new T.InstancedMesh(geometry, material, matrices.length);
+      mesh.name = `MX boundary pads ${tint ? 'pale' : 'dark'} · ${cell}`;
+      fitMxPadContact(track, mesh, matrices);
+      mesh.castShadow = mesh.receiveShadow = true;
+      mesh.computeBoundingSphere();
+      root.add(mesh);
+    }
   }
-  root.userData.boundaryPads = rows.reduce((sum, row) => sum + row.length, 0);
+  root.userData.boundaryPads = pads;
   root.userData.rejectedLaneFootprints = rejected;
   return root;
 }

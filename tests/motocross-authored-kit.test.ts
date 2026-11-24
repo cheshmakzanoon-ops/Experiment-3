@@ -127,21 +127,24 @@ describe('original Blender-authored motocross kit', () => {
   });
 
   it.each(['arena-nord-sx', 'valley-ridge-mx'] as const)(
-    'uses two shared pad batches with maps, not one draw per pad in %s',
+    'shares two printed fabrics across spatially culled banks of contact-fitted pads in %s',
     (circuit) => {
       const track = rigTrack(circuit);
       const root = buildMotocrossBoundary(track);
-      expect(root.children.length).toBe(2);
-      const [a, b] = root.children as T.InstancedMesh<T.BufferGeometry, T.MeshStandardMaterial>[];
-      expect(a.geometry).toBe(b.geometry);
+      const meshes = root.children as T.InstancedMesh<T.BufferGeometry, T.MeshStandardMaterial>[];
+      const a = meshes[0];
+      expect(new Set(meshes.map((mesh) => mesh.geometry)).size).toBe(1);
+      expect(new Set(meshes.map((mesh) => mesh.material)).size).toBe(2);
+      expect(meshes.length).toBeGreaterThan(2);
       expect(a.geometry.userData.authoring).toBe('authoring/motocross/build_kit.py');
-      expect(a.count + b.count).toBeGreaterThan(100);
+      expect(meshes.reduce((total, mesh) => total + mesh.count, 0)).toBe(root.userData.boundaryPads);
+      expect(root.userData.boundaryPads).toBeGreaterThan(100);
       // Measure the clearance spread at the four actual pad corners. A
       // level instance over an SX jump can leave half a metre of daylight.
       const spreads: number[] = [],
         matrix = new T.Matrix4(),
         corner = new T.Vector3();
-      for (const mesh of [a, b])
+      for (const mesh of meshes)
         for (let i = 0; i < mesh.count; i++) {
           mesh.getMatrixAt(i, matrix);
           const relativeHeights: number[] = [];
@@ -176,7 +179,7 @@ describe('original Blender-authored motocross kit', () => {
       expect(hem.length).toBeGreaterThan(12);
       expect(crown.length).toBeGreaterThan(12);
       const proxy = new T.Mesh(a.geometry, a.material);
-      for (const mesh of [a, b]) {
+      for (const mesh of meshes) {
         expect(mesh.morphTexture).toBeInstanceOf(T.DataTexture);
         for (let i = 0; i < mesh.count; i++) {
           mesh.getMatrixAt(i, matrix);
@@ -195,7 +198,7 @@ describe('original Blender-authored motocross kit', () => {
       expect(peaks[peaks.length - 1]).toBeLessThan(circuit === 'arena-nord-sx' ? 0.04 : 0.008);
       for (const morph of a.geometry.morphAttributes.position!)
         for (const i of crown) expect(Math.abs(morph.getY(i))).toBe(0);
-      for (const mesh of [a, b]) {
+      for (const mesh of meshes) {
         expect(mesh.material.normalMap).toBeInstanceOf(T.Texture);
         expect(mesh.material.roughnessMap).toBeInstanceOf(T.Texture);
         mesh.material.normalMap?.dispose();
