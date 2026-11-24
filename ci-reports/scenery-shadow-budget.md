@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45404807916
-- commit: `17c16aeddc` · engine: harden renderer preparation, texture refresh, and GPU resource ownership
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-24T13:34:22Z · updated: 2026-11-24T13:47:32Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620946
+- commit: `b282f121b5` · engine: finalize terminal ownership and verify sixty regression suites
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-24T14:56:00Z · updated: 2026-11-24T15:11:25Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 7 |  |
-| browser (sunset) | success | 6 |  |
-| browser (night) | success | 7 |  |
+| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
