@@ -13,7 +13,9 @@
 // car starts on its interval and records its splits. Writes
 // docs/offroad-races.json; exits 1 when an assertion fails.
 // OFFROAD_RACE=<text> runs only the races whose label contains it.
-import { writeFileSync } from 'node:fs';
+// --mx-full-grid exercises the 12-rider menu option in both weather settings.
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { CIRCUITS, circuitDefinition } from '../src/simulation/circuits.ts';
 import { DEFAULT_OPTIONS, type SessionOptions } from '../src/simulation/config.ts';
 import { EVENTS, eventSession, rulesetFor } from '../src/simulation/events.ts';
@@ -48,7 +50,7 @@ const fixed = (label: string, options: Partial<SessionOptions>): Race => ({
   session: { ...DEFAULT_OPTIONS, mode: 'race', weather: 'clear', ...options },
   limit: 600,
 });
-const RACES: Race[] = [
+const standardRaces: Race[] = [
   fixed('Valley Ridge motocross moto', {
     circuit: 'valley-ridge-mx',
     ruleset: 'motocross-moto',
@@ -102,7 +104,26 @@ const RACES: Race[] = [
       limit: 1200,
     }),
   ),
-].map((r) => {
+];
+function motocrossFullGrid(): Race[] {
+  const sessions: Race[] = [];
+  const circuits = ['valley-ridge-mx', 'arena-nord-sx'] as const;
+  const skies = ['clear', 'rain'] as const;
+  for (const [venue, circuit] of circuits.entries()) {
+    for (const [sky, weather] of skies.entries()) {
+      for (const sample of [0, 1]) {
+        const seed = 60704 + 20 * venue + 5 * sky + sample;
+        sessions.push(fixed(`${circuit} ${weather} seed ${seed}`, {
+          circuit, weather, seed, ruleset: 'motocross-moto', laps: 2, opponents: 11,
+          vehicles: Array.from({ length: 12 }, (_, i) => i % 2 ? 'mx250' : 'mx450'),
+        }));
+      }
+    }
+  }
+  return sessions;
+}
+const fullGrid = process.argv.includes('--mx-full-grid');
+const RACES = (fullGrid ? motocrossFullGrid() : standardRaces).map((r) => {
   const kind: string = offroadCourse(circuitDefinition(r.session.circuit))?.kind ?? '';
   return { ...r, crashesPerRiderLap: r.crashesPerRiderLap ?? CRASH_BOUNDS[kind] };
 });
@@ -263,11 +284,14 @@ const results = RACES.filter(
   );
   return result;
 });
+const report = fullGrid ? 'test-results/motocross-full-grid.json' : 'docs/offroad-races.json';
+mkdirSync(dirname(report), { recursive: true });
 writeFileSync(
-  'docs/offroad-races.json',
+  report,
   `${JSON.stringify(
     {
-      generated: 'npm run test:offroad (scripts/offroad-races.ts)',
+      generated: fullGrid ? 'node --experimental-transform-types scripts/offroad-races.ts --mx-full-grid' :
+        'npm run test:offroad (scripts/offroad-races.ts)',
       dt: DT,
       parkedLimitSeconds: PARKED_LIMIT,
       crashBounds: CRASH_BOUNDS,
