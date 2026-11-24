@@ -9,6 +9,7 @@ import { COURSE_CELL, SOIL_KINDS, relief, type SoilKind } from '../../simulation
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { TERRAIN } from '../../simulation/terrain.ts';
 import { materials } from '../materials/index.ts';
+import { markItems } from '../attribute-ranges.ts';
 import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
 import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from './mx-soil-detail.ts';
@@ -43,7 +44,8 @@ interface Chunk {
   rows: number;
   base: Float32Array;
   edges: MxTerrainNormalEdges | null;
-  stateDirty: boolean;
+  dirtyFirst: number;
+  dirtyLast: number;
   heightDirty: boolean;
 }
 /** One recorded export, for replays (the soil as it was at that time). */
@@ -342,7 +344,7 @@ export class TerrainView {
     mesh.castShadow = this.motocross;
     this.group.add(mesh);
     const edges = this.motocross ? new MxTerrainNormalEdges(geometry, vx) : null;
-    return { mesh, first, rows, base, edges, stateDirty: false, heightDirty: false };
+    return { mesh, first, rows, base, edges, dirtyFirst: Infinity, dirtyLast: -1, heightDirty: false };
   }
   /** A worker keyframe: record it (replays) and, live, show it. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
@@ -417,16 +419,32 @@ export class TerrainView {
     }
     this.depth[block] = depth;
     this.compaction[block] = compaction;
-    const row = Math.floor(block / cols), index = Math.floor(row / CHUNK_ROWS);
-    const chunk = this.chunks[index];
-    chunk.stateDirty = true;
-    chunk.heightDirty ||= heightChanged;
+    const row = Math.floor(block / cols), column = block % cols;
+    const index = Math.floor(row / CHUNK_ROWS), chunk = this.chunks[index];
+    this.writeBlock(chunk, row - chunk.first, column, depth, compaction, heightChanged);
     // The first row of each strip is also the preceding strip's final row.
-    if (row % CHUNK_ROWS === 0) {
+    if (row === chunk.first) {
       const previous = this.chunks[mod(index - 1, this.chunks.length)];
-      previous.stateDirty = true;
-      previous.heightDirty ||= heightChanged;
+      this.writeBlock(previous, previous.rows, column, depth, compaction, heightChanged);
     }
+  }
+  private writeBlock(
+    chunk: Chunk, row: number, column: number, depth: number, compaction: number, heightChanged: boolean,
+  ) {
+    const columns = this.terrain.renderColumns;
+    const first = row * (columns + 1) + column;
+    // The outer edge duplicates the final soil block at the ribbon's boundary.
+    const last = first + Number(column === columns - 1);
+    const g = chunk.mesh.geometry;
+    const position = g.getAttribute('position'), state = g.getAttribute('apexSoilState');
+    for (let vertex = first; vertex <= last; vertex++) {
+      if (heightChanged) position.setY(vertex, chunk.base[vertex] - depth);
+      state.setY(vertex, compaction);
+      state.setZ(vertex, depth);
+    }
+    chunk.dirtyFirst = Math.min(chunk.dirtyFirst, first);
+    chunk.dirtyLast = Math.max(chunk.dirtyLast, last);
+    chunk.heightDirty ||= heightChanged;
   }
   private setWetness(wetness: number) {
     this.wetness = wetness;
@@ -434,31 +452,22 @@ export class TerrainView {
       this.wetness;
   }
   private upload() {
-    const t = this.terrain,
-      cols = t.renderColumns,
-      rowsTotal = t.renderRows;
+    const stride = this.terrain.renderColumns + 1;
     if (this.chunks.some((chunk) => chunk.heightDirty)) this.geometryRevision++;
     for (const chunk of this.chunks) {
-      if (!chunk.stateDirty) continue;
-      const g = chunk.mesh.geometry,
-        position = g.getAttribute('position') as T.BufferAttribute,
-        state = g.getAttribute('apexSoilState') as T.BufferAttribute,
-        vx = cols + 1;
-      for (let r = 0; r <= chunk.rows; r++) {
-        const row = (chunk.first + r) % rowsTotal;
-        for (let c = 0; c < vx; c++) {
-          const k = r * vx + c,
-            block = row * cols + Math.min(c, cols - 1),
-            d = this.depth[block];
-          if (chunk.heightDirty) position.setY(k, chunk.base[k] - d);
-          state.setY(k, this.compaction[block]);
-          state.setZ(k, d);
-        }
-      }
-      state.needsUpdate = true;
+      const { dirtyFirst, dirtyLast } = chunk;
+      if (dirtyLast < dirtyFirst) continue;
+      const g = chunk.mesh.geometry;
+      markItems(g.getAttribute('apexSoilState') as T.BufferAttribute, dirtyFirst, dirtyLast);
       if (chunk.heightDirty) {
-        position.needsUpdate = true;
+        markItems(g.getAttribute('position') as T.BufferAttribute, dirtyFirst, dirtyLast);
         g.computeVertexNormals();
+        // Only triangles touching a moved vertex can affect its neighbours.
+        // The shared edge normals are marked separately after both strips update.
+        const normal = g.getAttribute('normal') as T.BufferAttribute;
+        const firstNormal = Math.max(0, dirtyFirst - stride - 1);
+        const lastNormal = Math.min(normal.count - 1, dirtyLast + stride + 1);
+        markItems(normal, firstNormal, lastNormal);
         chunk.edges?.refresh();
       }
     }
@@ -467,7 +476,8 @@ export class TerrainView {
     // even when none of that neighbour's own positions/state changed.
     this.joinNormals();
     for (const chunk of this.chunks) {
-      chunk.stateDirty = false;
+      chunk.dirtyFirst = Infinity;
+      chunk.dirtyLast = -1;
       chunk.heightDirty = false;
     }
   }

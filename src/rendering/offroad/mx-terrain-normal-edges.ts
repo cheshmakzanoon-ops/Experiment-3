@@ -1,4 +1,5 @@
 import type * as T from 'three';
+import { markItems } from '../attribute-ranges.ts';
 
 /** The two edge rows of one indexed course strip. Keep their unnormalised
  * face sums separate from the uploaded normals: a neighbouring strip can
@@ -86,7 +87,7 @@ export class MxTerrainNormalEdges {
       left.setXYZ(this.lastStart + column, nx * inverse, ny * inverse, nz * inverse);
       right.setXYZ(column, nx * inverse, ny * inverse, nz * inverse);
     }
-    left.needsUpdate = true;
-    right.needsUpdate = true;
+    markItems(left, this.lastStart, this.lastStart + this.rowSize - 1);
+    markItems(right, 0, this.rowSize - 1);
   }
 }

@@ -430,7 +430,7 @@ export class MxTyreTraces {
   private stationaryRear(frame: Float32Array, body: number, wheel: number, id: number,
     machine: number, time: number, sampler: Roost) {
     const x = frame[body + F.X], z = frame[body + F.Z];
-    let site = this.spinSites[id];
+    const site = this.spinSites[id];
     if (!site || site.machine !== machine || time - site.time > 0.35 ||
         Math.hypot(x - site.x, z - site.z) > 0.16) {
       this.spinSites[id] = { machine, x, z, time, cut: -Infinity, tread: 0 };

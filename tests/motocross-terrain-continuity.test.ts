@@ -126,6 +126,48 @@ describe('continuous motocross terrain lighting and live rut receivers', () => {
     }
   });
 
+  it('uploads both copies of a changed boundary block and accumulates writes before a draw', () => {
+    const track = rigTrack('valley-ridge-mx');
+    const cols = (Track.offroadOf(track) as TrackTerrainSurface).terrain.renderColumns;
+    const view = new TerrainView(track), meshes = meshesOf(view), stride = cols + 1;
+    const copy = (name: string) => meshes.map(mesh => {
+      const a = attribute(mesh, name);
+      a.clearUpdateRanges();
+      return new Float32Array(a.array);
+    });
+    const positions = copy('position'), states = copy('apexSoilState'), normals = copy('normal');
+    const verify = (name: string, displayed: Float32Array[]) => {
+      for (let i = 0; i < meshes.length; i++) {
+        const a = attribute(meshes[i], name);
+        for (const { start, count } of a.updateRanges)
+          displayed[i].set(a.array.subarray(start, start + count), start);
+        expect(Buffer.compare(Buffer.from(displayed[i].buffer), Buffer.from(a.array.buffer))).toBe(0);
+        a.clearUpdateRanges();
+      }
+    };
+    const record = (time: number, block: number, depth: number) =>
+      view.record({ reset: false, wetness: 0.5, blocks: Float32Array.of(block, depth, 0.3) }, time, true);
+    try {
+      // Final column of row 96 has two vertices at the start of strip one
+      // and the same pair at the end of strip zero.
+      record(1, 96 * cols + cols - 1, 0.03);
+      expect(attribute(meshes[0], 'position').updateRanges).toEqual([
+        { start: (96 * stride + cols - 1) * 3, count: 6 },
+      ]);
+      expect(attribute(meshes[1], 'position').updateRanges).toEqual([{ start: (cols - 1) * 3, count: 6 }]);
+      record(2, 100 * cols + 7, 0.08);
+      record(3, 2, 0.05); // The lap seam also touches the last partial strip.
+      for (const time of [3, 0, 2, 3]) {
+        view.showAt(time);
+        verify('position', positions);
+        verify('apexSoilState', states);
+        verify('normal', normals);
+      }
+    } finally {
+      view.dispose();
+    }
+  });
+
   it('matches one welded mesh across unequal triangles and clipped cells, without repeat-update drift', () => {
     const whole = strip(0, 4),
       left = strip(0, 2),
