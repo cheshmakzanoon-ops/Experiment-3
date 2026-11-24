@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import {
+  mxStationaryProbeHolds,
   PROBE_FACE_SIZE,
   PROBE_MOTION_REFRESH,
   ReflectionSystem,
@@ -1237,4 +1238,31 @@ it('holds a Formula grid reflection through a cockpit cut while a replay seek ca
     reflection.dispose();
     paint.dispose();
   }
+});
+
+it('gives stationary MX controls time on a saturated GPU and resumes the probe immediately on movement', () => {
+  expect([16, 50, 55, 250, 500, 1500, 19000].map(mxStationaryProbeHolds)).toEqual([0, 0, 2, 2, 4, 12, 12]);
+  const r = new ReflectionSystem(), { gl, faces } = slicedFixture();
+  const scene = new T.Scene(), bike = new T.Group(), metal = new T.MeshStandardMaterial();
+  r.probeFacesPerFrame = 1;
+  const present = (time: number) => {
+    r.beginFrame(time, false, true);
+    r.updateProbe(gl, scene, bike, [metal], true, 1.5, undefined, 12);
+  };
+  try {
+    present(0);
+    const original = metal.envMap;
+    for (let i = 0; i < 12; i++) { present(2 + i / 10); present(2 + i / 10); }
+    expect(faces).toHaveLength(6);
+    expect(metal.envMap).toBe(original);
+    present(3.3);
+    expect(faces).toHaveLength(7);
+    bike.position.z = 0.2;
+    for (let i = 0; i < 5; i++) present(3.4 + i / 10);
+    expect(faces).toHaveLength(12);
+    expect(metal.envMap).not.toBe(original);
+    r.invalidate();
+    present(4.5);
+    expect(faces).toHaveLength(18);
+  } finally { r.dispose(); metal.dispose(); }
 });

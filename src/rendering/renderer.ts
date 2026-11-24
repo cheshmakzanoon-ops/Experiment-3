@@ -140,7 +140,7 @@ import { prepareVenueGround } from './venue-kit/preparation.ts';
 import { FORMULA_TELEPHOTO, TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { MotocrossChaseCamera } from './offroad/chase-camera.ts';
-import { ReflectionSystem } from './reflections.ts';
+import { mxStationaryProbeHolds, ReflectionSystem } from './reflections.ts';
 import { ShadowProxies } from './shadow-proxies.ts';
 import { FarShadow } from './far-shadow.ts';
 import { sunPenumbraScale } from './studio/shadow-filter.ts';
@@ -2719,8 +2719,8 @@ export class RacingRenderer {
         this.graphics.reflections === 'local' && !menu && !studio,
         wetReflection ? 0.55 : 1.5,
         this.sky.material.uniforms.probeSkyIntensity,
-        motocrossFollow && !menu && !this.photo && !replay && !wetReflection &&
-          this.gpuFrames.completionLatencyMs > 50,
+        motocrossFollow && !menu && !this.photo && !replay && !wetReflection
+          ? mxStationaryProbeHolds(this.gpuFrames.completionLatencyMs) : 0,
         pass === 'venue-probe' && (formulaGrid || (motocrossFollow && isMotocrossVenue(this.circuit.track))),
       );
       if (pass === 'venue-probe') return;

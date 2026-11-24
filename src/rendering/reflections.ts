@@ -19,6 +19,15 @@ export const PROBE_DETAIL_FACE_SIZE = 128;
 export const PROBE_MOTION_REFRESH = Object.freeze({ distance: 12, minimumInterval: 0.5 });
 // Width of one texel at two metres from the centre of a 90-degree cube face.
 const STATIONARY_PROBE_DISTANCE = 4 / PROBE_FACE_SIZE;
+
+/** Keep full-sized rider frames ahead of an unchanged dry venue cube when
+ * the previous GPU submission was expensive. A stationary face still makes
+ * progress every thirteenth eligible frame even on a software renderer. */
+export function mxStationaryProbeHolds(latencyMs: number) {
+  if (!(latencyMs > 50)) return 0;
+  return Math.min(12, Math.max(2, Math.ceil(latencyMs / 125)));
+}
+
 type ProbeRefreshReason = 'immediate' | 'motion' | 'scenery' | 'cadence';
 
 /** Coordinates recursive render passes. Mirrors render actual rear-facing camera feeds, and are hidden during other mirror/probe passes to prevent cycles. */
@@ -355,7 +364,7 @@ export class ReflectionSystem {
     high: boolean,
     intervalSeconds = 1.5,
     skyScale?: { value: number },
-    paceStaticRefresh = false,
+    paceStaticRefresh: boolean | number = false,
     prepareGridFace = false,
   ) {
     if (this.activePass) return;
@@ -447,14 +456,15 @@ export class ReflectionSystem {
       starting = true;
       to = this.probeFacesPerFrame;
     }
-    // When full-size race frames are late, give two of every three visible
-    // frames to the rider before spending one on a stationary dry-venue face.
+    // Reserve visible race frames according to the measured fence latency
+    // before spending one on a stationary dry-venue face.
     // The last complete cube remains bound. A move, scenery change or cut
     // resumes capture immediately, and a stationary refresh still finishes.
     const staticCadence = paceStaticRefresh && !immediate && this.pendingReason === 'cadence' &&
       this.sceneryRevision === this.capturedSceneryRevision &&
       this.currentEye.distanceToSquared(this.completedEye) < STATIONARY_PROBE_DISTANCE ** 2;
-    if (staticCadence && this.cadenceHolds < 2) {
+    const holdFrames = paceStaticRefresh === true ? 2 : Number(paceStaticRefresh);
+    if (staticCadence && this.cadenceHolds < holdFrames) {
       this.cadenceHolds++;
       this.deferredCadenceFaces++;
       return;
