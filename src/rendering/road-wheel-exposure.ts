@@ -250,7 +250,7 @@ export class RoadWheelExposure {
       });
       surface.forceSinglePass = true;
       const shutter = this.shutter;
-      chainShaderHook(surface, 'road-wheel-averaged-spokes-v1', (shader) => {
+      chainShaderHook(surface, 'road-wheel-averaged-spokes-v2', (shader) => {
         shader.uniforms.roadShutter = shutter;
         shader.uniforms.roadSpokeAtlas = { value: atlas };
         shader.uniforms.roadFrontWheel = { value: front ? 1 : 0 };
@@ -294,10 +294,12 @@ export class RoadWheelExposure {
           float span=max(sweep,min(.3,fwidth(roadPolar.x)));
           float lo=roadPolar.x-span*.5,hi=roadPolar.x+span*.5;
           float coverage=(roadPrefix(hi,roadPolar.y)-roadPrefix(lo,roadPolar.y))/max(span,.0001);
-          diffuseColor.a*=clamp(coverage,0.,1.)*${sweepWeight}*roadFacing;
-          if(diffuseColor.a<.004) discard;`,
+          diffuseColor.a*=clamp(coverage,0.,1.)*${sweepWeight}*roadFacing;`,
           'fragment',
         );
+        // The physical lighting shader uses neighbouring fragments to filter
+        // roughness. Keep the whole quad available until shading is complete.
+        injectAfter(shader, 'dithering_fragment', 'if(diffuseColor.a<.004) discard;', 'fragment');
       });
       surface.addEventListener('dispose', () => release(key));
       this.surfaces.set(surfaceKey, surface);
