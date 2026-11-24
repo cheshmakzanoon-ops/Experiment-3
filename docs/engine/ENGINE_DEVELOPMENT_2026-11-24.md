@@ -54,8 +54,8 @@ Specific assignments are refined against findings from preceding waves.
 | 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Complete |
 | 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Complete |
 | 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Complete |
-| 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | In progress |
-| 9 | 49–54 | Performance measurement and adversarial integration review | Pending |
+| 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Complete |
+| 9 | 49–54 | Performance measurement and adversarial integration review | In progress |
 | 10 | 55–60 | Independent regression audits, remaining fixes and final validation | Pending |
 
 ## Validation environment
@@ -80,6 +80,7 @@ Published engine checkpoints:
 | 4 | `02d2f97` |
 | 5 | `1d4e83c` |
 | 6 | `17c16ae` |
+| 7 | `9dc4811` |
 
 Automated CI-report commits are preserved between engine checkpoints;
 publication never force-updates `main`.
@@ -408,7 +409,78 @@ Wave 7 integration passed **125 tests across seven suites**. A test-spy typing
 issue was corrected during the compiler check. The final audio/input/clock
 source and test dependency graph passed TypeScript with the project options
 (623 files, about 270 MiB compiler memory); the affected 19-case audio suite
-and scoped lint passed again. Full application/E2E compilation is delegated to CI.
+and scoped lint passed again. The full CI validate job subsequently passed on
+wave 7 commit `9dc4811ff986e9b410bdcfb5f631db19130ce95f`: complete lint, content
+validation, application/E2E TypeScript, production/demo/static builds and exact
+source preservation. This validates compilation of the added browser regression;
+it does not establish that the browser scenario has run:
+https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45406562605/job/138488941100
+
+### Wave 8 — deterministic services and networking
+
+Event-loop cancellation belongs to a queued handle. Unknown or retired handles
+cannot cancel a future event; cancelling releases the callback closure at once.
+The cancelled heap slot remains until its due time, preserving ordering and
+pending-count behavior. Finite clock and interval guards reject poisoned
+deadlines. Twenty-one new cases, 32 related tests and 24 seeded 512-event traces
+passed, including 10,000 completed/cancelled cycles and 2,000 self-stopping timers.
+
+The simulated reliable transport now performs at most 64 loss attempts in one
+send or retry continuation. Longer streaks continue through the event loop so
+permanent loss cannot trap send in a synchronous infinite loop. Deferred packets
+preserve FIFO ordering, and graceful close follows preceding packets. Severing
+the link or closing the destination retires owned retries. Duplicate datagrams
+get independent payload storage before either delivery. Invalid conditions and
+unrepresentable retry deadlines fail explicitly. Fifty new and 11 existing cases
+pass, including a 2,000-packet deferred queue and 16 exact original-algorithm
+comparisons at 0%, 2%, 20% and 80% loss. Pending payload memory still follows the
+number of queued sends; this does not add a queue quota or a deployed service.
+
+Command issuance validates its complete wire range before advancing sequence
+or tick counters. Future acknowledgements cannot suppress unsent commands, and
+malformed server queue metadata cannot poison the integer gap walk. Existing
+sequence continuity across command-log restarts is retained. All 56 new cases
+and 87 related cases pass, including a 512-command seeded tick oracle with loss,
+duplicates and reordering and existing motorcycle/motocross controls.
+
+RaceClient now owns a single join/keep-alive, retires timers before leaving,
+protects replacement transport callbacks, and rejects late messages after a
+terminal transition. Race generations prevent reentrant input callbacks from
+publishing into a replacement race. Results stop all timers while retaining
+already received chunked lap data. Twenty new cases and 150 distinct selected
+client/codec/control/lifecycle/resilience cases pass; the full resilience suite
+was not represented by this selected run.
+
+Rate buckets reject invalid configuration and invalid requests without corrupting
+their budget. Zero-rate buckets cannot become NaN through an overflowing finite
+clock difference. Runtime timing statistics use only usable post-warmup samples,
+retain total tick counts and existing histogram boundaries, and treat an invalid
+measurement as a break in the observed overrun streak. Fifty-one new and 67
+related cases pass, including 10,240 valid requests compared with the original
+bucket arithmetic and 4,096 timing observations against independent statistics.
+
+Route search replaces its repeated full-state selection scan with a bounded
+binary heap and true decrease-key. Exact distance followed by state index
+preserves the original tie order; relaxation tolerance, turn rules, arrival
+selection and leg reconstruction remain unchanged. All 1,024 route comparisons
+match the frozen original, including the 18 authored event routes, explicit
+departure directions, seeded multigraphs, equal-cost grids and threshold cases.
+Ten selected tests pass. RoutePath sampling and geometry code are byte-identical.
+
+For all 18 current events (44 shortest searches), both planners settle 5,544
+states. The original makes 704,088 state-slot visits; the heap makes 37,691
+ordering comparisons. These are different operation units. Nine alternating
+paired trials after warmup measured a local median of 2.353 ms versus 1.389 ms
+for the complete route workload, about 41% lower. This is a route-planning
+microbenchmark on a shared host, not an FPS or device-level guarantee. The
+queue adds two bounded Int32Array buffers (8 bytes per directed state, 1,008
+buffer bytes for the current region's 126 states), plus object overhead.
+
+Wave 8 integration passed **206 tests across all six new suites**. A fixture's
+explicit receiver type was corrected during TypeScript checking. The final
+373-file source/test dependency graph passed the project compiler options
+(about 260 MiB compiler memory), and scoped ESLint passed. A preceding compiler
+attempt was terminated during concurrent work; it is not counted as a pass.
 
 ### Pre-existing broad-suite findings
 

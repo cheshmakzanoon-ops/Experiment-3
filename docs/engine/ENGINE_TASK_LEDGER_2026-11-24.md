@@ -85,12 +85,30 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 | Agent | Assignment | Result |
 |---|---|---|
 | 43 | Deterministic event-loop cancellation and clock integrity | Fixed queued-handle ownership and finite clock guards; 32 tests and 24 seeded event traces passed |
-| 44 | Simulated transport loss, delivery and close lifetime | Running |
-| 45 | Network command history and server queue boundary audit | Running |
-| 46 | RaceClient timer and terminal-session ownership | Running |
-| 47 | Runtime timing monitor and rate-budget accounting | Queued |
-| 48 | Deterministic route-planner selection work | Queued |
+| 44 | Simulated transport loss, delivery and close lifetime | Bounded retry continuations, preserved FIFO/close ownership and isolated duplicate payloads; 61 tests and 16 exact baseline traces passed |
+| 45 | Network command history and server queue boundary audit | Fixed transactional issuance, future acknowledgements and malformed queue metadata; 87 tests passed |
+| 46 | RaceClient timer and terminal-session ownership | Fixed join/timer/terminal/replacement ownership; 150 distinct targeted cases passed |
+| 47 | Runtime timing monitor and rate-budget accounting | Fixed invalid-budget inputs and valid-sample accounting; 67 tests passed, including seeded arithmetic/statistics comparisons |
+| 48 | Deterministic route-planner selection work | Added exact-order decrease-key heap; 1,024 exact route comparisons and 10 focused tests passed; current-region route median 2.353 ms to 1.389 ms in a local microbenchmark |
 
-## Remaining waves
+## Wave 9 — performance evidence and adversarial integration
 
-Assignments and evidence will be appended before each batch is launched.
+| Agent | Assignment | Result |
+|---|---|---|
+| 49 | Reproducible baseline operation counts and performance evidence | Running |
+| 50 | Same-tick cross-mode deterministic baseline comparison | Running |
+| 51 | Independent models, environments, tuning and dependency scope audit | Running |
+| 52 | Native browser integration and persistence/replay verification | Queued |
+| 53 | Independent clocks, input and transfer ownership review | Queued |
+| 54 | Independent persistence, replay and export adversarial review | Queued |
+
+## Wave 10 — final independent regression and evidence audits
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 55 | Physics, contact and terrain invariants review | Queued |
+| 56 | Audio, renderer and host lifetime integration review | Queued |
+| 57 | Combined networking recovery and service ownership review | Queued |
+| 58 | Consolidated regression execution and unique-test inventory | Queued |
+| 59 | CI triage, complete compiler/build checks and baseline distinction | Queued |
+| 60 | Final task, scope, publication and evidence audit | Queued |

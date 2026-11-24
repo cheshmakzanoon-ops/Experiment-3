@@ -13,6 +13,20 @@ export interface InputCommand {
   controls: Controls;
 }
 
+const MAX_WIRE_INDEX = 0xffffffff;
+const wireIndex = (value: number) =>
+  Number.isInteger(value) && value >= 0 && value <= MAX_WIRE_INDEX;
+/** Match the decoder's unsigned counters and exclusive-end overflow check.
+ * The final sequence value is also reserved for an absent acknowledgement. */
+const commandRange = (command: InputCommand) =>
+  wireIndex(command.seq) &&
+  command.seq < MAX_WIRE_INDEX &&
+  wireIndex(command.tick) &&
+  Number.isInteger(command.ticks) &&
+  command.ticks >= 1 &&
+  command.ticks <= LIMITS.commandTicksMax &&
+  command.tick + command.ticks <= MAX_WIRE_INDEX;
+
 export type SanitizeResult =
   | { ok: true; controls: Controls; clamped: string[] }
   | { ok: false; reason: string };
@@ -145,23 +159,32 @@ export class ClientCommandLog {
   ackSeq = -1;
   started = false;
   start(tick: number) {
+    if (!wireIndex(tick)) throw new Error('Invalid command start tick');
     this.commands = [];
     this.nextTick = tick;
     this.started = true;
   }
   issue(ticks: number, controls: Controls): InputCommand {
+    if (!Number.isFinite(ticks)) throw new Error('Invalid command duration');
+    // Quantization can fail. Keep the sequence and tick untouched until the
+    // complete command is ready so the next successful run remains contiguous.
+    const quantized = quantizeControls(controls);
     const command: InputCommand = {
-      seq: this.nextSeq++,
+      seq: this.nextSeq,
       tick: this.nextTick,
       ticks: clamp(Math.round(ticks), 1, LIMITS.commandTicksMax),
-      controls: quantizeControls(controls),
+      controls: quantized,
     };
+    if (!commandRange(command)) throw new Error('Input command exceeds its wire range');
+    this.nextSeq++;
     this.nextTick += command.ticks;
     this.commands.push(command);
     return command;
   }
   acknowledge(seq: number) {
-    if (seq > this.ackSeq) this.ackSeq = seq;
+    // A validly encoded snapshot can still acknowledge an unissued command.
+    // Such an acknowledgement must not suppress every later resend.
+    if (wireIndex(seq) && seq < this.nextSeq && seq > this.ackSeq) this.ackSeq = seq;
   }
   /** Newest unacknowledged commands (contiguous), at most `limit`, skipping
    * any whose ticks the server has certainly already simulated. */
@@ -176,6 +199,7 @@ export class ClientCommandLog {
   }
   /** Controls the server should apply at `tick`, if this client issued them. */
   at(tick: number): InputCommand | undefined {
+    if (!Number.isFinite(tick)) return undefined;
     let lo = 0,
       hi = this.commands.length - 1;
     while (lo <= hi) {
@@ -247,18 +271,24 @@ export class ServerInputQueue {
    * simulate). Returns how many commands were rejected (outside the tick or
    * sequence window): a well-behaved client never sends one. */
   accept(commands: readonly InputCommand[], now: number) {
+    if (!wireIndex(now)) throw new Error('Invalid server input tick');
     this.stats.packets++;
     let rejected = 0;
     for (const c of commands) {
+      // Keep the public queue boundary finite too: a fractional or NaN sequence
+      // cannot be found by the bounded integer gap walk in take().
+      if (!commandRange(c)) {
+        this.stats.rejected++;
+        rejected++;
+        continue;
+      }
       if (c.seq <= this.contiguousSeq || this.seen.has(c.seq)) {
         this.stats.duplicates++;
         continue;
       }
       if (
         c.seq > this.contiguousSeq + LIMITS.seqWindow ||
-        c.tick > now + LIMITS.leadTicksMax ||
-        c.ticks < 1 ||
-        c.ticks > LIMITS.commandTicksMax
+        c.tick > now + LIMITS.leadTicksMax
       ) {
         // Not remembered: a legitimate resend may still be accepted later,
         // and a flood of far-away commands cannot grow `seen`.
@@ -302,6 +332,7 @@ export class ServerInputQueue {
   }
   /** The command slot for `tick`, or null when none arrived in time. */
   take(tick: number): Slot | null {
+    if (!wireIndex(tick)) throw new Error('Invalid server input tick');
     const slot = this.pending.get(tick) ?? null;
     for (const t of this.pending.keys()) if (t <= tick) this.pending.delete(t);
     // A gap whose successor already started is in the past: never wait on it.

@@ -7,14 +7,26 @@ export class TokenBucket {
     readonly burst: number,
     now = 0,
   ) {
+    if (
+      !Number.isFinite(perSecond) ||
+      perSecond < 0 ||
+      !Number.isFinite(burst) ||
+      burst < 0 ||
+      !Number.isFinite(now)
+    )
+      throw new Error('Invalid token bucket configuration');
     this.tokens = burst;
     this.last = now;
   }
-  /** Spend one token at `now`; false when the caller is over its rate. */
+  /** Spend `cost` tokens at `now`; invalid requests leave the budget intact. */
   take(now: number, cost = 1) {
+    if (!Number.isFinite(now) || !Number.isFinite(cost) || cost < 0) return false;
     const elapsed = Math.max(0, now - this.last);
     this.last = Math.max(this.last, now);
-    this.tokens = Math.min(this.burst, this.tokens + (elapsed / 1000) * this.perSecond);
+    // Finite clock endpoints can still have an infinite difference. Zero-rate
+    // buckets cannot refill, and must not become NaN through Infinity * 0.
+    if (elapsed > 0 && this.perSecond > 0)
+      this.tokens = Math.min(this.burst, this.tokens + (elapsed / 1000) * this.perSecond);
     if (this.tokens < cost) return false;
     this.tokens -= cost;
     return true;
@@ -23,7 +35,9 @@ export class TokenBucket {
 
 export interface TickBudgetReport {
   budgetMs: number;
+  /** All ticks, including warmup and ticks with unusable measurements. */
   ticks: number;
+  /** Statistics use finite, nonnegative measurements after warmup. */
   meanMs: number;
   p99Ms: number;
   worstMs: number;
@@ -39,6 +53,7 @@ export interface TickBudgetReport {
  * 50 ms) so long sessions do not grow memory. */
 export class TickBudgetMonitor {
   private bins = new Uint32Array(1001);
+  private counted = 0;
   private sum = 0;
   private streak = 0;
   ticks = 0;
@@ -51,10 +66,26 @@ export class TickBudgetMonitor {
     readonly degradeAfter = 12,
     /** Ignore this many first ticks (one-off contact mesh/BVH construction). */
     readonly warmupTicks = 120,
-  ) {}
+  ) {
+    if (
+      !Number.isFinite(budgetMs) ||
+      budgetMs < 0 ||
+      !Number.isSafeInteger(degradeAfter) ||
+      degradeAfter < 1 ||
+      !Number.isSafeInteger(warmupTicks) ||
+      warmupTicks < 0
+    )
+      throw new Error('Invalid tick budget configuration');
+  }
   record(ms: number) {
     this.ticks++;
-    if (this.ticks <= this.warmupTicks || !Number.isFinite(ms)) return;
+    if (this.ticks <= this.warmupTicks) return;
+    if (!Number.isFinite(ms) || ms < 0) {
+      // An unmeasured gap cannot prove consecutive observed overruns.
+      this.streak = 0;
+      return;
+    }
+    this.counted++;
     this.sum += ms;
     this.bins[Math.min(1000, Math.floor(ms / 0.05))]++;
     this.worst = Math.max(this.worst, ms);
@@ -66,10 +97,10 @@ export class TickBudgetMonitor {
     } else this.streak = 0;
   }
   report(): TickBudgetReport {
-    const counted = Math.max(0, this.ticks - this.warmupTicks);
+    const counted = this.counted;
     let p99 = 0,
       seen = 0;
-    for (let i = 0; i < this.bins.length; i++) {
+    for (let i = 0; counted && i < this.bins.length; i++) {
       seen += this.bins[i];
       if (seen >= counted * 0.99) {
         p99 = (i + 1) * 0.05;

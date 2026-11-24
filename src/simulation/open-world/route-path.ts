@@ -30,6 +30,59 @@ export function snapToNetwork(network: RoadNetwork, x: number, z: number, height
 /** A U-turn at an intermediate waypoint costs this much (m). */
 const U_TURN = 8000;
 
+/** One entry per unsettled directed state, with in-place decrease-key.
+ * Equal distances settle the lower state index, exactly as the linear scan
+ * did. The relaxation tolerance does not belong in this ordering. */
+class StateQueue {
+  private readonly heap: Int32Array;
+  private readonly position: Int32Array;
+  private length = 0;
+
+  constructor(private readonly dist: Float64Array) {
+    this.heap = new Int32Array(dist.length);
+    this.position = new Int32Array(dist.length).fill(-1);
+  }
+
+  private before(a: number, b: number) {
+    return this.dist[a] < this.dist[b] || (this.dist[a] === this.dist[b] && a < b);
+  }
+
+  update(state: number) {
+    let i = this.position[state];
+    if (i < 0) i = this.length++;
+    while (i > 0) {
+      const parent = (i - 1) >> 1, other = this.heap[parent];
+      if (!this.before(state, other)) break;
+      this.heap[i] = other;
+      this.position[other] = i;
+      i = parent;
+    }
+    this.heap[i] = state;
+    this.position[state] = i;
+  }
+
+  pop() {
+    if (this.length === 0) return -1;
+    const first = this.heap[0], last = this.heap[--this.length];
+    this.position[first] = -1;
+    if (this.length > 0) {
+      let i = 0;
+      for (;;) {
+        const left = i * 2 + 1, right = left + 1;
+        if (left >= this.length) break;
+        const child = right < this.length && this.before(this.heap[right], this.heap[left]) ? right : left;
+        if (!this.before(this.heap[child], last)) break;
+        this.heap[i] = this.heap[child];
+        this.position[this.heap[i]] = i;
+        i = child;
+      }
+      this.heap[i] = last;
+      this.position[last] = i;
+    }
+    return first;
+  }
+}
+
 /** Shortest legal path between two network positions. Dijkstra over
  * directed edge states (no U-turn at a junction, only at a dead end), with
  * deterministic tie-breaks; `departDir` forces the direction of travel away
@@ -40,7 +93,8 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
     state = (edge: number, dir: 1 | -1) => edge * 2 + (dir > 0 ? 0 : 1),
     dist = new Float64Array(states).fill(Infinity),
     prev = new Int32Array(states).fill(-1),
-    done = new Uint8Array(states);
+    done = new Uint8Array(states),
+    queue = new StateQueue(dist);
   const ea = edges[a.edge],
     eb = edges[b.edge];
   const penalty = (dir: 1 | -1) => (departDir !== 0 && dir !== departDir ? U_TURN : 0);
@@ -48,14 +102,17 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
   // edge. Starting states: the rest of a's edge in either direction.
   dist[state(a.edge, 1)] = ea.length - a.s + penalty(1);
   dist[state(a.edge, -1)] = a.s + penalty(-1);
+  for (const dir of [1, -1] as const) {
+    const u = state(a.edge, dir);
+    if (dist[u] < Infinity) queue.update(u);
+  }
   const options: { cost: number; legs: RouteLeg[] }[] = [];
   if (a.edge === b.edge) {
     const dir: 1 | -1 = b.s >= a.s ? 1 : -1;
     options.push({ cost: Math.abs(b.s - a.s) + penalty(dir), legs: [{ edge: a.edge, dir, from: a.s, to: b.s }] });
   }
   for (;;) {
-    let u = -1;
-    for (let i = 0; i < states; i++) if (!done[i] && dist[i] < Infinity && (u < 0 || dist[i] < dist[u])) u = i;
+    const u = queue.pop();
     if (u < 0) break;
     done[u] = 1;
     const edge = edges[u >> 1],
@@ -71,6 +128,7 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
       if (cost < dist[v] - 1e-9) {
         dist[v] = cost;
         prev[v] = u;
+        if (!done[v]) queue.update(v);
       }
     }
   }

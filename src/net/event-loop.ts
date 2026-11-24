@@ -6,13 +6,13 @@
 interface Scheduled {
   time: number;
   seq: number;
-  fn: () => void;
+  fn: (() => void) | null;
 }
 export class EventLoop {
   now = 0;
   private heap: Scheduled[] = [];
   private seq = 0;
-  private cancelled = new Set<number>();
+  private queued = new Map<number, Scheduled>();
   /** Run `fn` at absolute time `time` (ms); returns a handle for `cancel`. */
   at(time: number, fn: () => void): number {
     if (!Number.isFinite(time)) throw new Error('Invalid event time');
@@ -24,12 +24,16 @@ export class EventLoop {
     return this.at(this.now + delayMs, fn);
   }
   cancel(handle: number) {
-    this.cancelled.add(handle);
+    // Only a queued event owns this handle. Retired or unknown handles must
+    // neither accumulate nor cancel a future event that receives that number.
+    const event = this.queued.get(handle);
+    // Keep the heap slot/order until it is due, but release captured payloads now.
+    if (event) event.fn = null;
   }
   /** Repeat `fn` every `periodMs` from `start`, at exact multiples (no drift).
    * Returns a function that stops the repetition. */
   every(periodMs: number, fn: () => void, start = this.now): () => void {
-    if (!(periodMs > 0)) throw new Error('Invalid period');
+    if (!Number.isFinite(periodMs) || !(periodMs > 0)) throw new Error('Invalid period');
     let k = 0,
       stopped = false,
       handle = -1;
@@ -50,9 +54,10 @@ export class EventLoop {
   }
   /** Process every event due at or before `time`, then stand at `time`. */
   runUntil(time: number) {
+    if (!Number.isFinite(time)) throw new Error('Invalid event time limit');
     while (this.heap.length && this.heap[0].time <= time) {
       const event = this.pop();
-      if (this.cancelled.delete(event.seq)) continue;
+      if (!event.fn) continue;
       this.now = event.time;
       event.fn();
     }
@@ -60,9 +65,10 @@ export class EventLoop {
   }
   /** Run until `done()` is true (checked after each event) or `limit` ms. */
   runWhile(keepGoing: () => boolean, limit: number) {
+    if (!Number.isFinite(limit)) throw new Error('Invalid event time limit');
     while (keepGoing() && this.heap.length && this.heap[0].time <= limit) {
       const event = this.pop();
-      if (this.cancelled.delete(event.seq)) continue;
+      if (!event.fn) continue;
       this.now = event.time;
       event.fn();
     }
@@ -73,6 +79,7 @@ export class EventLoop {
   private push(event: Scheduled) {
     const h = this.heap;
     h.push(event);
+    this.queued.set(event.seq, event);
     let i = h.length - 1;
     while (i > 0) {
       const parent = (i - 1) >> 1;
@@ -85,6 +92,8 @@ export class EventLoop {
     const h = this.heap,
       top = h[0],
       last = h.pop() as Scheduled;
+    // A callback can cancel itself or throw; neither may retain this handle.
+    this.queued.delete(top.seq);
     if (h.length) {
       h[0] = last;
       let i = 0;

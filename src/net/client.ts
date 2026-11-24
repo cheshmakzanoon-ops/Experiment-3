@@ -150,31 +150,51 @@ export class RaceClient {
   private lastControls: Controls = neutralControls();
   private timers: (() => void)[] = [];
   private pingTimer: (() => void) | null = null;
+  private joined = false;
+  private stopped = false;
+  private raceGeneration = 0;
+  private readonly receiveMessage: NonNullable<Transport['onMessage']> = (data, channel) =>
+    this.receive(data, channel);
+  private readonly transportClosed: NonNullable<Transport['onClose']> = (reason) =>
+    this.closed(reason);
   constructor(readonly config: RaceClientConfig) {
     this.predictor = new LocalCarPredictor(config.predictor);
     if (config.token) this.token = config.token;
-    config.transport.onMessage = (data, channel) => this.receive(data, channel);
-    config.transport.onClose = (reason) => this.closed(reason);
+    config.transport.onMessage = this.receiveMessage;
+    config.transport.onClose = this.transportClosed;
   }
   get now() {
     return this.config.loop.now + (this.config.clockOffsetMs ?? 0);
   }
+  private get ended() {
+    return this.stopped || this.state === 'results';
+  }
   private sendControl(message: Parameters<typeof encodeControl>[0]) {
+    if (this.ended) return;
     if (this.config.transport.open) this.config.transport.send(encodeControl(message), 'reliable');
   }
-  /** Present this client's content identity and ask to join (or rejoin). */
+  /** Present this process's identity once (or rejoin with its saved token). */
   join() {
-    const own = joinIdentity(this.config.advertised, this.config.vehicle),
-      identity = this.config.identity ? this.config.identity(own) : own;
-    this.sendControl({
-      kind: 'join',
-      net: NET_PROTOCOL_VERSION,
-      name: this.config.name,
-      vehicle: this.config.vehicle,
-      identity,
-      ...(this.token ? { token: this.token } : {}),
-      ...(this.config.account ? { account: this.config.account } : {}),
-    });
+    if (this.ended || this.joined || !this.config.transport.open) return;
+    this.joined = true;
+    try {
+      const own = joinIdentity(this.config.advertised, this.config.vehicle),
+        identity = this.config.identity ? this.config.identity(own) : own;
+      this.sendControl({
+        kind: 'join',
+        net: NET_PROTOCOL_VERSION,
+        name: this.config.name,
+        vehicle: this.config.vehicle,
+        identity,
+        ...(this.token ? { token: this.token } : {}),
+        ...(this.config.account ? { account: this.config.account } : {}),
+      });
+    } catch (error) {
+      this.joined = false;
+      throw error;
+    }
+    // A transport can close or deliver rejection/results synchronously in send().
+    if (this.ended || !this.config.transport.open) return;
     // Keep-alive until inputs flow (they keep the link alive in the race).
     this.pingTimer = this.config.loop.every(500, () => {
       if (this.needsKeepAlive) this.sendControl({ kind: 'ping', t: this.now });
@@ -190,22 +210,46 @@ export class RaceClient {
     this.sendControl({ kind: 'ready', ready });
   }
   leave() {
-    this.sendControl({ kind: 'leave' });
-    this.stop('closed', 'left');
+    this.leaveConnection('closed', 'left');
+  }
+  private leaveConnection(state: ClientState, reason: string) {
+    if (this.stopped) return;
+    const transport = this.config.transport,
+      owned = transport.onMessage === this.receiveMessage;
+    // End local ownership even when sending fails or invokes old callbacks.
+    this.stop(state, reason);
+    if (owned && transport.open) transport.send(encodeControl({ kind: 'leave' }), 'reliable');
+  }
+  private stopRaceTimers() {
+    this.raceGeneration++;
+    const timers = this.timers;
+    this.timers = [];
+    for (const stop of timers) stop();
+  }
+  private stopTimers() {
+    this.stopRaceTimers();
+    const ping = this.pingTimer;
+    this.pingTimer = null;
+    ping?.();
   }
   private stop(state: ClientState, reason = '') {
-    for (const stop of this.timers) stop();
-    this.timers = [];
-    this.pingTimer?.();
-    this.pingTimer = null;
+    if (this.stopped) return;
+    this.stopped = true;
     if (this.state !== 'rejected' && this.state !== 'kicked') this.state = state;
     if (reason) this.reason = reason;
+    const transport = this.config.transport;
+    // Disposing an older client must not detach a replacement on the same transport.
+    if (transport.onMessage === this.receiveMessage) transport.onMessage = null;
+    if (transport.onClose === this.transportClosed) transport.onClose = null;
+    this.stopTimers();
   }
   private closed(reason: string) {
     if (this.state === 'rejected' || this.state === 'kicked') return;
     this.stop(this.state === 'results' ? 'results' : 'closed', reason);
   }
   private receive(data: Uint8Array, channel: 'reliable' | 'unreliable') {
+    // Retained callbacks cannot revive a stopped connection or a completed race.
+    if (this.ended) return;
     const decoded = decodeServerMessage(data, channel);
     if (!decoded.ok) {
       this.stats.invalidMessages++;
@@ -227,13 +271,9 @@ export class RaceClient {
         if (this.config.autoReady && message.lobby.phase === 'lobby') this.setReady(true);
         return;
       case 'reject':
-        this.state = 'rejected';
-        this.reason = message.reason;
         this.stop('rejected', message.reason);
         return;
       case 'kicked':
-        this.state = 'kicked';
-        this.reason = message.reason;
         this.stop('kicked', message.reason);
         return;
       case 'lobby':
@@ -260,8 +300,7 @@ export class RaceClient {
             }
           : results;
         this.state = 'results';
-        for (const stop of this.timers) stop();
-        this.timers = [];
+        this.stopTimers();
         return;
       }
       case 'pong': {
@@ -316,13 +355,11 @@ export class RaceClient {
     if (message.events) this.events.splice(0, this.events.length, ...message.events);
     const incompatible = this.gridIncompatibility();
     if (incompatible) {
-      this.sendControl({ kind: 'leave' });
-      this.stop('rejected', `cannot present this field: ${incompatible}`);
-      this.state = 'rejected';
+      this.leaveConnection('rejected', `cannot present this field: ${incompatible}`);
       return;
     }
     this.state = message.events ? 'race' : 'grid';
-    for (const stop of this.timers) stop();
+    this.stopRaceTimers();
     const loop = this.config.loop;
     this.timers = [
       loop.every(1000 / CADENCE.inputSampleHz, () => this.sample()),
@@ -338,12 +375,14 @@ export class RaceClient {
     return this.clock.arrivalTick(now) + this.lead;
   }
   private sample() {
-    if (!this.clock.synced || this.car < 0) return;
-    const now = this.now;
+    if (this.ended || !this.clock.synced || this.car < 0) return;
+    const now = this.now,
+      generation = this.raceGeneration;
     if (!this.commands.started) this.commands.start(Math.ceil(this.targetTick(now)));
     const target = this.targetTick(now) + TICKS_PER_COMMAND,
       ticks = Math.max(1, Math.min(4, Math.round(target - this.commands.nextTick)));
     const raw = this.config.input({ tick: this.commands.nextTick, now, client: this });
+    if (this.stopped || generation !== this.raceGeneration) return;
     const checked = sanitizeControls(raw);
     let controls = this.lastControls;
     if (checked.ok) {
@@ -469,8 +508,6 @@ export class RaceClient {
   /** Stop all timers without telling the server (the process went away). */
   dispose() {
     this.stop('closed', 'disposed');
-    this.config.transport.onMessage = null;
-    this.config.transport.onClose = null;
   }
   /** Newest authoritative state of a car (HUD: laps, rank, flags). */
   carState(car: number): CarNetState | undefined {
