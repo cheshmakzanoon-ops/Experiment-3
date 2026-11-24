@@ -1,209 +1,210 @@
-### scenarios (job 138340089661)
+### scenarios (job 138345891150)
 --- error digest (first 120 matching lines) ---
-461:scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:55.5112984Z ##[error]The operation was canceled.
+596:scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7821310Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-scenarios	Run npm run test:physics	2026-11-24T09:23:35.3263067Z PROGRESS {"t":270.00808908167795,"phase":"rejoined","s":2856.010429740534,"speed":64.92461285363771,"lateral":1.1373011530545991,"pit":0,"laps":2,"health":1}
-scenarios	Run npm run test:physics	2026-11-24T09:23:35.5400866Z EVENT {"time":271.774755748343,"event":"contact","s":0.22374845140484467,"speed":67.78965658372906,"lateral":1.107029532814619}
-scenarios	Run npm run test:physics	2026-11-24T09:23:38.3440860Z EVENT {"time":293.7830890816563,"event":"recover-contact","s":420.23855484319665,"speed":14.257755080162832,"lateral":-18.41222226022381}
-scenarios	Run npm run test:physics	2026-11-24T09:23:39.1230750Z PROGRESS {"t":300.00808908165067,"phase":"recover-contact","s":489.69469977136987,"speed":10.96059312238226,"lateral":-14.233655110920768,"pit":0,"laps":3,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:23:40.0576461Z EVENT {"time":307.7914224149769,"event":"finish","s":578.0064484346303,"speed":11.817134610434886,"lateral":0.060310390142497824}
-scenarios	Run npm run test:physics	2026-11-24T09:23:42.7029565Z PROGRESS {"t":330.0080890816234,"phase":"finish","s":1363.6253956466626,"speed":22.823456194756723,"lateral":2.3335081975011507,"pit":0,"laps":3,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:23:46.2617094Z PROGRESS {"t":360.0080890815961,"phase":"finish","s":1953.3261896799922,"speed":32.01156368651642,"lateral":-0.5345941238456612,"pit":0,"laps":3,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:23:49.8533734Z PROGRESS {"t":390.0080890815688,"phase":"finish","s":268.2234019989919,"speed":65.23398137486753,"lateral":-2.4162529614282584,"pit":0,"laps":4,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:23:53.3091420Z PROGRESS {"t":420.0080890815415,"phase":"finish","s":1434.827294543371,"speed":29.5811764988889,"lateral":0.7336742640475487,"pit":0,"laps":4,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:23:56.9513634Z PROGRESS {"t":450.00808908151424,"phase":"finish","s":2360.0072714543458,"speed":54.650563793701934,"lateral":-4.243761933549733,"pit":0,"laps":4,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:24:00.4026832Z PROGRESS {"t":480.00808908148696,"phase":"finish","s":1089.3459526896886,"speed":39.30755645703801,"lateral":-3.695024798034412,"pit":0,"laps":5,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:24:04.0016750Z PROGRESS {"t":510.00808908145973,"phase":"finish","s":1927.3958456789896,"speed":36.31508659352859,"lateral":-1.6210322565469375,"pit":0,"laps":5,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:24:07.5150070Z PROGRESS {"t":540.0080890814324,"phase":"finish","s":431.4251954409601,"speed":59.035044450416336,"lateral":-0.07247088744065956,"pit":0,"laps":6,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:24:11.0096549Z PROGRESS {"t":570.0080890814052,"phase":"finish","s":1541.2035030067236,"speed":17.606349935269,"lateral":-3.1000460882009886,"pit":0,"laps":6,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:24:14.8015914Z PROGRESS {"t":600.0080890813779,"phase":"finish","s":2620.760571200193,"speed":68.01821245766394,"lateral":-4.139284764693868,"pit":0,"laps":6,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-24T09:24:16.3933018Z (node:2358) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run npm run test:physics	2026-11-24T09:24:16.3952220Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	2026-11-24T09:24:16.4223360Z {"sourceSHA256":"a2946929dda1607fbb90aa256a16f4c729c4cd7b077c6147bb86d37f12078f58","simulationSHA256":"b41472f816246b836a2e05d614f9642df045b192b9394aeff5913363e21755f5","fingerprintVersion":2,"scriptSHA256":"065847a7c74f810bd0a40e8f6a2f1736e5c5301899b90f1552846a30ee676721","scope":"Continuous production-physics/input, numeric replay and CSV fixture. NOT the complete manual audiovisual section-146 acceptance.","fixture":{"seed":4417,"laps":8,"cars":6,"weather":"changeable","assist":"raw","brakeBias":0.66,"dt":0.008333333333333333,"mutations":"Player control requests only; no poses, forces, health, fuel, lap counters or tire resets.","replayStore":"in-memory page adapter; IndexedDB and GPU require browser tests"},"passed":true,"failures":[],"checks":{"completeInputSequence":true,"allCarsClassified":true,"launchWheelspin":true,"highSpeedGears":true,"genuineWake":true,"lockAndRecovery":true,"kerbGrassSuspension":true,"retainedDirtThenCleaning":true,"thermalWearAndERS":true,"wetCompoundTransition":true,"physicalFrontDamageAndAeroLoss":true,"telemetryClock":true,"replayActualHistory":true,"csvActualState":true},"seen":{"spin":5.994061231268701,"wake":0.42140724926164486,"speed":80.1682437430266,"gear":8,"lock":1,"kerb":5.641666666666737,"grass":36.52499999999857,"dirt":0.9998993361787571,"cleanedDirt":0.0013622684013101358,"compression":0.07819037115442407,"wear":0.08042710621332703,"temp":109.55320906483244,"ers":100000,"wet":1.6271734136389568,"changedGrip":1.957809129862401,"frontDamage":0.02338001751930785,"dirtyAirAfterPit":0.42140724926164486,"maximumImpact":0.06967049638057618},"events":[{"time":5.058089081764553,"event":"follow","s":2969.3607784323867,"speed":22.031871463782466,"lateral":-1.5423970650945702},{"time":40.09975574842923,"event":"brake","s":1774.0633520407537,"speed":50.03539820355587,"lateral":2.561579055620474},{"time":40.55808908176254,"event":"release","s":1794.43331209584,"speed":38.38373197107545,"lateral":2.8685164644766514},{"time":41.566422415095815,"event":"prepare-excursion","s":1831.3403095353015,"speed":36.968276181975355,"lateral":-0.18291294346006198},{"time":60.08308908176307,"event":"decelerate","s":0.34325799603766427,"speed":80.16201726747619,"lateral":3.5896689853815937},{"time":62.48308908176498,"event":"grass","s":104.95099858557705,"speed":13.934244062387467,"lateral":-3.0533378583112354},{"time":76.48308908177613,"event":"return","s":233.8741555039046,"speed":9.13224879325132,"lateral":-14.653877729004073},{"time":86.48308908178409,"event":"weather","s":349.97422000433653,"speed":11.83168111211659,"lateral":-0.03570241707290825},{"time":206.64975574840227,"event":"rejoined","s":330.1043640865605,"speed":12.707799725685065,"lateral":-0.0010211113178826441},{"time":271.774755748343,"event":"contact","s":0.22374845140484467,"speed":67.78965658372906,"lateral":1.107029532814619},{"time":293.7830890816563,"event":"recover-contact","s":420.23855484319665,"speed":14.257755080162832,"lateral":-18.41222226022381},{"time":307.7914224149769,"event":"finish","s":578.0064484346303,"speed":11.817134610434886,"lateral":0.060310390142497824}],"unlockedSeconds":18.516666666666257,"damageFrontLoss":0.023380017519308294,"damageBalanceLoss":0.004447780784724603,"telemetry":{"rows":37192,"channels":228,"verifiedCsvRows":41,"intervalTicks":2},"replay":{"frames":9298,"durationSeconds":619.7999715134501,"maximumResidentBytes":17937760,"seeks":[{"index":40,"time":615,"tick":73800,"passed":true},{"index":12,"time":195,"tick":23400,"passed":true},{"index":0,"time":15,"tick":1800,"passed":true},{"index":24,"time":375,"tick":45000,"passed":true}]},"raceTime":614.0164224146985,"cars":[{"id":0,"finishTime":605.9492093337238,"retired":false,"laps":7,"pitStops":1,"frontHealth":0.9766199824806922},{"id":1,"finishTime":588.1400341998318,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":2,"finishTime":614.0098354563885,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":3,"finishTime":599.1236278199743,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":4,"finishTime":595.1060936109392,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":5,"finishTime":609.9541602996052,"retired":false,"laps":8,"pitStops":1,"frontHealth":1}]}
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	﻿2026-11-24T09:24:16.4490306Z ##[group]Run node --experimental-transform-types scripts/rotation-benchmark.ts
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	2026-11-24T09:24:16.4490883Z ^[[36;1mnode --experimental-transform-types scripts/rotation-benchmark.ts^[[0m
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	2026-11-24T09:24:16.4517732Z shell: /usr/bin/bash -e {0}
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	2026-11-24T09:24:16.4518030Z ##[endgroup]
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	2026-11-24T09:24:16.6034796Z {"method":"body implicit midpoint + Cayley rotation + world-torque half kicks","sources":{"src/simulation/rigid.ts":"08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b","src/core/math.ts":"7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"},"durationSeconds":60,"timestepSeconds":0.004166666666666667,"stepsPerCase":14400,"passed":true,"results":[{"initialOmegaRadPerSec":[10,15,25],"initialEnergyJ":477826.58699084475,"maxRelativeEnergyError":2.5678348336555246e-10,"maxRelativeWorldMomentumError":1.4915112769623713e-10},{"initialOmegaRadPerSec":[2,80,-30],"initialEnergyJ":4217678.042061569,"maxRelativeEnergyError":7.635403420636067e-11,"maxRelativeWorldMomentumError":3.037509721159469e-11},{"initialOmegaRadPerSec":[0.001,18,0.001],"initialEnergyJ":197640.00107254658,"maxRelativeEnergyError":1.1615153283628388e-12,"maxRelativeWorldMomentumError":5.8081756307376e-13}]}
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	2026-11-24T09:24:16.6045350Z (node:2391) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run node --experimental-transform-types scripts/rotation-benchmark.ts	2026-11-24T09:24:16.6047651Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	﻿2026-11-24T09:24:16.6097812Z ##[group]Run node --experimental-transform-types scripts/pit-integration.ts
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	2026-11-24T09:24:16.6098336Z ^[[36;1mnode --experimental-transform-types scripts/pit-integration.ts^[[0m
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	2026-11-24T09:24:16.6124760Z shell: /usr/bin/bash -e {0}
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	2026-11-24T09:24:16.6125042Z ##[endgroup]
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	2026-11-24T09:24:49.8549903Z {"passed":true,"failures":[],"simulatedSeconds":158.25,"cars":[{"id":0,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":1,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":2,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":3,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":4,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":5,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":6,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":7,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":8,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1},{"id":9,"entered":true,"exited":true,"stops":1,"phase":0,"maximumImpact":0,"frontHealth":1,"rearHealth":1}]}
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	2026-11-24T09:24:49.8553427Z (node:2400) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run node --experimental-transform-types scripts/pit-integration.ts	2026-11-24T09:24:49.8554156Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	﻿2026-11-24T09:24:49.8716387Z ##[group]Run node --experimental-transform-types scripts/race-classification.ts
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	2026-11-24T09:24:49.8717169Z ^[[36;1mnode --experimental-transform-types scripts/race-classification.ts^[[0m
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	2026-11-24T09:24:49.8753658Z shell: /usr/bin/bash -e {0}
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	2026-11-24T09:24:49.8754417Z ##[endgroup]
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	2026-11-24T09:26:39.9139624Z {"sources":{"src/simulation/race.ts":"ca494cad6319b84070b4e743cf37601f2077093faa1947143d13f14da86df941","src/simulation/world.ts":"b9325e3b1211e638f6d702fb6194cec01ac22f1cd042ddd982c7a5e03cb9ec31","src/simulation/ai.ts":"0914e897395cea5e837b6f82cc7db9551ef946ad4da4f9c584eed45368948994"},"reports":[{"weather":"clear","passed":true,"failures":[],"firstFinish":154.14975574845002,"playerFinish":157.84142241511333,"sessionEnd":175.15808908176425,"maximumImpact":0,"classification":[{"id":1,"laps":3,"finishTime":154.1433267877342,"penalty":0,"retired":false,"pitStops":0,"sectors":[12.67716421781465,21.478744328728652,15.513799727632545]},{"id":0,"laps":3,"finishTime":157.8371992253009,"penalty":0,"retired":false,"pitStops":0,"sectors":[12.734206397187947,22.18712666445414,15.608699807690954]},{"id":3,"laps":3,"finishTime":161.12345201313414,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.245291214189919,22.53823642691782,16.04274503307863]},{"id":2,"laps":3,"finishTime":163.90965185413788,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.179170198604211,23.044097875542604,16.63927119388046]},{"id":5,"laps":3,"finishTime":166.44488068990657,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.254130442207824,23.536451364235504,16.83954967524457]},{"id":4,"laps":3,"finishTime":168.68610587731726,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.187217924506626,23.488470641138193,17.27590961734984]},{"id":6,"laps":3,"finishTime":170.20900077806968,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.29292123568949,23.84749131452253,17.147553346641416]},{"id":7,"laps":3,"finishTime":171.81037751604308,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.541071850047103,23.808253475400193,17.28475812506437]},{"id":9,"laps":3,"finishTime":173.4906933137098,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.582296990057174,24.044085242343755,17.416126520463536]},{"id":8,"laps":3,"finishTime":175.15361006334328,"penalty":0,"retired":false,"pitStops":0,"sectors":[13.638361948035538,24.306041985828415,17.47821033068206]}]},{"weather":"changeable","passed":true,"failures":[],"firstFinish":304.11642241498026,"playerFinish":313.71642241497153,"sessionEnd":359.96642241492947,"maximumImpact":0,"classification":[{"id":1,"laps":4,"finishTime":304.1152642761654,"penalty":0,"retired":false,"pitStops":1,"sectors":[47.44021090741549,30.62836529458272,19.749542197114806]},{"id":9,"laps":4,"finishTime":308.7863463818955,"penalty":0,"retired":false,"pitStops":1,"sectors":[17.6590168723628,32.29404930754316,19.88002260336259]},{"id":0,"laps":4,"finishTime":313.7094936481644,"penalty":0,"retired":false,"pitStops":1,"sectors":[47.43232350128338,32.00819680897371,20.02419563609243]},{"id":8,"laps":4,"finishTime":317.1855884420156,"penalty":0,"retired":false,"pitStops":1,"sectors":[19.64933239900921,33.24275067274482,20.4814144081476]},{"id":3,"laps":4,"finishTime":323.53361090560395,"penalty":0,"retired":false,"pitStops":1,"sectors":[53.87971358866045,30.58694230096239,19.66215449937698]},{"id":2,"laps":4,"finishTime":327.6172380839165,"penalty":0,"retired":false,"pitStops":1,"sectors":[50.75379320404949,32.37731866779302,19.82470376531694]},{"id":5,"laps":4,"finishTime":337.6804524531572,"penalty":0,"retired":false,"pitStops":1,"sectors":[57.202597537565936,30.994133649025684,19.955547984165037]},{"id":4,"laps":4,"finishTime":341.6859475512896,"penalty":0,"retired":false,"pitStops":1,"sectors":[54.66915287610743,32.821195188574166,20.14283505744163]},{"id":6,"laps":4,"finishTime":349.93610375567914,"penalty":0,"retired":false,"pitStops":1,"sectors":[62.0583732180248,30.861214383908646,19.889059727752]},{"id":7,"laps":4,"finishTime":359.95850476961334,"penalty":0,"retired":false,"pitStops":1,"sectors":[68.01751156652975,30.731205226735028,19.815396587853286]}]}]}
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	2026-11-24T09:26:39.9303678Z (node:2415) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run node --experimental-transform-types scripts/race-classification.ts	2026-11-24T09:26:39.9304472Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	﻿2026-11-24T09:26:39.9331757Z ##[group]Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:26:39.9332345Z ^[[36;1mnode --experimental-transform-types scripts/vellamar-race.ts clear,changeable^[[0m
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:26:39.9358707Z shell: /usr/bin/bash -e {0}
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:26:39.9358999Z ##[endgroup]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9509003Z {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9509693Z  "weather": "clear",
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9510067Z  "passed": true,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9510422Z  "failures": [],
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9510774Z  "circuitLength": 3997.2689252571236,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9511221Z  "firstFinish": 211.62475574839775,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9511615Z  "sessionEnd": 242.00808908170345,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9511998Z  "maximumSpeedKmh": 299.189333115227,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9512416Z  "maximumImpact": 0.0408343398035259,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9512807Z  "wallSeconds": 45.167649751999996,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9513147Z  "classification": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9513515Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9513780Z    "id": 1,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9514462Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9514774Z    "best": 68.92693161815764,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9515196Z    "finishTime": 211.62173264886638,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9515564Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9515875Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9516251Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9516534Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9516923Z     23.628749795358686,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9517292Z     20.10669313552029,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9517622Z     25.251935423181976
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9517946Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9518253Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9518525Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9518793Z    "id": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9519137Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9519471Z    "best": 69.68265308583389,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9519852Z    "finishTime": 216.55302142179946,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9520210Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9520562Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9520925Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9521225Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9521580Z     24.04865567515799,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9521890Z     20.201049478384107,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9522168Z     25.432947932291796
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9522492Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9522741Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9523011Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9523270Z    "id": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9523605Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9523886Z    "best": 70.05606830917833,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9524472Z    "finishTime": 220.31511538744772,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9524882Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9525174Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9525503Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9525832Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9526113Z     23.985805411085238,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9526450Z     19.95624712741892,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9526783Z     26.114015770674172
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9527098Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9527359Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9527604Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9527925Z    "id": 2,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9528216Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9528513Z    "best": 70.88150252635825,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9528913Z    "finishTime": 224.17555694882122,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9529265Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9530032Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9530381Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9530710Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9531004Z     24.372031177394263,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9531357Z     20.01042444670358,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9531672Z     26.499046902260403
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9532089Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9532442Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9532706Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9532990Z    "id": 9,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9533315Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9533612Z    "best": 71.6787456338736,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9534150Z    "finishTime": 227.78870931464118,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9534542Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9534854Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9535153Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9535498Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9535784Z     24.819218580306995,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9536073Z     20.103834319166083,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9536765Z     26.755692734400526
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9537100Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9537383Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9537652Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9537953Z    "id": 5,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9538260Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9538550Z    "best": 72.88840736783226,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9538958Z    "finishTime": 231.2589427697356,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9539305Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9539604Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9539970Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9540240Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9540552Z     25.40871722705691,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9540854Z     20.122510328298944,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9541227Z     27.357179812476403
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9541513Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9541759Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9542081Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9542342Z    "id": 4,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9542660Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9542980Z    "best": 74.29162165784214,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9543338Z    "finishTime": 234.6050711830991,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9543696Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9544199Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9544580Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9544886Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9545842Z     25.925982296177438,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9546135Z     20.473221107256506,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9546440Z     27.8924182544082
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9546758Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9547046Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9547315Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9547575Z    "id": 7,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9547904Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9548206Z    "best": 75.3726789413451,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9548556Z    "finishTime": 237.3440453092523,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9548941Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9549231Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9549555Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9549852Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9550154Z     26.126478030423215,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9550482Z     20.40742361656308,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9550801Z     28.838777294358806
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9551113Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9551378Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9551617Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9551942Z    "id": 6,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9552243Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9552548Z    "best": 76.0767200153424,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9552926Z    "finishTime": 239.61188338562067,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9553270Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9553571Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9553891Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9554432Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9554729Z     26.31460751982229,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9555037Z     20.62548493080098,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9555402Z     29.136627564719134
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9555676Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9555957Z   },
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9556247Z   {
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9556520Z    "id": 8,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9556807Z    "laps": 3,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9557224Z    "best": 76.75169826254205,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9557607Z    "finishTime": 242.0033321846419,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9557962Z    "penalty": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9558311Z    "retired": false,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9558650Z    "pitStops": 0,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9558953Z    "sectors": [
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9559253Z     26.57118263041238,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9559769Z     20.84595209216664,
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9560135Z     29.33456353996303
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9560432Z    ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9560753Z   }
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9561018Z  ]
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:25.9561269Z }
-scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:27:55.5112984Z ##[error]The operation was canceled.
-scenarios	Scenario evidence, including failures	﻿2026-11-24T09:27:55.5185224Z ##[group]Run actions/upload-artifact@v4
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5185817Z with:
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5186072Z   name: physics-scenarios
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5186951Z   path: docs/scenario-results.json
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0105832Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0105955Z    "best": 75.3726789413451,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106105Z    "finishTime": 237.3440453092523,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106249Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106370Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106495Z    "pitStops": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106613Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106729Z     26.126478030423215,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106854Z     20.40742361656308,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0106978Z     28.838777294358806
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107096Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107205Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107307Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107413Z    "id": 6,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107524Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107643Z    "best": 76.0767200153424,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107792Z    "finishTime": 239.61188338562067,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0107938Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108089Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108214Z    "pitStops": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108339Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108456Z     26.31460751982229,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108577Z     20.62548493080098,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108700Z     29.136627564719134
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108818Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0108920Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109023Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109128Z    "id": 8,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109239Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109357Z    "best": 76.75169826254205,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109512Z    "finishTime": 242.0033321846419,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109655Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109775Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0109906Z    "pitStops": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110027Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110142Z     26.57118263041238,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110264Z     20.84595209216664,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110390Z     29.33456353996303
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110508Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110612Z   }
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110721Z  ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:35:24.0110827Z }
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7488944Z {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7489251Z  "weather": "changeable",
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7489513Z  "passed": true,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7489695Z  "failures": [],
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7489923Z  "circuitLength": 3997.2689252571236,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7490194Z  "firstFinish": 299.299755748318,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7490441Z  "sessionEnd": 367.72475574825575,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7490711Z  "maximumSpeedKmh": 298.8469340786968,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7490978Z  "maximumImpact": 0.04077433942740086,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7491231Z  "wallSeconds": 52.72836075199999,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7491463Z  "classification": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7491656Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7492598Z    "id": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7492780Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7492965Z    "best": 70.94503428504382,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7493209Z    "finishTime": 299.29397376320804,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7493442Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7493630Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7493998Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7494184Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7494388Z     61.243192848557044,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7494586Z     25.51394385941856,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7494778Z     31.73217738899166
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7494932Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495036Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495138Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495240Z    "id": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495355Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495474Z    "best": 73.86536868223418,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495626Z    "finishTime": 307.7511715783682,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495775Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7495897Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496020Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496138Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496259Z     61.57466358192164,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496379Z     25.852126932146945,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496502Z     32.16210631936474
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496619Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496719Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496817Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7496919Z    "id": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497031Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497149Z    "best": 75.08349102735426,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497298Z    "finishTime": 318.2019612020874,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497443Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497561Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497683Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497803Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7497918Z     67.8776445050683,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498036Z     25.43400396362523,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498157Z     31.729085636255093
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498272Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498371Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498472Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498574Z    "id": 2,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498681Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498800Z    "best": 76.86375207548366,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7498950Z    "finishTime": 326.8723017445917,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7499156Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7499333Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7499528Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7499716Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7499899Z     71.55685580513526,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500084Z     25.61814011950281,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500274Z     31.952230551573393
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500426Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500526Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500629Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500730Z    "id": 9,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7500838Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7501229Z (node:2429) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7501611Z (Use `node --trace-warnings ...` to show where the warning was created)
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7501823Z    "best": 76.65107176264607,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7501977Z    "finishTime": 332.8616253221852,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7502120Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7502244Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7502518Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7502650Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7502764Z     72.42255722904534,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7502886Z     25.775631259026852,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503012Z     32.39385089941044
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503133Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503234Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503338Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503440Z    "id": 5,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503547Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503664Z    "best": 79.60261701968703,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503817Z    "finishTime": 337.18226514647,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7503957Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504074Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504198Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504315Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504430Z     71.41089610687533,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504551Z     25.81879428913504,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504670Z     33.46538270591981
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504784Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7504990Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505092Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505191Z    "id": 4,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505297Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505415Z    "best": 81.02226220442826,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505563Z    "finishTime": 341.16397068689076,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505709Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7505917Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7506237Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7506456Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7506656Z     70.01386277471482,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7506974Z     26.190431179811185,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7507182Z     34.454865976747044
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7507405Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7507611Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7507870Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7508129Z    "id": 6,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7508318Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7518928Z    "best": 81.67183043594589,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7519178Z    "finishTime": 346.3419966946563,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7519400Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7519578Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7519776Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7519959Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7520133Z     74.70319409757738,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7520316Z     25.693131820668555,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7520508Z     32.350597908447014
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7520690Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7520847Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7521014Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7521169Z    "id": 7,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7521336Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7521515Z    "best": 82.63021876205772,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7521795Z    "finishTime": 356.1292323601723,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522023Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522149Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522275Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522561Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522687Z     81.87610463584645,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522812Z     25.6143917267255,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7522934Z     31.96042600620609
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523057Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523161Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523263Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523371Z    "id": 8,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523485Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523607Z    "best": 83.71601096965534,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523760Z    "finishTime": 367.7204097726546,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7523909Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524031Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524156Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524284Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524402Z     89.21726530326512,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524523Z     26.0835398447648,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524646Z     32.40666512173442
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524789Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7524897Z   }
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7525002Z  ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7525110Z }
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-24T09:36:16.7821310Z ##[error]The operation was canceled.
+scenarios	Scenario evidence, including failures	﻿2026-11-24T09:36:16.7877472Z ##[group]Run actions/upload-artifact@v4
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7877643Z with:
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7877769Z   name: physics-scenarios
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7878382Z   path: docs/scenario-results.json
 scenarios	Scenario evidence, including failures	docs/dynamics-benchmark.json
 scenarios	Scenario evidence, including failures	docs/marshal-integration.json
 scenarios	Scenario evidence, including failures	docs/pit-integration.json
@@ -214,42 +215,41 @@ scenarios	Scenario evidence, including failures	docs/race-classification.json
 scenarios	Scenario evidence, including failures	docs/vellamar-race.json
 scenarios	Scenario evidence, including failures	docs/reference-targets.json
 scenarios	Scenario evidence, including failures	
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5187869Z   retention-days: 7
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5188113Z   if-no-files-found: warn
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5188380Z   compression-level: 6
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5188611Z   overwrite: false
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5188861Z   include-hidden-files: false
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.5189154Z ##[endgroup]
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6458519Z (node:2459) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6459740Z (Use `node --trace-deprecation ...` to show where the warning was created)
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6556400Z Multiple search paths detected. Calculating the least common ancestor of all paths
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6559656Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3/docs. This will be the root directory of the artifact
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6560308Z With the provided path, there will be 10 files uploaded
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6560935Z Artifact name is valid!
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:55.6561270Z Root directory input is valid!
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:56.1170927Z Beginning upload of artifact content to blob storage
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:56.1436584Z (node:2459) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:56.4752929Z Uploaded bytes 10379
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:56.5678795Z Finished uploading artifact content to blob storage!
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:56.5679887Z SHA256 digest of uploaded artifact zip is c7f34b3638c7ac9472a3313afb0db88909468002b6c7e049165dc6fed11cdd36
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:56.5680725Z Finalizing artifact upload
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:57.0158131Z Artifact physics-scenarios.zip successfully finalized. Artifact ID 14906672631
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:57.0159199Z Artifact physics-scenarios has been successfully uploaded! Final size is 10379 bytes. Artifact ID is 14906672631
-scenarios	Scenario evidence, including failures	2026-11-24T09:27:57.0160415Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45363712256/artifacts/14906672631
-scenarios	Post Run actions/checkout@v4	﻿2026-11-24T09:27:57.0358089Z Post job cleanup.
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.0998967Z [command]/usr/bin/git version
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1028803Z git version 2.56.1
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1066790Z Temporarily overriding HOME='/home/runner/work/_temp/b3f92e98-3d86-4e74-86d7-6f689626988c' before making global git config changes
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1067725Z Adding repository directory to the temporary git global config as a safe directory
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1068368Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1104722Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1140444Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1353324Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1368424Z http.https://github.com/.extraheader
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1377498Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1401054Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1551789Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-scenarios	Post Run actions/checkout@v4	2026-11-24T09:27:57.1573256Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-scenarios	Complete job	﻿2026-11-24T09:27:57.1871060Z Cleaning up orphan processes
-scenarios	Complete job	2026-11-24T09:27:57.2096756Z Terminate orphan process: pid (2444) (node)
-scenarios	Complete job	2026-11-24T09:27:57.2144477Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7879016Z   retention-days: 7
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7879148Z   if-no-files-found: warn
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7879297Z   compression-level: 6
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7879438Z   overwrite: false
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7879568Z   include-hidden-files: false
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.7879710Z ##[endgroup]
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9035769Z (node:2461) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9036313Z (Use `node --trace-deprecation ...` to show where the warning was created)
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9113879Z Multiple search paths detected. Calculating the least common ancestor of all paths
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9120216Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3/docs. This will be the root directory of the artifact
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9120951Z With the provided path, there will be 10 files uploaded
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9121656Z Artifact name is valid!
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:16.9121917Z Root directory input is valid!
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:17.3611449Z Beginning upload of artifact content to blob storage
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:17.3801954Z (node:2461) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:17.6837557Z Uploaded bytes 11033
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:17.7662667Z Finished uploading artifact content to blob storage!
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:17.7663289Z SHA256 digest of uploaded artifact zip is ec66c1fccf87d0d91b3911cfd0f2d81faae076e8962a5c994213af6159473697
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:17.7664174Z Finalizing artifact upload
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:18.1313221Z Artifact physics-scenarios.zip successfully finalized. Artifact ID 14907116789
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:18.1313991Z Artifact physics-scenarios has been successfully uploaded! Final size is 11033 bytes. Artifact ID is 14907116789
+scenarios	Scenario evidence, including failures	2026-11-24T09:36:18.1314669Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45365405009/artifacts/14907116789
+scenarios	Post Run actions/checkout@v4	﻿2026-11-24T09:36:18.1493107Z Post job cleanup.
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2092217Z [command]/usr/bin/git version
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2127005Z git version 2.56.1
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2152886Z Temporarily overriding HOME='/home/runner/work/_temp/d237eede-ae73-4feb-9ce2-ff799e4707fe' before making global git config changes
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2153714Z Adding repository directory to the temporary git global config as a safe directory
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2156639Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2193352Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2224867Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2476559Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2504139Z http.https://github.com/.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2504883Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2543681Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2760196Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+scenarios	Post Run actions/checkout@v4	2026-11-24T09:36:18.2800421Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+scenarios	Complete job	﻿2026-11-24T09:36:18.3173124Z Cleaning up orphan processes
+scenarios	Complete job	2026-11-24T09:36:18.3386492Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
