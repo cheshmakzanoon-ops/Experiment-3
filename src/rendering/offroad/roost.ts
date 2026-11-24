@@ -63,6 +63,31 @@ export const ROOST_CAPACITY = 2400;
 /** Bound terrain queries independently of the number of entrants/particles. */
 export const ROOST_GROUND_SAMPLES = 128;
 
+/** Integrated air resistance, gravity and wind over one slice of race time.
+ * A screen rendering the same flight at 15 and 144 Hz integrates the same
+ * trajectory. expm1 retains precision for very short fractional births. */
+class MxDebrisStep {
+  decay = 1;
+  travel = 0;
+  drift = 0;
+  entrain = 0;
+  drop = 0;
+  fall = 0;
+
+  set(dt: number, dust: boolean) {
+    const drag = dust ? 2.5 : 0.25;
+    const gravity = dust ? 9.81 * 0.025 : 9.81;
+    const loss = -Math.expm1(-drag * dt);
+    this.decay = 1 - loss;
+    this.travel = loss / drag;
+    this.drift = dust ? 0.65 * (dt - this.travel) : 0;
+    this.entrain = dust ? 0.65 * loss : 0;
+    this.drop = gravity * (dt - this.travel) / drag;
+    this.fall = gravity * this.travel;
+    return this;
+  }
+}
+
 function soilFragmentGeometry() {
   const geometry = new T.IcosahedronGeometry(0.5, 0);
   const position = geometry.getAttribute('position');
@@ -250,6 +275,9 @@ export class Roost {
   private readonly q = new T.Quaternion();
   private readonly v = new T.Vector3();
   private readonly back = new T.Vector3();
+  private readonly dustStep = new MxDebrisStep();
+  private readonly clodStep = new MxDebrisStep();
+  private readonly birthStep = new MxDebrisStep();
   private readonly groundPlane = new T.Plane();
   private readonly contactNormal = new T.Vector3(0, 1, 0);
   private readonly point = trackPoint();
@@ -424,6 +452,23 @@ export class Roost {
     }
     if (this.motocross)
       this.maxLife[i] = this.life[i] = dust ? 2.1 + r.next() * 1.5 : 0.55 + r.next() * 0.5;
+    return i;
+  }
+  private fly(i: number, step: MxDebrisStep, windX: number, windZ: number) {
+    const k = i * 3, vel = this.velocities, pos = this.positions;
+    pos[k] += vel[k] * step.travel + windX * step.drift;
+    pos[k + 1] += vel[k + 1] * step.travel - step.drop;
+    pos[k + 2] += vel[k + 2] * step.travel + windZ * step.drift;
+    vel[k] = vel[k] * step.decay + windX * step.entrain;
+    vel[k + 1] = vel[k + 1] * step.decay - step.fall;
+    vel[k + 2] = vel[k + 2] * step.decay + windZ * step.entrain;
+  }
+  private ageAppearance(i: number) {
+    const remaining = clamp(this.life[i] / this.maxLife[i], 0, 1);
+    this.sizes[i] = this.bornSize[i] * (this.dust[i] ? 1 + (1 - remaining) * 5 : 1);
+    this.opacity[i] = this.dust[i]
+      ? this.bornOpacity[i] * remaining * Math.min(1, (1 - remaining) * 12 + 0.3)
+      : this.bornOpacity[i] * Math.min(1, remaining * 4);
   }
   /** The course mesh can supply the actual face at the time displayed.
    * Intersect the world vertical through the contact with that face. The
@@ -584,7 +629,7 @@ export class Roost {
    * the tyre's actual contact plane, including yaw at this end of the bike. */
   private throwFromTyre(
     frame: Float32Array, body: number, wheel: number, id: number,
-    patch: MxWheelPatch, step: number, wet: number,
+    patch: MxWheelPatch, step: number, wet: number, windX: number, windZ: number,
   ) {
     const p = body + WHEEL_BASE + wheel * WHEEL_STRIDE;
     const rear = wheel === 2, slot = id * 4 + wheel, end = id * 2 + Number(rear);
@@ -626,12 +671,21 @@ export class Roost {
       const fling = (0.09 * along + 0.28 * plough - 0.85 * drive) * (0.7 + 0.5 * rng.next());
       const lift = (dust ? 0.48 + shear * 0.7 : 1.2 + 0.23 * drive + 0.08 * plough + 0.16 * scrub) *
         (0.7 + 0.65 * rng.next());
-      this.spawn(
+      const particle = this.spawn(
         x - (1 - t) * dx, y - (1 - t) * dy + 0.045, z - (1 - t) * dz,
         forward.x * fling + side.x * sweep + normal.x * lift,
         forward.y * fling + side.y * sweep + normal.y * lift,
         forward.z * fling + side.z * sweep + normal.z * lift, wet, dust,
       );
+      // Births are distributed along the swept patch. Integrate the rest
+      // of their own sub-frame interval before the camera sees the cloud.
+      const age = (1 - t) * step;
+      if (age > 0) {
+        this.fly(particle, this.birthStep.set(age, dust), windX, windZ);
+        this.age[particle] = this.groundAge[particle] = age;
+        this.life[particle] -= age;
+        this.ageAppearance(particle);
+      }
     }
     previous[k] = x;
     previous[k + 1] = y;
@@ -702,7 +756,11 @@ export class Roost {
       // projection above. The debris itself has no elapsed time to advance.
       if (dt === 0) return;
     }
-    const step = Math.min(dt, 0.05);
+    const step = Math.min(dt, this.motocross ? 0.1 : 0.05);
+    if (this.motocross) {
+      this.dustStep.set(step, true);
+      this.clodStep.set(step, false);
+    }
     const windX = this.windExposed ? renderWind(frame[H.WIND_X]) : 0,
       windZ = this.windExposed ? renderWind(frame[H.WIND_Z]) : 0;
     let groundSamples = 0;
@@ -713,20 +771,19 @@ export class Roost {
       this.life[i] -= step;
       this.age[i] += step;
       const k = i * 3;
-      const drag = Math.exp(-this.drag[i] * step);
       if (!this.settled[i]) {
-        // Suspended fines entrain the recorded near-ground wind. The clods
-        // that land beside the rut keep their much heavier ballistic path.
-        // Arena Nord's roof and walls shelter the cloud from outdoor wind.
-        const couple = this.dust[i] ? 0.65 * (1 - drag) : 0;
-        this.velocities[k] = this.velocities[k] * drag + windX * couple;
-        this.velocities[k + 2] = this.velocities[k + 2] * drag + windZ * couple;
-        this.velocities[k + 1] =
-          this.velocities[k + 1] * drag -
-          9.81 * step * (this.drag[i] > 1 ? (this.motocross ? 0.025 : 0.08) : 1);
-        this.positions[k] += this.velocities[k] * step;
-        this.positions[k + 1] += this.velocities[k + 1] * step;
-        this.positions[k + 2] += this.velocities[k + 2] * step;
+        if (this.motocross) {
+          this.fly(i, this.dust[i] ? this.dustStep : this.clodStep, windX, windZ);
+        } else {
+          const drag = Math.exp(-this.drag[i] * step);
+          const couple = this.dust[i] ? 0.65 * (1 - drag) : 0;
+          this.velocities[k] = this.velocities[k] * drag + windX * couple;
+          this.velocities[k + 2] = this.velocities[k + 2] * drag + windZ * couple;
+          this.velocities[k + 1] = this.velocities[k + 1] * drag - 9.81 * step * (this.drag[i] > 1 ? 0.08 : 1);
+          this.positions[k] += this.velocities[k] * step;
+          this.positions[k + 1] += this.velocities[k + 1] * step;
+          this.positions[k + 2] += this.velocities[k + 2] * step;
+        }
       }
       let ground = this.floor[i];
       if (this.motocross) {
@@ -796,13 +853,7 @@ export class Roost {
           }
         }
       }
-      if (this.motocross) {
-        const remaining = clamp(this.life[i] / this.maxLife[i], 0, 1);
-        this.sizes[i] = this.bornSize[i] * (this.dust[i] ? 1 + (1 - remaining) * 5 : 1);
-        this.opacity[i] = this.dust[i]
-          ? this.bornOpacity[i] * remaining * Math.min(1, (1 - remaining) * 12 + 0.3)
-          : this.bornOpacity[i] * Math.min(1, remaining * 4);
-      }
+      if (this.motocross) this.ageAppearance(i);
       if (
         this.life[i] <= 0 ||
         ((!this.motocross || this.dust[i]) && this.positions[k + 1] < ground)
@@ -913,7 +964,7 @@ export class Roost {
         }
         if (this.motocross && bike) {
           if (patch && loose && load >= 50 && !airborne) {
-            this.throwFromTyre(frame, o, wheel, id, patch, step, wet);
+            this.throwFromTyre(frame, o, wheel, id, patch, step, wet, windX, windZ);
           } else {
             this.lastMachine[id * 2 + Number(wheel === 2)] = this.emission[slot] = 0;
           }

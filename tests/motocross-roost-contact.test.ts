@@ -142,6 +142,36 @@ describe('lit motocross soil and independent touchdown contacts', () => {
     draw();
     expect(shade.visible).toBe(false);
   });
+  it('carries the same race-time clod and dust trajectories across 10–144 Hz presentations', () => {
+    const duration = 0.5;
+    const trace = (hz: number) => {
+      const h = harness();
+      h.frame[H.CARS] = 0;
+      h.frame[H.WIND_X] = 6;
+      h.roost.groundHeight = () => -2;
+      const emission = h.roost as unknown as {
+        spawn(x: number, y: number, z: number, vx: number, vy: number, vz: number, wet: number, dust: boolean): number;
+      };
+      for (const dust of [false, true]) emission.spawn(0, 1, 0, 3, 7, -2, 0.3, dust);
+      // Include the final fractional frame for an odd refresh rate.
+      for (let frame = 0; frame / hz < duration - 1e-9; frame++) {
+        const step = Math.min(1 / hz, duration - frame / hz);
+        h.roost.update(h.frame, step);
+      }
+      const position = h.roost.points.geometry.getAttribute('position');
+      expect(h.roost.active).toBe(2);
+      return Array.from(position.array.slice(0, 6));
+    };
+    const canonical = trace(60);
+    const travel = -Math.expm1(-0.25 * duration) / 0.25;
+    expect(canonical[0]).toBeCloseTo(3 * travel, 5);
+    expect(canonical[1]).toBeCloseTo(1 + 7 * travel - 9.81 * (duration - travel) / 0.25, 5);
+    for (const hz of [10, 15, 24, 30, 72, 144]) {
+      const actual = trace(hz);
+      for (let i = 0; i < actual.length; i++) expect(actual[i]).toBeCloseTo(canonical[i], 4);
+    }
+  });
+
   it.each(['valley-ridge-mx','arena-nord-sx'] as const)('advects only exposed suspended fines in %s with the recorded crosswind', venue => {
     const calm = harness(1, venue), wind = harness(1, venue);
     for (const h of [calm,wind]) {
