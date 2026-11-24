@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { mxServiceTyre, mxServiceWheelDish, mxServiceWheelLip } from './mx-service-wheel.ts';
 import { mxVanPrint } from './mx-van-print.ts';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 /** The van is one instanced draw. Only its painted panels take the instance
@@ -314,8 +314,12 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
       );
     }
   }
-  const mesh = mergeGeometries(parts, false)!;
+  const joined = mergeGeometries(parts, false)!;
   for (const g of parts) g.dispose();
+  // Index the formed panels and wheels before adding per-van crew art.
+  // Normals and finishes participate in the weld, retaining the rim crease.
+  const mesh = mergeVertices(joined, 1e-7);
+  joined.dispose();
   mesh.setAttribute('mxVanCrew', new T.InstancedBufferAttribute(new Float32Array(crews), 1));
   mesh.name = 'Formed high-roof MX service van';
   mesh.computeBoundingBox();

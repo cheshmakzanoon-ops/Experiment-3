@@ -46,6 +46,9 @@ describe('motocross event feather flags', () => {
     const g = mxTeamVanGeometry(), van = new T.Mesh(g, new T.MeshBasicMaterial());
     const finish = g.getAttribute('mxFinish'), colours = g.getAttribute('color');
     try {
+      const position = g.getAttribute('position');
+      expect(g.index?.array).toBeInstanceOf(Uint16Array);
+      expect(position.count).toBeLessThan(g.index!.count / 2);
       for (const sign of [-1, 1]) {
         for (const [x, y, expected] of [[0.65, 0.99, 0xd5dbd5], [0.82, 0.99, 0xc18139], [0.72, 1.098, 0x879da2]]) {
           const hits = new T.Raycaster(new T.Vector3(sign * x, y, 4), new T.Vector3(0, 0, -1)).intersectObject(van);
