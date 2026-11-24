@@ -25,7 +25,7 @@ export const MX_SX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.fre
   sand: 0x86684a,
 });
 
-export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v6';
+export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v7';
 
 const DECLARATIONS = /* glsl */ `
 varying vec4 vMxCourse;
@@ -82,7 +82,7 @@ float mxTrafficNoise( float station, float frequency, float seed ) {
 // compact support ends before a lane can leave that neighbourhood.
 // The narrow cut, displaced lip, broad packed swathe and cleats are separate
 // scales. Real widths prevent both railway stripes and enlarged tire prints.
-struct MxLane { float centre; float width; float pressure; float spread; float variation; };
+struct MxLane { float centre; float width; float pressure; float spread; float variation; float lipBias; };
 // One passage's lateral centre, width and pressure at a station. Separate
 // from the profile so the relief march can evaluate the three neighbouring
 // passages once per fragment and then only their cheap cross-section.
@@ -92,16 +92,24 @@ MxLane mxLaneAt( float y, float lane, float spacing, float corner ) {
   float loadedFace = max( vMxCourseWear.x, vMxCourseWear.y );
   // Riders arrive and leave a jump in straighter passages than a corner.
   // Drift returns continuously as the landing fans back into the lap.
-  float drift = ( mxTrafficNoise( y, 0.093, seed ) - 0.5 ) * spacing * 0.94
-    * ( 1.0 - loadedFace * 0.65 );
+  float wander = mxTrafficNoise( y, 0.093, seed );
+  float traffic = mxTrafficNoise( y, 0.046, seed + 8.0 );
+  float drift = ( wander - 0.5 ) * spacing * ( 1.08 - loadedFace * 0.43 );
   MxLane l;
-  l.centre = ( lane + ( variation - 0.5 ) * 0.27 ) * spacing + drift;
-  l.width = ( 0.068 + 0.046 * variation ) * ( 1.0 + abs( corner ) * 0.46 );
-  float pressure = smoothstep( 0.26, 0.72, mxTrafficNoise( y, 0.20, seed + 3.0 ) );
-  pressure = mix( pressure, 0.66 + pressure * 0.34, loadedFace * 0.82 );
-  pressure *= 1.0 - vMxCourseWear.z * 0.66;
-  l.pressure = pressure;
-  l.spread = 0.29 + 0.20 * mxTrafficNoise( y, 0.11, seed + 8.0 );
+  l.centre = ( lane + ( variation - 0.5 ) * 0.34 ) * spacing + drift;
+  // Traffic persists for a few bike lengths. A regularly ridden line cuts
+  // into the face while a neighbouring route can die out completely. Heavy
+  // landing load deepens existing routes instead of carving every lane.
+  float occupied = smoothstep( 0.22, 0.72, traffic * 0.79 + variation * 0.21 );
+  float scuff = smoothstep( 0.20, 0.79, mxTrafficNoise( y, 0.20, seed + 3.0 ) );
+  l.pressure = occupied * ( 0.16 + 0.84 * scuff );
+  l.pressure = mix( l.pressure, occupied * ( 0.62 + 0.38 * scuff ), loadedFace * 0.82 );
+  l.pressure *= 1.0 - vMxCourseWear.z * 0.66;
+  l.width = ( 0.059 + 0.046 * variation + 0.027 * l.pressure ) * ( 1.0 + abs( corner ) * 0.46 );
+  l.spread = 0.22 + 0.32 * traffic;
+  // A tyre scrubbing across the bank pushes loose soil toward the outside.
+  // On a straight the broken shoulder changes sides with the passage.
+  l.lipBias = clamp( -corner * 1.25 + ( wander - 0.5 ) * 1.35, -0.9, 0.9 );
   l.variation = variation;
   return l;
 }
@@ -115,6 +123,7 @@ vec4 mxWheelPassL( MxLane lane, vec2 p, float spacing, vec2 fp ) {
   float core = ( 1.0 - smoothstep( width * 0.20, width + edge, d ) ) * resolved;
   float lip = ( 1.0 - smoothstep( 0.025, 0.075 + edge,
     abs( d - width * 1.48 ) ) ) * resolved;
+  lip *= 0.72 + 0.31 * lane.lipBias * clamp( ( p.x - lane.centre ) / width, -1.0, 1.0 );
   float pass = ( 1.0 - smoothstep( 0.09, lane.spread + edge, d ) )
     * ( 1.0 - smoothstep( 0.36, 1.1, edge ) );
   // Cleats belong to this curved passage and each pass has its own phase.
@@ -132,7 +141,7 @@ vec4 mxWheelPassL( MxLane lane, vec2 p, float spacing, vec2 fp ) {
   // even if the pixel filter broadens a distant passage.
   float support = 1.0 - smoothstep( spacing * 0.70, spacing * 0.82, d );
   return vec4( core * lane.pressure, lip * lane.pressure,
-    pass * ( 0.24 + 0.76 * lane.pressure ), cleat * lane.pressure ) * support;
+    pass * ( 0.10 + 0.90 * lane.pressure ), cleat * lane.pressure ) * support;
 }
 vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, vec2 fp ) {
   return mxWheelPassL( mxLaneAt( p.y, lane, spacing, corner ), p, spacing, fp );
