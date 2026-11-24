@@ -95,20 +95,20 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 
 | Agent | Assignment | Result |
 |---|---|---|
-| 49 | Reproducible baseline operation counts and performance evidence | Running |
-| 50 | Same-tick cross-mode deterministic baseline comparison | Running |
-| 51 | Independent models, environments, tuning and dependency scope audit | Running |
-| 52 | Native browser integration and persistence/replay verification | Queued |
-| 53 | Independent clocks, input and transfer ownership review | Queued |
-| 54 | Independent persistence, replay and export adversarial review | Queued |
+| 49 | Reproducible baseline operation counts and performance evidence | Confirmed exact outputs and BVH/telemetry/collision/route work reductions against actual baseline modules; reusable scripts and hashed receipts retained |
+| 50 | Same-tick cross-mode deterministic baseline comparison | Six scenarios passed: 14,406 complete snapshots and selected Float64 state comparisons, plus 4,802 Festival traffic/status comparisons |
+| 51 | Independent models, environments, tuning and dependency scope audit | Audit passed through wave 8: 2,996 asset-file Git objects unchanged, mixed runtime files inspected; final refresh pending |
+| 52 | Native browser integration and persistence/replay verification | Prepared six real IndexedDB/Worker regressions plus focused read-only CI workflow; 535-file TS/discovery/static checks passed; local browser launch blocked by socket policy |
+| 53 | Independent clocks, input and transfer ownership review | Found and fixed nested publication recovery stealing a newer frame owner; seven new cases and 50 distinct focused tests passed |
+| 54 | Independent persistence, replay and export adversarial review | Fixed caller mutation making desktop mirror differ from committed save; 13 new cases and 134 storage/replay/export tests passed |
 
 ## Wave 10 — final independent regression and evidence audits
 
 | Agent | Assignment | Result |
 |---|---|---|
-| 55 | Physics, contact and terrain invariants review | Queued |
-| 56 | Audio, renderer and host lifetime integration review | Queued |
-| 57 | Combined networking recovery and service ownership review | Queued |
+| 55 | Physics, contact and terrain invariants review | Running |
+| 56 | Audio, renderer and host lifetime integration review | Running |
+| 57 | Combined networking recovery and service ownership review | Running |
 | 58 | Consolidated regression execution and unique-test inventory | Queued |
 | 59 | CI triage, complete compiler/build checks and baseline distinction | Queued |
 | 60 | Final task, scope, publication and evidence audit | Queued |

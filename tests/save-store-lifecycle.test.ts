@@ -531,7 +531,10 @@ describe('SaveStore backup request failures', () => {
     const tx = db.transactions[0];
     tx.requests[0].succeed(before);
     await expect(operation.result).resolves.toMatchObject({ error: { name: 'DataCloneError' } });
-    expect(tx.store.put).toHaveBeenCalledTimes(2);
+    // The desktop snapshot rejects before the primary put; the already queued
+    // backup must still roll back with the rest of the transaction.
+    expect(tx.store.put).toHaveBeenCalledTimes(1);
+    expect(tx.store.put).toHaveBeenCalledWith(before, 'profile:backup');
     expect(tx.abort).toHaveBeenCalledTimes(1);
     expect(data.get('profile')).toEqual(before);
     expect(data.get('profile:backup')).toEqual(backup);

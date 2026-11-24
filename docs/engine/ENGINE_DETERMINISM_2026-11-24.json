@@ -1,0 +1,557 @@
+{
+  "passed": true,
+  "node": "v24.22.3",
+  "architecture": "x64",
+  "timestepSeconds": 0.008333333333333333,
+  "source": {
+    "baseline": {
+      "revision": "a0ae513e7982f0b4719296519752e0ae5f1983f8",
+      "files": 189,
+      "sha256": "37e137aee5380dd562f87d8b1ca1a3bc689df60827f04b372045911fef582e01"
+    },
+    "candidate": {
+      "revision": "c4e62c642d912037e5e9262b1b89d4fbfd9677fe",
+      "files": 189,
+      "sha256": "acb982165cab861986c88ef021e58dceffcf8403c60ccf8ea2edc883d8eb3d49"
+    }
+  },
+  "comparedBytes": 673708384,
+  "observations": 14406,
+  "frameExclusions": [],
+  "statusExclusions": [
+    "FestivalStatus.streaming (terrain residency/work statistics)"
+  ],
+  "scenarios": [
+    {
+      "scenario": "formula",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 3,
+        "vehicles": [
+          "apx01",
+          "apx01",
+          "apx01",
+          "apx01"
+        ],
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021
+      },
+      "ticks": 2400,
+      "observations": 2401,
+      "sections": {
+        "frame": 2401,
+        "schema": 2401,
+        "precise": 2401,
+        "traffic": 0,
+        "status": 0
+      },
+      "comparedBytes": 116710209,
+      "sha256": "ae1dc47fb5dc031e47a7c71262c2093c2a5c7f94705c4eb8fc58539e3453c83b",
+      "peakEntrants": 4,
+      "peakTraffic": 0,
+      "maxSpeedMps": 81.8153078729201,
+      "checkpoints": [
+        {
+          "tick": 0,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 0
+        },
+        {
+          "tick": 600,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 35.65541298120952
+        },
+        {
+          "tick": 1200,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 47.81247476047206
+        },
+        {
+          "tick": 1800,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 73.86269003652164
+        },
+        {
+          "tick": 2400,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 31.41158108772779
+        }
+      ],
+      "maxRssKiB": 252184,
+      "protocol": {
+        "version": 17,
+        "header": 24,
+        "carStride": 331
+      },
+      "baselineMaxRssKiB": 244568,
+      "candidateMaxRssKiB": 252184
+    },
+    {
+      "scenario": "road-car-wet",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 3,
+        "vehicles": [
+          "tc1",
+          "tc1",
+          "tc1",
+          "tc1"
+        ],
+        "weather": "rain",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021
+      },
+      "ticks": 2400,
+      "observations": 2401,
+      "sections": {
+        "frame": 2401,
+        "schema": 2401,
+        "precise": 2401,
+        "traffic": 0,
+        "status": 0
+      },
+      "comparedBytes": 116710209,
+      "sha256": "c5781d22c70afedb30643b95f1a13c3cb5fa9927d94f23715ac419aedea64b5c",
+      "peakEntrants": 4,
+      "peakTraffic": 0,
+      "maxSpeedMps": 32.540291705433745,
+      "checkpoints": [
+        {
+          "tick": 0,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 0
+        },
+        {
+          "tick": 600,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 8.87952237109018
+        },
+        {
+          "tick": 1200,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 17.199585280566872
+        },
+        {
+          "tick": 1800,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 29.241049978330846
+        },
+        {
+          "tick": 2400,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 24.48480568224038
+        }
+      ],
+      "maxRssKiB": 240016,
+      "protocol": {
+        "version": 17,
+        "header": 24,
+        "carStride": 331
+      },
+      "baselineMaxRssKiB": 237816,
+      "candidateMaxRssKiB": 240016
+    },
+    {
+      "scenario": "motogp-wet",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 3,
+        "vehicles": [
+          "gpr1",
+          "gpr2",
+          "sbk1000",
+          "gpr1"
+        ],
+        "weather": "rain",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021
+      },
+      "ticks": 2400,
+      "observations": 2401,
+      "sections": {
+        "frame": 2401,
+        "schema": 2401,
+        "precise": 2401,
+        "traffic": 0,
+        "status": 0
+      },
+      "comparedBytes": 134287729,
+      "sha256": "9f001796553a506b999580c9e4afa5b385bf1568ff08bed57c34d4993aface65",
+      "peakEntrants": 4,
+      "peakTraffic": 0,
+      "maxSpeedMps": 37.649190635207276,
+      "checkpoints": [
+        {
+          "tick": 0,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 0
+        },
+        {
+          "tick": 600,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 11.960408080153424
+        },
+        {
+          "tick": 1200,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 18.959115825910445
+        },
+        {
+          "tick": 1800,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 25.023627200171127
+        },
+        {
+          "tick": 2400,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 27.04320758050349
+        }
+      ],
+      "maxRssKiB": 234288,
+      "protocol": {
+        "version": 17,
+        "header": 24,
+        "carStride": 331
+      },
+      "baselineMaxRssKiB": 242928,
+      "candidateMaxRssKiB": 234288
+    },
+    {
+      "scenario": "motocross",
+      "options": {
+        "circuit": "valley-ridge-mx",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 3,
+        "vehicles": [
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250"
+        ],
+        "ruleset": "motocross-moto",
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021
+      },
+      "ticks": 2400,
+      "observations": 2401,
+      "sections": {
+        "frame": 2401,
+        "schema": 2401,
+        "precise": 2401,
+        "traffic": 0,
+        "status": 0
+      },
+      "comparedBytes": 154316547,
+      "sha256": "585b89628a6802d9f1c185db78482b0b70750e094288b1612204aa19eb5994db",
+      "peakEntrants": 4,
+      "peakTraffic": 0,
+      "maxSpeedMps": 22.725308478094014,
+      "checkpoints": [
+        {
+          "tick": 0,
+          "phase": 0,
+          "cars": 4,
+          "playerSpeed": 0
+        },
+        {
+          "tick": 600,
+          "phase": 1,
+          "cars": 4,
+          "playerSpeed": 1.8727733489511484
+        },
+        {
+          "tick": 1200,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 18.118643470348825
+        },
+        {
+          "tick": 1800,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 14.78410870276467
+        },
+        {
+          "tick": 2400,
+          "phase": 2,
+          "cars": 4,
+          "playerSpeed": 0
+        }
+      ],
+      "maxRssKiB": 220052,
+      "protocol": {
+        "version": 17,
+        "header": 24,
+        "carStride": 331
+      },
+      "baselineMaxRssKiB": 214332,
+      "candidateMaxRssKiB": 220052
+    },
+    {
+      "scenario": "festival-traffic",
+      "options": {
+        "seed": 73021,
+        "tileBudget": 24,
+        "vehicle": "tc1",
+        "traffic": true
+      },
+      "ticks": 2400,
+      "observations": 2401,
+      "sections": {
+        "frame": 2401,
+        "schema": 2401,
+        "precise": 2401,
+        "traffic": 2401,
+        "status": 2401
+      },
+      "comparedBytes": 32760239,
+      "sha256": "ac86d4d3e3c5e1b0991a6adff7f1c078f1cd8a518d5e9507b5af4b02af209c54",
+      "peakEntrants": 1,
+      "peakTraffic": 17,
+      "maxSpeedMps": 20.304996421455282,
+      "checkpoints": [
+        {
+          "tick": 0,
+          "phase": "free",
+          "cars": 1,
+          "playerSpeed": 0
+        },
+        {
+          "tick": 600,
+          "phase": "free",
+          "cars": 1,
+          "playerSpeed": 16.674099655587792
+        },
+        {
+          "tick": 1200,
+          "phase": "card",
+          "cars": 1,
+          "playerSpeed": 0.07184393950961394
+        },
+        {
+          "tick": 1800,
+          "phase": "card",
+          "cars": 1,
+          "playerSpeed": 7.64336550456135
+        },
+        {
+          "tick": 2400,
+          "phase": "card",
+          "cars": 1,
+          "playerSpeed": 0.01227848640121739
+        }
+      ],
+      "maxRssKiB": 222304,
+      "protocol": {
+        "version": 17,
+        "header": 24,
+        "carStride": 331
+      },
+      "baselineMaxRssKiB": 219144,
+      "candidateMaxRssKiB": 222304
+    },
+    {
+      "scenario": "festival-event",
+      "options": {
+        "seed": 73021,
+        "tileBudget": 24,
+        "vehicle": "tc1",
+        "traffic": true
+      },
+      "ticks": 2400,
+      "observations": 2401,
+      "sections": {
+        "frame": 2401,
+        "schema": 2401,
+        "precise": 2401,
+        "traffic": 2401,
+        "status": 2401
+      },
+      "comparedBytes": 118923451,
+      "sha256": "61bdaa6f11ca79986cc22821ba2e0f700a88560341faa77b005b2a8f85fce0ca",
+      "peakEntrants": 4,
+      "peakTraffic": 0,
+      "maxSpeedMps": 60.976925961743426,
+      "checkpoints": [
+        {
+          "tick": 0,
+          "phase": "countdown",
+          "cars": 4,
+          "playerSpeed": 0
+        },
+        {
+          "tick": 600,
+          "phase": "running",
+          "cars": 4,
+          "playerSpeed": 5.224690889851662
+        },
+        {
+          "tick": 1200,
+          "phase": "running",
+          "cars": 4,
+          "playerSpeed": 27.955949014964123
+        },
+        {
+          "tick": 1800,
+          "phase": "running",
+          "cars": 4,
+          "playerSpeed": 40.702587267716
+        },
+        {
+          "tick": 2400,
+          "phase": "running",
+          "cars": 4,
+          "playerSpeed": 49.70037737077659
+        }
+      ],
+      "maxRssKiB": 240028,
+      "protocol": {
+        "version": 17,
+        "header": 24,
+        "carStride": 331
+      },
+      "baselineMaxRssKiB": 233504,
+      "candidateMaxRssKiB": 240028
+    }
+  ]
+}

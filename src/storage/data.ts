@@ -285,6 +285,7 @@ export class SaveStore {
     return new Promise<void>((resolve, reject) => {
       const tx = db.transaction('saved', 'readwrite');
       let previousValue: unknown;
+      let writtenValue: unknown;
       let revision = 0;
       const abort = (error: unknown) => {
         reject(error);
@@ -298,7 +299,7 @@ export class SaveStore {
         this.mirror?.written(
           [
             ...(previousValue !== undefined ? ([[backupKey(key), previousValue]] as const) : []),
-            [key, value],
+            [key, writtenValue],
           ],
           revision,
         );
@@ -314,7 +315,10 @@ export class SaveStore {
           try {
             previousValue = previous.result;
             if (previousValue !== undefined) store.put(previousValue, backupKey(key));
-            store.put(value, key);
+            // The caller can mutate its object before this transaction commits.
+            // Both persisted copies must describe the same enqueue-time value.
+            writtenValue = this.mirror ? structuredClone(value) : value;
+            store.put(writtenValue, key);
             if (this.mirror) revision = this.mirror.stamp(store);
           } catch (error) {
             abort(error);
@@ -358,16 +362,20 @@ export class SaveStore {
     const db = await this.open();
     return new Promise<void>((resolve, reject) => {
       const tx = db.transaction('saved', 'readwrite');
+      let writtenValue: unknown;
       let revision = 0;
       tx.oncomplete = () => {
-        this.mirror?.written([[key, value]], revision);
+        this.mirror?.written([[key, writtenValue]], revision);
         resolve();
       };
       tx.onerror = () => reject(tx.error ?? new Error('Save failed'));
       tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
       try {
         const store = tx.objectStore('saved');
-        store.put(value, key);
+        // Keep the desktop mirror's private snapshot through transaction commit.
+        // Browser-only saves retain the ordinary IndexedDB cloning path.
+        writtenValue = this.mirror ? structuredClone(value) : value;
+        store.put(writtenValue, key);
         if (this.mirror) revision = this.mirror.stamp(store);
       } catch (error) {
         reject(error);

@@ -55,8 +55,8 @@ Specific assignments are refined against findings from preceding waves.
 | 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Complete |
 | 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Complete |
 | 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Complete |
-| 9 | 49–54 | Performance measurement and adversarial integration review | In progress |
-| 10 | 55–60 | Independent regression audits, remaining fixes and final validation | Pending |
+| 9 | 49–54 | Performance measurement and adversarial integration review | Complete |
+| 10 | 55–60 | Independent regression audits, remaining fixes and final validation | In progress |
 
 ## Validation environment
 
@@ -81,6 +81,7 @@ Published engine checkpoints:
 | 5 | `1d4e83c` |
 | 6 | `17c16ae` |
 | 7 | `9dc4811` |
+| 8 | `c4e62c6` |
 
 Automated CI-report commits are preserved between engine checkpoints;
 publication never force-updates `main`.
@@ -481,6 +482,95 @@ explicit receiver type was corrected during TypeScript checking. The final
 373-file source/test dependency graph passed the project compiler options
 (about 260 MiB compiler memory), and scoped ESLint passed. A preceding compiler
 attempt was terminated during concurrent work; it is not counted as a pass.
+
+The full CI validate job also passed on published wave 8 commit `c4e62c6`,
+including repository lint, content validation, whole-project TypeScript and
+production/demo builds. The independent full offroad scenario job passed:
+
+- https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45409387072/job/138498948448
+- https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45409387072/job/138498947631
+
+All four broad unit partitions subsequently completed: **8,587 tests passed and
+four failed across 835 files**. The four failures match baseline cases: APX-01
+livery material metadata, a stale gpr1 calibration record, missing localization
+dictionary keys, and the frozen gpr1 catalogue-growth hash. No new engine test
+failed in these partitions. They are not treated as permission to modify art,
+content or tuning:
+
+- https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45409387072/job/138498947980
+- https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45409387072/job/138498948050
+- https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45409387072/job/138498948185
+- https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45409387072/job/138498948131
+
+### Wave 9 — independent performance and integration evidence
+
+The independent operation-count comparison imports actual baseline and revised
+engine modules. It reproduces the BVH, telemetry ring, collision broadphase and
+rotating-contact work reductions reported above, while requiring exact output
+equality. Reusable scripts and machine-readable source/output hashes accompany
+the [performance evidence](ENGINE_PERFORMANCE_2026-11-24.md). The route benchmark
+also compares actual baseline and revised modules, with optional timing trials.
+
+An independent content audit found no changes to 2,996 tracked asset-extension
+objects, all 231 public files, vehicle catalogue data, or selected protocol,
+dependency and default definitions. It physically rehashed present assets and
+checked Git objects for sparse-checkout omissions. Mixed renderer, loader,
+terrain and vehicle files received declaration-level inspection so an allowed
+runtime filename could not conceal an artistic edit. The
+[scope audit](ENGINE_SCOPE_AUDIT_2026-11-24.md) identifies exact coverage and
+content hashes; it will be refreshed after the remaining reviews.
+
+The same-tick comparison ran six actual baseline/candidate simulation pairs:
+Formula, wet touring cars, wet road motorcycles, motocross racing, Festival
+traffic and a Festival sprint event. Each ran 2,400 steps at 120 Hz (20 simulated
+seconds), comparing 2,401 observations including initialization. All **14,406
+complete snapshots and selected Float64 vehicle-state records matched byte for
+byte**. Festival also matched 4,802 traffic frames and gameplay-status records.
+No snapshot field was excluded; both serializers received the same zero timing
+inputs. The sole status exclusion was Festival's intentionally changed terrain
+residency/work-statistics subtree. This checks fixed-step state equivalence, not
+wall-time catch-up policy, rendering or all possible driving conditions.
+
+The [determinism report](ENGINE_DETERMINISM_2026-11-24.md) includes scenarios,
+commands, exact data hashes and the unchanged 189-file engine source manifest.
+Fresh sequential processes kept each child's peak resident memory below 250 MiB;
+temporary comparison traces were deleted after validation.
+
+The independent clock/transfer review found a further reentrant ownership bug:
+an older failing publication could reclaim a buffer already republished to a
+newer synchronous consumer. The reproducer showed a later writer overwriting
+that consumer's live bytes. FrameBufferPool now associates each outstanding
+buffer with a publication number; recovery and detached-credit bookkeeping act
+only on the matching publication. Seven new cases pass, including real
+structured-clone transfers and 2,048 clock/backpressure/pause batches. The
+combined independent review passed 50 distinct tests, including both actual
+worker handlers. Pool capacities and wire messages are unchanged. See the
+[clock/transfer review](ENGINE_CLOCK_TRANSFER_REVIEW_2026-11-24.md).
+
+The persistence review found a mismatch between IndexedDB's request-time clone
+and the desktop mirror's later use of a mutable caller object. Desktop saves now
+retain one private structured clone at the existing enqueue boundary and use it
+for both committed copies. Caller mutation while opening retains the prior
+timing semantics; mutation after submission cannot change the mirrored revision.
+Clone failure aborts an already queued backup, and browser-only saves keep their
+ordinary IndexedDB clone. All 13 new cases and 134 selected storage/replay/export
+tests pass. This adds one desktop-only clone for consistency; it is not a memory
+or speed reduction. See the [persistence review](ENGINE_PERSISTENCE_REVIEW_2026-11-24.md).
+
+Six native IndexedDB/Worker cases and the complete replay ownership scenario
+are selected by a new read-only focused CI workflow. Local Chromium was denied
+a socket before backend verification or test execution, and a separate local
+Vite build was host-terminated during transformation. Neither is counted as a
+pass. The test/source dependency graph, fixture bundle, seven-case discovery,
+workflow YAML and shell syntax checks passed. CI uses the original assertions,
+deadlines and verified Mesa backend, builds directly without asset-generation
+hooks, and uploads exact source/build/backend receipts. It does not replace
+the complete suite. See [browser validation](ENGINE_BROWSER_VALIDATION_2026-11-24.md).
+
+Wave 9 integration passed **55 tests across the two new review suites and the
+existing save-lifecycle suite**. The combined 621-file source/test/native-fixture
+graph passed TypeScript with the project options (about 279 MiB compiler memory).
+The three reusable measurement scripts and all changed code passed scoped lint.
 
 ### Pre-existing broad-suite findings
 

@@ -3,7 +3,8 @@
 export class FrameBufferPool {
   private readonly idle: ArrayBuffer[] = [];
   private readonly localBuffers = new WeakSet<ArrayBuffer>();
-  private readonly outgoing = new Set<ArrayBuffer>();
+  private readonly outgoing = new Map<ArrayBuffer, number>();
+  private publication = 0;
   private detachedCredits = 0;
 
   constructor(
@@ -45,18 +46,26 @@ export class FrameBufferPool {
       if (!required) return false;
       buffer = this.allocate();
     }
-    this.outgoing.add(buffer);
+    const publication = ++this.publication;
+    this.outgoing.set(buffer, publication);
     try {
       writeAndSend(buffer);
     } catch (error) {
       // A failed write/post still owns attached storage. A synchronous recycle
-      // may already have recovered it, so remove the outstanding entry only once.
-      if (buffer.byteLength === this.bytes && this.outgoing.delete(buffer)) this.retain(buffer);
+      // may already have republished it. Only this publication may recover its
+      // attached storage; an older failure must not revoke the newer consumer.
+      if (buffer.byteLength === this.bytes && this.outgoing.get(buffer) === publication) {
+        this.outgoing.delete(buffer);
+        this.retain(buffer);
+      }
       throw error;
     } finally {
       // Transfer returns create new identities. Keep a credit rather than a
       // strong reference to every detached wrapper from required snapshots.
-      if (buffer.byteLength === 0 && this.outgoing.delete(buffer)) this.detachedCredits++;
+      if (buffer.byteLength === 0 && this.outgoing.get(buffer) === publication) {
+        this.outgoing.delete(buffer);
+        this.detachedCredits++;
+      }
     }
     return true;
   }
@@ -71,7 +80,7 @@ export class FrameBufferPool {
         // Support a synchronous transfer-and-return inside publish's callback,
         // before its finally block has converted the detached outgoing wrapper.
         let transferred: ArrayBuffer | undefined;
-        for (const candidate of this.outgoing) {
+        for (const candidate of this.outgoing.keys()) {
           if (candidate.byteLength === 0) {
             transferred = candidate;
             break;

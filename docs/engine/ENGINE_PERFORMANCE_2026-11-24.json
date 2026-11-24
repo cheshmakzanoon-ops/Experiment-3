@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "measuredAt": "2026-11-24T13:59:09.889Z",
+  "runtime": "v24.22.3",
+  "platform": "linux/x64",
+  "scope": "Deterministic synthetic operation counts and exact output comparisons of actual baseline/candidate modules. No wall-clock, FPS, GPU, or representative gameplay speed claim.",
+  "baseline": {
+    "commit": "a0ae513e7982f0b4719296519752e0ae5f1983f8",
+    "measuredFilesDirty": false,
+    "sourceSha256": {
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/simulation/bvh.ts": "5d2cb0374c6df53a9432a7db652c1548963f4782d17a6a6e6a9a957f825025a2",
+      "src/simulation/collision.ts": "4f85907e1a79b8f8c8dc2213aec44140e60b955c9a6e59f7f8c264e5220fa895",
+      "src/simulation/obb.ts": "14185b3ad455cd7eba9f371cdc686d839fd2729ed936e1dd808196414d392b19",
+      "src/simulation/protocol.ts": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+      "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "src/storage/recorders.ts": "e9c3bbb94695ce53f0c8a651a0be49a2833c45a09833dfb928285a484b4f9e35",
+      "src/storage/telemetry-plots.ts": "9fde79db629f134f6572d22a0986a8291ef6dc668b346be6bc9a3651b45ea432",
+      "src/storage/telemetry-schema.ts": "3eaeeeaf3d870ced27977df037b848dc2ddee1f2bdd77cf6c80cc3fdc625223a"
+    }
+  },
+  "candidate": {
+    "commit": "9dc4811ff986e9b410bdcfb5f631db19130ce95f",
+    "measuredFilesDirty": false,
+    "sourceSha256": {
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/simulation/bvh.ts": "e91ff31584fc13f34046693363e52c94855350a214e7603ff1503fe4c0e9ed41",
+      "src/simulation/collision.ts": "8d4dd4f70a2129e6a70a762344c5b72c1e5fa2fd6e243e1c00e6826be275baff",
+      "src/simulation/obb.ts": "ff47bd459ed23827315ea4154ffc2a53fc367ec25b12660003703b7f1a5e1f39",
+      "src/simulation/protocol.ts": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+      "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "src/storage/recorders.ts": "f6bdbf197f50dffc5cce07dacf7df1a6f73f63a1559fe3e354a552c6c50d196f",
+      "src/storage/telemetry-plots.ts": "9fde79db629f134f6572d22a0986a8291ef6dc668b346be6bc9a3651b45ea432",
+      "src/storage/telemetry-schema.ts": "3eaeeeaf3d870ced27977df037b848dc2ddee1f2bdd77cf6c80cc3fdc625223a"
+    }
+  },
+  "bvh": {
+    "rays": 128,
+    "layers": 512,
+    "baseline": {
+      "trianglesTested": 66048,
+      "pointResolutions": 8448,
+      "normalizations": 8448
+    },
+    "candidate": {
+      "trianglesTested": 66048,
+      "pointResolutions": 128,
+      "normalizations": 128
+    },
+    "exactContacts": true,
+    "contactsSha256": "53b4c9e32eb8b17d6108a6a1a5c2272d0f982e3e68f9a2a5bd4278e7a12ef19e"
+  },
+  "telemetry": {
+    "initialHead": 17,
+    "batchRows": 6000,
+    "head": 17,
+    "count": 60,
+    "capacity": 60,
+    "stride": 228,
+    "baseline": {
+      "setCalls": 6000,
+      "copiedFloat32Elements": 1368000
+    },
+    "candidate": {
+      "setCalls": 2,
+      "copiedFloat32Elements": 13680
+    },
+    "exactPhysicalLogicalAndCsv": true,
+    "physicalSha256": "baded61a176506fa2aefa672ba612060b1b09138c38cb94c0b73f21f2bd49631",
+    "logicalSha256": "f1ff7674bc8d17ffadc45a52cf9902de1c3a859be9fc44d7a08168b423d91ebe",
+    "csvSha256": "0ffe63596532e53a671ffbec817ba035262c23b0f8025147cc83415eedc9c54d"
+  },
+  "collision": [
+    {
+      "separatedAxis": "y",
+      "swept": false,
+      "cars": 64,
+      "baseline": {
+        "endpointSatCalls": 2016,
+        "boundingRadiusCalls": 0,
+        "sweepQueries": 0
+      },
+      "candidate": {
+        "endpointSatCalls": 0,
+        "boundingRadiusCalls": 0,
+        "sweepQueries": 0
+      },
+      "exactBodyStateAndContacts": true
+    },
+    {
+      "separatedAxis": "y",
+      "swept": true,
+      "cars": 64,
+      "baseline": {
+        "endpointSatCalls": 2016,
+        "boundingRadiusCalls": 4096,
+        "sweepQueries": 0
+      },
+      "candidate": {
+        "endpointSatCalls": 0,
+        "boundingRadiusCalls": 64,
+        "sweepQueries": 0
+      },
+      "exactBodyStateAndContacts": true
+    },
+    {
+      "separatedAxis": "z",
+      "swept": false,
+      "cars": 64,
+      "baseline": {
+        "endpointSatCalls": 2016,
+        "boundingRadiusCalls": 0,
+        "sweepQueries": 0
+      },
+      "candidate": {
+        "endpointSatCalls": 0,
+        "boundingRadiusCalls": 0,
+        "sweepQueries": 0
+      },
+      "exactBodyStateAndContacts": true
+    },
+    {
+      "separatedAxis": "z",
+      "swept": true,
+      "cars": 64,
+      "baseline": {
+        "endpointSatCalls": 2016,
+        "boundingRadiusCalls": 4096,
+        "sweepQueries": 0
+      },
+      "candidate": {
+        "endpointSatCalls": 0,
+        "boundingRadiusCalls": 64,
+        "sweepQueries": 0
+      },
+      "exactBodyStateAndContacts": true
+    }
+  ],
+  "rotatingSweptContact": {
+    "baseline": {
+      "supportCalls": 12
+    },
+    "candidate": {
+      "supportCalls": 2
+    },
+    "exactContact": true,
+    "found": true,
+    "fraction": 0.39244887098081277,
+    "iterations": 6,
+    "exhausted": false,
+    "point": [1.15, 0, 1.15],
+    "normal": [-0.8159318100467426, 0, 0.5781481482750299]
+  }
+}

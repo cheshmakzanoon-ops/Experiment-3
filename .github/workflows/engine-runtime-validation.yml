@@ -1,0 +1,101 @@
+name: Focused engine runtime validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/core/**'
+      - 'src/workers/**'
+      - 'src/storage/**'
+      - 'src/input/**'
+      - 'src/audio/**'
+      - 'src/simulation/**'
+      - 'src/rendering/**'
+      - 'src/main.ts'
+      - 'e2e/engine-native-lifecycle.spec.ts'
+      - 'e2e/fixtures/engine-native-lifecycle.ts'
+      - 'e2e/replay-state.spec.ts'
+      - 'e2e/race-entry.ts'
+      - 'playwright.config.ts'
+      - 'scripts/browser-backend.ts'
+      - 'scripts/browser-backend-setup.ts'
+      - 'scripts/source-stability.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - '.github/workflows/engine-runtime-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: engine-runtime-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  native-and-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      APEX_MOTOCROSS_XVFB_CAPTURE: '1'
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Record exact inspected source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > "$RUNNER_TEMP/engine-source-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/engine-source-tree.txt"
+          sha256sum package-lock.json > "$RUNNER_TEMP/engine-package-lock.sha256"
+      - name: Install locked dependencies without source changes
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Typecheck and build exact source without asset-generation hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- bash -c \
+            'node node_modules/typescript/bin/tsc --noEmit && node node_modules/vite/bin/vite.js build' \
+            2>&1 | tee "$RUNNER_TEMP/engine-runtime-build.log"
+      - name: Use HTTPS for Ubuntu packages
+        run: sudo python3 scripts/ci-ubuntu-https.py
+      - run: npx playwright install --with-deps chromium
+      - name: Install Mesa software graphics and virtual display
+        run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb imagemagick
+      - name: Verify native lifecycle and complete replay ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- \
+            xvfb-run -a -s '-screen 0 1920x1080x24' \
+            node node_modules/@playwright/test/cli.js test \
+            e2e/engine-native-lifecycle.spec.ts e2e/replay-state.spec.ts \
+            --workers=1 --retries=0 --forbid-only \
+            2>&1 | tee "$RUNNER_TEMP/engine-runtime-browser.log"
+      - name: Preserve runtime evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-runtime-validation-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+            dist/BUILD_IDENTITY.json
+            ${{ runner.temp }}/engine-source-commit.txt
+            ${{ runner.temp }}/engine-source-tree.txt
+            ${{ runner.temp }}/engine-package-lock.sha256
+            ${{ runner.temp }}/engine-runtime-build.log
+            ${{ runner.temp }}/engine-runtime-browser.log
+
+# This diagnostic job never deploys, changes source, generates model assets, or
+# replaces the complete CI suite. Mesa results are software-renderer evidence.

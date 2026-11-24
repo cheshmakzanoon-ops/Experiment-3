@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "measuredAt": "2026-11-24T14:03:23.352Z",
+  "runtime": "v24.22.3",
+  "platform": "linux/x64",
+  "scope": "Route search only. Scan slots and heap comparator calls are different operation units, not equivalent instructions. Optional timings use uninstrumented modules on this host; no FPS or full-game performance claim.",
+  "baseline": {
+    "commit": "a0ae513e7982f0b4719296519752e0ae5f1983f8",
+    "measuredFilesDirty": false,
+    "sourceSha256": {
+      "src/simulation/open-world/route-path.ts": "5604bc11f25b1067713c4819af684936cc2839293de0d8b15b0483c0f4fee217",
+      "src/simulation/open-world/road-network.ts": "ed34c2aeef7df928356c90fcbee387b720d849279e3d04d4c8e77fc82083f430",
+      "src/simulation/open-world/terrain-field.ts": "81150a437a5b8feb68fa487d2f4c2dad66865591cfec91a46ba42a1ee575de57",
+      "src/simulation/open-world/region-data.ts": "632b8af82be7b9be0dc2376af1aafa95876e18d149c5e921433995b7858d1925"
+    }
+  },
+  "candidate": {
+    "commit": "c4e62c642d912037e5e9262b1b89d4fbfd9677fe",
+    "measuredFilesDirty": false,
+    "sourceSha256": {
+      "src/simulation/open-world/route-path.ts": "c67d3b727de4d4d426689fd86782b497acba81508952730dcb7c61a3f1829042",
+      "src/simulation/open-world/road-network.ts": "ed34c2aeef7df928356c90fcbee387b720d849279e3d04d4c8e77fc82083f430",
+      "src/simulation/open-world/terrain-field.ts": "81150a437a5b8feb68fa487d2f4c2dad66865591cfec91a46ba42a1ee575de57",
+      "src/simulation/open-world/region-data.ts": "632b8af82be7b9be0dc2376af1aafa95876e18d149c5e921433995b7858d1925"
+    }
+  },
+  "results": [
+    {
+      "name": "existing Solvane events",
+      "cases": 18,
+      "edges": 63,
+      "directedStates": 126,
+      "baseline": {
+        "shortestSearches": 44,
+        "settledStates": 5544,
+        "scanSlots": 704088,
+        "heapComparisons": 0,
+        "inserts": 0,
+        "decreases": 0,
+        "heapPops": 0
+      },
+      "candidate": {
+        "shortestSearches": 44,
+        "settledStates": 5544,
+        "scanSlots": 0,
+        "heapComparisons": 37691,
+        "inserts": 5544,
+        "decreases": 18,
+        "heapPops": 5544
+      },
+      "exactRoutes": true,
+      "routesSha256": "37e197c4ac826b1b70ab40bf88267040116de33f8539327bb40bb1dc416359c1",
+      "timing": null
+    },
+    {
+      "name": "24 x 24 equal-length grid",
+      "cases": 1,
+      "edges": 1104,
+      "directedStates": 2208,
+      "baseline": {
+        "shortestSearches": 1,
+        "settledStates": 2208,
+        "scanSlots": 4877472,
+        "heapComparisons": 0,
+        "inserts": 0,
+        "decreases": 0,
+        "heapPops": 0
+      },
+      "candidate": {
+        "shortestSearches": 1,
+        "settledStates": 2208,
+        "scanSlots": 0,
+        "heapComparisons": 23658,
+        "inserts": 2208,
+        "decreases": 0,
+        "heapPops": 2208
+      },
+      "exactRoutes": true,
+      "routesSha256": "6ded7fc489a92a0365b7395e3d429427bbdf2c3a7a05a4a9d3a62dcab1edc057",
+      "timing": null
+    },
+    {
+      "name": "48 x 48 equal-length grid",
+      "cases": 1,
+      "edges": 4512,
+      "directedStates": 9024,
+      "baseline": {
+        "shortestSearches": 1,
+        "settledStates": 9024,
+        "scanSlots": 81441600,
+        "heapComparisons": 0,
+        "inserts": 0,
+        "decreases": 0,
+        "heapPops": 0
+      },
+      "candidate": {
+        "shortestSearches": 1,
+        "settledStates": 9024,
+        "scanSlots": 0,
+        "heapComparisons": 115413,
+        "inserts": 9024,
+        "decreases": 0,
+        "heapPops": 9024
+      },
+      "exactRoutes": true,
+      "routesSha256": "fba63297285c69746fc8732ad13d71cb68a655c95da4ea03d0f96b8a2e0acab5",
+      "timing": null
+    }
+  ]
+}
