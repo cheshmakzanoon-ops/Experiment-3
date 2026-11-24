@@ -490,7 +490,7 @@ export class OffroadSession {
           0,
           2,
         );
-        t.deform(contact.lateral, contact.s, tire.load, slip, dt);
+        t.deform(contact.lateral, contact.s, tire.load, slip, dt, c.definition.tireFamily === 'knobby');
       }
       // Mud on cars (bikes carry their own): wet, soft soil under the wheels.
       if (!bike) {

@@ -91,8 +91,10 @@ import {
  * v34: GP kerbs, service shoulders and native runoff follow individual corner footprints.
  * v35: manual GP clutch input exchanges torque with the measured rear shaft.
  * v36: ridden motocross gear selection accounts for rear-wheel slip and regrip;
- * v37: exposed motocross jump and berm flanks use packed fill. */
-export const SIMULATION_VERSION = 37;
+ * v37: exposed motocross jump and berm flanks use packed fill.
+ * v38: motocross tyres distribute soil pressure across their moving footprints.
+ * Riders respond to that support, occupied landings and walking caution traffic. */
+export const SIMULATION_VERSION = 38;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

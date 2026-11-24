@@ -10,6 +10,7 @@ import { rollSpeed, RUNUP_TRACTION_ACCELERATION } from '../src/simulation/offroa
 import { LANDING_RULES } from '../src/simulation/offroad/riding-feedback.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import { LapTracker } from '../src/simulation/race.ts';
+import { personality, TrafficPlanner } from '../src/simulation/traffic.ts';
 import { trackPoint } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
@@ -52,6 +53,27 @@ function wetBeachedRider() {
 }
 
 describe('motocross close traffic', () => {
+  it('closes a walking yellow-flag queue to bike length while retaining contact and speed reserves', () => {
+    const track = rigTrack('arena-nord-sx');
+    const rider = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', MX_450);
+    const leader = new DirtBikeVehicle(1, 'medium', DEFAULT_SETUP, 'sport', MX_450);
+    const traits = personality(60724, 0);
+    const follow = (gap: number, speed: number, yellow: boolean, leadingSpeed = speed) => {
+      rider.place(track, 105, 0);
+      leader.place(track, 105 + gap, 0);
+      rider.speed = speed;
+      leader.speed = leadingSpeed;
+      const planner = new TrafficPlanner();
+      return planner.evaluate(rider, [rider, leader], track, 10, 6, traits, yellow, 0,
+        false, () => 0, 0.5).speedLimit;
+    };
+    expect(follow(5.8, 0, true)).toBeGreaterThan(1);
+    expect(follow(1.9, 0, true)).toBe(0);
+    expect(follow(5.8, 0, false)).toBe(0);
+    expect(follow(4.0, 0, true, 1.8)).toBeGreaterThan(0);
+    expect(follow(1.9, 0, true, 1.8)).toBe(0);
+    expect(follow(5.8, 5, true)).toBe(follow(5.8, 5, false));
+  });
   it('reserves stopping distance for a stranded rider while leaving an outside pass open', () => {
     expect(motocrossClosingSpeed(4, 0.25, 0, 8, 0, 0.8)).toBeLessThan(2);
     expect(motocrossClosingSpeed(4, 1.4, 0, 8, 0, 0.8)).toBe(Infinity);
@@ -76,8 +98,14 @@ describe('motocross committed jump handoff', () => {
   });
 
   it.each([
-    { lateral: 3.5, occupied: true }, { lateral: 11, occupied: false },
-  ])('surveys a stationary rider $lateral m from the centre before committing', ({ lateral, occupied }) => {
+    { lateral: 3.5, roll: true, previous: 'none' },
+    { lateral: 11, roll: false, previous: 'none' },
+    { lateral: 11, roll: true, previous: 'same landing' },
+    { lateral: 11, roll: false, previous: 'other landing' },
+    { lateral: 11, roll: false, previous: 'grip fall' },
+    { lateral: 11, roll: true, previous: 'repeated nose landing' },
+    { lateral: 11, roll: false, previous: 'recovered nose landing' },
+  ])('chooses a jump with a rider at $lateral m and a history of $previous', ({ lateral, roll, previous }) => {
     const dt = 1 / 120;
     const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', weather: 'clear',
       circuit: 'valley-ridge-mx', opponents: 1, vehicles: ['mx450', 'mx250'], seed: 41003 });
@@ -88,6 +116,15 @@ describe('motocross committed jump handoff', () => {
     parked.place(sim.track, jump.takeoff + 4, lateral);
     parked.input.brake = 1;
     rider.place(sim.track, jump.start - 40);
+    if (previous !== 'none') rider.crashCauses.push({
+      cause: previous === 'grip fall' ? 'grip-separated' : 'crash-front',
+      s: previous === 'other landing' || previous.endsWith('nose landing') ? jump.takeoff - 35 : jump.takeoff + 8,
+      time: rider.clock - 5,
+    });
+    if (previous.endsWith('nose landing')) rider.crashCauses.push({
+      cause: 'crash-front', s: jump.takeoff - 80,
+      time: rider.clock - (previous.startsWith('recovered') ? 150 : 45),
+    });
     rider.dynamics.speed = hold;
     for (let gear = 1; gear < rider.spec.gearRatios.length - 1; gear++) {
       rider.gear = gear;
@@ -106,10 +143,10 @@ describe('motocross committed jump handoff', () => {
       if (rider.lastLanding && rider.lastLanding.s > jump.takeoff)
         longestFlight = Math.max(longestFlight, rider.lastLanding.distance);
     }
-    expect(beforeFlag).toBe(occupied ? 1 : 0);
+    expect(beforeFlag).toBe(roll ? 1 : 0);
     expect(rider.s).toBeGreaterThan(jump.end);
     expect(rider.dynamics.crashes).toBe(0);
-    if (occupied) expect(longestFlight).toBeLessThan(4);
+    if (roll) expect(longestFlight).toBeLessThan(4);
     else expect(longestFlight).toBeGreaterThan(12);
   });
 

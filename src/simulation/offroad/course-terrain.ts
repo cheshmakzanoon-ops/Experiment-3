@@ -68,6 +68,7 @@ export class CourseTerrain extends TerrainTile {
   private readonly point = trackPoint();
   private readonly bankRelief = relief();
   private readonly rutCentres?: Float64Array;
+  private readonly rutRows = { back: 0, front: 0, fraction: 0 };
   constructor(
     readonly track: Track,
     readonly course: OffroadCourse,
@@ -142,6 +143,21 @@ export class CourseTerrain extends TerrainTile {
   override heightAt(lateral: number, s: number) {
     return this.base(lateral, s) - this.depthAt(lateral, s);
   }
+  /** Bracket a physical station by cell centres, including the partial row
+   * at the finish. Reading and depositing a tyre footprint use the same seam. */
+  private rowsAt(station: number, centres: Float64Array) {
+    const row = Math.floor(station / COURSE_CELL.along);
+    const lower = station < centres[row] ? row - 1 : row;
+    const back = lower < 0 ? this.rows - 1 : lower;
+    const front = lower + 1 === this.rows ? 0 : lower + 1;
+    const length = this.track.length;
+    const start = centres[back] - (lower < 0 ? length : 0);
+    const end = centres[front] + (front === 0 && lower >= 0 ? length : 0);
+    this.rutRows.back = back;
+    this.rutRows.front = front;
+    this.rutRows.fraction = (station - start) / (end - start);
+    return this.rutRows;
+  }
   /** Stored depths and packing describe the middle of each wheel pass. A
    * motorcycle tyre crossing between cells needs a continuous support patch.
    * The last row can be short, so interpolate across its actual lap distance. */
@@ -161,13 +177,8 @@ export class CourseTerrain extends TerrainTile {
     const col = clamp(x, 0, last), left = Math.floor(col), right = Math.min(last, left + 1);
     const length = this.track.length;
     const station = s >= 0 && s < length ? s : mod(s, length);
-    const row = Math.floor(station / COURSE_CELL.along);
-    const lower = station < centres[row] ? row - 1 : row;
-    const back = lower < 0 ? this.rows - 1 : lower;
-    const front = lower + 1 === this.rows ? 0 : lower + 1;
-    const start = centres[back] - (lower < 0 ? length : 0);
-    const end = centres[front] + (front === 0 && lower >= 0 ? length : 0);
-    const u = smoothUnit(col - left), v = smoothUnit((station - start) / (end - start));
+    const { back, front, fraction } = this.rowsAt(station, centres);
+    const u = smoothUnit(col - left), v = smoothUnit(fraction);
     const edge = smoothUnit(Math.min(1, 1 + 2 * Math.min(x, last - x)));
     const a = back * this.columns, b = front * this.columns;
     const al = (1 - u) * (1 - v) * edge, ar = u * (1 - v) * edge;
@@ -214,16 +225,37 @@ export class CourseTerrain extends TerrainTile {
       m.rolling + TERRAIN.bulldoze * (depth / TERRAIN.maxDepth) * (1 - compaction * 0.5);
     return result;
   }
-  /** Wheel interaction: depress and compact the contacted cell, and half as
-   * much to each side (a rut is wider than its centre cell). Rigid ground
-   * (asphalt) is never deformed. */
-  override deform(lateral: number, s: number, load: number, slip: number, dt: number) {
+  /** A moving tyre distributes its measured pressure around its actual
+   * contact position. The calibrated central/shoulder loads are preserved
+   * at cell centres and translate continuously across rows and columns. */
+  override deform(lateral: number, s: number, load: number, slip: number, dt: number, knobbyFootprint = true) {
+    if (!(load > 0) || !(dt > 0)) return;
+    if (knobbyFootprint && this.rutCentres) {
+      const x = (lateral - this.lateralMin) / COURSE_CELL.lateral;
+      if (x < 0 || x >= this.columns) return;
+      const col = Math.floor(x - 0.5), u = x - 0.5 - col;
+      const station = s >= 0 && s < this.track.length ? s : mod(s, this.track.length);
+      const { back, front, fraction } = this.rowsAt(station, this.rutCentres);
+      this.pressRow(back, col, u, load * (1 - fraction), slip, dt);
+      if (fraction > 0) this.pressRow(front, col, u, load * fraction, slip, dt);
+      return;
+    }
     const i = this.index(lateral, s);
-    if (i < 0 || !(load > 0) || !(dt > 0)) return;
+    if (i < 0) return;
     const col = i % this.columns;
     this.press(i, load, slip, dt);
     if (col > 0) this.press(i - 1, load * 0.45, slip, dt);
     if (col < this.columns - 1) this.press(i + 1, load * 0.45, slip, dt);
+  }
+  private pressRow(row: number, col: number, u: number, load: number, slip: number, dt: number) {
+    const i = row * this.columns + col;
+    // Linear translation of [0.45, 1, 0.45] conserves its integrated load
+    // and first moment. Clip at the finite soil ribbon without wrapping a
+    // shoulder across to the opposite side of the course.
+    if (col > 0) this.press(i - 1, load * 0.45 * (1 - u), slip, dt);
+    if (col >= 0) this.press(i, load * (1 - 0.55 * u), slip, dt);
+    if (col + 1 < this.columns) this.press(i + 1, load * (0.45 + 0.55 * u), slip, dt);
+    if (u > 0 && col + 2 < this.columns) this.press(i + 2, load * 0.45 * u, slip, dt);
   }
   private press(i: number, load: number, slip: number, dt: number) {
     const soil = SOILS[this.soilKind(i)];

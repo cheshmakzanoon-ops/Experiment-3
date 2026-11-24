@@ -548,6 +548,9 @@ export class TrafficPlanner {
       this.holdUntil = now + 3;
     }
     this.trackPass(car, cars, track, now, found, lineOffset, traits);
+    const courseKind = track.circuit?.offroad?.kind;
+    const mxQueue = yellow && car.definition.tireFamily === 'knobby' &&
+      (courseKind === 'motocross' || courseKind === 'supercross');
     for (const other of cars) {
       if (
         other === car ||
@@ -562,6 +565,15 @@ export class TrafficPlanner {
       if (gap <= 0 || gap > 180) continue;
       if (yellow && !other.retired && other.speed > 5 && gap < 55)
         cap(Math.max(5, other.speed - 1), 'yellow');
+      // At walking pace a queue of motorcycles can close up safely behind
+      // a flag. The physical bodies and an extra standing clearance still
+      // fit in the gap. As either rider gains speed the full road reserve
+      // returns. No permission to pass comes from this following distance.
+      const walking = mxQueue && other.definition.tireFamily === 'knobby'
+        ? clamp((4 - Math.max(car.speed, other.speed)) / 3, 0, 1) : 0;
+      const standingGap = STALLED.contactGap + 0.2;
+      const closeGap = lerp(7, Math.min(7, front + other.definition.halfExtents[2] + standingGap), walking);
+      const holdGap = lerp(STALLED.holdGap, standingGap, walking);
       // Our path reaches the other car's distance shifted with the line.
       const shift = shiftAt(other.s);
       if (this.stalled[other.id] === 2) {
@@ -572,7 +584,7 @@ export class TrafficPlanner {
         const clear = Math.abs(other.lateral - (result.offset + shift)) >= passing(other);
         if (!overlap && clear) continue;
         const room = gap - front - this.along[other.id] - STALLED.contactGap;
-        const reserve = 7 + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
+        const reserve = closeGap + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
         const creep =
           clear && this.arcClears(car, other, gap, ourSin, ourCos, result.offset + shift);
         const limited =
@@ -585,7 +597,7 @@ export class TrafficPlanner {
                     brake *
                     Math.max(
                       0,
-                      gap - Math.max(reserve, front + this.along[other.id] + STALLED.holdGap),
+                      gap - Math.max(reserve, front + this.along[other.id] + holdGap),
                     ),
                 );
         cap(limited, 'stalled');
@@ -657,15 +669,26 @@ export class TrafficPlanner {
         cap(other.speed + Math.sqrt(2 * PASS_PACE.settleDecel * Math.max(0, gap - keep)), 'settle');
         if (gap >= 7) continue;
       }
-      let reserve = 7 + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
+      let reserve = closeGap + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
       // Not closing up to a car that has stopped leaves room to steer past it.
       if (this.stalled[other.id])
-        reserve = Math.max(reserve, front + this.along[other.id] + STALLED.holdGap);
+        reserve = Math.max(reserve, front + this.along[other.id] + holdGap);
       const safeSpeed = Math.sqrt(
         Math.max(0, other.speed * other.speed + 2 * Math.max(1, braking * 0.72) * (gap - reserve)),
       );
       cap(safeSpeed, 'follow');
-      if (gap < 7) cap(Math.max(0, other.speed - 4), 'close');
+      if (gap < closeGap) {
+        // As a walking leader moves away the follower can release its brake
+        // at the same pace, provided both bike envelopes still fit. Keeping
+        // the full 4 m/s road-speed differential here pins an upright rider
+        // to the bank through successive restarts of the caution queue.
+        let pace = other.speed - 4;
+        if (walking > 0) {
+          const free = gap - front - other.definition.halfExtents[2] - STALLED.contactGap;
+          if (free > 0) pace = lerp(pace, Math.min(other.speed, Math.sqrt(2 * brake * free)), walking);
+        }
+        cap(Math.max(0, pace), 'close');
+      }
     }
     if (this.waiting >= 0) result.decision = 'WAIT / STALLED CAR';
     else if (

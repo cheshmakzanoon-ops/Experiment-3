@@ -245,6 +245,23 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     );
   }
 
+  /** The safe short route remains available after a failed landing. A flat
+   * impact makes the centre mound of another triple a poor choice. Two
+   * recent failures with the same pitch error also call for a short line
+   * on a gap while the rider regains control. */
+  private needsShortLanding(jump: JumpSurvey, length: number) {
+    let nose = 0, tail = 0;
+    for (const fall of this.rider.crashCauses) {
+      if (!fall.cause.startsWith('crash-')) continue;
+      if (mod(fall.s - jump.takeoff + 1, length) <= jump.end - jump.takeoff + 3) return true;
+      if (fall.cause === 'crash-flat' && jump.kind === 'triple') return true;
+      if (jump.forgiving || this.rider.clock - fall.time > 120) continue;
+      if (fall.cause === 'crash-front' && ++nose === 2) return true;
+      if (fall.cause === 'crash-rear' && ++tail === 2) return true;
+    }
+    return false;
+  }
+
   /** Gate start: every rider goes flat out as the gate drops (the traffic
    * planner would otherwise wait for a gap in a row of bikes abreast). */
   private gateLaunch(track: Track, race: RaceDirector) {
@@ -265,6 +282,47 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     track.at(c.s, squarePoint);
     const error =
       mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
+    const courseKind = offroadCourse(track.circuit)?.kind;
+    // Full axle dynamics can carry the front wide despite full inward steer.
+    // On the fast outdoor berms, slow the approach only when the measured
+    // transverse motion would use the remaining lane within a steering
+    // response. The bank and tyre loads still supply every physical force.
+    if (courseKind === 'motocross' && d.p.independentRearBrake && c.speed > 5 &&
+        race.phase === PHASE.RACING && race.raceTime > LAUNCH_SECONDS) {
+      const across = c.body.velocity.x * squarePoint.nx + c.body.velocity.z * squarePoint.nz;
+      const side = Math.sign(across), outward = Math.abs(across);
+      if (-side * c.input.steer > 0.74 && side * squarePoint.curvature < -0.025 && -side * error > 0.39) {
+        const room = squarePoint.width - side * c.lateral;
+        const threat = smooth((outward - 2) / 2) * smooth((outward * 1.15 - room) / 3);
+        if (threat > 0) {
+          const support = clamp(c.forceFront / (d.mass * G), 0, 1);
+          const inward = clamp(2.2 * error - side * (0.2 + threat * 0.25) - d.lean * 0.4, -1, 1);
+          c.input.steer += threat * side * Math.min(0, side * (inward - c.input.steer));
+          c.input.throttle = Math.min(c.input.throttle, 1 - threat * 0.96);
+          c.input.brake = Math.max(c.input.brake, threat * 0.4 * (0.5 + 0.5 * support));
+        }
+      }
+    }
+    // Short SX lanes can bring the outer blocks into the front axle's
+    // swept path while the heading is still legal for the bend. The lateral
+    // velocity already contains the slip: use it to reserve front load
+    // before the requested steering saturates on the outside shoulder.
+    if (courseKind === 'supercross' && c.definition.tireFamily === 'knobby' && !d.p.independentRearBrake && c.speed > 3 &&
+        c.forceFront < d.mass * G * 0.38 && race.phase === PHASE.RACING && race.raceTime > LAUNCH_SECONDS) {
+      const across = c.body.velocity.x * squarePoint.nx + c.body.velocity.z * squarePoint.nz;
+      const side = Math.sign(across), outward = Math.abs(across);
+      const room = squarePoint.width - 0.55 - side * c.lateral;
+      const threat = smooth((outward - 1) / 1.8) * smooth(outward * 0.82 - room + 0.15);
+      if (threat > 0 && side * c.lateral > 0) {
+        const inside = clamp(2.2 * (error - side * 0.34) - d.lean * 0.6, -1, 1);
+        c.input.steer += threat * side * Math.min(0, side * (inside - c.input.steer));
+        const support = clamp(c.forceFront / (d.mass * G), 0, 0.7);
+        c.input.throttle = Math.min(c.input.throttle, 1 - threat * (0.88 - 0.36 * support));
+        // Steer a lightly loaded front before asking it to brake hard.
+        const dab = clamp((c.speed - 4) * 0.12, 0, 0.5) * threat * (0.45 + 0.72 * support);
+        c.input.brake = Math.max(c.input.brake, dab);
+      }
+    }
     // In a slow caution queue the rider can be relaunched across a banked
     // hairpin with the front tyre almost unloaded. Allowing normal corner yaw
     // lag there can put the axle in the outside barrier before the lean builds.
@@ -295,7 +353,22 @@ export class DirtBikeAIDriver extends BikeAIDriver {
         headingError > 0.45 && headingError < 0.65 &&
         Math.abs(c.lateral) < squarePoint.width - 0.2 && race.control.flags[c.id] === FLAG.GREEN) {
       const across = c.body.velocity.x * squarePoint.nx + c.body.velocity.z * squarePoint.nz;
-      if (c.lateral * across < 0 && Math.abs(c.lateral + 0.8 * across) < squarePoint.width - 1 &&
+      // Project the measured acceleration as well as the crossing velocity.
+      // A tyre that has already hooked up and is turning back down-course
+      // carries less lateral distance than a loose tyre at the same heading.
+      const sin = Math.sin(d.heading), cos = Math.cos(d.heading);
+      const acrossAccel = G * (
+        c.gLong * (sin * squarePoint.nx + cos * squarePoint.nz) +
+        c.gLat * (cos * squarePoint.nx - sin * squarePoint.nz)
+      );
+      const along = c.body.velocity.x * squarePoint.tx + c.body.velocity.z * squarePoint.tz;
+      const aligning = Math.sign(error) * (d.curvature * d.speed - squarePoint.curvature * along);
+      // Reach the normal tracking band before predicting another full
+      // steering response. Continue through the centre only while actually
+      // unwinding the yaw and with a metre of room to the projected edge.
+      const horizon = aligning > 0 ? clamp((headingError - 0.36) / aligning, 0.35, 0.8) : 0.8;
+      const projected = c.lateral + horizon * across + 0.5 * horizon * horizon * clamp(acrossAccel, -3, 3);
+      if ((c.lateral * across < 0 || aligning > 0) && Math.abs(projected) < squarePoint.width - 1 &&
           offroadCourse(track.circuit)?.spec.berms.some((berm) =>
             mod(c.s - berm.to + 2, track.length) - 2 < Math.max(5, c.speed * 0.8))) {
         c.input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.6, 0.6);
@@ -633,8 +706,9 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       onFace = toFace < 0.5;
     // Marshalled and classified riders roll the feature. A racing rider
     // may clear it when the run-up and traffic leave enough speed.
-    const flag = race.control.flags[c.id],
-      rollRequired = coolingDown || flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
+    const flag = race.control.flags[c.id];
+    const failedLanding = c.definition.tireFamily === 'knobby' && this.needsShortLanding(j, L);
+    const rollRequired = coolingDown || failedLanding || flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
     // A roll reaches the foot of the face with the speed whose energy carries
     // the bike up to the lip at a walking roll: up a 30° face of loose soil
     // the drive barely holds the grade (and not at all when it is wet), so
@@ -658,7 +732,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     if (!same || !this.plan!.locked || ((rollRequired || blocked) && this.plan!.clear && canBrake)) {
       const reachable = this.reach(c.speed, Math.max(0, toFace - 1), c.definition.ai.topSpeed);
       const clear = !rollRequired && !blocked && reachable >= hold - (j.forgiving ? 0.8 : 0.25);
-      if (blocked && same && this.plan!.clear && !clear) this.decisions.aborts++;
+      if ((blocked || failedLanding) && same && this.plan!.clear && !clear) this.decisions.aborts++;
       if (!same) {
         if (clear) this.decisions.clears++;
         else this.decisions.rolls++;

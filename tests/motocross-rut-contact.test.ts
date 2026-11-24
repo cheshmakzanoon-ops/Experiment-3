@@ -31,6 +31,51 @@ describe.each(['valley-ridge-mx', 'arena-nord-sx'] as const)('%s tyre contact in
     expect(terrain.contact(x + step / 2, s)).toEqual(mid);
   });
 
+  it('moves the centre of deposited pressure continuously over the soil grid', () => {
+    const track = rigTrack(id), { terrain } = Track.offroadOf(track) as TrackTerrainSurface;
+    const stamp = (x: number, s: number) => {
+      terrain.reset();
+      terrain.deform(x, s, 750, 0.22, 1 / 120);
+      const state = terrain.checkpoint();
+      let total = 0, across = 0, along = 0;
+      for (const [i, cell] of state.cells.entries()) {
+        const weight = state.compaction[i];
+        const col = cell % terrain.columns, row = Math.floor(cell / terrain.columns);
+        const start = row * COURSE_CELL.along;
+        let centre = (start + Math.min(track.length, start + COURSE_CELL.along)) / 2;
+        if (centre - s > track.length / 2) centre -= track.length;
+        if (s - centre > track.length / 2) centre += track.length;
+        total += weight;
+        across += weight * (terrain.lateralMin + (col + 0.5) * COURSE_CELL.lateral);
+        along += weight * centre;
+      }
+      return { x: across / total, s: along / total, total, cells: state.cells.length };
+    };
+    // A road tyre entered on the same dirt venue keeps its calibrated wheel
+    // footprint. A mixed class shares soil, while each tyre supplies its load.
+    terrain.reset();
+    terrain.deform(0.001, 60.501, 750, 0.22, 1 / 120, false);
+    expect(terrain.checkpoint().cells).toHaveLength(3);
+    const centre = stamp(0.125, 60.25);
+    expect(centre.cells).toBe(3);
+    for (const [x, s] of [[-0.001, 60.249], [0.001, 60.251], [0.125, 60.499],
+      [0.125, 60.501], [0.033, 60.38], [0.033, 0], [0.033, track.length - 0.014]]) {
+      const pressure = stamp(x, s);
+      expect(pressure.x).toBeCloseTo(x, 6);
+      expect(pressure.s).toBeCloseTo(s, 6);
+      expect(pressure.total).toBeCloseTo(centre.total, 9);
+      expect(pressure.cells).toBeLessThanOrEqual(8);
+    }
+    // The shoulder of an edge contact cannot wrap to the far column.
+    stamp(terrain.lateralMin + 0.01, 60.38);
+    expect(terrain.checkpoint().cells.every((cell) => cell % terrain.columns <= 1)).toBe(true);
+    const recorded = terrain.checkpoint();
+    const before = terrain.hash();
+    terrain.reset();
+    terrain.restore(recorded);
+    expect(terrain.hash()).toBe(before);
+  });
+
   it('uses the true end of the short final row at the lap seam and meets the undeformed verge', () => {
     const track = rigTrack(id), { terrain } = Track.offroadOf(track) as TrackTerrainSurface;
     const lastStart = (terrain.rows - 1) * COURSE_CELL.along;
