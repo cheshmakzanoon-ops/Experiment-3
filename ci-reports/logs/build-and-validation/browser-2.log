@@ -1,286 +1,255 @@
-### browser (2) (job 138543130828)
+### browser (2) (job 138632927205)
 --- error digest (first 120 matching lines) ---
-815:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T15:39:42.0467996Z   ✘   1 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (6.1m)
-819:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T15:39:42.0471746Z Error: locator.selectOption: Test timeout of 300000ms exceeded.
-892:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T15:54:45.8506594Z   ✘  19 e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu (10.2m)
-894:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T15:54:45.8508492Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-900:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T15:54:45.8510840Z - Timeout 600000ms exceeded while waiting on the predicate
-916:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:00:26.8361379Z   ✘  21 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence (5.5m)
-920:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:00:26.8363589Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-1510:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:30:47.6674313Z   ✘  22 e2e/secondary-grandstands.spec.ts:15:3 › A12 night: six production stands, cockpit and unchanged physical traversal (30.3m)
-1514:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:30:47.6677399Z Error: page.evaluate: Test timeout of 1800000ms exceeded.
-1523:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:33:54.2029872Z   ✘  23 e2e/36-compact-race-journey.spec.ts:12:1 › compact race information stays live through a populated dusk drive, measured capture and recorded replay (3.0m)
-1525:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:33:54.2031973Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatchObject^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-1537:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:33:54.2034169Z - Timeout 60000ms exceeded while waiting on the predicate
-1543:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1481935Z   ✘  24 e2e/54-authored-crew.spec.ts:120:1 › A41/A42 authored crew: Medium full-grid pose and shadow survey (1.6m)
-1545:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1483312Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoEqual^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // deep equality^[[22m
-1559:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1486485Z - Timeout 60000ms exceeded while waiting on the predicate
-1563:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1788339Z   1) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
-1567:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1789497Z     Error: locator.selectOption: Test timeout of 300000ms exceeded.
-1581:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1794844Z       78 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
-1592:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1799766Z   2) e2e/36-compact-race-journey.spec.ts:12:1 › compact race information stays live through a populated dusk drive, measured capture and recorded replay › Expect "poll toMatchObject" 
-1594:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1800710Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatchObject^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-1606:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1802825Z     - Timeout 60000ms exceeded while waiting on the predicate
-1635:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1812509Z   3) e2e/54-authored-crew.spec.ts:120:1 › A41/A42 authored crew: Medium full-grid pose and shadow survey › Expect "poll toEqual" 
-1637:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1813163Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoEqual^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // deep equality^[[22m
-1651:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815895Z     - Timeout 60000ms exceeded while waiting on the predicate
-1674:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1822937Z   4) e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu › Expect "poll toBe" 
-1676:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1823576Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-1682:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1824707Z     - Timeout 600000ms exceeded while waiting on the predicate
-1707:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1831947Z   5) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence 
-1711:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1832770Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
-1734:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1839686Z   6) e2e/secondary-grandstands.spec.ts:15:3 › A12 night: six production stands, cockpit and unchanged physical traversal 
-1738:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1840714Z     Error: page.evaluate: Test timeout of 1800000ms exceeded.
-1774:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.6952595Z ##[error]Process completed with exit code 1.
+805:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:43:31.3941262Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1814532Z     ^[[31m+   "preparation": "preparing",^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1814798Z     ^[[2m    "purpose": "circuit",^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815050Z     ^[[32m-   "state": "paused",^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815289Z     ^[[31m+   "state": "loading",^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815504Z     ^[[2m  }^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815595Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815666Z     Call Log:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1815895Z     - Timeout 60000ms exceeded while waiting on the predicate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1816070Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1816239Z       137 |   await page.selectOption('#opponents', '11');
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1816643Z       138 |   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1816962Z     > 139 |   await expect
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1817139Z           |   ^
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1817323Z       140 |     .poll(async () => {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1817545Z       141 |       const d = await read();
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1817751Z       142 |       return {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1818062Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/54-authored-crew.spec.ts:139:3
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1818308Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1818581Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1819323Z     test-results/54-authored-crew-A41-A42-a-5b4e5-grid-pose-and-shadow-survey/video.webm
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1819976Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1820185Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1820463Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1820928Z     test-results/54-authored-crew-A41-A42-a-5b4e5-grid-pose-and-shadow-survey/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1821251Z     Usage:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1821424Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1821793Z         npx playwright show-trace test-results/54-authored-crew-A41-A42-a-5b4e5-grid-pose-and-shadow-survey/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1822128Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1822384Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1822579Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1822937Z   4) e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu › Expect "poll toBe" 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1823250Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1823576Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1823870Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1823994Z     Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1824265Z     Received: ^[[31m"^[[7mload^[[27ming"^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1824404Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1824468Z     Call Log:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1824707Z     - Timeout 600000ms exceeded while waiting on the predicate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1824911Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1825040Z       42 |   await page.selectOption('#opponents', '0');
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1825455Z       43 |   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1825731Z     > 44 |   await expect
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1825914Z          |   ^
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1826070Z       45 |     .poll(
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1826265Z       46 |       async () => {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1826524Z       47 |         if (await page.locator('#raceBriefing').isVisible())
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1826891Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/lazy-chunks.spec.ts:44:3
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1827120Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1827397Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1827889Z     test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/test-failed-1.png
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1828421Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1828637Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1829066Z     Error Context: test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/error-context.md
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1829384Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1829666Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1830137Z     test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1830459Z     Usage:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1830547Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1830853Z         npx playwright show-trace test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1831185Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1831424Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1831625Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1831947Z   5) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1832297Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1832481Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1832631Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1832770Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1832944Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1833007Z       49 |       });
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1833174Z       50 |     });
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1833395Z     > 51 |     const report = await page.evaluate((group) => {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1833655Z          |                               ^
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1833888Z       52 |       const api = window as unknown as {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1834233Z       53 |         CockpitSurvey: { cockpitFramingSurvey: typeof cockpitFramingSurvey };
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1834618Z       54 |         recordCockpit: (row: CockpitSurveyRow) => Promise<void>;
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1835020Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1835271Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1835539Z     attachment #7: screenshot (image/png) ──────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1836043Z     test-results/p0-cockpit-framing-P0-actu-ee023-and-camera-framing-evidence/test-failed-1.png
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1836614Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1836824Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1837100Z     attachment #8: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1837570Z     test-results/p0-cockpit-framing-P0-actu-ee023-and-camera-framing-evidence/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1837906Z     Usage:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1837993Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1838294Z         npx playwright show-trace test-results/p0-cockpit-framing-P0-actu-ee023-and-camera-framing-evidence/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1838622Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1839076Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1839296Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1839686Z   6) e2e/secondary-grandstands.spec.ts:15:3 › A12 night: six production stands, cockpit and unchanged physical traversal 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1840005Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1840155Z     ^[[31mTest timeout of 1800000ms exceeded.^[[39m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1840528Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1840714Z     Error: page.evaluate: Test timeout of 1800000ms exceeded.
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1840894Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1841057Z       83 |     let report: Awaited<ReturnType<typeof surveySecondaryStands>>;
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1841327Z       84 |     try {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1841527Z     > 85 |       report = await page.evaluate(
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1841757Z          |                           ^
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1841944Z       86 |         (l) =>
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1842116Z       87 |           (
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1842309Z       88 |             window as unknown as {
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1842657Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/secondary-grandstands.spec.ts:85:27
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1842973Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1843309Z     attachment #1: night-normal-cockpit.png (image/png) ────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1844015Z     test-results/secondary-grandstands-A12--6176b-nchanged-physical-traversal/attachments/night-normal-cockpit-png-3423af2474fd05e0e87a388fb041a43be93fbe2a.png
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1844724Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1844928Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1845195Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1845795Z     test-results/secondary-grandstands-A12--6176b-nchanged-physical-traversal/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1846140Z     Usage:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1846223Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1846534Z         npx playwright show-trace test-results/secondary-grandstands-A12--6176b-nchanged-physical-traversal/trace.zip
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1846912Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1847199Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1847417Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1847585Z   Slow test file: e2e/secondary-grandstands.spec.ts (30.3m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1847893Z   Slow test file: e2e/lazy-chunks.spec.ts (10.2m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1848192Z   Slow test file: e2e/09-reference-depth.spec.ts (6.1m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1848491Z   Slow test file: e2e/p0-cockpit-framing.spec.ts (5.5m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1849031Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1849369Z   6 failed
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1849832Z     e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1850615Z     e2e/36-compact-race-journey.spec.ts:12:1 › compact race information stays live through a populated dusk drive, measured capture and recorded replay 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1851291Z     e2e/54-authored-crew.spec.ts:120:1 › A41/A42 authored crew: Medium full-grid pose and shadow survey 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1851850Z     e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1852411Z     e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1853037Z     e2e/secondary-grandstands.spec.ts:15:3 › A12 night: six production stands, cockpit and unchanged physical traversal 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.1853414Z   18 passed (1.0h)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T16:35:32.6952595Z ##[error]Process completed with exit code 1.
-browser (2)	Browser screenshots and diagnostics	﻿2026-11-24T16:35:32.7011434Z ##[group]Run actions/upload-artifact@v4
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7011666Z with:
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7011833Z   name: browser-validation-2-of-16
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7012220Z   path: test-results/
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.1843485Z Preparing to unpack .../06-libidn12_1.42-1ubuntu0.1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.1851537Z Unpacking libidn12:amd64 (1.42-1ubuntu0.1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2007211Z Selecting previously unselected package libijs-0.35:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2110792Z Preparing to unpack .../07-libijs-0.35_0.35-15.1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2116002Z Unpacking libijs-0.35:amd64 (0.35-15.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2273584Z Selecting previously unselected package libjbig2dec0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2377101Z Preparing to unpack .../08-libjbig2dec0_0.20-1ubuntu0.24.04.1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2382036Z Unpacking libjbig2dec0:amd64 (0.20-1ubuntu0.24.04.1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2539463Z Selecting previously unselected package libpaper1:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2640193Z Preparing to unpack .../09-libpaper1_1.1.29build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2646471Z Unpacking libpaper1:amd64 (1.1.29build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2823852Z Selecting previously unselected package libgs10:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2925570Z Preparing to unpack .../10-libgs10_10.02.1~dfsg1-0ubuntu7.10_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.2930969Z Unpacking libgs10:amd64 (10.02.1~dfsg1-0ubuntu7.10) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.3818139Z Selecting previously unselected package ghostscript.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.3920865Z Preparing to unpack .../11-ghostscript_10.02.1~dfsg1-0ubuntu7.10_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.3925737Z Unpacking ghostscript (10.02.1~dfsg1-0ubuntu7.10) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.4206441Z Selecting previously unselected package imagemagick-6.q16.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.4310241Z Preparing to unpack .../12-imagemagick-6.q16_8%3a6.9.12.98+dfsg1-5.2build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.4314824Z Unpacking imagemagick-6.q16 (8:6.9.12.98+dfsg1-5.2build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.7844122Z Selecting previously unselected package imagemagick.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.7946632Z Preparing to unpack .../13-imagemagick_8%3a6.9.12.98+dfsg1-5.2build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.7950725Z Unpacking imagemagick (8:6.9.12.98+dfsg1-5.2build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8105686Z Selecting previously unselected package libdecor-0-0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8208860Z Preparing to unpack .../14-libdecor-0-0_0.2.2-1build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8214079Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8358733Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8462895Z Preparing to unpack .../15-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8466793Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8613859Z Selecting previously unselected package libdjvulibre-text.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8715769Z Preparing to unpack .../16-libdjvulibre-text_3.5.28-2ubuntu0.24.04.2_all.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8720081Z Unpacking libdjvulibre-text (3.5.28-2ubuntu0.24.04.2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8878698Z Selecting previously unselected package libdjvulibre21:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8979134Z Preparing to unpack .../17-libdjvulibre21_3.5.28-2ubuntu0.24.04.2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.8983706Z Unpacking libdjvulibre21:amd64 (3.5.28-2ubuntu0.24.04.2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9193245Z Selecting previously unselected package libegl-mesa0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9294390Z Preparing to unpack .../18-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9298752Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9455005Z Selecting previously unselected package libimath-3-1-29t64:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9556200Z Preparing to unpack .../19-libimath-3-1-29t64_3.1.9-3.1ubuntu2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9559357Z Unpacking libimath-3-1-29t64:amd64 (3.1.9-3.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9714195Z Selecting previously unselected package libjxr0t64:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9813025Z Preparing to unpack .../20-libjxr0t64_1.2~git20170615.f752187-5.1ubuntu2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9816038Z Unpacking libjxr0t64:amd64 (1.2~git20170615.f752187-5.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:46.9965345Z Selecting previously unselected package libjxr-tools.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0064414Z Preparing to unpack .../21-libjxr-tools_1.2~git20170615.f752187-5.1ubuntu2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0067520Z Unpacking libjxr-tools (1.2~git20170615.f752187-5.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0209492Z Selecting previously unselected package libopenexr-3-1-30:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0308404Z Preparing to unpack .../22-libopenexr-3-1-30_3.1.5-5.1build3_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0311616Z Unpacking libopenexr-3-1-30:amd64 (3.1.5-5.1build3) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0598357Z Selecting previously unselected package libwmflite-0.2-7:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0699787Z Preparing to unpack .../23-libwmflite-0.2-7_0.2.13-1.1build3_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0704157Z Unpacking libwmflite-0.2-7:amd64 (0.2.13-1.1build3) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0856309Z Selecting previously unselected package libmagickcore-6.q16-7-extra:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0957035Z Preparing to unpack .../24-libmagickcore-6.q16-7-extra_8%3a6.9.12.98+dfsg1-5.2build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.0961135Z Unpacking libmagickcore-6.q16-7-extra:amd64 (8:6.9.12.98+dfsg1-5.2build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.1523979Z Selecting previously unselected package libnetpbm11t64:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.1628403Z Preparing to unpack .../25-libnetpbm11t64_2%3a11.05.02-1.1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.1633222Z Unpacking libnetpbm11t64:amd64 (2:11.05.02-1.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.1794081Z Selecting previously unselected package libpaper-utils.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.1897393Z Preparing to unpack .../26-libpaper-utils_1.1.29build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.1900326Z Unpacking libpaper-utils (1.1.29build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2064678Z Selecting previously unselected package libxcb-xkb1:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2167734Z Preparing to unpack .../27-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2170568Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2327528Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2429650Z Preparing to unpack .../28-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2433376Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2584037Z Selecting previously unselected package libegl1:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2684711Z Preparing to unpack .../29-libegl1_1.7.0-1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2687966Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2836165Z Selecting previously unselected package libgles2:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2936508Z Preparing to unpack .../30-libgles2_1.7.0-1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.2940522Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.3085957Z Selecting previously unselected package mesa-utils-bin:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.3185710Z Preparing to unpack .../31-mesa-utils-bin_9.0.0-2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.3189116Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.3372184Z Selecting previously unselected package netpbm.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.3474372Z Preparing to unpack .../32-netpbm_2%3a11.05.02-1.1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.3477804Z Unpacking netpbm (2:11.05.02-1.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.4268053Z Selecting previously unselected package mesa-utils.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.4374073Z Preparing to unpack .../33-mesa-utils_9.0.0-2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.4377594Z Unpacking mesa-utils (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.4732467Z Setting up libpaper1:amd64 (1.1.29build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.5638817Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.5640045Z Creating config file /etc/papersize with new version
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.5984694Z Setting up fonts-noto-mono (20201225-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.5996285Z Setting up libwmflite-0.2-7:amd64 (0.2.13-1.1build3) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.6004910Z Setting up libijs-0.35:amd64 (0.35-15.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.6014086Z Setting up libgs-common (10.02.1~dfsg1-0ubuntu7.10) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.6023530Z Setting up libpaper-utils (1.1.29build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.6033163Z Setting up fonts-urw-base35 (20200910-8) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.6950234Z Setting up libnetpbm11t64:amd64 (2:11.05.02-1.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.6959014Z Setting up poppler-data (0.4.12-1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7017202Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7024865Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7032962Z Setting up libgles2:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7041512Z Setting up libjxr0t64:amd64 (1.2~git20170615.f752187-5.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7050512Z Setting up libjbig2dec0:amd64 (0.20-1ubuntu0.24.04.1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7059315Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7067330Z Setting up libimath-3-1-29t64:amd64 (3.1.9-3.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7075498Z Setting up libidn12:amd64 (1.42-1ubuntu0.1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7084285Z Setting up netpbm (2:11.05.02-1.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7093622Z Setting up imagemagick-6.q16 (8:6.9.12.98+dfsg1-5.2build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7137265Z update-alternatives: using /usr/bin/compare-im6.q16 to provide /usr/bin/compare (compare) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7164846Z update-alternatives: using /usr/bin/compare-im6.q16 to provide /usr/bin/compare-im6 (compare-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7197551Z update-alternatives: using /usr/bin/animate-im6.q16 to provide /usr/bin/animate (animate) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7223238Z update-alternatives: using /usr/bin/animate-im6.q16 to provide /usr/bin/animate-im6 (animate-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7255043Z update-alternatives: using /usr/bin/convert-im6.q16 to provide /usr/bin/convert (convert) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7279563Z update-alternatives: using /usr/bin/convert-im6.q16 to provide /usr/bin/convert-im6 (convert-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7310529Z update-alternatives: using /usr/bin/composite-im6.q16 to provide /usr/bin/composite (composite) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7336330Z update-alternatives: using /usr/bin/composite-im6.q16 to provide /usr/bin/composite-im6 (composite-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7367984Z update-alternatives: using /usr/bin/conjure-im6.q16 to provide /usr/bin/conjure (conjure) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7393069Z update-alternatives: using /usr/bin/conjure-im6.q16 to provide /usr/bin/conjure-im6 (conjure-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7425219Z update-alternatives: using /usr/bin/import-im6.q16 to provide /usr/bin/import (import) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7451104Z update-alternatives: using /usr/bin/import-im6.q16 to provide /usr/bin/import-im6 (import-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7482787Z update-alternatives: using /usr/bin/identify-im6.q16 to provide /usr/bin/identify (identify) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7508425Z update-alternatives: using /usr/bin/identify-im6.q16 to provide /usr/bin/identify-im6 (identify-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7541681Z update-alternatives: using /usr/bin/stream-im6.q16 to provide /usr/bin/stream (stream) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7567643Z update-alternatives: using /usr/bin/stream-im6.q16 to provide /usr/bin/stream-im6 (stream-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7599799Z update-alternatives: using /usr/bin/display-im6.q16 to provide /usr/bin/display (display) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7625837Z update-alternatives: using /usr/bin/display-im6.q16 to provide /usr/bin/display-im6 (display-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7658559Z update-alternatives: using /usr/bin/montage-im6.q16 to provide /usr/bin/montage (montage) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7683850Z update-alternatives: using /usr/bin/montage-im6.q16 to provide /usr/bin/montage-im6 (montage-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7719491Z update-alternatives: using /usr/bin/mogrify-im6.q16 to provide /usr/bin/mogrify (mogrify) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7746063Z update-alternatives: using /usr/bin/mogrify-im6.q16 to provide /usr/bin/mogrify-im6 (mogrify-im6) in auto mode
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7755880Z Setting up libegl1:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7765549Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7773613Z Setting up fonts-droid-fallback (1:6.0.1r16-1.1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7904284Z Setting up libdjvulibre-text (3.5.28-2ubuntu0.24.04.2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7914047Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7920653Z Setting up libgs10-common (10.02.1~dfsg1-0ubuntu7.10) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7928142Z Setting up libjxr-tools (1.2~git20170615.f752187-5.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7935414Z Setting up libdjvulibre21:amd64 (3.5.28-2ubuntu0.24.04.2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7944125Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7953056Z Setting up libopenexr-3-1-30:amd64 (3.1.5-5.1build3) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7960428Z Setting up imagemagick (8:6.9.12.98+dfsg1-5.2build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7968862Z Setting up libmagickcore-6.q16-7-extra:amd64 (8:6.9.12.98+dfsg1-5.2build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7977424Z Setting up libgs10:amd64 (10.02.1~dfsg1-0ubuntu7.10) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.7984504Z Setting up ghostscript (10.02.1~dfsg1-0ubuntu7.10) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.8024216Z Setting up mesa-utils (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:47.8037147Z Processing triggers for hicolor-icon-theme (0.17-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:48.9755312Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:48.9849978Z Processing triggers for man-db (2.12.0-4build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:48.9862118Z Not building database; man-db/auto-update is not 'true'.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:48.9870403Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4978533Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4979915Z Running kernel seems to be up-to-date.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4980295Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4980502Z No services need to be restarted.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4980794Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4981020Z No containers need to be restarted.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4981247Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4981552Z No user sessions are running outdated binaries.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4981823Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-24T17:38:49.4982371Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	﻿2026-11-24T17:38:50.4452444Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4452977Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16^[[0m
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4482466Z shell: /usr/bin/bash -e {0}
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4482862Z env:
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4483090Z   APEX_BROWSER_BACKEND: mesa
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4483382Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4483678Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4484095Z   GALLIUM_DRIVER: llvmpipe
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:50.4484336Z ##[endgroup]
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:55.3992545Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:55.3993471Z > apex-formula-laboratory@0.1.0 test:e2e:shard
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:55.3994088Z > node --experimental-strip-types scripts/run-browser-shard.ts 2/16
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:38:55.3994359Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:03.1905581Z Verified 24 of 404 cases for shard 2/16; no omissions or duplicate assignments.
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:08.2137675Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:09.8059338Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:09.8060290Z Running 24 tests using 1 worker
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:09.8060823Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:10.1969681Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:39:39.8120283Z [browser-progress] 30s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:40:09.8216664Z [browser-progress] 60s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:40:39.8544605Z [browser-progress] 90s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:41:09.8864721Z [browser-progress] 120s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:41:39.8874191Z [browser-progress] 150s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:42:09.9174056Z [browser-progress] 180s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:42:39.9491542Z [browser-progress] 210s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:43:09.9704247Z [browser-progress] 240s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "NORTH" locator('[data-decal="text"]')
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16	2026-11-24T17:43:31.3941262Z ##[error]The operation was canceled.
+browser (2)	Browser screenshots and diagnostics	﻿2026-11-24T17:43:31.4434450Z ##[group]Run actions/upload-artifact@v4
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4434803Z with:
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4435054Z   name: browser-validation-2-of-16
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4435625Z   path: test-results/
 browser (2)	Browser screenshots and diagnostics	playwright-report/
 browser (2)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (2)	Browser screenshots and diagnostics	browser-backend.json
 browser (2)	Browser screenshots and diagnostics	browser-progress.json
 browser (2)	Browser screenshots and diagnostics	
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7012626Z   retention-days: 7
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7012897Z   if-no-files-found: warn
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7013088Z   compression-level: 6
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7013257Z   overwrite: false
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7013427Z   include-hidden-files: false
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7013651Z env:
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7013803Z   APEX_BROWSER_BACKEND: mesa
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7014001Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7014194Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7014379Z   GALLIUM_DRIVER: llvmpipe
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.7014559Z ##[endgroup]
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8257976Z (node:5793) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8259416Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8422711Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8424367Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8425033Z With the provided path, there will be 107 files uploaded
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8425574Z Artifact name is valid!
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:32.8425875Z Root directory input is valid!
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:33.3784839Z Beginning upload of artifact content to blob storage
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:33.6044986Z (node:5793) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:34.9393233Z Uploaded bytes 8388608
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.1730928Z Uploaded bytes 16777216
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.2652188Z Uploaded bytes 25165824
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.3542244Z Uploaded bytes 33554432
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.4407840Z Uploaded bytes 41943040
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.5416139Z Uploaded bytes 50331648
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.7107621Z Uploaded bytes 58720256
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.8010429Z Uploaded bytes 67108864
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:35.9713047Z Uploaded bytes 75497472
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:36.0959908Z Uploaded bytes 83886080
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:36.2796818Z Uploaded bytes 92274688
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:36.4083998Z Uploaded bytes 100663296
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:36.6714151Z Uploaded bytes 109051904
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:36.9002104Z Uploaded bytes 117440512
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:37.1523733Z Uploaded bytes 125829120
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:37.3524870Z Uploaded bytes 134217728
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:37.5516704Z Uploaded bytes 142606336
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:37.7913164Z Uploaded bytes 150994944
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:38.0757546Z Uploaded bytes 159383552
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:38.2391281Z Uploaded bytes 167772160
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:38.5308791Z Uploaded bytes 176160768
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:38.7370148Z Uploaded bytes 184549376
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:38.9009315Z Uploaded bytes 192937984
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:39.2438340Z Uploaded bytes 201326592
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:39.3815032Z Uploaded bytes 209715200
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:39.5830123Z Uploaded bytes 218103808
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:39.8200245Z Uploaded bytes 226492416
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:40.2155406Z Uploaded bytes 234881024
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:40.2577236Z Uploaded bytes 243269632
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:40.7021402Z Uploaded bytes 251658240
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:40.9217024Z Uploaded bytes 260046848
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:41.1583551Z Uploaded bytes 268435456
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:41.1942166Z Uploaded bytes 276824064
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:41.3674506Z Uploaded bytes 285212672
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:41.8570229Z Uploaded bytes 293601280
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:41.9198042Z Uploaded bytes 301989888
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:42.0421064Z Uploaded bytes 310378496
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:42.2399969Z Uploaded bytes 318767104
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:42.5039030Z Uploaded bytes 327155712
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:42.6889693Z Uploaded bytes 335544320
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:42.8671249Z Uploaded bytes 343932928
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:43.1267366Z Uploaded bytes 352321536
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:43.3145855Z Uploaded bytes 360710144
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:43.5362248Z Uploaded bytes 369098752
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:43.7788154Z Uploaded bytes 377487360
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:43.9878813Z Uploaded bytes 385875968
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:44.2352360Z Uploaded bytes 394264576
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:44.4155083Z Uploaded bytes 402653184
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:44.6920997Z Uploaded bytes 411041792
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:44.9481835Z Uploaded bytes 419430400
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:45.2200485Z Uploaded bytes 427819008
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:45.3396072Z Uploaded bytes 436207616
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:45.7768325Z Uploaded bytes 444596224
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:45.9472007Z Uploaded bytes 452984832
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:46.1692722Z Uploaded bytes 461373440
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:46.2893557Z Uploaded bytes 469762048
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:46.3736980Z Uploaded bytes 478150656
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:46.8195129Z Uploaded bytes 486539264
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:46.9764748Z Uploaded bytes 494927872
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:47.1900267Z Uploaded bytes 503316480
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:47.2979530Z Uploaded bytes 511705088
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:47.7311917Z Uploaded bytes 520093696
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:47.8956050Z Uploaded bytes 528482304
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:48.0476141Z Uploaded bytes 536870912
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:48.1591899Z Uploaded bytes 545259520
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:48.4096005Z Uploaded bytes 553648128
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:48.7004160Z Uploaded bytes 562036736
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.0102153Z Uploaded bytes 568540346
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.1022811Z Finished uploading artifact content to blob storage!
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.1025374Z SHA256 digest of uploaded artifact zip is d76077078430b96e2a5eff3defe81826ff6a047b71d41712ebe9f85e78e0a88a
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.1026739Z Finalizing artifact upload
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.6919542Z Artifact browser-validation-2-of-16.zip successfully finalized. Artifact ID 14940943830
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.6920471Z Artifact browser-validation-2-of-16 has been successfully uploaded! Final size is 568540346 bytes. Artifact ID is 14940943830
-browser (2)	Browser screenshots and diagnostics	2026-11-24T16:35:49.6924363Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620548/artifacts/14940943830
-browser (2)	Post Run actions/checkout@v4	﻿2026-11-24T16:35:49.7131773Z Post job cleanup.
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7779549Z [command]/usr/bin/git version
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7796895Z git version 2.56.1
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7822919Z Temporarily overriding HOME='/home/runner/work/_temp/f41e46b8-bf42-48d6-8dfb-d11f28d8ee86' before making global git config changes
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7824050Z Adding repository directory to the temporary git global config as a safe directory
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7828026Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7853902Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.7877977Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.8047147Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.8064827Z http.https://github.com/.extraheader
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.8071929Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.8093501Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.8258948Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (2)	Post Run actions/checkout@v4	2026-11-24T16:35:49.8280510Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (2)	Complete job	﻿2026-11-24T16:35:49.8587751Z Cleaning up orphan processes
-browser (2)	Complete job	2026-11-24T16:35:49.8837357Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4436198Z   retention-days: 7
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4436460Z   if-no-files-found: warn
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4436718Z   compression-level: 6
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4436964Z   overwrite: false
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4437199Z   include-hidden-files: false
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4437460Z env:
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4437679Z   APEX_BROWSER_BACKEND: mesa
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4437954Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4438234Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4438512Z   GALLIUM_DRIVER: llvmpipe
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.4438754Z ##[endgroup]
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.6873269Z (node:4286) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.6930438Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.7673034Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.7922846Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.7982486Z With the provided path, there will be 3 files uploaded
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.8102251Z Artifact name is valid!
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:31.8132263Z Root directory input is valid!
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:32.2882129Z Beginning upload of artifact content to blob storage
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:32.3329206Z (node:4286) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:32.6916107Z Uploaded bytes 10708
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:32.7913004Z Finished uploading artifact content to blob storage!
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:32.7942577Z SHA256 digest of uploaded artifact zip is 5fa8ac1b0f181938962d07c55d384f4fc986fd4c44aea6aa94fabf5921d6cead
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:32.8252427Z Finalizing artifact upload
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:33.2082801Z Artifact browser-validation-2-of-16.zip successfully finalized. Artifact ID 14948027743
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:33.2142721Z Artifact browser-validation-2-of-16 has been successfully uploaded! Final size is 10708 bytes. Artifact ID is 14948027743
+browser (2)	Browser screenshots and diagnostics	2026-11-24T17:43:33.2143844Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45444357605/artifacts/14948027743
+browser (2)	Post Run actions/checkout@v4	﻿2026-11-24T17:43:33.2363257Z Post job cleanup.
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.5052816Z [command]/usr/bin/git version
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.5633193Z git version 2.56.1
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.6615815Z Temporarily overriding HOME='/home/runner/work/_temp/f3580bee-86a9-47c5-b99f-20ed0db21c84' before making global git config changes
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.6943202Z Adding repository directory to the temporary git global config as a safe directory
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.6960877Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7340958Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7493276Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7542674Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7543354Z http.https://github.com/.extraheader
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7544346Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7546043Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7632493Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (2)	Post Run actions/checkout@v4	2026-11-24T17:43:33.7692672Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (2)	Complete job	﻿2026-11-24T17:43:33.7908755Z Cleaning up orphan processes
+browser (2)	Complete job	2026-11-24T17:43:33.8358105Z Terminate orphan process: pid (3798) (xvfb-run)
+browser (2)	Complete job	2026-11-24T17:43:33.8413022Z Terminate orphan process: pid (3808) (Xvfb)
+browser (2)	Complete job	2026-11-24T17:43:33.8499100Z Terminate orphan process: pid (3811) (npm run test:e2)
+browser (2)	Complete job	2026-11-24T17:43:33.8608082Z Terminate orphan process: pid (3822) (sh)
+browser (2)	Complete job	2026-11-24T17:43:33.8686064Z Terminate orphan process: pid (3823) (node)
+browser (2)	Complete job	2026-11-24T17:43:33.8823535Z Terminate orphan process: pid (3859) (node)
+browser (2)	Complete job	2026-11-24T17:43:33.8849978Z Terminate orphan process: pid (3935) (sh)
+browser (2)	Complete job	2026-11-24T17:43:33.8958147Z Terminate orphan process: pid (3936) (npm run preview --port 4173)
+browser (2)	Complete job	2026-11-24T17:43:33.9038572Z Terminate orphan process: pid (3947) (sh)
+browser (2)	Complete job	2026-11-24T17:43:33.9067572Z Terminate orphan process: pid (3948) (node)
+browser (2)	Complete job	2026-11-24T17:43:33.9097205Z Terminate orphan process: pid (3956) (esbuild)
+browser (2)	Complete job	2026-11-24T17:43:33.9125683Z Terminate orphan process: pid (4085) (node)
+browser (2)	Complete job	2026-11-24T17:43:33.9159541Z Terminate orphan process: pid (4100) (chrome_crashpad_handler)
+browser (2)	Complete job	2026-11-24T17:43:33.9184669Z Terminate orphan process: pid (4102) (chrome_crashpad_handler)
+browser (2)	Complete job	2026-11-24T17:43:33.9287468Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
