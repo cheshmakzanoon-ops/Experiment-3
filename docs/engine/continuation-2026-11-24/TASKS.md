@@ -34,16 +34,16 @@ Every numbered row reserves one distinct agent assignment for this continuation.
 | 28 | 5 | Measure actual unchanged track-contact meshes, BVH trees and contact queries against the original implementation. | Complete; 3 real tracks, 55,944 query calls exact; cold construction median reduction48–65%. |
 | 29 | 5 | Measure and remove safe hot-path prediction response allocations while preserving exact adaptive arithmetic. | Complete; 17 new tests,75 focused cases; 786,432 exact gain/yaw comparisons; isolated allocation and timing evidence. |
 | 30 | 5 | Validate real-filesystem mirror crash/restart and certificate recovery boundaries. | Complete; 33 integration cases including27 SIGKILLs; scoped compiler/lint passed; no production defect. |
-| 31 | 6 | Repair stale oscillator automation on reset and add actual browser audio rendering coverage. | Complete implementation;6 pre-fix failures,14 new regressions,98 focused passes;3 native tests await remoteCI. |
+| 31 | 6 | Repair stale oscillator automation on reset and add actual browser audio rendering coverage. | Complete;98 focused cases; all3 new actualaudio tests passed in11-test native run45463968891 at676d4c8. |
 | 32 | 6 | Integrate real input/session ownership; repair synchronous Festival exit during input sampling. | Complete;16 integration cases,68 focused passes;2 exact pre-fix reproductions; narrow host guard. |
 | 33 | 6 | Integrate bounded network history and state ownership across actual client/server outage and recovery. | Complete;2 integration cases; twin90-second sessions plus token rejoin; exact mutation wire/render hashes. |
-| 34 | 6 | Measure atomic rigid-step runtime cost and exact successful dynamics independently. | Running |
-| 35 | 6 | Review actual renderer and construction consumers for optional-instrumentation and cancellation ownership. | Running |
-| 36 | 6 | Validate actual browser worker transfer, stalled-consumer and recovery ownership. | Running; remote native execution required. |
-| 37 | 7 | Awaiting evidence-based assignment | Pending |
-| 38 | 7 | Awaiting evidence-based assignment | Pending |
-| 39 | 7 | Awaiting evidence-based assignment | Pending |
-| 40 | 7 | Awaiting evidence-based assignment | Pending |
+| 34 | 6 | Measure atomic rigid-step runtime cost and exact successful dynamics independently. | Complete;131,072 exact states;768 rejects/384 retries;20,971,520 timing calls disclose19–303ns overhead perstep. |
+| 35 | 6 | Repair factory cleanup replacing construction errors; integrate actual renderer instrumentation/cancellation consumers. | Complete;5 pre-fix failures;14 new cases;80 focused passes; rendering/art unchanged. |
+| 36 | 6 | Validate actual browser worker transfer, stalled-consumer and recovery ownership. | Complete implementation; Node rehearsal521 outbound/10 return transfers;2 native tests await remoteCI. |
+| 37 | 7 | Repair stale renderer-build/startup generation publication after asynchronous cancellation. | Complete;18 pre-fix failures;23 new cases;143 focused passes; owner-safe candidate publication. |
+| 38 | 7 | Integrate input edges, rewind, surface backpressure and real worker recording ownership. | Running |
+| 39 | 7 | Review asynchronous mirror reconciliation, commit backlog and obsolete completion races. | Running |
+| 40 | 7 | Verify actual host surface consumer callbacks and ACK ownership across replacement/failure. | Running |
 | 41 | 7 | Awaiting evidence-based assignment | Pending |
 | 42 | 7 | Awaiting evidence-based assignment | Pending |
 | 43 | 8 | Awaiting evidence-based assignment | Pending |

@@ -26,8 +26,8 @@ No 3D models, character models, authored environments, textures, materials, trac
 | 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | Complete |
 | 4 | 19–24 | Bounded network history, snapshot ownership and audio event lifetime | Complete |
 | 5 | 25–30 | Replay endpoints, controller/audio continuity and real-workload measurements | Complete |
-| 6 | 31–36 | Input, audio and shared resource lifecycle | In progress |
-| 7 | 37–42 | Cross-subsystem integration and regression repairs | Pending |
+| 6 | 31–36 | Input, audio and shared resource lifecycle | Implemented; native worker gate pending |
+| 7 | 37–42 | Cross-subsystem integration and regression repairs | In progress |
 | 8 | 43–48 | Reproducible performance and deterministic comparisons | Pending |
 | 9 | 49–54 | Independent adversarial reviews and targeted corrections | Pending |
 | 10 | 55–60 | Final validation, scope audit and publication verification | Pending |
@@ -104,3 +104,13 @@ Audio integration reproduced six old fixed-oscillator parameter timelines surviv
 Two real client/server integration cases compare twin 90-second sessions under stale ACKs, downlink silence and jitter, then test timeout/token rejoin. Detached-output mutation leaves wire/render hashes identical, retention remains bounded, and teardown leaves no queued timer work. Reports 31–33 distinguish integration fixtures from hardware/network claims.
 
 The sixth publication batch (completed agents 31–33 and the subprocess fixture lint correction) passed complete project TypeScript compilation on an immutable staged-source snapshot. The preceding commit passed all eight focused native tests and 9,134 broad unit tests, with the same four documented content failures; [its full CI account](implementation/fifth-batch-ci.md) also records the fixed helper lint failure and skipped broad browser jobs.
+
+Native audio integration at `676d4c8` passed all three new OfflineAudioContext cases within an 11-test passing browser run; the global lint/content/build validation also passed. Independent rigid-step measurement preserved 131,072 exact states but recorded 19–303 ns additional median work per step in designed drivers. The correctness improvement has a measured cost, not a claimed integration-speed gain. Report 34 retains all samples and limits. Renderer integration then reproduced construction errors being replaced by cleanup errors; its narrow factory fix preserves the original thrown value and cancellation outcome, with 14 new integration cases and 80 focused passes.
+
+Actual-worker browser fixtures now cover circuit stalls and Festival field resizing. A Node worker-thread rehearsal transferred 521 outgoing buffers and 10 returns with native detachment, exercising bounded ordinary reserves and ordered rewind recovery. Browser execution of those two new tests remains pending.
+
+### Wave 7: renderer startup ownership
+
+A cancelled caller did not cancel the underlying RAF/factory promise. Exact host-method tests reproduced 18 failures in which obsolete work disposed or overwrote a newer renderer, published stale progress, or failed to retire its own late candidate. Renderer request serials plus the existing session generation now guard asynchronous boundaries and local-candidate publication. All 23 new cases and 143 combined focused cases passed; selected tracks, templates, material data and renderer configuration remain unchanged.
+
+The seventh publication batch (agents 34–37) passed the full project TypeScript check on its immutable staged-source snapshot with a 2.5 GiB heap. The initial 2 GiB process hit its heap limit; that interrupted compiler attempt is not counted as a pass. Later source work was excluded from the verified snapshot.

@@ -784,6 +784,15 @@ export class RacingRenderer {
       renderer.setCars(1),
     );
     const prepareReflections = !showroomOnly && renderer.graphics.reflections === 'local';
+    const releasePartial = () => {
+      try {
+        renderer.dispose();
+      } catch (cleanupError) {
+        // Teardown still attempts every owner. Its failure must not replace
+        // the construction error or turn cancellation into a new failure.
+        console.warn('Circuit renderer cleanup failed:', cleanupError);
+      }
+    };
     try {
       if (prepareReflections) {
         progress({ completed: 0, total: 1, fraction: 0, label: 'Preparing reflections' });
@@ -793,7 +802,7 @@ export class RacingRenderer {
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed sky' });
       await renderer.photoSky.ready(MENU_CLOUD_COVER, initialSkyLighting, 15000);
       if (cancelled()) {
-        renderer.dispose();
+        releasePartial();
         return null;
       }
       if (prepareReflections) {
@@ -832,7 +841,7 @@ export class RacingRenderer {
       }
       if (showroomOnly) {
         if (cancelled()) {
-          renderer.dispose();
+          releasePartial();
           return null;
         }
         // Keep the real subject, selected detail/texture budget and GPU
@@ -920,7 +929,7 @@ export class RacingRenderer {
         renderer.preset,
       );
       if (cancelled()) {
-        renderer.dispose();
+        releasePartial();
         return null;
       }
       // This original kit is terrain/route-validated for Aurel. Vellamar keeps
@@ -982,18 +991,18 @@ export class RacingRenderer {
         );
       }
       if (cancelled()) {
-        renderer.dispose();
+        releasePartial();
         return null;
       }
       if (!(await renderer.circuit.construction.run(progress, cancelled))) {
-        renderer.dispose();
+        releasePartial();
         return null;
       }
       renderer.textures.register(renderer.circuit.group);
       // Sets first requested by construction tasks (the far terrain's rock).
       await scannedGround.ready(10000);
       if (cancelled()) {
-        renderer.dispose();
+        releasePartial();
         return null;
       }
       // Large, bright or near-edge scenery mirrors in standing water; small
@@ -1001,7 +1010,7 @@ export class RacingRenderer {
       reflectInWetRoad(renderer.circuit.props);
       return renderer;
     } catch (error) {
-      renderer.dispose();
+      releasePartial();
       if (cancelled()) return null;
       throw error;
     }

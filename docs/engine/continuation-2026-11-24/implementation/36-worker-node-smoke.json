@@ -1,0 +1,435 @@
+{
+  "environment": {
+    "node": "v24.22.3",
+    "validation": "Node worker_threads adapter, NOT a browser run",
+    "childHeapMiB": 512
+  },
+  "bundles": {
+    "fixture": 353358,
+    "circuit": 1076061,
+    "festival": 1198659
+  },
+  "elapsedMs": {
+    "circuit": 3034.4789710000005,
+    "festival": 1074.596817
+  },
+  "circuit": {
+    "boot": {
+      "kind": "circuit",
+      "intervals": 1
+    },
+    "first": {
+      "bytes": 1420,
+      "tick": 0,
+      "time": 5.723049163818359,
+      "cars": 1
+    },
+    "recordingRows": {
+      "telemetry": 60,
+      "replay": 15
+    },
+    "stalled": {
+      "frames": 5,
+      "telemetry": 60,
+      "replay": 60,
+      "surfaces": 120
+    },
+    "recovered": {
+      "frames": 6,
+      "telemetry": 61,
+      "replay": 61,
+      "surfaces": 120
+    },
+    "restalled": {
+      "frames": 6,
+      "telemetry": 61,
+      "replay": 61,
+      "surfaces": 120
+    },
+    "stalledSnapshot": {
+      "now": 62000,
+      "pumps": 620,
+      "intervals": 1,
+      "transfers": {
+        "frame": {
+          "messages": 5,
+          "buffers": 5,
+          "detached": 5,
+          "bytes": 7100
+        },
+        "pauseState": {
+          "messages": 1,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        },
+        "surface": {
+          "messages": 120,
+          "buffers": 360,
+          "detached": 360,
+          "bytes": 5160960
+        },
+        "replayFrames": {
+          "messages": 60,
+          "buffers": 60,
+          "detached": 60,
+          "bytes": 1278000
+        },
+        "telemetry": {
+          "messages": 60,
+          "buffers": 60,
+          "detached": 60,
+          "bytes": 3283200
+        },
+        "recordingWarning": {
+          "messages": 2,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        }
+      }
+    },
+    "pausedOrder": [
+      "frame",
+      "pauseState"
+    ],
+    "paused": {
+      "bytes": 1420,
+      "tick": 7680,
+      "time": 69.7230453491211,
+      "cars": 1
+    },
+    "pauseReceipt": {
+      "type": "pauseState",
+      "sequence": 2,
+      "value": true,
+      "tick": 7680
+    },
+    "coalesced": {
+      "order": [
+        "surface"
+      ],
+      "surface": {
+        "epoch": 1,
+        "sequence": 121,
+        "time": 69.7230490767179,
+        "captureGap": true,
+        "lengths": [
+          3584,
+          3584,
+          3584
+        ],
+        "finite": true
+      }
+    },
+    "beforeRewind": {
+      "frames": 12,
+      "telemetry": 62,
+      "replay": 62,
+      "surfaces": 121
+    },
+    "blocked": {
+      "frames": 12,
+      "telemetry": 62,
+      "replay": 62,
+      "surfaces": 121,
+      "completions": 0
+    },
+    "rewound": {
+      "order": [
+        "flashback",
+        "surface",
+        "frame"
+      ],
+      "result": {
+        "type": "flashback",
+        "tick": 60,
+        "time": 6.22304907671644
+      },
+      "surface": {
+        "epoch": 3,
+        "sequence": 122,
+        "time": 6.22304907671644,
+        "captureGap": false,
+        "lengths": [
+          3584,
+          3584,
+          3584
+        ],
+        "finite": true
+      },
+      "frame": {
+        "bytes": 1420,
+        "tick": 60,
+        "time": 6.223049163818359,
+        "cars": 1
+      }
+    },
+    "oldSurface": {
+      "epoch": 1,
+      "sequence": 1,
+      "time": 6.22304907671644,
+      "captureGap": false,
+      "lengths": [
+        3584,
+        3584,
+        3584
+      ],
+      "finite": true
+    },
+    "beforeDuplicate": 122,
+    "afterDuplicate": 122,
+    "afterSecondAck": 123,
+    "latestSurface": {
+      "epoch": 3,
+      "sequence": 123,
+      "time": 6.723049076716465,
+      "captureGap": false,
+      "lengths": [
+        3584,
+        3584,
+        3584
+      ],
+      "finite": true
+    },
+    "warnings": [
+      "Telemetry capture gap: the browser exhausted the 60-page transport reserve before returning recording buffers.",
+      "Replay capture gap: the browser exhausted the 60-page transport reserve before returning recording buffers."
+    ],
+    "errors": [],
+    "returned": {
+      "buffers": 3,
+      "detached": 3
+    },
+    "final": {
+      "now": 65800,
+      "pumps": 658,
+      "intervals": 1,
+      "transfers": {
+        "frame": {
+          "messages": 13,
+          "buffers": 13,
+          "detached": 13,
+          "bytes": 18460
+        },
+        "pauseState": {
+          "messages": 4,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        },
+        "surface": {
+          "messages": 123,
+          "buffers": 369,
+          "detached": 369,
+          "bytes": 5289984
+        },
+        "replayFrames": {
+          "messages": 62,
+          "buffers": 62,
+          "detached": 62,
+          "bytes": 1320600
+        },
+        "telemetry": {
+          "messages": 62,
+          "buffers": 62,
+          "detached": 62,
+          "bytes": 3392640
+        },
+        "recordingWarning": {
+          "messages": 2,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        },
+        "flashback": {
+          "messages": 1,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        }
+      }
+    },
+    "closed": true,
+    "pendingControls": 0
+  },
+  "festival": {
+    "boot": {
+      "kind": "festival",
+      "intervals": 1
+    },
+    "soloBytes": 1420,
+    "raceBytes": 5392,
+    "initialOrder": [
+      "ready",
+      "frame",
+      "status"
+    ],
+    "soloFrames": [
+      {
+        "bytes": 1420,
+        "tick": 0,
+        "time": 0,
+        "cars": 1
+      },
+      {
+        "bytes": 1420,
+        "tick": 2,
+        "time": 0.01666666753590107,
+        "cars": 1
+      },
+      {
+        "bytes": 1420,
+        "tick": 4,
+        "time": 0.03333333507180214,
+        "cars": 1
+      },
+      {
+        "bytes": 1420,
+        "tick": 7,
+        "time": 0.05833333358168602,
+        "cars": 1
+      }
+    ],
+    "growthOrder": [
+      "frame",
+      "status",
+      "command-result"
+    ],
+    "raceFrames": [
+      {
+        "bytes": 5392,
+        "tick": 48,
+        "time": 0.4000000059604645,
+        "cars": 4
+      },
+      {
+        "bytes": 5392,
+        "tick": 50,
+        "time": 0.4166666567325592,
+        "cars": 4
+      },
+      {
+        "bytes": 5392,
+        "tick": 52,
+        "time": 0.4333333373069763,
+        "cars": 4
+      },
+      {
+        "bytes": 5392,
+        "tick": 55,
+        "time": 0.4583333432674408,
+        "cars": 4
+      }
+    ],
+    "afterOldReturn": 8,
+    "afterCurrentReturn": 9,
+    "afterRestall": 9,
+    "beforeShrink": 9,
+    "shrinkOrder": [
+      "frame",
+      "status",
+      "command-result"
+    ],
+    "shrunkFrames": [
+      {
+        "bytes": 1420,
+        "tick": 156,
+        "time": 1.2999999523162842,
+        "cars": 1
+      },
+      {
+        "bytes": 1420,
+        "tick": 158,
+        "time": 1.3166667222976685,
+        "cars": 1
+      },
+      {
+        "bytes": 1420,
+        "tick": 160,
+        "time": 1.3333333730697632,
+        "cars": 1
+      },
+      {
+        "bytes": 1420,
+        "tick": 163,
+        "time": 1.3583333492279053,
+        "cars": 1
+      }
+    ],
+    "afterOldRaceReturns": 13,
+    "afterShrunkReturn": 14,
+    "afterShrunkRestall": 14,
+    "pausedOrder": [
+      "frame",
+      "status"
+    ],
+    "paused": {
+      "bytes": 1420,
+      "tick": 252,
+      "time": 2.0999999046325684,
+      "cars": 1
+    },
+    "pausedCount": 15,
+    "afterPausedAdvance": 15,
+    "results": 1,
+    "receipts": [
+      {
+        "type": "command-result",
+        "requestId": 11
+      },
+      {
+        "type": "command-result",
+        "requestId": 12
+      },
+      {
+        "type": "command-result",
+        "requestId": 13
+      }
+    ],
+    "errors": [],
+    "returned": {
+      "buffers": 7,
+      "detached": 7
+    },
+    "final": {
+      "now": 2300,
+      "pumps": 115,
+      "intervals": 1,
+      "transfers": {
+        "ready": {
+          "messages": 1,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        },
+        "frame": {
+          "messages": 15,
+          "buffers": 15,
+          "detached": 15,
+          "bytes": 41160
+        },
+        "status": {
+          "messages": 26,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        },
+        "command-result": {
+          "messages": 3,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        },
+        "result": {
+          "messages": 1,
+          "buffers": 0,
+          "detached": 0,
+          "bytes": 0
+        }
+      }
+    },
+    "closed": true,
+    "pendingControls": 0
+  }
+}

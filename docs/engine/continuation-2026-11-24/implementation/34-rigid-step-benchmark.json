@@ -1,0 +1,1431 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-24T18:53:26.181Z",
+  "environment": {
+    "node": "v24.22.3",
+    "platform": "linux",
+    "release": "6.18.57",
+    "architecture": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "workerOldSpaceMiB": 512
+  },
+  "methodology": {
+    "freshWorkersPerSide": 5,
+    "warmupStepsPerWorkload": 65536,
+    "timedStepsPerWorkload": 262144,
+    "periodicResetSteps": 1024,
+    "timingIncludes": "Input application, periodic public-state reset, actual RigidBody.integrate and checksum accumulation.",
+    "timingExcludes": "Imports, input generation, exact comparisons, identity checks and hashes.",
+    "allocationLimit": "Owned vector/quaternion counts and stable identities are measured; this is not a complete transient heap-allocation profiler.",
+    "scopeLimit": "Synthetic force/torque/rotor trajectories on unchanged catalogue mass/inertia; not a full vehicle/world simulation or FPS prediction."
+  },
+  "baseline": {
+    "head": "5edead7a44c8ccb5a187b22b750ce2bda7715128",
+    "files": {
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "src/simulation/vehicles.ts": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+      "src/simulation/bike-definitions.ts": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76",
+      "src/simulation/offroad/dirt-bikes.ts": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+      "src/simulation/vehicle-catalogue/builder.ts": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "src/simulation/vehicle-catalogue/common.ts": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "src/simulation/vehicle-catalogue/dirt-2.ts": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "src/simulation/vehicle-catalogue/dirt.ts": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "src/simulation/vehicle-catalogue/endurance.ts": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "src/simulation/vehicle-catalogue/experimental.ts": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+      "src/simulation/vehicle-catalogue/formula.ts": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "src/simulation/vehicle-catalogue/gt-layouts.ts": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+      "src/simulation/vehicle-catalogue/gt.ts": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "src/simulation/vehicle-catalogue/index.ts": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "src/simulation/vehicle-catalogue/prototypes.ts": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "src/simulation/vehicle-catalogue/road-festival.ts": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "src/simulation/vehicle-catalogue/single-seaters.ts": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+      "src/simulation/vehicle-catalogue/small-road.ts": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "src/simulation/vehicle-catalogue/touring-club-2.ts": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "src/simulation/vehicle-catalogue/touring-club.ts": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+    }
+  },
+  "candidate": {
+    "head": "676d4c8531695638537bf62af5a74ca8edbe41ef",
+    "files": {
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/simulation/rigid.ts": "eb0caeec3e61745282a3b1fbde6950f7fa64fcfe8ea0072626fdeb95ab41324a",
+      "src/simulation/vehicles.ts": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+      "src/simulation/bike-definitions.ts": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76",
+      "src/simulation/offroad/dirt-bikes.ts": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+      "src/simulation/vehicle-catalogue/builder.ts": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "src/simulation/vehicle-catalogue/common.ts": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "src/simulation/vehicle-catalogue/dirt-2.ts": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "src/simulation/vehicle-catalogue/dirt.ts": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "src/simulation/vehicle-catalogue/endurance.ts": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "src/simulation/vehicle-catalogue/experimental.ts": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+      "src/simulation/vehicle-catalogue/formula.ts": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "src/simulation/vehicle-catalogue/gt-layouts.ts": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+      "src/simulation/vehicle-catalogue/gt.ts": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "src/simulation/vehicle-catalogue/index.ts": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "src/simulation/vehicle-catalogue/prototypes.ts": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "src/simulation/vehicle-catalogue/road-festival.ts": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "src/simulation/vehicle-catalogue/single-seaters.ts": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+      "src/simulation/vehicle-catalogue/small-road.ts": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "src/simulation/vehicle-catalogue/touring-club-2.ts": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "src/simulation/vehicle-catalogue/touring-club.ts": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+    }
+  },
+  "changedSources": [
+    "src/simulation/rigid.ts"
+  ],
+  "profiles": [
+    {
+      "id": "apx01",
+      "mass": 770,
+      "inertia": [
+        510,
+        1220,
+        1080
+      ],
+      "speed": 65,
+      "wheelRadius": 0.335,
+      "wheelInertia": 1.8,
+      "wheels": 4
+    },
+    {
+      "id": "tc1",
+      "mass": 1265,
+      "inertia": [
+        560,
+        2150,
+        1950
+      ],
+      "speed": 45,
+      "wheelRadius": 0.318,
+      "wheelInertia": 1.35,
+      "wheels": 4
+    },
+    {
+      "id": "gpr1",
+      "mass": 229,
+      "inertia": [
+        62,
+        55,
+        24
+      ],
+      "speed": 60,
+      "wheelRadius": 0.32,
+      "wheelInertia": 0.9,
+      "wheels": 2
+    },
+    {
+      "id": "mx450",
+      "mass": 179,
+      "inertia": [
+        60,
+        52,
+        22
+      ],
+      "speed": 25,
+      "wheelRadius": 0.345,
+      "wheelInertia": 0.7,
+      "wheels": 2
+    }
+  ],
+  "exact": {
+    "comparisons": 131072,
+    "scalarComparisons": 3801088,
+    "fields": [
+      "position.x",
+      "position.y",
+      "position.z",
+      "velocity.x",
+      "velocity.y",
+      "velocity.z",
+      "omega.x",
+      "omega.y",
+      "omega.z",
+      "force.x",
+      "force.y",
+      "force.z",
+      "torque.x",
+      "torque.y",
+      "torque.z",
+      "acceleration.x",
+      "acceleration.y",
+      "acceleration.z",
+      "angularAcceleration.x",
+      "angularAcceleration.y",
+      "angularAcceleration.z",
+      "inertia.x",
+      "inertia.y",
+      "inertia.z",
+      "orientation.x",
+      "orientation.y",
+      "orientation.z",
+      "orientation.w",
+      "mass"
+    ],
+    "results": [
+      {
+        "id": "apx01",
+        "hz": 120,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "b13100e128b7beb42550d2dd2eb29208dfa3802b00ba0b851d47194ec28f7dca",
+        "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21"
+      },
+      {
+        "id": "apx01",
+        "hz": 240,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "096e928997852c0322fac150912b690527156da39bf9f7cd82b0549f9bf93d82",
+        "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21"
+      },
+      {
+        "id": "tc1",
+        "hz": 120,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "53129f2666c927546e33c5725ebb64375a0cfab7b0d16d550a2227640a964e5a",
+        "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf"
+      },
+      {
+        "id": "tc1",
+        "hz": 240,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "d8adfee396f07f2dae72d31dc78d32cde41175e4ef1afb1b79cce7c0b9c2ba6a",
+        "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf"
+      },
+      {
+        "id": "gpr1",
+        "hz": 120,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "4fd44256a4ad5780cdddebf79897ad313e85cf53a5ac5fb9f0f94b9af335f9b5",
+        "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83"
+      },
+      {
+        "id": "gpr1",
+        "hz": 240,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "93d56969d4dde32f26a661e7e5b1a7c172a3999b02c7feb081e447cdb291ef2c",
+        "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83"
+      },
+      {
+        "id": "mx450",
+        "hz": 120,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "15191cf0e829f333bcb659454ea9696118a0d2ff31e5e15e8a7442f2028e47e2",
+        "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2"
+      },
+      {
+        "id": "mx450",
+        "hz": 240,
+        "trajectories": 4,
+        "stepsPerTrajectory": 4096,
+        "nativeFloat64StatesExact": true,
+        "traceSHA256": "351d341a50b71ce5fe63ff7137499651480ad15d3e326cd8b8b1adb934b05bac",
+        "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2"
+      }
+    ]
+  },
+  "recovery": [
+    {
+      "name": "invalid-position",
+      "rejections": 256,
+      "recoveries": 128,
+      "errors": [
+        "Invalid rigid-body integration state"
+      ]
+    },
+    {
+      "name": "singular-midpoint",
+      "rejections": 256,
+      "recoveries": 128,
+      "errors": [
+        "Singular rigid-body midpoint solve"
+      ]
+    },
+    {
+      "name": "translation-overflow",
+      "rejections": 256,
+      "recoveries": 128,
+      "errors": [
+        "Non-finite rigid body"
+      ]
+    }
+  ],
+  "samples": {
+    "baseline": [
+      {
+        "importMilliseconds": 103.67346600000002,
+        "results": [
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 252.36169800000005,
+            "nanosecondsPerStep": 962.6834793090823,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 231.04438200000004,
+            "nanosecondsPerStep": 881.3643722534181,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 230.314208,
+            "nanosecondsPerStep": 878.5789794921875,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 294.87906,
+            "nanosecondsPerStep": 1124.8743438720703,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 271.460155,
+            "nanosecondsPerStep": 1035.5383110046387,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 223.76023400000008,
+            "nanosecondsPerStep": 853.5775527954105,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 230.08621999999968,
+            "nanosecondsPerStep": 877.7092742919909,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 232.3755369999999,
+            "nanosecondsPerStep": 886.4423255920406,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 89024
+      },
+      {
+        "importMilliseconds": 299.500668,
+        "results": [
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 246.509722,
+            "nanosecondsPerStep": 940.3599624633789,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 242.8181259999999,
+            "nanosecondsPerStep": 926.2776412963863,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 249.016662,
+            "nanosecondsPerStep": 949.9231796264648,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 248.00342899999987,
+            "nanosecondsPerStep": 946.0580024719234,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 245.00647299999991,
+            "nanosecondsPerStep": 934.625522613525,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 246.49694399999998,
+            "nanosecondsPerStep": 940.3112182617186,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 245.30692399999998,
+            "nanosecondsPerStep": 935.7716522216796,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 257.1527839999999,
+            "nanosecondsPerStep": 980.9600219726558,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 88404
+      },
+      {
+        "importMilliseconds": 142.97499800000003,
+        "results": [
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 241.33621099999993,
+            "nanosecondsPerStep": 920.6245841979978,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 247.76202899999998,
+            "nanosecondsPerStep": 945.1371345520018,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 235.95702499999993,
+            "nanosecondsPerStep": 900.1046180725095,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 365.89428,
+            "nanosecondsPerStep": 1395.7759094238281,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 247.53514399999995,
+            "nanosecondsPerStep": 944.2716369628904,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 250.06973100000005,
+            "nanosecondsPerStep": 953.9403190612795,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 260.808845,
+            "nanosecondsPerStep": 994.9067878723146,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 249.52527899999995,
+            "nanosecondsPerStep": 951.863399505615,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 91636
+      },
+      {
+        "importMilliseconds": 203.97264800000002,
+        "results": [
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 293.298661,
+            "nanosecondsPerStep": 1118.8456001281738,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 259.70872800000006,
+            "nanosecondsPerStep": 990.7101745605471,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 257.43913799999996,
+            "nanosecondsPerStep": 982.0523757934569,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 276.94661499999984,
+            "nanosecondsPerStep": 1056.467494964599,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 265.747257,
+            "nanosecondsPerStep": 1013.7453346252441,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 245.53722600000037,
+            "nanosecondsPerStep": 936.6501846313491,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 239.13441300000022,
+            "nanosecondsPerStep": 912.2253913879402,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 233.73173399999996,
+            "nanosecondsPerStep": 891.6158065795897,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 91776
+      },
+      {
+        "importMilliseconds": 137.66177499999998,
+        "results": [
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 260.581989,
+            "nanosecondsPerStep": 994.0414009094239,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 292.14041399999996,
+            "nanosecondsPerStep": 1114.4272384643552,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 314.46268699999996,
+            "nanosecondsPerStep": 1199.57995223999,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 376.24890900000014,
+            "nanosecondsPerStep": 1435.27568435669,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 312.9788160000003,
+            "nanosecondsPerStep": 1193.9194335937511,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 283.00494100000014,
+            "nanosecondsPerStep": 1079.578174591065,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 284.29635599999983,
+            "nanosecondsPerStep": 1084.5045318603509,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 315.54531399999996,
+            "nanosecondsPerStep": 1203.7098464965818,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 14,
+            "ownedQuaternions": 1,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 88280
+      }
+    ],
+    "candidate": [
+      {
+        "importMilliseconds": 111.500394,
+        "results": [
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 333.85749999999996,
+            "nanosecondsPerStep": 1273.5652923583982,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 356.6872649999999,
+            "nanosecondsPerStep": 1360.6539344787595,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 320.6482780000001,
+            "nanosecondsPerStep": 1223.1761093139653,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 287.669811,
+            "nanosecondsPerStep": 1097.3732414245605,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 308.808953,
+            "nanosecondsPerStep": 1178.0126686096191,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 296.54141999999956,
+            "nanosecondsPerStep": 1131.215744018553,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 364.1217200000001,
+            "nanosecondsPerStep": 1389.0141296386723,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 296.3322280000002,
+            "nanosecondsPerStep": 1130.417739868165,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 89584
+      },
+      {
+        "importMilliseconds": 113.36622600000001,
+        "results": [
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 286.66910999999993,
+            "nanosecondsPerStep": 1093.5558700561521,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 314.941827,
+            "nanosecondsPerStep": 1201.4077262878418,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 286.60272399999985,
+            "nanosecondsPerStep": 1093.302627563476,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 399.8494169999999,
+            "nanosecondsPerStep": 1525.30447769165,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 285.40547300000003,
+            "nanosecondsPerStep": 1088.7354774475098,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 289.6885820000002,
+            "nanosecondsPerStep": 1105.0742416381845,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 319.60711200000014,
+            "nanosecondsPerStep": 1219.2043762207036,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 283.08107900000005,
+            "nanosecondsPerStep": 1079.8686180114748,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 89452
+      },
+      {
+        "importMilliseconds": 140.97213,
+        "results": [
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 425.998146,
+            "nanosecondsPerStep": 1625.0539627075195,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 302.20576700000004,
+            "nanosecondsPerStep": 1152.823513031006,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 309.48609799999986,
+            "nanosecondsPerStep": 1180.5957717895503,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 284.4687839999999,
+            "nanosecondsPerStep": 1085.1622924804685,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 309.6421990000001,
+            "nanosecondsPerStep": 1181.1912498474126,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 346.62442699999974,
+            "nanosecondsPerStep": 1322.2672538757315,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 292.89852999999994,
+            "nanosecondsPerStep": 1117.3192214965818,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 318.429224,
+            "nanosecondsPerStep": 1214.7110900878906,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 89236
+      },
+      {
+        "importMilliseconds": 136.029901,
+        "results": [
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 298.205287,
+            "nanosecondsPerStep": 1137.5628929138184,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 319.536778,
+            "nanosecondsPerStep": 1218.9360733032227,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 438.09899700000005,
+            "nanosecondsPerStep": 1671.2150459289553,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 307.47470299999986,
+            "nanosecondsPerStep": 1172.9229087829585,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 308.18576800000005,
+            "nanosecondsPerStep": 1175.6354064941409,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 302.2334209999999,
+            "nanosecondsPerStep": 1152.929004669189,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 313.5150719999997,
+            "nanosecondsPerStep": 1195.9650878906239,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 478.01555499999995,
+            "nanosecondsPerStep": 1823.4846305847166,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 88224
+      },
+      {
+        "importMilliseconds": 144.69606500000003,
+        "results": [
+          {
+            "id": "gpr1",
+            "hz": 120,
+            "milliseconds": 348.50352399999997,
+            "nanosecondsPerStep": 1329.4354400634766,
+            "checksum": 61952692.980194956,
+            "finalStateSHA256": "5dd7e20051b10b9e46f7c8a137ac8ab9302b047495d62b1a0967154d30105ba4",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "gpr1",
+            "hz": 240,
+            "milliseconds": 287.037507,
+            "nanosecondsPerStep": 1094.9611930847168,
+            "checksum": 60952149.957406774,
+            "finalStateSHA256": "09e8f7c636ef2cba1e2bcbcc0a53eac826891e6e743405633bb1451a6dadca67",
+            "inputSHA256": "af31ce84588c898cf26c2bac31ffc6fe115dfc920e0bb0487b79d2d82dea2d83",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 120,
+            "milliseconds": 319.72873200000004,
+            "nanosecondsPerStep": 1219.6683197021487,
+            "checksum": 61916275.970237546,
+            "finalStateSHA256": "46005b4010b21d5d624047fe2b1f153a54ce292fbd324b4aeac71c5a609557b0",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "mx450",
+            "hz": 240,
+            "milliseconds": 279.920842,
+            "nanosecondsPerStep": 1067.8132705688477,
+            "checksum": 60941301.832193345,
+            "finalStateSHA256": "b47c75e70400d239ecec555e591ed0e6afacddc92eba5a4cbf0a42c492d21071",
+            "inputSHA256": "fcf887e0f17cdc7b8eb38b5f3179c176f929b9c5972032dd40ad38aadcfb9bd2",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 120,
+            "milliseconds": 333.12447199999974,
+            "nanosecondsPerStep": 1270.769012451171,
+            "checksum": 61965481.22528308,
+            "finalStateSHA256": "b8de436dbaa1b7e052bd21de3fb49441438663a68802317a1b28ab664e1504ed",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "apx01",
+            "hz": 240,
+            "milliseconds": 329.49033800000007,
+            "nanosecondsPerStep": 1256.9058914184573,
+            "checksum": 60953530.98113806,
+            "finalStateSHA256": "dc8e3ae10da4e10d78954d4d410cb0b514729652e5595bc916c0da38983ca6f6",
+            "inputSHA256": "6ca8d55c5be86c33014134bb9c7ea8e59a67d1c09ab93d0639364d03ee6a7d21",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 120,
+            "milliseconds": 314.60191699999996,
+            "nanosecondsPerStep": 1200.111072540283,
+            "checksum": 61907724.1354366,
+            "finalStateSHA256": "77691ea507412b2ac58f979d9f16848dbc1c91f4f16184abf14f2111c8758f35",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          },
+          {
+            "id": "tc1",
+            "hz": 240,
+            "milliseconds": 298.9788410000001,
+            "nanosecondsPerStep": 1140.513767242432,
+            "checksum": 60955896.5172837,
+            "finalStateSHA256": "9ebcded749fab25232945e25b60f9ca77f75b53b26583331bbd3c6a4143c8bef",
+            "inputSHA256": "0640c8860847714d663bb8a4811c6d235dae355b95439ff04591da0082286fdf",
+            "ownedVectors": 19,
+            "ownedQuaternions": 2,
+            "retainedObjectIdentitiesUnchanged": true
+          }
+        ],
+        "maximumRssKiB": 89504
+      }
+    ]
+  },
+  "summary": [
+    {
+      "id": "apx01",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 245.53722600000037,
+          "median": 257.1527839999999,
+          "maximum": 312.9788160000003
+        },
+        "candidate": {
+          "minimum": 283.08107900000005,
+          "median": 302.2334209999999,
+          "maximum": 333.85749999999996
+        }
+      },
+      "candidateMedianChangePercent": 17.530682071091274
+    },
+    {
+      "id": "apx01",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 231.04438200000004,
+          "median": 246.509722,
+          "maximum": 283.00494100000014
+        },
+        "candidate": {
+          "minimum": 286.66910999999993,
+          "median": 318.429224,
+          "maximum": 356.6872649999999
+        }
+      },
+      "candidateMedianChangePercent": 29.175117888453883
+    },
+    {
+      "id": "tc1",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 230.314208,
+          "median": 241.33621099999993,
+          "maximum": 284.29635599999983
+        },
+        "candidate": {
+          "minimum": 314.60191699999996,
+          "median": 320.6482780000001,
+          "maximum": 478.01555499999995
+        }
+      },
+      "candidateMedianChangePercent": 32.86372429208322
+    },
+    {
+      "id": "tc1",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 247.76202899999998,
+          "median": 293.298661,
+          "maximum": 315.54531399999996
+        },
+        "candidate": {
+          "minimum": 286.60272399999985,
+          "median": 298.205287,
+          "maximum": 302.20576700000004
+        }
+      },
+      "candidateMedianChangePercent": 1.672911149089762
+    },
+    {
+      "id": "gpr1",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 235.95702499999993,
+          "median": 259.70872800000006,
+          "maximum": 271.460155
+        },
+        "candidate": {
+          "minimum": 308.808953,
+          "median": 319.536778,
+          "maximum": 399.8494169999999
+        }
+      },
+      "candidateMedianChangePercent": 23.036595828231054
+    },
+    {
+      "id": "gpr1",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 223.76023400000008,
+          "median": 257.43913799999996,
+          "maximum": 365.89428
+        },
+        "candidate": {
+          "minimum": 284.4687839999999,
+          "median": 287.037507,
+          "maximum": 438.09899700000005
+        }
+      },
+      "candidateMedianChangePercent": 11.497229686963939
+    },
+    {
+      "id": "mx450",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 230.08621999999968,
+          "median": 247.53514399999995,
+          "maximum": 314.46268699999996
+        },
+        "candidate": {
+          "minimum": 289.6885820000002,
+          "median": 309.6421990000001,
+          "maximum": 364.1217200000001
+        }
+      },
+      "candidateMedianChangePercent": 25.090196889375903
+    },
+    {
+      "id": "mx450",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 232.3755369999999,
+          "median": 250.06973100000005,
+          "maximum": 376.24890900000014
+        },
+        "candidate": {
+          "minimum": 279.920842,
+          "median": 308.18576800000005,
+          "maximum": 346.62442699999974
+        }
+      },
+      "candidateMedianChangePercent": 23.239932625032502
+    }
+  ]
+}

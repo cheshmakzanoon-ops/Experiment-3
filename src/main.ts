@@ -323,6 +323,7 @@ export class GameApp {
   private presentationFrames = 0;
   private timer = 0;
   private generation = 0;
+  private rendererBuild = 0;
   private replay: SessionReplay | null = null;
   private telemetry: TelemetryRecorder | null = null;
   private replayA: Float32Array | null = null;
@@ -625,26 +626,55 @@ export class GameApp {
     showroomOnly = false,
     gpGrid = false,
     carTemplates?: CarTemplateTransfer,
+    build = ++this.rendererBuild,
   ) {
+    const generation = this.generation,
+      track = this.track,
+      cancelled = () =>
+        this.disposed ||
+        this.errorStopped ||
+        generation !== this.generation ||
+        build !== this.rendererBuild;
+    if (cancelled()) return false;
     this.resetMenuPresentation();
     this.canvas = canvas;
-    this.renderer = await RacingRenderer.create(
-      canvas,
-      this.track,
-      (progress) => this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`),
-      () => this.disposed || this.errorStopped,
-      { quality: this.settings.quality, graphics: this.settings.graphics, gpGrid, carTemplates },
-      showroomOnly,
-    );
-    if (!this.renderer || this.disposed || this.errorStopped) return false;
-    this.renderer.showroomWindow = this.showroomWindow;
-    this.applyMotion(this.renderer, this.settings);
-    this.renderer.colorblind = this.settings.colorblind;
-    this.renderer.setLivery(this.team.livery);
+    let renderer: RacingRenderer | null;
+    try {
+      renderer = await RacingRenderer.create(
+        canvas,
+        track,
+        (progress) => {
+          if (!cancelled())
+            this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`);
+        },
+        cancelled,
+        { quality: this.settings.quality, graphics: this.settings.graphics, gpGrid, carTemplates },
+        showroomOnly,
+      );
+    } catch (error) {
+      if (cancelled()) return false;
+      throw error;
+    }
+    if (!renderer) return false;
+    if (cancelled()) {
+      // The factory can finish immediately before its owner is replaced.
+      // Its private candidate must never overwrite or dispose the successor.
+      try {
+        if (renderer !== this.renderer) renderer.dispose();
+      } catch (error) {
+        console.warn('Obsolete circuit renderer cleanup failed:', error);
+      }
+      return false;
+    }
+    this.renderer = renderer;
+    renderer.showroomWindow = this.showroomWindow;
+    this.applyMotion(renderer, this.settings);
+    renderer.colorblind = this.settings.colorblind;
+    renderer.setLivery(this.team.livery);
     if (!this.liveSky.active && liveSkyPreferred()) this.liveSky.start(storedObserver());
-    if (this.liveSky.active) this.renderer.lighting = this.liveSky.update() ?? 'day';
-    this.audio.configureDriving(this.track, this.settings.drivingAudio);
-    this.ui.setTrack(this.track);
+    if (this.liveSky.active) renderer.lighting = this.liveSky.update() ?? 'day';
+    this.audio.configureDriving(track, this.settings.drivingAudio);
+    this.ui.setTrack(track);
     return true;
   }
   /** The player changed the LIGHT dial (or the driving academy's buttons): store
@@ -680,21 +710,32 @@ export class GameApp {
   /** Circuits own their venue geometry, so a change rebuilds the presentation
    * once, while loading; the simulation worker builds its own matching Track. */
   private async switchCircuit(id: CircuitId, gpGrid = false) {
+    const build = ++this.rendererBuild,
+      generation = this.generation,
+      cancelled = () =>
+        this.disposed ||
+        this.errorStopped ||
+        generation !== this.generation ||
+        build !== this.rendererBuild;
+    if (cancelled()) return false;
     if (!this.canvas) return true;
     if (this.track.circuit.id === id && this.renderer?.canPrepareGrid(gpGrid)) return true;
     const definition = circuitDefinition(id), kind = definition.offroad?.kind;
     this.ui.loading(`Building ${definition.name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (cancelled()) return false;
     // Dirt circuits retain the decoded models for later garage selections.
     // Give them the existing templates before disposing the old scene, so
     // entering either moto does not decode all five showroom exports again.
     const reuseTemplates = gpGrid || kind === 'motocross' || kind === 'supercross';
-    const carTemplates = reuseTemplates ? this.renderer?.releaseCarTemplates() : undefined;
+    const renderer = this.renderer;
+    const carTemplates = reuseTemplates ? renderer?.releaseCarTemplates() : undefined;
     try {
-      this.renderer?.dispose();
       this.renderer = null;
+      renderer?.dispose();
+      if (cancelled()) return false;
       this.track = new Track('clear', false, undefined, definition);
-      return await this.buildRenderer(this.canvas, false, gpGrid, carTemplates);
+      return await this.buildRenderer(this.canvas, false, gpGrid, carTemplates, build);
     } finally {
       // Before the new renderer takes ownership, cancellation or failure still releases every template.
       carTemplates?.dispose();

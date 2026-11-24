@@ -1,0 +1,424 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ❯ tests/circuit-build-ownership.test.ts (23 tests | 18 failed) 66ms
+   ✓ circuit renderer publication ownership > publishes a current boot renderer with the original arguments and configuration 9ms
+   × circuit renderer publication ownership > retires a late candidate and progress after generation revokes its owner 14ms
+     → expected true to be false // Object.is equality
+   × circuit renderer publication ownership > retires a late candidate and progress after disposed revokes its owner 3ms
+     → expected "spy" to be called +0 times, but got 1 times
+   × circuit renderer publication ownership > retires a late candidate and progress after errorStopped revokes its owner 2ms
+     → expected "spy" to be called +0 times, but got 1 times
+   × circuit renderer publication ownership > a same-generation replacement survives an older completion (candidate=true) 3ms
+     → expected true to be false // Object.is equality
+   × circuit renderer publication ownership > a same-generation replacement survives an older completion (candidate=false) 3ms
+     → expected false to be true // Object.is equality
+   × circuit renderer publication ownership > consumes a stale factory rejection without failing the replacement 8ms
+     → promise rejected "Error: Old loader failed" instead of resolving
+   ✓ circuit renderer publication ownership > preserves the original current factory failure Error: Current loader failed 2ms
+   ✓ circuit renderer publication ownership > preserves the original current factory failure undefined 2ms
+   ✓ circuit renderer publication ownership > preserves the original current factory failure 0 2ms
+   × circuit renderer publication ownership > reports a late-candidate cleanup failure without reviving its abandoned call 6ms
+     → expected true to be false // Object.is equality
+   × circuit renderer publication ownership > does not start another build after disposed 1ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st spy call:
+
+    Array [
+      Object {},
+      Object {
+        "circuit": Object {
+          "id": "aurel",
+          "name": "Aurel",
+        },
+      },
+      [Function anonymous],
+      [Function anonymous],
+      Object {
+        "carTemplates": undefined,
+        "gpGrid": false,
+        "graphics": Object {},
+        "quality": "medium",
+      },
+      false,
+    ]
+
+
+Number of calls: 1
+
+   × circuit renderer publication ownership > does not start another build after errorStopped 1ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st spy call:
+
+    Array [
+      Object {},
+      Object {
+        "circuit": Object {
+          "id": "aurel",
+          "name": "Aurel",
+        },
+      },
+      [Function anonymous],
+      [Function anonymous],
+      Object {
+        "carTemplates": undefined,
+        "gpGrid": false,
+        "graphics": Object {},
+        "quality": "medium",
+      },
+      false,
+    ]
+
+
+Number of calls: 1
+
+   × circuit switch waits and transferred resource ownership > does not retire the current renderer after an obsolete RAF resumes (generation) 1ms
+     → expected null to be { name: 'current', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > does not retire the current renderer after an obsolete RAF resumes (disposed) 1ms
+     → expected null to be { name: 'current', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > does not retire the current renderer after an obsolete RAF resumes (errorStopped) 1ms
+     → expected null to be { name: 'current', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > lets a newer same-generation switch win even when RAF callbacks arrive out of order 1ms
+     → expected null to be { name: 'active', …(6) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > invalidates an older switch when the latest request reuses the existing renderer 1ms
+     → expected null to be { name: 'original', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > rechecks ownership after old-renderer disposal callbacks replace the session 1ms
+     → expected null to be { name: 'callback replacement', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > settles the real startup lifetime while the old RAF remains unable to mutate its successor 1ms
+     → expected null to be { name: 'replacement', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > releases only its own templates after a cancelled build (adopted=false) 1ms
+     → expected null to be { name: 'replacement', …(4) } // Object.is equality
+   × circuit switch waits and transferred resource ownership > releases only its own templates after a cancelled build (adopted=true) 1ms
+     → expected true to be false // Object.is equality
+   ✓ circuit switch waits and transferred resource ownership > retains transferred templates in the accepted candidate and releases them on its disposal 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 18 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > retires a late candidate and progress after generation revokes its owner
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/circuit-build-ownership.test.ts:283:26
+    281|       const late = renderer('late');
+    282|       call.resolve(late);
+    283|       expect(await work).toBe(false);
+       |                          ^
+    284|       expect(call.cancelled()).toBe(true);
+    285|       expect(f.app.ui.loading).toHaveBeenCalledTimes(loading);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > retires a late candidate and progress after disposed revokes its owner
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > retires a late candidate and progress after errorStopped revokes its owner
+AssertionError: expected "spy" to be called +0 times, but got 1 times
+ ❯ tests/circuit-build-ownership.test.ts:285:32
+    283|       expect(await work).toBe(false);
+    284|       expect(call.cancelled()).toBe(true);
+    285|       expect(f.app.ui.loading).toHaveBeenCalledTimes(loading);
+       |                                ^
+    286|       expect(f.app.renderer).toBe(active);
+    287|       expect(late.dispose).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > a same-generation replacement survives an older completion (candidate=true)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/circuit-build-ownership.test.ts:310:27
+    308|       const late = renderer('late');
+    309|       firstCall.resolve(hasCandidate ? late : null);
+    310|       expect(await first).toBe(false);
+       |                           ^
+    311|       expect(firstCall.cancelled()).toBe(true);
+    312|       expect(f.app.renderer).toBe(active);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > a same-generation replacement survives an older completion (candidate=false)
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/circuit-build-ownership.test.ts:311:37
+    309|       firstCall.resolve(hasCandidate ? late : null);
+    310|       expect(await first).toBe(false);
+    311|       expect(firstCall.cancelled()).toBe(true);
+       |                                     ^
+    312|       expect(f.app.renderer).toBe(active);
+    313|       expect(late.dispose).toHaveBeenCalledTimes(hasCandidate ? 1 : 0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > consumes a stale factory rejection without failing the replacement
+AssertionError: promise rejected "Error: Old loader failed" instead of resolving
+ ❯ tests/circuit-build-ownership.test.ts:330:23
+    328|     f.app.renderer = active;
+    329|     f.creations[0].reject(new Error('Old loader failed'));
+    330|     await expect(first).resolves.toBe(false);
+       |                       ^
+    331|     expect(f.app.renderer).toBe(active);
+    332|     expect(active.dispose).not.toHaveBeenCalled();
+
+Caused by: Error: Old loader failed
+ ❯ tests/circuit-build-ownership.test.ts:329:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > reports a late-candidate cleanup failure without reviving its abandoned call
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/circuit-build-ownership.test.ts:358:5
+    356|     f.app.generation++;
+    357|     f.creations[0].resolve(late);
+    358|     await expect(work).resolves.toBe(false);
+       |     ^
+    359|     expect(late.dispose).toHaveBeenCalledTimes(1);
+    360|     expect(f.app.renderer).toBe(f.original);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > does not start another build after disposed
+ FAIL  tests/circuit-build-ownership.test.ts > circuit renderer publication ownership > does not start another build after errorStopped
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st spy call:
+
+    Array [
+      Object {},
+      Object {
+        "circuit": Object {
+          "id": "aurel",
+          "name": "Aurel",
+        },
+      },
+      [Function anonymous],
+      [Function anonymous],
+      Object {
+        "carTemplates": undefined,
+        "gpGrid": false,
+        "graphics": Object {},
+        "quality": "medium",
+      },
+      false,
+    ]
+
+
+Number of calls: 1
+
+ ❯ tests/circuit-build-ownership.test.ts:372:28
+    370|       f.creations[0]?.resolve(null);
+    371|       expect(await work).toBe(false);
+    372|       expect(f.create).not.toHaveBeenCalled();
+       |                            ^
+    373|       expect(f.app.resetMenuPresentation).not.toHaveBeenCalled();
+    374|     },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > does not retire the current renderer after an obsolete RAF resumes (generation)
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > does not retire the current renderer after an obsolete RAF resumes (disposed)
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > does not retire the current renderer after an obsolete RAF resumes (errorStopped)
+AssertionError: expected null to be { name: 'current', …(4) } // Object.is equality
+
+- Expected:
+{
+  "canPrepareGrid": [Function spy],
+  "dispose": [Function spy],
+  "name": "current",
+  "releaseCarTemplates": [Function spy],
+  "setLivery": [Function spy],
+}
+
++ Received:
+null
+
+ ❯ tests/circuit-build-ownership.test.ts:393:30
+    391|       f.creations[0]?.resolve(null);
+    392|       expect(await work).toBe(false);
+    393|       expect(f.app.renderer).toBe(current);
+       |                              ^
+    394|       expect(f.app.track).toBe(currentTrack);
+    395|       expect(current.dispose).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > lets a newer same-generation switch win even when RAF callbacks arrive out of order
+AssertionError: expected null to be { name: 'active', …(6) } // Object.is equality
+
+- Expected:
+{
+  "canPrepareGrid": [Function spy],
+  "colorblind": true,
+  "dispose": [Function spy],
+  "name": "active",
+  "releaseCarTemplates": [Function spy],
+  "setLivery": [Function spy],
+  "showroomWindow": {},
+}
+
++ Received:
+null
+
+ ❯ tests/circuit-build-ownership.test.ts:414:28
+    412|     f.creations[1]?.resolve(null);
+    413|     expect(await first).toBe(false);
+    414|     expect(f.app.renderer).toBe(active);
+       |                            ^
+    415|     expect(f.app.track).toBe(activeTrack);
+    416|     expect(activeTrack.circuit.id).toBe('valley-ridge-mx');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > invalidates an older switch when the latest request reuses the existing renderer
+AssertionError: expected null to be { name: 'original', …(4) } // Object.is equality
+
+- Expected:
+{
+  "canPrepareGrid": [Function spy],
+  "dispose": [Function spy],
+  "name": "original",
+  "releaseCarTemplates": [Function spy],
+  "setLivery": [Function spy],
+}
+
++ Received:
+null
+
+ ❯ tests/circuit-build-ownership.test.ts:429:28
+    427|     f.creations[0]?.resolve(null);
+    428|     expect(await pending).toBe(false);
+    429|     expect(f.app.renderer).toBe(f.original);
+       |                            ^
+    430|     expect(f.original.dispose).not.toHaveBeenCalled();
+    431|     expect(f.create).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > rechecks ownership after old-renderer disposal callbacks replace the session
+AssertionError: expected null to be { name: 'callback replacement', …(4) } // Object.is equality
+
+- Expected:
+{
+  "canPrepareGrid": [Function spy],
+  "dispose": [Function spy],
+  "name": "callback replacement",
+  "releaseCarTemplates": [Function spy],
+  "setLivery": [Function spy],
+}
+
++ Received:
+null
+
+ ❯ tests/circuit-build-ownership.test.ts:448:28
+    446|     f.creations[0]?.resolve(null);
+    447|     expect(await work).toBe(false);
+    448|     expect(f.app.renderer).toBe(replacement);
+       |                            ^
+    449|     expect(f.app.track).toBe(replacementTrack);
+    450|     expect(f.builtTracks).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > settles the real startup lifetime while the old RAF remains unable to mutate its successor
+AssertionError: expected null to be { name: 'replacement', …(4) } // Object.is equality
+
+- Expected:
+{
+  "canPrepareGrid": [Function spy],
+  "dispose": [Function spy],
+  "name": "replacement",
+  "releaseCarTemplates": [Function spy],
+  "setLivery": [Function spy],
+}
+
++ Received:
+null
+
+ ❯ tests/circuit-build-ownership.test.ts:469:28
+    467|     f.creations[0]?.resolve(null);
+    468|     expect(await underlying).toBe(false);
+    469|     expect(f.app.renderer).toBe(replacement);
+       |                            ^
+    470|     expect(replacement.dispose).not.toHaveBeenCalled();
+    471|     expect(f.create).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > releases only its own templates after a cancelled build (adopted=false)
+AssertionError: expected null to be { name: 'replacement', …(4) } // Object.is equality
+
+- Expected:
+{
+  "canPrepareGrid": [Function spy],
+  "dispose": [Function spy],
+  "name": "replacement",
+  "releaseCarTemplates": [Function spy],
+  "setLivery": [Function spy],
+}
+
++ Received:
+null
+
+ ❯ tests/circuit-build-ownership.test.ts:491:30
+    489|       call.resolve(adopted ? late : null);
+    490|       expect(await work).toBe(false);
+    491|       expect(f.app.renderer).toBe(replacement);
+       |                              ^
+    492|       for (const resource of [retained.shells, ...retained.rivals, ret…
+    493|         expect(resource.dispose).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/18]⎯
+
+ FAIL  tests/circuit-build-ownership.test.ts > circuit switch waits and transferred resource ownership > releases only its own templates after a cancelled build (adopted=true)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/circuit-build-ownership.test.ts:490:26
+    488|       f.app.renderer = replacement;
+    489|       call.resolve(adopted ? late : null);
+    490|       expect(await work).toBe(false);
+       |                          ^
+    491|       expect(f.app.renderer).toBe(replacement);
+    492|       for (const resource of [retained.shells, ...retained.rivals, ret…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/18]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  18 failed | 5 passed (23)
+   Start at  12:03:02
+   Duration  1.19s (transform 69ms, setup 0ms, collect 835ms, tests 66ms, environment 0ms, prepare 71ms)

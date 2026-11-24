@@ -1,0 +1,116 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ❯ tests/renderer-resource-integration.test.ts (9 tests | 5 failed) 411ms
+   × renderer factory owns construction and optional timer teardown > preserves the original construction failure when timer cleanup also fails (Error: construction failed) 91ms
+     → expected Error: optional timer delete failed to be Error: construction failed // Object.is equality
+   × renderer factory owns construction and optional timer teardown > preserves the original construction failure when timer cleanup also fails (undefined) 36ms
+     → expected Error: optional timer delete failed to be undefined // Object.is equality
+   × renderer factory owns construction and optional timer teardown > preserves the original construction failure when timer cleanup also fails (0) 21ms
+     → expected Error: optional timer delete failed to be +0 // Object.is equality
+   × renderer factory owns construction and optional timer teardown > cancels at actual queue progress Engine dependency and preserves cleanup failure diagnostics 21ms
+     → expected [] to deeply equal [ [ …(2) ] ]
+   × renderer factory owns construction and optional timer teardown > cancels at actual queue progress Scene ready and preserves cleanup failure diagnostics 19ms
+     → expected [] to deeply equal [ [ …(2) ] ]
+   ✓ renderer factory owns construction and optional timer teardown > publishes a successful factory result with its queue complete and owners still live 17ms
+   ✓ venue preparation caller releases its actual shared generator on cancellation > cancels from progress without another raster step or leaked waiter 201ms
+   ✓ venue preparation caller releases its actual shared generator on cancellation > cancels from yield without another raster step or leaked waiter 1ms
+   ✓ venue preparation caller releases its actual shared generator on cancellation > cancels from complete without another raster step or leaked waiter 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/renderer-resource-integration.test.ts > renderer factory owns construction and optional timer teardown > preserves the original construction failure when timer cleanup also fails (Error: construction failed)
+AssertionError: expected Error: optional timer delete failed to be Error: construction failed // Object.is equality
+
+- Expected
++ Received
+
+  Error {
+-   "message": "construction failed",
++   "message": "optional timer delete failed",
+  }
+
+ ❯ tests/renderer-resource-integration.test.ts:187:23
+    185|       }
+    186|       expect(caught).toBe(true);
+    187|       expect(failure).toBe(error);
+       |                       ^
+    188|       expect(f.state.disposed).toBe(true);
+    189|       expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/renderer-resource-integration.test.ts > renderer factory owns construction and optional timer teardown > preserves the original construction failure when timer cleanup also fails (undefined)
+AssertionError: expected Error: optional timer delete failed to be undefined // Object.is equality
+
+- Expected:
+undefined
+
++ Received:
+Error {
+  "message": "optional timer delete failed",
+}
+
+ ❯ tests/renderer-resource-integration.test.ts:187:23
+    185|       }
+    186|       expect(caught).toBe(true);
+    187|       expect(failure).toBe(error);
+       |                       ^
+    188|       expect(f.state.disposed).toBe(true);
+    189|       expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/renderer-resource-integration.test.ts > renderer factory owns construction and optional timer teardown > preserves the original construction failure when timer cleanup also fails (0)
+AssertionError: expected Error: optional timer delete failed to be +0 // Object.is equality
+
+- Expected:
+0
+
++ Received:
+Error {
+  "message": "optional timer delete failed",
+}
+
+ ❯ tests/renderer-resource-integration.test.ts:187:23
+    185|       }
+    186|       expect(caught).toBe(true);
+    187|       expect(failure).toBe(error);
+       |                       ^
+    188|       expect(f.state.disposed).toBe(true);
+    189|       expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/renderer-resource-integration.test.ts > renderer factory owns construction and optional timer teardown > cancels at actual queue progress Engine dependency and preserves cleanup failure diagnostics
+ FAIL  tests/renderer-resource-integration.test.ts > renderer factory owns construction and optional timer teardown > cancels at actual queue progress Scene ready and preserves cleanup failure diagnostics
+AssertionError: expected [] to deeply equal [ [ …(2) ] ]
+
+- Expected
++ Received
+
+- [
+-   [
+-     "Circuit renderer cleanup failed:",
+-     Error {
+-       "message": "optional timer delete failed",
+-     },
+-   ],
+- ]
++ []
+
+ ❯ tests/renderer-resource-integration.test.ts:218:33
+    216|       expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
+    217|       expect(f.state.renderer.dispose).toHaveBeenCalledOnce();
+    218|       expect(f.warn.mock.calls).toEqual([['Circuit renderer cleanup fa…
+       |                                 ^
+    219|     },
+    220|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 4 passed (9)
+   Start at  11:51:40
+   Duration  2.65s (transform 601ms, setup 0ms, collect 1.97s, tests 411ms, environment 0ms, prepare 69ms)
