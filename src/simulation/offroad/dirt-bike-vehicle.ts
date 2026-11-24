@@ -705,14 +705,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       const landing = this.lastLanding,
         fromLanding =
           landing && landing.outcome.startsWith('crash') && this.clock - landing.time < 0.5;
-      this.crashCauses.push({
-        cause: fromLanding ? landing.outcome : this.crashReason || `grip-${d.state}`,
-        s: this.s,
-        time: this.clock,
-      });
-      if (this.crashCauses.length > 32) this.crashCauses.shift();
-      this.crashReason = '';
-      this.separate();
+      this.separateAtFall(fromLanding ? landing.outcome : this.crashReason || `grip-${d.state}`);
     }
     this.lastState = d.state;
     if (was === 'separated' && d.state === 'remount') this.planRemount(track);
@@ -729,7 +722,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.slide = Math.abs(this.slide) <= decel ? 0 : this.slide - Math.sign(this.slide) * decel;
         if (Math.abs(this.slide) > 5.5 && this.riding) {
           d.fall('lowside');
-          this.separate();
+          this.separateAtFall('slide-lowside');
           this.lastState = d.state;
         }
       }
@@ -760,6 +753,12 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.bottom = Math.max(0, this.bottom - dt * 1.5);
     if (b.position.y < this.groundY - 6) this.retired = true;
     void spec;
+  }
+  private separateAtFall(cause: string) {
+    this.crashCauses.push({ cause, s: this.s, time: this.clock });
+    if (this.crashCauses.length > 32) this.crashCauses.shift();
+    this.crashReason = '';
+    this.separate();
   }
   /** Ballistic flight: plan-view travel at the take-off speed less drag,
    * rear-wheel spin dynamics and the pitch torques they and the rider make. */

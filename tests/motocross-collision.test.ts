@@ -58,6 +58,22 @@ describe('motocross collision and sprung vertical velocity', () => {
     }
   });
 
+  it('records a lateral slide at the same instant as the rider separates', () => {
+    const track = rigTrack('arena-nord-sx');
+    const bike = rigBike(MX_450, track, 54, 8), dt = 1 / 240;
+    bike.aiControlled();
+    bike.slide = 5.8;
+    bike.step(dt, track);
+    expect(bike.dynamics.crashes).toBe(1);
+    expect(bike.crashCauses).toHaveLength(1);
+    const fall = bike.crashCauses[0];
+    expect(fall.cause).toBe('slide-lowside');
+    expect(fall.s).toBeCloseTo(54, 1);
+    expect(fall.time).toBe(bike.clock);
+    bike.step(dt, track);
+    expect(bike.crashCauses).toEqual([fall]);
+  });
+
   it.each([-1, 1])('builds a finite roll moment when the boot meets the ground on side %i', (side) => {
     const track = rigTrack('arena-nord-sx'), dt = 1 / 240;
     // Two riders enter the same slow turn. Seat the initial leaned chassis
