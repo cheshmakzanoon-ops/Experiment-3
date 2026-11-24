@@ -176,7 +176,9 @@ function addUpperControlLine(
     crest.clone().sub(bend), crest));
   path.add(new T.CubicBezierCurve3(crest, crest.clone().add(bend),
     end.clone().addScaledVector(exit, -0.045), end));
-  const hose = add(steer, new T.TubeGeometry(path, 20, brake ? 0.004 : 0.0032, 5, false), m.dark);
+  // The tight return at the fitting needs a sub-millimetre chord error in a cockpit close-up.
+  const housing = new T.TubeGeometry(path, high ? 38 : 20, brake ? 0.004 : 0.0032, high ? 6 : 5, false);
+  const hose = add(steer, housing, m.dark);
   hose.name = brake ? 'Motocross master-cylinder hose' : 'Motocross clutch cable housing';
 
   // The eye is clamped to the inboard face of the hydraulic reservoir.

@@ -72,6 +72,19 @@ describe('motocross two-anchor suspension and brake geometry', () => {
         expect(ferrule.localToWorld(mouth).distanceTo(path.getPointAt(0))).toBeLessThan(1e-7);
         const axis = new T.Vector3(0, 1, 0).applyQuaternion(ferrule.quaternion);
         expect(axis.dot(path.getTangentAt(0))).toBeGreaterThan(0.999);
+        if (detail === 'high') {
+          const segments = hose.geometry.parameters.tubularSegments;
+          const chord = new T.Line3(), closest = new T.Vector3();
+          let largestError = 0;
+          for (let i = 0; i < segments; i++) {
+            chord.set(path.getPointAt(i / segments), path.getPointAt((i + 1) / segments));
+            for (let step = 1; step < 12; step++) {
+              const curve = path.getPointAt((i + step / 12) / segments);
+              largestError = Math.max(largestError, curve.distanceTo(chord.closestPointToPoint(curve, true, closest)));
+            }
+          }
+          expect(largestError).toBeLessThan(0.001);
+        }
       }
       const hose = steer.getObjectByName('Motocross master-cylinder hose') as T.Mesh<T.TubeGeometry>;
       const path = hose.geometry.parameters.path;
