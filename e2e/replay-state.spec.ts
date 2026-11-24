@@ -165,6 +165,62 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   expect((await diagnostics()).replayPosition).toBe(blurred.replayPosition);
   await page.locator('#replayPlay').click();
   await expect.poll(async () => (await diagnostics()).audio.playing).toBe(true);
+
+  // Pause a seek to the exact end before any presentation callback can run.
+  // Pausing must preserve that requested frame; only a later PLAY may restart.
+  const endPause = await page.evaluate(() => {
+    const seek = document.getElementById('replaySeek') as HTMLInputElement;
+    const before = window.apexDiagnostics();
+    const step = seek.step;
+    try {
+      // Recorded endpoints need not be multiples of the slider's 0.01 s step.
+      seek.step = 'any';
+      seek.value = String(before.replaySeconds);
+      seek.dispatchEvent(new Event('input', { bubbles: true }));
+    } finally {
+      seek.step = step;
+    }
+    const sought = window.apexDiagnostics();
+    (document.getElementById('replayPlay') as HTMLButtonElement).click();
+    return {
+      end: before.replaySeconds,
+      wasPlaying: before.replayPlaying,
+      sought: {
+        position: sought.replayPosition,
+        playing: sought.replayPlaying,
+        seekPending: sought.replaySeekPending,
+      },
+      paused: window.apexDiagnostics(),
+    };
+  });
+  expect(endPause.wasPlaying).toBe(true);
+  expect(endPause.sought).toEqual({
+    position: endPause.end,
+    playing: true,
+    seekPending: true,
+  });
+  expect(endPause.paused.replayPosition).toBe(endPause.end);
+  expect(endPause.paused.replayPlaying).toBe(false);
+  expect(endPause.paused.replaySeekPending).toBe(true);
+  expect(endPause.paused.audio.playing).toBe(false);
+  expect(endPause.paused.frame).toEqual(live.frame);
+  await expect.poll(async () => (await diagnostics()).replaySeekPending).toBe(false);
+  const settledEnd = await diagnostics();
+  expect(settledEnd.replayPosition).toBe(endPause.end);
+  expect(settledEnd.replayPlaying).toBe(false);
+  expect(settledEnd.presentation!.time).toBeCloseTo(settledEnd.replayStart + endPause.end, 5);
+
+  const restartedEnd = await page.evaluate(() => {
+    const floor = Number((document.getElementById('replaySeek') as HTMLInputElement).min);
+    (document.getElementById('replayPlay') as HTMLButtonElement).click();
+    return { floor, after: window.apexDiagnostics() };
+  });
+  expect(restartedEnd.after.replayPosition).toBe(restartedEnd.floor);
+  expect(restartedEnd.after.replayPlaying).toBe(true);
+  expect(restartedEnd.after.replaySeekPending).toBe(true);
+  expect(restartedEnd.after.audio.playing).toBe(false);
+  expect(restartedEnd.after.frame).toEqual(live.frame);
+  await expect.poll(async () => (await diagnostics()).audio.playing).toBe(true);
   await page.locator('#replayPlay').click();
   await page.locator('#replaySeek').evaluate((element) => {
     (element as HTMLInputElement).value = '0';
@@ -186,7 +242,17 @@ test('recorded playback has exclusive modal, seek, audio and focus ownership', a
   await page.screenshot({ path: testInfo.outputPath('replay-first-frame.png') });
   await testInfo.attach('replay-ownership.json', {
     body: JSON.stringify(
-      { seekObservation, sought, modal, modalAfter, blurred, final: await diagnostics() },
+      {
+        seekObservation,
+        sought,
+        modal,
+        modalAfter,
+        blurred,
+        endPause,
+        settledEnd,
+        restartedEnd,
+        final: await diagnostics(),
+      },
       null,
       2,
     ),

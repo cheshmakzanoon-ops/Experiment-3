@@ -2976,12 +2976,17 @@ export class GameApp {
       case 'flashbackResume':
         this.resumeFlashback();
         break;
-      case 'replayPlay':
-        if (this.state !== 'replay') break;
-        if (this.replay && this.replayClock.position >= this.replay.duration) this.seekReplay(0);
-        this.replayClock.playing = !this.replayClock.playing;
-        if (!this.replayClock.playing) this.audio.stop();
+      case 'replayPlay': {
+        if (this.state !== 'replay' || !this.replay) break;
+        const restarting =
+          !this.replayClock.playing && this.replayClock.position >= this.replay.duration;
+        const playing = this.replayClock.toggle(this.replayFloor(), this.replay.duration);
+        // Pausing a pending end seek must keep that point. A real restart also
+        // prepares its pages and resets the renderer and audio at the retained floor.
+        if (playing && restarting) this.seekReplay(this.replayClock.position);
+        if (!playing) this.audio.stop();
         break;
+      }
       case 'telemetry':
         if (this.ui.telemetryModal.open) break;
         if (!this.telemetry) {

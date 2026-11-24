@@ -88,6 +88,33 @@ describe('§24.2 replay clock over a deterministic recording', () => {
     clock.seek(99, 0, replay.duration);
     expect(clock.position).toBeCloseTo(replay.duration, 6);
   });
+
+  it.each([0, 3.5])(
+    'pauses a pending end seek, then prepares a restart at retained floor %s',
+    async (floor) => {
+      const replay = await recording(12),
+        clock = new ReplayClock();
+      const end = replay.duration;
+      clock.seek(end, floor, end);
+      expect(clock.playing).toBe(true);
+      expect(clock.toggle(floor, end)).toBe(false);
+      expect(clock.position).toBe(end);
+      expect(clock.seekPending).toBe(true);
+      expect(await callback(clock, replay, 0.25)).toBeCloseTo(replay.start + end, 5);
+      expect(clock.position).toBe(end);
+      expect(clock.playing).toBe(false);
+
+      expect(clock.toggle(floor, end)).toBe(true);
+      expect(clock.position).toBe(floor);
+      expect(clock.seekPending).toBe(true);
+      replay.prepareSeek(clock.position);
+      await replay.settle();
+      expect(await callback(clock, replay, 0.25)).toBeCloseTo(replay.start + floor, 5);
+      expect(clock.seekPending).toBe(false);
+      expect(clock.playing).toBe(true);
+      expect(await callback(clock, replay, 0.1)).toBeCloseTo(replay.start + floor + 0.1, 5);
+    },
+  );
 });
 
 describe('replay clock input boundaries', () => {

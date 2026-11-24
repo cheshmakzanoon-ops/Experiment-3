@@ -20,8 +20,11 @@ export class ReviewAudioTap implements ReviewAudioSource {
     try {
       output.connect(destination);
     } catch (error) {
-      this.stream.getTracks().forEach((track) => track.stop());
-      this.destination = null;
+      try {
+        this.release();
+      } catch {
+        // Cleanup must not replace the original connection failure.
+      }
       throw error;
     }
   }
@@ -29,11 +32,19 @@ export class ReviewAudioTap implements ReviewAudioSource {
     const destination = this.destination;
     if (!destination) return;
     this.destination = null;
-    try {
-      this.output.disconnect(destination);
-    } finally {
-      this.stream.getTracks().forEach((track) => track.stop());
-      destination.disconnect();
-    }
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => this.output.disconnect(destination));
+    release(() => {
+      for (const track of this.stream.getTracks()) release(() => track.stop());
+    });
+    release(() => destination.disconnect());
+    if (failures.length) throw failures[0];
   }
 }

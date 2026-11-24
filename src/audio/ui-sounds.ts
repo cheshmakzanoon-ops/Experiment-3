@@ -210,6 +210,9 @@ export class UiSounds {
   private context: Context | null = null;
   private master: GainNode | null = null;
   private noise: AudioBuffer | null = null;
+  private busNodes: AudioNode[] = [];
+  private readonly cues = new Set<() => void>();
+  private disposed = false;
   private readonly last = new Map<UiSoundId, number>();
   private gestured = false;
   private readonly abort = new AbortController();
@@ -233,9 +236,36 @@ export class UiSounds {
       });
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.abort.abort();
-    void this.context?.close?.();
+    this.releaseContext();
+  }
+  /** Menu audio is optional: one failed release must not strand its other nodes. */
+  private release(cleanup: () => void) {
+    try {
+      cleanup();
+    } catch {
+      // A closed or interrupted audio device may refuse individual operations.
+    }
+  }
+  private close(context: Context) {
+    this.release(() => {
+      void Promise.resolve(context.close?.()).catch(() => undefined);
+    });
+  }
+  private releaseContext() {
+    const context = this.context,
+      nodes = this.busNodes,
+      cues = [...this.cues];
     this.context = null;
+    this.master = this.noise = null;
+    this.busNodes = [];
+    this.cues.clear();
+    this.last.clear();
+    for (const cancel of cues) cancel();
+    for (const node of nodes) this.release(() => node.disconnect());
+    if (context) this.close(context);
   }
   private allowed() {
     if (this.options.activated) return this.options.activated();
@@ -244,7 +274,11 @@ export class UiSounds {
   }
   /** Play the sound of a cue, if the player's settings and the browser allow it. */
   cue(cue: unknown) {
-    const id = typeof cue === 'string' ? CUE_SOUND[cue as UiCue] : undefined;
+    if (this.disposed) return false;
+    const id =
+      typeof cue === 'string' && Object.hasOwn(CUE_SOUND, cue)
+        ? CUE_SOUND[cue as UiCue]
+        : undefined;
     if (!id) return false;
     const { volume, muted, level } = this.options.settings();
     if (muted || !(volume > 0) || !this.allowed()) return false;
@@ -252,38 +286,71 @@ export class UiSounds {
     if (!ctx || !this.master) return false;
     if (ctx.state !== 'running') {
       // Not allowed to start yet (or suspended by the browser): ask once, never queue sounds.
-      void ctx.resume().catch(() => undefined);
+      this.release(() => {
+        void ctx.resume().catch(() => undefined);
+      });
       return false;
     }
     const now = ctx.currentTime;
     if (now - (this.last.get(id) ?? -Infinity) < MIN_GAP) return false;
-    this.last.set(id, now);
-    this.master.gain.setValueAtTime(
-      UI_MASTER * Math.min(1, volume) * (level === undefined ? 1 : sliderGain(level)),
-      now,
-    );
-    // One trim node per cue keeps the six sounds at the same loudness.
-    const trim = ctx.createGain();
-    trim.gain.value = dbToGain(UI_TRIM_DB[id]);
-    trim.connect(this.master);
-    for (const voice of UI_SOUNDS[id]) this.voice(ctx, voice, now, trim);
-    this.played++;
-    return true;
+    const voices = new Set<() => void>();
+    let trim: GainNode | null = null,
+      building = true,
+      closed = false;
+    const cancel = () => {
+      if (closed) return;
+      closed = true;
+      this.cues.delete(cancel);
+      for (const release of voices) release();
+      this.release(() => trim?.disconnect());
+    };
+    const finished = () => {
+      if (!building && !voices.size) cancel();
+    };
+    this.cues.add(cancel);
+    try {
+      this.master.gain.setValueAtTime(
+        UI_MASTER * Math.min(1, volume) * (level === undefined ? 1 : sliderGain(level)),
+        now,
+      );
+      // One trim node per cue keeps the six sounds at the same loudness.
+      trim = ctx.createGain();
+      trim.gain.value = dbToGain(UI_TRIM_DB[id]);
+      trim.connect(this.master);
+      for (const voice of UI_SOUNDS[id]) this.voice(ctx, voice, now, trim, voices, finished);
+      building = false;
+      finished();
+      this.last.set(id, now);
+      this.played++;
+      return true;
+    } catch {
+      cancel();
+      return false;
+    }
   }
   private ensure() {
+    if (this.disposed) return null;
+    if (this.context?.state === 'closed') this.releaseContext();
     if (this.context) return this.context;
     try {
       const ctx =
         this.options.createContext?.() ??
         (new AudioContext({ latencyHint: 'interactive' }) as unknown as Context);
+      if (this.disposed || ctx.state === 'closed') {
+        this.close(ctx);
+        return null;
+      }
       this.context = ctx;
       this.master = ctx.createGain();
+      this.busNodes.push(this.master);
       // Make-up, then a soft ceiling: the menu context has no master bus of its own.
       const makeup = ctx.createGain();
+      this.busNodes.push(makeup);
       makeup.gain.value = dbToGain(UI_MAKEUP_DB);
       this.master.connect(makeup);
       const shaper = ctx.createWaveShaper?.();
       if (shaper) {
+        this.busNodes.push(shaper);
         shaper.curve = softLimitCurve(dbToGain(GAIN_STAGING.ceilingDbfs));
         shaper.oversample = '4x';
         makeup.connect(shaper);
@@ -291,6 +358,7 @@ export class UiSounds {
       } else makeup.connect(ctx.destination);
       return ctx;
     } catch {
+      this.releaseContext();
       return null;
     }
   }
@@ -307,28 +375,54 @@ export class UiSounds {
     }
     return (this.noise = buffer);
   }
-  private voice(ctx: Context, v: Voice, now: number, out: AudioNode) {
+  private voice(
+    ctx: Context,
+    v: Voice,
+    now: number,
+    out: AudioNode,
+    voices: Set<() => void>,
+    finished: () => void,
+  ) {
+    const nodes: AudioNode[] = [];
+    let source: AudioScheduledSourceNode | null = null,
+      playing = false;
+    const release = () => {
+      if (!voices.delete(release)) return;
+      if (source) {
+        source.onended = null;
+        if (playing) this.release(() => source?.stop());
+        playing = false;
+      }
+      for (const node of nodes) this.release(() => node.disconnect());
+      finished();
+    };
+    // Own partially constructed voices too, so a later allocation can fail
+    // without retaining this voice or the cue branches already scheduled.
+    voices.add(release);
     const start = now + v.at,
       end = start + v.attack + v.decay;
     const gain = ctx.createGain();
+    nodes.push(gain);
     gain.gain.setValueAtTime(0.0001, start);
     gain.gain.linearRampToValueAtTime(v.gain, start + v.attack);
     gain.gain.exponentialRampToValueAtTime(0.0001, end);
     let head: AudioNode;
-    let source: AudioScheduledSourceNode;
     if (v.kind === 'tone') {
       const osc = ctx.createOscillator();
+      nodes.push(osc);
+      source = head = osc;
       osc.type = v.wave ?? 'sine';
       osc.frequency.setValueAtTime(v.hz, start);
       if (v.to) osc.frequency.exponentialRampToValueAtTime(v.to, end);
-      source = head = osc;
     } else {
       const src = ctx.createBufferSource();
-      src.buffer = this.noiseBuffer(ctx);
+      nodes.push(src);
       source = head = src;
+      src.buffer = this.noiseBuffer(ctx);
     }
     if (v.filter) {
       const filter = ctx.createBiquadFilter();
+      nodes.push(filter);
       filter.type = v.filter;
       filter.frequency.setValueAtTime(v.kind === 'tone' ? (v.cutoff ?? v.hz) : v.hz, start);
       if (v.kind === 'noise' && v.to) filter.frequency.exponentialRampToValueAtTime(v.to, end);
@@ -338,7 +432,12 @@ export class UiSounds {
     }
     head.connect(gain);
     gain.connect(out);
+    source.onended = () => {
+      playing = false;
+      release();
+    };
     source.start(start);
+    playing = true;
     source.stop(end + 0.02);
   }
 }

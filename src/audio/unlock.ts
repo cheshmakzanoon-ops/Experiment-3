@@ -56,9 +56,14 @@ export class AudioUnlock {
   }
   /** Ask the context to resume; failures are not errors (the next gesture asks again). */
   attempt() {
-    if (!this.locked) return;
+    if (this.abort.signal.aborted || !this.locked || this.context.state === 'closed') return;
     this.attempts++;
-    void this.context.resume().catch(() => undefined);
+    try {
+      void this.context.resume().catch(() => undefined);
+    } catch {
+      // A synchronous activation failure belongs here too. Do not prevent the
+      // next real gesture from retrying, including while a prior call is pending.
+    }
   }
   dispose() {
     this.abort.abort();

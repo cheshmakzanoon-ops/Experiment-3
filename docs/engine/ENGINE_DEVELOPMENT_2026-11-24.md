@@ -53,8 +53,8 @@ Specific assignments are refined against findings from preceding waves.
 | 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Complete |
 | 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Complete |
 | 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Complete |
-| 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | In progress |
-| 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Pending |
+| 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Complete |
+| 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | In progress |
 | 9 | 49–54 | Performance measurement and adversarial integration review | Pending |
 | 10 | 55–60 | Independent regression audits, remaining fixes and final validation | Pending |
 
@@ -70,9 +70,19 @@ Wave results, test commands, limitations, and commits are recorded here as work
 is integrated. Agent-specific receipts are maintained in the accompanying task
 ledger.
 
-Published checkpoints so far: `db3b4f1` and `09fd6d2` (wave 1), followed by
-`c865e21` (wave 2). Automated CI-report commits are preserved between engine
-checkpoints; publication never force-updates `main`.
+Published engine checkpoints:
+
+| Wave | Commit |
+|---|---|
+| 1 | `db3b4f1`, `09fd6d2` |
+| 2 | `c865e21` |
+| 3 | `f4deef7` |
+| 4 | `02d2f97` |
+| 5 | `1d4e83c` |
+| 6 | `17c16ae` |
+
+Automated CI-report commits are preserved between engine checkpoints;
+publication never force-updates `main`.
 
 ### Baseline and first batch
 
@@ -345,6 +355,60 @@ browser startup; that remains a broader integration target.
 Wave 6 integration passed **79 tests across all seven new rendering suites**.
 The complete renderer graph is covered by the publication CI rather than a
 local full-project compiler run under the shared memory limit.
+
+The full CI `validate` job passed on wave 6 commit
+`17c16aeddc2146523435cb6ce06c4e82fae9c14a`: repository lint, content validation,
+TypeScript, production/demo builds, output checks and exact-source preservation.
+This closes the complete renderer compiler/build check for waves 5 and 6:
+https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45404807980/job/138482690592
+
+### Wave 7 — audio, haptics and replay controls
+
+RacingAudio detaches old graph ownership before cleanup or asynchronous context
+close. Replacement starts cannot reuse a closing context, and an old finalizer
+cannot clear the replacement. Partial construction rolls back owned nodes;
+independent cleanup continues after failures. Delayed driving previews cannot
+cross stop/disposal/context boundaries, and preview throttling uses the new
+context's time origin. Nineteen new cases and 87 related tests passed.
+
+Audio activation ignores stale/disposed and closed-context requests and contains
+synchronous activation refusals. Accepted gestures still retry while earlier
+resume requests remain pending. Seventeen activation tests passed.
+
+Music playback belongs to the latest valid request. Old loads cannot supersede
+newer cues or restart after stop/disable/disposal. Voice identities track current
+playback through crossfades; ended and partially constructed voices release both
+nodes. Twenty new cases and 47 related tests passed. Underlying obsolete fetches
+may still finish, but cannot install their result.
+
+UI audio releases each source/filter/gain branch on completion and releases the
+shared cue trim after its last voice. Terminal disposal cannot reopen the graph;
+failed setup rolls back. Review capture attempts all owned track/destination
+cleanup while retaining the regular playback connection and original failure.
+The final integration passed 77 tests, including 100 successive cue completions.
+Audio cue definitions, synthesis values, gain formulas and sound assets are
+unchanged; controlled Web Audio stand-ins verify scheduling and ownership,
+not native device output or waveform equivalence.
+
+Haptic output now retains the actuator that received the effect. Disconnect,
+replacement and stop(null) can release that actuator; late rejected effects
+cannot stop newer output. Clock rebasing and optional API failures cannot poison
+the next update. All 26 tests passed. Channel strengths, quiet threshold, 120 ms
+effect duration and ordinary 10 Hz cadence remain unchanged. No physical
+controller validation is claimed.
+
+Host replay Play/Pause now uses ReplayClock.toggle. Pausing an end seek awaiting
+presentation preserves its endpoint; pressing Play at the end restarts at the
+retained floor with page preparation and presentation/audio reset. The actual
+host methods passed six mechanically extracted scenarios after two baseline
+failures, and 41 recording/clock tests passed. A real-application E2E regression
+was added to replay-state.spec.ts; browser execution remains pending.
+
+Wave 7 integration passed **125 tests across seven suites**. A test-spy typing
+issue was corrected during the compiler check. The final audio/input/clock
+source and test dependency graph passed TypeScript with the project options
+(623 files, about 270 MiB compiler memory); the affected 19-case audio suite
+and scoped lint passed again. Full application/E2E compilation is delegated to CI.
 
 ### Pre-existing broad-suite findings
 

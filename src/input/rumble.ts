@@ -46,31 +46,57 @@ export function rumbleFrom(frame: Float32Array, settings: RumbleSettings, limite
   };
 }
 type RumblePad = Pick<Gamepad, 'vibrationActuator'>;
-/** Sends at most 10 updates per second and stops immediately when asked. */
+/** Rate-limits each actuator to 10 updates per second and stops its output when asked. */
 export class Rumble {
   private sentAt = -Infinity;
   private active = false;
-  update(pad: RumblePad | null, magnitudes: { weak: number; strong: number }, now: number) {
-    const actuator = pad?.vibrationActuator;
-    if (!actuator?.playEffect) return;
-    const quiet = magnitudes.weak < 0.02 && magnitudes.strong < 0.02;
-    if (quiet && !this.active) return;
-    if (now - this.sentAt < 100) return;
-    this.sentAt = now;
-    this.active = !quiet;
-    void actuator
-      .playEffect('dual-rumble', {
-        duration: 120,
-        weakMagnitude: quiet ? 0 : magnitudes.weak,
-        strongMagnitude: quiet ? 0 : magnitudes.strong,
-      })
-      .catch(() => undefined);
-  }
-  /** Pause, focus loss, disconnect and menus: no stale vibration survives. */
-  stop(pad: RumblePad | null) {
-    if (!this.active) return;
+  private actuator: GamepadHapticActuator | null = null;
+  private generation = 0;
+  private release() {
+    const actuator = this.actuator;
+    // The selected pad may already be gone or replaced. Revoke ownership
+    // before asking the actuator that actually received output to stop.
+    this.actuator = null;
     this.active = false;
     this.sentAt = -Infinity;
-    void pad?.vibrationActuator?.reset?.()?.catch(() => undefined);
+    this.generation++;
+    try {
+      void actuator?.reset?.()?.catch(() => undefined);
+    } catch {
+      // Disconnected/unsupported hardware must not interrupt the game loop.
+    }
+  }
+  update(pad: RumblePad | null, magnitudes: { weak: number; strong: number }, now: number) {
+    const actuator = pad?.vibrationActuator ?? null;
+    if (this.actuator && actuator !== this.actuator) this.release();
+    if (!actuator?.playEffect || !Number.isFinite(now)) return;
+    const quiet = magnitudes.weak < 0.02 && magnitudes.strong < 0.02;
+    if (quiet && !this.active) return;
+    // A changed clock origin starts a fresh deadline instead of suppressing
+    // the device until an old session's timestamp is reached again.
+    if (now >= this.sentAt && now - this.sentAt < 100) return;
+    const generation = ++this.generation;
+    this.actuator = actuator;
+    this.sentAt = now;
+    this.active = !quiet;
+    const failed = () => {
+      // A rejected older effect cannot stop a newer one, even on the same pad.
+      if (this.generation === generation && this.actuator === actuator) this.release();
+    };
+    try {
+      void actuator
+        .playEffect('dual-rumble', {
+          duration: 120,
+          weakMagnitude: quiet ? 0 : magnitudes.weak,
+          strongMagnitude: quiet ? 0 : magnitudes.strong,
+        })
+        .catch(failed);
+    } catch {
+      failed();
+    }
+  }
+  /** Pause, focus loss, disconnect and menus: no stale vibration survives. */
+  stop(_pad: RumblePad | null) {
+    this.release();
   }
 }

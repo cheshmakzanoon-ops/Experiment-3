@@ -75,10 +75,21 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 |---|---|---|
 | 37 | Racing audio startup, disposal and context ownership | Fixed partial startup, pending-close replacement ownership and cleanup failure isolation; 87 tests passed |
 | 38 | Audio activation listener and resume failure ownership | Fixed stale/disposed/closed attempts and synchronous resume failures; 17 tests passed |
-| 39 | Music loading, cancellation and voice graph lifetime | Running |
-| 40 | Gamepad haptic actuator identity and output cancellation | Running |
-| 41 | UI sound graph and local review-capture cleanup | Queued |
-| 42 | Host replay play/pause integration at timeline boundaries | Queued |
+| 39 | Music loading, cancellation and voice graph lifetime | Fixed last-request ownership, cancellation and complete voice cleanup; 47 tests passed |
+| 40 | Gamepad haptic actuator identity and output cancellation | Fixed actuator ownership, stale failures and clock rebasing; 26 tests passed |
+| 41 | UI sound graph and local review-capture cleanup | Fixed cue/voice cleanup, terminal UI ownership and complete review-tap release; 77 tests passed |
+| 42 | Host replay play/pause integration at timeline boundaries | Used existing clock toggle, preserved restart side effects; 41 unit and six extracted-host cases passed; browser regression prepared |
+
+## Wave 8 — deterministic runtime services and networking
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 43 | Deterministic event-loop cancellation and clock integrity | Fixed queued-handle ownership and finite clock guards; 32 tests and 24 seeded event traces passed |
+| 44 | Simulated transport loss, delivery and close lifetime | Running |
+| 45 | Network command history and server queue boundary audit | Running |
+| 46 | RaceClient timer and terminal-session ownership | Running |
+| 47 | Runtime timing monitor and rate-budget accounting | Queued |
+| 48 | Deterministic route-planner selection work | Queued |
 
 ## Remaining waves
 

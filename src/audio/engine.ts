@@ -51,6 +51,8 @@ const OUTSIDE_WIND = 0.6;
  * the effects down must still hear them. */
 export class RacingAudio {
   private context: BaseAudioContext | null = null;
+  private disposal: Promise<void> | null = null;
+  private generation = 0;
   private reviewTap: ReviewAudioTap | null = null;
   captureOutput() {
     if (!this.context || !this.bus) throw new Error('Game audio is not initialized');
@@ -71,8 +73,11 @@ export class RacingAudio {
     this.cueSynth?.silence();
   }
   async previewDriving(settings: DrivingAudioSettings) {
-    await this.start();
-    const ctx = this.context;
+    const starting = this.start();
+    const ctx = this.context,
+      generation = this.generation;
+    await starting;
+    if (this.context !== ctx || this.generation !== generation) return;
     if (!ctx || !this.previewSynth || this.muted || ctx.currentTime - this.lastPreview < 0.8)
       return;
     this.lastPreview = ctx.currentTime;
@@ -141,6 +146,10 @@ export class RacingAudio {
   get locked() {
     return !!this.context && this.context.state !== 'running';
   }
+  private own<N extends AudioNode>(node: N): N {
+    this.nodes.push(node);
+    return node;
+  }
   /** `context` lets a measurement rig run the production graph in an
    * OfflineAudioContext (scripts/studio/tools/audio-render.mjs); the game
    * always creates its own live context. */
@@ -151,15 +160,30 @@ export class RacingAudio {
     }
     const ctx = context ?? new AudioContext({ latencyHint: 'interactive' });
     this.context = ctx;
-    this.master = ctx.createGain();
+    this.disposal = null;
+    this.generation++;
+    try {
+      this.build(ctx);
+      if (isLive(ctx)) this.unlock = new AudioUnlock(ctx);
+    } catch (error) {
+      // An interrupted graph must not become the cached context on the next
+      // start. Release owned nodes now; a pending close cannot delay failure.
+      void this.dispose().catch(() => undefined);
+      throw error;
+    }
+    if (isLive(ctx)) {
+      await this.resume(ctx);
+    }
+  }
+  private build(ctx: BaseAudioContext) {
+    this.master = this.own(ctx.createGain());
     this.master.gain.value = 0;
     this.bus = new MasterBus(ctx);
     this.master.connect(this.bus.input);
     const bus = (name: 'engine' | 'effects' | 'ambience') => {
-      const node = ctx.createGain();
+      const node = this.own(ctx.createGain());
       node.gain.value = busGain(name, this.levels);
       node.connect(this.master!);
-      this.nodes.push(node);
       return node;
     };
     this.engineBus = bus('engine');
@@ -177,9 +201,9 @@ export class RacingAudio {
       data[i] = previous * 2;
     }
     const bed = (type: BiquadFilterType, frequency: number, q = 1) => {
-      const source = ctx.createBufferSource(),
-        filter = ctx.createBiquadFilter(),
-        gain = ctx.createGain();
+      const source = this.own(ctx.createBufferSource()),
+        filter = this.own(ctx.createBiquadFilter()),
+        gain = this.own(ctx.createGain());
       source.buffer = buffer;
       source.loop = true;
       filter.type = type;
@@ -187,9 +211,8 @@ export class RacingAudio {
       filter.Q.value = q;
       gain.gain.value = 0;
       source.connect(filter).connect(gain).connect(this.ambienceBus!);
-      source.start();
       this.sources.push(source);
-      this.nodes.push(source, filter, gain);
+      source.start();
       return { gain, filter };
     };
     const noise = (type: BiquadFilterType, frequency: number) => bed(type, frequency).gain;
@@ -199,27 +222,27 @@ export class RacingAudio {
     this.rain = noise('highpass', 1700);
     this.grit = bed('bandpass', 2800, 0.8).gain;
     this.thunder = bed('lowpass', 150).gain;
-    this.contactPan = ctx.createStereoPanner();
+    this.contactPan = this.own(ctx.createStereoPanner());
     this.contactPan.connect(this.effectsBus);
-    this.unitPan = ctx.createStereoPanner();
+    this.unitPan = this.own(ctx.createStereoPanner());
     this.unitPan.connect(this.engineBus);
-    this.nodes.push(this.contactPan, this.unitPan, this.master);
     this.contactAudio = new ContactAudio(ctx, this.contactPan);
     // Player power-unit character shares the contact bus stereo position.
     this.powerUnit = new PowerUnitAudio(ctx, this.unitPan);
     this.startLights = new StartLightsAudio(ctx, this.effectsBus);
     this.music = new MusicBus(ctx, this.master);
     this.music.enabled = this.wantMusic;
-    if (isLive(ctx)) {
-      this.unlock = new AudioUnlock(ctx);
-      await this.resume(ctx);
-    }
   }
   /** Ask the context to run; bounded, because under the autoplay policy the
    * promise stays pending until a gesture (unlock.ts). */
   private async resume(ctx: AudioContext) {
     if (ctx.state === 'running') return;
-    await settle(ctx.resume(), RESUME_WAIT_MS);
+    try {
+      await settle(ctx.resume(), RESUME_WAIT_MS);
+    } catch {
+      // A synchronous activation refusal has the same meaning as a rejected
+      // resume promise: keep the graph and let the next gesture try again.
+    }
   }
   /** Diagnostic: take the compressor and ceiling out of the path (rig stems). */
   bypassDynamics(on: boolean) {
@@ -320,6 +343,7 @@ export class RacingAudio {
     };
   }
   stop() {
+    this.generation++;
     this.cueDirector?.reset();
     this.cueSynth?.silence();
     this.previewSynth?.silence();
@@ -327,30 +351,44 @@ export class RacingAudio {
     this.resetPresentation();
     this.wasPlaying = false;
   }
-  async dispose() {
-    this.reviewTap?.release();
-    this.reviewTap = null;
-    this.unlock?.dispose();
-    this.unlock = null;
-    this.cueSynth?.dispose();
-    this.previewSynth?.dispose();
-    this.cueSynth = this.previewSynth = null;
-    this.contactAudio?.dispose();
-    this.contactAudio = null;
-    this.powerUnit?.dispose();
-    this.powerUnit = null;
-    this.startLights?.dispose();
-    this.startLights = null;
-    this.music?.dispose();
-    this.music = null;
-    this.engines?.dispose();
-    this.engines = null;
-    for (const source of this.sources) source.stop();
-    for (const node of this.nodes) node.disconnect();
-    this.bus?.dispose();
-    this.sources.length = this.nodes.length = 0;
-    if (this.context && isLive(this.context)) await this.context.close();
+  dispose(): Promise<void> {
+    if (!this.context) return this.disposal ?? Promise.resolve();
+    const context = this.context,
+      reviewTap = this.reviewTap,
+      owners = [
+        this.unlock,
+        this.cueSynth,
+        this.previewSynth,
+        this.contactAudio,
+        this.powerUnit,
+        this.startLights,
+        this.music,
+        this.engines,
+      ],
+      sources = this.sources,
+      nodes = this.nodes,
+      bus = this.bus;
+    let resolve!: () => void;
+    let reject!: (error: unknown) => void;
+    const pending = new Promise<void>((ready, failed) => {
+      resolve = ready;
+      reject = failed;
+    });
+    this.disposal = pending;
+    // Revoke the entire graph before any user/browser callback can reenter or
+    // before close yields. A replacement start owns separate fields and arrays.
     this.context = null;
+    this.generation++;
+    this.reviewTap = null;
+    this.unlock = null;
+    this.cueSynth = this.previewSynth = null;
+    this.contactAudio = null;
+    this.powerUnit = null;
+    this.startLights = null;
+    this.music = null;
+    this.engines = null;
+    this.sources = [];
+    this.nodes = [];
     this.master = null;
     this.bus = null;
     this.engineBus = this.effectsBus = this.ambienceBus = null;
@@ -358,6 +396,31 @@ export class RacingAudio {
     this.windFilter = null;
     this.contactPan = this.unitPan = null;
     this.last = -Infinity;
+    this.lastPreview = -Infinity;
     this.wasPlaying = false;
+    this.contactAttenuation = 0;
+
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => reviewTap?.release());
+    for (const owner of owners) release(() => owner?.dispose());
+    for (const source of sources) release(() => source.stop());
+    for (const node of nodes) release(() => node.disconnect());
+    release(() => bus?.dispose());
+    let closing: Promise<void> | undefined;
+    release(() => {
+      if (isLive(context) && context.state !== 'closed') closing = context.close();
+    });
+    void Promise.resolve(closing).then(
+      () => (failures.length ? reject(failures[0]) : resolve()),
+      (error: unknown) => reject(failures.length ? failures[0] : error),
+    );
+    return pending;
   }
 }

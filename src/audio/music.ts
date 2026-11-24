@@ -104,15 +104,31 @@ export const cueNormalisation = (spec: Pick<MusicCueSpec, 'lufs'>) =>
 
 export type MusicLoader = (src: string) => Promise<AudioBuffer>;
 
+interface MusicVoice {
+  id: MusicCueId;
+  source: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
 /** The music bus: a cue voice per playing cue (crossfaded), a duck, a level. */
 export class MusicBus {
   /** Off until the player switches it on (and a cue has an asset). */
-  enabled = false;
+  private enabledValue = false;
+  get enabled() {
+    return this.enabledValue;
+  }
+  set enabled(value: boolean) {
+    if (this.disposed || this.enabledValue === value) return;
+    this.enabledValue = value;
+    if (!value) this.request++;
+  }
   readonly output: GainNode;
   private readonly duck: GainNode;
-  private voices: { id: MusicCueId; source: AudioBufferSourceNode; gain: GainNode }[] = [];
+  private voices = new Set<MusicVoice>();
   private cache = new Map<string, Promise<AudioBuffer>>();
-  private current: MusicCueId | null = null;
+  private current: MusicVoice | null = null;
+  private request = 0;
+  private disposed = false;
   constructor(
     private readonly context: BaseAudioContext,
     destination: AudioNode,
@@ -125,83 +141,156 @@ export class MusicBus {
     this.duck.connect(this.output).connect(destination);
   }
   get playing(): MusicCueId | null {
-    return this.current;
+    return this.current?.id ?? null;
   }
-  /** Start a cue (crossfading from the one playing). False: disabled, no such asset, or load failed. */
+  /** Start a cue (crossfading from the one playing). False when unavailable,
+   * superseded, stopped, or its load/graph could not be created. */
   async play(id: MusicCueId): Promise<boolean> {
     const spec = this.cues[id];
-    if (!this.enabled || !spec?.src) return false;
-    if (this.current === id && this.voices.length) return true;
+    if (this.disposed || !this.enabled || !spec?.src) return false;
+    const request = ++this.request;
+    // Requesting the current cue also cancels a pending replacement.
+    if (this.current?.id === id) return true;
     let buffer: AudioBuffer;
+    let pending = this.cache.get(spec.src);
     try {
-      let pending = this.cache.get(spec.src);
       if (!pending) this.cache.set(spec.src, (pending = this.load(spec.src)));
       buffer = await pending;
     } catch {
-      this.cache.delete(spec.src);
+      if (this.cache.get(spec.src) === pending) this.cache.delete(spec.src);
       return false;
     }
-    if (!this.enabled) return false; // switched off while the file loaded
-    const now = this.context.currentTime,
-      source = this.context.createBufferSource(),
+    if (this.disposed || !this.enabled || request !== this.request) return false;
+    let source: AudioBufferSourceNode | null = null,
+      gain: GainNode | null = null,
+      voice: MusicVoice | null = null;
+    try {
+      const now = this.context.currentTime;
+      source = this.context.createBufferSource();
       gain = this.context.createGain();
-    source.buffer = buffer;
-    if (spec.kind === 'loop') {
-      source.loop = true;
-      if (spec.loop) {
-        source.loopStart = spec.loop[0];
-        source.loopEnd = spec.loop[1];
+      const owned = (voice = { id, source, gain });
+      this.voices.add(owned);
+      source.onended = () => {
+        try {
+          this.releaseVoice(owned);
+        } catch {
+          // A closed graph must not turn an auxiliary ended event into an app error.
+        }
+      };
+      source.buffer = buffer;
+      if (spec.kind === 'loop') {
+        source.loop = true;
+        if (spec.loop) {
+          source.loopStart = spec.loop[0];
+          source.loopEnd = spec.loop[1];
+        }
+      }
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(cueNormalisation(spec), now + Math.max(0.01, spec.fade));
+      source.connect(gain).connect(this.duck);
+      source.start(now);
+      if (this.disposed || !this.enabled || request !== this.request || !this.voices.has(owned)) {
+        this.releaseVoice(owned, true);
+        return false;
+      }
+      this.fadeOut(spec.fade, owned);
+      this.current = owned;
+      return true;
+    } catch {
+      if (voice) {
+        try {
+          this.releaseVoice(voice, true);
+        } catch {
+          // Every owned node has already been attempted.
+        }
+      } else {
+        // Source creation can succeed before gain creation fails.
+        try {
+          source?.disconnect();
+        } catch {
+          // The context may already be closing.
+        }
+      }
+      return false;
+    }
+  }
+  /** Retire ownership before cleanup callbacks so late events cannot release twice. */
+  private releaseVoice(voice: MusicVoice, stop = false) {
+    if (!this.voices.delete(voice)) return;
+    if (this.current === voice) this.current = null;
+    voice.source.onended = null;
+    if (stop) {
+      try {
+        voice.source.stop();
+      } catch {
+        // A source that never started or already finished need not be stopped.
       }
     }
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(cueNormalisation(spec), now + Math.max(0.01, spec.fade));
-    source.connect(gain).connect(this.duck);
-    source.start(now);
-    this.fadeOut(spec.fade);
-    this.voices.push({ id, source, gain });
-    this.current = id;
-    source.onended = () => {
-      gain.disconnect();
-      this.voices = this.voices.filter((v) => v.source !== source);
-      if (this.current === id && !this.voices.length) this.current = null;
-    };
-    return true;
+    const failures: unknown[] = [];
+    for (const node of [voice.source, voice.gain]) {
+      try {
+        node.disconnect();
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    if (failures.length) throw failures[0];
   }
-  /** Fade every voice out (the one that just started is added after this call). */
-  private fadeOut(seconds: number) {
+  /** Fade previous voices, retaining the newly started voice's fade-in. */
+  private fadeOut(seconds: number, except?: MusicVoice) {
     const now = this.context.currentTime;
     for (const v of this.voices) {
-      v.gain.gain.cancelScheduledValues(now);
-      v.gain.gain.setValueAtTime(v.gain.gain.value, now);
-      v.gain.gain.linearRampToValueAtTime(0, now + Math.max(0.01, seconds));
-      v.source.stop(now + Math.max(0.01, seconds) + 0.05);
+      if (v === except) continue;
+      try {
+        v.gain.gain.cancelScheduledValues(now);
+        v.gain.gain.setValueAtTime(v.gain.gain.value, now);
+        v.gain.gain.linearRampToValueAtTime(0, now + Math.max(0.01, seconds));
+        v.source.stop(now + Math.max(0.01, seconds) + 0.05);
+      } catch {
+        // If a fade cannot be scheduled, silence that voice and continue the others.
+        try {
+          this.releaseVoice(v, true);
+        } catch {
+          // All of this voice's nodes have been attempted.
+        }
+      }
     }
   }
   stop(seconds = 1.5) {
-    this.fadeOut(seconds);
+    if (this.disposed) return;
+    this.request++;
     this.current = null;
+    this.fadeOut(seconds);
   }
   /** Per frame: the slider, the master switch and the duck under the engines. */
   update(levels: Readonly<AudioLevels>, enginePresence: number, time: number) {
+    if (this.disposed) return;
     const target = this.enabled ? musicGain(levels, clamp(enginePresence, 0, 1)) : 0;
     this.output.gain.setTargetAtTime(target, time, 0.4);
   }
   dispose() {
-    this.enabled = false;
-    for (const v of this.voices) {
-      try {
-        v.source.stop();
-      } catch {
-        // already stopped
-      }
-      v.source.disconnect();
-      v.gain.disconnect();
-    }
-    this.voices = [];
-    this.duck.disconnect();
-    this.output.disconnect();
-    this.cache.clear();
+    if (this.disposed) return;
+    this.disposed = true;
+    this.enabledValue = false;
+    this.request++;
     this.current = null;
+    this.cache.clear();
+    const failures: unknown[] = [];
+    for (const voice of this.voices) {
+      try {
+        this.releaseVoice(voice, true);
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    for (const node of [this.duck, this.output]) {
+      try {
+        node.disconnect();
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    if (failures.length) throw failures[0];
   }
 }
 
