@@ -1,9 +1,9 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620661
-- commit: `b282f121b5` · engine: finalize terminal ownership and verify sixty regression suites
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45444357331
+- commit: `1bb58c984b` · fix(engine): preserve recording ownership and settle worker session lifetimes
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-24T14:56:00Z · updated: 2026-11-24T15:20:17Z
+- started: 2026-11-24T17:04:02Z · updated: 2026-11-24T17:28:22Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
