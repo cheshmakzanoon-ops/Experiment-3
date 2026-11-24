@@ -52,8 +52,8 @@ Specific assignments are refined against findings from preceding waves.
 | 3 | 13–18 | Collision queries, numerical stability, simulation throughput | Complete |
 | 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Complete |
 | 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Complete |
-| 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | In progress |
-| 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Pending |
+| 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Complete |
+| 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | In progress |
 | 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Pending |
 | 9 | 49–54 | Performance measurement and adversarial integration review | Pending |
 | 10 | 55–60 | Independent regression audits, remaining fixes and final validation | Pending |
@@ -284,6 +284,67 @@ validation target.
 Wave 5 integration passed **140 tests across all six new storage suites**. Its
 source and test dependency graph passed TypeScript with the project options
 (619 files, about 262 MiB compiler memory).
+
+### Wave 6 — rendering infrastructure and bounded ownership
+
+Texture-budget refresh now repaints all registered groups derived from the same
+authored source, including different resolution claims and CPU-read copies.
+Full-resolution siblings also receive upload invalidation. Dimensions, backing
+choices, filtering and canvas identities remain unchanged. Two regressions
+failed before the fix; 34 related tests now pass. A separate existing test was
+corrected to inspect each canvas context rather than assume an obsolete global
+call order; no redundant production resampling was introduced.
+
+The shadow-batching audit retained production code. Current model articulation
+requires 15 LOD1 shadow draws: eight rigid-owner proxies, four upright-owned
+brakes, one articulated suspension and two independently moving hydraulic
+parts. Current draw counts are 96 to 58 at LOD0, 26 to 15 at LOD1, and 23 to 13
+at LOD2. These are existing reductions, not new performance gains. Tests now
+require at least one-third draw reduction at every LOD and retain exact triangle
+comparisons. New checks cover mirrored/nonuniform owner transforms, winding,
+culling, original-buffer preservation, visibility and shared disposal. Twelve
+related tests pass without modifying model or shadow content.
+
+Presentation buffers passed additional ownership auditing without production
+changes. Six new cases cover offset array views, real transfer detachment,
+192 observations across three resets, bounded eight-slot reuse, malformed
+replacement atomicity and reentrant quaternion callbacks. All 67 related tests
+pass. The native PMREM compiler also passed its existing ownership tests without
+a rewrite.
+
+Reflection and mirror disposal now revoke ownership before callbacks, complete
+remaining independent cleanup after failures, restore borrowed bindings, and
+become idempotent. They propagate the first failure after cleanup, including
+an undefined thrown value. All 12 new regressions failed on the prior code;
+68 related preparation/reflection/mirror tests pass after the fix.
+
+Optional per-pass GPU timing no longer skips rendering or leaks partial queries
+when instrumentation fails. Active and pending measurement pairs share the
+48-measurement bound; disjoint/lost samples and invalid timestamps are retired,
+and reporting callbacks cannot retain completed ownership. Rendering executes
+once and preserves its own exception. DrawLedger remained unchanged after
+256-frame/nested-shadow accounting checks. The final timing/accounting run
+passed 73 tests; these use controlled GPU query doubles, not physical-GPU
+measurements.
+
+The completed texture/reflection/timing/presentation source and new-test graph
+passed TypeScript with the project options (630 files, about 263 MiB compiler
+memory).
+
+Circuit preparation now checks both caller cancellation and terminal renderer
+disposal at asynchronous boundaries. Late loading, compilation, progress and
+camera-restoration callbacks cannot resume work on a disposed renderer. Fence
+waits terminate promptly on disposal; the factory also checks cancellation after
+its final ground-readiness wait. Its synchronous teardown finishes independent
+releases before rethrowing the first failure, while asynchronous decoder cleanup
+rejection is reported separately. Nineteen new lifecycle tests pass; startup
+integration passed 101 tests and actual MX/SX scene-resource teardown passed
+seven. The factory guard was inspected rather than exercised through a full
+browser startup; that remains a broader integration target.
+
+Wave 6 integration passed **79 tests across all seven new rendering suites**.
+The complete renderer graph is covered by the publication CI rather than a
+local full-project compiler run under the shared memory limit.
 
 ### Pre-existing broad-suite findings
 

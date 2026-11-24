@@ -165,14 +165,11 @@ it('keeps the resampled copy of a CPU-read skin CPU-backed, and only that copy',
   // Diagnostics read the presented flank skin back on every call. An
   // accelerated budget copy made that read wait ~20-30 s behind queued GPU
   // frames while an Aurel 12-car session loaded on a software rasterizer.
-  const requests: unknown[][] = [];
   class Canvas {
     width = 1024;
     height = 1024;
-    getContext(...args: unknown[]) {
-      requests.push(args);
-      return { drawImage: vi.fn(), clearRect: vi.fn() };
-    }
+    readonly context = { drawImage: vi.fn(), clearRect: vi.fn() };
+    readonly getContext = vi.fn(() => this.context);
   }
   vi.stubGlobal('HTMLCanvasElement', Canvas);
   vi.stubGlobal('document', { createElement: () => new Canvas() });
@@ -186,8 +183,17 @@ it('keeps the resampled copy of a CPU-read skin CPU-backed, and only that copy',
   budget.register(group);
   expect(skin.image.width).toBe(512);
   expect(sign.image.width).toBe(512);
-  expect(requests[0]).toEqual(['2d', { willReadFrequently: true }]);
-  expect(requests[2]).toEqual(['2d', undefined]);
+  const skinCopy = skin.image as unknown as Canvas;
+  const signCopy = sign.image as unknown as Canvas;
+  expect(skinCopy).not.toBe(signCopy);
+  expect(skinCopy.getContext).toHaveBeenCalledExactlyOnceWith('2d', {
+    willReadFrequently: true,
+  });
+  expect(signCopy.getContext).toHaveBeenCalledExactlyOnceWith('2d', undefined);
+  for (const copy of [skinCopy, signCopy]) {
+    expect(copy.context.drawImage).toHaveBeenCalledTimes(1);
+    expect(copy.context.clearRect).not.toHaveBeenCalled();
+  }
   budget.dispose();
 });
 

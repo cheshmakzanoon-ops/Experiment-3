@@ -38,68 +38,173 @@ interface PendingQuery {
 export class GpuPassTimer {
   readonly supported: boolean;
   private readonly ext: TimerExtension | null;
-  private readonly pending: PendingQuery[] = [];
+  private pending: PendingQuery[] = [];
+  private active = new Set<PendingQuery>();
   private disposed = false;
   constructor(private readonly gl: WebGL2RenderingContext | null) {
-    const ext = gl?.getExtension('EXT_disjoint_timer_query_webgl2') as
-      | TimerExtension
-      | null
-      | undefined;
-    let bits = 0;
+    let ext: TimerExtension | null = null;
     try {
-      bits =
-        ext && gl ? Number(gl.getQuery(ext.TIMESTAMP_EXT, ext.QUERY_COUNTER_BITS_EXT)) || 0 : 0;
+      if (gl && !gl.isContextLost()) {
+        const candidate = gl.getExtension(
+          'EXT_disjoint_timer_query_webgl2',
+        ) as TimerExtension | null;
+        const bits: unknown = candidate
+          ? gl.getQuery(candidate.TIMESTAMP_EXT, candidate.QUERY_COUNTER_BITS_EXT)
+          : 0;
+        if (typeof bits === 'number' && Number.isFinite(bits) && bits > 0) ext = candidate;
+      }
     } catch {
-      bits = 0;
+      // Timing is optional; probing it must not prevent the pipeline starting.
     }
-    this.ext = ext && bits > 0 ? ext : null;
-    this.supported = !!this.ext;
+    this.ext = ext;
+    this.supported = !!ext;
   }
-  /** Bracket `fn` with timestamps; results arrive via `poll`. */
-  measure(name: string, fn: () => void) {
+  private valid() {
     const gl = this.gl,
       ext = this.ext;
-    if (!gl || !ext || this.disposed || this.pending.length > 48) return fn();
-    const start = gl.createQuery(),
+    if (!gl || !ext || this.disposed) return false;
+    try {
+      return !gl.isContextLost() && !gl.getParameter(ext.GPU_DISJOINT_EXT) && !gl.isContextLost();
+    } catch {
+      return false;
+    }
+  }
+  private release(query: WebGLQuery | null) {
+    if (!query || !this.gl) return;
+    try {
+      if (!this.gl.isContextLost()) this.gl.deleteQuery(query);
+    } catch {
+      // Retire ownership even if an optional timing cleanup fails.
+    }
+  }
+  private invalidate() {
+    const pending = this.pending,
+      active = this.active;
+    this.pending = [];
+    this.active = new Set();
+    for (const q of pending) {
+      this.release(q.start);
+      this.release(q.end);
+    }
+    for (const q of active) {
+      this.release(q.start);
+      this.release(q.end);
+    }
+  }
+  private begin(name: string): PendingQuery | null {
+    const gl = this.gl,
+      ext = this.ext;
+    if (!gl || !ext || this.disposed) return null;
+    if (!this.valid()) {
+      this.invalidate();
+      return null;
+    }
+    if (this.pending.length + this.active.size >= 48) return null;
+    let start: WebGLQuery | null = null,
+      end: WebGLQuery | null = null;
+    let q: PendingQuery | null = null;
+    try {
+      start = gl.createQuery();
+      if (!start) return null;
       end = gl.createQuery();
-    if (!start || !end) return fn();
-    ext.queryCounterEXT(start, ext.TIMESTAMP_EXT);
+      if (!end) {
+        this.release(start);
+        return null;
+      }
+      q = { name, start, end };
+      this.active.add(q);
+      ext.queryCounterEXT(start, ext.TIMESTAMP_EXT);
+      if (!this.valid()) {
+        this.invalidate();
+        return null;
+      }
+      return q;
+    } catch {
+      if (q) this.active.delete(q);
+      this.release(start);
+      this.release(end);
+      return null;
+    }
+  }
+  private end(q: PendingQuery | null) {
+    // Disposal (including from a nested render) may already have retired it.
+    if (!q || !this.active.delete(q)) return;
+    if (!this.valid()) {
+      this.release(q.start);
+      this.release(q.end);
+      this.invalidate();
+      return;
+    }
+    try {
+      this.ext!.queryCounterEXT(q.end, this.ext!.TIMESTAMP_EXT);
+      if (this.valid()) {
+        this.pending.push(q);
+        return;
+      }
+      this.invalidate();
+    } catch {
+      // Do not mask an exception from the actual rendering callback.
+    }
+    this.release(q.start);
+    this.release(q.end);
+  }
+  /** Bracket `fn` with optional timestamps; rendering always runs once. */
+  measure(name: string, fn: () => void) {
+    const q = this.begin(name);
     try {
       fn();
     } finally {
-      ext.queryCounterEXT(end, ext.TIMESTAMP_EXT);
-      this.pending.push({ name, start, end });
+      this.end(q);
     }
   }
-  /** Collect finished queries: calls `report(name, ms)` for each. */
+  /** Collect finished queries without waiting; reports only valid samples. */
   poll(report: (name: string, ms: number) => void) {
-    const gl = this.gl,
-      ext = this.ext;
-    if (!gl || !ext) return;
-    const disjoint = !!gl.getParameter(ext.GPU_DISJOINT_EXT);
+    const gl = this.gl;
+    if (!gl || !this.ext || this.disposed) return;
+    if (!this.valid()) {
+      this.invalidate();
+      return;
+    }
     while (this.pending.length) {
       const q = this.pending[0];
-      if (!gl.getQueryParameter(q.end, gl.QUERY_RESULT_AVAILABLE)) break;
-      if (!disjoint) {
-        const ns =
-          Number(gl.getQueryParameter(q.end, gl.QUERY_RESULT)) -
-          Number(gl.getQueryParameter(q.start, gl.QUERY_RESULT));
-        if (Number.isFinite(ns) && ns >= 0) report(q.name, ns / 1e6);
+      let start: unknown, end: unknown;
+      try {
+        if (!gl.getQueryParameter(q.end, gl.QUERY_RESULT_AVAILABLE)) {
+          if (!this.valid()) this.invalidate();
+          return;
+        }
+        start = gl.getQueryParameter(q.start, gl.QUERY_RESULT);
+        end = gl.getQueryParameter(q.end, gl.QUERY_RESULT);
+        if (!this.valid()) {
+          this.invalidate();
+          return;
+        }
+      } catch {
+        this.invalidate();
+        return;
       }
-      gl.deleteQuery(q.start);
-      gl.deleteQuery(q.end);
+      // A reporting callback may throw, dispose the timer, or poll it again.
+      // Retire this sample first so none of those paths can retain/replay it.
       this.pending.shift();
+      this.release(q.start);
+      this.release(q.end);
+      if (
+        typeof start === 'number' &&
+        typeof end === 'number' &&
+        Number.isFinite(start) &&
+        Number.isFinite(end) &&
+        start >= 0 &&
+        end >= start
+      ) {
+        const ns = end - start;
+        if (Number.isFinite(ns)) report(q.name, ns / 1e6);
+      }
     }
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    if (this.gl && !this.gl.isContextLost())
-      for (const q of this.pending) {
-        this.gl.deleteQuery(q.start);
-        this.gl.deleteQuery(q.end);
-      }
-    this.pending.length = 0;
+    this.invalidate();
   }
 }
 

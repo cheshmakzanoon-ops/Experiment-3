@@ -64,10 +64,21 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 |---|---|---|
 | 31 | Texture-budget ownership, CPU-read canvas backing and resampling | Fixed shared-source refresh propagation; corrected obsolete canvas-context fixture; 34 tests passed |
 | 32 | Shadow-proxy batching invariants and baseline draw-count investigation | Kept production batching unchanged; corrected stale limits and verified articulated geometry/ownership; 12 tests passed |
-| 33 | Snapshot interpolation and reusable presentation buffers | Running |
-| 34 | Native PMREM audit and reflection resource disposal | Running |
-| 35 | Draw-ledger audit and timestamp-query ownership | Running |
-| 36 | Circuit renderer asynchronous lifetime integration | Queued |
+| 33 | Snapshot interpolation and reusable presentation buffers | Audit passed without production changes; six new ownership/offset/reentrant cases, 67 focused tests passed |
+| 34 | Native PMREM audit and reflection resource disposal | Kept native PMREM helper; fixed idempotent/failure-isolated reflection and mirror disposal; 68 tests passed |
+| 35 | Draw-ledger audit and timestamp-query ownership | Fixed optional timestamp-query failure/ownership handling; DrawLedger unchanged; 73 tests passed |
+| 36 | Circuit renderer asynchronous lifetime integration | Fixed disposed preparation/fence ownership and failure-isolated teardown; 19 new cases, 101 startup tests and seven real-venue teardown tests passed |
+
+## Wave 7 — audio, devices and session integration
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 37 | Racing audio startup, disposal and context ownership | Fixed partial startup, pending-close replacement ownership and cleanup failure isolation; 87 tests passed |
+| 38 | Audio activation listener and resume failure ownership | Fixed stale/disposed/closed attempts and synchronous resume failures; 17 tests passed |
+| 39 | Music loading, cancellation and voice graph lifetime | Running |
+| 40 | Gamepad haptic actuator identity and output cancellation | Running |
+| 41 | UI sound graph and local review-capture cleanup | Queued |
+| 42 | Host replay play/pause integration at timeline boundaries | Queued |
 
 ## Remaining waves
 

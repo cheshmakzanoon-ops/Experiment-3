@@ -992,6 +992,10 @@ export class RacingRenderer {
       renderer.textures.register(renderer.circuit.group);
       // Sets first requested by construction tasks (the far terrain's rock).
       await scannedGround.ready(10000);
+      if (cancelled()) {
+        renderer.dispose();
+        return null;
+      }
       // Large, bright or near-edge scenery mirrors in standing water; small
       // props, people, planting and the road ribbons themselves do not.
       reflectInWetRoad(renderer.circuit.props);
@@ -1147,7 +1151,7 @@ export class RacingRenderer {
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const timeoutMs = this.preparationTimeoutMs ?? 45000;
     const deadline = performance.now() + timeoutMs;
-    while (!cancelled() && !this.gpuFrames.ready()) {
+    while (!this.disposed && !cancelled() && !this.gpuFrames.ready()) {
       // A timeout is not completion. Releasing targets or applying a new
       // quality while this fence is unfinished would violate GPU ownership.
       if (performance.now() >= deadline)
@@ -1168,7 +1172,7 @@ export class RacingRenderer {
       frame,
       submitted: () => this.gpuFrames.submittedFrame(),
       ready: () => this.gpuFrames.ready(),
-      cancelled,
+      cancelled: () => this.disposed || cancelled(),
       yieldFrame,
     });
   }
@@ -1185,7 +1189,12 @@ export class RacingRenderer {
     // callers without session rules retain the complete service warmup.
     pitService = true,
   ) {
-    return this.preparation.run(progress, async (progress) => {
+    const stopped = () => this.disposed || cancelled();
+    if (stopped()) return false;
+    const report = (label: string) => {
+      if (!stopped()) progress(label);
+    };
+    return this.preparation.run(report, async (progress) => {
       this.preparedDirtProbeStarts = null;
       this.preparedGPProbeStarts = null;
       this.warmupRoadColour = null;
@@ -1198,13 +1207,13 @@ export class RacingRenderer {
         throw new Error('Invalid warmup grid');
       this.bikeShells.prefitDirtService = pitService || !this.circuit.offroad;
       for (let n = this.cars.length + 1; n <= total; n++) {
-        if (cancelled()) return false;
+        if (stopped()) return false;
         const label = BikeShells.isBike(frame, n - 1) ? 'Preparing motorcycle' : 'Building original Formula car';
         progress(`${label} ${n} / ${total}…`);
         this.setCars(n, frame);
         await yieldFrame();
       }
-      if (cancelled()) return false;
+      if (stopped()) return false;
       this.setCars(total, frame);
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
@@ -1227,7 +1236,7 @@ export class RacingRenderer {
           if (id < total) {
             progress(`Building ${this.circuit.offroad ? 'motocross' : 'GP'} grid ${id + 1} / ${total}…`);
             await yieldFrame();
-            if (this.disposed || cancelled()) return false;
+            if (stopped()) return false;
           }
           this.bikeShells.arenaGrid = this.circuit.offroad?.stadium?.lampGrid;
           this.bikeShells.update(
@@ -1244,12 +1253,12 @@ export class RacingRenderer {
         if (this.circuit.offroad) {
           progress('Preparing motocross rider detail for race cameras…');
           const ready = await this.bikeShells.prepareDirtField(
-            () => this.disposed || cancelled(),
+            stopped,
             yieldFrame,
             (id, level) => progress(`Preparing motocross rider ${id + 1} / ${total} · ${level} detail…`),
             this.quality,
           );
-          if (!ready) return false;
+          if (!ready || stopped()) return false;
         }
       } else {
         this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
@@ -1276,12 +1285,12 @@ export class RacingRenderer {
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);
-        if (cancelled()) return false;
+        if (stopped()) return false;
       }
       if (scannedGround.enabled) {
         progress('Loading photographed ground…');
         await scannedGround.ready();
-        if (cancelled()) return false;
+        if (stopped()) return false;
       }
       // Three keys lit programs by the visible light count, even when their
       // intensity is zero. Bind the same venue slots as the first draw before
@@ -1295,7 +1304,7 @@ export class RacingRenderer {
       );
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
-      if (cancelled()) return false;
+      if (stopped()) return false;
       await this.bikeShells.warmFieldDetails(() =>
         compileSceneTarget(
           this.renderer,
@@ -1304,15 +1313,15 @@ export class RacingRenderer {
           this.composer.readBuffer,
           hiddenHosts,
           {
-            cancelled: () => this.disposed || cancelled(),
+            cancelled: stopped,
             beforeMetadata: () => progress('Preparing circuit and vehicle materials…'),
           },
         ),
       );
-      if (cancelled()) return false;
+      if (stopped()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
-      if (cancelled()) return false;
+      if (stopped()) return false;
       const localFormula = formulaGrid && this.graphics?.reflections === 'local';
       const boundedDepth = roadField || isMotocrossVenue(this.circuit.track) || localFormula;
       const shadowPass = this.warmShadowCasters(boundedDepth);
@@ -1320,8 +1329,8 @@ export class RacingRenderer {
         // The whole-circuit map exists only to link depth variants. Let its
         // submission retire before the first real shadows and reflections.
         this.gpuFrames.submittedFrame();
-        await this.waitForPreparedFrame(cancelled, yieldFrame);
-        if (cancelled()) return false;
+        await this.waitForPreparedFrame(stopped, yieldFrame);
+        if (stopped()) return false;
       }
       const camera = this.mode;
       const splitGridViews = boundedDepth && this.graphics?.reflections === 'local';
@@ -1340,7 +1349,7 @@ export class RacingRenderer {
               : 'Warming cockpit, mirrors and post-processing…',
           );
           await yieldFrame();
-          if (cancelled()) return false;
+          if (stopped()) return false;
           this.changeCamera(mode);
           if (mode === 'chase' && splitGridViews) {
             // The held starting grid needs one complete cubemap. Retire its six
@@ -1349,16 +1358,16 @@ export class RacingRenderer {
             do {
               this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-probe');
               this.gpuFrames.submittedFrame();
-              await this.waitForPreparedFrame(cancelled, yieldFrame);
-              if (cancelled()) return false;
+              await this.waitForPreparedFrame(stopped, yieldFrame);
+              if (stopped()) return false;
             } while (!roadField && this.reflection.gridCapturePending);
           }
           if (splitShadows) {
             progress(`Rendering ${gridName} ${mode} shadow maps…`);
             this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-shadows');
             this.gpuFrames.submittedFrame();
-            await this.waitForPreparedFrame(cancelled, yieldFrame);
-            if (cancelled()) return false;
+            await this.waitForPreparedFrame(stopped, yieldFrame);
+            if (stopped()) return false;
           }
           const drawGrid = () => this.draw(
             frame, frame, 1, 1 / 120, false, true, 1 / 120,
@@ -1382,12 +1391,12 @@ export class RacingRenderer {
               // Finish the chase colour submission before the separate crew
               // upload replaces its fence.
               progress(`Finishing the ${gridName} starting-grid view…`);
-              await this.waitForPreparedFrame(cancelled, yieldFrame);
-              if (cancelled()) return false;
+              await this.waitForPreparedFrame(stopped, yieldFrame);
+              if (stopped()) return false;
             }
             progress('Warming offscreen pit-service materials…');
-            await this.warmPitPresentation(frame, cancelled, yieldFrame);
-            if (cancelled()) return false;
+            await this.warmPitPresentation(frame, stopped, yieldFrame);
+            if (stopped()) return false;
           }
           await compileSceneTarget(
             this.renderer,
@@ -1395,13 +1404,14 @@ export class RacingRenderer {
             this.camera,
             this.composer.readBuffer,
             hiddenHosts,
-            { cancelled: () => this.disposed || cancelled() },
+            { cancelled: stopped },
           );
+          if (stopped()) return false;
           // Shader linking alone does not finish GPU uploads or the warmup draw.
           // Keep the worker paused until its actual submission has completed.
           progress(`Waiting for completed ${mode} GPU work…`);
-          await this.waitForPreparedFrame(cancelled, yieldFrame);
-          if (cancelled()) return false;
+          await this.waitForPreparedFrame(stopped, yieldFrame);
+          if (stopped()) return false;
         }
         // The grid capture excludes the bikes and crew. A mirrorless rider's
         // cockpit and chase views sample the same six world-space faces.
@@ -1423,7 +1433,7 @@ export class RacingRenderer {
           }
         }
       } finally {
-        if (!cancelled()) {
+        if (!stopped()) {
           this.changeCamera(camera);
           if (retainGridProbe) this.resetPresentationState();
           else this.reset();
@@ -3441,76 +3451,100 @@ export class RacingRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    scannedGround.detach(this.renderer);
+    // A failed owner must not strand the remaining targets on this terminal
+    // renderer. Revoke ownership first, finish independent cleanup, then retain
+    // the original failure (including a non-Error thrown value).
+    let failed = false;
+    let failure: unknown;
+    const release = (dispose: () => void) => {
+      try {
+        dispose();
+      } catch (error) {
+        if (!failed) {
+          failed = true;
+          failure = error;
+        }
+      }
+    };
+    release(() => scannedGround.detach(this.renderer));
     // Stop new decoder work now; pending ground roles finish before their
     // worker pool is released, so resident sets survive a circuit switch.
-    void disposeTextureLoaders(this.renderer);
+    release(() => {
+      void disposeTextureLoaders(this.renderer).catch((error) => {
+        // The synchronous teardown cannot return a later decoder failure.
+        // Keep it diagnostic instead of raising a global unhandled rejection.
+        console.warn('Circuit texture loader cleanup failed:', error);
+      });
+    });
     // Restore immutable source images before any asset owner closes its bitmap.
-    this.textures.dispose();
-    this.bikeShells.disposeAll();
-    this.gridPreparation.dispose();
+    release(() => this.textures.dispose());
+    release(() => this.bikeShells.disposeAll());
+    release(() => this.gridPreparation.dispose());
     // Each kit removes its owned root before the generic scene disposer, so
     // source, cloned templates, atlas maps and all LODs are released once.
-    this.circuit.concreteBarriers?.dispose();
-    this.circuit.steelGuardrails?.dispose();
-    this.circuit.catchFence?.dispose();
-    this.circuit.impactBarriers?.dispose();
-    this.circuit.recoveryGates?.dispose();
-    this.circuit.marshalPosts?.dispose();
-    this.circuit.startGantry?.dispose();
-    this.circuit.signalHardware?.dispose();
-    this.circuit.trackBoards?.dispose();
-    this.circuit.broadcastCameras?.dispose();
-    this.circuit.disposePlanting();
+    release(() => this.circuit.concreteBarriers?.dispose());
+    release(() => this.circuit.steelGuardrails?.dispose());
+    release(() => this.circuit.catchFence?.dispose());
+    release(() => this.circuit.impactBarriers?.dispose());
+    release(() => this.circuit.recoveryGates?.dispose());
+    release(() => this.circuit.marshalPosts?.dispose());
+    release(() => this.circuit.startGantry?.dispose());
+    release(() => this.circuit.signalHardware?.dispose());
+    release(() => this.circuit.trackBoards?.dispose());
+    release(() => this.circuit.broadcastCameras?.dispose());
+    release(() => this.circuit.disposePlanting());
     // The venue owns queued/detached builds and quality listeners as well as
     // visible meshes. It detaches its roots before the generic scene traversal.
-    this.circuit.offroad?.dispose();
-    this.circuit.quarry?.dispose();
-    this.circuit.secondaryStands.dispose();
+    release(() => this.circuit.offroad?.dispose());
+    release(() => this.circuit.quarry?.dispose());
+    release(() => this.circuit.secondaryStands.dispose());
 
     if (this.circuit.tyreBlankets && !this.circuit.tyreBlankets.root.parent)
-      this.circuit.tyreBlankets.dispose();
-    this.releaseCarTemplates().dispose();
-    this.suppliedPlayerAsset?.dispose();
-    this.tyreEquipment?.dispose();
+      release(() => this.circuit.tyreBlankets?.dispose());
+    release(() => this.releaseCarTemplates().dispose());
+    release(() => this.suppliedPlayerAsset?.dispose());
+    release(() => this.tyreEquipment?.dispose());
     if (this.circuit.heroGarage && !this.circuit.heroGarage.root.parent)
-      this.circuit.heroGarage.dispose();
+      release(() => this.circuit.heroGarage?.dispose());
     if (this.circuit.pitWallStation && !this.circuit.pitWallStation.root.parent)
-      this.circuit.pitWallStation.dispose();
+      release(() => this.circuit.pitWallStation?.dispose());
     if (this.circuit.pitBuildingFrontage && !this.circuit.pitBuildingFrontage.root.parent)
-      this.circuit.pitBuildingFrontage.dispose();
-    this.cars.forEach((car) => car.suppliedPlayer?.disposeAnimation());
-    this.circuit.wetReflection.dispose();
-    this.ghost?.dispose();
-    this.pitCrew.dispose();
-    this.gridPerformance.dispose();
-    this.reflection.dispose();
-    this.shadowProxies.dispose();
-    this.farShadow.dispose();
+      release(() => this.circuit.pitBuildingFrontage?.dispose());
+    this.cars.forEach((car) => release(() => car.suppliedPlayer?.disposeAnimation()));
+    release(() => this.circuit.wetReflection.dispose());
+    release(() => this.ghost?.dispose());
+    release(() => this.pitCrew.dispose());
+    release(() => this.gridPerformance.dispose());
+    release(() => this.reflection.dispose());
+    release(() => this.shadowProxies.dispose());
+    release(() => this.farShadow.dispose());
     // LightShadow owns these targets; WebGLRenderer.dispose() does not.
-    this.sun.shadow.dispose();
-    this.gpuTimer.dispose();
-    this.gpuFrames.dispose();
-    this.motionBlur.dispose();
-    this.exposure.dispose();
-    this.weatherPresentation.dispose();
-    this.photoFocus?.dispose();
-    this.broadcastFocus?.dispose();
-    this.geometrySurvey?.dispose();
-    this.bloom.dispose();
-    this.fxaa.dispose();
-    this.scenePass.dispose();
-    this.grade.dispose();
-    this.ultra.dispose();
+    release(() => this.sun.shadow.dispose());
+    release(() => this.gpuTimer.dispose());
+    release(() => this.gpuFrames.dispose());
+    release(() => this.motionBlur.dispose());
+    release(() => this.exposure.dispose());
+    release(() => this.weatherPresentation.dispose());
+    release(() => this.photoFocus?.dispose());
+    release(() => this.broadcastFocus?.dispose());
+    release(() => this.geometrySurvey?.dispose());
+    release(() => this.bloom.dispose());
+    release(() => this.fxaa.dispose());
+    release(() => this.scenePass.dispose());
+    release(() => this.grade.dispose());
+    release(() => this.ultra.dispose());
     const geometries = new Set<T.BufferGeometry>(),
-      materials = this.circuit.disposalMaterials(),
       textures = new Set<T.Texture>();
+    let materials = new Set<T.Material>();
+    release(() => {
+      materials = this.circuit.disposalMaterials();
+    });
     const skeletons = new Set<T.Skeleton>();
     this.scene.traverse((o) => {
       if (o instanceof T.SkinnedMesh) skeletons.add(o.skeleton);
       // Instance attributes are owned by the object, not its shared geometry.
       // Release them before disposing the renderer's WebGL bookkeeping.
-      if (o instanceof T.InstancedMesh) o.dispose();
+      if (o instanceof T.InstancedMesh) release(() => o.dispose());
       if (o instanceof T.Mesh || o instanceof T.Points || o instanceof T.Line) {
         geometries.add(o.geometry);
         if (o instanceof T.Mesh) {
@@ -3525,14 +3559,15 @@ export class RacingRenderer {
     for (const material of materials)
       for (const value of Object.values(material))
         if (value instanceof T.Texture) textures.add(value);
-    for (const skeleton of skeletons) skeleton.dispose();
-    for (const g of geometries) g.dispose();
-    for (const m of materials) m.dispose();
-    for (const t of textures) disposeSceneTexture(t);
-    this.circuit.stateTexture.dispose();
-    this.environment.dispose();
-    this.photoSky?.dispose();
-    this.composer.dispose();
-    this.renderer.dispose();
+    for (const skeleton of skeletons) release(() => skeleton.dispose());
+    for (const g of geometries) release(() => g.dispose());
+    for (const m of materials) release(() => m.dispose());
+    for (const t of textures) release(() => disposeSceneTexture(t));
+    release(() => this.circuit.stateTexture.dispose());
+    release(() => this.environment.dispose());
+    release(() => this.photoSky?.dispose());
+    release(() => this.composer.dispose());
+    release(() => this.renderer.dispose());
+    if (failed) throw failure;
   }
 }

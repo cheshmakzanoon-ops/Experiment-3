@@ -39,6 +39,7 @@ export class MirrorViews {
   private viewport = new T.Vector4();
   private scissor = new T.Vector4();
   private clock = Infinity;
+  private disposed = false;
   private period = 1 / 15;
   /** The feed refreshed by the next steady-state update. */
   private next = 0;
@@ -210,8 +211,21 @@ export class MirrorViews {
     }
   }
   dispose() {
-    this.unbind();
-    this.materials.forEach((m) => m.dispose());
-    this.targets.forEach((t) => t.dispose());
+    if (this.disposed) return;
+    // Disposal events can reenter the owner or throw. Revoke ownership first,
+    // then attempt every release before propagating the first failure.
+    this.disposed = true;
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => this.unbind());
+    for (const material of this.materials) release(() => material.dispose());
+    for (const target of this.targets) release(() => target.dispose());
+    if (failures.length) throw failures[0];
   }
 }

@@ -670,14 +670,27 @@ export class ReflectionSystem {
     });
   }
   dispose() {
+    if (this.disposed) return;
     this.disposed = true;
     this.prefilterPrograms = [];
     this.preparationRenderer = null;
-    this.prefilterPreparation?.dispose();
+    const preparation = this.prefilterPreparation;
     this.prefilterPreparation = null;
-    this.views.dispose();
     this.surfaces.length = 0;
-    this.restoreEnvironment();
-    this.cubeTargets.forEach((target) => target.dispose());
+    // A failing native owner or disposal listener must not strand the other
+    // targets or leave borrowed materials bound to this owner's textures.
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => preparation?.dispose());
+    release(() => this.views.dispose());
+    release(() => this.restoreEnvironment());
+    for (const target of this.cubeTargets) release(() => target.dispose());
+    if (failures.length) throw failures[0];
   }
 }

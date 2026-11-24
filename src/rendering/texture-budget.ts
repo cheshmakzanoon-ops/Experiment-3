@@ -124,11 +124,12 @@ export class TextureBudget {
       }
     }
   }
-  /** Repainted source assets keep their registered ownership and budget. */
+  /** Repaint every budget copy of an authored canvas, preserving each claim. */
   refresh(texture: T.Texture) {
     if (!(texture instanceof T.CanvasTexture)) return;
     const asset = this.assets.get(texture);
-    if (asset) this.apply(asset);
+    if (!asset) return;
+    for (const group of asset.source.groups) this.apply(group);
   }
   private apply(asset: CanvasAsset) {
     // A hero atlas spread over a whole vehicle (the GP-R3 livery) may claim a
