@@ -253,6 +253,11 @@ export function addMotocrossBrakeCaliper(
   return banjo;
 }
 
+// Centre and outgoing cubic handle of the hose in steering coordinates.
+export const MX_FRONT_HOSE_JOIN = Object.freeze({
+  x: -0.054, y: 0.11, z: 0.05, dx: 0.208, dy: -0.035, dz: 0.003,
+});
+
 /** Flexible middle of the front brake hose, from the existing handlebar
  * cable to the sliding fork-guard clip. Both ends stay attached at any fork
  * travel. The fixed lower hose continues to the caliper on the fork lower. */
@@ -273,19 +278,21 @@ export class MotocrossBrakeHose {
   update(forkLowerY: number) {
     if (!Number.isFinite(forkLowerY) || forkLowerY === this.lastY) return;
     this.lastY = forkLowerY;
-    const endY = forkLowerY + 0.51,
+    const join = MX_FRONT_HOSE_JOIN,
+      gx = join.x + join.dx, gy = join.y + join.dy, gz = join.z + join.dz,
+      endY = forkLowerY + 0.51,
       positions = this.mesh.geometry.getAttribute('position'),
       normals = this.mesh.geometry.getAttribute('normal');
     // Cubic coordinates: bar cable endpoint, two elastic guides, lower clip.
     for (let row = 0; row <= this.rows; row++) {
       const t = row / this.rows,
         u = 1 - t,
-        x = u ** 3 * -0.054 + 3 * u * u * t * 0.154 + 3 * u * t * t * 0.148 + t ** 3 * 0.123,
-        y = u ** 3 * 0.11 + 3 * u * u * t * 0.075 + 3 * u * t * t * (endY + 0.17) + t ** 3 * endY,
-        z = u ** 3 * 0.05 + 3 * u * u * t * 0.053 + 3 * u * t * t * 0.035 + t ** 3 * 0.035,
-        dx = 3 * u * u * 0.208 + 6 * u * t * -0.006 + 3 * t * t * -0.025,
-        dy = 3 * u * u * -0.035 + 6 * u * t * (endY + 0.095) + 3 * t * t * -0.17,
-        dz = 3 * u * u * 0.003 + 6 * u * t * -0.018,
+        x = u ** 3 * join.x + 3 * u * u * t * gx + 3 * u * t * t * 0.148 + t ** 3 * 0.123,
+        y = u ** 3 * join.y + 3 * u * u * t * gy + 3 * u * t * t * (endY + 0.17) + t ** 3 * endY,
+        z = u ** 3 * join.z + 3 * u * u * t * gz + 3 * u * t * t * 0.035 + t ** 3 * 0.035,
+        dx = 3 * u * u * join.dx + 6 * u * t * (0.148 - gx) + 3 * t * t * -0.025,
+        dy = 3 * u * u * join.dy + 6 * u * t * (endY + 0.17 - gy) + 3 * t * t * -0.17,
+        dz = 3 * u * u * join.dz + 6 * u * t * (0.035 - gz),
         tangentLength = Math.hypot(dx, dy, dz),
         xy = Math.hypot(dx, dy),
         nx = dy / xy,

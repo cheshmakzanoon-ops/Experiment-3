@@ -2,6 +2,7 @@ import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { add, type BikeMaterials } from '../bike.ts';
 import type { RiderDetail } from '../rider.ts';
+import { MX_FRONT_HOSE_JOIN } from './motocross-mechanics.ts';
 
 /** A slip-on grip in its own rotating frame. +axial points toward the bar
  * end. The palm rests on a smooth crown, the fingers find raised half-waffles
@@ -150,6 +151,56 @@ export function motocrossLeverBlade(side: number) {
   return geometry;
 }
 
+/** Upper control lines travel with the bars. The first bend clears the
+ * number plate. The brake joins the moving fork hose along its own tangent. */
+function addUpperControlLine(
+  steer: T.Group, m: BikeMaterials, side: number, high: boolean, barY: number, barZ: number,
+) {
+  const brake = side < 0;
+  const start = brake
+    ? new T.Vector3(-0.228, barY + 0.008, barZ + 0.048)
+    : new T.Vector3(0.241, barY + 0.005, barZ + 0.0595);
+  const lead = brake ? new T.Vector3(0.46, 0.26, 0.85).normalize() : new T.Vector3(0, 0, 1);
+  const length = brake ? 0.017 : 0.011;
+  const outlet = start.clone().addScaledVector(lead, length);
+  const crest = new T.Vector3(side * 0.17, barY + 0.064, barZ + 0.109);
+  const bend = new T.Vector3(-side * 0.026, -0.016, -0.002);
+  const join = MX_FRONT_HOSE_JOIN;
+  const end = brake ? new T.Vector3(join.x, join.y, join.z) : new T.Vector3(0.054, 0.11, 0.05);
+  const exit = brake
+    ? new T.Vector3(join.dx, join.dy, join.dz).normalize()
+    : new T.Vector3(-0.32, -0.94, -0.12).normalize();
+
+  const path = new T.CurvePath<T.Vector3>();
+  path.add(new T.CubicBezierCurve3(outlet, outlet.clone().addScaledVector(lead, 0.045),
+    crest.clone().sub(bend), crest));
+  path.add(new T.CubicBezierCurve3(crest, crest.clone().add(bend),
+    end.clone().addScaledVector(exit, -0.045), end));
+  const hose = add(steer, new T.TubeGeometry(path, 20, brake ? 0.004 : 0.0032, 5, false), m.dark);
+  hose.name = brake ? 'Motocross master-cylinder hose' : 'Motocross clutch cable housing';
+
+  // The eye is clamped to the inboard face of the hydraulic reservoir.
+  // The opposite side has a cable ferrule seated in its axial barrel adjuster.
+  if (brake) {
+    const eye = add(steer, new T.CylinderGeometry(0.0075, 0.0075, 0.006, high ? 12 : 8),
+      m.aluminium, -0.229, barY + 0.008, barZ + 0.046);
+    eye.rotation.z = Math.PI / 2;
+    const bolt = add(steer, new T.CylinderGeometry(0.0055, 0.0055, 0.0036, 6),
+      m.steel, -0.2248, barY + 0.008, barZ + 0.046);
+    bolt.rotation.z = Math.PI / 2;
+    // Rubber chafe protection covers the two tube rings at the number plate.
+    const sleeve = add(steer, new T.CylinderGeometry(0.0052, 0.0052, 0.014, high ? 10 : 8), m.dark);
+    sleeve.position.copy(end);
+    sleeve.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), exit);
+  }
+  const ferrule = add(steer,
+    new T.CylinderGeometry(brake ? 0.0052 : 0.0042, brake ? 0.006 : 0.005, length, high ? 10 : 8),
+    brake ? m.aluminium : m.dark);
+  ferrule.name = brake ? 'Motocross brake hose crimp' : 'Motocross clutch adjuster ferrule';
+  ferrule.position.copy(start).addScaledVector(lead, length / 2);
+  ferrule.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), lead);
+}
+
 /** Split saddles sit on the top yoke. The front master cylinder and cable
  * clutch each have a fixed perch under the lever pivot. All of this hardware
  * belongs to the existing steering batches. Dimensions are in metres. */
@@ -190,6 +241,7 @@ export function addMotocrossControlMounts(
         clampZ + fore * 0.017,
       );
 
+    addUpperControlLine(steer, m, side, high, barY, barZ);
     const x = side * 0.251;
     add(
       steer,

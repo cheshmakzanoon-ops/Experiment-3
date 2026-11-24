@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { addMotocrossControlMounts } from '../src/rendering/offroad/motocross-handlebar.ts';
 import { BikeMaterials, staticSag, type BikePoseValues } from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import {
@@ -54,6 +55,47 @@ const transformedPoint = (point: T.Vector3, object: T.Object3D) =>
   point.clone().applyMatrix4(object.matrixWorld);
 
 describe('motocross two-anchor suspension and brake geometry', () => {
+  it.each(['high', 'mid'] as const)('%s control housings seat in their ferrules and bend into the moving brake line', (detail) => {
+    const steer = new T.Group(), materials = new BikeMaterials(0);
+    addMotocrossControlMounts(steer, detail, materials, 0.29, -0.06);
+    const lower = new MotocrossBrakeHose(materials.dark);
+    steer.add(lower.root);
+    try {
+      for (const [line, fitting] of [
+        ['Motocross master-cylinder hose', 'Motocross brake hose crimp'],
+        ['Motocross clutch cable housing', 'Motocross clutch adjuster ferrule'],
+      ]) {
+        const hose = steer.getObjectByName(line) as T.Mesh<T.TubeGeometry>;
+        const ferrule = steer.getObjectByName(fitting) as T.Mesh<T.CylinderGeometry>;
+        const path = hose.geometry.parameters.path;
+        const mouth = new T.Vector3(0, ferrule.geometry.parameters.height / 2, 0);
+        expect(ferrule.localToWorld(mouth).distanceTo(path.getPointAt(0))).toBeLessThan(1e-7);
+        const axis = new T.Vector3(0, 1, 0).applyQuaternion(ferrule.quaternion);
+        expect(axis.dot(path.getTangentAt(0))).toBeGreaterThan(0.999);
+      }
+      const hose = steer.getObjectByName('Motocross master-cylinder hose') as T.Mesh<T.TubeGeometry>;
+      const path = hose.geometry.parameters.path;
+      for (const [yaw, fork] of [[-0.45, -0.97], [0, -0.84], [0.45, -0.70]]) {
+        steer.rotation.y = yaw;
+        lower.update(fork);
+        steer.updateMatrixWorld(true);
+        const ring = lower.mesh.geometry.getAttribute('position');
+        // Five unique points share each ring. Its normal gives the exact
+        // tangent at the join, independent of how the fork bends below it.
+        const points = Array.from({ length: 5 }, (_, i) =>
+          lower.mesh.localToWorld(new T.Vector3().fromBufferAttribute(ring, i)));
+        const centre = points.reduce((v, point) => v.addScaledVector(point, 0.2), new T.Vector3());
+        expect(centre.distanceTo(hose.localToWorld(path.getPointAt(1)))).toBeLessThan(1e-6);
+        const normal = points[1].clone().sub(points[0]).cross(points[2].clone().sub(points[0])).normalize();
+        const tangent = path.getTangentAt(1).transformDirection(hose.matrixWorld);
+        expect(Math.abs(normal.dot(tangent))).toBeGreaterThan(0.999);
+      }
+    } finally {
+      disposeGeometry(steer);
+      materials.dispose();
+    }
+  });
+
   for (const id of ['mx250', 'mx450', 'sm450'])
     it.each(['high', 'mid'] as const)(
       `${id} %s keeps both shock eyes on their working bearings through full suspension travel`,

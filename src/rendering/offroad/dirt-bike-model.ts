@@ -593,22 +593,6 @@ export class DirtBikeModel {
         );
       }
     }
-    if (detail !== 'far')
-      for (const side of [-1, 1])
-        add(
-          this.steer,
-          tube(
-            [
-              [side * 0.24, barY + 0.013, barZ + 0.042],
-              [side * 0.16, barY + 0.073, barZ + 0.075],
-              [side * 0.054, CLAMPS - 0.09, 0.05],
-            ],
-            0.004,
-            18,
-            5,
-          ),
-          this.m.dark,
-        );
     if (!supermoto)
       addMotocrossHandguards(this.steer, detail, compact, barY, barZ,
         shroudMaterial, dark, this.m.aluminium);
