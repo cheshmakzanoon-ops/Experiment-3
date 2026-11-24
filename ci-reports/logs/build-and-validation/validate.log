@@ -1,0 +1,255 @@
+### validate (job 138338608450)
+--- error digest (first 120 matching lines) ---
+385:validate	Preserve exact committed source	2026-11-24T09:17:16.6928635Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6631072Z Updating files:  98% (9340/9530)
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6673599Z Updating files:  99% (9435/9530)
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6674151Z Updating files: 100% (9530/9530)
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6674531Z Updating files: 100% (9530/9530), done.
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6766196Z Switched to a new branch 'main'
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6775194Z branch 'main' set up to track 'origin/main'.
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6832645Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6872772Z [command]/usr/bin/git log -1 --format=%H
+validate	Run actions/checkout@v4	2026-11-24T09:14:57.6891651Z d0df1ec1104788d20108d19a63b9a5dd55d9745c
+validate	Run actions/setup-node@v4	﻿2026-11-24T09:14:57.7099855Z ##[group]Run actions/setup-node@v4
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7100134Z with:
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7100351Z   node-version: 22
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7100596Z   cache: npm
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7100801Z   always-auth: false
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7101069Z   check-latest: false
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7102899Z   token: ***
+validate	Run actions/setup-node@v4	2026-11-24T09:14:57.7103097Z ##[endgroup]
+validate	Run actions/setup-node@v4	2026-11-24T09:14:58.0368102Z (node:2153) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+validate	Run actions/setup-node@v4	2026-11-24T09:14:58.0369333Z (Use `node --trace-deprecation ...` to show where the warning was created)
+validate	Run actions/setup-node@v4	2026-11-24T09:14:58.0370343Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+validate	Run actions/setup-node@v4	2026-11-24T09:14:58.0374765Z ##[group]Environment details
+validate	Run actions/setup-node@v4	2026-11-24T09:15:03.3894949Z node: v22.23.5
+validate	Run actions/setup-node@v4	2026-11-24T09:15:03.3895422Z npm: 10.9.9
+validate	Run actions/setup-node@v4	2026-11-24T09:15:03.3895801Z yarn: 1.22.22
+validate	Run actions/setup-node@v4	2026-11-24T09:15:03.3897162Z ##[endgroup]
+validate	Run actions/setup-node@v4	2026-11-24T09:15:03.3908607Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+validate	Run actions/setup-node@v4	2026-11-24T09:15:03.8673049Z /home/runner/.npm
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.0256935Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.0334213Z (node:2153) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.4510043Z Received 34424064 of 34424064 (100.0%), 84.4 MBs/sec
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.4510686Z Cache Size: ~33 MB (34424064 B)
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.4525244Z [command]/usr/bin/tar -xf /home/runner/work/_temp/99d92d90-c24d-4458-8160-856a641adb82/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.4880537Z Cache restored successfully
+validate	Run actions/setup-node@v4	2026-11-24T09:15:04.4891114Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-24T09:15:04.6228424Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:04.6229203Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:04.8918228Z shell: /usr/bin/bash -e {0}
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:04.8918584Z ##[endgroup]
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:08.3558734Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:08.6042860Z 
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:08.6043757Z added 194 packages in 3s
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:09.2090820Z (node:2206) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+validate	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T09:15:09.2091643Z (Use `node --trace-warnings ...` to show where the warning was created)
+validate	Lint, validate content, typecheck and build without source changes	﻿2026-11-24T09:15:09.2211431Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.2212280Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'^[[0m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.2239630Z shell: /usr/bin/bash -e {0}
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.2239976Z ##[endgroup]
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.9526322Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.9527068Z > apex-formula-laboratory@0.1.0 lint
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.9527551Z > eslint src tests e2e scripts
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:09.9528068Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:34.1997311Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:34.1998558Z > apex-formula-laboratory@0.1.0 validate:content
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:34.1999329Z > node --experimental-transform-types scripts/validate-content.ts
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:34.1999658Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.6511523Z Content valid
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.6512629Z (node:2289) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.6513864Z (Use `node --trace-warnings ...` to show where the warning was created)
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.7357987Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.7358861Z > apex-formula-laboratory@0.1.0 prebuild
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.7359565Z > npm run generate:player-lods -- --owner-only
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.7359870Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8059235Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8060049Z > apex-formula-laboratory@0.1.0 generate:player-lods
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8060915Z > node --experimental-strip-types scripts/build-player-lods.mjs --owner-only
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8061321Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8773113Z Player LODs skipped: product build (an owner QA build, npm run build:qa, generates them).
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8840910Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8841698Z > apex-formula-laboratory@0.1.0 build
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8842217Z > tsc --noEmit && vite build
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:15:37.8842487Z 
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:01.9398035Z ^[[36mvite v7.1.7 ^[[32mbuilding for production...^[[36m^[[39m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:02.0087019Z transforming...
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:09.9089435Z ^[[32m✓^[[39m 1090 modules transformed.
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:10.5989637Z rendering chunks...
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.2713845Z computing gzip size...
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4446785Z ^[[2mdist/^[[22m^[[32mBUILD_IDENTITY.json                                       ^[[39m^[[1m^[[2m    0.21 kB^[[22m^[[1m^[[22m^[[2m │ gzip:     0.17 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4448220Z ^[[2mdist/^[[22m^[[32mindex.html                                                ^[[39m^[[1m^[[2m    1.55 kB^[[22m^[[1m^[[22m^[[2m │ gzip:     0.68 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4449163Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-stencil-one-latin-400-normal-CaP09Fmm.woff2  ^[[39m^[[1m^[[2m   20.90 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4450186Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-vietnamese-wdth-normal-Dabr_kLY.woff2        ^[[39m^[[1m^[[2m   26.80 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4451095Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-vietnamese-wdth-italic-52KPIsOu.woff2        ^[[39m^[[1m^[[2m   29.93 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4452172Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-latin-ext-wdth-normal-3Ba4ICIc.woff2         ^[[39m^[[1m^[[2m   67.19 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4453303Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-latin-ext-wdth-italic-CqU2kHDy.woff2         ^[[39m^[[1m^[[2m   77.37 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4454445Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-latin-wdth-normal-X2eA-qfZ.woff2             ^[[39m^[[1m^[[2m   98.91 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4455585Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32msaira-latin-wdth-italic-wJlFlYW8.woff2             ^[[39m^[[1m^[[2m  116.24 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4456651Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32ma61-rival-far.glb-ClvD6mFa.gz                      ^[[39m^[[1m^[[2m  161.38 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4457766Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32mapx01-driver.glb-CNKxI3ag.gz                       ^[[39m^[[1m^[[2m  209.40 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4459379Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32ma61-rival-mid.glb-CAutdD2Z.gz                      ^[[39m^[[1m^[[2m  397.76 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4460512Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32mapx01-shell.glb-B2AhAkfx.gz                        ^[[39m^[[1m^[[2m1,142.77 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4461936Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32ma61-rival-near.glb-DNe8_BZp.gz                     ^[[39m^[[1m^[[2m1,219.90 kB^[[22m^[[1m^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4462594Z ^[[33m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4463090Z (!) Some chunks are larger than 500 kB after minification. Consider:
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4463678Z - Using dynamic import() to code-split the application
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4464619Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4465702Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4466752Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mfree-roam-D1to5scX.css                             ^[[39m^[[1m^[[2m   24.96 kB^[[22m^[[1m^[[22m^[[2m │ gzip:     5.84 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4468242Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-CyeN7YtM.css                                 ^[[39m^[[1m^[[2m   77.78 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    17.71 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4469446Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mtr-C_ZkFYkK.js                                     ^[[39m^[[1m^[[2m   74.70 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.61 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4470670Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mde-DWYTLIdA.js                                     ^[[39m^[[1m^[[2m   76.14 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.94 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4471807Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mit-DQ8hvcde.js                                     ^[[39m^[[1m^[[2m   76.22 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.21 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4473061Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mpt-BR-BfoNy8ie.js                                  ^[[39m^[[1m^[[2m   76.32 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.47 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4474193Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mpl-Bljj9ubQ.js                                     ^[[39m^[[1m^[[2m   77.21 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    30.32 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4475422Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mes-Be31qU0T.js                                     ^[[39m^[[1m^[[2m   77.43 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.67 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4476794Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mfr-BZUTkJoL.js                                     ^[[39m^[[1m^[[2m   79.21 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    29.00 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4478247Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36msecondary-grandstands.geometry.json-DlfECs0J.js    ^[[39m^[[1m^[[2m  213.92 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    23.37 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4479249Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mevent-hall.geometry.json-uwdcRGQc.js               ^[[39m^[[1m^[[2m  266.06 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    85.02 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4480071Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mphysics.worker-tC2ZXMqI.js                         ^[[39m^[[1m^[[33m  568.97 kB^[[39m^[[22m^[[2m │ gzip:   181.00 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4480900Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mthree-BFpzsl70.js                                  ^[[39m^[[1m^[[33m  619.69 kB^[[39m^[[22m^[[2m │ gzip:   159.53 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4481967Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mmx-authored-kit.mesh.json-Dg5dz3LB.js              ^[[39m^[[1m^[[33m  682.72 kB^[[39m^[[22m^[[2m │ gzip:   225.97 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4482885Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36maurel-people.geometry.json-D-420ieL.js             ^[[39m^[[1m^[[33m1,203.51 kB^[[39m^[[22m^[[2m │ gzip:   243.73 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4483746Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36ma33-spare-wheel-set.geometry.json-CrXireCt.js      ^[[39m^[[1m^[[33m1,505.41 kB^[[39m^[[22m^[[2m │ gzip:   316.24 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4484560Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mfree-roam-Tf_IDx5H.js                              ^[[39m^[[1m^[[33m1,839.09 kB^[[39m^[[22m^[[2m │ gzip:   523.76 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4485407Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mhuman-kit.json-D9ZNhZlG.js                         ^[[39m^[[1m^[[33m1,892.56 kB^[[39m^[[22m^[[2m │ gzip: 1,111.10 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4486172Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-DFyLancR.js                                  ^[[39m^[[1m^[[33m1,956.78 kB^[[39m^[[22m^[[2m │ gzip:   634.08 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4487104Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mfestival-save-BJcC0ZSF.js                          ^[[39m^[[1m^[[33m2,191.68 kB^[[39m^[[22m^[[2m │ gzip:   756.18 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4488082Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mstart-finish.geometry.json-DOzR5xi4.js             ^[[39m^[[1m^[[33m2,327.73 kB^[[39m^[[22m^[[2m │ gzip:   508.70 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4489017Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mcrew-performance.geometry.json-BDxhyVmP.js         ^[[39m^[[1m^[[33m2,558.64 kB^[[39m^[[22m^[[2m │ gzip:   657.44 kB^[[22m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:11.4489562Z ^[[32m✓ built in 9.49s^[[39m
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:13.9394404Z IP guard: clean (75 shipped text files and GLB name tables scanned in /home/runner/work/Experiment-3/Experiment-3/dist; 113 internal-identifier mentions of a series name tolerated).
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:14.6044073Z (node:2241) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+validate	Lint, validate content, typecheck and build without source changes	2026-11-24T09:16:14.6045085Z (Use `node --trace-warnings ...` to show where the warning was created)
+validate	IP guard on the built output	﻿2026-11-24T09:16:14.6138178Z ##[group]Run node scripts/ip-guard.mjs --dist dist
+validate	IP guard on the built output	2026-11-24T09:16:14.6138581Z ^[[36;1mnode scripts/ip-guard.mjs --dist dist^[[0m
+validate	IP guard on the built output	2026-11-24T09:16:14.6164356Z shell: /usr/bin/bash -e {0}
+validate	IP guard on the built output	2026-11-24T09:16:14.6164746Z ##[endgroup]
+validate	IP guard on the built output	2026-11-24T09:16:17.1028381Z IP guard: clean (75 shipped text files and GLB name tables scanned in dist; 113 internal-identifier mentions of a series name tolerated).
+validate	Steam demo build and IP guard	﻿2026-11-24T09:16:17.1119752Z ##[group]Run npm run build:demo && node scripts/ip-guard.mjs --dist dist-demo
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1120226Z ^[[36;1mnpm run build:demo && node scripts/ip-guard.mjs --dist dist-demo^[[0m
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1147532Z shell: /usr/bin/bash -e {0}
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1149231Z ##[endgroup]
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1845410Z 
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1845950Z > apex-formula-laboratory@0.1.0 prebuild:demo
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1846575Z > npm run generate:player-lods -- --owner-only
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.1846874Z 
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.2506144Z 
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.2506936Z > apex-formula-laboratory@0.1.0 generate:player-lods
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.2507450Z > node --experimental-strip-types scripts/build-player-lods.mjs --owner-only
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.2507718Z 
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.3108993Z Player LODs skipped: product build (an owner QA build, npm run build:qa, generates them).
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.3177365Z 
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.3178256Z > apex-formula-laboratory@0.1.0 build:demo
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.3183768Z > tsc --noEmit && node scripts/build-demo.mjs
+validate	Steam demo build and IP guard	2026-11-24T09:16:17.3184521Z 
+validate	Steam demo build and IP guard	2026-11-24T09:16:40.5232228Z ^[[36mvite v7.1.7 ^[[32mbuilding for production...^[[36m^[[39m
+validate	Steam demo build and IP guard	2026-11-24T09:16:40.5772095Z transforming...
+validate	Steam demo build and IP guard	2026-11-24T09:16:48.3225629Z ^[[32m✓^[[39m 1090 modules transformed.
+validate	Steam demo build and IP guard	2026-11-24T09:16:48.9919623Z rendering chunks...
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.6552600Z computing gzip size...
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8243579Z ^[[2mdist-demo/^[[22m^[[32mBUILD_IDENTITY.json                                       ^[[39m^[[1m^[[2m    0.21 kB^[[22m^[[1m^[[22m^[[2m │ gzip:     0.17 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8244649Z ^[[2mdist-demo/^[[22m^[[32mindex.html                                                ^[[39m^[[1m^[[2m    1.56 kB^[[22m^[[1m^[[22m^[[2m │ gzip:     0.69 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8245589Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-stencil-one-latin-400-normal-CaP09Fmm.woff2  ^[[39m^[[1m^[[2m   20.90 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8246667Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-vietnamese-wdth-normal-Dabr_kLY.woff2        ^[[39m^[[1m^[[2m   26.80 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8247606Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-vietnamese-wdth-italic-52KPIsOu.woff2        ^[[39m^[[1m^[[2m   29.93 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8248608Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-latin-ext-wdth-normal-3Ba4ICIc.woff2         ^[[39m^[[1m^[[2m   67.19 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8249637Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-latin-ext-wdth-italic-CqU2kHDy.woff2         ^[[39m^[[1m^[[2m   77.37 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8250621Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-latin-wdth-normal-X2eA-qfZ.woff2             ^[[39m^[[1m^[[2m   98.91 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8251485Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32msaira-latin-wdth-italic-wJlFlYW8.woff2             ^[[39m^[[1m^[[2m  116.24 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8252243Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32ma61-rival-far.glb-ClvD6mFa.gz                      ^[[39m^[[1m^[[2m  161.38 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8252949Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32mapx01-driver.glb-CNKxI3ag.gz                       ^[[39m^[[1m^[[2m  209.40 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8253730Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32ma61-rival-mid.glb-CAutdD2Z.gz                      ^[[39m^[[1m^[[2m  397.76 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8254471Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32mapx01-shell.glb-B2AhAkfx.gz                        ^[[39m^[[1m^[[2m1,142.77 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8255206Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[32ma61-rival-near.glb-DNe8_BZp.gz                     ^[[39m^[[1m^[[2m1,219.90 kB^[[22m^[[1m^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8256044Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[35mfree-roam-D1to5scX.css                             ^[[39m^[[1m^[[2m   24.96 kB^[[22m^[[1m^[[22m^[[2m │ gzip:     5.84 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8256860Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[35mindex-CyeN7YtM.css                                 ^[[39m^[[1m^[[2m   77.78 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    17.71 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8257689Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mtr-C_ZkFYkK.js                                     ^[[39m^[[1m^[[2m   74.70 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.61 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8258875Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mde-DWYTLIdA.js                                     ^[[39m^[[1m^[[2m   76.14 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.94 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8259774Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mit-DQ8hvcde.js                                     ^[[39m^[[1m^[[2m   76.22 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.21 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8260589Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mpt-BR-BfoNy8ie.js                                  ^[[39m^[[1m^[[2m   76.32 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.47 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8261258Z ^[[33m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8261809Z (!) Some chunks are larger than 500 kB after minification. Consider:
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8262315Z - Using dynamic import() to code-split the application
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8263130Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8264087Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8264871Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mpl-Bljj9ubQ.js                                     ^[[39m^[[1m^[[2m   77.21 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    30.32 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8265640Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mes-Be31qU0T.js                                     ^[[39m^[[1m^[[2m   77.43 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    28.67 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8266457Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mfr-BZUTkJoL.js                                     ^[[39m^[[1m^[[2m   79.21 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    29.00 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8267320Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36msecondary-grandstands.geometry.json-DlfECs0J.js    ^[[39m^[[1m^[[2m  213.92 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    23.37 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8269088Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mevent-hall.geometry.json-uwdcRGQc.js               ^[[39m^[[1m^[[2m  266.06 kB^[[22m^[[1m^[[22m^[[2m │ gzip:    85.02 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8270112Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mphysics.worker-tC2ZXMqI.js                         ^[[39m^[[1m^[[33m  568.97 kB^[[39m^[[22m^[[2m │ gzip:   181.00 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8270909Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mthree-BFpzsl70.js                                  ^[[39m^[[1m^[[33m  619.69 kB^[[39m^[[22m^[[2m │ gzip:   159.53 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8271769Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mmx-authored-kit.mesh.json-Dg5dz3LB.js              ^[[39m^[[1m^[[33m  682.72 kB^[[39m^[[22m^[[2m │ gzip:   225.97 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8272669Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36maurel-people.geometry.json-D-420ieL.js             ^[[39m^[[1m^[[33m1,203.51 kB^[[39m^[[22m^[[2m │ gzip:   243.73 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8273613Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36ma33-spare-wheel-set.geometry.json-CrXireCt.js      ^[[39m^[[1m^[[33m1,505.41 kB^[[39m^[[22m^[[2m │ gzip:   316.24 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8274461Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mfree-roam-NYWppK6B.js                              ^[[39m^[[1m^[[33m1,839.09 kB^[[39m^[[22m^[[2m │ gzip:   523.76 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8275276Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mhuman-kit.json-D9ZNhZlG.js                         ^[[39m^[[1m^[[33m1,892.56 kB^[[39m^[[22m^[[2m │ gzip: 1,111.10 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8276099Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mindex-C2fLdJTk.js                                  ^[[39m^[[1m^[[33m1,961.22 kB^[[39m^[[22m^[[2m │ gzip:   635.47 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8276904Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mfestival-save-Dobuf2BM.js                          ^[[39m^[[1m^[[33m2,191.68 kB^[[39m^[[22m^[[2m │ gzip:   756.18 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8277948Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mstart-finish.geometry.json-DOzR5xi4.js             ^[[39m^[[1m^[[33m2,327.73 kB^[[39m^[[22m^[[2m │ gzip:   508.70 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8278877Z ^[[2mdist-demo/^[[22m^[[2massets/^[[22m^[[36mcrew-performance.geometry.json-BDxhyVmP.js         ^[[39m^[[1m^[[33m2,558.64 kB^[[39m^[[22m^[[2m │ gzip:   657.44 kB^[[22m
+validate	Steam demo build and IP guard	2026-11-24T09:16:49.8279649Z ^[[32m✓ built in 9.29s^[[39m
+validate	Steam demo build and IP guard	2026-11-24T09:16:52.3225976Z IP guard: clean (75 shipped text files and GLB name tables scanned in /home/runner/work/Experiment-3/Experiment-3/dist-demo; 113 internal-identifier mentions of a series name tolerated).
+validate	Steam demo build and IP guard	2026-11-24T09:16:54.9111841Z IP guard: clean (75 shipped text files and GLB name tables scanned in /home/runner/work/Experiment-3/Experiment-3/dist-demo; 113 internal-identifier mentions of a series name tolerated).
+validate	Steam demo build and IP guard	2026-11-24T09:16:54.9179097Z Demo build written to /home/runner/work/Experiment-3/Experiment-3/dist-demo (variant product, edition demo, IP guard passed).
+validate	Steam demo build and IP guard	2026-11-24T09:16:57.3836137Z IP guard: clean (75 shipped text files and GLB name tables scanned in dist-demo; 113 internal-identifier mentions of a series name tolerated).
+validate	Static application build	﻿2026-11-24T09:16:57.3952573Z ##[group]Run actions/upload-artifact@v4
+validate	Static application build	2026-11-24T09:16:57.3953068Z with:
+validate	Static application build	2026-11-24T09:16:57.3953294Z   name: apex-formula-web
+validate	Static application build	2026-11-24T09:16:57.3953548Z   path: dist/
+validate	Static application build	2026-11-24T09:16:57.3953802Z   retention-days: 7
+validate	Static application build	2026-11-24T09:16:57.3954027Z   if-no-files-found: warn
+validate	Static application build	2026-11-24T09:16:57.3954274Z   compression-level: 6
+validate	Static application build	2026-11-24T09:16:57.3954532Z   overwrite: false
+validate	Static application build	2026-11-24T09:16:57.3954749Z   include-hidden-files: false
+validate	Static application build	2026-11-24T09:16:57.3955030Z ##[endgroup]
+validate	Static application build	2026-11-24T09:16:57.5123181Z (node:2524) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+validate	Static application build	2026-11-24T09:16:57.5123898Z (Use `node --trace-deprecation ...` to show where the warning was created)
+validate	Static application build	2026-11-24T09:16:57.5396138Z With the provided path, there will be 266 files uploaded
+validate	Static application build	2026-11-24T09:16:57.5401220Z Artifact name is valid!
+validate	Static application build	2026-11-24T09:16:57.5401669Z Root directory input is valid!
+validate	Static application build	2026-11-24T09:16:57.9273044Z Beginning upload of artifact content to blob storage
+validate	Static application build	2026-11-24T09:16:58.4420253Z (node:2524) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+validate	Static application build	2026-11-24T09:16:58.7894363Z Uploaded bytes 8388608
+validate	Static application build	2026-11-24T09:16:58.9620097Z Uploaded bytes 16777216
+validate	Static application build	2026-11-24T09:16:59.0939458Z Uploaded bytes 25165824
+validate	Static application build	2026-11-24T09:16:59.3724737Z Uploaded bytes 33554432
+validate	Static application build	2026-11-24T09:16:59.5835001Z Uploaded bytes 41943040
+validate	Static application build	2026-11-24T09:16:59.7937269Z Uploaded bytes 50331648
+validate	Static application build	2026-11-24T09:17:00.0740197Z Uploaded bytes 58720256
+validate	Static application build	2026-11-24T09:17:00.3693407Z Uploaded bytes 67108864
+validate	Static application build	2026-11-24T09:17:00.8185079Z Uploaded bytes 75497472
+validate	Static application build	2026-11-24T09:17:00.9772850Z Uploaded bytes 79503227
+validate	Static application build	2026-11-24T09:17:00.9964630Z Finished uploading artifact content to blob storage!
+validate	Static application build	2026-11-24T09:17:00.9965307Z SHA256 digest of uploaded artifact zip is cd47cbc58da5daeedf1b0434fc5b9b7849cbec09faf0db3b07801d9b56950a69
+validate	Static application build	2026-11-24T09:17:00.9966172Z Finalizing artifact upload
+validate	Static application build	2026-11-24T09:17:01.3559042Z Artifact apex-formula-web.zip successfully finalized. Artifact ID 14906251539
+validate	Static application build	2026-11-24T09:17:01.3560222Z Artifact apex-formula-web has been successfully uploaded! Final size is 79503227 bytes. Artifact ID is 14906251539
+validate	Static application build	2026-11-24T09:17:01.3563930Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45363274954/artifacts/14906251539
+validate	Preserve exact committed source	﻿2026-11-24T09:17:01.3680010Z ##[group]Run git archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"
+validate	Preserve exact committed source	2026-11-24T09:17:01.3680480Z ^[[36;1mgit archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"^[[0m
+validate	Preserve exact committed source	2026-11-24T09:17:01.3680948Z ^[[36;1mgit rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"^[[0m
+validate	Preserve exact committed source	2026-11-24T09:17:01.3710919Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+validate	Preserve exact committed source	2026-11-24T09:17:01.3711310Z ##[endgroup]
+validate	Preserve exact committed source	2026-11-24T09:17:16.6928635Z ##[error]The operation was canceled.
+validate	Post Run actions/checkout@v4	﻿2026-11-24T09:17:16.7025410Z Post job cleanup.
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7736645Z [command]/usr/bin/git version
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7772928Z git version 2.56.1
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7804318Z Temporarily overriding HOME='/home/runner/work/_temp/3db78acb-ccf0-4ed0-b3cd-58db4513f54c' before making global git config changes
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7809066Z Adding repository directory to the temporary git global config as a safe directory
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7811551Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7845368Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.7879692Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.8143252Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.8158804Z http.https://github.com/.extraheader
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.8173388Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.8212072Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.8449178Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+validate	Post Run actions/checkout@v4	2026-11-24T09:17:16.8483371Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+validate	Complete job	﻿2026-11-24T09:17:16.8829858Z Cleaning up orphan processes
+validate	Complete job	2026-11-24T09:17:16.9068974Z Terminate orphan process: pid (2537) (git)
+validate	Complete job	2026-11-24T09:17:16.9114826Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
