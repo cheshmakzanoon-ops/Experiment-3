@@ -42,6 +42,9 @@ export interface MotocrossPoseSample {
   brake?: number;
   throttle?: number;
   rearBrake?: number;
+  shiftAngle?: number;
+  shiftCover?: number;
+  shiftClear?: number;
   forkOffset?: number;
   shockOffset?: number;
   speed?: number;
@@ -336,6 +339,7 @@ export function captureMotocrossBike(
         brake: sample.brake ?? 0,
         throttle: sample.throttle ?? 0,
         rearBrake: sample.rearBrake ?? 0,
+        shiftAngle: sample.shiftAngle, shiftCover: sample.shiftCover, shiftClear: sample.shiftClear,
         discTemp: 0,
         compoundColour: 0xffffff,
         riding: !sample.recovery,
@@ -360,6 +364,11 @@ export function captureMotocrossBike(
         def.bike!.cgHeight * (1 - Math.cos(sample.lean ?? 0)) +
         0.045 * Math.sin(Math.abs(sample.lean ?? 0)) +
         (sample.elevation ?? 0);
+      if (view === 'shift-pedal') {
+        const anchor = model.root.getObjectByName('Motocross gear selector')!.getWorldPosition(location);
+        camera.position.set(anchor.x + .79, anchor.y + .14, anchor.z + .31);
+        camera.lookAt(anchor.x, anchor.y + .075, anchor.z + .05);
+      }
       model.rider.setFirstPerson(view === 'onboard', true);
       if (sample.recovery) {
         const state = sample.recovery;

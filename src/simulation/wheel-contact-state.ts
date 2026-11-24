@@ -3,11 +3,13 @@ import {
   BC,
   C,
   ROAD_BIKE_CONTACT,
+  MX_FOOT,
   WHEEL_CONTACT_BASE,
   WHEEL_CONTACT_SIZE,
   wheelContactBase,
 } from './protocol.ts';
 import { BikeVehicle } from './bike-vehicle.ts';
+import { DirtBikeVehicle } from './offroad/dirt-bike-vehicle.ts';
 import type { Vehicle } from './vehicle.ts';
 
 const local = new Vec3();
@@ -23,6 +25,15 @@ export function writeWheelContact(out: Float32Array, car: number, vehicle: Vehic
   // fields. The explicit tag distinguishes its sprung CG from old wheel-plane
   // snapshots. MX, placement and stands retain their separate pose contracts.
   if (vehicle.definition.bike) {
+    if (vehicle instanceof DirtBikeVehicle && vehicle.definition.tireFamily === 'knobby') {
+      if (vehicle.riding) {
+        const stroke = vehicle.gearStroke.sample(vehicle.clock);
+        out[car + MX_FOOT.ANGLE] = stroke.angle;
+        out[car + MX_FOOT.COVER] = stroke.cover;
+        out[car + MX_FOOT.CLEAR] = stroke.clear;
+      }
+      return;
+    }
     if (!(vehicle instanceof BikeVehicle) || !vehicle.sprungRoadPose) return;
     for (let wheel = 0; wheel < 4; wheel += 2) {
       const point = vehicle.contactPoints[wheel],

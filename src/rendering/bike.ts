@@ -92,6 +92,8 @@ import {
   O,
   R,
   OFFROAD_BASE,
+  MX_FOOT,
+  hasMxFootControls,
   RACE_BASE,
   W,
   WHEEL_BASE,
@@ -2248,6 +2250,10 @@ export interface BikePoseValues extends GpTyreAppearance {
   tuck: number;
   brake: number;
   rearBrake: number;
+  /** Travel of the MX selector in radians and the left boot's two clearance phases. */
+  shiftAngle?: number;
+  shiftCover?: number;
+  shiftClear?: number;
   /** Signed drive/coast loading of the GP chain's two free spans. */
   chainLoad?: number;
   clutch?: number;
@@ -2864,6 +2870,10 @@ export class BikeShells {
     v.standing = sampleOffroadField(a, b, o, O.STANDING, t);
     v.dab = sampleOffroadField(a, b, o, O.DAB, t);
     if (model instanceof DirtBikeModel) {
+      const left = hasMxFootControls(a, o), right = hasMxFootControls(b, o);
+      v.shiftAngle = T.MathUtils.lerp(left ? a[o + MX_FOOT.ANGLE] : 0, right ? b[o + MX_FOOT.ANGLE] : 0, t);
+      v.shiftCover = T.MathUtils.lerp(left ? a[o + MX_FOOT.COVER] : 0, right ? b[o + MX_FOOT.COVER] : 0, t);
+      v.shiftClear = T.MathUtils.lerp(left ? a[o + MX_FOOT.CLEAR] : 0, right ? b[o + MX_FOOT.CLEAR] : 0, t);
       v.dirtSupportG = sampleValue(a, b, o + F.G_VERT, t);
       v.velocityX = sampleValue(a, b, o + F.VX, t);
       v.velocityZ = sampleValue(a, b, o + F.VZ, t);

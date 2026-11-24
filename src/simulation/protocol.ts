@@ -54,6 +54,19 @@ export const wheelContactBase = (car: number, wheel: number) =>
  * world planes and vertical wheel gaps. It is not a car's 0..15 contact mask.
  * Zero retains the legacy wheel-plane pose, including MX and pit service. */
 export const ROAD_BIKE_CONTACT = 16;
+/** Optional MX foot controls in the unused zero-mask contact payload of
+ * knobby motorcycles. Earlier recordings cleared this whole block to zero,
+ * which is the neutral boot and lever pose. Offsets are relative to the car. */
+export const MX_FOOT = {
+  ANGLE: WHEEL_CONTACT_BASE + 1,
+  COVER: WHEEL_CONTACT_BASE + 2,
+  CLEAR: WHEEL_CONTACT_BASE + 3,
+} as const;
+export function hasMxFootControls(frame: Float32Array, car: number) {
+  return frame[car + WHEEL_CONTACT_BASE] === 0 &&
+    vehicleAt(frame[car + RACE_BASE + R.VEHICLE]).tireFamily === 'knobby' &&
+    frame[car + BIKE_BASE + B.STATE] === 0;
+}
 export const BC = {
   X: 0,
   Y: 1,

@@ -52,6 +52,7 @@ function leverBlank(tipY: number, tipZ: number, brake: boolean) {
  * of the rod slides inside its frame-mounted cylinder as the bell crank turns. */
 export class MotocrossFootControls {
   readonly brake = new T.Group();
+  readonly selector = new T.Group();
   readonly outlet = new T.Vector3();
   private readonly clevis = new T.Vector3(-0.001, 0.021, -0.039);
   private readonly mouth = new T.Vector3(-0.134, -0.335, -0.151);
@@ -69,12 +70,15 @@ export class MotocrossFootControls {
     for (const side of [-1, 1]) {
       const isBrake = side < 0,
         x = side * 0.133;
-      const pedal = isBrake ? this.brake : new T.Group();
+      const pedal = isBrake ? this.brake : this.selector;
       pedal.name = isBrake ? 'Motocross rear brake pedal' : 'Motocross gear selector';
       pedal.position.set(x, pegY, MX_PEG[2]);
       parent.add(pedal);
-      const y = tip.y + (isBrake ? -0.008 : 0.041);
-      add(pedal, leverBlank(y, tip.z, isBrake), materials.aluminium);
+      // The gear sleeve touches the crown of the toe box. Placing it at
+      // brake-tip height would bury the rubber through the rider's boot.
+      const y = tip.y + (isBrake ? -.008 : .072);
+      const z = tip.z + (isBrake ? 0 : .016);
+      add(pedal, leverBlank(y, z, isBrake), materials.aluminium);
       add(
         parent,
         new T.CylinderGeometry(0.009, 0.009, 0.039, segments),
@@ -85,19 +89,19 @@ export class MotocrossFootControls {
       ).rotation.z = Math.PI / 2;
       if (isBrake) {
         // Open toe cage, with tooth peaks lying on the actual sole landmark.
-        for (const z of [-0.012, 0.012]) {
+        for (const edge of [-0.012, 0.012]) {
           add(
             pedal,
             new T.BoxGeometry(0.052, 0.008, 0.0035),
             materials.steel,
             side * 0.023,
             y,
-            tip.z + z,
+            z + edge,
           );
           if (detailed)
             for (let i = 0; i < 5; i++) {
               const tooth = new T.CylinderGeometry(0.001, 0.0032, 0.0045, 4);
-              add(pedal, tooth, materials.steel, side * (0.005 + i * 0.01), y + 0.00575, tip.z + z);
+              add(pedal, tooth, materials.steel, side * (0.005 + i * 0.01), y + 0.00575, z + edge);
             }
         }
         for (const offset of [-0.001, 0.047])
@@ -107,7 +111,7 @@ export class MotocrossFootControls {
             materials.steel,
             side * offset,
             y,
-            tip.z,
+            z,
           );
         add(
           pedal,
@@ -125,7 +129,7 @@ export class MotocrossFootControls {
           materials.dark,
           side * 0.022,
           y,
-          tip.z,
+          z,
         ).rotation.z = Math.PI / 2;
         if (detailed)
           for (const off of [0.006, 0.016, 0.026, 0.036])
@@ -135,7 +139,7 @@ export class MotocrossFootControls {
               materials.dark,
               side * off,
               y,
-              tip.z,
+              z,
             ).rotation.z = Math.PI / 2;
       }
       batchBikeRigidMeshes(pedal);
@@ -159,7 +163,8 @@ export class MotocrossFootControls {
     this.update(0);
   }
 
-  update(rearBrake: number) {
+  update(rearBrake: number, shiftAngle = 0) {
+    this.selector.rotation.x = shiftAngle;
     this.brake.rotation.x = motocrossPedalAngle(rearBrake);
     this.lower.copy(this.clevis).applyQuaternion(this.brake.quaternion).add(this.brake.position);
     this.axis.subVectors(this.mouth, this.lower);

@@ -1128,7 +1128,7 @@ export class DirtBikeModel {
       batchBikeRigidMeshes(group);
     if (!supermoto) {
       applyMxAssemblyOcclusion(`${definition.id}/frame/${detail}`, this.sprung,
-        [this.rider.root, this.steerMount, this.footControls?.brake], 0.016, 0.19);
+        [this.rider.root, this.steerMount, this.footControls?.brake, this.footControls?.selector], 0.016, 0.19);
       applyMxAssemblyOcclusion(`${definition.id}/bars/${detail}`, this.steer,
         [this.forkLower, this.throttleTube, this.frontBrakeLever, this.brakeHose?.root], 0.008, 0.09);
     }
@@ -1148,7 +1148,8 @@ export class DirtBikeModel {
     // The rear pedal has its own input; it must not squeeze the front lever.
     // This direct snapshot mapping also holds still on pause and rewinds
     // exactly without a presentation-only animation clock.
-    this.footControls?.update(v.rearBrake);
+    this.footControls?.update(v.rearBrake,
+      v.riding ? (v.shiftAngle ?? 0) * (1 - T.MathUtils.clamp(v.dab ?? 0, 0, 1)) : 0);
     this.throttleTube.rotation.x = motocrossThrottleAngle(v.throttle);
     this.frontBrakeLever.rotation.y = -0.25 - T.MathUtils.clamp(v.brake, 0, 1) * 0.2;
     // The off-road adapter records vertical wheel travel, not piston travel.
@@ -1255,6 +1256,9 @@ export class DirtBikeModel {
         braking: v.brake,
         throttle: v.throttle,
         rearBraking: v.rearBrake,
+        shiftAngle: v.shiftAngle,
+        shiftCover: v.shiftCover,
+        shiftClear: v.shiftClear,
         steer: v.steer,
         speed: v.speed,
         standing: v.standing ?? 0,

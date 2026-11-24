@@ -33,20 +33,30 @@ export function motocrossPedalAngle(input = 0) {
 /** The forefoot points along the bike, with its sole down and a small heel
  * lift. The calf has its own skin transform; it follows the solved shin.
  * A dab smoothly extends the same boot, without inheriting a previous pose. */
-export function motocrossBootFrame(target: T.Quaternion, dab = 0, rearBrake = 0) {
+export function motocrossBootFrame(
+  target: T.Quaternion, dab = 0, rearBrake = 0, shiftAngle = 0, shiftCover = 0, shiftClear = 0,
+) {
   const down = Number.isFinite(dab) ? T.MathUtils.clamp(dab, 0, 1) : 0;
-  return target.setFromEuler(
-    bootEuler.set(0.06 + down * 0.12 + motocrossPedalAngle(rearBrake) * (1 - down), 0, Math.PI),
-  );
+  const pitch = motocrossPedalAngle(rearBrake) + shiftAngle - .19 * shiftCover;
+  return target.setFromEuler(bootEuler.set(
+    .06 + down * .12 + pitch * (1 - down), .48 * shiftClear * (1 - down), Math.PI, 'YXZ',
+  ));
 }
 
 /** A sole contact moves ahead and out for a foot dab. The opposite boot
  * remains planted. This target is shared by riding and its visual checks. */
-export function motocrossSoleContact(peg: T.Vector3, side: number, dab: number, target: T.Vector3) {
+export function motocrossSoleContact(
+  peg: T.Vector3, side: number, dab: number, target: T.Vector3, shiftCover = 0, shiftClear = 0,
+) {
   const down = Number.isFinite(dab) ? T.MathUtils.clamp(side * dab, 0, 1) : 0;
   target.copy(peg);
   target.x += side * 0.2 * down;
   target.y += MX_PEG_TOP - 0.015 * down;
   target.z += 0.32 * down;
+  // Roll the boot around the folding end before the sole comes down on it.
+  if (side > 0) {
+    target.x += .021 * shiftClear * (1 - down);
+    target.y += .055 * shiftCover * (1 - down);
+  }
   return target;
 }

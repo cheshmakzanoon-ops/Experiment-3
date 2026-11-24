@@ -135,6 +135,9 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   roadSupportG?: number;
   /** Independent rear pedal; the front lever must not animate the right foot. */
   rearBraking?: number;
+  shiftAngle?: number;
+  shiftCover?: number;
+  shiftClear?: number;
   clutch?: number;
   /** Off-road (WP41): 0 seated .. 1 standing on the pegs. */
   standing?: number;
@@ -1676,8 +1679,11 @@ export class Rider {
         // Solve the ankle above the contact patch. The boot sole stays on
         // the serrations while its calf follows this independently solved
         // shin, including standing absorption and a continuous foot dab.
-        motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact);
-        motocrossBootFrame(this.q, down, side < 0 ? pose.rearBraking : 0);
+        const cover = side > 0 ? pose.shiftCover : 0;
+        const clear = side > 0 ? pose.shiftClear : 0;
+        motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact, cover, clear);
+        motocrossBootFrame(this.q, down, side < 0 ? pose.rearBraking : 0,
+          side > 0 ? pose.shiftAngle : 0, cover, clear);
         if (down > 0 && this.ground.dirt)
           this.motocrossDab.place(
             this.ground.dirt, this.root, hip, RIDER.thigh + RIDER.shin - 0.008,

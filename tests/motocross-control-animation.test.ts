@@ -6,13 +6,18 @@ import {
   staticSag,
   type BikePoseValues,
 } from '../src/rendering/bike.ts';
+import { Simulation } from '../src/simulation/world.ts';
+import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
+import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
+import { MxGearStroke } from '../src/simulation/offroad/mx-gear-stroke.ts';
+import { ReplayRecorder } from '../src/storage/recorders.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { MotocrossAxles } from '../src/rendering/offroad/motocross-axles.ts';
 import { MxGeometryPool } from '../src/rendering/offroad/mx-geometry-pool.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
-import { MX_GLOVE_GRIP } from '../src/rendering/offroad/motocross-rider-contact.ts';
+import { MX_GLOVE_GRIP, MX_BOOT_PEDAL, MX_BOOT_PEG, motocrossBootFrame } from '../src/rendering/offroad/motocross-rider-contact.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
-import { H, F, R, B, O, BIKE_BASE, OFFROAD_BASE, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import { H, F, R, B, O, BIKE_BASE, OFFROAD_BASE, RACE_BASE, HEADER, CAR_STRIDE, carBase, MX_FOOT, WHEEL_CONTACT_BASE, snapshotIncompatibility } from '../src/simulation/protocol.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -864,4 +869,116 @@ it('keeps shared rigid GPU buffers alive until their last bike leaves the field'
     b.dispose();
     mat.dispose();
   }
+});
+
+
+it.each(['mx250', 'mx450'])('%s records only accepted gear strokes and replays the same boot and lever', (id) => {
+  const sim = new Simulation({...DEFAULT_OPTIONS, mode: 'practice', circuit: 'valley-ridge-mx',
+    opponents: 0, ruleset: 'motocross-moto', vehicles: [id]});
+  const bike = sim.cars[0] as DirtBikeVehicle, o = carBase(0);
+  const record = (dt: number) => {
+    bike.clock += dt;
+    const frame = sim.makeFrame();
+    frame[H.TIME] = bike.clock;
+    expect(frame[o + WHEEL_CONTACT_BASE]).toBe(0);
+    expect(snapshotIncompatibility(frame)).toBeNull();
+    return frame;
+  };
+  bike.autoShift = false;
+  bike.gear = 1;
+  bike.shift(-1);
+  const neutral = record(.04);
+  expect(neutral[o + MX_FOOT.ANGLE]).toBe(0);
+  bike.shift(1);
+  const up = record(.046);
+  expect(up[o + MX_FOOT.ANGLE]).toBeCloseTo(-.24);
+  bike.shift(-1); // inside the gearbox cut
+  expect(bike.gear).toBe(2);
+  bike.shiftClock = 0;
+  bike.shift(-1);
+  expect(record(0)[o + MX_FOOT.ANGLE]).toBe(up[o + MX_FOOT.ANGLE]);
+  const clearance = record(.030), down = record(.086);
+  expect(clearance[o + MX_FOOT.CLEAR]).toBeGreaterThan(.99);
+  expect(down[o + MX_FOOT.ANGLE]).toBeCloseTo(.22);
+  expect(down[o + MX_FOOT.COVER]).toBe(1);
+  const settled = record(.16);
+  expect(Array.from(settled.subarray(o + MX_FOOT.ANGLE, o + MX_FOOT.CLEAR + 1))).toEqual([0,0,0]);
+
+  const store = new ReplayRecorder(1, 2);
+  store.append(up);
+  store.append(down);
+  const a = store.makeFrame(), b = store.makeFrame();
+  store.sample(store.duration / 2, a, b);
+  const shells = new BikeShells(), car = {root: new T.Object3D()}, camera = new T.PerspectiveCamera(55, 1.6);
+  camera.position.z = -3;
+  const at = (left: Float32Array, right = left, t = 1) => {
+    shells.update(left, right, t, [car], camera, 'high', 0);
+    const root = shells.drawnRoot(0)!;
+    root.updateMatrixWorld(true);
+    const point = (name: string) => root.getObjectByName(name)!.localToWorld(new T.Vector3(0, .033, .137));
+    return {angle: root.getObjectByName('Motocross gear selector')!.rotation.x,
+      left: point('Motocross left boot'), right: point('Motocross right boot')};
+  };
+  try {
+    const rest = at(neutral), lift = at(a), press = at(b);
+    expect(lift.angle).toBeCloseTo(-.24);
+    expect(press.angle).toBeCloseTo(.22);
+    expect(lift.left.y - rest.left.y).toBeGreaterThan(.02);
+    expect(at(clearance).left.x - rest.left.x).toBeGreaterThan(.055);
+    expect(lift.right.distanceTo(press.right)).toBeLessThan(1e-8);
+    expect(at(a,b,.5).angle).toBeCloseTo(-.01);
+    expect(at(a)).toEqual(lift);
+    expect(at(settled)).toEqual(rest);
+    bike.shiftClock = 0;
+    bike.shift(1);
+    bike.place(sim.track, 8);
+    expect(record(.04)[o + MX_FOOT.ANGLE]).toBe(0);
+  } finally { shells.disposeAll(); }
+});
+
+it('clears the selector sleeve before covering it and returns continuously after rapid requests', () => {
+  const stroke = new MxGearStroke();
+  stroke.engage(-1, 1);
+  for (let tick = 0; tick <= 260; tick++) {
+    const a = stroke.sample(1 + tick / 1000);
+    expect(Math.abs(a.angle)).toBeLessThanOrEqual(.22);
+    if (a.angle > .08) expect(a.cover).toBe(1);
+    if (a.cover > .12 && a.cover < .88) expect(a.clear).toBeGreaterThan(.94);
+  }
+  stroke.engage(1, 2);
+  const angle = stroke.sample(2.063).angle;
+  stroke.engage(-1, 2.063);
+  expect(stroke.sample(2.063).angle).toBeCloseTo(angle, 12);
+  stroke.reset();
+  expect(stroke.sample(2.115).angle).toBe(0);
+});
+
+
+it.each(['mid', 'high'] as const)('the %s shift sleeve bears on the top and sole of the actual boot', detail => {
+  const materials = new BikeMaterials(0), def = VEHICLES.mx250;
+  const bike = new DirtBikeModel(def,0,detail,materials,mudUniforms());
+  const selector = bike.root.getObjectByName('Motocross gear selector')!;
+  const boot = bike.root.getObjectByName('Motocross left boot')!;
+  const toe = new T.Vector3(...MX_BOOT_PEDAL).sub(new T.Vector3(...MX_BOOT_PEG))
+    .applyQuaternion(motocrossBootFrame(new T.Quaternion()));
+  const ray = new T.Raycaster(), stroke = new MxGearStroke();
+  try {
+    for (const [direction, time] of [[0,0],[1,.045],[-1,.078],[-1,.115]]) {
+      stroke.reset(); stroke.engage(direction,0); stroke.sample(time);
+      bike.pose({...staticSag(def), steer:0, frontRotation:0, rearRotation:0, chassisLean:0,
+        riderOffset:0, tuck:0, brake:0, rearBrake:.75, discTemp:0, compoundColour:0xffffff,
+        riding:true, standing:.24, shiftAngle:stroke.angle, shiftCover:stroke.cover, shiftClear:stroke.clear});
+      bike.root.updateMatrixWorld(true);
+      const sleeve = selector.localToWorld(new T.Vector3(.031, toe.y + .072, toe.z + .016));
+      const surface = (object: T.Object3D, up: number) => {
+        ray.set(sleeve.clone().add(new T.Vector3(0,-up*.14,0)),new T.Vector3(0,up,0));
+        const hit = ray.intersectObject(object, true)[0];
+        expect(hit).toBeDefined(); return hit.point.y;
+      };
+      const clearance = direction < 0 ? surface(boot,1) - surface(selector,-1)
+        : surface(selector,1) - surface(boot,-1);
+      expect(clearance).toBeGreaterThan(-.003);
+      expect(clearance).toBeLessThan(.006);
+    }
+  } finally {bike.dispose();materials.dispose();}
 });

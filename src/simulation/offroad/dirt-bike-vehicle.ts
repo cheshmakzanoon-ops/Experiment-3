@@ -18,6 +18,7 @@ import { hardStopImpulse, landingNormalSpeed } from './contact-impulse.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
 import { motocrossYawInertia, stepMotocrossGround } from './mx-ground-physics.ts';
+import { MxGearStroke } from './mx-gear-stroke.ts';
 import { RiderWeight } from './rider-weight.ts';
 import { factoryBikeSag, risingRateSag } from './suspension-geometry.ts';
 import { motorcycleContactSlipPower, motorcycleRotorBrakeWork } from '../motorcycle-thermal.ts';
@@ -163,6 +164,7 @@ export class DirtBikeVehicle extends BikeVehicle {
   lastLanding: LandingRecord | null = null;
   /** Adapter clock (s), independent of the race clock. */
   clock = 0;
+  readonly gearStroke = new MxGearStroke();
   /** Why each crash happened (landing outcomes, grip, contact), with its lap distance. */
   readonly crashCauses: { cause: string; s: number; time: number }[] = [];
   private loadGrip = 1;
@@ -289,6 +291,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.airYaw = this.airYawRate = 0;
     this.riderBankInFlight = false;
     this.airContactRollRate = 0;
+    this.gearStroke.reset();
     this.riderWeight.reset();
     this.riderAirRate = 0;
     this.riderBody = this.automaticBody;
@@ -322,7 +325,13 @@ export class DirtBikeVehicle extends BikeVehicle {
     return this.roadPitch;
   }
   override shift(direction: number) {
-    if (!this.playerMotocross) return super.shift(direction);
+    const before = this.gear;
+    if (this.playerMotocross) this.shiftPlayerGear(direction);
+    else super.shift(direction);
+    if (this.gear !== before && this.riding && this.definition.tireFamily === 'knobby')
+      this.gearStroke.engage(this.gear - before, this.clock);
+  }
+  private shiftPlayerGear(direction: number) {
     if (this.shiftClock > 0) return;
     const spec = this.spec;
     const next = clamp(this.gear + Math.sign(direction), 1, spec.gearRatios.length - 2);
