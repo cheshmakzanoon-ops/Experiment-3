@@ -1,0 +1,47 @@
+{
+  "baseline_commit": "5edead7a44c8ccb5a187b22b750ce2bda7715128",
+  "node": "v24.22.3",
+  "duration_ms_per_scenario": 30000,
+  "source_sha256": {
+    "src/net/input.ts": "d7f1873380764b2f239bfc2b8609cd477b6d6af612804fbe1eb9e484d78c352a",
+    "src/net/client.ts": "0f6f0cd5fbc9d0535cc15fbcecdf0ea3086f5523fa3227c667c6810d3d070845"
+  },
+  "results": [
+    {
+      "scenario": "healthy",
+      "wire_render_sha256": "86f70ac227b199536c744352fcf77dcad5eb3dd0952a33a27f2f215d6319af50",
+      "commands": 1800,
+      "maximum_history_before": 76,
+      "maximum_history_after": 76,
+      "final_history_before": 50,
+      "final_history_after": 50
+    },
+    {
+      "scenario": "stale-ack",
+      "wire_render_sha256": "73759c8acf1ea257bca569dc9f775dfc23834e6d82c8ce8943321a2918c84578",
+      "commands": 1800,
+      "maximum_history_before": 1800,
+      "maximum_history_after": 76,
+      "final_history_before": 1800,
+      "final_history_after": 50
+    },
+    {
+      "scenario": "outage",
+      "wire_render_sha256": "0b0ef6e2dd194b491dfa05dec0d5d1cbd3f62fcc2037f27da16b61d4acffb01d",
+      "commands": 1800,
+      "maximum_history_before": 1800,
+      "maximum_history_after": 185,
+      "final_history_before": 1800,
+      "final_history_after": 50
+    },
+    {
+      "scenario": "jitter-loss",
+      "wire_render_sha256": "5424b49f9df642d06dbcaf3400c26321686084e8e6920568a67ae06605792a60",
+      "commands": 1800,
+      "maximum_history_before": 1800,
+      "maximum_history_after": 81,
+      "final_history_before": 1800,
+      "final_history_after": 59
+    }
+  ]
+}

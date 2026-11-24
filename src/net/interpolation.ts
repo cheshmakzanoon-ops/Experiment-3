@@ -32,7 +32,41 @@ export class ServerClock {
   }
 }
 
-/** Snapshot history of one remote car with Hermite interpolation. */
+/** Copy the scalar wire-state contract, including accessor-backed callers,
+ * without retaining unrelated caller-owned properties. */
+function copyRemoteState(state: CarNetState): CarNetState {
+  return {
+    id: state.id,
+    flags: state.flags,
+    x: state.x,
+    y: state.y,
+    z: state.z,
+    qx: state.qx,
+    qy: state.qy,
+    qz: state.qz,
+    qw: state.qw,
+    vx: state.vx,
+    vy: state.vy,
+    vz: state.vz,
+    wx: state.wx,
+    wy: state.wy,
+    wz: state.wz,
+    ax: state.ax,
+    ay: state.ay,
+    az: state.az,
+    steer: state.steer,
+    throttle: state.throttle,
+    brake: state.brake,
+    gear: state.gear,
+    rpm: state.rpm,
+    s: state.s,
+    laps: state.laps,
+    rank: state.rank,
+  };
+}
+
+/** Snapshot history of one remote car with Hermite interpolation. Accepted
+ * states are owned by the history; caller reuse cannot change past samples. */
 export class RemoteCarTrack {
   private ticks: number[] = [];
   private states: CarNetState[] = [];
@@ -40,8 +74,10 @@ export class RemoteCarTrack {
     let i = this.ticks.length;
     while (i > 0 && this.ticks[i - 1] > tick) i--;
     if (i > 0 && this.ticks[i - 1] === tick) return false;
+    // Finish reading the caller before changing either parallel history array.
+    const owned = copyRemoteState(state);
     this.ticks.splice(i, 0, tick);
-    this.states.splice(i, 0, state);
+    this.states.splice(i, 0, owned);
     const newest = this.ticks[this.ticks.length - 1];
     while (this.ticks.length > 2 && this.ticks[0] < newest - 240) {
       this.ticks.shift();
@@ -52,8 +88,10 @@ export class RemoteCarTrack {
   get newest() {
     return this.ticks.length ? this.ticks[this.ticks.length - 1] : -1;
   }
-  latest() {
-    return this.states[this.states.length - 1];
+  /** Detached newest state for HUD/integration consumers, or no state yet. */
+  latest(): CarNetState | undefined {
+    const state = this.states[this.states.length - 1];
+    return state ? copyRemoteState(state) : undefined;
   }
   /** Pose at fractional server tick `t`. Extrapolates up to `maxExtrapolate`
    * ticks past the newest snapshot, then holds; null while the buffer does

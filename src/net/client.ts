@@ -5,13 +5,21 @@ import {
   type SessionOptions,
 } from '../simulation/config.ts';
 import { decodeServerMessage, encodeControl, encodeInput } from './codec.ts';
-import { CADENCE, LIMITS, NET_PROTOCOL_VERSION, TICKS_PER_COMMAND, TICK_MS } from './constants.ts';
+import {
+  CADENCE,
+  LIMITS,
+  NET_PROTOCOL_VERSION,
+  TICKS_PER_COMMAND,
+  TICKS_PER_SNAPSHOT,
+  TICK_MS,
+} from './constants.ts';
 import type { EventLoop } from './event-loop.ts';
 import { joinIdentity, identityMismatch } from './identity.ts';
-import { ClientCommandLog, sanitizeControls } from './input.ts';
+import { CLIENT_COMMAND_HISTORY_TICKS, ClientCommandLog, sanitizeControls } from './input.ts';
 import { JitterBuffer, RemoteCarTrack, ServerClock } from './interpolation.ts';
 import type { GridEntry, LobbyView, RaceEvent, RaceResults, ServerControl } from './messages.ts';
 import { LocalCarPredictor, type Pose, type PredictorOptions } from './prediction.ts';
+import { MetricSamples, type SampleStats } from './metric-samples.ts';
 import { CAR_FLAG, type CarNetState, type Snapshot } from './snapshot.ts';
 import type { Transport } from './transport.ts';
 
@@ -78,7 +86,15 @@ export interface RaceClientConfig {
   onRender?: (view: ClientView, client: RaceClient) => void;
 }
 
-export interface ClientStats {
+type ClientMetric =
+  | 'rttMs'
+  | 'leadTicks'
+  | 'interpolationDelayTicks'
+  | 'snapshotBytes'
+  | 'inputBytes';
+
+/** Scalar counters are lifetime totals; arrays are detached recent sample windows. */
+export interface ClientStats extends SampleStats<ClientMetric> {
   snapshots: number;
   duplicateSnapshots: number;
   lateSnapshots: number;
@@ -87,14 +103,9 @@ export interface ClientStats {
   commands: number;
   rejectedSamples: number;
   clampedSamples: number;
-  rttMs: number[];
-  leadTicks: number[];
-  interpolationDelayTicks: number[];
   renderKinds: Record<RenderedCar['kind'], number>;
   invalidMessages: number;
   stalledFrames: number;
-  snapshotBytes: number[];
-  inputBytes: number[];
   /** Commands carried by all input packets (≥ commands: redundancy). */
   commandCopies: number;
 }
@@ -112,12 +123,19 @@ export class RaceClient {
   grid: Extract<ServerControl, { kind: 'grid' }> | null = null;
   results: RaceResults | null = null;
   readonly events: RaceEvent[] = [];
-  readonly commands = new ClientCommandLog();
+  readonly commands: ClientCommandLog;
   readonly clock = new ServerClock();
   readonly jitter = new JitterBuffer();
   readonly predictor: LocalCarPredictor;
   readonly remotes = new Map<number, RemoteCarTrack>();
-  readonly stats: ClientStats = {
+  private readonly metricSamples = new MetricSamples<ClientMetric>([
+    'rttMs',
+    'leadTicks',
+    'interpolationDelayTicks',
+    'snapshotBytes',
+    'inputBytes',
+  ]);
+  readonly stats: ClientStats = Object.assign(this.metricSamples.stats, {
     snapshots: 0,
     duplicateSnapshots: 0,
     lateSnapshots: 0,
@@ -126,16 +144,11 @@ export class RaceClient {
     commands: 0,
     rejectedSamples: 0,
     clampedSamples: 0,
-    rttMs: [],
-    leadTicks: [],
-    interpolationDelayTicks: [],
     renderKinds: { predicted: 0, interpolated: 0, extrapolated: 0, held: 0 },
     invalidMessages: 0,
     stalledFrames: 0,
-    snapshotBytes: [],
-    inputBytes: [],
     commandCopies: 0,
-  };
+  });
   lastSnapshotTick = -1;
   private lastSnapshotAt = -Infinity;
   latest: Snapshot | null = null;
@@ -159,6 +172,19 @@ export class RaceClient {
     this.closed(reason);
   constructor(readonly config: RaceClientConfig) {
     this.predictor = new LocalCarPredictor(config.predictor);
+    // Bound a silent downlink without discarding inputs still needed within the
+    // predictor's configured horizon, response lag, or valid lead allowance.
+    this.commands = new ClientCommandLog(
+      Math.max(
+        CLIENT_COMMAND_HISTORY_TICKS,
+        Math.ceil(
+          LIMITS.leadTicksMax +
+            this.predictor.options.maxHorizonTicks +
+            2 * this.predictor.options.responseLagTicks +
+            2 * TICKS_PER_SNAPSHOT,
+        ),
+      ),
+    );
     if (config.token) this.token = config.token;
     config.transport.onMessage = this.receiveMessage;
     config.transport.onClose = this.transportClosed;
@@ -257,7 +283,7 @@ export class RaceClient {
     }
     const message = decoded.value;
     if (message.type === 'snapshot') {
-      this.stats.snapshotBytes.push(data.length);
+      this.metricSamples.record('snapshotBytes', data.length);
       this.onSnapshot(message.snapshot);
     } else this.onControl(message.control);
   }
@@ -411,7 +437,7 @@ export class RaceClient {
     });
     this.config.transport.send(packet, 'unreliable');
     this.stats.inputPackets++;
-    this.stats.inputBytes.push(packet.length);
+    this.metricSamples.record('inputBytes', packet.length);
     this.stats.commandCopies += commands.length;
   }
   private onSnapshot(s: Snapshot) {
@@ -448,12 +474,14 @@ export class RaceClient {
       if (rtt >= 0 && rtt < 5000) {
         this.srtt = this.echoed ? this.srtt + (rtt - this.srtt) / 8 : rtt;
         this.echoed = true;
-        this.stats.rttMs.push(rtt);
+        this.metricSamples.record('rttMs', rtt);
       }
     }
     this.adjustLead(s);
     this.commands.acknowledge(s.ackSeq);
-    this.commands.prune(s.tick - 2 * this.predictor.options.responseLagTicks - 12);
+    this.commands.prune(
+      s.tick - 2 * this.predictor.options.responseLagTicks - 2 * TICKS_PER_SNAPSHOT,
+    );
     const own = s.cars.find((c) => c.id === this.car);
     if (own && this.commands.started)
       this.predictor.reconcile(own, s.tick, this.inputAt, this.commands.nextTick - 1, now);
@@ -474,9 +502,10 @@ export class RaceClient {
     }
     if (s.missing > 0) this.lead += 1;
     this.lead = Math.max(2, Math.min(120, this.lead));
-    this.stats.leadTicks.push(this.lead);
+    this.metricSamples.record('leadTicks', this.lead);
   }
-  /** Compose what this client would draw now. */
+  /** Compose what this client would draw now. This evaluates predictor.render,
+   * including its smoothing and visual-step observation; it is not a passive HUD read. */
   view(): ClientView {
     const now = this.now,
       local =
@@ -502,7 +531,7 @@ export class RaceClient {
     if (view.stalled) this.stats.stalledFrames++;
     if (view.local) this.stats.renderKinds.predicted++;
     for (const r of view.remotes) this.stats.renderKinds[r.kind]++;
-    this.stats.interpolationDelayTicks.push(this.jitter.delayTicks);
+    this.metricSamples.record('interpolationDelayTicks', this.jitter.delayTicks);
     this.config.onRender?.(view, this);
   }
   /** Stop all timers without telling the server (the process went away). */

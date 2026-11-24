@@ -1,3 +1,4 @@
+import { ReplayClock } from '../../src/session/replay-clock.ts';
 import { SaveStore } from '../../src/storage/data.ts';
 import { idbKv } from '../../src/storage/desktop-mirror.ts';
 import { IndexedReplayStore, type ReplayPage } from '../../src/storage/replay-pages.ts';
@@ -45,6 +46,61 @@ function page(id: number, value: number): ReplayPage {
     frames: new Float32Array([value, -0]),
     surfaces: [{ time: value, data: new Uint16Array([1, 2, 3, 65535]) }],
   };
+}
+
+/** Exercise the real input serialization and input-event path used by the
+ * replay slider, with exact recorded bounds and no rendering assets. */
+export function replayRangeEndpoints() {
+  const floor = Math.fround(4.2);
+  const duration = Math.fround(16.6);
+  const clock = new ReplayClock();
+  const input = document.createElement('input');
+  input.type = 'range';
+  input.min = String(floor);
+  input.max = String(duration);
+  input.step = 'any';
+  const seek = () => clock.seek(Number(input.value), floor, duration);
+  input.addEventListener('input', seek);
+  document.body.append(input);
+  const state = () => ({
+    position: clock.position,
+    playing: clock.playing,
+    seekPending: clock.seekPending,
+  });
+  const seekInput = (value: number) => {
+    input.value = String(value);
+    const serialized = input.value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    return { serialized, state: state() };
+  };
+  try {
+    const sought = seekInput(duration);
+    const pendingTarget = clock.target(0.25, duration, true);
+    clock.toggle(floor, duration);
+    const paused = state();
+    clock.presented(clock.target(0.25, duration, true), duration);
+    const presented = state();
+    clock.toggle(floor, duration);
+    const restarted = state();
+    const restartTarget = clock.target(0.25, duration, true);
+    const lower = seekInput(floor);
+    const interior = seekInput(7.125);
+    return {
+      floor,
+      duration,
+      sought,
+      pendingTarget,
+      paused,
+      presented,
+      restarted,
+      restartTarget,
+      lower,
+      interior,
+    };
+  } finally {
+    input.removeEventListener('input', seek);
+    input.remove();
+  }
 }
 
 async function replayCount() {

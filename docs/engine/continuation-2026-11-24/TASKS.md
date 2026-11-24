@@ -22,16 +22,16 @@ Every numbered row reserves one distinct agent assignment for this continuation.
 | 16 | 3 | Respect cancellation at construction callback boundaries | Complete: 46 focused tests, lint and formatting passed |
 | 17 | 3 | Isolate optional whole-frame GPU query faults | Complete: 64 focused tests, scoped typecheck and lint |
 | 18 | 3 | Evaluate the final permitted Newton correction | Complete: 51 focused tests, unchanged ordinary-step results |
-| 19 | 4 | Bound diagnostic samples with chronological recent windows | Running |
-| 20 | 4 | Own remote interpolation snapshots at API boundaries | Running |
-| 21 | 4 | Cancel and retire scheduled audio transient voices | Running |
-| 22 | 4 | Awaiting evidence-based assignment | Pending |
-| 23 | 4 | Awaiting evidence-based assignment | Pending |
-| 24 | 4 | Awaiting evidence-based assignment | Pending |
-| 25 | 5 | Awaiting evidence-based assignment | Pending |
-| 26 | 5 | Awaiting evidence-based assignment | Pending |
-| 27 | 5 | Awaiting evidence-based assignment | Pending |
-| 28 | 5 | Awaiting evidence-based assignment | Pending |
+| 19 | 4 | Bound diagnostic samples with chronological recent windows | Complete: 96 focused tests; exact predictor and client trace hashes |
+| 20 | 4 | Own remote interpolation snapshots at API boundaries | Complete: 30 focused tests; 32768 exact reference samples |
+| 21 | 4 | Cancel and retire scheduled audio transient voices | Complete: 63 focused tests; exact ordinary schedules and offline support |
+| 22 | 4 | Investigate full-game paused-grid browser timeout | Complete: trace evidence and unchanged-commit 6/6 browser retry |
+| 23 | 4 | Prune expired command history during downlink outages | Complete: 116 focused tests; four exact wire/render comparisons |
+| 24 | 4 | Isolate prediction history and authoritative state ownership | Complete: 47 focused tests; 97536 exact predicted poses |
+| 25 | 5 | Canonicalize native range-control replay endpoints | Complete: 55 tests; native regression awaiting remote execution |
+| 26 | 5 | Preserve low-rate audio cadence with bounded stall recovery | Running |
+| 27 | 5 | Neutralize automatic controller identity replacement | Running |
+| 28 | 5 | Benchmark exact contact construction on unchanged real tracks | Running |
 | 29 | 5 | Awaiting evidence-based assignment | Pending |
 | 30 | 5 | Awaiting evidence-based assignment | Pending |
 | 31 | 6 | Awaiting evidence-based assignment | Pending |

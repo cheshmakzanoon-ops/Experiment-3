@@ -1,6 +1,7 @@
 import type { Controls } from '../simulation/config.ts';
 import { COLLISION_AUTHORITY, TICK_MS } from './constants.ts';
 import { CAR_FLAG, type CarNetState } from './snapshot.ts';
+import { MetricSamples, type SampleStats } from './metric-samples.ts';
 
 const DT = TICK_MS / 1000;
 
@@ -51,6 +52,39 @@ export function headingError(a: Pose, b: Pose) {
 }
 export function poseDistance(a: Pose, b: Pose) {
   return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+/** Own the scalar state contract, including accessor-backed callers, without
+ * retaining unrelated producer metadata or reading it again during callbacks. */
+function copyAuthoritativeState(state: CarNetState): CarNetState {
+  return {
+    id: state.id,
+    flags: state.flags,
+    x: state.x,
+    y: state.y,
+    z: state.z,
+    qx: state.qx,
+    qy: state.qy,
+    qz: state.qz,
+    qw: state.qw,
+    vx: state.vx,
+    vy: state.vy,
+    vz: state.vz,
+    wx: state.wx,
+    wy: state.wy,
+    wz: state.wz,
+    ax: state.ax,
+    ay: state.ay,
+    az: state.az,
+    steer: state.steer,
+    throttle: state.throttle,
+    brake: state.brake,
+    gear: state.gear,
+    rpm: state.rpm,
+    s: state.s,
+    laps: state.laps,
+    rank: state.rank,
+  };
 }
 
 const BINS = 20,
@@ -140,20 +174,31 @@ export const DEFAULT_PREDICTOR: PredictorOptions = Object.freeze({
   maxHorizonTicks: 60,
 });
 
-export interface PredictionStats {
+type PredictionMetric =
+  | 'positionError'
+  | 'headingError'
+  | 'positionErrorClean'
+  | 'positionErrorContact'
+  | 'positionErrorAi'
+  | 'correction'
+  | 'visualStep';
+
+/** Scalar counters are lifetime totals. Sample arrays are recent windows;
+ * sampleTotals retains lifetime counts, means and maxima for each metric. */
+export interface PredictionStats extends SampleStats<PredictionMetric> {
   /** |predicted − authoritative| at the authoritative tick (m, degrees). */
-  positionError: number[];
-  headingError: number[];
+  readonly positionError: number[];
+  readonly headingError: number[];
   /** The same, split: human-driven with no contact in the prediction
    * window, versus within reach of a server-resolved contact or AI-driven. */
-  positionErrorClean: number[];
-  positionErrorContact: number[];
-  positionErrorAi: number[];
+  readonly positionErrorClean: number[];
+  readonly positionErrorContact: number[];
+  readonly positionErrorAi: number[];
   /** Jump of the present predicted pose when re-predicting (m). */
-  correction: number[];
+  readonly correction: number[];
   /** Per rendered frame, change of the smoothing offset (m): the motion the
    * player sees that is not the car's own. */
-  visualStep: number[];
+  readonly visualStep: number[];
   snaps: number;
   reconciles: number;
   aiDriven: number;
@@ -173,18 +218,20 @@ export interface PredictionStats {
 export class LocalCarPredictor {
   readonly options: PredictorOptions;
   readonly model = new ResponseModel();
-  readonly stats: PredictionStats = {
-    positionError: [],
-    headingError: [],
-    positionErrorClean: [],
-    positionErrorContact: [],
-    positionErrorAi: [],
-    correction: [],
-    visualStep: [],
+  private readonly metricSamples = new MetricSamples<PredictionMetric>([
+    'positionError',
+    'headingError',
+    'positionErrorClean',
+    'positionErrorContact',
+    'positionErrorAi',
+    'correction',
+    'visualStep',
+  ]);
+  readonly stats: PredictionStats = Object.assign(this.metricSamples.stats, {
     snaps: 0,
     reconciles: 0,
     aiDriven: 0,
-  };
+  });
   private p = new Float64Array(3);
   private v = new Float64Array(3);
   private q = new Float64Array(4);
@@ -244,18 +291,21 @@ export class LocalCarPredictor {
   /** Re-predict from a new authoritative state at `tick` up to `present`. */
   reconcile(state: CarNetState, tick: number, inputAt: InputLookup, present: number, now: number) {
     if (tick <= this.baseTick) return;
+    // Complete all producer reads before changing metrics, history or model
+    // state. Ignored snapshots need neither a copy nor any property access.
+    state = copyAuthoritativeState(state);
     // Error of what was shown: the first (full-horizon) prediction of `tick`.
     if (state.flags & CAR_FLAG.CONTACT) this.lastContactTick = tick;
     const shown = this.shown.get(tick);
     if (shown) {
       const auth: Pose = state,
         error = poseDistance(shown, auth);
-      this.stats.positionError.push(error);
-      this.stats.headingError.push(headingError(shown, auth));
-      if (state.flags & CAR_FLAG.AI) this.stats.positionErrorAi.push(error);
+      this.metricSamples.record('positionError', error);
+      this.metricSamples.record('headingError', headingError(shown, auth));
+      if (state.flags & CAR_FLAG.AI) this.metricSamples.record('positionErrorAi', error);
       else if (tick - this.lastContactTick <= this.options.maxHorizonTicks)
-        this.stats.positionErrorContact.push(error);
-      else this.stats.positionErrorClean.push(error);
+        this.metricSamples.record('positionErrorContact', error);
+      else this.metricSamples.record('positionErrorClean', error);
     }
     for (const t of this.shown.keys()) if (t <= tick) this.shown.delete(t);
     this.learn(state, tick, inputAt);
@@ -278,7 +328,7 @@ export class LocalCarPredictor {
       dz = before.z - after.z,
       jump = Math.hypot(dx, dy, dz),
       angle = headingError(before, after);
-    this.stats.correction.push(jump);
+    this.metricSamples.record('correction', jump);
     // Age the existing offset to now before adding this correction to it.
     this.decay(now);
     if (jump > this.options.snapMeters || angle > this.options.snapDegrees) {
@@ -401,7 +451,7 @@ export class LocalCarPredictor {
     const pose = this.pose(),
       first = Number.isNaN(this.lastRender),
       step = this.decay(now);
-    if (!first) this.stats.visualStep.push(step);
+    if (!first) this.metricSamples.record('visualStep', step);
     this.lastRender = now;
     pose.x += this.offset[0];
     pose.y += this.offset[1];
@@ -422,12 +472,15 @@ export class LocalCarPredictor {
     w /= n;
     return { ...pose, qx: x, qy: y, qz: z, qw: w };
   }
-  /** Latest authoritative state of the local car, for HUD fields. */
+  /** Detached latest authoritative state of the local car, for HUD fields. */
   get authoritative() {
-    return this.lastAuth;
+    return this.lastAuth
+      ? { tick: this.lastAuth.tick, state: copyAuthoritativeState(this.lastAuth.state) }
+      : null;
   }
-  /** Predicted (unsmoothed) pose at `tick`, if still held. */
+  /** Detached predicted (unsmoothed) pose at `tick`, if still held. */
   predictedAt(tick: number) {
-    return this.history.get(tick);
+    const pose = this.history.get(tick);
+    return pose ? { ...pose } : undefined;
   }
 }

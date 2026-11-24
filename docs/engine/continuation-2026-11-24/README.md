@@ -24,8 +24,8 @@ No 3D models, character models, authored environments, textures, materials, trac
 | 1 | 01–06 | Remaining defects and performance opportunities across the shared engine | Complete: 17 independently recorded findings |
 | 2 | 07–12 | Critical worker, recording and persistence repairs; collision sweep work | Complete |
 | 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | Complete |
-| 4 | 19–24 | Bounded network history, snapshot ownership and audio event lifetime | In progress |
-| 5 | 25–30 | Network interpolation, codecs and bounded work | Pending audit |
+| 4 | 19–24 | Bounded network history, snapshot ownership and audio event lifetime | Complete |
+| 5 | 25–30 | Replay endpoints, controller/audio continuity and real-workload measurements | In progress |
 | 6 | 31–36 | Input, audio and shared resource lifecycle | Pending audit |
 | 7 | 37–42 | Cross-subsystem integration and regression repairs | Pending |
 | 8 | 43–48 | Reproducible performance and deterministic comparisons | Pending |
@@ -72,3 +72,15 @@ Rejected rigid-body steps now preserve public state and object identities. The s
 Reports 14–18 retain the focused regression commands and limits. In particular, the solver correction fixture uses extreme numerical values, and GL fault injection establishes ownership/exception behavior without asserting hardware GPU performance.
 
 The wave-3 integration also passed the complete project TypeScript check on an immutable staged-source snapshot with a 2 GiB heap. The second published batch (`3c3bf02`) subsequently passed [remote typecheck/build and native lifecycle/replay validation](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45451671524). A separate full-game paused-grid browser test timed out while loading in the settings-transition workflow; its trace is being investigated and is not counted as a pass.
+
+### Wave 4: bounded network observations and owned state
+
+Each network diagnostic retains a chronological 4,096-sample window plus independent lifetime summaries, with constant recording work. Command retention expires independently of ACK progress; a nominal client retains at most 185 recent commands through prolonged downlink silence. Exact wire/render comparisons preserve normal and tested outage/recovery behavior. Remote and predicted states cross public boundaries as detached scalar copies. Audio reset/disposal retires transient nodes and old shared-filter automation, while a 64-voice live bound preserves the supported offline scheduling path.
+
+The paused-grid loading investigation retained the failed trace and the successful unchanged-commit six-test retry. Its read-only summarizer records a long cold preparation task and only 7.632 seconds of observed final-fence waiting, without inferring a deadlock. See report22 for clocks, event-drop limits and exact source comparisons.
+
+### Wave 5: replay endpoint correction
+
+A subsequent native replay run at `61241fd` passed six lifecycle tests but exposed a range-control decimal round-trip: a recorded end of `16.600000381469727` became `16.6000003814697`. Agent25 repaired exact endpoint recognition without a broad epsilon or relaxed browser assertions. All 55 clock/precision cases and scoped compilation passed. A new real-range browser regression is included; its remote execution remains a required integration gate.
+
+The fourth publication batch (agents 19–25) passed the full project TypeScript check on its immutable staged-source snapshot. The three unchanged JSON imports excluded by sparse checkout were restored verbatim from Git before the successful compiler run. This check excludes later work still in progress.

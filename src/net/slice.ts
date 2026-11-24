@@ -2,6 +2,7 @@ import { DEFAULT_OPTIONS, validateOptions, type SessionOptions } from '../simula
 import type { CircuitId } from '../simulation/circuits.ts';
 import { ShadowPilot, type PilotProfile } from './bots.ts';
 import { RaceClient, type ClientView } from './client.ts';
+import { NETWORK_METRIC_CAPACITY } from './metric-samples.ts';
 import { CADENCE, TICK_MS } from './constants.ts';
 import { EventLoop, NetRandom } from './event-loop.ts';
 import { distribution, type Distribution } from './guards.ts';
@@ -87,6 +88,9 @@ const roundDist = (d: Distribution, digits = 4): Distribution => ({
 
 export interface SliceReport {
   fixture: string;
+  /** Client metric distributions merge recent windows; server counters and
+   * bandwidth totals still cover their stated measurement periods. */
+  clientMetricWindow: { capacityPerMetricPerInstance: number; scope: string };
   cadences: typeof CADENCE & { ticksPerCommand: number; ticksPerSnapshot: number };
   link: LinkConditions & { roundTripMs: number };
   session: {
@@ -385,6 +389,11 @@ export function runOnlineSlice(config: SliceConfig): SliceRun {
   const budget = server.budget.report();
   const stats = net.links;
   const report: SliceReport = {
+    clientMetricWindow: {
+      capacityPerMetricPerInstance: NETWORK_METRIC_CAPACITY,
+      scope:
+        'Client snapshot/input bytes, input lead, prediction metrics, interpolation delay and RTT distributions merge the newest observations per metric per client instance (including replaced clients). Their samples, means, maxima and quantiles describe those windows. Client/predictor sampleTotals separately retain lifetime counts, means and maxima; event counters, link bandwidth totals, server timing and harness remote-position error keep their existing measurement periods.',
+    },
     fixture: `${n}-client online race on ${options.circuit}, ${config.raceSeconds} s of racing after the green light, in-memory transport`,
     cadences: {
       ...CADENCE,

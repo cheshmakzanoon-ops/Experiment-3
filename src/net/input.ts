@@ -150,14 +150,24 @@ export function holdControls(): Controls {
   return { ...neutralControls(), brake: 1 };
 }
 
-/** Client side: every command issued, the resend set (unacknowledged) and
- * the per-tick lookup the predictor replays from. */
+/** Keep the complete accepted lead window and the largest wire command run.
+ * A predictor with a longer replay/response window requests a larger span. */
+export const CLIENT_COMMAND_HISTORY_TICKS =
+  LIMITS.leadTicksMax + LIMITS.commandsPerPacket * LIMITS.commandTicksMax;
+
+/** Client side: recent commands for resending and per-tick prediction lookup.
+ * The issued tick cursor is monotonic even without downlink feedback. Expiry
+ * therefore does not depend on ACKs or a jittering server-clock estimate. */
 export class ClientCommandLog {
   private commands: InputCommand[] = [];
   nextSeq = 0;
   nextTick = 0;
   ackSeq = -1;
   started = false;
+  constructor(readonly historyTicks = CLIENT_COMMAND_HISTORY_TICKS) {
+    if (!Number.isSafeInteger(historyTicks) || historyTicks < CLIENT_COMMAND_HISTORY_TICKS)
+      throw new Error('Invalid client command history window');
+  }
   start(tick: number) {
     if (!wireIndex(tick)) throw new Error('Invalid command start tick');
     this.commands = [];
@@ -179,6 +189,7 @@ export class ClientCommandLog {
     this.nextSeq++;
     this.nextTick += command.ticks;
     this.commands.push(command);
+    this.prune(this.nextTick - this.historyTicks);
     return command;
   }
   acknowledge(seq: number) {
@@ -211,13 +222,16 @@ export class ClientCommandLog {
     }
     return undefined;
   }
-  /** Forget commands that end before `tick` and are acknowledged. */
+  /** Forget commands ending before the retained replay floor, whether or not
+   * they were acknowledged. A missing ACK cannot make an expired input useful.
+   * Clock corrections cannot restore already expired entries; start() explicitly
+   * begins a new tick range while preserving sequence/ACK continuity. */
   prune(tick: number) {
+    if (!Number.isFinite(tick)) return;
     let n = 0;
     while (
       n < this.commands.length &&
-      this.commands[n].tick + this.commands[n].ticks < tick &&
-      this.commands[n].seq <= this.ackSeq
+      this.commands[n].tick + this.commands[n].ticks < tick
     )
       n++;
     if (n) this.commands.splice(0, n);

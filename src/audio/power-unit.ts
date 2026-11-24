@@ -97,7 +97,18 @@ export function powerUnitMix(
   return out;
 }
 
-/** Constant-size Web Audio graph (also usable with OfflineAudioContext). */
+/** Live playback never needs an unbounded queue behind a suspended clock.
+ * Offline renders deliberately pre-schedule a complete finite render instead. */
+export const POWER_UNIT_MAX_LIVE_BURSTS = 64;
+
+interface BurstVoice {
+  source: AudioBufferSourceNode;
+  level: GainNode | null;
+  endsAt: number;
+  startAttempted: boolean;
+}
+
+/** Constant-size shared graph with owned transient voices (also usable with OfflineAudioContext). */
 export class PowerUnitAudio {
   readonly mix = newPowerUnitMix();
   readonly output: GainNode;
@@ -114,11 +125,17 @@ export class PowerUnitAudio {
   private previousGear = NaN;
   private crackleClock = 0;
   private lastTime = NaN;
+  private readonly voices = new Set<BurstVoice>();
+  private readonly burstSeconds: number;
+  private readonly realtime: boolean;
+  private disposed = false;
+  private resetting = false;
   bursts = 0;
   constructor(
     private context: BaseAudioContext,
     destination: AudioNode,
   ) {
+    this.realtime = !('startRendering' in context);
     this.output = context.createGain();
     this.output.gain.value = 0;
     this.output.connect(destination);
@@ -140,6 +157,7 @@ export class PowerUnitAudio {
     this.motor.connect(this.motorGain).connect(this.output);
     // One short, seeded decaying noise impulse reused for crackle and shift cracks.
     const length = Math.ceil(context.sampleRate * 0.03);
+    this.burstSeconds = length / context.sampleRate;
     this.burst = context.createBuffer(1, length, context.sampleRate);
     const data = this.burst.getChannelData(0),
       noise = new Random(4471);
@@ -155,22 +173,71 @@ export class PowerUnitAudio {
     this.whine.start();
     this.motor.start();
   }
+  private releaseVoice(voice: BurstVoice, stop: boolean) {
+    // Revoke ownership before stop/disconnect: an already queued ended callback
+    // or a repeated reset must not release the same branch a second time.
+    if (!this.voices.delete(voice)) return;
+    try {
+      voice.source.onended = null;
+    } catch {
+      // A failed handler assignment must not strand its audio connections.
+    }
+    if (stop && voice.startAttempted) {
+      try {
+        voice.source.stop();
+      } catch {
+        // A closed device or a failed start may refuse stop; still disconnect.
+      }
+    }
+    try {
+      voice.source.disconnect();
+    } catch {
+      // Independent nodes still require cleanup if one release fails.
+    }
+    try {
+      voice.level?.disconnect();
+    } catch {
+      // Ownership is terminal even when the audio device rejects cleanup.
+    }
+  }
+  private releaseVoices() {
+    for (const voice of this.voices) this.releaseVoice(voice, true);
+  }
+  private expireVoices() {
+    const time = this.context.currentTime;
+    for (const voice of this.voices) if (voice.endsAt <= time) this.releaseVoice(voice, false);
+  }
   private pop(time: number, gain: number, hz: number) {
+    if (this.realtime && this.voices.size >= POWER_UNIT_MAX_LIVE_BURSTS) return;
     const source = this.context.createBufferSource();
-    source.buffer = this.burst;
-    const level = this.context.createGain();
-    level.gain.value = gain;
-    source.connect(level).connect(this.burstFilter);
-    this.burstFilter.frequency.setValueAtTime(hz, time);
-    source.start(time);
-    source.onended = () => {
-      source.disconnect();
-      level.disconnect();
+    const voice: BurstVoice = {
+      source,
+      level: null,
+      endsAt: Math.max(time, this.context.currentTime) + this.burstSeconds,
+      startAttempted: false,
     };
-    this.bursts++;
+    this.voices.add(voice);
+    try {
+      source.onended = () => this.releaseVoice(voice, false);
+      source.buffer = this.burst;
+      const level = (voice.level = this.context.createGain());
+      level.gain.value = gain;
+      source.connect(level).connect(this.burstFilter);
+      this.burstFilter.frequency.setValueAtTime(hz, time);
+      voice.startAttempted = true;
+      source.start(time);
+      this.bursts++;
+    } catch (error) {
+      this.releaseVoice(voice, true);
+      throw error;
+    }
   }
   /** `level` is the listener attenuation (0 far away … 1 in the cockpit). */
   update(frame: Float32Array, car: number, time: number, level: number, cockpit: boolean) {
+    if (this.disposed || this.resetting) return;
+    // Only audio time proves a voice has finished. The offline rig can supply
+    // future timestamps while currentTime is still zero, before rendering.
+    this.expireVoices();
     const m = powerUnitMix(frame, car, this.previousGear, this.mix);
     this.previousGear = frame[carBase(car) + F.GEAR];
     const dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
@@ -196,17 +263,45 @@ export class PowerUnitAudio {
     }
   }
   reset() {
+    if (this.disposed || this.resetting) return;
+    this.resetting = true;
     this.previousGear = NaN;
     this.crackleClock = 0;
     this.lastTime = NaN;
     const t = this.context.currentTime;
-    this.output.gain.cancelScheduledValues(t);
-    this.output.gain.setTargetAtTime(0, t, 0.02);
+    try {
+      this.releaseVoices();
+      const failures: unknown[] = [];
+      for (const cleanup of [
+        () => this.burstFilter.frequency.cancelScheduledValues(t),
+        () => this.output.gain.cancelScheduledValues(t),
+        () => this.output.gain.setTargetAtTime(0, t, 0.02),
+      ]) {
+        try {
+          cleanup();
+        } catch (error) {
+          failures.push(error);
+        }
+      }
+      if (failures.length) throw failures[0];
+    } finally {
+      this.resetting = false;
+    }
   }
   dispose() {
-    this.turbo.stop();
-    this.whine.stop();
-    this.motor.stop();
+    if (this.disposed) return;
+    this.disposed = true;
+    this.releaseVoices();
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => this.burstFilter.frequency.cancelScheduledValues(this.context.currentTime));
+    for (const oscillator of [this.turbo, this.whine, this.motor]) release(() => oscillator.stop());
     for (const node of [
       this.motor,
       this.motorGain,
@@ -218,6 +313,7 @@ export class PowerUnitAudio {
       this.burstGain,
       this.output,
     ])
-      node.disconnect();
+      release(() => node.disconnect());
+    if (failures.length) throw failures[0];
   }
 }

@@ -36,6 +36,36 @@ async function load(page: Page) {
   return errors;
 }
 
+test('native replay range round trips retain exact endpoints and pause/restart ownership', async ({
+  page,
+}, info) => {
+  const errors = await load(page);
+  const report = await page.evaluate(() =>
+    (window as unknown as NativeWindow).EngineNativeLifecycle.replayRangeEndpoints(),
+  );
+  expect(report.sought.state).toEqual({
+    position: report.duration,
+    playing: true,
+    seekPending: true,
+  });
+  expect(report.pendingTarget).toBe(report.duration);
+  expect(report.paused).toEqual({ position: report.duration, playing: false, seekPending: true });
+  expect(report.presented).toEqual({
+    position: report.duration,
+    playing: false,
+    seekPending: false,
+  });
+  expect(report.restarted).toEqual({ position: report.floor, playing: true, seekPending: true });
+  expect(report.restartTarget).toBe(report.floor);
+  expect(report.lower.state).toEqual({ position: report.floor, playing: true, seekPending: true });
+  expect(report.interior.state).toEqual({ position: 7.125, playing: true, seekPending: true });
+  expect(errors).toEqual([]);
+  await info.attach('native-replay-range-endpoints.json', {
+    body: JSON.stringify(report, null, 2),
+    contentType: 'application/json',
+  });
+});
+
 test('native replay caches isolate sessions and release only their owned pages', async ({
   page,
 }, info) => {

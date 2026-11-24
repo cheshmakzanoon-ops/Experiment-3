@@ -75,6 +75,7 @@ writeFileSync('docs/online-slice.json', JSON.stringify(output, null, 2) + '\n');
 console.log(
   JSON.stringify(
     {
+      clientMetricWindow: report.clientMetricWindow,
       bandwidthDownKbit: report.bandwidth.perClientDownWireKbit.mean,
       bandwidthUpKbit: report.bandwidth.perClientUpWireKbit.mean,
       predictionCleanM: report.prediction.positionErrorCleanM,

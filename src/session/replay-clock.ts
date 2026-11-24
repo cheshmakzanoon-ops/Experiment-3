@@ -8,6 +8,21 @@ function validRange(floor: number, duration: number) {
   return Number.isFinite(floor) && floor >= 0 && validDuration(duration) && floor <= duration;
 }
 
+/** Native range inputs can serialize their values with 15 significant digits.
+ * Recover an authoritative endpoint only for that exact decimal representation;
+ * a general epsilon would also move nearby, deliberately requested interior seeks.
+ * Exact bounds win first. If both bounds serialize alike, use the nearest one. */
+function seekPosition(value: number, floor: number, duration: number) {
+  const position = clamp(value, floor, duration);
+  if (position === floor || position === duration) return position;
+  const atFloor = position === Number(floor.toPrecision(15));
+  const atEnd = position === Number(duration.toPrecision(15));
+  if (atFloor && atEnd) return position - floor <= duration - position ? floor : duration;
+  if (atFloor) return floor;
+  if (atEnd) return duration;
+  return position;
+}
+
 /** Replay playback clock (masterplan §6.2 replay service, §24.2 four
  * clocks). It owns the recorded-session position in seconds from the
  * recording start, the play/pause state, rate and seek acknowledgement.
@@ -30,7 +45,7 @@ export class ReplayClock {
   }
   seek(value: number, floor: number, duration: number) {
     if (!Number.isFinite(value) || !validRange(floor, duration)) return;
-    this.position = clamp(value, floor, duration);
+    this.position = seekPosition(value, floor, duration);
     this.seekPending = true;
   }
   /** Position to present after `wallDelta` seconds; `advancing` is false when
