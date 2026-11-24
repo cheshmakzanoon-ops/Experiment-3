@@ -1681,7 +1681,7 @@ export class Rider {
         // shin, including standing absorption and a continuous foot dab.
         const cover = side > 0 ? pose.shiftCover : 0;
         const clear = side > 0 ? pose.shiftClear : 0;
-        motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact, cover, clear);
+        motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact, clear);
         motocrossBootFrame(this.q, down, side < 0 ? pose.rearBraking : 0,
           side > 0 ? pose.shiftAngle : 0, cover, clear);
         if (down > 0 && this.ground.dirt)

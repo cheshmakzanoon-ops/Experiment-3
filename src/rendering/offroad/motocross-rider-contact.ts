@@ -37,7 +37,9 @@ export function motocrossBootFrame(
   target: T.Quaternion, dab = 0, rearBrake = 0, shiftAngle = 0, shiftCover = 0, shiftClear = 0,
 ) {
   const down = Number.isFinite(dab) ? T.MathUtils.clamp(dab, 0, 1) : 0;
-  const pitch = motocrossPedalAngle(rearBrake) + shiftAngle - .19 * shiftCover;
+  // Roll the forefoot over the selector about the serrations. Translating
+  // the entire boot upward would leave the ankle unsupported during a shift.
+  const pitch = motocrossPedalAngle(rearBrake) + shiftAngle - .57 * shiftCover;
   return target.setFromEuler(bootEuler.set(
     .06 + down * .12 + pitch * (1 - down), .48 * shiftClear * (1 - down), Math.PI, 'YXZ',
   ));
@@ -46,7 +48,7 @@ export function motocrossBootFrame(
 /** A sole contact moves ahead and out for a foot dab. The opposite boot
  * remains planted. This target is shared by riding and its visual checks. */
 export function motocrossSoleContact(
-  peg: T.Vector3, side: number, dab: number, target: T.Vector3, shiftCover = 0, shiftClear = 0,
+  peg: T.Vector3, side: number, dab: number, target: T.Vector3, shiftClear = 0,
 ) {
   const down = Number.isFinite(dab) ? T.MathUtils.clamp(side * dab, 0, 1) : 0;
   target.copy(peg);
@@ -54,9 +56,6 @@ export function motocrossSoleContact(
   target.y += MX_PEG_TOP - 0.015 * down;
   target.z += 0.32 * down;
   // Roll the boot around the folding end before the sole comes down on it.
-  if (side > 0) {
-    target.x += .021 * shiftClear * (1 - down);
-    target.y += .055 * shiftCover * (1 - down);
-  }
+  if (side > 0) target.x += .021 * shiftClear * (1 - down);
   return target;
 }

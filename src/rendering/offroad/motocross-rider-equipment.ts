@@ -172,6 +172,44 @@ function bootPanel(
   return geometry;
 }
 
+/** Moulded guard traced on the boot last. Each station describes the upper
+ * and lower cut at an angle around the shoe. Rolled margins sit flush beside
+ * the shell while the centre stands proud enough to catch a grazing light. */
+function mouldedBootGuard(
+  detail: RiderDetail, side: number,
+  outline: readonly (readonly [angle: number, upper: number, lower: number])[],
+  depth: number,
+) {
+  const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
+  const across = detail === 'high' ? [0,.09,.33,.66,.91,1] : [0,.16,.84,1];
+  const steps = detail === 'high' ? 3 : 2;
+  const columns = (outline.length - 1) * steps;
+  for (let i = 0; i <= columns; i++) {
+    const station = Math.min(Math.floor(i / steps), outline.length - 2);
+    const a = outline[station], b = outline[station + 1], t = i / steps - station;
+    const phi = T.MathUtils.lerp(a[0],b[0],t);
+    const upper = T.MathUtils.lerp(a[1],b[1],t), lower = T.MathUtils.lerp(a[2],b[2],t);
+    const end = Math.min(1,i,columns-i);
+    for (let j = 0; j < across.length; j++) {
+      const v = across[j];
+      const bevel = Math.min(1, 9*v, 9*(1-v)) * end;
+      const point = bootPoint(T.MathUtils.lerp(upper,lower,v),phi,side,.0009 + depth * bevel);
+      positions.push(point.x,point.y,point.z);
+      uvs.push(i / columns,v);
+      if (i === columns || j === across.length - 1) continue;
+      const k = i * across.length + j, n = k + across.length;
+      if (side > 0) indices.push(k,k+1,n, n,k+1,n+1);
+      else indices.push(k,n,k+1, n,n+1,k+1);
+    }
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions,3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uvs,2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
+}
+
 export function motocrossBootSole(detail: RiderDetail, side: number) {
   const shape = new T.Shape();
   shape.moveTo(side * 0.018, -0.081);
@@ -299,6 +337,11 @@ export function addMotocrossBoot(
   );
   hingeCap.rotation.z = Math.PI / 2;
   hingeCap.position.copy(hinge.position);
+  const axle = part(foot,new T.CylinderGeometry(.0046,.0046,.0025,10),
+    metal,'Motocross ankle hinge axle');
+  axle.rotation.z = Math.PI / 2;
+  axle.position.copy(hinge.position);
+  axle.position.x += side * .0063;
   for (let i = 0; i < (detail === 'high' ? 5 : 3); i++) {
     const y = -0.123 + i * 0.013;
     part(
@@ -308,14 +351,43 @@ export function addMotocrossBoot(
       'Motocross rear ankle flex rib',
     );
   }
-  // A broad replaceable toe bumper follows the shoe rather than sitting on
-  // top of it as a row of boxes. Its small lip shades the rubber sole edge.
-  part(
-    foot,
-    bootPanel(detail, side, -0.022, 0.014, 0.78, 2.38, 0.0024),
-    boot,
-    'Motocross wraparound toe bumper',
-  );
+  // The heel counter wraps the back of the last. Its stepped outer lip
+  // carries a separate articulated brace forward from the ankle pivot.
+  part(foot,mouldedBootGuard(detail,side,[
+    [-2.41,-.031,.014],[-1.66,-.058,.015],[-1.04,-.066,.016],
+    [-.70,-.076,.017],[-.43,-.052,.016],[-.18,-.045,.016],
+    [.10,-.031,.016],[.45,-.019,.014],[.74,-.011,.009],
+  ],.0026),flex,'Motocross moulded heel counter');
+  part(foot,mouldedBootGuard(detail,side,[
+    [-1.08,-.041,-.031],[-.77,-.067,-.047],[-.42,-.092,-.066],
+    [-.21,-.095,-.064],[.03,-.074,-.048],[.27,-.049,-.029],
+    [.54,-.031,-.017],[.70,-.021,-.014],
+  ],.0052),accent,'Motocross lateral ankle brace');
+  part(foot,mouldedBootGuard(detail,side,[
+    [.38,-.011,.013],[.65,-.014,.015],[.94,-.022,.014],
+    [1.28,-.025,.013],[1.64,-.025,.013],[2.02,-.023,.014],
+    [2.42,-.017,.016],[2.73,-.011,.014],
+  ],.0024),flex,'Motocross wraparound rubber toe bumper');
+  // Short flutes in the reinforced counter leave the ankle bellows free.
+  // The lower band returns around the heel, above the replaceable outsole.
+  for (const level of [-.024,-.010]) {
+    part(foot,mouldedBootGuard(detail,side,[
+      [-1.80,level+.004,level+.007],[-1.39,level-.002,level+.002],
+      [-.90,level-.010,level-.005],[-.50,level-.007,level-.003],
+      [-.23,level+.003,level+.006],
+    ],.0048),boot,'Motocross heel counter flutes');
+  }
+  // Only the left instep rubs beneath the gear sleeve. The raised ridges
+  // terminate short of the toe lip and retain the fitted pedal clearance.
+  if (side < 0) {
+    part(foot,mouldedBootGuard(detail,side,[
+      [.74,-.037,-.020],[1.02,-.049,-.022],[1.40,-.052,-.023],
+      [1.80,-.051,-.023],[2.18,-.047,-.022],[2.46,-.036,-.019],
+    ],.0018),flex,'Motocross left gear change pad');
+    for (const y of [-.046,-.039,-.032])
+      part(foot,bootPanel(detail,side,y,y+.0028,1.10,2.12,.0034,.002),
+        boot,'Motocross selector pad traction rib');
+  }
   if (detail === 'high')
     for (let row = 0; row < 7; row++) {
       const z = -0.067 + row * 0.034,
