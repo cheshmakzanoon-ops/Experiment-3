@@ -145,7 +145,11 @@ function bootPanel(
         Math.ceil((y1 - y0) / (detail === 'high' ? 0.016 : 0.028)),
       ),
     ),
-    columns = detail === 'high' ? 16 : 10,
+    // A narrow stitched relief spans only a few millimetres. Sample its arc
+    // to the same angular accuracy as the broad panels and keep one strip
+    // when the whole detail already lies inside that tolerance.
+    columns = Math.max(1, Math.min(detail === 'high' ? 16 : 10,
+      Math.ceil(Math.abs(phi1 - phi0) / (detail === 'high' ? 0.18 : 0.29)))),
     positions: number[] = [],
     uv: number[] = [],
     indices: number[] = [];
@@ -181,8 +185,8 @@ function mouldedBootGuard(
   depth: number,
 ) {
   const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
-  const across = detail === 'high' ? [0,.09,.33,.66,.91,1] : [0,.16,.84,1];
-  const steps = detail === 'high' ? 3 : 2;
+  const across = detail === 'high' ? [0, .10, .50, .90, 1] : [0, .16, .84, 1];
+  const steps = detail === 'high' ? 2 : 1;
   const columns = (outline.length - 1) * steps;
   for (let i = 0; i <= columns; i++) {
     const station = Math.min(Math.floor(i / steps), outline.length - 2);
