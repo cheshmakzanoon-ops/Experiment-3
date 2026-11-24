@@ -106,11 +106,14 @@ export class ResponseModel {
   }
   observe(speed: number, aLong: number, yawRate: number, input: Controls) {
     const b = this.bin(speed),
-      x = [1, input.throttle, input.brake];
+      throttle = input.throttle,
+      brake = input.brake;
     for (let i = 0; i < 3; i++) {
+      const xi = i === 0 ? 1 : i === 1 ? throttle : brake;
       for (let j = 0; j < 3; j++)
-        this.normal[b * 9 + i * 3 + j] = this.normal[b * 9 + i * 3 + j] * FORGET + x[i] * x[j];
-      this.target[b * 3 + i] = this.target[b * 3 + i] * FORGET + x[i] * aLong;
+        this.normal[b * 9 + i * 3 + j] =
+          this.normal[b * 9 + i * 3 + j] * FORGET + xi * (j === 0 ? 1 : j === 1 ? throttle : brake);
+      this.target[b * 3 + i] = this.target[b * 3 + i] * FORGET + xi * aLong;
     }
     this.yawNum[b] = this.yawNum[b] * FORGET + yawRate * input.steer;
     this.yawDen[b] = this.yawDen[b] * FORGET + input.steer * input.steer;
@@ -119,26 +122,29 @@ export class ResponseModel {
   /** [d a_long / d throttle, d a_long / d brake] (m/s² per unit input). */
   longGain(speed: number): [number, number] {
     const b = this.bin(speed),
-      m = Array.from(this.normal.subarray(b * 9, b * 9 + 9)),
-      t = this.target.subarray(b * 3, b * 3 + 3);
-    for (const i of [0, 4, 8]) m[i] += 1e-2;
-    const det =
-      m[0] * (m[4] * m[8] - m[5] * m[7]) -
-      m[1] * (m[3] * m[8] - m[5] * m[6]) +
-      m[2] * (m[3] * m[7] - m[4] * m[6]);
+      o = b * 9,
+      p = b * 3,
+      m0 = this.normal[o] + 1e-2,
+      m1 = this.normal[o + 1],
+      m2 = this.normal[o + 2],
+      m3 = this.normal[o + 3],
+      m4 = this.normal[o + 4] + 1e-2,
+      m5 = this.normal[o + 5],
+      m6 = this.normal[o + 6],
+      m7 = this.normal[o + 7],
+      m8 = this.normal[o + 8] + 1e-2,
+      t0 = this.target[p],
+      t1 = this.target[p + 1],
+      t2 = this.target[p + 2];
+    const det = m0 * (m4 * m8 - m5 * m7) - m1 * (m3 * m8 - m5 * m6) + m2 * (m3 * m7 - m4 * m6);
     if (!(Math.abs(det) > 1e-6)) return [0, 0];
-    // Cramer's rule for the throttle and brake coefficients.
-    const replace = (col: number) => {
-      const r = [...m];
-      for (let i = 0; i < 3; i++) r[i * 3 + col] = t[i];
-      return (
-        r[0] * (r[4] * r[8] - r[5] * r[7]) -
-        r[1] * (r[3] * r[8] - r[5] * r[6]) +
-        r[2] * (r[3] * r[7] - r[4] * r[6])
-      );
-    };
-    const gThrottle = replace(1) / det,
-      gBrake = replace(2) / det;
+    // Cramer's rule with the same arithmetic order as replacing each column
+    // of a copied matrix. Scalars avoid views, temporary arrays and a closure
+    // on every authoritative update, while the returned pair stays detached.
+    const gThrottle =
+        (m0 * (t1 * m8 - m5 * t2) - t0 * (m3 * m8 - m5 * m6) + m2 * (m3 * t2 - t1 * m6)) / det,
+      gBrake =
+        (m0 * (m4 * t2 - t1 * m7) - m1 * (m3 * t2 - t1 * m6) + t0 * (m3 * m7 - m4 * m6)) / det;
     return [
       Number.isFinite(gThrottle) ? Math.max(-5, Math.min(40, gThrottle)) : 0,
       Number.isFinite(gBrake) ? Math.max(-80, Math.min(5, gBrake)) : 0,

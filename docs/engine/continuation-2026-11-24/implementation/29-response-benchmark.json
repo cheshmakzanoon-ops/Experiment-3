@@ -1,0 +1,128 @@
+{
+  "node": "v24.22.3",
+  "sourceSectionSHA256": {
+    "baseline": "b25ffa0dbf7a3c686475cc2968e21e0b0dec043f3952dfb554cf23cad94867fe",
+    "candidate": "bef58609f67fcf9cf5323760f73814d64b01a9045946bf25724561be23eef3c7"
+  },
+  "observations": 131072,
+  "queries": 786432,
+  "traceSHA256": "830a8ede34d2dbe5312fa7d791a1782afb1596875f03ed742d7c4dd329effdf0",
+  "iterationsPerTimingSample": 250000,
+  "samples": {
+    "baseline": [
+      {
+        "combined": {
+          "milliseconds": 193.03445099999993,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 181.11363500000004,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 184.62647000000004,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 167.64705700000002,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 191.90295399999997,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 167.85097699999994,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 180.42886700000003,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 185.15753199999995,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 243.23226200000005,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 168.22419200000002,
+          "checksum": -5130658.792429991
+        }
+      }
+    ],
+    "candidate": [
+      {
+        "combined": {
+          "milliseconds": 17.255206999999984,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 10.849537999999995,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 18.724158000000045,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 13.914560999999992,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 95.565181,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 24.438645000000008,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 18.075845999999956,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 11.608431999999993,
+          "checksum": -5130658.792429991
+        }
+      },
+      {
+        "combined": {
+          "milliseconds": 17.79258100000004,
+          "checksum": -5133122.879146846
+        },
+        "queryOnly": {
+          "milliseconds": 16.324538000000018,
+          "checksum": -5130658.792429991
+        }
+      }
+    ]
+  },
+  "medianMilliseconds": {
+    "baseline": {
+      "combined": 191.90295399999997,
+      "queryOnly": 168.22419200000002
+    },
+    "candidate": {
+      "combined": 18.075845999999956,
+      "queryOnly": 13.914560999999992
+    }
+  },
+  "limitation": "Isolated ResponseModel CPU microbenchmark, not frame time, total client CPU, or a heap-allocation profiler."
+}

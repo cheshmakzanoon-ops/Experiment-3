@@ -24,6 +24,7 @@ const releasedTouch = (): Record<TouchAction, boolean> => ({
   riderForward: false,
   riderBack: false,
 });
+const deviceIdentity = (pad: Gamepad) => `${pad.index}:${pad.id}:${pad.mapping}`;
 export class InputController {
   readonly state: Controls = controls();
   private keys = new Set<string>();
@@ -38,6 +39,7 @@ export class InputController {
   gamepadName = 'KEYBOARD';
   deviceStatus = '';
   private lastDevice = '';
+  private lastSelection = '';
   private lastFault = '';
   private suppressedDevice = '';
   private blockedMapping: Settings['mapping'] | null = null;
@@ -116,9 +118,24 @@ export class InputController {
     if (this.ownerDocument?.hidden) this.blur();
   };
   private disconnected = (event: GamepadEvent) => {
-    if (this.lastDevice === `${event.gamepad.index}:${event.gamepad.id}`)
+    this.syncSelection();
+    if (this.lastDevice === deviceIdentity(event.gamepad))
       this.deviceFault('Selected controller disconnected.', false);
   };
+  private syncSelection() {
+    const device = this.settings.mapping.device;
+    const selection = device ? `${device.index}:${device.id}` : '';
+    if (selection === this.lastSelection) return;
+    // A deliberate settings selection starts a new ownership baseline. Merely
+    // replacing the settings object must not authorize an automatic takeover.
+    this.lastSelection = selection;
+    this.lastDevice = '';
+    this.previousButtons.clear();
+    this.buttons.reset();
+  }
+  private lostDevice(pad: Gamepad | null) {
+    return !!this.lastDevice && (!pad || deviceIdentity(pad) !== this.lastDevice);
+  }
   private deviceFault(message: string, suppress = true) {
     if (suppress) {
       this.suppressedDevice = this.lastDevice;
@@ -157,7 +174,7 @@ export class InputController {
     }
   }
   private observeButtons(pad: Gamepad) {
-    const identity = `${pad.index}:${pad.id}`;
+    const identity = deviceIdentity(pad);
     if (identity === this.lastDevice) return;
     // Holding a button through connect/resume cannot manufacture a new edge.
     this.previousButtons.clear();
@@ -187,11 +204,17 @@ export class InputController {
    * publishing drive axes. Suppressed buttons are still observed, not delayed. */
   pollActions(allowed: ActionContext | readonly ButtonAction[]) {
     if (this.disposed || this.ownerDocument?.hidden) return;
+    this.syncSelection();
     let pad: Gamepad | null;
     try {
       pad = selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
     } catch (error) {
       this.deviceStatus = `Gamepad access unavailable: ${String(error)}`;
+      if (this.enabled && this.lastDevice) this.deviceFault(this.deviceStatus, false);
+      return;
+    }
+    if (this.enabled && this.lostDevice(pad)) {
+      this.deviceFault('Selected controller disconnected or changed.', false);
       return;
     }
     if (!pad) {
@@ -202,7 +225,7 @@ export class InputController {
     }
     if (
       this.blockedMapping === this.settings.mapping &&
-      this.suppressedDevice === `${pad.index}:${pad.id}`
+      this.suppressedDevice === deviceIdentity(pad)
     )
       return;
     this.observeButtons(pad);
@@ -244,6 +267,7 @@ export class InputController {
   }
   update(dt: number) {
     if (!this.enabled || this.ownerDocument?.hidden) return this.state;
+    this.syncSelection();
     const b = this.settings.bindings,
       k = this.keys,
       t = this.touch;
@@ -266,9 +290,11 @@ export class InputController {
       if (this.lastDevice) return this.deviceFault(this.deviceStatus, false);
     }
     let pad = selectDevice(pads, m.device);
-    if (pad && this.blockedMapping === m && this.suppressedDevice === `${pad.index}:${pad.id}`)
+    if (pad && this.blockedMapping === m && this.suppressedDevice === deviceIdentity(pad))
       pad = null;
-    if (!pad && this.lastDevice)
+    // Automatic selection can return a second connected pad immediately. Lose
+    // the established owner before reading that replacement's held controls.
+    if (this.lostDevice(pad))
       return this.deviceFault('Selected controller disconnected or changed.', false);
     let wheelInput = false;
     if (pad) {

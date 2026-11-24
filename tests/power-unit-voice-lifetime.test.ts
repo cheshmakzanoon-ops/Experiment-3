@@ -128,13 +128,17 @@ describe('power-unit transient ownership', () => {
 
   it('does not expire a past-scheduled source before its immediate playback finishes', () => {
     const f = fixture();
-    f.update(0, 3, false);
+    f.update(0.95, 3, false);
     f.context.currentTime = 2;
     f.audio.update(frame(4, false), 0, 1, 1, true);
     expect(f.context.of('source')[0].started).toEqual([1]);
-    f.update(2.029, 4, false);
+    // Keep the supplied timeline continuous and behind the device clock: this
+    // isolates actual playback expiry from discontinuity cleanup.
+    f.context.currentTime = 2.029;
+    f.audio.update(frame(4, false), 0, 1.029, 1, true);
     expect(owned(f.audio)).toBe(1);
-    f.update(2.03, 4, false);
+    f.context.currentTime = 2.03;
+    f.audio.update(frame(4, false), 0, 1.03, 1, true);
     expect(owned(f.audio)).toBe(0);
     f.audio.dispose();
   });
@@ -390,30 +394,29 @@ function legacyEvents(samples: { time: number; data: Float32Array }[]) {
 }
 
 describe('unchanged ordinary audio scheduling', () => {
-  it.each([5, 10, 30, 60])(
-    'preserves exact event times, gains and filter values at %s Hz',
-    (hz) => {
-      const f = fixture();
-      const samples = Array.from({ length: hz * 10 + 1 }, (_, i) => ({
-        time: i / hz,
-        data: frame(3 + (Math.floor(i / hz) % 4), Math.floor(i / hz) % 3 !== 1),
-      }));
-      for (const { time, data } of samples) {
-        f.context.currentTime = time;
-        f.audio.update(data, 0, time, 1, true);
-        expect(owned(f.audio)).toBeLessThan(POWER_UNIT_MAX_LIVE_BURSTS);
-      }
-      const frequencies = f.filter.frequency.events.filter((event) => event.kind === 'set');
-      const actual = f.context
-        .of('source')
-        .map((source, i) => [
-          source.started[0],
-          f.context.nodes[f.context.nodes.indexOf(source) + 1].gain.value,
-          frequencies[i].value,
-        ]);
-      expect(actual).toEqual(legacyEvents(samples));
-      expect(f.audio.bursts).toBe(actual.length);
-      f.audio.dispose();
-    },
-  );
+  // The former 5 Hz cap lost elapsed time; its corrected rate and bounded
+  // ownership are covered by power-unit-cadence.test.ts instead of this baseline.
+  it.each([10, 30, 60])('preserves exact event times, gains and filter values at %s Hz', (hz) => {
+    const f = fixture();
+    const samples = Array.from({ length: hz * 10 + 1 }, (_, i) => ({
+      time: i / hz,
+      data: frame(3 + (Math.floor(i / hz) % 4), Math.floor(i / hz) % 3 !== 1),
+    }));
+    for (const { time, data } of samples) {
+      f.context.currentTime = time;
+      f.audio.update(data, 0, time, 1, true);
+      expect(owned(f.audio)).toBeLessThan(POWER_UNIT_MAX_LIVE_BURSTS);
+    }
+    const frequencies = f.filter.frequency.events.filter((event) => event.kind === 'set');
+    const actual = f.context
+      .of('source')
+      .map((source, i) => [
+        source.started[0],
+        f.context.nodes[f.context.nodes.indexOf(source) + 1].gain.value,
+        frequencies[i].value,
+      ]);
+    expect(actual).toEqual(legacyEvents(samples));
+    expect(f.audio.bursts).toBe(actual.length);
+    f.audio.dispose();
+  });
 });

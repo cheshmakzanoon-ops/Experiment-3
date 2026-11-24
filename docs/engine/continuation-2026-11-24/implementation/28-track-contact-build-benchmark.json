@@ -1,0 +1,2305 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-24T18:25:35.070Z",
+  "environment": {
+    "node": "v24.22.3",
+    "platform": "linux",
+    "release": "6.18.57",
+    "arch": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCPUs": 9,
+    "totalMemoryBytes": 10451427328,
+    "childOldSpaceMiB": 512
+  },
+  "methodology": {
+    "coldRepetitions": 3,
+    "warmRepetitions": 3,
+    "warmupRebuilds": 1,
+    "order": "Sequential fresh workers, alternating checkout order on every repetition.",
+    "importMs": "Dynamic source graph import and module initialization, including the catalogue.",
+    "trackMs": "The real clear-weather, non-flat Track constructor, before contact creation.",
+    "contactMs": "The first uninstrumented real TrackContactMesh constructor: mesh plus BVH.",
+    "warmBVHMs": "BVH-only rebuilds of those unchanged mesh arrays after one untimed rebuild; GC before each. Only the final cold worker per checkout collects warm samples.",
+    "processWallMs": "Full child lifetime, including hashes, queries, and optional warm samples; not a startup-only metric.",
+    "contactReadySinceProcessTimeOriginMs": "Child performance.now() immediately after the first contact construction; excludes subsequent verification and warm rebuilding.",
+    "rowRule": "8192 unless circuit.samples is set, then max(8192, ceil(track.length / 0.9)), matching Track.cast.",
+    "proof": "SHA-256 of every mesh array, every binary node field, every ordered triangle ID, and tagged binary contact query outputs/counts. No epsilon comparison.",
+    "scope": "Construction measurements on three real paved tracks. No rendering, GPU, FPS, off-road deformation or driving-performance claim."
+  },
+  "baseline": {
+    "directory": "/engine-work-4e0075ccccb3/reference",
+    "commit": "5edead7a44c8ccb5a187b22b750ce2bda7715128",
+    "measuredSourceDirty": false,
+    "sourceSHA256": {
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/simulation/bvh.ts": "e91ff31584fc13f34046693363e52c94855350a214e7603ff1503fe4c0e9ed41",
+      "src/simulation/circuit-catalogue/builder.ts": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5",
+      "src/simulation/circuit-catalogue/dsl.ts": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+      "src/simulation/circuit-catalogue/endurance.ts": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+      "src/simulation/circuit-catalogue/events.ts": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+      "src/simulation/circuit-catalogue/geometry-checks.ts": "5b654d0e90ae0e73206f0bedf1f822b12747837b6fe313bf4c9c9af803015982",
+      "src/simulation/circuit-catalogue/index.ts": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6",
+      "src/simulation/circuit-catalogue/industrial.ts": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+      "src/simulation/circuit-catalogue/motorcycle-gp.ts": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+      "src/simulation/circuit-catalogue/night-and-street.ts": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+      "src/simulation/circuit-catalogue/real-world-classics.ts": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+      "src/simulation/circuit-catalogue/real-world.ts": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+      "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+      "src/simulation/circuit-catalogue/venue-data.ts": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386",
+      "src/simulation/circuit-catalogue/wildcard-venues.ts": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a",
+      "src/simulation/circuits.ts": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4",
+      "src/simulation/contact.ts": "54c9d2de9eb899bf1968ce9b26e285cf9a6101ee6f97cedc647cccae9f98674a",
+      "src/simulation/gp-corner-shape.ts": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0",
+      "src/simulation/gp-course-edges.ts": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50",
+      "src/simulation/racing-line.ts": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c",
+      "src/simulation/tire-footprint.ts": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909",
+      "src/simulation/track-lane-index.ts": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+      "src/simulation/track.ts": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0"
+    }
+  },
+  "candidate": {
+    "directory": "/engine-work-4e0075ccccb3/repo",
+    "commit": "19df29783d1b8b8b06eb71e9e7e5df6c0dbc0237",
+    "measuredSourceDirty": false,
+    "sourceSHA256": {
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/simulation/bvh.ts": "a34dfd0196d5cba88127cea9603728a149ab612aa06016edc0a541514ef96e4d",
+      "src/simulation/circuit-catalogue/builder.ts": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5",
+      "src/simulation/circuit-catalogue/dsl.ts": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+      "src/simulation/circuit-catalogue/endurance.ts": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+      "src/simulation/circuit-catalogue/events.ts": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+      "src/simulation/circuit-catalogue/geometry-checks.ts": "5b654d0e90ae0e73206f0bedf1f822b12747837b6fe313bf4c9c9af803015982",
+      "src/simulation/circuit-catalogue/index.ts": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6",
+      "src/simulation/circuit-catalogue/industrial.ts": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+      "src/simulation/circuit-catalogue/motorcycle-gp.ts": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+      "src/simulation/circuit-catalogue/night-and-street.ts": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+      "src/simulation/circuit-catalogue/real-world-classics.ts": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+      "src/simulation/circuit-catalogue/real-world.ts": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+      "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+      "src/simulation/circuit-catalogue/venue-data.ts": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386",
+      "src/simulation/circuit-catalogue/wildcard-venues.ts": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a",
+      "src/simulation/circuits.ts": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4",
+      "src/simulation/contact.ts": "54c9d2de9eb899bf1968ce9b26e285cf9a6101ee6f97cedc647cccae9f98674a",
+      "src/simulation/gp-corner-shape.ts": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0",
+      "src/simulation/gp-course-edges.ts": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50",
+      "src/simulation/racing-line.ts": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c",
+      "src/simulation/tire-footprint.ts": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909",
+      "src/simulation/track-lane-index.ts": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+      "src/simulation/track.ts": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0"
+    }
+  },
+  "changedMeasuredSources": [
+    "src/simulation/bvh.ts"
+  ],
+  "results": [
+    {
+      "circuitId": "aurel",
+      "exactEquality": true,
+      "summaries": {
+        "baseline": {
+          "importMs": {
+            "samples": [
+              902.151714,
+              812.8258950000001,
+              942.748474
+            ],
+            "minimum": 812.8258950000001,
+            "median": 902.151714,
+            "maximum": 942.748474
+          },
+          "trackMs": {
+            "samples": [
+              39.23919999999998,
+              38.429340000000025,
+              41.647306999999955
+            ],
+            "minimum": 38.429340000000025,
+            "median": 39.23919999999998,
+            "maximum": 41.647306999999955
+          },
+          "contactMs": {
+            "samples": [
+              770.522277,
+              798.398311,
+              809.2941450000001
+            ],
+            "minimum": 770.522277,
+            "median": 798.398311,
+            "maximum": 809.2941450000001
+          },
+          "contactReadySinceProcessTimeOriginMs": {
+            "samples": [
+              1797.194437,
+              1732.008316,
+              1881.427877
+            ],
+            "minimum": 1732.008316,
+            "median": 1797.194437,
+            "maximum": 1881.427877
+          },
+          "warmBVHMs": {
+            "samples": [
+              720.1045600000002,
+              795.1851350000002,
+              969.073144
+            ],
+            "minimum": 720.1045600000002,
+            "median": 795.1851350000002,
+            "maximum": 969.073144
+          }
+        },
+        "candidate": {
+          "importMs": {
+            "samples": [
+              840.0993930000001,
+              595.284089,
+              596.212825
+            ],
+            "minimum": 595.284089,
+            "median": 596.212825,
+            "maximum": 840.0993930000001
+          },
+          "trackMs": {
+            "samples": [
+              44.16264699999999,
+              40.77069599999993,
+              40.22576700000002
+            ],
+            "minimum": 40.22576700000002,
+            "median": 40.77069599999993,
+            "maximum": 44.16264699999999
+          },
+          "contactMs": {
+            "samples": [
+              310.094325,
+              272.73088200000007,
+              282.60034300000007
+            ],
+            "minimum": 272.73088200000007,
+            "median": 282.60034300000007,
+            "maximum": 310.094325
+          },
+          "contactReadySinceProcessTimeOriginMs": {
+            "samples": [
+              1286.905457,
+              995.979872,
+              1008.077618
+            ],
+            "minimum": 995.979872,
+            "median": 1008.077618,
+            "maximum": 1286.905457
+          },
+          "warmBVHMs": {
+            "samples": [
+              200.0820110000002,
+              391.36215500000003,
+              246.1919640000001
+            ],
+            "minimum": 200.0820110000002,
+            "median": 246.1919640000001,
+            "maximum": 391.36215500000003
+          }
+        }
+      },
+      "samples": {
+        "baseline": [
+          {
+            "circuitId": "aurel",
+            "circuitName": "AUREL / GRAND CIRCUIT",
+            "lengthM": 2972.7274028722168,
+            "trackSamples": 1537,
+            "importMs": 902.151714,
+            "trackMs": 39.23919999999998,
+            "contactMs": 770.522277,
+            "contactReadySinceProcessTimeOriginMs": 1797.194437,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normalsSHA256": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "leafOrderSHA256": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "9ce8545e61cf20d6c78de4ea3128235812ae8d7e0ecb456f9e451dd92b64f493"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "48e0d86f80212107cc326793bc035a09f3d183d82c59e193aa9fac2b4406d44f"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "a08fa730d206c9f292d36a5286b929edec8568a50f4e358d5d9ec256fce7f58f"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "302a8064d6fb40f80f4443d9296582a7f93c1186fde43548ca701b16645fb47f"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "e9a7aca252984b1855a3d4a7c65f88f2d5f1bbd55620e312ca485eece5bbb7bb"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 13412,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 34187,
+                "querySHA256": "18163588e7e44958ff6d692102d5922701cc235b07abcb24f98147418cb8b468"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 12551,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 29869,
+                "querySHA256": "75b9c293a709d59ce57da1441e2f384895037f796b12279779c9285c87eea614"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 212748
+            },
+            "processWallMs": 1954.046412
+          },
+          {
+            "circuitId": "aurel",
+            "circuitName": "AUREL / GRAND CIRCUIT",
+            "lengthM": 2972.7274028722168,
+            "trackSamples": 1537,
+            "importMs": 812.8258950000001,
+            "trackMs": 38.429340000000025,
+            "contactMs": 798.398311,
+            "contactReadySinceProcessTimeOriginMs": 1732.008316,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normalsSHA256": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "leafOrderSHA256": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "9ce8545e61cf20d6c78de4ea3128235812ae8d7e0ecb456f9e451dd92b64f493"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "48e0d86f80212107cc326793bc035a09f3d183d82c59e193aa9fac2b4406d44f"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "a08fa730d206c9f292d36a5286b929edec8568a50f4e358d5d9ec256fce7f58f"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "302a8064d6fb40f80f4443d9296582a7f93c1186fde43548ca701b16645fb47f"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "e9a7aca252984b1855a3d4a7c65f88f2d5f1bbd55620e312ca485eece5bbb7bb"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 13412,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 34187,
+                "querySHA256": "18163588e7e44958ff6d692102d5922701cc235b07abcb24f98147418cb8b468"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 12551,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 29869,
+                "querySHA256": "75b9c293a709d59ce57da1441e2f384895037f796b12279779c9285c87eea614"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 215996
+            },
+            "processWallMs": 1880.6421200000004
+          },
+          {
+            "circuitId": "aurel",
+            "circuitName": "AUREL / GRAND CIRCUIT",
+            "lengthM": 2972.7274028722168,
+            "trackSamples": 1537,
+            "importMs": 942.748474,
+            "trackMs": 41.647306999999955,
+            "contactMs": 809.2941450000001,
+            "contactReadySinceProcessTimeOriginMs": 1881.427877,
+            "warmBVHMs": [
+              720.1045600000002,
+              795.1851350000002,
+              969.073144
+            ],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normalsSHA256": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "leafOrderSHA256": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "9ce8545e61cf20d6c78de4ea3128235812ae8d7e0ecb456f9e451dd92b64f493"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "48e0d86f80212107cc326793bc035a09f3d183d82c59e193aa9fac2b4406d44f"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "a08fa730d206c9f292d36a5286b929edec8568a50f4e358d5d9ec256fce7f58f"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "302a8064d6fb40f80f4443d9296582a7f93c1186fde43548ca701b16645fb47f"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "e9a7aca252984b1855a3d4a7c65f88f2d5f1bbd55620e312ca485eece5bbb7bb"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 13412,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 34187,
+                "querySHA256": "18163588e7e44958ff6d692102d5922701cc235b07abcb24f98147418cb8b468"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 12551,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 29869,
+                "querySHA256": "75b9c293a709d59ce57da1441e2f384895037f796b12279779c9285c87eea614"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 287264
+            },
+            "processWallMs": 5346.343999999999
+          }
+        ],
+        "candidate": [
+          {
+            "circuitId": "aurel",
+            "circuitName": "AUREL / GRAND CIRCUIT",
+            "lengthM": 2972.7274028722168,
+            "trackSamples": 1537,
+            "importMs": 840.0993930000001,
+            "trackMs": 44.16264699999999,
+            "contactMs": 310.094325,
+            "contactReadySinceProcessTimeOriginMs": 1286.905457,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normalsSHA256": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "leafOrderSHA256": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "9ce8545e61cf20d6c78de4ea3128235812ae8d7e0ecb456f9e451dd92b64f493"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "48e0d86f80212107cc326793bc035a09f3d183d82c59e193aa9fac2b4406d44f"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "a08fa730d206c9f292d36a5286b929edec8568a50f4e358d5d9ec256fce7f58f"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "302a8064d6fb40f80f4443d9296582a7f93c1186fde43548ca701b16645fb47f"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "e9a7aca252984b1855a3d4a7c65f88f2d5f1bbd55620e312ca485eece5bbb7bb"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 13412,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 34187,
+                "querySHA256": "18163588e7e44958ff6d692102d5922701cc235b07abcb24f98147418cb8b468"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 12551,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 29869,
+                "querySHA256": "75b9c293a709d59ce57da1441e2f384895037f796b12279779c9285c87eea614"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 191388
+            },
+            "processWallMs": 1452.911013
+          },
+          {
+            "circuitId": "aurel",
+            "circuitName": "AUREL / GRAND CIRCUIT",
+            "lengthM": 2972.7274028722168,
+            "trackSamples": 1537,
+            "importMs": 595.284089,
+            "trackMs": 40.77069599999993,
+            "contactMs": 272.73088200000007,
+            "contactReadySinceProcessTimeOriginMs": 995.979872,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normalsSHA256": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "leafOrderSHA256": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "9ce8545e61cf20d6c78de4ea3128235812ae8d7e0ecb456f9e451dd92b64f493"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "48e0d86f80212107cc326793bc035a09f3d183d82c59e193aa9fac2b4406d44f"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "a08fa730d206c9f292d36a5286b929edec8568a50f4e358d5d9ec256fce7f58f"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "302a8064d6fb40f80f4443d9296582a7f93c1186fde43548ca701b16645fb47f"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "e9a7aca252984b1855a3d4a7c65f88f2d5f1bbd55620e312ca485eece5bbb7bb"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 13412,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 34187,
+                "querySHA256": "18163588e7e44958ff6d692102d5922701cc235b07abcb24f98147418cb8b468"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 12551,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 29869,
+                "querySHA256": "75b9c293a709d59ce57da1441e2f384895037f796b12279779c9285c87eea614"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 195808
+            },
+            "processWallMs": 1148.8400490000004
+          },
+          {
+            "circuitId": "aurel",
+            "circuitName": "AUREL / GRAND CIRCUIT",
+            "lengthM": 2972.7274028722168,
+            "trackSamples": 1537,
+            "importMs": 596.212825,
+            "trackMs": 40.22576700000002,
+            "contactMs": 282.60034300000007,
+            "contactReadySinceProcessTimeOriginMs": 1008.077618,
+            "warmBVHMs": [
+              200.0820110000002,
+              391.36215500000003,
+              246.1919640000001
+            ],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normalsSHA256": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "leafOrderSHA256": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "9ce8545e61cf20d6c78de4ea3128235812ae8d7e0ecb456f9e451dd92b64f493"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "48e0d86f80212107cc326793bc035a09f3d183d82c59e193aa9fac2b4406d44f"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 366,
+                "misses": 78,
+                "candidateTotal": 2332,
+                "candidateMinimum": 0,
+                "candidateMaximum": 41,
+                "featureTests": 0,
+                "querySHA256": "a08fa730d206c9f292d36a5286b929edec8568a50f4e358d5d9ec256fce7f58f"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "302a8064d6fb40f80f4443d9296582a7f93c1186fde43548ca701b16645fb47f"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9996,
+                "candidateMinimum": 0,
+                "candidateMaximum": 56,
+                "featureTests": 0,
+                "querySHA256": "e9a7aca252984b1855a3d4a7c65f88f2d5f1bbd55620e312ca485eece5bbb7bb"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 13412,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 34187,
+                "querySHA256": "18163588e7e44958ff6d692102d5922701cc235b07abcb24f98147418cb8b468"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 12551,
+                "candidateMinimum": 0,
+                "candidateMaximum": 63,
+                "featureTests": 29869,
+                "querySHA256": "75b9c293a709d59ce57da1441e2f384895037f796b12279779c9285c87eea614"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 223144
+            },
+            "processWallMs": 2332.5778659999996
+          }
+        ]
+      }
+    },
+    {
+      "circuitId": "vellamar",
+      "exactEquality": true,
+      "summaries": {
+        "baseline": {
+          "importMs": {
+            "samples": [
+              543.2344929999999,
+              571.2133990000001,
+              557.631353
+            ],
+            "minimum": 543.2344929999999,
+            "median": 557.631353,
+            "maximum": 571.2133990000001
+          },
+          "trackMs": {
+            "samples": [
+              49.88035000000002,
+              48.52472799999998,
+              49.91040500000008
+            ],
+            "minimum": 48.52472799999998,
+            "median": 49.88035000000002,
+            "maximum": 49.91040500000008
+          },
+          "contactMs": {
+            "samples": [
+              735.5043570000001,
+              711.243375,
+              681.156183
+            ],
+            "minimum": 681.156183,
+            "median": 711.243375,
+            "maximum": 735.5043570000001
+          },
+          "contactReadySinceProcessTimeOriginMs": {
+            "samples": [
+              1417.772572,
+              1414.190667,
+              1412.774896
+            ],
+            "minimum": 1412.774896,
+            "median": 1414.190667,
+            "maximum": 1417.772572
+          },
+          "warmBVHMs": {
+            "samples": [
+              810.7540399999998,
+              632.5219080000002,
+              728.120535
+            ],
+            "minimum": 632.5219080000002,
+            "median": 728.120535,
+            "maximum": 810.7540399999998
+          }
+        },
+        "candidate": {
+          "importMs": {
+            "samples": [
+              581.68664,
+              657.610353,
+              652.161084
+            ],
+            "minimum": 581.68664,
+            "median": 652.161084,
+            "maximum": 657.610353
+          },
+          "trackMs": {
+            "samples": [
+              48.44112300000006,
+              51.702045999999996,
+              46.37231200000008
+            ],
+            "minimum": 46.37231200000008,
+            "median": 48.44112300000006,
+            "maximum": 51.702045999999996
+          },
+          "contactMs": {
+            "samples": [
+              332.6161860000001,
+              266.76658900000007,
+              280.45003600000007
+            ],
+            "minimum": 266.76658900000007,
+            "median": 280.45003600000007,
+            "maximum": 332.6161860000001
+          },
+          "contactReadySinceProcessTimeOriginMs": {
+            "samples": [
+              1058.622806,
+              1059.813012,
+              1069.896248
+            ],
+            "minimum": 1058.622806,
+            "median": 1059.813012,
+            "maximum": 1069.896248
+          },
+          "warmBVHMs": {
+            "samples": [
+              231.71276199999988,
+              211.0122510000001,
+              239.23637199999985
+            ],
+            "minimum": 211.0122510000001,
+            "median": 231.71276199999988,
+            "maximum": 239.23637199999985
+          }
+        }
+      },
+      "samples": {
+        "baseline": [
+          {
+            "circuitId": "vellamar",
+            "circuitName": "VELLAMAR / COAST CIRCUIT",
+            "lengthM": 3997.2689252571236,
+            "trackSamples": 1537,
+            "importMs": 543.2344929999999,
+            "trackMs": 49.88035000000002,
+            "contactMs": 735.5043570000001,
+            "contactReadySinceProcessTimeOriginMs": 1417.772572,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normalsSHA256": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "leafOrderSHA256": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "e6dbe885f039b68fc40c10130d68a4bf3900d51eab5956acc415d950fcf7c774"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "764fa0839971ba2f002da63c829ca1cf24e2d43b53de83c6dd5a519cc7b42000"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "f68fc987e19faea7340529fa805de6f15f4b864efa67e72bd820c2018ccce877"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "3adf9256f2fc04b543cd3830864295417141e3f472e59e36b98cf12e8fd0150c"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "bd7f3e0a3474eef5934c781bb350d529bee51f461fe79346156e0f2b316e3dbc"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11676,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 28724,
+                "querySHA256": "c5b0447632b2a8351346888a06e72d9823c30dbc0d53d7ea44be46c7baa64fd4"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11648,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 30034,
+                "querySHA256": "5f47fd54cbc4cc201c4a3a4048ba38a15342b26cc7e9eeee9acbeff61ed5fff0"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 238156
+            },
+            "processWallMs": 1749.080132000001
+          },
+          {
+            "circuitId": "vellamar",
+            "circuitName": "VELLAMAR / COAST CIRCUIT",
+            "lengthM": 3997.2689252571236,
+            "trackSamples": 1537,
+            "importMs": 571.2133990000001,
+            "trackMs": 48.52472799999998,
+            "contactMs": 711.243375,
+            "contactReadySinceProcessTimeOriginMs": 1414.190667,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normalsSHA256": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "leafOrderSHA256": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "e6dbe885f039b68fc40c10130d68a4bf3900d51eab5956acc415d950fcf7c774"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "764fa0839971ba2f002da63c829ca1cf24e2d43b53de83c6dd5a519cc7b42000"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "f68fc987e19faea7340529fa805de6f15f4b864efa67e72bd820c2018ccce877"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "3adf9256f2fc04b543cd3830864295417141e3f472e59e36b98cf12e8fd0150c"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "bd7f3e0a3474eef5934c781bb350d529bee51f461fe79346156e0f2b316e3dbc"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11676,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 28724,
+                "querySHA256": "c5b0447632b2a8351346888a06e72d9823c30dbc0d53d7ea44be46c7baa64fd4"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11648,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 30034,
+                "querySHA256": "5f47fd54cbc4cc201c4a3a4048ba38a15342b26cc7e9eeee9acbeff61ed5fff0"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 217352
+            },
+            "processWallMs": 1684.3285269999978
+          },
+          {
+            "circuitId": "vellamar",
+            "circuitName": "VELLAMAR / COAST CIRCUIT",
+            "lengthM": 3997.2689252571236,
+            "trackSamples": 1537,
+            "importMs": 557.631353,
+            "trackMs": 49.91040500000008,
+            "contactMs": 681.156183,
+            "contactReadySinceProcessTimeOriginMs": 1412.774896,
+            "warmBVHMs": [
+              810.7540399999998,
+              632.5219080000002,
+              728.120535
+            ],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normalsSHA256": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "leafOrderSHA256": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "e6dbe885f039b68fc40c10130d68a4bf3900d51eab5956acc415d950fcf7c774"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "764fa0839971ba2f002da63c829ca1cf24e2d43b53de83c6dd5a519cc7b42000"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "f68fc987e19faea7340529fa805de6f15f4b864efa67e72bd820c2018ccce877"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "3adf9256f2fc04b543cd3830864295417141e3f472e59e36b98cf12e8fd0150c"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "bd7f3e0a3474eef5934c781bb350d529bee51f461fe79346156e0f2b316e3dbc"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11676,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 28724,
+                "querySHA256": "c5b0447632b2a8351346888a06e72d9823c30dbc0d53d7ea44be46c7baa64fd4"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11648,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 30034,
+                "querySHA256": "5f47fd54cbc4cc201c4a3a4048ba38a15342b26cc7e9eeee9acbeff61ed5fff0"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 283364
+            },
+            "processWallMs": 4534.890331000002
+          }
+        ],
+        "candidate": [
+          {
+            "circuitId": "vellamar",
+            "circuitName": "VELLAMAR / COAST CIRCUIT",
+            "lengthM": 3997.2689252571236,
+            "trackSamples": 1537,
+            "importMs": 581.68664,
+            "trackMs": 48.44112300000006,
+            "contactMs": 332.6161860000001,
+            "contactReadySinceProcessTimeOriginMs": 1058.622806,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normalsSHA256": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "leafOrderSHA256": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "e6dbe885f039b68fc40c10130d68a4bf3900d51eab5956acc415d950fcf7c774"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "764fa0839971ba2f002da63c829ca1cf24e2d43b53de83c6dd5a519cc7b42000"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "f68fc987e19faea7340529fa805de6f15f4b864efa67e72bd820c2018ccce877"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "3adf9256f2fc04b543cd3830864295417141e3f472e59e36b98cf12e8fd0150c"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "bd7f3e0a3474eef5934c781bb350d529bee51f461fe79346156e0f2b316e3dbc"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11676,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 28724,
+                "querySHA256": "c5b0447632b2a8351346888a06e72d9823c30dbc0d53d7ea44be46c7baa64fd4"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11648,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 30034,
+                "querySHA256": "5f47fd54cbc4cc201c4a3a4048ba38a15342b26cc7e9eeee9acbeff61ed5fff0"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 192796
+            },
+            "processWallMs": 1219.6468719999993
+          },
+          {
+            "circuitId": "vellamar",
+            "circuitName": "VELLAMAR / COAST CIRCUIT",
+            "lengthM": 3997.2689252571236,
+            "trackSamples": 1537,
+            "importMs": 657.610353,
+            "trackMs": 51.702045999999996,
+            "contactMs": 266.76658900000007,
+            "contactReadySinceProcessTimeOriginMs": 1059.813012,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normalsSHA256": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "leafOrderSHA256": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "e6dbe885f039b68fc40c10130d68a4bf3900d51eab5956acc415d950fcf7c774"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "764fa0839971ba2f002da63c829ca1cf24e2d43b53de83c6dd5a519cc7b42000"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "f68fc987e19faea7340529fa805de6f15f4b864efa67e72bd820c2018ccce877"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "3adf9256f2fc04b543cd3830864295417141e3f472e59e36b98cf12e8fd0150c"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "bd7f3e0a3474eef5934c781bb350d529bee51f461fe79346156e0f2b316e3dbc"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11676,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 28724,
+                "querySHA256": "c5b0447632b2a8351346888a06e72d9823c30dbc0d53d7ea44be46c7baa64fd4"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11648,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 30034,
+                "querySHA256": "5f47fd54cbc4cc201c4a3a4048ba38a15342b26cc7e9eeee9acbeff61ed5fff0"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 194240
+            },
+            "processWallMs": 1212.972052000001
+          },
+          {
+            "circuitId": "vellamar",
+            "circuitName": "VELLAMAR / COAST CIRCUIT",
+            "lengthM": 3997.2689252571236,
+            "trackSamples": 1537,
+            "importMs": 652.161084,
+            "trackMs": 46.37231200000008,
+            "contactMs": 280.45003600000007,
+            "contactReadySinceProcessTimeOriginMs": 1069.896248,
+            "warmBVHMs": [
+              231.71276199999988,
+              211.0122510000001,
+              239.23637199999985
+            ],
+            "geometry": {
+              "rows": 8192,
+              "vertices": 122895,
+              "triangles": 229376,
+              "verticesSHA256": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normalsSHA256": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indicesSHA256": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+            },
+            "hierarchy": {
+              "nodes": 65535,
+              "triangles": 229376,
+              "nodesSHA256": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "leafOrderSHA256": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "e6dbe885f039b68fc40c10130d68a4bf3900d51eab5956acc415d950fcf7c774"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "764fa0839971ba2f002da63c829ca1cf24e2d43b53de83c6dd5a519cc7b42000"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 367,
+                "misses": 77,
+                "candidateTotal": 2289,
+                "candidateMinimum": 0,
+                "candidateMaximum": 120,
+                "featureTests": 0,
+                "querySHA256": "f68fc987e19faea7340529fa805de6f15f4b864efa67e72bd820c2018ccce877"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "3adf9256f2fc04b543cd3830864295417141e3f472e59e36b98cf12e8fd0150c"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 369,
+                "misses": 75,
+                "candidateTotal": 9121,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 0,
+                "querySHA256": "bd7f3e0a3474eef5934c781bb350d529bee51f461fe79346156e0f2b316e3dbc"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11676,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 28724,
+                "querySHA256": "c5b0447632b2a8351346888a06e72d9823c30dbc0d53d7ea44be46c7baa64fd4"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 11648,
+                "candidateMinimum": 0,
+                "candidateMaximum": 126,
+                "featureTests": 30034,
+                "querySHA256": "5f47fd54cbc4cc201c4a3a4048ba38a15342b26cc7e9eeee9acbeff61ed5fff0"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 226152
+            },
+            "processWallMs": 2250.6323139999986
+          }
+        ]
+      }
+    },
+    {
+      "circuitId": "loirette",
+      "exactEquality": true,
+      "summaries": {
+        "baseline": {
+          "importMs": {
+            "samples": [
+              563.471975,
+              592.608673,
+              516.0376610000001
+            ],
+            "minimum": 516.0376610000001,
+            "median": 563.471975,
+            "maximum": 592.608673
+          },
+          "trackMs": {
+            "samples": [
+              109.83104100000003,
+              116.32653900000003,
+              111.27042500000005
+            ],
+            "minimum": 109.83104100000003,
+            "median": 111.27042500000005,
+            "maximum": 116.32653900000003
+          },
+          "contactMs": {
+            "samples": [
+              1436.357662,
+              1318.5174620000003,
+              1165.274902
+            ],
+            "minimum": 1165.274902,
+            "median": 1318.5174620000003,
+            "maximum": 1436.357662
+          },
+          "contactReadySinceProcessTimeOriginMs": {
+            "samples": [
+              2197.406461,
+              2114.154174,
+              1899.525028
+            ],
+            "minimum": 1899.525028,
+            "median": 2114.154174,
+            "maximum": 2197.406461
+          },
+          "warmBVHMs": {
+            "samples": [
+              1052.5112870000003,
+              1057.585701,
+              1035.9699100000007
+            ],
+            "minimum": 1035.9699100000007,
+            "median": 1052.5112870000003,
+            "maximum": 1057.585701
+          }
+        },
+        "candidate": {
+          "importMs": {
+            "samples": [
+              620.095635,
+              548.594018,
+              559.665952
+            ],
+            "minimum": 548.594018,
+            "median": 559.665952,
+            "maximum": 620.095635
+          },
+          "trackMs": {
+            "samples": [
+              111.160304,
+              156.7486580000001,
+              109.89286000000004
+            ],
+            "minimum": 109.89286000000004,
+            "median": 111.160304,
+            "maximum": 156.7486580000001
+          },
+          "contactMs": {
+            "samples": [
+              686.8365040000001,
+              522.487852,
+              706.4510569999999
+            ],
+            "minimum": 522.487852,
+            "median": 686.8365040000001,
+            "maximum": 706.4510569999999
+          },
+          "contactReadySinceProcessTimeOriginMs": {
+            "samples": [
+              1503.884137,
+              1311.179484,
+              1462.001394
+            ],
+            "minimum": 1311.179484,
+            "median": 1462.001394,
+            "maximum": 1503.884137
+          },
+          "warmBVHMs": {
+            "samples": [
+              400.1912619999998,
+              450.271972,
+              517.1884279999999
+            ],
+            "minimum": 400.1912619999998,
+            "median": 450.271972,
+            "maximum": 517.1884279999999
+          }
+        }
+      },
+      "samples": {
+        "baseline": [
+          {
+            "circuitId": "loirette",
+            "circuitName": "LOIRETTE / ENDURANCE CIRCUIT",
+            "lengthM": 13625.999999999907,
+            "trackSamples": 3073,
+            "importMs": 563.471975,
+            "trackMs": 109.83104100000003,
+            "contactMs": 1436.357662,
+            "contactReadySinceProcessTimeOriginMs": 2197.406461,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 15140,
+              "vertices": 227115,
+              "triangles": 423920,
+              "verticesSHA256": "9652fea45a50d45aa8472665f85efd3868c5766d72b62bc9966735802c821b58",
+              "normalsSHA256": "e4d5c127cfe03805c5666a39f51867b0ef40b075963c64197214398dc64f44ff",
+              "indicesSHA256": "59851527f175202e0965b34c77974c0929f4a80212e2a4d78cde368826efb610"
+            },
+            "hierarchy": {
+              "nodes": 131071,
+              "triangles": 423920,
+              "nodesSHA256": "3b5e6fe0d103ba51bf4ef07c405c84637df725fe0b76e0757d39e85f8d12ce44",
+              "leafOrderSHA256": "93d732505bd2bda7deceaa6bb32a40b6db78f2d9ad7abeed507f437137f7d881"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "eb13988eb6a65f2959b18768ebf34922f245b312988c1175ce5c4b984b200a7a"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "1a2e470f27080a7f73513369b3d34b08b5e60cde687d445954264422a09e00fd"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "4398ee132aa4360c96589892d8659419da156b388ee7192ab44c57fcdace31c2"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "788d65dd19eed48b97f3ab74ddea37c3d2e9af7970ef0fee58425128e06c1075"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "7de0e26a6cd61e521acb92ee3dc6ac3d0a9151f6b4e1ee7d4b1170c92f1cc39b"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9561,
+                "candidateMinimum": 0,
+                "candidateMaximum": 46,
+                "featureTests": 13531,
+                "querySHA256": "4242ed7f47fd90e3cbaf982383c3ea0786491ed121339ba23362c3db0dfae561"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 8813,
+                "candidateMinimum": 0,
+                "candidateMaximum": 45,
+                "featureTests": 11439,
+                "querySHA256": "052858a52b7d9042f75d373e3e4363f5e7e0772594d5f8c93bbd8a33c525e22c"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 269324
+            },
+            "processWallMs": 2368.8078480000004
+          },
+          {
+            "circuitId": "loirette",
+            "circuitName": "LOIRETTE / ENDURANCE CIRCUIT",
+            "lengthM": 13625.999999999907,
+            "trackSamples": 3073,
+            "importMs": 592.608673,
+            "trackMs": 116.32653900000003,
+            "contactMs": 1318.5174620000003,
+            "contactReadySinceProcessTimeOriginMs": 2114.154174,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 15140,
+              "vertices": 227115,
+              "triangles": 423920,
+              "verticesSHA256": "9652fea45a50d45aa8472665f85efd3868c5766d72b62bc9966735802c821b58",
+              "normalsSHA256": "e4d5c127cfe03805c5666a39f51867b0ef40b075963c64197214398dc64f44ff",
+              "indicesSHA256": "59851527f175202e0965b34c77974c0929f4a80212e2a4d78cde368826efb610"
+            },
+            "hierarchy": {
+              "nodes": 131071,
+              "triangles": 423920,
+              "nodesSHA256": "3b5e6fe0d103ba51bf4ef07c405c84637df725fe0b76e0757d39e85f8d12ce44",
+              "leafOrderSHA256": "93d732505bd2bda7deceaa6bb32a40b6db78f2d9ad7abeed507f437137f7d881"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "eb13988eb6a65f2959b18768ebf34922f245b312988c1175ce5c4b984b200a7a"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "1a2e470f27080a7f73513369b3d34b08b5e60cde687d445954264422a09e00fd"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "4398ee132aa4360c96589892d8659419da156b388ee7192ab44c57fcdace31c2"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "788d65dd19eed48b97f3ab74ddea37c3d2e9af7970ef0fee58425128e06c1075"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "7de0e26a6cd61e521acb92ee3dc6ac3d0a9151f6b4e1ee7d4b1170c92f1cc39b"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9561,
+                "candidateMinimum": 0,
+                "candidateMaximum": 46,
+                "featureTests": 13531,
+                "querySHA256": "4242ed7f47fd90e3cbaf982383c3ea0786491ed121339ba23362c3db0dfae561"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 8813,
+                "candidateMinimum": 0,
+                "candidateMaximum": 45,
+                "featureTests": 11439,
+                "querySHA256": "052858a52b7d9042f75d373e3e4363f5e7e0772594d5f8c93bbd8a33c525e22c"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 250748
+            },
+            "processWallMs": 2289.7226540000047
+          },
+          {
+            "circuitId": "loirette",
+            "circuitName": "LOIRETTE / ENDURANCE CIRCUIT",
+            "lengthM": 13625.999999999907,
+            "trackSamples": 3073,
+            "importMs": 516.0376610000001,
+            "trackMs": 111.27042500000005,
+            "contactMs": 1165.274902,
+            "contactReadySinceProcessTimeOriginMs": 1899.525028,
+            "warmBVHMs": [
+              1052.5112870000003,
+              1057.585701,
+              1035.9699100000007
+            ],
+            "geometry": {
+              "rows": 15140,
+              "vertices": 227115,
+              "triangles": 423920,
+              "verticesSHA256": "9652fea45a50d45aa8472665f85efd3868c5766d72b62bc9966735802c821b58",
+              "normalsSHA256": "e4d5c127cfe03805c5666a39f51867b0ef40b075963c64197214398dc64f44ff",
+              "indicesSHA256": "59851527f175202e0965b34c77974c0929f4a80212e2a4d78cde368826efb610"
+            },
+            "hierarchy": {
+              "nodes": 131071,
+              "triangles": 423920,
+              "nodesSHA256": "3b5e6fe0d103ba51bf4ef07c405c84637df725fe0b76e0757d39e85f8d12ce44",
+              "leafOrderSHA256": "93d732505bd2bda7deceaa6bb32a40b6db78f2d9ad7abeed507f437137f7d881"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "eb13988eb6a65f2959b18768ebf34922f245b312988c1175ce5c4b984b200a7a"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "1a2e470f27080a7f73513369b3d34b08b5e60cde687d445954264422a09e00fd"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "4398ee132aa4360c96589892d8659419da156b388ee7192ab44c57fcdace31c2"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "788d65dd19eed48b97f3ab74ddea37c3d2e9af7970ef0fee58425128e06c1075"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "7de0e26a6cd61e521acb92ee3dc6ac3d0a9151f6b4e1ee7d4b1170c92f1cc39b"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9561,
+                "candidateMinimum": 0,
+                "candidateMaximum": 46,
+                "featureTests": 13531,
+                "querySHA256": "4242ed7f47fd90e3cbaf982383c3ea0786491ed121339ba23362c3db0dfae561"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 8813,
+                "candidateMinimum": 0,
+                "candidateMaximum": 45,
+                "featureTests": 11439,
+                "querySHA256": "052858a52b7d9042f75d373e3e4363f5e7e0772594d5f8c93bbd8a33c525e22c"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 339260
+            },
+            "processWallMs": 6712.143235999996
+          }
+        ],
+        "candidate": [
+          {
+            "circuitId": "loirette",
+            "circuitName": "LOIRETTE / ENDURANCE CIRCUIT",
+            "lengthM": 13625.999999999907,
+            "trackSamples": 3073,
+            "importMs": 620.095635,
+            "trackMs": 111.160304,
+            "contactMs": 686.8365040000001,
+            "contactReadySinceProcessTimeOriginMs": 1503.884137,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 15140,
+              "vertices": 227115,
+              "triangles": 423920,
+              "verticesSHA256": "9652fea45a50d45aa8472665f85efd3868c5766d72b62bc9966735802c821b58",
+              "normalsSHA256": "e4d5c127cfe03805c5666a39f51867b0ef40b075963c64197214398dc64f44ff",
+              "indicesSHA256": "59851527f175202e0965b34c77974c0929f4a80212e2a4d78cde368826efb610"
+            },
+            "hierarchy": {
+              "nodes": 131071,
+              "triangles": 423920,
+              "nodesSHA256": "3b5e6fe0d103ba51bf4ef07c405c84637df725fe0b76e0757d39e85f8d12ce44",
+              "leafOrderSHA256": "93d732505bd2bda7deceaa6bb32a40b6db78f2d9ad7abeed507f437137f7d881"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "eb13988eb6a65f2959b18768ebf34922f245b312988c1175ce5c4b984b200a7a"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "1a2e470f27080a7f73513369b3d34b08b5e60cde687d445954264422a09e00fd"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "4398ee132aa4360c96589892d8659419da156b388ee7192ab44c57fcdace31c2"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "788d65dd19eed48b97f3ab74ddea37c3d2e9af7970ef0fee58425128e06c1075"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "7de0e26a6cd61e521acb92ee3dc6ac3d0a9151f6b4e1ee7d4b1170c92f1cc39b"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9561,
+                "candidateMinimum": 0,
+                "candidateMaximum": 46,
+                "featureTests": 13531,
+                "querySHA256": "4242ed7f47fd90e3cbaf982383c3ea0786491ed121339ba23362c3db0dfae561"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 8813,
+                "candidateMinimum": 0,
+                "candidateMaximum": 45,
+                "featureTests": 11439,
+                "querySHA256": "052858a52b7d9042f75d373e3e4363f5e7e0772594d5f8c93bbd8a33c525e22c"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 214904
+            },
+            "processWallMs": 1668.5211820000004
+          },
+          {
+            "circuitId": "loirette",
+            "circuitName": "LOIRETTE / ENDURANCE CIRCUIT",
+            "lengthM": 13625.999999999907,
+            "trackSamples": 3073,
+            "importMs": 548.594018,
+            "trackMs": 156.7486580000001,
+            "contactMs": 522.487852,
+            "contactReadySinceProcessTimeOriginMs": 1311.179484,
+            "warmBVHMs": [],
+            "geometry": {
+              "rows": 15140,
+              "vertices": 227115,
+              "triangles": 423920,
+              "verticesSHA256": "9652fea45a50d45aa8472665f85efd3868c5766d72b62bc9966735802c821b58",
+              "normalsSHA256": "e4d5c127cfe03805c5666a39f51867b0ef40b075963c64197214398dc64f44ff",
+              "indicesSHA256": "59851527f175202e0965b34c77974c0929f4a80212e2a4d78cde368826efb610"
+            },
+            "hierarchy": {
+              "nodes": 131071,
+              "triangles": 423920,
+              "nodesSHA256": "3b5e6fe0d103ba51bf4ef07c405c84637df725fe0b76e0757d39e85f8d12ce44",
+              "leafOrderSHA256": "93d732505bd2bda7deceaa6bb32a40b6db78f2d9ad7abeed507f437137f7d881"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "eb13988eb6a65f2959b18768ebf34922f245b312988c1175ce5c4b984b200a7a"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "1a2e470f27080a7f73513369b3d34b08b5e60cde687d445954264422a09e00fd"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "4398ee132aa4360c96589892d8659419da156b388ee7192ab44c57fcdace31c2"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "788d65dd19eed48b97f3ab74ddea37c3d2e9af7970ef0fee58425128e06c1075"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "7de0e26a6cd61e521acb92ee3dc6ac3d0a9151f6b4e1ee7d4b1170c92f1cc39b"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9561,
+                "candidateMinimum": 0,
+                "candidateMaximum": 46,
+                "featureTests": 13531,
+                "querySHA256": "4242ed7f47fd90e3cbaf982383c3ea0786491ed121339ba23362c3db0dfae561"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 8813,
+                "candidateMinimum": 0,
+                "candidateMaximum": 45,
+                "featureTests": 11439,
+                "querySHA256": "052858a52b7d9042f75d373e3e4363f5e7e0772594d5f8c93bbd8a33c525e22c"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 222496
+            },
+            "processWallMs": 1503.175252000001
+          },
+          {
+            "circuitId": "loirette",
+            "circuitName": "LOIRETTE / ENDURANCE CIRCUIT",
+            "lengthM": 13625.999999999907,
+            "trackSamples": 3073,
+            "importMs": 559.665952,
+            "trackMs": 109.89286000000004,
+            "contactMs": 706.4510569999999,
+            "contactReadySinceProcessTimeOriginMs": 1462.001394,
+            "warmBVHMs": [
+              400.1912619999998,
+              450.271972,
+              517.1884279999999
+            ],
+            "geometry": {
+              "rows": 15140,
+              "vertices": 227115,
+              "triangles": 423920,
+              "verticesSHA256": "9652fea45a50d45aa8472665f85efd3868c5766d72b62bc9966735802c821b58",
+              "normalsSHA256": "e4d5c127cfe03805c5666a39f51867b0ef40b075963c64197214398dc64f44ff",
+              "indicesSHA256": "59851527f175202e0965b34c77974c0929f4a80212e2a4d78cde368826efb610"
+            },
+            "hierarchy": {
+              "nodes": 131071,
+              "triangles": 423920,
+              "nodesSHA256": "3b5e6fe0d103ba51bf4ef07c405c84637df725fe0b76e0757d39e85f8d12ce44",
+              "leafOrderSHA256": "93d732505bd2bda7deceaa6bb32a40b6db78f2d9ad7abeed507f437137f7d881"
+            },
+            "queries": {
+              "vertical": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "eb13988eb6a65f2959b18768ebf34922f245b312988c1175ce5c4b984b200a7a"
+              },
+              "vertical-reused-probe": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 0,
+                "candidateMinimum": 0,
+                "candidateMaximum": 0,
+                "featureTests": 0,
+                "querySHA256": "1a2e470f27080a7f73513369b3d34b08b5e60cde687d445954264422a09e00fd"
+              },
+              "height-only": {
+                "count": 444,
+                "finiteHits": 360,
+                "misses": 84,
+                "candidateTotal": 1421,
+                "candidateMinimum": 0,
+                "candidateMaximum": 23,
+                "featureTests": 0,
+                "querySHA256": "4398ee132aa4360c96589892d8659419da156b388ee7192ab44c57fcdace31c2"
+              },
+              "oblique-bvh": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "788d65dd19eed48b97f3ab74ddea37c3d2e9af7970ef0fee58425128e06c1075"
+              },
+              "oblique-contact": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 7468,
+                "candidateMinimum": 0,
+                "candidateMaximum": 40,
+                "featureTests": 0,
+                "querySHA256": "7de0e26a6cd61e521acb92ee3dc6ac3d0a9151f6b4e1ee7d4b1170c92f1cc39b"
+              },
+              "car-tire": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 9561,
+                "candidateMinimum": 0,
+                "candidateMaximum": 46,
+                "featureTests": 13531,
+                "querySHA256": "4242ed7f47fd90e3cbaf982383c3ea0786491ed121339ba23362c3db0dfae561"
+              },
+              "bike-tire-oblique": {
+                "count": 444,
+                "finiteHits": 370,
+                "misses": 74,
+                "candidateTotal": 8813,
+                "candidateMinimum": 0,
+                "candidateMaximum": 45,
+                "featureTests": 11439,
+                "querySHA256": "052858a52b7d9042f75d373e3e4363f5e7e0772594d5f8c93bbd8a33c525e22c"
+              }
+            },
+            "memory": {
+              "heapLimitBytes": 738197504,
+              "maxRSSKiB": 246532
+            },
+            "processWallMs": 3643.9538549999997
+          }
+        ]
+      }
+    }
+  ],
+  "exactEquality": true
+}

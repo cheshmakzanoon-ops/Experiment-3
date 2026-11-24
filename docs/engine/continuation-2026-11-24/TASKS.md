@@ -29,14 +29,14 @@ Every numbered row reserves one distinct agent assignment for this continuation.
 | 23 | 4 | Prune expired command history during downlink outages | Complete: 116 focused tests; four exact wire/render comparisons |
 | 24 | 4 | Isolate prediction history and authoritative state ownership | Complete: 47 focused tests; 97536 exact predicted poses |
 | 25 | 5 | Canonicalize native range-control replay endpoints | Complete: 55 tests; native regression awaiting remote execution |
-| 26 | 5 | Preserve low-rate audio cadence with bounded stall recovery | Running |
-| 27 | 5 | Neutralize automatic controller identity replacement | Running |
-| 28 | 5 | Benchmark exact contact construction on unchanged real tracks | Running |
-| 29 | 5 | Awaiting evidence-based assignment | Pending |
-| 30 | 5 | Awaiting evidence-based assignment | Pending |
-| 31 | 6 | Awaiting evidence-based assignment | Pending |
-| 32 | 6 | Awaiting evidence-based assignment | Pending |
-| 33 | 6 | Awaiting evidence-based assignment | Pending |
+| 26 | 5 | Preserve audio cadence at low update rates with bounded discontinuity recovery. | Complete; 22 new cadence cases, 84 verified focused cases; timing at 10/30/60 Hz exact. |
+| 27 | 5 | Neutralize and report an established controller replacement before accepting new held input. | Complete; 16 new cases, 89 focused cases; authorized obsolete lifecycle expectation updated. |
+| 28 | 5 | Measure actual unchanged track-contact meshes, BVH trees and contact queries against the original implementation. | Complete; 3 real tracks, 55,944 query calls exact; cold construction median reduction48–65%. |
+| 29 | 5 | Measure and remove safe hot-path prediction response allocations while preserving exact adaptive arithmetic. | Complete; 17 new tests,75 focused cases; 786,432 exact gain/yaw comparisons; isolated allocation and timing evidence. |
+| 30 | 5 | Validate real-filesystem mirror crash/restart and certificate recovery boundaries. | Complete; 33 integration cases including27 SIGKILLs; scoped compiler/lint passed; no production defect. |
+| 31 | 6 | Validate actual browser audio scheduling, reset and offline transient lifetime; add focused CI coverage. | Running; native execution will use remote CI. |
+| 32 | 6 | Verify controller replacement and pause ownership through real input pump/session consumers. | Running |
+| 33 | 6 | Integrate bounded network history and state ownership across actual client/server outage and recovery. | Running |
 | 34 | 6 | Awaiting evidence-based assignment | Pending |
 | 35 | 6 | Awaiting evidence-based assignment | Pending |
 | 36 | 6 | Awaiting evidence-based assignment | Pending |

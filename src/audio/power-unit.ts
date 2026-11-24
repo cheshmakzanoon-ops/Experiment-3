@@ -101,6 +101,10 @@ export function powerUnitMix(
  * Offline renders deliberately pre-schedule a complete finite render instead. */
 export const POWER_UNIT_MAX_LIVE_BURSTS = 64;
 
+/** Continuous updates retain elapsed time down to 2 Hz. A longer gap starts a
+ * new presentation timeline instead of replaying missed transient events. */
+export const POWER_UNIT_MAX_CONTINUOUS_GAP = 0.5;
+
 interface BurstVoice {
   source: AudioBufferSourceNode;
   level: GainNode | null;
@@ -235,12 +239,30 @@ export class PowerUnitAudio {
   /** `level` is the listener attenuation (0 far away … 1 in the cockpit). */
   update(frame: Float32Array, car: number, time: number, level: number, cockpit: boolean) {
     if (this.disposed || this.resetting) return;
+    if (!Number.isFinite(time) || time < 0) {
+      this.reset();
+      return;
+    }
+    let dt = 0;
+    if (Number.isFinite(this.lastTime)) {
+      const elapsed = time - this.lastTime;
+      if (elapsed < 0 || elapsed > POWER_UNIT_MAX_CONTINUOUS_GAP) {
+        // Drop pending voices, filter automation and gear/phase history together.
+        // In particular, a resumed frame must not synthesize a stale gear change.
+        this.reset();
+        if (this.disposed) return;
+      } else {
+        // Preserve the seeded schedule at nominal 10 Hz: subtracting timestamps
+        // can put a 0.1 s interval just above the former cap through roundoff.
+        const rounding = Number.EPSILON * Math.max(1, time, this.lastTime) * 4;
+        dt = elapsed <= 0.1 + rounding ? Math.min(elapsed, 0.1) : elapsed;
+      }
+    }
     // Only audio time proves a voice has finished. The offline rig can supply
     // future timestamps while currentTime is still zero, before rendering.
     this.expireVoices();
     const m = powerUnitMix(frame, car, this.previousGear, this.mix);
     this.previousGear = frame[carBase(car) + F.GEAR];
-    const dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
     this.lastTime = time;
     const interior = cockpit ? 1 : 0.6;
     this.output.gain.setTargetAtTime(clamp(level, 0, 1) * interior, time, 0.04);

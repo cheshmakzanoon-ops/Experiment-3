@@ -25,8 +25,8 @@ No 3D models, character models, authored environments, textures, materials, trac
 | 2 | 07–12 | Critical worker, recording and persistence repairs; collision sweep work | Complete |
 | 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | Complete |
 | 4 | 19–24 | Bounded network history, snapshot ownership and audio event lifetime | Complete |
-| 5 | 25–30 | Replay endpoints, controller/audio continuity and real-workload measurements | In progress |
-| 6 | 31–36 | Input, audio and shared resource lifecycle | Pending audit |
+| 5 | 25–30 | Replay endpoints, controller/audio continuity and real-workload measurements | Complete |
+| 6 | 31–36 | Input, audio and shared resource lifecycle | In progress |
 | 7 | 37–42 | Cross-subsystem integration and regression repairs | Pending |
 | 8 | 43–48 | Reproducible performance and deterministic comparisons | Pending |
 | 9 | 49–54 | Independent adversarial reviews and targeted corrections | Pending |
@@ -77,10 +77,20 @@ The wave-3 integration also passed the complete project TypeScript check on an i
 
 Each network diagnostic retains a chronological 4,096-sample window plus independent lifetime summaries, with constant recording work. Command retention expires independently of ACK progress; a nominal client retains at most 185 recent commands through prolonged downlink silence. Exact wire/render comparisons preserve normal and tested outage/recovery behavior. Remote and predicted states cross public boundaries as detached scalar copies. Audio reset/disposal retires transient nodes and old shared-filter automation, while a 64-voice live bound preserves the supported offline scheduling path.
 
-The paused-grid loading investigation retained the failed trace and the successful unchanged-commit six-test retry. Its read-only summarizer records a long cold preparation task and only 7.632 seconds of observed final-fence waiting, without inferring a deadlock. See report22 for clocks, event-drop limits and exact source comparisons.
+The paused-grid loading investigation retained the failed trace and the successful unchanged-commit six-test retry. Its read-only summarizer records a long cold preparation task and only 7.632 seconds of observed final-fence waiting, without inferring a deadlock. See report 22 for clocks, event-drop limits and exact source comparisons.
 
 ### Wave 5: replay endpoint correction
 
-A subsequent native replay run at `61241fd` passed six lifecycle tests but exposed a range-control decimal round-trip: a recorded end of `16.600000381469727` became `16.6000003814697`. Agent25 repaired exact endpoint recognition without a broad epsilon or relaxed browser assertions. All 55 clock/precision cases and scoped compilation passed. A new real-range browser regression is included; its remote execution remains a required integration gate.
+A subsequent native replay run at `61241fd` passed six lifecycle tests but exposed a range-control decimal round-trip: a recorded end of `16.600000381469727` became `16.6000003814697`. Agent 25 repaired exact endpoint recognition without a broad epsilon or relaxed browser assertions. All 55 clock/precision cases and scoped compilation passed. The published fix at `360d3de` subsequently passed all eight native lifecycle and replay browser tests, including the new real-range regression and the unchanged strict full-game assertions. See [the fourth-batch CI evidence](implementation/fourth-batch-ci.md).
 
 The fourth publication batch (agents 19–25) passed the full project TypeScript check on its immutable staged-source snapshot. The three unchanged JSON imports excluded by sparse checkout were restored verbatim from Git before the successful compiler run. This check excludes later work still in progress.
+
+### Wave 5: cadence, control ownership and measured construction
+
+Power-unit scheduling retains continuous elapsed time down to 2 Hz, correcting the 5 Hz half-rate defect while preserving exact 10/30/60 Hz seeded scheduling. Clock discontinuities retire the prior audio timeline. Replacing an established gamepad now neutralizes controls and reports device loss before reading the replacement; explicit selection and resume retain their existing semantics.
+
+Actual unchanged Aurel, Vellamar and Loirette collision meshes built 48–65% faster by cold median in this environment, with identical mesh bytes, BVH nodes/leaf order and 55,944 recorded query calls across the workers. ResponseModel removes transient matrix/view allocations; its isolated 250,000-operation training/query median was 18.01 ms versus 184.34 ms, with all samples and outliers retained. These results do not assert a frame-rate improvement. Reports 28–29 provide portable measurement scripts, distributions and source identities.
+
+Real persistence validation added 33 subprocess cases, including 27 SIGKILLs across physical save-write boundaries. Incomplete pairs failed certification and were repaired from complete local data. Empty-local recovery retains its documented readable-data salvage behavior; the result does not claim power-loss durability or an atomic cross-file disk transaction.
+
+The fifth publication batch (agents 26–30) passed complete project TypeScript compilation on an immutable snapshot of its staged source. The later native-audio and controller/network integration work was excluded while still in progress.

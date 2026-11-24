@@ -270,21 +270,21 @@ describe('touch and controller device ownership', () => {
     expect(f.action.mock.calls).toEqual([['deviceLost'], ['camera']]);
   });
 
-  it('baselines held actions and paddles when automatic selection switches devices', () => {
+  it('neutralizes a device switch before baselining the replacement actions and paddles', () => {
     const f = fixture();
     f.input.update(0.1);
     const next = gamepad(1);
     next.buttons[3] = button(true);
     next.buttons[5] = button(true);
     f.setPads([next]);
-    expect(f.input.update(0.1).shift).toBe(0);
-    expect(f.action).not.toHaveBeenCalled();
+    expect(f.input.update(0.1)).toEqual(controls());
+    expect(f.action.mock.calls).toEqual([['deviceLost']]);
     next.buttons[3] = button();
     next.buttons[5] = button();
     f.input.update(0.1);
     next.buttons[3] = button(true);
     next.buttons[5] = button(true);
     expect(f.input.update(0.1).shift).toBe(1);
-    expect(f.action.mock.calls).toEqual([['camera']]);
+    expect(f.action.mock.calls).toEqual([['deviceLost'], ['camera']]);
   });
 });
