@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45266944125
-- commit: `b9ffc8d73e` · Return the floodlit clay into Arena Nord roof steel and skip obscured cloud bakes outdoors
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-23T21:10:33Z · updated: 2026-11-23T23:40:01Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45332038750
+- commit: `f363c0879f` · Grade the Arena Nord floor in continuous floodlit clay
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-24T05:15:35Z · updated: 2026-11-24T05:30:39Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | success | 7 |  |
-| browser (night) | success | 13 |  |
-| browser (day) | success | 10 |  |
+| browser (sunset) | success | 14 |  |
+| browser (night) | success | 7 |  |
+| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
