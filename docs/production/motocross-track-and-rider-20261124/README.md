@@ -24,9 +24,11 @@ The downshift guard accounts for rear-tyre regrip speed. A rider can still shift
 
 If another rider ends up travelling backwards along the verge, the marshal waits for space and for an approaching hairpin to clear before helping the rider turn. The bike rotates through the push and remount. Riders who have taken the chequered flag ease down the straights and roll the next jump while the rest of the field races.
 
-At the handlebars, the brake hose leaves a bolted eye and crimp on the right master cylinder. Its upper and lower sections meet at the same position and tangent as the fork moves. The clutch cable on the left exits through its adjuster ferrule. Across 288 combinations of steering angle, fork height and detail level, the measured brake-hose join stayed within 0.001 mm and 0.08 degrees.
+At the handlebars, the brake hose leaves a bolted eye and crimp on the right master cylinder. Its upper and lower sections meet at the same position and tangent as the fork moves. The clutch cable on the left exits through its adjuster ferrule. Across 288 combinations of steering angle, fork height and detail level, the measured brake-hose join stayed within 0.001 mm and 0.08 degrees. In the close-up model, the maximum distance between the drawn tube and its designed centreline fell from 3.19 to 0.96 mm on the brake and from 2.38 to 0.79 mm on the clutch.
 
-The boot has an articulated ankle brace, heel counter, wraparound toe bumper and an instep protector on the gear side. Narrow seams follow their physical width. The complete High-detail MX250 and rider use 139,339 triangles. The MX450 and rider use 137,699. Both fit the existing 140,000-triangle limit.
+![Earlier and updated brake and clutch connections on the MX450](handlebar-controls.jpg)
+
+The boot has an articulated ankle brace, heel counter, wraparound toe bumper and an instep protector on the gear side. Narrow seams follow their physical width. The complete High-detail MX250 and rider use 139,851 triangles. The MX450 and rider use 138,211. Both fit the existing 140,000-triangle limit.
 
 ![Production race boot and gear-selector motion](rider-equipment.jpg)
 
@@ -35,6 +37,10 @@ The MX450 downshift below follows 33 consecutive 120 Hz simulation samples. Play
 ![Slow-motion MX450 downshift showing the boot clearing and pressing the gear selector](gear-selector.webp)
 
 On the MX250 and MX450, a locked wheel keeps its spokes sharp while the other wheel can remain blurred. The spoke material now keeps neighbouring fragments available through lighting before it discards near-transparent pixels. The old ordering made a held close-up change by up to three RGB levels at the same two screen pixels. All four independent brake-lock, reverse and rewind image checks now reproduce the same held pixels.
+
+At Ridge Table, the MX450 spent 1.10 seconds between its first sampled airborne frame and touchdown. The simulation recorded a 4.22 m/s impact speed normal to the landing surface. This trackside replay follows 56 consecutive 30 Hz snapshots from the 120 Hz race simulation at half speed. The readout shows fork and rear suspension travel in millimetres.
+
+![Half-speed MX450 takeoff and landing at Ridge Table with measured suspension travel](ridge-table-landing.webp)
 
 ## What the cameras submit
 
