@@ -70,6 +70,7 @@ import {
   motocrossThrottleAngle,
   twistMotocrossGlove,
   motocrossSoleContact,
+  type MxRecoveryGrip,
 } from './offroad/motocross-rider-contact.ts';
 import {
   motocrossRecoveryStep,
@@ -1909,6 +1910,7 @@ export class Rider {
     mxRise?: number,
     floor?: T.Plane,
     dirt?: MxDabSurface,
+    grip?: MxRecoveryGrip,
   ) {
     this.riding = false;
     if (this.helmetEyes) gpEyePose(this.helmetEyes, this.raceNumber, time);
@@ -1924,7 +1926,8 @@ export class Rider {
     this.torso.position.copy(pelvis);
     this.euler.set(Math.PI / 2 - 0.1, 0, tumble, 'ZYX');
     this.torso.quaternion.setFromEuler(this.euler);
-    this.euler.set(0.12, 0, 0, 'ZYX');
+    const reach = grip?.engagement ?? 0;
+    this.euler.set(0.12 + 0.22 * reach, -0.14 * reach, 0.19 * reach, 'ZYX');
     this.torso.quaternion.slerp(this.q.setFromEuler(this.euler), rise);
     this.gpSpine?.reset();
     this.gpSuitLoads?.set(0, 0, 0);
@@ -1956,8 +1959,18 @@ export class Rider {
         c.y = T.MathUtils.lerp(c.y, -0.32 + 0.09 * Math.max(0, counter), running);
         c.z = T.MathUtils.lerp(c.z, 0.13 + 0.27 * counter, running);
       }
-      if (phase === 2) c.set(side * 0.25, -0.05, 0.45);
+      if (phase === 2) {
+        if (grip) c.set(side * 0.07, -0.42, 0.1);
+        else c.set(side * 0.25, -0.05, 0.45);
+      }
       c.applyQuaternion(this.torso.quaternion).add(a);
+      // The recovering rider stands on the bike's left. Their inside hand
+      // steadies that bar while the outside arm balances the planted stance.
+      const guidingHand = i === 1 && reach > 0 ? grip : undefined;
+      if (guidingHand) {
+        gpContactJoint(guidingHand.point, guidingHand.frame, MX_GLOVE_GRIP, MX_GLOVE_WRIST, b);
+        c.lerp(b, reach);
+      }
       pole.copy(a).add(b.set(side * (0.4 - 0.26 * running), -0.4, -0.2 - 0.08 * running));
       twoBone(this.upperArms[i], this.forearms[i], a, c, pole, joint);
       a.set(side * RIDER.hipWidth, 0, 0)
@@ -2000,8 +2013,16 @@ export class Rider {
       if (this.kit === 'motocross') {
         // Recovery starts from its own joint frames, not the last steering
         // angle or standing ankle pose retained by a previous riding frame.
-        this.hands[i].position.set(0, RIDER.forearm + 0.02, 0);
-        this.hands[i].rotation.set(0.2, 0, 0);
+        const hand = this.hands[i];
+        if (guidingHand) {
+          gpAttachAtJoint(hand, this.forearms[i].group.quaternion, RIDER.forearm,
+            guidingHand.frame, MX_GLOVE_WRIST);
+          hand.quaternion.slerp(this.q.setFromAxisAngle(X, 0.2), 1 - reach);
+          hand.position.lerp(b.set(0, RIDER.forearm + 0.02, 0), 1 - reach);
+        } else {
+          hand.position.set(0, RIDER.forearm + 0.02, 0);
+          hand.rotation.set(0.2, 0, 0);
+        }
         motocrossBootFrame(this.q).premultiply(this.torso.quaternion);
         if (mxRise !== undefined && rise > 0) this.q.slerp(this.recoveryBoot, rise);
         gpAttachAtJoint(

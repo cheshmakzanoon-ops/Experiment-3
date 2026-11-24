@@ -12,6 +12,13 @@ export const MX_BOOT_PEG = Object.freeze([0, 0.031, 0.02] as const);
 /** The peg anchor is 8.5 mm below the tips of the authored serrations. */
 export const MX_PEG_TOP = 0.0085;
 
+/** Grip centre and orientation in the separated rider's frame. */
+export interface MxRecoveryGrip {
+  point: T.Vector3;
+  frame: T.Quaternion;
+  engagement: number;
+}
+
 const bootEuler = new T.Euler();
 const gripAxis = new T.Vector3(1, 0, 0);
 const twist = new T.Quaternion();

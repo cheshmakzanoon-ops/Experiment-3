@@ -118,6 +118,7 @@ export class DirtBikeModel {
   readonly probeSurfaces: readonly T.MeshStandardMaterial[];
   /** Sight points on the authored control geometry, following steering. */
   readonly onboardControls = new T.Group();
+  readonly recoveryGrip = new T.Object3D();
   private readonly steerMount = new T.Group();
   private readonly steer = new T.Group();
   /** Real right-hand lever pivot. The clutch remains unactuated: the current
@@ -437,8 +438,7 @@ export class DirtBikeModel {
     this.steerMount.add(this.steer);
     this.onboardControls.name = 'Motocross onboard control sights';
     this.steer.add(this.onboardControls);
-    const controlSight = (name: string, x: number, y: number, z: number) => {
-      const point = new T.Object3D();
+    const controlSight = (name: string, x: number, y: number, z: number, point = new T.Object3D()) => {
       point.name = name;
       point.position.set(x, y, z);
       this.onboardControls.add(point);
@@ -559,7 +559,8 @@ export class DirtBikeModel {
         add(this.steer, motocrossGrip(detail, side), this.m.dark, side * 0.36, barY, barZ);
       }
       this.gripLocal[side > 0 ? 0 : 1].set(side * 0.36, barY, barZ);
-      controlSight(`Motocross ${side > 0 ? 'left' : 'right'} grip`, side * 0.36, barY, barZ);
+      controlSight(`Motocross ${side > 0 ? 'left' : 'right'} grip`, side * 0.36, barY, barZ,
+        side > 0 ? this.recoveryGrip : undefined);
       if (detail !== 'far') {
         // The inboard end is the pivot, not the centre of the blade. Keep the
         // terminal ball and blade in this same articulation boundary so they

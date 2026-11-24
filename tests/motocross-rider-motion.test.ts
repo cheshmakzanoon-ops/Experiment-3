@@ -223,6 +223,69 @@ describe('motocross suspension-driven rider motion', () => {
     }
   });
 
+  it('takes the steered grip from beside either bike and releases it outside arm range', () => {
+    const recovery = new MxRecoveryPose();
+    const heading = 0.72;
+    const ground = { planeAtWorld: (_p: T.Vector3, out: T.Plane) => {
+      out.setComponents(0, 1, 0, 0);
+      return true;
+    }};
+    for (const machine of ['mx250', 'mx450'] as const) {
+      for (const detail of ['high', 'mid', 'far'] as const) {
+        const definition = VEHICLES[machine], materials = new BikeMaterials(0);
+        const model = new DirtBikeModel(definition, 0, detail, materials, mudUniforms());
+        const rider = model.rider, scene = new T.Group();
+        scene.add(model.root, rider.root);
+        const hand = rider.root.getObjectByName('Motocross right hand')!;
+        const free = rider.root.getObjectByName('Motocross left hand')!;
+        const palm = (part: T.Object3D) => part.localToWorld(new T.Vector3().fromArray(MX_GLOVE_GRIP));
+        const sample = (lateral: number, steer: number, clock = 1, bikeElevation = 0) => {
+          model.root.position.set(12, definition.bike!.cgHeight + bikeElevation, -7);
+          model.root.rotation.set(-0.06, heading, 0.04, 'YXZ');
+          model.pose({ ...staticSag(definition), steer, frontRotation: 0, rearRotation: 0,
+            chassisLean: 0.04, riderOffset: 0, tuck: 0, brake: 0, rearBrake: 0,
+            discTemp: 20, compoundColour: 0xffffff, riding: false });
+          const pelvis = new T.Vector3(12 + lateral * Math.cos(heading), 0.95,
+            -7 - lateral * Math.sin(heading));
+          recovery.place(rider, pelvis, heading, 'remount', clock, 1, 0, 4, ground, model.recoveryGrip);
+          scene.updateMatrixWorld(true);
+          return model.recoveryGrip.getWorldPosition(new T.Vector3());
+        };
+        try {
+          const straight = sample(0.55, 0);
+          expect(palm(hand).distanceTo(straight), machine + ' ' + detail).toBeLessThan(0.003);
+          const turned = sample(0.55, -0.36);
+          expect(straight.distanceTo(turned)).toBeGreaterThan(0.10);
+          expect(palm(hand).distanceTo(turned)).toBeLessThan(0.003);
+          expect(palm(free).y).toBeLessThan(turned.y + 0.05);
+          const held = palm(hand);
+          sample(1.65, 0.25);
+          const released = palm(hand);
+          sample(1.65, -0.36);
+          expect(palm(hand).distanceTo(released)).toBeLessThan(1e-8);
+          sample(0.55, 0.25, 1, 1.8);
+          const belowBerm = palm(hand);
+          sample(0.55, -0.36, 1, 1.8);
+          expect(palm(hand).distanceTo(belowBerm)).toBeLessThan(1e-8);
+          sample(0.55, -0.36, 0);
+          const initialGap = palm(hand).distanceTo(turned);
+          expect(initialGap).toBeGreaterThan(0.16);
+          sample(0.55, -0.36, 0.19);
+          const midway = palm(hand).distanceTo(turned);
+          expect(midway).toBeLessThan(initialGap);
+          expect(midway).toBeGreaterThan(0.04);
+          sample(0.55, -0.36);
+          expect(palm(hand).distanceTo(held)).toBeLessThan(1e-8);
+        } finally {
+          scene.remove(rider.root);
+          model.sprung.add(rider.root);
+          model.dispose();
+          materials.dispose();
+        }
+      }
+    }
+  });
+
   it('plants each recovering boot on its own side of a rut', () => {
     const rider = new Rider(colours, 'mid', 'motocross');
     const recovery = new MxRecoveryPose();

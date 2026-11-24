@@ -519,6 +519,29 @@ test('restores the photographed recovery pose after a running stride', async ({ 
   await review.attach('motocross-rider-running', shots[1]);
 });
 
+test('holds the steered bar beside the bike and reproduces the remount on a rewind', async ({ review }) => {
+  const sample = (clock: number, steer: number) => ({
+    steer, standing: 1,
+    recovery: {
+      state: 'remount' as const, pelvis: [0.55, 0.95, 0] as const,
+      normal: [0, 1, 0] as const, planeConstant: 0, heading: 0, tumble: 0, clock,
+    },
+  });
+  const shots = await review.capture({
+    id: 'mx450', detail: 'high', view: 'front',
+    samples: [sample(0, -0.30), sample(1, -0.30), sample(1, 0.25), sample(1, -0.30)],
+  });
+  expect(shots[0].motion.remountGripGap).toBeGreaterThan(0.16);
+  for (const held of shots.slice(1)) expect(held.motion.remountGripGap).toBeLessThan(0.003);
+  expect(new Set(shots.map(shot => shot.hash)).size).toBe(3);
+  expect(shots[1].hash).toBe(shots[3].hash);
+  for (const shot of shots) {
+    expect(shot.glError).toBe(0);
+    expect(shot.resources).toEqual(shots[0].resources);
+  }
+  await review.attach('motocross-remount-grip', shots[1]);
+});
+
 test('held gate shadows match a normal motocross colour frame pixel for pixel', async ({
   review,
 }) => {

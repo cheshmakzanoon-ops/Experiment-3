@@ -2941,6 +2941,7 @@ export class BikeShells {
         tumble,
         v.time,
         this.motocrossGround,
+        model instanceof DirtBikeModel ? model.recoveryGrip : undefined,
       );
       return;
     }

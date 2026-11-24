@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../../src/rendering/bike.ts';
 import { FarShadow } from '../../src/rendering/far-shadow.ts';
 import { MxRecoveryPose } from '../../src/rendering/offroad/motocross-recovery.ts';
+import { MX_GLOVE_GRIP } from '../../src/rendering/offroad/motocross-rider-contact.ts';
 import { MxArenaBikeLight } from '../../src/rendering/offroad/mx-arena-bike-light.ts';
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
@@ -61,6 +62,7 @@ export interface MotocrossPoseSample {
   rearWater?: number;
   /** Separated rider channels and their own world-space support triangle. */
   recovery?: {
+    state?: 'separated' | 'remount';
     pelvis: readonly [number, number, number];
     normal: readonly [number, number, number];
     planeConstant: number;
@@ -388,12 +390,13 @@ export function captureMotocrossBike(
           model.rider,
           location.fromArray(state.pelvis),
           state.heading,
-          'separated',
+          state.state ?? 'separated',
           state.clock,
           sample.standing ?? 0,
           state.tumble,
           sample.time ?? 0,
           support,
+          model.recoveryGrip,
         );
       }
       if (view === 'onboard') {
@@ -402,7 +405,7 @@ export function captureMotocrossBike(
           slot = carBase(0);
         frame[slot + OFFROAD_BASE + O.STANDING] = sample.standing ?? 0;
         frame[slot + OFFROAD_BASE + O.BODY] = sample.body ?? 0;
-        frame[slot + BIKE_BASE + B.STATE] = sample.recovery ? 3 : 0;
+        frame[slot + BIKE_BASE + B.STATE] = sample.recovery?.state === 'remount' ? 4 : sample.recovery ? 3 : 0;
         new BikeShells().onboard(
           model.root,
           camera.position,
@@ -420,6 +423,13 @@ export function captureMotocrossBike(
       scene.updateMatrixWorld(true);
       const cockpit = view === 'onboard' ? inspectMotocrossCockpit(model, camera) : null;
       const contacts = sample.recovery ? [] : inspectMotocrossRiderContacts(model, sample.dab ?? 0);
+      let remountGripGap: number | null = null;
+      if (sample.recovery?.state === 'remount') {
+        const hand = model.rider.root.getObjectByName('Motocross right hand')!;
+        const bar = model.onboardControls.getObjectByName('Motocross left grip')!;
+        const grip = bar.getWorldPosition(new T.Vector3());
+        remountGripGap = hand.localToWorld(new T.Vector3().fromArray(MX_GLOVE_GRIP)).distanceTo(grip);
+      }
       // Three r180 builds shadow programs before the first render's light
       // setup. Compile the actual posed scene once to initialize that light
       // state, as the production loader does. Otherwise frame two adds two
@@ -454,6 +464,7 @@ export function captureMotocrossBike(
         finiteGeometry,
         contacts,
         motion: {
+          remountGripGap,
           pelvis: model.rider.root.getObjectByName('Rider torso')!.position.toArray(),
           pelvisQuaternion: model.rider.root.getObjectByName('Rider torso')!.quaternion.toArray(),
           chestQuaternion: model.rider.root

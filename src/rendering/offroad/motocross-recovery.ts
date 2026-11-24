@@ -1,7 +1,8 @@
 import * as T from 'three';
 import type { BikeState } from '../../simulation/bike.ts';
 import { MX_RECOVERY } from '../../simulation/offroad/rider-recovery.ts';
-import type { Rider } from '../rider.ts';
+import { RIDER, type Rider } from '../rider.ts';
+import { MX_GLOVE_GRIP, MX_GLOVE_WRIST, type MxRecoveryGrip } from './motocross-rider-contact.ts';
 import type { MxDabSurface } from './motocross-dab.ts';
 
 const UP = new T.Vector3(0, 1, 0);
@@ -14,6 +15,9 @@ export class MxRecoveryPose {
   private readonly tilt = new T.Quaternion();
   private readonly local = new T.Matrix4();
   private readonly offset = new T.Vector3();
+  private readonly grip: MxRecoveryGrip = {
+    point: new T.Vector3(), frame: new T.Quaternion(), engagement: 0,
+  };
 
   place(
     rider: Rider,
@@ -25,6 +29,7 @@ export class MxRecoveryPose {
     tumble: number,
     time: number,
     surface?: MxDabSurface,
+    leftGrip?: T.Object3D,
   ) {
     const floor = surface?.planeAtWorld(point, this.floor) ? this.floor : undefined;
     const clearance = floor ? floor.distanceToPoint(point) / floor.normal.y : Infinity;
@@ -61,10 +66,29 @@ export class MxRecoveryPose {
           .set(0, MX_RECOVERY.uprightHeight * rise, 0)
           .applyQuaternion(rider.root.quaternion),
       );
-    if (floor) {
+    const bar = remount ? leftGrip : undefined;
+    if (floor || bar) {
       rider.root.updateWorldMatrix(true, false);
-      floor.applyMatrix4(this.local.copy(rider.root.matrixWorld).invert());
+      this.local.copy(rider.root.matrixWorld).invert();
+      floor?.applyMatrix4(this.local);
     }
-    rider.separated(remount ? 2 : rise > 0 ? 1 : 0, tumble, time, rise, floor, surface);
+    if (bar) {
+      bar.updateWorldMatrix(true, false);
+      this.local.multiply(bar.matrixWorld);
+      this.local.decompose(this.grip.point, this.grip.frame, this.offset);
+      // Measure from the inside shoulder. A bike across a rut or below a
+      // berm can be close in plan view and still be well outside arm's reach.
+      const armReach = RIDER.upperArm + RIDER.forearm + MX_GLOVE_GRIP[2] - MX_GLOVE_WRIST[2];
+      const { x, y, z } = this.grip.point;
+      const distance = Math.hypot(
+        x + RIDER.shoulderWidth,
+        y - (MX_RECOVERY.uprightHeight + RIDER.spine - 0.04),
+        z,
+      );
+      this.grip.engagement = T.MathUtils.smoothstep(clock, 0, 0.38) *
+        (1 - T.MathUtils.smoothstep(distance, armReach, armReach + 0.35));
+    }
+    rider.separated(remount ? 2 : rise > 0 ? 1 : 0, tumble, time, rise, floor, surface,
+      bar ? this.grip : undefined);
   }
 }
