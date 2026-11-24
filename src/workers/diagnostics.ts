@@ -29,12 +29,21 @@ export interface PauseReceipt {
   value: boolean;
   tick: number;
 }
+/** Delivery ownership is separate from the fixed-size recorded protocol. */
+export type SurfaceMessage = Extract<FromWorker, { type: 'surface' }> & {
+  epoch: number;
+  sequence: number;
+  /** Coalescing omitted scheduled replay keyframes; this is not continuous capture. */
+  captureGap?: boolean;
+};
 export type ClientMessage =
   | Exclude<ToWorker, { type: 'pause' }>
   | { type: 'pause'; value: boolean; sequence?: number }
+  | { type: 'surfaceAck'; epoch: number; sequence: number }
   | { type: 'engineering'; enabled: boolean };
 export type WorkerMessage =
-  | FromWorker
+  | Exclude<FromWorker, { type: 'surface' }>
+  | SurfaceMessage
   | PauseReceipt
   | { type: 'engineering'; sample: EngineeringSample };
 

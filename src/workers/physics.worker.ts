@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { FixedStepClock } from './fixed-step-clock.ts';
 import { FrameBufferPool } from './frame-buffer-pool.ts';
+import { SurfaceChannel } from './surface-channel.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
@@ -14,6 +15,8 @@ let simulation: Simulation | null = null,
   lastInput = performance.now(),
   stepMs = 0;
 const clock = new FixedStepClock();
+const surfaces = new SurfaceChannel();
+let pendingFlashback = false;
 let pool: FrameBufferPool | null = null;
 let telemetry: TelemetrySampler | null = null;
 // D31 flashback: every applied input, the session options and a running rewind.
@@ -41,28 +44,47 @@ function finishFlashback(job: Resimulation) {
   lastInput = performance.now();
   clock.reset(lastInput);
   lastSent = simulation.tick;
-  lastSurface = -1;
+  lastSurface = simulation.tick;
   lastPitPhase = simulation.cars[0].pitPhase;
-  send({ type: 'flashback', tick: simulation.tick, time: simulation.race.time });
-  const water = simulation.track.water.slice(),
-    rubber = simulation.track.rubber.slice(),
-    marbles = simulation.track.marbles.slice(),
-    frozen = simulation.track.cold && simulation.track.frozen.length ? simulation.track.frozen.slice() : undefined,
-    terrain = simulation.offroad?.terrain.renderDelta(true);
-  send({ type: 'surface', water, rubber, marbles, frozen, time: simulation.race.time, terrain }, [
-    water.buffer,
-    rubber.buffer,
-    marbles.buffer,
-    ...(frozen ? [frozen.buffer] : []),
-    ...(terrain ? [terrain.blocks.buffer] : []),
-  ]);
-  snapshot(true);
+  surfaces.reset(simulation.tick);
+  surfaces.request(simulation.tick);
+  pendingFlashback = true;
+  publishSurface();
 }
 let lastSent = -1,
   lastSurface = -1,
   lastPitPhase = 0;
 const send = (msg: WorkerMessage, transfer: Transferable[] = []) =>
   scope.postMessage(msg, transfer);
+function publishSurface() {
+  if (!simulation || rewind) return;
+  const current = simulation,
+    flashback = pendingFlashback;
+  const sent = surfaces.publish(
+    current.tick,
+    (full) => ({
+      type: 'surface',
+      water: current.track.water.slice(),
+      rubber: current.track.rubber.slice(),
+      marbles: current.track.marbles.slice(),
+      frozen:
+        current.track.cold && current.track.frozen.length ? current.track.frozen.slice() : undefined,
+      time: current.race.time,
+      terrain: current.offroad?.terrain.renderDelta(full),
+    }),
+    (message, transfer) => {
+      // Completion waits for surface capacity: even required rebases cannot
+      // bypass the bound. The host truncates replay before accepting the new
+      // surface, then receives the matching pose in the original FIFO order.
+      if (flashback) send({ type: 'flashback', tick: current.tick, time: current.race.time });
+      send(message, transfer);
+    },
+  );
+  if (sent && flashback && simulation === current) {
+    pendingFlashback = false;
+    snapshot(true);
+  }
+}
 function engineering() {
   if (!simulation) return;
   const sample = probe.sample(simulation);
@@ -93,6 +115,8 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         sessionOptions = msg.options;
         log = new InputLog();
         rewind = null;
+        pendingFlashback = false;
+        surfaces.reset(0, true);
         telemetry = recorder(simulation);
         paused = true;
         lastInput = performance.now();
@@ -142,6 +166,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
           !simulation ||
           !sessionOptions ||
           rewind ||
+          pendingFlashback ||
           !Number.isInteger(msg.tick) ||
           msg.tick < flashbackFloor(simulation.tick) ||
           msg.tick > simulation.tick
@@ -151,6 +176,9 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         telemetry?.flush();
         telemetry?.flushReplay();
         rewind = new Resimulation(sessionOptions, log.entries.slice(), msg.tick);
+        break;
+      case 'surfaceAck':
+        if (surfaces.acknowledge(msg)) publishSurface();
         break;
       case 'recycleReplay':
         telemetry?.recycleReplay(msg.buffer);
@@ -185,7 +213,7 @@ setInterval(() => {
     }
     return;
   }
-  if (paused || !simulation) {
+  if (paused || pendingFlashback || !simulation) {
     clock.rebase(now);
     return;
   }
@@ -216,27 +244,12 @@ setInterval(() => {
     }
     engineering();
     if (simulation.tick - lastSurface >= 60) {
-      const water = simulation.track.water.slice(),
-        rubber = simulation.track.rubber.slice(),
-        marbles = simulation.track.marbles.slice(),
-        frozen = simulation.track.cold && simulation.track.frozen.length ? simulation.track.frozen.slice() : undefined,
-        // Terrain venues: the soil deformed since the last keyframe (the
-        // whole field on a session's first keyframe).
-        terrain = simulation.offroad?.terrain.renderDelta(lastSurface < 0);
       // Surface keyframes are independently timestamped. Flushing replay here
       // would send half-empty pages every 0.5 s and halve the configured stall reserve.
       // SessionReplay carries leading surface keyframes across pose-page boundaries.
-      send(
-        { type: 'surface', water, rubber, marbles, frozen, time: simulation.race.time, terrain },
-        [
-          water.buffer,
-          rubber.buffer,
-          marbles.buffer,
-          ...(frozen ? [frozen.buffer] : []),
-          ...(terrain ? [terrain.blocks.buffer] : []),
-        ],
-      );
       lastSurface = simulation.tick;
+      surfaces.request(simulation.tick);
+      publishSurface();
     }
   } catch (error) {
     paused = true;

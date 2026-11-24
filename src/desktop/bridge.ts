@@ -5,8 +5,10 @@
  */
 
 export interface DesktopSaveInfo {
-  /** Highest save revision recorded in the mirror files. */
+  /** Revision of the mirror state; `complete: false` requires recovery before reuse. */
   revision: number;
+  /** Absent in older shells. True only when both files describe a complete write prefix. */
+  complete?: boolean;
   savedAt: number;
   /** 'primary' | 'backup' | 'temp' | 'empty': which file the mirror recovered from. */
   source: string;
@@ -16,6 +18,7 @@ export interface DesktopSaveInfo {
 
 export interface DesktopSaveSnapshot {
   revision: number;
+  complete?: boolean;
   entries: Record<string, unknown>;
 }
 
@@ -43,6 +46,12 @@ export interface MotoboundDesktop {
     info(): Promise<DesktopSaveInfo>;
     load(): Promise<DesktopSaveSnapshot>;
     put(key: string, value: unknown, revision: number): Promise<number>;
+    /** Optional on older shells: accept a whole committed batch after its complete predecessor. */
+    commit?(
+      entries: readonly (readonly [string, unknown])[],
+      revision: number,
+      previousRevision: number,
+    ): Promise<number>;
     seed(entries: Record<string, unknown>, revision: number): Promise<boolean>;
     flush(): Promise<boolean>;
   };

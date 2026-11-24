@@ -1331,33 +1331,56 @@ export class GameApp {
           return;
         }
         if (message.type === 'surface') {
-          this.liveSurface = {
-            water: message.water,
-            rubber: message.rubber,
-            marbles: message.marbles,
-            frozen: message.frozen,
-            time: message.time,
-          };
-          this.replay?.recordSurface(
-            message.water,
-            message.rubber,
-            message.time,
-            message.marbles,
-            message.frozen,
-          );
-          if (this.state !== 'replay')
-            this.renderer?.circuit.updateSurface(
+          const surfaceWorker = this.worker;
+          const ownsSurface = () => !cancelled() && this.worker === surfaceWorker;
+          try {
+            this.liveSurface = {
+              water: message.water,
+              rubber: message.rubber,
+              marbles: message.marbles,
+              frozen: message.frozen,
+              time: message.time,
+            };
+            this.replay?.recordSurface(
               message.water,
               message.rubber,
+              message.time,
               message.marbles,
               message.frozen,
             );
-          // Terrain venues: rut keyframes, kept for replays (WP41).
-          this.renderer?.circuit.offroad?.record(
-            message.terrain,
-            message.time,
-            this.state !== 'replay',
-          );
+            if (!ownsSurface()) return;
+            if (this.state !== 'replay')
+              this.renderer?.circuit.updateSurface(
+                message.water,
+                message.rubber,
+                message.marbles,
+                message.frozen,
+              );
+            if (!ownsSurface()) return;
+            // Terrain venues: rut keyframes, kept for replays (WP41).
+            this.renderer?.circuit.offroad?.record(
+              message.terrain,
+              message.time,
+              this.state !== 'replay',
+            );
+            if (!ownsSurface()) return;
+            if (message.captureGap) {
+              const warning =
+                'Surface capture gap: delayed delivery omitted replay surface keyframes. Live surfaces have resumed from the latest state.';
+              this.recordingWarnings.push(warning);
+              this.ui.toast(warning);
+            }
+            // Consumers can synchronously fail or replace the session. ACK
+            // only after consumption, and never through this.post's newer worker.
+            if (ownsSurface())
+              surfaceWorker?.postMessage({
+                type: 'surfaceAck',
+                epoch: message.epoch,
+                sequence: message.sequence,
+              } satisfies ClientMessage);
+          } catch (error) {
+            if (ownsSurface()) this.fail(error);
+          }
           return;
         }
         if (message.type === 'flashback') {

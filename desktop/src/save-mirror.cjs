@@ -44,6 +44,11 @@ class SaveMirror {
     this.temp = `${this.primary}.tmp`;
     /** @type {Record<string, unknown>} encoded entries */
     this.entries = {};
+    this.entriesChecksum = null;
+    // The profile file certifies the ghost state that belongs to its complete
+    // revision. null means an old envelope; false explicitly marks unbatched
+    // writes. Extra fields retain the version-1 file/codec format.
+    this.completion = null;
     this.revision = 0;
     this.savedAt = 0;
     this.dirty = false;
@@ -65,6 +70,19 @@ class SaveMirror {
       throw new Error('entries missing');
     if (data.checksum !== digest(data.entries)) throw new Error('checksum mismatch');
     if (!Number.isSafeInteger(data.revision) || data.revision < 0) throw new Error('bad revision');
+    if (data.completion != null) {
+      const c = data.completion;
+      if (
+        (c !== false &&
+          (c.revision !== data.revision ||
+            !Number.isSafeInteger(c.ghostRevision) ||
+            c.ghostRevision < 0 ||
+            typeof c.ghostChecksum !== 'string' ||
+            !/^[0-9a-f]{64}$/.test(c.ghostChecksum))) ||
+        data.completionChecksum !== digest([data.revision, data.checksum, c])
+      )
+        throw new Error('bad completion certificate');
+    }
     return data;
   }
 
@@ -98,6 +116,8 @@ class SaveMirror {
       try {
         const data = this.parse(path);
         this.entries = data.entries;
+        this.entriesChecksum = data.checksum;
+        this.completion = data.completion ?? null;
         this.revision = data.revision;
         this.savedAt = data.savedAt ?? 0;
         source = label;
@@ -128,22 +148,37 @@ class SaveMirror {
     return Object.keys(this.entries);
   }
 
+  checksum() {
+    return (this.entriesChecksum ??= digest(this.entries));
+  }
+
+  /** Encode every value before publishing any of a transaction's state. */
+  prepare(entries) {
+    return Object.fromEntries(
+      entries.map(([key, value]) => {
+        if (typeof key !== 'string' || key.length === 0 || key.length > 512)
+          throw new TypeError('key must be a non-empty string');
+        return [key, encode(value)];
+      }),
+    );
+  }
+
+  install(entries, revision, completion = false) {
+    this.entries = entries;
+    this.entriesChecksum = null;
+    this.completion = completion;
+    if (Number.isSafeInteger(revision)) this.revision = Math.max(this.revision, revision);
+    this.schedule();
+  }
+
   /** Record one write. `revision` is the renderer's monotonic counter. */
   put(key, value, revision) {
-    if (typeof key !== 'string' || key.length === 0 || key.length > 512)
-      throw new TypeError('key must be a non-empty string');
-    this.entries[key] = encode(value);
-    if (Number.isSafeInteger(revision) && revision > this.revision) this.revision = revision;
-    this.schedule();
+    this.install({ ...this.entries, ...this.prepare([[key, value]]) }, revision);
   }
 
   /** Replace everything (the renderer's IndexedDB was newer than this file). */
   replaceAll(entries, revision) {
-    const next = {};
-    for (const key of Object.keys(entries)) next[key] = encode(entries[key]);
-    this.entries = next;
-    if (Number.isSafeInteger(revision)) this.revision = Math.max(this.revision, revision);
-    this.schedule();
+    this.install(this.prepare(Object.entries(entries)), revision);
   }
 
   schedule() {
@@ -166,13 +201,20 @@ class SaveMirror {
     try {
       this.fs.mkdirSync(this.dir, { recursive: true });
       this.savedAt = this.now();
+      const checksum = this.checksum();
       const payload = JSON.stringify({
         format: FORMAT,
         version: VERSION,
         revision: this.revision,
         savedAt: this.savedAt,
-        checksum: digest(this.entries),
+        checksum,
         entries: this.entries,
+        ...(this.completion !== null
+          ? {
+              completion: this.completion,
+              completionChecksum: digest([this.revision, checksum, this.completion]),
+            }
+          : {}),
       });
       const fd = this.fs.openSync(this.temp, 'w');
       try {
@@ -203,4 +245,107 @@ class SaveMirror {
   }
 }
 
-module.exports = { SaveMirror, FORMAT, VERSION };
+/**
+ * The save IPC service is pure Node so split-file crash recovery is testable.
+ * A predecessor check prevents a missing batch being hidden by a later one.
+ * The small profile file names the exact ghost state it commits; ghost files
+ * need writing only when ghost data changes. Either disk-write order is safe:
+ * after an interrupted pair, the certificate fails and IndexedDB re-seeds it.
+ */
+function saveMirrorService(mirrors, path) {
+  const { main, ghosts } = mirrors;
+  const state = () => {
+    const revision = Math.max(main.revision, ghosts.revision);
+    const c = main.completion;
+    const empty = revision === 0 && main.keys().length === 0 && ghosts.keys().length === 0;
+    const complete = empty
+      ? true
+      : c === null && ghosts.completion === null
+        ? undefined
+        : Boolean(
+            c &&
+              c.revision === main.revision &&
+              c.ghostRevision === ghosts.revision &&
+              c.ghostChecksum === ghosts.checksum(),
+          );
+    return { revision, complete };
+  };
+  const validateRevision = (revision) => {
+    if (!Number.isSafeInteger(revision) || revision < 0) throw new TypeError('bad revision');
+  };
+  const split = (entries) => {
+    const groups = { main: [], ghosts: [] };
+    for (const entry of entries) {
+      if (!Array.isArray(entry) || entry.length !== 2 || typeof entry[0] !== 'string')
+        throw new TypeError('bad save entry');
+      (entry[0].startsWith('ghost:') ? groups.ghosts : groups.main).push(entry);
+    }
+    // Both encodings must succeed before either live mirror is touched.
+    return { main: main.prepare(groups.main), ghosts: ghosts.prepare(groups.ghosts) };
+  };
+  const install = (next, revision, writeGhosts) => {
+    if (writeGhosts) ghosts.install(next.ghosts, revision);
+    main.install(next.main, revision, {
+      revision,
+      ghostRevision: ghosts.revision,
+      ghostChecksum: ghosts.checksum(),
+    });
+  };
+  return {
+    info: () => ({
+      ...state(),
+      savedAt: Math.max(main.savedAt, ghosts.savedAt),
+      source: main.source,
+      keys: [...main.keys(), ...ghosts.keys()],
+      path,
+    }),
+    load: () => ({
+      ...state(),
+      entries: { ...main.snapshot().entries, ...ghosts.snapshot().entries },
+    }),
+    // Retained for older renderers. Unbatched writes invalidate the certificate.
+    put: (key, value, revision) => {
+      if (typeof key !== 'string') throw new TypeError('key');
+      (key.startsWith('ghost:') ? ghosts : main).put(key, value, revision);
+      return Math.max(main.revision, ghosts.revision);
+    },
+    commit: (entries, revision, previousRevision) => {
+      validateRevision(revision);
+      validateRevision(previousRevision);
+      const current = state();
+      if (
+        !current.complete ||
+        current.revision !== previousRevision ||
+        revision <= previousRevision
+      )
+        throw new Error('save mirror requires a complete predecessor; re-seed from IndexedDB');
+      if (!Array.isArray(entries) || entries.length === 0 || entries.length > 256)
+        throw new TypeError('bad save batch');
+      const updates = split(entries);
+      install(
+        {
+          main: { ...main.entries, ...updates.main },
+          ghosts: { ...ghosts.entries, ...updates.ghosts },
+        },
+        revision,
+        Object.keys(updates.ghosts).length > 0,
+      );
+      return revision;
+    },
+    seed: (entries, revision) => {
+      validateRevision(revision);
+      if (!entries || typeof entries !== 'object' || Array.isArray(entries))
+        throw new TypeError('entries');
+      if (revision < state().revision) throw new Error('stale save snapshot');
+      install(split(Object.entries(entries)), revision, true);
+      return true;
+    },
+    flush: () => {
+      main.flush();
+      ghosts.flush();
+      return !main.dirty && !ghosts.dirty;
+    },
+  };
+}
+
+module.exports = { SaveMirror, saveMirrorService, FORMAT, VERSION };

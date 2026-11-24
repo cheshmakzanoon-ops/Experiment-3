@@ -32,7 +32,7 @@ const {
   isAllowedRequestUrl,
   isTrustedSenderUrl,
 } = require('./src/protocol.cjs');
-const { SaveMirror } = require('./src/save-mirror.cjs');
+const { SaveMirror, saveMirrorService } = require('./src/save-mirror.cjs');
 const {
   MODES,
   MIN_WIDTH,
@@ -101,7 +101,6 @@ const mirrors = {
   // (and its Steam Cloud upload) stays small.
   ghosts: new SaveMirror({ dir: savesDir, name: 'ghosts', log }),
 };
-const mirrorFor = (key) => (key.startsWith('ghost:') ? mirrors.ghosts : mirrors.main);
 const stateStore = new WindowStateStore({ dir: app.getPath('userData'), log });
 let windowState = stateStore.read() ?? {};
 
@@ -411,36 +410,8 @@ const idList = (value) =>
     : [];
 
 function registerIpc() {
-  handle('saves:info', () => ({
-    revision: Math.max(mirrors.main.revision, mirrors.ghosts.revision),
-    savedAt: Math.max(mirrors.main.savedAt, mirrors.ghosts.savedAt),
-    source: mirrors.main.source,
-    keys: [...mirrors.main.keys(), ...mirrors.ghosts.keys()],
-    path: savesDir,
-  }));
-  handle('saves:load', () => ({
-    revision: Math.max(mirrors.main.revision, mirrors.ghosts.revision),
-    entries: { ...mirrors.main.snapshot().entries, ...mirrors.ghosts.snapshot().entries },
-  }));
-  handle('saves:put', (key, value, revision) => {
-    if (typeof key !== 'string') throw new TypeError('key');
-    mirrorFor(key).put(key, value, revision);
-    return mirrors.main.revision;
-  });
-  handle('saves:seed', (entries, revision) => {
-    if (!entries || typeof entries !== 'object') throw new TypeError('entries');
-    const split = { main: {}, ghosts: {} };
-    for (const key of Object.keys(entries))
-      (key.startsWith('ghost:') ? split.ghosts : split.main)[key] = entries[key];
-    mirrors.main.replaceAll(split.main, revision);
-    mirrors.ghosts.replaceAll(split.ghosts, revision);
-    return true;
-  });
-  handle('saves:flush', () => {
-    mirrors.main.flush();
-    mirrors.ghosts.flush();
-    return true;
-  });
+  const saves = saveMirrorService(mirrors, savesDir);
+  for (const [method, fn] of Object.entries(saves)) handle(`saves:${method}`, fn);
   handle('display:get', () => ({
     mode: displayMode,
     fullscreen: Boolean(mainWindow?.isFullScreen()),

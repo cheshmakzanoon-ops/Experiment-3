@@ -1,6 +1,21 @@
 import { Quat, Vec3 } from '../core/math.ts';
 import type { RigidBody } from './rigid.ts';
 
+/** Endpoint-only interpolation work, refreshed for every swept query. */
+class QuaternionArc {
+  sign = 1;
+  cosine = 1;
+  angle = 0;
+  sine = 0;
+  prepare(a: Quat, b: Quat) {
+    const dot = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+    this.sign = dot < 0 ? -1 : 1;
+    this.cosine = Math.min(1, Math.abs(dot));
+    this.angle = this.cosine < 1 ? Math.acos(this.cosine) : 0;
+    this.sine = this.cosine < 1 ? Math.sin(this.angle) : 0;
+  }
+}
+
 /** Convex chassis proxy in metres. Orientation follows the full rigid body,
  * not just yaw. Wheels and wings remain a fidelity boundary of this proxy. */
 export class ChassisBox {
@@ -34,20 +49,27 @@ export class ChassisBox {
     return this;
   }
   /** Linear centre travel and shortest-arc quaternion interpolation. The
-   * original force integrator owns the endpoints; this is a substep path. */
-  interpolate(a: ChassisBox, b: ChassisBox, fraction: number) {
+   * original force integrator owns the endpoints; this is a substep path.
+   * Sweeps can supply an arc prepared from their immutable endpoint pair. */
+  interpolate(a: ChassisBox, b: ChassisBox, fraction: number, arc?: QuaternionArc) {
     this.half = a.half;
     const qa = a.orientation,
       qb = b.orientation,
       q = this.orientation;
-    const dot = qa.x * qb.x + qa.y * qb.y + qa.z * qb.z + qa.w * qb.w,
-      sign = dot < 0 ? -1 : 1,
+    let sign: number, cosine: number;
+    if (arc) {
+      sign = arc.sign;
+      cosine = arc.cosine;
+    } else {
+      const dot = qa.x * qb.x + qa.y * qb.y + qa.z * qb.z + qa.w * qb.w;
+      sign = dot < 0 ? -1 : 1;
       cosine = Math.min(1, Math.abs(dot));
+    }
     let wa = 1 - fraction,
       wb = fraction;
     if (cosine < 1) {
-      const angle = Math.acos(cosine),
-        sine = Math.sin(angle);
+      const angle = arc ? arc.angle : Math.acos(cosine),
+        sine = arc ? arc.sine : Math.sin(angle);
       wa = Math.sin((1 - fraction) * angle) / sine;
       wb = Math.sin(fraction * angle) / sine;
     }
@@ -224,6 +246,8 @@ export class SweptBoxContact {
   exhausted = false;
   private a = new ChassisBox();
   private b = new ChassisBox();
+  private arcA = new QuaternionArc();
+  private arcB = new QuaternionArc();
   private contact = new BoxContact();
   private relative = new Vec3();
   private rotationA = new Vec3();
@@ -241,11 +265,13 @@ export class SweptBoxContact {
     const angularBound =
       this.rotationA.length() * Math.hypot(...startA.half) +
       this.rotationB.length() * Math.hypot(...startB.half);
+    this.arcA.prepare(startA.orientation, endA.orientation);
+    this.arcB.prepare(startB.orientation, endB.orientation);
     let fraction = 0;
     for (let iteration = 0; iteration < 80; iteration++) {
       this.iterations = iteration + 1;
-      this.a.interpolate(startA, endA, fraction);
-      this.b.interpolate(startB, endB, fraction);
+      this.a.interpolate(startA, endA, fraction, this.arcA);
+      this.b.interpolate(startB, endB, fraction, this.arcB);
       const gap = this.contact.separation(this.a, this.b, 1e-5);
       if (gap <= 1e-5) {
         // Existing contact belongs to the endpoint solver unless its actual

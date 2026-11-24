@@ -1,6 +1,6 @@
 # Agent task ledger
 
-Every numbered row is a distinct agent spawned for this continuation. The coordinator and the earlier architecture-explanation agent are excluded. Reports record findings, changes, commands and limitations.
+Every numbered row reserves one distinct agent assignment for this continuation. AGENTS.json records agents actually spawned; pending rows are not counted as completed work. The coordinator and the earlier architecture-explanation agent are excluded. Reports record findings, changes, commands and limitations.
 
 | Agent | Wave | Assignment | Status |
 |---|---|---|---|
@@ -13,13 +13,13 @@ Every numbered row is a distinct agent spawned for this continuation. The coordi
 | 07 | 2 | Recording publication tokens and reentrant failure recovery | Complete: 22 new cases; 93 focused tests passed |
 | 08 | 2 | Fatal Festival worker/session failure propagation | Complete: 16 new cases; 61 focused tests passed |
 | 09 | 2 | Circuit startup readiness settlement and cancellation | Complete: 27 new cases; 64 focused tests passed |
-| 10 | 2 | Awaiting evidence-based assignment | Pending |
-| 11 | 2 | Cache invariant quaternion interpolation in swept collision | Running |
-| 12 | 2 | Save mirror transaction completeness and restart recovery | Running |
-| 13 | 3 | Awaiting evidence-based assignment | Pending |
-| 14 | 3 | Awaiting evidence-based assignment | Pending |
-| 15 | 3 | Awaiting evidence-based assignment | Pending |
-| 16 | 3 | Awaiting evidence-based assignment | Pending |
+| 10 | 2 | Bound surface delivery and preserve flashback/replay ownership | Complete: 87 focused tests and scoped lint passed |
+| 11 | 2 | Cache invariant quaternion interpolation in swept collision | Complete: 59 focused tests; exact reference and operation counts |
+| 12 | 2 | Save mirror transaction completeness and restart recovery | Complete: 139 focused tests; lint and CJS syntax passed |
+| 13 | 3 | Deterministic BVH median partition and constructor work | Complete: 35 focused tests; exact hierarchy and query comparisons |
+| 14 | 3 | Atomic rigid-body integration on rejected steps | Running |
+| 15 | 3 | Queue discrete worker shift edges at simulation ticks | Running |
+| 16 | 3 | Respect cancellation at construction callback boundaries | Running |
 | 17 | 3 | Awaiting evidence-based assignment | Pending |
 | 18 | 3 | Awaiting evidence-based assignment | Pending |
 | 19 | 4 | Awaiting evidence-based assignment | Pending |

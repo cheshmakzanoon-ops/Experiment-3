@@ -22,8 +22,8 @@ No 3D models, character models, authored environments, textures, materials, trac
 | Wave | Agents | Focus | Status |
 |---|---|---|---|
 | 1 | 01–06 | Remaining defects and performance opportunities across the shared engine | Complete: 17 independently recorded findings |
-| 2 | 07–12 | Critical worker, recording and persistence repairs; collision sweep work | In progress |
-| 3 | 13–18 | Simulation queries and deterministic hot-path improvements | Pending audit |
+| 2 | 07–12 | Critical worker, recording and persistence repairs; collision sweep work | Complete |
+| 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | In progress |
 | 4 | 19–24 | Replay, telemetry, persistence and long-session memory | Pending audit |
 | 5 | 25–30 | Network interpolation, codecs and bounded work | Pending audit |
 | 6 | 31–36 | Input, audio and shared resource lifecycle | Pending audit |
@@ -56,3 +56,11 @@ The baseline focused networking/interpolation run passed all 38 cases in three s
 Recording transport now uses publication identity when recovering failed sends and retains independently captured newer pages. Festival errors explicitly distinguish terminal runtime/transport failure from recoverable command rejection. Circuit first-frame readiness belongs to one startup generation and settles on failure, timeout, replacement or disposal; cancellation also covers asynchronous preparation.
 
 Focused runs passed 93 recording cases, 61 Festival cases, and 64 startup/lifecycle cases. These overlapping suite totals are not added into a unique-test claim. Existing media/geometry definitions and simulation tuning are unchanged.
+
+### Second implementation batch and restored verification
+
+Surface publications now use a bounded 120-packet acknowledgement window, preserve accumulated terrain state, and defer flashback completion until its ordered surface rebase can be sent. Save mirroring certifies complete profile/ghost revisions and serializes a bounded pending queue. Swept collision caches invariant quaternion arc work. BVH construction uses bounded in-place selection while preserving the exact original hierarchy and leaf visitation order.
+
+The local executor was replaced after resource failures. Published work was intact, unfinished patches were recovered from preserved blobs, and completed implementations were tested again in the restored workspace. The new results are recorded in each implementation report; interrupted commands are not counted as passes. The original source reference is retained separately for comparisons.
+
+The coordinator's full `tsc --noEmit` passed on an immutable staged-source checkout with a 2 GiB heap. Three unchanged JSON manifests omitted by sparse checkout were read from Git to satisfy existing imports. Type-only annotations corrected the new test fixtures' map value type and intentional read-only terrain-set inspection. The runtime algorithms and fixture behavior were unchanged by those annotations. The first published batch also passed the remote full build and native/replay browser job; see [its CI evidence](implementation/first-batch-ci.md).

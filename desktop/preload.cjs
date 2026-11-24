@@ -26,6 +26,9 @@ contextBridge.exposeInMainWorld('motobound', {
       load: () => call('saves:load'),
       /** Mirror one completed IndexedDB write. */
       put: (key, value, revision) => call('saves:put', key, value, revision),
+      /** Publish all keys in a committed transaction/prefix together. */
+      commit: (entries, revision, previousRevision) =>
+        call('saves:commit', entries, revision, previousRevision),
       /** IndexedDB held newer data than the mirror: replace the mirror. */
       seed: (entries, revision) => call('saves:seed', entries, revision),
       flush: () => call('saves:flush'),

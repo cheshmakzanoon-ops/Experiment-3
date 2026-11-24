@@ -127,7 +127,7 @@ export class TriangleBVH {
     // Centroids are never used by the hot path.
     this.centroids = new Float64Array(0);
   }
-  private build(start: number, end: number): number {
+  private build(start: number, end: number, sortedAxis = -1, leafAxis = -1): number {
     const node: Node = {
       min: [Infinity, Infinity, Infinity],
       max: [-Infinity, -Infinity, -Infinity],
@@ -149,14 +149,123 @@ export class TriangleBVH {
       let axis = 0;
       for (let a = 1; a < 3; a++)
         if (node.max[a] - node.min[a] > node.max[axis] - node.min[axis]) axis = a;
-      const part = this.order.slice(start, end);
-      part.sort((a, b) => this.centroids[a * 3 + axis] - this.centroids[b * 3 + axis] || a - b);
-      for (let j = 0; j < part.length; j++) this.order[start + j] = part[j];
       const middle = (start + end) >>> 1;
-      node.left = this.build(start, middle);
-      node.right = this.build(middle, end);
+      // The centroid/ID comparator is a total order, so selecting its median
+      // gives exactly the same child sets as fully sorting a copied range.
+      // Small partitions are fully sorted; children on that axis reuse it.
+      if (sortedAxis !== axis) sortedAxis = this.partition(start, end, middle, axis) ? axis : -1;
+      node.left = this.build(start, middle, sortedAxis, axis);
+      node.right = this.build(middle, end, sortedAxis, axis);
+    } else if (leafAxis >= 0 && sortedAxis !== leafAxis) {
+      // Leaf visitation breaks equal-distance ties. Restore the complete
+      // order its parent's old sort produced; a root leaf keeps input order.
+      this.insertionSort(start, end, leafAxis);
     }
     return id;
+  }
+  private compare(a: number, b: number, axis: number): number {
+    return this.centroids[a * 3 + axis] - this.centroids[b * 3 + axis] || a - b;
+  }
+  /** In-place median selection, with a bounded sorting fallback for hostile
+   * centroid arrangements. Only the active interval is revisited. */
+  private partition(start: number, end: number, middle: number, axis: number): boolean {
+    const order = this.order;
+    if (end - start > 16) {
+      // Ordered and equal-centroid geometry often keeps one split axis for
+      // many levels. Recognize either direction once and reuse that order.
+      const ascending = this.compare(order[start], order[start + 1], axis) < 0;
+      let i = start + 2;
+      while (i < end && this.compare(order[i - 1], order[i], axis) < 0 === ascending) i++;
+      if (i === end) {
+        if (!ascending)
+          for (let left = start, right = end - 1; left < right; left++, right--) {
+            const value = order[left];
+            order[left] = order[right];
+            order[right] = value;
+          }
+        return true;
+      }
+    }
+    let low = start,
+      high = end - 1,
+      budget = 2 * Math.floor(Math.log2(end - start));
+    while (high - low > 15) {
+      if (budget-- === 0) {
+        this.heapSort(low, high + 1, axis);
+        return low === start && high + 1 === end;
+      }
+      // Median of three avoids one-sided partitions for ordered geometry.
+      const a = order[low],
+        b = order[(low + high) >>> 1],
+        c = order[high];
+      const pivot =
+        this.compare(a, b, axis) < 0
+          ? this.compare(b, c, axis) < 0
+            ? b
+            : this.compare(a, c, axis) < 0
+              ? c
+              : a
+          : this.compare(a, c, axis) < 0
+            ? a
+            : this.compare(b, c, axis) < 0
+              ? c
+              : b;
+      let left = low,
+        right = high;
+      while (left <= right) {
+        while (this.compare(order[left], pivot, axis) < 0) left++;
+        while (this.compare(order[right], pivot, axis) > 0) right--;
+        if (left <= right) {
+          const value = order[left];
+          order[left++] = order[right];
+          order[right--] = value;
+        }
+      }
+      if (middle <= right) high = right;
+      else if (middle >= left) low = left;
+      else return false;
+    }
+    this.insertionSort(low, high + 1, axis);
+    return low === start && high + 1 === end;
+  }
+  private insertionSort(start: number, end: number, axis: number) {
+    const order = this.order;
+    for (let i = start + 1; i < end; i++) {
+      const value = order[i];
+      let j = i;
+      while (j > start && this.compare(order[j - 1], value, axis) > 0) {
+        order[j] = order[j - 1];
+        j--;
+      }
+      order[j] = value;
+    }
+  }
+  private heapSort(start: number, end: number, axis: number) {
+    const order = this.order,
+      length = end - start;
+    for (let root = (length >>> 1) - 1; root >= 0; root--) this.siftDown(start, root, length, axis);
+    for (let size = length - 1; size > 0; size--) {
+      const value = order[start];
+      order[start] = order[start + size];
+      order[start + size] = value;
+      this.siftDown(start, 0, size, axis);
+    }
+  }
+  private siftDown(start: number, root: number, length: number, axis: number) {
+    const order = this.order,
+      value = order[start + root];
+    while (root * 2 + 1 < length) {
+      let child = root * 2 + 1;
+      if (
+        child + 1 < length &&
+        this.compare(order[start + child], order[start + child + 1], axis) < 0
+      )
+        child++;
+      if (this.compare(value, order[start + child], axis) >= 0) break;
+      order[start + root] = order[start + child];
+      root = child;
+    }
+    order[start + root] = value;
   }
   private intersects(node: Node, o: Vec3, d: Vec3, max: number) {
     let near = 0,

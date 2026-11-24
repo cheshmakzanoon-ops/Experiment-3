@@ -1,0 +1,455 @@
+{
+  "node": "v24.22.3",
+  "current": "/engine-work-4e0075ccccb3/repo/",
+  "baseline": "/engine-work-4e0075ccccb3/baseline",
+  "note": "Synthetic construction only; startup includes fresh process/import/fixture/build.",
+  "startupSamples": 3,
+  "warmSamples": 7,
+  "results": [
+    {
+      "scenario": "random-8192",
+      "baseline": {
+        "triangles": 8192,
+        "nodes": 2047,
+        "hierarchySHA256": "a194442bfea3be969ee8498c42e774472ad650be4cd6991c31712eaa2017de00",
+        "warmBuildMs": [
+          20.21403600000002,
+          24.61961100000002,
+          28.458565999999962,
+          24.56176499999998,
+          19.033585000000016,
+          39.383482000000015,
+          23.23425599999996
+        ],
+        "warmMedianMs": 24.56176499999998,
+        "work": {
+          "temporaryRanges": 1023,
+          "copiedIDsIntoRanges": 81920,
+          "nativeSorts": 1023,
+          "comparisons": 519166,
+          "sortWrites": 81920,
+          "orderWrites": 81920,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 44.362809,
+        "startupWallMedianMs": 283.55770299999995,
+        "startup": [
+          {
+            "firstBuildMs": 48.191722999999996,
+            "nodes": 2047,
+            "startupWallMs": 308.857955
+          },
+          {
+            "firstBuildMs": 44.362809,
+            "nodes": 2047,
+            "startupWallMs": 283.55770299999995
+          },
+          {
+            "firstBuildMs": 31.911207999999988,
+            "nodes": 2047,
+            "startupWallMs": 213.7806250000001
+          }
+        ]
+      },
+      "current": {
+        "triangles": 8192,
+        "nodes": 2047,
+        "hierarchySHA256": "a194442bfea3be969ee8498c42e774472ad650be4cd6991c31712eaa2017de00",
+        "warmBuildMs": [
+          6.244072000000017,
+          5.99740700000001,
+          28.001558000000017,
+          12.422937999999988,
+          6.685066000000006,
+          5.870868999999971,
+          5.653026000000011
+        ],
+        "warmMedianMs": 6.244072000000017,
+        "work": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 259348,
+          "sortWrites": 0,
+          "orderWrites": 131768,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 24.562556999999998,
+        "startupWallMedianMs": 225.598255,
+        "startup": [
+          {
+            "firstBuildMs": 33.962661,
+            "nodes": 2047,
+            "startupWallMs": 226.090617
+          },
+          {
+            "firstBuildMs": 24.562556999999998,
+            "nodes": 2047,
+            "startupWallMs": 225.598255
+          },
+          {
+            "firstBuildMs": 24.391471999999993,
+            "nodes": 2047,
+            "startupWallMs": 199.47705700000006
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "random-65537",
+      "baseline": {
+        "triangles": 65537,
+        "nodes": 16385,
+        "hierarchySHA256": "1f1d6d0a9432c7cf41c55ca4d3ad5f634c1e2785907f43568a3969bdd6e8f207",
+        "warmBuildMs": [
+          287.1276089999999,
+          240.49484800000005,
+          259.63951199999997,
+          257.929167,
+          252.74848500000007,
+          267.3969179999999,
+          250.50791600000002
+        ],
+        "warmMedianMs": 257.929167,
+        "work": {
+          "temporaryRanges": 8192,
+          "copiedIDsIntoRanges": 851990,
+          "nativeSorts": 8192,
+          "comparisons": 6372072,
+          "sortWrites": 851990,
+          "orderWrites": 851990,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 282.27685299999996,
+        "startupWallMedianMs": 482.6230290000003,
+        "startup": [
+          {
+            "firstBuildMs": 283.22035300000005,
+            "nodes": 16385,
+            "startupWallMs": 482.6230290000003
+          },
+          {
+            "firstBuildMs": 282.27685299999996,
+            "nodes": 16385,
+            "startupWallMs": 495.7103139999999
+          },
+          {
+            "firstBuildMs": 279.093521,
+            "nodes": 16385,
+            "startupWallMs": 464.8704659999994
+          }
+        ]
+      },
+      "current": {
+        "triangles": 65537,
+        "nodes": 16385,
+        "hierarchySHA256": "1f1d6d0a9432c7cf41c55ca4d3ad5f634c1e2785907f43568a3969bdd6e8f207",
+        "warmBuildMs": [
+          85.86810700000001,
+          69.65015500000004,
+          97.11434500000007,
+          89.47372000000007,
+          69.85941700000001,
+          96.76792999999998,
+          78.69308499999988
+        ],
+        "warmMedianMs": 85.86810700000001,
+        "work": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 2534867,
+          "sortWrites": 0,
+          "orderWrites": 1225326,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 105.76502400000001,
+        "startupWallMedianMs": 296.7278150000002,
+        "startup": [
+          {
+            "firstBuildMs": 105.76502400000001,
+            "nodes": 16385,
+            "startupWallMs": 293.2025620000004
+          },
+          {
+            "firstBuildMs": 125.66173899999998,
+            "nodes": 16385,
+            "startupWallMs": 320.3537860000001
+          },
+          {
+            "firstBuildMs": 92.88314400000002,
+            "nodes": 16385,
+            "startupWallMs": 296.7278150000002
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "ribbon-229376",
+      "baseline": {
+        "triangles": 229376,
+        "nodes": 65535,
+        "hierarchySHA256": "9963f4de01e226e68978df34de6ad37062ca6213fd0928cd707d4a874c0612cf",
+        "warmBuildMs": [
+          585.5098280000002,
+          574.55708,
+          644.9343800000001,
+          546.5986159999998,
+          522.6181690000003,
+          558.9530429999995,
+          765.080852
+        ],
+        "warmMedianMs": 574.55708,
+        "work": {
+          "temporaryRanges": 32767,
+          "copiedIDsIntoRanges": 3440640,
+          "nativeSorts": 32767,
+          "comparisons": 17230429,
+          "sortWrites": 3440640,
+          "orderWrites": 3440640,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 659.967613,
+        "startupWallMedianMs": 975.2989519999992,
+        "startup": [
+          {
+            "firstBuildMs": 585.224601,
+            "nodes": 65535,
+            "startupWallMs": 800.8169559999988
+          },
+          {
+            "firstBuildMs": 659.967613,
+            "nodes": 65535,
+            "startupWallMs": 1040.3562459999994
+          },
+          {
+            "firstBuildMs": 777.1557459999999,
+            "nodes": 65535,
+            "startupWallMs": 975.2989519999992
+          }
+        ]
+      },
+      "current": {
+        "triangles": 229376,
+        "nodes": 65535,
+        "hierarchySHA256": "9963f4de01e226e68978df34de6ad37062ca6213fd0928cd707d4a874c0612cf",
+        "warmBuildMs": [
+          177.27570200000002,
+          188.323483,
+          233.54745400000002,
+          184.07242199999996,
+          199.63996399999996,
+          502.4680910000002,
+          191.64442400000007
+        ],
+        "warmMedianMs": 191.64442400000007,
+        "work": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 10784266,
+          "sortWrites": 0,
+          "orderWrites": 4276579,
+          "heapFallbacks": 1
+        },
+        "firstBuildMedianMs": 259.063239,
+        "startupWallMedianMs": 430.9732779999995,
+        "startup": [
+          {
+            "firstBuildMs": 239.94510499999998,
+            "nodes": 65535,
+            "startupWallMs": 405.636493
+          },
+          {
+            "firstBuildMs": 259.063239,
+            "nodes": 65535,
+            "startupWallMs": 430.9732779999995
+          },
+          {
+            "firstBuildMs": 386.798474,
+            "nodes": 65535,
+            "startupWallMs": 577.0216629999995
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "equal-8192",
+      "baseline": {
+        "triangles": 8192,
+        "nodes": 2047,
+        "hierarchySHA256": "0a7c11381b9b30c8b7d090be98978b9b43708cea9304b142ca85eabc02d5dee6",
+        "warmBuildMs": [
+          8.285038999999983,
+          11.748014999999981,
+          18.104232999999965,
+          10.834059000000025,
+          7.534965999999997,
+          21.943077000000017,
+          12.242537999999968
+        ],
+        "warmMedianMs": 11.748014999999981,
+        "work": {
+          "temporaryRanges": 1023,
+          "copiedIDsIntoRanges": 81920,
+          "nativeSorts": 1023,
+          "comparisons": 80897,
+          "sortWrites": 81920,
+          "orderWrites": 81920,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 22.159693000000004,
+        "startupWallMedianMs": 208.91605999999592,
+        "startup": [
+          {
+            "firstBuildMs": 18.07016299999998,
+            "nodes": 2047,
+            "startupWallMs": 195.6271160000033
+          },
+          {
+            "firstBuildMs": 22.159693000000004,
+            "nodes": 2047,
+            "startupWallMs": 208.91605999999592
+          },
+          {
+            "firstBuildMs": 26.258961999999997,
+            "nodes": 2047,
+            "startupWallMs": 255.17967099999805
+          }
+        ]
+      },
+      "current": {
+        "triangles": 8192,
+        "nodes": 2047,
+        "hierarchySHA256": "0a7c11381b9b30c8b7d090be98978b9b43708cea9304b142ca85eabc02d5dee6",
+        "warmBuildMs": [
+          4.252757999999972,
+          4.179940000000045,
+          4.2517970000000105,
+          3.3110410000000456,
+          3.31403499999999,
+          17.712912000000017,
+          9.01765499999999
+        ],
+        "warmMedianMs": 4.2517970000000105,
+        "work": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 8191,
+          "sortWrites": 0,
+          "orderWrites": 0,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 19.034091999999987,
+        "startupWallMedianMs": 197.46204600000056,
+        "startup": [
+          {
+            "firstBuildMs": 17.479747000000003,
+            "nodes": 2047,
+            "startupWallMs": 189.48988799999643
+          },
+          {
+            "firstBuildMs": 19.034091999999987,
+            "nodes": 2047,
+            "startupWallMs": 197.46204600000056
+          },
+          {
+            "firstBuildMs": 19.184314999999998,
+            "nodes": 2047,
+            "startupWallMs": 216.90508999999292
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "organ-pipe-8192",
+      "baseline": {
+        "triangles": 8192,
+        "nodes": 2047,
+        "hierarchySHA256": "8bc8b056c9209bb94c17d45f6aebce113cf537b848bae94043e5ef50029978e1",
+        "warmBuildMs": [
+          7.838807000000003,
+          10.948158000000006,
+          17.438446000000027,
+          11.399457999999981,
+          12.052346,
+          17.832580000000007,
+          11.159321999999975
+        ],
+        "warmMedianMs": 11.399457999999981,
+        "work": {
+          "temporaryRanges": 1023,
+          "copiedIDsIntoRanges": 81920,
+          "nativeSorts": 1023,
+          "comparisons": 89089,
+          "sortWrites": 81920,
+          "orderWrites": 81920,
+          "heapFallbacks": 0
+        },
+        "firstBuildMedianMs": 20.13864000000001,
+        "startupWallMedianMs": 196.68194000000221,
+        "startup": [
+          {
+            "firstBuildMs": 20.13864000000001,
+            "nodes": 2047,
+            "startupWallMs": 190.80801200000133
+          },
+          {
+            "firstBuildMs": 18.48705000000001,
+            "nodes": 2047,
+            "startupWallMs": 196.68194000000221
+          },
+          {
+            "firstBuildMs": 22.412042999999983,
+            "nodes": 2047,
+            "startupWallMs": 267.04324199999974
+          }
+        ]
+      },
+      "current": {
+        "triangles": 8192,
+        "nodes": 2047,
+        "hierarchySHA256": "8bc8b056c9209bb94c17d45f6aebce113cf537b848bae94043e5ef50029978e1",
+        "warmBuildMs": [
+          9.238552999999968,
+          10.451041000000032,
+          26.005821999999966,
+          11.413700000000006,
+          6.426361999999983,
+          6.729190000000017,
+          7.235281999999984
+        ],
+        "warmMedianMs": 9.238552999999968,
+        "work": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 395718,
+          "sortWrites": 0,
+          "orderWrites": 67947,
+          "heapFallbacks": 2
+        },
+        "firstBuildMedianMs": 29.20505799999998,
+        "startupWallMedianMs": 208.27367800000502,
+        "startup": [
+          {
+            "firstBuildMs": 26.366987999999992,
+            "nodes": 2047,
+            "startupWallMs": 208.27367800000502
+          },
+          {
+            "firstBuildMs": 30.442202999999978,
+            "nodes": 2047,
+            "startupWallMs": 231.38725500000146
+          },
+          {
+            "firstBuildMs": 29.20505799999998,
+            "nodes": 2047,
+            "startupWallMs": 204.4437870000038
+          }
+        ]
+      }
+    }
+  ]
+}
