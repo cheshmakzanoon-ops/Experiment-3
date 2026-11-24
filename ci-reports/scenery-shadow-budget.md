@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45350754834
-- commit: `884fceb47e` · Hold the high-detail cockpit cable bends within one millimetre of their designed route
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-24T07:47:45Z · updated: 2026-11-24T08:44:28Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45360107638
+- commit: `2c153f544d` · Press a directional soil lip from each sliding motocross tyre
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-24T08:53:46Z · updated: 2026-11-24T09:01:36Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 14 |  |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (night) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
+| browser (day) | success | 6 |  |
+| browser (night) | success | 7 |  |
