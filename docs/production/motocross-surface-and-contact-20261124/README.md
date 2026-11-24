@@ -34,9 +34,9 @@ The MX450 below lands the Ridge Table on the 120 Hz vehicle solver. The close-up
 
 ## Recovery beside the bike
 
-When a rider reaches the motorcycle, their inside hand follows the left handlebar through steering. The rider reaches for the bar over 0.38 seconds. On a bank they keep the arm loose while the grip is outside their reach. Both bikes were checked at all three rider detail levels. In the measured MX450 pose the glove moved from 43.0 cm off the bar to within 0.1 mm. Rewinding reproduced the same rendered hand and body position.
+When a rider reaches the motorcycle, their inside hand follows the left handlebar through steering. The rider reaches for the bar over 0.38 seconds. A rider standing below the bike on a bank keeps the arm loose until the grip is within reach. Both bikes were checked at all three rider detail levels. On the measured remount pose, the held glove moved from 43.0 cm off the bar to within 0.1 mm. The replay reproduced the held frame pixel for pixel.
 
-![Matched views of the rider’s glove and the steered MX450 handlebar during recovery](remount-grip.jpg)
+![The rider recovering beside the MX450 with the steered grip before and after the pose change](remount-grip.jpg)
 
 ## Venue rendering
 
@@ -95,5 +95,13 @@ Both 12-rider fields used the rain weather setting. Each simulation ran for 20 s
 |---|---:|---:|
 | Valley Ridge | 1.34 ms | 3.13 ms |
 | Arena Nord | 0.96 ms | 1.72 ms |
+
+## Production player checks
+
+At 800 × 500, both venues completed on Low with Mesa llvmpipe and on High with SwiftShader. These runs selected each bike from the showroom, released the eight-rider gate, used the manual controls, then enabled the riding demonstration. The checks followed course progress, a jump and a touchdown, switched cameras, paused the worker and returned to the paddock. Completed GPU fences confirmed the displayed motorcycle, gate, riding and cockpit views. An earlier Low run captured 12 screenshots across the same route.
+
+The 800 × 500 Mesa High run lost its WebGL context while preparing the outdoor starting grid. On SwiftShader at 960 × 600, Arena Nord completed the gate, riding, cockpit, pause and return to the paddock. The browser page crashed while preparing Valley Ridge in that tab. On a separate 1280 × 800 Valley Ridge run, the last successful chase capture was at 212.2 seconds of simulation, and the page crashed during the switch to cockpit. Console frame rate, frame pacing and input latency still need physical hardware measurements.
+
+The final regression run passed 1,153 checks across 108 files. The 38 WebGL rider, equipment and venue checks passed across SwiftShader and Mesa. One held-gate pose capture required the Mesa run. TypeScript, the production build, lint, content validation and the bundle budget passed. The boot payload measured 3.77 MB gzipped against the 4 MB budget. The release verifier matched the product revision and the shipped trackside models to their asset manifests.
 
 [Race results, simulation checkpoints and render hashes](validation.json) · [Earlier venue and rider review](../motocross-track-and-rider-20261124/README.md)
