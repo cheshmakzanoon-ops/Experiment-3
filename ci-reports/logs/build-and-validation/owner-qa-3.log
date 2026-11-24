@@ -1,0 +1,282 @@
+### owner-qa (3) (job 138040684289)
+--- error digest (first 120 matching lines) ---
+641:owner-qa (3)	UNKNOWN STEP	2026-11-23T22:37:46.3458644Z   ✘   2 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.2m)
+645:owner-qa (3)	UNKNOWN STEP	2026-11-23T22:37:46.3463043Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+675:owner-qa (3)	UNKNOWN STEP	2026-11-23T22:50:38.1010912Z   ✘   3 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in sunset (12.3m)
+677:owner-qa (3)	UNKNOWN STEP	2026-11-23T22:50:38.1014055Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+706:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:03:28.4160303Z   ✘   4 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night (12.2m)
+710:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:03:28.4166072Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+735:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:13:31.4850390Z   ✘   6 e2e/application.spec.ts:143:1 › recorded telemetry exports and replay leaves live physics paused (5.2m)
+739:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:13:31.4857079Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+770:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:19:50.1572332Z   ✘   9 e2e/application.spec.ts:359:1 › race start and chequered flag produce an actual result (3.6m)
+772:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:19:50.1579319Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+794:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7255344Z   ✘  10 e2e/application.spec.ts:389:1 › high quality compiles shaders and renders a live local reflection (5.9m)
+798:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7260187Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+802:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7804960Z   1) e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day 
+806:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7807204Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+825:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7822024Z   2) e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in sunset 
+829:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7824495Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+848:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7839444Z   3) e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night 
+852:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7841796Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+871:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7872098Z   4) e2e/application.spec.ts:143:1 › recorded telemetry exports and replay leaves live physics paused 
+875:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7874450Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+890:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7884219Z     > 298 |   await expect(page.locator('#replayPlay')).toHaveText('PLAY');
+907:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7898235Z   5) e2e/application.spec.ts:359:1 › race start and chequered flag produce an actual result › Expect "poll toBe" 
+909:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7899926Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+923:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7908318Z       374 |   await expect(page.getByRole('heading', { name: 'Across the line.' })).toBeVisible();
+936:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7918932Z   6) e2e/application.spec.ts:389:1 › high quality compiles shaders and renders a live local reflection 
+940:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7920740Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+948:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7926549Z       415 |   expect(errors).toEqual([]);
+967:owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5240915Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7826785Z     > 121 |     const report = await page.evaluate(
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7827420Z           |                               ^
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7828335Z       122 |       async ({ samples, lighting }) =>
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7829403Z       123 |         (window as unknown as { A31Survey: { surveyA31: typeof surveyA31 } }).A31Survey.surveyA31(
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7830332Z       124 |           samples,
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7831177Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7831798Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7832645Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7833978Z     test-results/a31-wheel-gun-A31-real-whe-c6977-ktop-tools-render-in-sunset/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7834871Z     Usage:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7835069Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7835884Z         npx playwright show-trace test-results/a31-wheel-gun-A31-real-whe-c6977-ktop-tools-render-in-sunset/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7836846Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7837602Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7838481Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7839444Z   3) e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7840229Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7840628Z     ^[[31mTest timeout of 720000ms exceeded.^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7841052Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7841796Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7842296Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7842576Z       119 |     await page.goto('/a31-survey');
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7843354Z       120 |     await page.addScriptTag({ content: chunk.code });
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7844152Z     > 121 |     const report = await page.evaluate(
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7844792Z           |                               ^
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7845370Z       122 |       async ({ samples, lighting }) =>
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7846235Z       123 |         (window as unknown as { A31Survey: { surveyA31: typeof surveyA31 } }).A31Survey.surveyA31(
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7846995Z       124 |           samples,
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7848140Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7848794Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7849624Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7850906Z     test-results/a31-wheel-gun-A31-real-whe-edebe-rktop-tools-render-in-night/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7851761Z     Usage:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7852029Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7852988Z         npx playwright show-trace test-results/a31-wheel-gun-A31-real-whe-edebe-rktop-tools-render-in-night/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7854004Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7854674Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7871163Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7872098Z   4) e2e/application.spec.ts:143:1 › recorded telemetry exports and replay leaves live physics paused 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7872872Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7873229Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7873623Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7874450Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7875174Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7875412Z     Locator: locator('#replayPlay')
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7876141Z     Expected string: ^[[32m"P^[[7mLAY^[[27m"^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7876874Z     Received string: ^[[31m"P^[[7mAUSE^[[27m"^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7877338Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7877506Z     Call log:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7878443Z     ^[[2m  - Expect "toHaveText" with timeout 60000ms^[[22m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7879695Z     ^[[2m  - waiting for locator('#replayPlay')^[[22m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7880976Z     ^[[2m    5 × locator resolved to <button id="replayPlay" data-action="replayPlay">PAUSE</button>^[[22m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7882154Z     ^[[2m      - unexpected value "PAUSE"^[[22m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7882666Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7882675Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7882837Z       296 |   );
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7883398Z       297 |   await page.locator('#replayPlay').click();
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7884219Z     > 298 |   await expect(page.locator('#replayPlay')).toHaveText('PLAY');
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7884985Z           |                                             ^
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7885612Z       299 |   const replayPaused = await diag(page);
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7886518Z       300 |   await page.waitForTimeout(500);
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7887155Z       301 |   const replayStill = await diag(page);
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7888456Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/application.spec.ts:298:45
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7889121Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7889963Z     Error Context: test-results/application-recorded-telem-ee563--leaves-live-physics-paused/error-context.md
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7890900Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7891726Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7893006Z     test-results/application-recorded-telem-ee563--leaves-live-physics-paused/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7893902Z     Usage:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7894107Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7894975Z         npx playwright show-trace test-results/application-recorded-telem-ee563--leaves-live-physics-paused/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7895940Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7896695Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7897193Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7898235Z   5) e2e/application.spec.ts:359:1 › race start and chequered flag produce an actual result › Expect "poll toBe" 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7899053Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7899926Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7900654Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7900932Z     Expected: ^[[32m"results"^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7901477Z     Received: ^[[31m"driving"^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7901781Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7901937Z     Call Log:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7902427Z     - Test timeout of 210000ms exceeded
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7902805Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7903437Z       369 |   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7904399Z       370 |   await page.keyboard.press('g');
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7904929Z     > 371 |   await expect
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7905356Z           |   ^
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7906088Z       372 |     .poll(async () => (await diag(page)).state, { timeout: 150000, intervals: [2000] })
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7906885Z       373 |     .toBe('results');
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7908318Z       374 |   await expect(page.getByRole('heading', { name: 'Across the line.' })).toBeVisible();
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7909550Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/application.spec.ts:371:3
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7910154Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7910960Z     Error Context: test-results/application-race-start-and-8b04e-ag-produce-an-actual-result/error-context.md
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7911832Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7912635Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7913888Z     test-results/application-race-start-and-8b04e-ag-produce-an-actual-result/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7914743Z     Usage:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7914937Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7915785Z         npx playwright show-trace test-results/application-race-start-and-8b04e-ag-produce-an-actual-result/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7916684Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7917350Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7918095Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7918932Z   6) e2e/application.spec.ts:389:1 › high quality compiles shaders and renders a live local reflection 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7919656Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7920022Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7920406Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7920740Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7921188Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7921721Z       410 |   await page.screenshot({ path: testInfo.outputPath('09-high-cockpit.png') });
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7922750Z       411 |   await testInfo.attach('high-quality-diagnostics.json', {
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7923852Z     > 412 |     body: JSON.stringify(await page.evaluate(() => window.apexDiagnostics(true)), null, 2),
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7925007Z           |                                     ^
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7925605Z       413 |     contentType: 'application/json',
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7926125Z       414 |   });
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7926549Z       415 |   expect(errors).toEqual([]);
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7927385Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/application.spec.ts:412:37
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7928195Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7928961Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7930223Z     test-results/application-high-quality-c-53b08-ers-a-live-local-reflection/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7931072Z     Usage:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7931264Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7932088Z         npx playwright show-trace test-results/application-high-quality-c-53b08-ers-a-live-local-reflection/trace.zip
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7932971Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7933716Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7934279Z 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7934422Z   6 failed
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7935378Z     e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7936870Z     e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in sunset 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7938525Z     e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7939933Z     e2e/application.spec.ts:143:1 › recorded telemetry exports and replay leaves live physics paused 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7941319Z     e2e/application.spec.ts:359:1 › race start and chequered flag produce an actual result ─────────
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7942653Z     e2e/application.spec.ts:389:1 › high quality compiles shaders and renders a live local reflection 
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:16.7943452Z   4 passed (1.1h)
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5240915Z ##[error]Process completed with exit code 1.
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5324941Z ##[group]Run actions/upload-artifact@v4
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5325251Z with:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5325454Z   name: owner-qa-3-of-4
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5325867Z   path: test-results/
+owner-qa (3)	UNKNOWN STEP	playwright-report/
+owner-qa (3)	UNKNOWN STEP	browser-backend.json
+owner-qa (3)	UNKNOWN STEP	browser-progress.json
+owner-qa (3)	UNKNOWN STEP	
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5326309Z   retention-days: 7
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5326529Z   if-no-files-found: warn
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5326760Z   compression-level: 6
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5326983Z   overwrite: false
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5327195Z   include-hidden-files: false
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5327430Z env:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5327628Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5328107Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5328357Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.5328581Z ##[endgroup]
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7146789Z (node:4754) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7148125Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7380087Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7383657Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7385213Z With the provided path, there will be 42 files uploaded
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7389903Z Artifact name is valid!
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:17.7390727Z Root directory input is valid!
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:18.1775944Z Beginning upload of artifact content to blob storage
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:18.4982463Z (node:4754) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:19.4598280Z Uploaded bytes 8388608
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:19.6832098Z Uploaded bytes 16777216
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:19.8790763Z Uploaded bytes 25165824
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:19.9655554Z Uploaded bytes 33554432
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:20.1393003Z Uploaded bytes 41943040
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:20.2963136Z Uploaded bytes 50331648
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:20.4092717Z Uploaded bytes 58720256
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:20.6667518Z Uploaded bytes 67108864
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:21.0238187Z Uploaded bytes 75497472
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:21.1677233Z Uploaded bytes 83886080
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:21.5435200Z Uploaded bytes 92274688
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:21.6666148Z Uploaded bytes 100663296
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:21.9595283Z Uploaded bytes 109051904
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:22.2219261Z Uploaded bytes 117440512
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:22.4675144Z Uploaded bytes 125829120
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:22.7751357Z Uploaded bytes 134217728
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:23.1009201Z Uploaded bytes 142606336
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:23.2410600Z Uploaded bytes 150994944
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:23.4976296Z Uploaded bytes 159383552
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:23.7596540Z Uploaded bytes 167772160
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:24.0967629Z Uploaded bytes 176160768
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:24.2893925Z Uploaded bytes 184549376
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:24.5086280Z Uploaded bytes 192937984
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:24.7278212Z Uploaded bytes 201326592
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:24.9998727Z Uploaded bytes 209715200
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:25.2636474Z Uploaded bytes 218103808
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:25.5451097Z Uploaded bytes 226492416
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:25.7975809Z Uploaded bytes 234881024
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:26.0549239Z Uploaded bytes 243269632
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:26.3229222Z Uploaded bytes 251658240
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:26.5665389Z Uploaded bytes 260046848
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:26.8241686Z Uploaded bytes 268435456
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:27.1630370Z Uploaded bytes 276824064
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:27.3960255Z Uploaded bytes 285212672
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:27.6130215Z Uploaded bytes 293601280
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:27.8558978Z Uploaded bytes 301989888
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:28.1201413Z Uploaded bytes 310378496
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:28.4316280Z Uploaded bytes 318767104
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:28.6351668Z Uploaded bytes 327155712
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:28.8876373Z Uploaded bytes 335544320
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:29.2006148Z Uploaded bytes 343932928
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:29.4817424Z Uploaded bytes 352321536
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:29.7486915Z Uploaded bytes 360710144
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:30.1465075Z Uploaded bytes 369098752
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:30.4420359Z Uploaded bytes 377487360
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:30.6928973Z Uploaded bytes 385875968
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:30.9476354Z Uploaded bytes 394264576
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:31.2536081Z Uploaded bytes 402653184
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:31.5340213Z Uploaded bytes 411041792
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:31.7895983Z Uploaded bytes 419430400
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:32.1778114Z Uploaded bytes 427819008
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:32.3897380Z Uploaded bytes 436207616
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:32.6968919Z Uploaded bytes 444596224
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:32.9139830Z Uploaded bytes 452984832
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:33.1526999Z Uploaded bytes 461373440
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:33.5158586Z Uploaded bytes 469762048
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:33.7363299Z Uploaded bytes 478150656
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:34.0039380Z Uploaded bytes 486539264
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:34.2022465Z Uploaded bytes 494927872
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:34.4445103Z Uploaded bytes 503316480
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:34.7785299Z Uploaded bytes 511705088
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.0081623Z Uploaded bytes 520093696
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.2089467Z Uploaded bytes 528482304
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.4431811Z Uploaded bytes 536870912
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.7134278Z Uploaded bytes 545259520
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.8526101Z Uploaded bytes 548375667
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.9348761Z Finished uploading artifact content to blob storage!
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.9352379Z SHA256 digest of uploaded artifact zip is b99117cff259277850c83e94a7e87d3bd000bc923917ed64121ad93ffe389352
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:35.9354815Z Finalizing artifact upload
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.4687401Z Artifact owner-qa-3-of-4.zip successfully finalized. Artifact ID 14873192159
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.4688896Z Artifact owner-qa-3-of-4 has been successfully uploaded! Final size is 548375667 bytes. Artifact ID is 14873192159
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.4696768Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45272575889/artifacts/14873192159
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.5013560Z Post job cleanup.
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.5913577Z [command]/usr/bin/git version
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.5967369Z git version 2.56.1
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6014554Z Temporarily overriding HOME='/home/runner/work/_temp/11f5e501-72ac-4e93-b311-656ccd12d6b8' before making global git config changes
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6015749Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6021177Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6066018Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6109430Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6415137Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6452888Z http.https://github.com/.extraheader
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6466340Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6512390Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6862859Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.6918925Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.7379889Z Cleaning up orphan processes
+owner-qa (3)	UNKNOWN STEP	2026-11-23T23:26:36.7860265Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

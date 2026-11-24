@@ -1,0 +1,265 @@
+### owner-qa (4) (job 138040684217)
+--- error digest (first 120 matching lines) ---
+593:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2763007Z   ✘   1 e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.1m)
+595:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2765066Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+645:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0008673Z   ✘   8 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.2m)
+649:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0010990Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+671:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7368440Z   1) e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks › Expect "poll toBeGreaterThan" 
+673:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7369473Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+681:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7371138Z       78 |       .poll(async () => ((await diagnostics()).frame?.[carBase(0) + F.STEER] ?? 0) * direction)
+685:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7372364Z       81 |       .poll(async () => ((await diagnostics()).renderer?.driverPose.wheelRadians ?? 0) * -direction)
+704:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7379925Z   2) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence 
+708:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7380753Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+731:owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9670129Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3273644Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=4/4^[[0m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3289995Z shell: /usr/bin/bash -e {0}
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3290163Z env:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3290281Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3290430Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3290564Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3290694Z ##[endgroup]
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3936106Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3936438Z > apex-formula-laboratory@0.1.0 test:e2e
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3938339Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=4/4
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:48.3939636Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:49.5793524Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:52.0089056Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:52.0089914Z Running 10 tests using 1 worker, shard 4 of 4
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:52.0090099Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:17:52.3538086Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:18:22.0100052Z [browser-progress] 30s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:18:52.0115133Z [browser-progress] 60s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:19:22.0116871Z [browser-progress] 90s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:19:52.0127372Z [browser-progress] 120s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:20:22.0127786Z [browser-progress] 150s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:20:52.0147124Z [browser-progress] 180s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBe"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:21:22.0154957Z [browser-progress] 210s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:21:52.0317252Z [browser-progress] 240s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 1: a
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:22:22.0347607Z [browser-progress] 270s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:22:52.0457167Z [browser-progress] 300s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 2: d
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:23:22.0481147Z [browser-progress] 330s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:23:52.0550996Z [browser-progress] 360s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Capture cockpit lock 3: a
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:24:22.0607186Z [browser-progress] 390s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:24:52.0637234Z [browser-progress] 420s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Expect "toBeGreaterThan"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:22.0827104Z [browser-progress] 450s  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks / Fixture "browser"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2763007Z   ✘   1 e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.1m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2764071Z [browser-failure]  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2765066Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2765361Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2765451Z Expected: > ^[[32m0.5^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2766000Z Received:   ^[[31m-0.6108652381980153^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2766106Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2766154Z Call Log:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2766296Z - Test timeout of 420000ms exceeded
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.2766573Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/24-coupled-driver.spec.ts:80:5
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:27.6641322Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > 27H.2 normal application rejects a missing driver without silently displaying legacy geometry
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:30.5517813Z   ✓   2 e2e/24-coupled-driver.spec.ts:157:1 › 27H.2 normal application rejects a missing driver without silently displaying legacy geometry (2.8s)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:30.5577450Z [browser-progress] START  >  > 24-coupled-driver.spec.ts > normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:33.4702653Z   ✓   3 e2e/24-coupled-driver.spec.ts:169:1 › normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build) (2.9s)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:33.8872660Z [browser-progress] START  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:25:52.1037181Z [browser-progress] 18s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:26:22.1096965Z [browser-progress] 48s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:26:52.1084891Z [browser-progress] 78s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Expect "toMatch"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:27:22.1089939Z [browser-progress] 108s  >  > application.spec.ts > manual right steering and live rear-view passes work without autopilot / Fixture "context"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:27:25.7951298Z   ✓   4 e2e/application.spec.ts:418:1 › manual right steering and live rear-view passes work without autopilot (1.9m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:27:25.7983371Z [browser-progress] START  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:27:52.1303187Z [browser-progress] 26s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:28:22.1437202Z [browser-progress] 56s  >  > application.spec.ts > keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes / Expect "toBeVisible"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:28:37.9351998Z   ✓   5 e2e/application.spec.ts:463:1 › keyboard remapping rejects conflicts, cleans cancelled capture and persists valid changes (1.2m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:28:38.0400311Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:28:52.1506952Z [browser-progress] 14s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:29:22.1802150Z [browser-progress] 44s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:29:52.2098935Z [browser-progress] 74s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:30:22.2306946Z [browser-progress] 104s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-9.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:30:52.2561135Z [browser-progress] 134s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-4-3.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:31:22.2797279Z [browser-progress] 164s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: framing, full circuit and camera framing evidence / Attach "p0-neutral-16-10.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:31:35.9788844Z   ✓   6 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: framing, full circuit and camera framing evidence (3.0m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:31:35.9826816Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:31:52.2906964Z [browser-progress] 16s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:32:22.3196927Z [browser-progress] 46s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:32:52.3482213Z [browser-progress] 76s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:33:22.3747059Z [browser-progress] 106s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-left-lock.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:33:52.4008390Z [browser-progress] 136s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: controls, full circuit and camera framing evidence / Attach "p0-right-lock.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:34:20.7877691Z   ✓   7 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: controls, full circuit and camera framing evidence (2.7m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:34:20.7905698Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:34:22.4026354Z [browser-progress] 2s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Create page
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:34:52.4248898Z [browser-progress] 32s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:35:22.4567308Z [browser-progress] 62s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:35:52.4866925Z [browser-progress] 92s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:36:22.5166868Z [browser-progress] 122s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:36:52.5458217Z [browser-progress] 152s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:37:22.5796916Z [browser-progress] 182s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:37:52.6077101Z [browser-progress] 212s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:38:22.6387098Z [browser-progress] 242s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:38:52.6670916Z [browser-progress] 272s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:39:22.6678709Z [browser-progress] 302s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / After Hooks
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:39:52.6868778Z [browser-progress] 332s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence / Fixture "browser"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0008673Z   ✘   8 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.2m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0009393Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0009893Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0010468Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0010990Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.0011423Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:06.4863243Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:22.6986871Z [browser-progress] 16s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:40:52.7276825Z [browser-progress] 46s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:41:22.7566835Z [browser-progress] 76s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:41:52.7866946Z [browser-progress] 106s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:42:22.8166929Z [browser-progress] 136s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:42:52.8466957Z [browser-progress] 166s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:43:22.8538793Z [browser-progress] 196s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: braking, full circuit and camera framing evidence / Attach "p0-braking.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:43:49.1233722Z   ✓   9 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: braking, full circuit and camera framing evidence (3.7m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:43:49.1260883Z [browser-progress] START  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:43:52.8577797Z [browser-progress] 4s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Create page
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:44:22.8823291Z [browser-progress] 34s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:44:52.9156903Z [browser-progress] 64s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:45:22.9440275Z [browser-progress] 94s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Evaluate
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:45:52.9671242Z [browser-progress] 124s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-sunset.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:46:22.9903228Z [browser-progress] 154s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-night.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:46:53.0007074Z [browser-progress] 184s  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: weather, full circuit and camera framing evidence / Attach "p0-wet-night.json"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.5413995Z   ✓  10 e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence (3.4m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7366499Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7366980Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7368440Z   1) e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks › Expect "poll toBeGreaterThan" 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7369097Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7369473Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7369796Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7369917Z     Expected: > ^[[32m0.5^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7370228Z     Received:   ^[[31m-0.6108652381980153^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7370389Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7370466Z     Call Log:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7370675Z     - Test timeout of 420000ms exceeded
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7370832Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7371138Z       78 |       .poll(async () => ((await diagnostics()).frame?.[carBase(0) + F.STEER] ?? 0) * direction)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7371535Z       79 |       .toBeGreaterThan(0.3);
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7371770Z     > 80 |     await expect
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7371972Z          |     ^
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7372364Z       81 |       .poll(async () => ((await diagnostics()).renderer?.driverPose.wheelRadians ?? 0) * -direction)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7372776Z       82 |       .toBeGreaterThan(0.5);
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7373044Z       83 |     const pose = await diagnostics();
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7373457Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/24-coupled-driver.spec.ts:80:5
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7373740Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7374097Z     attachment #4: video (video/webm) ──────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7374651Z     test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/video.webm
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7375288Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7375646Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7375988Z     Error Context: test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/error-context.md
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7376351Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7376691Z     attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7377584Z     test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7377958Z     Usage:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7378049Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7378407Z         npx playwright show-trace test-results/24-coupled-driver-27H-2-no-f95ca-ng-cameras-and-replay-seeks/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7378788Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7379103Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7379342Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7379925Z   2) e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7380260Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7380423Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7380594Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7380753Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7380958Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7381044Z       49 |       });
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7381228Z       50 |     });
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7381480Z     > 51 |     const report = await page.evaluate((group) => {
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7381769Z          |                               ^
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7382029Z       52 |       const api = window as unknown as {
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7382380Z       53 |         CockpitSurvey: { cockpitFramingSurvey: typeof cockpitFramingSurvey };
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7382660Z       54 |         recordCockpit: (row: CockpitSurveyRow) => Promise<void>;
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7382961Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7383141Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7383372Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7383719Z     test-results/p0-cockpit-framing-P0-actu-226bd-and-camera-framing-evidence/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7383960Z     Usage:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7384019Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7384251Z         npx playwright show-trace test-results/p0-cockpit-framing-P0-actu-226bd-and-camera-framing-evidence/trace.zip
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7384494Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7384679Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7384825Z 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7384871Z   2 failed
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7385260Z     e2e/24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7386002Z     e2e/p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence 
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.7386258Z   8 passed (29.4m)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9670129Z ##[error]Process completed with exit code 1.
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9726732Z ##[group]Run actions/upload-artifact@v4
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9726893Z with:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9727006Z   name: owner-qa-4-of-4
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9727220Z   path: test-results/
+owner-qa (4)	UNKNOWN STEP	playwright-report/
+owner-qa (4)	UNKNOWN STEP	browser-backend.json
+owner-qa (4)	UNKNOWN STEP	browser-progress.json
+owner-qa (4)	UNKNOWN STEP	
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9727643Z   retention-days: 7
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9727764Z   if-no-files-found: warn
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9727889Z   compression-level: 6
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728012Z   overwrite: false
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728130Z   include-hidden-files: false
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728258Z env:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728367Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728514Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728649Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:12.9728773Z ##[endgroup]
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0812831Z (node:4147) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0813590Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0933455Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0935048Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0935777Z With the provided path, there will be 47 files uploaded
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0938758Z Artifact name is valid!
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.0939220Z Root directory input is valid!
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.3012578Z Beginning upload of artifact content to blob storage
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.4919202Z (node:4147) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.7649781Z Uploaded bytes 8388608
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:13.8865359Z Uploaded bytes 16777216
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:14.0448552Z Uploaded bytes 25165824
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:14.2376520Z Uploaded bytes 33554432
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:14.4971316Z Uploaded bytes 41943040
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:14.6314694Z Uploaded bytes 50331648
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:14.8399490Z Uploaded bytes 58720256
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:15.0125356Z Uploaded bytes 67108864
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:15.2263221Z Uploaded bytes 75497472
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:15.3939313Z Uploaded bytes 83886080
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:15.4850960Z Uploaded bytes 92274688
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:15.6610210Z Uploaded bytes 100663296
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:15.9425663Z Uploaded bytes 109051904
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:16.0614000Z Uploaded bytes 117440512
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:16.2431307Z Uploaded bytes 125829120
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:16.3433261Z Uploaded bytes 134217728
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:16.4784338Z Uploaded bytes 142606336
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:16.7346833Z Uploaded bytes 150994944
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:16.8231433Z Uploaded bytes 159383552
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:17.0619552Z Uploaded bytes 167772160
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:17.1766394Z Uploaded bytes 176160768
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:17.3857720Z Uploaded bytes 184549376
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:17.5618512Z Uploaded bytes 192937984
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:17.6517384Z Uploaded bytes 201326592
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:17.8949909Z Uploaded bytes 209715200
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.0326682Z Uploaded bytes 218103808
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.1965435Z Uploaded bytes 226492416
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.3713746Z Uploaded bytes 234881024
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.4958414Z Uploaded bytes 243269632
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.6804439Z Uploaded bytes 251658240
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.7786223Z Uploaded bytes 255476235
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.7992824Z Finished uploading artifact content to blob storage!
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.7995147Z SHA256 digest of uploaded artifact zip is ef03f5d003d3b3a2d750a9e9b41d600ea04927637e0bf4e0078cbc266acc4c52
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:18.7996773Z Finalizing artifact upload
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.1444808Z Artifact owner-qa-4-of-4.zip successfully finalized. Artifact ID 14869422735
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.1445437Z Artifact owner-qa-4-of-4 has been successfully uploaded! Final size is 255476235 bytes. Artifact ID is 14869422735
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.1452207Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45272575889/artifacts/14869422735
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.1672148Z Post job cleanup.
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2219810Z [command]/usr/bin/git version
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2251383Z git version 2.56.1
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2275390Z Temporarily overriding HOME='/home/runner/work/_temp/4716cc14-55b0-4f6b-a631-4f1a236ab3e4' before making global git config changes
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2276173Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2279636Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2312072Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2339391Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2557508Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2587223Z http.https://github.com/.extraheader
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2595273Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2636770Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2881476Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.2918073Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.3232208Z Cleaning up orphan processes
+owner-qa (4)	UNKNOWN STEP	2026-11-23T22:47:19.3411757Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

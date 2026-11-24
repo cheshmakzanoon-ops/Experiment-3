@@ -1,0 +1,274 @@
+### owner-qa (1) (job 138040684335)
+--- error digest (first 120 matching lines) ---
+606:owner-qa (1)	UNKNOWN STEP	2026-11-23T22:31:31.7384012Z   ✘   1 e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (5.2m)
+610:owner-qa (1)	UNKNOWN STEP	2026-11-23T22:31:31.7388253Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+676:owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5361902Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+682:owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5363533Z - Timeout 90000ms exceeded while waiting on the predicate
+684:owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5364998Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.1m)
+705:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7588548Z   ✘  10 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.2m)
+709:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7594596Z Error: locator.selectOption: Test timeout of 300000ms exceeded.
+718:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6124413Z   1) e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
+722:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6126061Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+735:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6130033Z     > 43 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
+738:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6131329Z       45 |   expect(edited.team.livery).toEqual({
+750:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6136184Z   2) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards › Expect "poll toBe" 
+752:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6137269Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+758:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6139225Z     - Timeout 90000ms exceeded while waiting on the predicate
+760:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6139735Z       158 |   expect((await diag(page)).state).toBe('menu');
+764:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6142022Z       161 |   expect((await diag(page)).options).toMatchObject({
+779:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6150373Z   3) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
+783:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6151741Z     Error: locator.selectOption: Test timeout of 300000ms exceeded.
+794:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6157474Z       78 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
+815:owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8540451Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:38:36.4567422Z [browser-progress] 118s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeGreaterThan"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:38:47.1324408Z   ✓   5 e2e/07-reference-tools.spec.ts:254:1 › covered menu redraws once on resize and resumes after closing without freezing photo mode (2.1m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:38:47.1547133Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:39:06.4637253Z [browser-progress] 19s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:39:36.4652802Z [browser-progress] 49s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toHaveValue"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:40:06.4953461Z [browser-progress] 79s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toHaveValue"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:40:36.4989954Z [browser-progress] 109s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Click getByRole('button', { name: 'REFERENCE REVIEW', exact: true })
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:41:06.5317931Z [browser-progress] 139s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Click getByRole('button', { name: 'REFERENCE REVIEW', exact: true })
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:41:36.5314280Z [browser-progress] 169s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Evaluate
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:42:06.5427516Z [browser-progress] 199s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Screenshot
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:42:36.5564349Z [browser-progress] 229s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Press "Escape"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:42:47.9378631Z   ✓   6 e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation (4.0m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:42:47.9403057Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:43:06.5746370Z [browser-progress] 19s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Create context
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:43:36.5917322Z [browser-progress] 49s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:44:06.5997690Z [browser-progress] 79s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:44:36.6293712Z [browser-progress] 109s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:45:06.6597911Z [browser-progress] 139s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Evaluate
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:45:36.6697170Z [browser-progress] 169s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Screenshot
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:46:06.6697805Z [browser-progress] 199s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:46:36.6719336Z [browser-progress] 229s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:47:06.6715334Z [browser-progress] 259s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:47:36.6735645Z [browser-progress] 289s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Fixture "context"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:47:41.0830533Z   ✓   7 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical (4.9m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:47:41.0863591Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:48:06.7007290Z [browser-progress] 26s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Create context
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:48:36.7190270Z [browser-progress] 56s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:49:06.7377405Z [browser-progress] 86s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:49:36.7399716Z [browser-progress] 116s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:50:06.7699105Z [browser-progress] 146s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:50:36.7717782Z [browser-progress] 176s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:06.7720946Z [browser-progress] 206s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:36.7737661Z [browser-progress] 236s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5360478Z [browser-failure]  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5361902Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5362267Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5362508Z Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5362899Z Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5363078Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5363163Z Call Log:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5363533Z - Timeout 90000ms exceeded while waiting on the predicate
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5364032Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.5364998Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.1m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:51:59.9499705Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:52:06.7807824Z [browser-progress] 7s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:52:36.7799464Z [browser-progress] 37s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Evaluate
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:53:06.7799159Z [browser-progress] 67s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBeGreaterThan"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:53:36.8007864Z [browser-progress] 97s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Screenshot
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:54:06.8139222Z [browser-progress] 127s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Screenshot
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:54:23.9336475Z   ✓   9 e2e/09-reference-depth.spec.ts:16:1 › reference depth: survey, focus and headquarters render without advancing the held scene (2.4m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:54:23.9356964Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:54:36.8260759Z [browser-progress] 13s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Create context
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:55:06.8367348Z [browser-progress] 43s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Expect "toBeVisible"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:55:36.8444567Z [browser-progress] 73s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:56:06.8749618Z [browser-progress] 103s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:56:36.8994440Z [browser-progress] 133s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:57:06.9119175Z [browser-progress] 163s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "NORTH" locator('[data-decal="text"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:57:36.9429512Z [browser-progress] 193s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "NORTH" locator('[data-decal="text"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:58:06.9737431Z [browser-progress] 223s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="side"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:58:36.9912157Z [browser-progress] 253s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:59:07.0017838Z [browser-progress] 283s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "SOUTH" locator('[data-decal="text"]')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T22:59:37.0018610Z [browser-progress] 313s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fixture "browser"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:07.0218279Z [browser-progress] 343s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fixture "browser"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7588548Z   ✘  10 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.2m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7591896Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7592835Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7593771Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7594596Z Error: locator.selectOption: Test timeout of 300000ms exceeded.
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7595106Z Call log:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7595848Z ^[[2m  - waiting for locator('[data-decal="side"]')^[[22m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7596149Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:08.7596474Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:75:47
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:09.2624657Z [browser-progress] START  >  > 14-phase27e.spec.ts > actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.5295632Z   ✓  11 e2e/14-phase27e.spec.ts:31:1 › actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool (10.2s)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6111869Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6123249Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6124413Z   1) e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6124977Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6125381Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6125623Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6126061Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6126512Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6126646Z     Locator: locator('#photoStatus')
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6127057Z     Expected string: ^[[32m"Livery saved"^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6127495Z     Received string: ^[[31m""^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6127670Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6127759Z     Call log:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6128131Z     ^[[2m  - Expect "toContainText" with timeout 60000ms^[[22m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6128553Z     ^[[2m  - waiting for locator('#photoStatus')^[[22m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6128802Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6128808Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6129050Z       41 |   await page.locator('#liveryPattern').selectOption('split');
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6129518Z       42 |   await page.getByRole('button', { name: 'SAVE LIVERY', exact: true }).click();
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6130033Z     > 43 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6130554Z          |                                              ^
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6130932Z       44 |   const edited = await diag(page);
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6131329Z       45 |   expect(edited.team.livery).toEqual({
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6131634Z       46 |     primary: '#2266bb',
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6132277Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:43:46
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6132605Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6132952Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6133518Z     test-results/07-reference-tools-referen-56b5f--quality-changes-and-reload/trace.zip
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6133921Z     Usage:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6134053Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6134406Z         npx playwright show-trace test-results/07-reference-tools-referen-56b5f--quality-changes-and-reload/trace.zip
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6134769Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6135055Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6135504Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6136184Z   2) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards › Expect "poll toBe" 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6136807Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6137269Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6137787Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6138018Z     Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6138427Z     Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6138677Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6138795Z     Call Log:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6139225Z     - Timeout 90000ms exceeded while waiting on the predicate
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6139493Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6139735Z       158 |   expect((await diag(page)).state).toBe('menu');
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6140306Z       159 |   await page.locator('[data-action="academy:confirm"]').click();
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6140995Z     > 160 |   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6141540Z           |   ^
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6142022Z       161 |   expect((await diag(page)).options).toMatchObject({
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6142511Z       162 |     mode: 'practice',
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6142854Z       163 |     opponents: 0,
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6143437Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6144098Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6144595Z     Error Context: test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/error-context.md
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6145155Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6145998Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6146981Z     test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6147526Z     Usage:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6147682Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6148271Z         npx playwright show-trace test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6148802Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6149286Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6149687Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6150373Z   3) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6150941Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6151209Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6151489Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6151741Z     Error: locator.selectOption: Test timeout of 300000ms exceeded.
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6152236Z     Call log:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6152667Z     ^[[2m  - waiting for locator('[data-decal="side"]')^[[22m
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6152946Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6152954Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6153198Z       73 |     await page.locator('[data-decal="enabled"]').check();
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6153745Z       74 |     await page.locator('[data-decal="text"]').fill(text);
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6154278Z     > 75 |     await page.locator('[data-decal="side"]').selectOption(side);
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6154861Z          |                                               ^
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6156402Z       76 |   }
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6156873Z       77 |   await page.locator('#saveLivery').click();
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6157474Z       78 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6158251Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:75:47
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6158700Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6159148Z     Error Context: test-results/09-reference-depth-referen-bdc79-the-real-application-reload/error-context.md
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6159660Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6160224Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6161026Z     test-results/09-reference-depth-referen-bdc79-the-real-application-reload/trace.zip
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6161671Z     Usage:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6161800Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6162354Z         npx playwright show-trace test-results/09-reference-depth-referen-bdc79-the-real-application-reload/trace.zip
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6162911Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6163313Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6163683Z 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6164195Z   Slow test file: e2e/08-reference-implementation.spec.ts (13.0m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6164773Z   Slow test file: e2e/09-reference-depth.spec.ts (7.6m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6165767Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6166526Z   3 failed
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6167405Z     e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6168592Z     e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6169794Z     e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.6170538Z   8 passed (34.3m)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8540451Z ##[error]Process completed with exit code 1.
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8713668Z ##[group]Run actions/upload-artifact@v4
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8713902Z with:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8714049Z   name: owner-qa-1-of-4
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8714343Z   path: test-results/
+owner-qa (1)	UNKNOWN STEP	playwright-report/
+owner-qa (1)	UNKNOWN STEP	browser-backend.json
+owner-qa (1)	UNKNOWN STEP	browser-progress.json
+owner-qa (1)	UNKNOWN STEP	
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8714660Z   retention-days: 7
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8714811Z   if-no-files-found: warn
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8714978Z   compression-level: 6
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8715135Z   overwrite: false
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8715588Z   include-hidden-files: false
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8715802Z env:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8715953Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8716145Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8716327Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.8716498Z ##[endgroup]
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.9969386Z (node:4141) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:19.9970337Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.0094116Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.0096235Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.0096831Z With the provided path, there will be 42 files uploaded
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.0100448Z Artifact name is valid!
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.0100906Z Root directory input is valid!
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.6763627Z Beginning upload of artifact content to blob storage
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:20.8949336Z (node:4141) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.0454679Z Uploaded bytes 8388608
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.2566472Z Uploaded bytes 16777216
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.4349178Z Uploaded bytes 25165824
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.4617331Z Uploaded bytes 33554432
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.5744005Z Uploaded bytes 41943040
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.7289590Z Uploaded bytes 50331648
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.7990516Z Uploaded bytes 58720256
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:22.8747594Z Uploaded bytes 67108864
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:23.1152774Z Uploaded bytes 75497472
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:23.3511626Z Uploaded bytes 83886080
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:23.5103991Z Uploaded bytes 92274688
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:23.8023352Z Uploaded bytes 100663296
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:24.0084287Z Uploaded bytes 109051904
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:24.2067470Z Uploaded bytes 117440512
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:24.4348384Z Uploaded bytes 125829120
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:24.6784246Z Uploaded bytes 134217728
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:24.9045911Z Uploaded bytes 142606336
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:25.0854455Z Uploaded bytes 150994944
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:25.3607194Z Uploaded bytes 159383552
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:25.6482413Z Uploaded bytes 167772160
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:25.7847191Z Uploaded bytes 176160768
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:26.0147209Z Uploaded bytes 184549376
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:26.2154101Z Uploaded bytes 192937984
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:26.4423409Z Uploaded bytes 201326592
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:26.7093422Z Uploaded bytes 209715200
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:26.9202354Z Uploaded bytes 218103808
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.0213701Z Uploaded bytes 218667594
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.1159374Z Finished uploading artifact content to blob storage!
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.1160446Z SHA256 digest of uploaded artifact zip is f0522c88ac557403b7247fcb0704fb31eb3caefdc1545a5cee9af6b09904bf95
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.1161029Z Finalizing artifact upload
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.7424494Z Artifact owner-qa-1-of-4.zip successfully finalized. Artifact ID 14871277342
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.7425590Z Artifact owner-qa-1-of-4 has been successfully uploaded! Final size is 218667594 bytes. Artifact ID is 14871277342
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.7430549Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45272575889/artifacts/14871277342
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.7634479Z Post job cleanup.
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8312824Z [command]/usr/bin/git version
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8343326Z git version 2.56.1
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8367945Z Temporarily overriding HOME='/home/runner/work/_temp/d47ba4de-fd8d-4fc4-a581-1c00f803aa06' before making global git config changes
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8369039Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8371077Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8400763Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8426475Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8598271Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8617871Z http.https://github.com/.extraheader
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8624901Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8647346Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8815667Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.8839295Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.9137061Z Cleaning up orphan processes
+owner-qa (1)	UNKNOWN STEP	2026-11-23T23:00:27.9384776Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

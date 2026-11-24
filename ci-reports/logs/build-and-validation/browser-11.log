@@ -1,0 +1,287 @@
+### browser (11) (job 138040684527)
+--- error digest (first 120 matching lines) ---
+800:browser (11)	UNKNOWN STEP	2026-11-23T22:16:19.7223532Z   ✘   2 e2e/20-phase27h.spec.ts:9:1 › 27H: actual application loads the authored GLB and retains frozen native views and live paint (3.7m)
+802:browser (11)	UNKNOWN STEP	2026-11-23T22:16:19.7225395Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
+807:browser (11)	UNKNOWN STEP	2026-11-23T22:16:19.7226596Z Timeout:  120000ms
+840:browser (11)	UNKNOWN STEP	2026-11-23T22:21:33.8484355Z   ✘   9 e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry (4.2m)
+842:browser (11)	UNKNOWN STEP	2026-11-23T22:21:33.8488075Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+848:browser (11)	UNKNOWN STEP	2026-11-23T22:21:33.8491208Z - Timeout 240000ms exceeded while waiting on the predicate
+855:browser (11)	UNKNOWN STEP	2026-11-23T22:23:09.4672015Z   ✘  10 e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start (1.6m)
+857:browser (11)	UNKNOWN STEP	2026-11-23T22:23:09.4674107Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+863:browser (11)	UNKNOWN STEP	2026-11-23T22:23:09.4675367Z - Timeout 60000ms exceeded while waiting on the predicate
+905:browser (11)	UNKNOWN STEP	2026-11-23T22:38:56.0473581Z   ✘  15 e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in day (15.2m)
+909:browser (11)	UNKNOWN STEP	2026-11-23T22:38:56.0476034Z Error: page.evaluate: Test timeout of 900000ms exceeded.
+943:browser (11)	UNKNOWN STEP	2026-11-23T22:54:21.1609700Z   ✘  16 e2e/a36-workshop-equipment.spec.ts:50:3 › A36 full production garage survey, wet day and night (15.4m)
+947:browser (11)	UNKNOWN STEP	2026-11-23T22:54:21.1612374Z Error: page.evaluate: Test timeout of 900000ms exceeded.
+976:browser (11)	UNKNOWN STEP	2026-11-23T23:06:19.6031297Z   ✘  18 e2e/event-hall.spec.ts:11:3 › A71 day: full production hall, cockpit and unchanged physical traversal (10.5m)
+980:browser (11)	UNKNOWN STEP	2026-11-23T23:06:19.6034315Z Error: page.evaluate: Test timeout of 600000ms exceeded.
+1003:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5285614Z   1) e2e/20-phase27h.spec.ts:9:1 › 27H: actual application loads the authored GLB and retains frozen native views and live paint 
+1005:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5286275Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
+1010:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5287987Z     Timeout:  120000ms
+1019:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5290395Z       25 |   expect(initial.renderer!.authoredBodywork!.sha256).toBe(manifest.sha256);
+1021:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5291561Z     > 27 |   await expect(page.locator('#photoStudio')).toBeVisible({ timeout: 120000 });
+1038:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5297197Z   2) e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry › Expect "poll toMatch" 
+1040:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5298089Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+1046:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299267Z     - Timeout 240000ms exceeded while waiting on the predicate
+1074:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5308985Z   3) e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start › Expect "poll toBe" 
+1076:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5309701Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+1082:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310788Z     - Timeout 60000ms exceeded while waiting on the predicate
+1101:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5316576Z   4) e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in day ──────
+1105:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5317267Z     Error: page.evaluate: Test timeout of 900000ms exceeded.
+1124:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5323476Z   5) e2e/a36-workshop-equipment.spec.ts:50:3 › A36 full production garage survey, wet day and night 
+1128:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5324167Z     Error: page.evaluate: Test timeout of 900000ms exceeded.
+1147:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5329479Z   6) e2e/event-hall.spec.ts:11:3 › A71 day: full production hall, cockpit and unchanged physical traversal 
+1151:browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5330346Z     Error: page.evaluate: Test timeout of 600000ms exceeded.
+1183:browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0741862Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5298503Z     Expected pattern: ^[[32m/^(driving|briefing)$/^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5298803Z     Received string:  ^[[31m"loading"^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5298956Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299022Z     Call Log:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299267Z     - Timeout 240000ms exceeded while waiting on the predicate
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299556Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299645Z        at race-entry.ts:6
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299768Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5299983Z       4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5300403Z       5 | export async function finishRaceEntry(page: Page) {
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5300658Z     > 6 |   await expect
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5300841Z         |   ^
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5301016Z       7 |     .poll(
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5301198Z       8 |       async () => {
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5301498Z       9 |         const d = await page.evaluate(() => window.apexDiagnostics());
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5301932Z         at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5302432Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/45-a21-pit-building-frontage.spec.ts:30:3
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5302701Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5303117Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5303640Z     test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/test-failed-1.png
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5304208Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5304428Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5304716Z     Error Context: test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/error-context.md
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5305025Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5305299Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5305771Z     test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5306093Z     Usage:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5306184Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5306485Z         npx playwright show-trace test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5306874Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5307135Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5308430Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5308985Z   3) e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start › Expect "poll toBe" 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5309373Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5309701Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5309966Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310095Z     Expected: ^[[32m"paused"^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310349Z     Received: ^[[31m"loading"^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310477Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310552Z     Call Log:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310788Z     - Timeout 60000ms exceeded while waiting on the predicate
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5310958Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5311166Z       24 |   // A paused acknowledgement can predate the session's first frame. Wait for
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5311595Z       25 |   // the actual paused grid before preserving the immutable comparison snapshot.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5311990Z     > 26 |   await expect.poll(async () => (await diag()).state).toBe('paused');
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5312267Z          |   ^
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5312561Z       27 |   await expect.poll(async () => (await diag()).frame?.[H.TICK] ?? -1).toBe(0);
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5312858Z       28 |   await expect
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5313098Z       29 |     .poll(async () => (await diag()).workerPause)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5313486Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/50-grid-presentation.spec.ts:26:3
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5313832Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5314112Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5314599Z     test-results/50-grid-presentation-pre-r-927ab--hands-control-to-the-start/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5314940Z     Usage:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5315033Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5315496Z         npx playwright show-trace test-results/50-grid-presentation-pre-r-927ab--hands-control-to-the-start/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5315829Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5316085Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5316289Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5316576Z   4) e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in day ──────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5316828Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5316975Z     ^[[31mTest timeout of 900000ms exceeded.^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5317120Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5317267Z     Error: page.evaluate: Test timeout of 900000ms exceeded.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5317687Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5317833Z       126 |     await page.goto('/a32-survey');
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5318189Z       127 |     await page.addScriptTag({ content: chunk.code });
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5318557Z     > 128 |     const report = await page.evaluate(
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5318949Z           |                               ^
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5319306Z       129 |       async ({ samples, lighting }) =>
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5319821Z       130 |         (window as unknown as { A32Survey: { surveyA32: typeof surveyA32 } }).A32Survey.surveyA32(
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5320256Z       131 |           samples,
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5320652Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a32-pit-jacks.spec.ts:128:31
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5320893Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5321234Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5321688Z     test-results/a32-pit-jacks-A32-actual-c-9ab26-oving-service-render-in-day/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5322011Z     Usage:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5322102Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5322404Z         npx playwright show-trace test-results/a32-pit-jacks-A32-actual-c-9ab26-oving-service-render-in-day/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5322725Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5322981Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5323177Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5323476Z   5) e2e/a36-workshop-equipment.spec.ts:50:3 › A36 full production garage survey, wet day and night 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5323739Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5323881Z     ^[[31mTest timeout of 900000ms exceeded.^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5324023Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5324167Z     Error: page.evaluate: Test timeout of 900000ms exceeded.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5324339Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5324453Z       86 |     await page.goto('/__a36_fixture');
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5324737Z       87 |     await page.addScriptTag({ content: chunk.code });
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5325016Z     > 88 |     const report = await page.evaluate(
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5325257Z          |                               ^
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5325475Z       89 |       async (wet) =>
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5325660Z       90 |         (
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5325986Z       91 |           window as unknown as { WorkshopSurvey: { captureWorkshop: typeof captureWorkshop } }
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5326465Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a36-workshop-equipment.spec.ts:88:31
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5326723Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5326999Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5327646Z     test-results/a36-workshop-equipment-A36-7a96e-ge-survey-wet-day-and-night/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5327996Z     Usage:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5328080Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5328379Z         npx playwright show-trace test-results/a36-workshop-equipment-A36-7a96e-ge-survey-wet-day-and-night/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5328708Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5328972Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5329184Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5329479Z   6) e2e/event-hall.spec.ts:11:3 › A71 day: full production hall, cockpit and unchanged physical traversal 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5329851Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5329998Z     ^[[31mTest timeout of 600000ms exceeded.^[[39m
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5330150Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5330346Z     Error: page.evaluate: Test timeout of 600000ms exceeded.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5330523Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5330652Z       44 |     await page.goto('/event-hall-survey');
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5330949Z       45 |     await page.addScriptTag({ content: chunk.code });
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5331239Z     > 46 |     const report = await page.evaluate(
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5331477Z          |                               ^
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5331688Z       47 |       (l) =>
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5331860Z       48 |         (
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5332169Z       49 |           window as unknown as { HallSurvey: { surveyEventHall: typeof surveyEventHall } }
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5332589Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/event-hall.spec.ts:46:31
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5332807Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5333084Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5333544Z     test-results/event-hall-A71-day-full-pr-3d152-nchanged-physical-traversal/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5333874Z     Usage:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5333956Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5334253Z         npx playwright show-trace test-results/event-hall-A71-day-full-pr-3d152-nchanged-physical-traversal/trace.zip
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5334568Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5334823Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5335029Z 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5335174Z   Slow test file: e2e/a36-workshop-equipment.spec.ts (15.4m)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5335480Z   Slow test file: e2e/a32-pit-jacks.spec.ts (15.2m)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5335747Z   Slow test file: e2e/event-hall.spec.ts (10.5m)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5336147Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5336466Z   6 failed
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5336928Z     e2e/20-phase27h.spec.ts:9:1 › 27H: actual application loads the authored GLB and retains frozen native views and live paint 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5337815Z     e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5338571Z     e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5339186Z     e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in day ───────
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5339866Z     e2e/a36-workshop-equipment.spec.ts:50:3 › A36 full production garage survey, wet day and night ─
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5340424Z     e2e/event-hall.spec.ts:11:3 › A71 day: full production hall, cockpit and unchanged physical traversal 
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5340766Z   1 skipped
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:51.5340927Z   18 passed (56.5m)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0741862Z ##[error]Process completed with exit code 1.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0793596Z ##[group]Run actions/upload-artifact@v4
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0793819Z with:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0793991Z   name: browser-validation-11-of-16
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0794382Z   path: test-results/
+browser (11)	UNKNOWN STEP	playwright-report/
+browser (11)	UNKNOWN STEP	browser-shard-plan.json
+browser (11)	UNKNOWN STEP	browser-backend.json
+browser (11)	UNKNOWN STEP	browser-progress.json
+browser (11)	UNKNOWN STEP	
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0794753Z   retention-days: 7
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0794930Z   if-no-files-found: warn
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0795111Z   compression-level: 6
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0795278Z   overwrite: false
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0795457Z   include-hidden-files: false
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0795640Z env:
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0795793Z   APEX_BROWSER_BACKEND: mesa
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0795992Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0796185Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0796375Z   GALLIUM_DRIVER: llvmpipe
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.0796550Z ##[endgroup]
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2085308Z (node:6155) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2086208Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2354287Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2356272Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2357022Z With the provided path, there will be 212 files uploaded
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2360601Z Artifact name is valid!
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.2361109Z Root directory input is valid!
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.5652257Z Beginning upload of artifact content to blob storage
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:52.7916144Z (node:6155) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:53.0166864Z Uploaded bytes 8388608
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:53.1967801Z Uploaded bytes 16777216
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:53.5566228Z Uploaded bytes 25165824
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:53.6774843Z Uploaded bytes 33554432
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:53.9069477Z Uploaded bytes 41943040
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:54.0984445Z Uploaded bytes 50331648
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:54.4507230Z Uploaded bytes 58720256
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:54.6439097Z Uploaded bytes 67108864
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:54.8079851Z Uploaded bytes 75497472
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:55.0445628Z Uploaded bytes 83886080
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:55.3257644Z Uploaded bytes 92274688
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:55.5052503Z Uploaded bytes 100663296
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:55.7274261Z Uploaded bytes 109051904
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:56.0169695Z Uploaded bytes 117440512
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:56.2138231Z Uploaded bytes 125829120
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:56.4067511Z Uploaded bytes 134217728
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:56.6761482Z Uploaded bytes 142606336
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:56.9444321Z Uploaded bytes 150994944
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:57.1498653Z Uploaded bytes 159383552
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:57.3778667Z Uploaded bytes 167772160
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:57.5532164Z Uploaded bytes 176160768
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:57.7844145Z Uploaded bytes 184549376
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:58.0211303Z Uploaded bytes 192937984
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:58.3050072Z Uploaded bytes 201326592
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:58.4693698Z Uploaded bytes 209715200
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:58.6940199Z Uploaded bytes 218103808
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:59.0183223Z Uploaded bytes 226492416
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:59.2680890Z Uploaded bytes 234881024
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:59.3738812Z Uploaded bytes 243269632
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:59.6336793Z Uploaded bytes 251658240
+browser (11)	UNKNOWN STEP	2026-11-23T23:08:59.8884091Z Uploaded bytes 260046848
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:00.1466747Z Uploaded bytes 268435456
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:00.3560927Z Uploaded bytes 276824064
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:00.5938288Z Uploaded bytes 285212672
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:00.7385078Z Uploaded bytes 293601280
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:01.0034597Z Uploaded bytes 301989888
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:01.2276842Z Uploaded bytes 310378496
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:01.4524169Z Uploaded bytes 318767104
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:01.7439630Z Uploaded bytes 327155712
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:01.9635038Z Uploaded bytes 335544320
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:02.2452843Z Uploaded bytes 343932928
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:02.5397988Z Uploaded bytes 352321536
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:02.7357095Z Uploaded bytes 360710144
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:03.0474268Z Uploaded bytes 369098752
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:03.1625613Z Uploaded bytes 377487360
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:03.3842889Z Uploaded bytes 385875968
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:03.6927925Z Uploaded bytes 394264576
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:03.8308361Z Uploaded bytes 402653184
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:04.1409916Z Uploaded bytes 411041792
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:04.4403271Z Uploaded bytes 419430400
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:04.6110794Z Uploaded bytes 427819008
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:04.7728888Z Uploaded bytes 436207616
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.0117928Z Uploaded bytes 444596224
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.2771628Z Uploaded bytes 452984832
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.4772387Z Uploaded bytes 461373440
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.6995457Z Uploaded bytes 469762048
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.8606800Z Uploaded bytes 475285120
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.8809897Z Finished uploading artifact content to blob storage!
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.8811725Z SHA256 digest of uploaded artifact zip is 84678070d345ebaa03644cfddf8a6c9974df50fe631f4d3c9f05aa131dd9c9f0
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:05.8814247Z Finalizing artifact upload
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.2270840Z Artifact browser-validation-11-of-16.zip successfully finalized. Artifact ID 14871612353
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.2271761Z Artifact browser-validation-11-of-16 has been successfully uploaded! Final size is 475285120 bytes. Artifact ID is 14871612353
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.2276107Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45272575889/artifacts/14871612353
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.2475169Z Post job cleanup.
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3174737Z [command]/usr/bin/git version
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3206176Z git version 2.56.1
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3231118Z Temporarily overriding HOME='/home/runner/work/_temp/3e16fae0-1d4c-4ce1-8785-e21c9bdb18cc' before making global git config changes
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3232170Z Adding repository directory to the temporary git global config as a safe directory
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3236658Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3264293Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3288642Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3476728Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3500623Z http.https://github.com/.extraheader
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3508507Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3534795Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3711697Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.3738652Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.4035967Z Cleaning up orphan processes
+browser (11)	UNKNOWN STEP	2026-11-23T23:09:06.4288448Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
