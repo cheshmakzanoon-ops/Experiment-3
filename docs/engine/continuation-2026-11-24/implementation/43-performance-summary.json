@@ -1,0 +1,1300 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-11-24T19:37:40.384813+00:00",
+  "reviewHeadLabel": "93416f81c9bfe4f1df894888bd7c03d904b64058",
+  "scope": "Independent recomputation and source/code inspection of retained evidence; no benchmark reruns.",
+  "numericConvention": "Positive medianTimeReductionPercent means less elapsed time; no pooled or cross-run estimates.",
+  "audit": {
+    "allChecksPassed": true,
+    "recomputedNumericSummaryChecks": 296,
+    "maximumAbsoluteNumericSummaryDifference": 0,
+    "allRawSamplesRetained": true,
+    "sourceFingerprintsMatchReviewedImplementations": true
+  },
+  "inputEvidenceSHA256": {
+    "13-bvh-build-benchmark.json": "ce50630fc8a8a80b3fb06c3e7e11629257435a14bc47489a1309d962297ba2d7",
+    "28-track-contact-build-benchmark.json": "452b2e437cf9118364876d457ccdf60f9d38461fd7895d6961fc8aefce84b555",
+    "29-response-benchmark.json": "3da92b68de89501a0031a5953f0eba28c3480a7a6f57c2747d2532f9c3fbc1c9",
+    "29-response-benchmark-final.json": "d5ec682be1fc8f66700b6036e35fa9437396e6975b797313cc1eaa834b492478",
+    "29-initial-baseline.json": "599806797f671d320f90f093c6928b75e022d3863dad99fbb3183beaa4bfe6d8",
+    "29-full-predictor-comparison.json": "bb61d83076d0a082d84721252ff676df9d4f7c357fd74c3aad7bce4cb88acca1",
+    "34-rigid-step-benchmark.json": "5200b8139bbf6ecdedd4c1417339c5e1623cffa98af655f8695370f16977c1e7",
+    "41-atomic-vs-scalars.json": "c658aca6f8ba0045333f8d99f872f948e1840a4298dca469eaa8a88129887d72",
+    "41-original-vs-scalars.json": "3e6d0d4f15123112618ab1b8cbcf3f29892ad7a152a3668466a1fd6d8c94c428",
+    "41-frozen-atomic-reference.json": "1ce1a9c56075e2feb9b253049b12f7a3fb59036a37fb2f18a28b484fc6ac700b",
+    "41-source-and-comparison-proof.json": "fff01209ad9613975bba11725d1e66f9e12c71c14a7cd5988dbd7dc860af8612"
+  },
+  "reviewedSourceSHA256": {
+    "src/simulation/bvh.ts": "a34dfd0196d5cba88127cea9603728a149ab612aa06016edc0a541514ef96e4d",
+    "src/simulation/rigid.ts": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7",
+    "src/simulation/obb.ts": "def241f941738704c6d6d9a1d66dad4ee0ca838bf7cd772a029dcd961564a4fe",
+    "src/net/prediction.ts": "236f0e9d109377d1831905f39a815b08cae31f0e182331a8507a1430c638f23f",
+    "scripts/bvh-build-benchmark.mjs": "b121f1a8360165d4859989acf3979ab7ead785250ce3f4a03c98c7020d3c9eef",
+    "scripts/track-contact-build-benchmark.mjs": "5c768c369855234b5d7f311e6630d4bc92b18973cd744814839ff8502dac2724",
+    "scripts/prediction-response-benchmark.mjs": "4651c3bc5cb5be21abe5774b25d94aa0138979a41d4dcbfb7d130119a94b6a78",
+    "scripts/rigid-step-benchmark.mjs": "f7e6ed21a565907060844c595f47eb5ef3f76d247561bc31de8676c5a0215d09",
+    "tests/rigid-staging-cost.test.ts": "87a963c5b8da9600c01ca46e436bf31a8efff63b9586d82c5dc3634386bf2546",
+    "docs/engine/continuation-2026-11-24/implementation/24-prediction-ownership-comparison.mjs": "29bb1a617f0b7c8cdcc1126848f6907d6b875a9886343d50aceff2f081b36351"
+  },
+  "syntheticBVH": [
+    {
+      "scenario": "random-8192",
+      "coldConstructorMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 31.911207999999988,
+          "median": 44.362809,
+          "maximum": 48.191722999999996
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 24.391471999999993,
+          "median": 24.562556999999998,
+          "maximum": 33.962661
+        },
+        "medianTimeReductionPercent": 44.63254795249778,
+        "rangesOverlap": true
+      },
+      "freshProcessWallMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 213.7806250000001,
+          "median": 283.55770299999995,
+          "maximum": 308.857955
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 199.47705700000006,
+          "median": 225.598255,
+          "maximum": 226.090617
+        },
+        "medianTimeReductionPercent": 20.44008940219125,
+        "rangesOverlap": true
+      },
+      "warmConstructorMs": {
+        "baseline": {
+          "count": 7,
+          "minimum": 19.033585000000016,
+          "median": 24.56176499999998,
+          "maximum": 39.383482000000015
+        },
+        "candidate": {
+          "count": 7,
+          "minimum": 5.653026000000011,
+          "median": 6.244072000000017,
+          "maximum": 28.001558000000017
+        },
+        "medianTimeReductionPercent": 74.57808101331472,
+        "rangesOverlap": true
+      },
+      "work": {
+        "baseline": {
+          "temporaryRanges": 1023,
+          "copiedIDsIntoRanges": 81920,
+          "nativeSorts": 1023,
+          "comparisons": 519166,
+          "sortWrites": 81920,
+          "orderWrites": 81920,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 245760
+        },
+        "candidate": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 259348,
+          "sortWrites": 0,
+          "orderWrites": 131768,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 131768
+        }
+      }
+    },
+    {
+      "scenario": "random-65537",
+      "coldConstructorMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 279.093521,
+          "median": 282.27685299999996,
+          "maximum": 283.22035300000005
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 92.88314400000002,
+          "median": 105.76502400000001,
+          "maximum": 125.66173899999998
+        },
+        "medianTimeReductionPercent": 62.53145701606642,
+        "rangesOverlap": false
+      },
+      "freshProcessWallMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 464.8704659999994,
+          "median": 482.6230290000003,
+          "maximum": 495.7103139999999
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 293.2025620000004,
+          "median": 296.7278150000002,
+          "maximum": 320.3537860000001
+        },
+        "medianTimeReductionPercent": 38.51768416131672,
+        "rangesOverlap": false
+      },
+      "warmConstructorMs": {
+        "baseline": {
+          "count": 7,
+          "minimum": 240.49484800000005,
+          "median": 257.929167,
+          "maximum": 287.1276089999999
+        },
+        "candidate": {
+          "count": 7,
+          "minimum": 69.65015500000004,
+          "median": 85.86810700000001,
+          "maximum": 97.11434500000007
+        },
+        "medianTimeReductionPercent": 66.70864795992615,
+        "rangesOverlap": false
+      },
+      "work": {
+        "baseline": {
+          "temporaryRanges": 8192,
+          "copiedIDsIntoRanges": 851990,
+          "nativeSorts": 8192,
+          "comparisons": 6372072,
+          "sortWrites": 851990,
+          "orderWrites": 851990,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 2555970
+        },
+        "candidate": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 2534867,
+          "sortWrites": 0,
+          "orderWrites": 1225326,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 1225326
+        }
+      }
+    },
+    {
+      "scenario": "ribbon-229376",
+      "coldConstructorMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 585.224601,
+          "median": 659.967613,
+          "maximum": 777.1557459999999
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 239.94510499999998,
+          "median": 259.063239,
+          "maximum": 386.798474
+        },
+        "medianTimeReductionPercent": 60.746067852878106,
+        "rangesOverlap": false
+      },
+      "freshProcessWallMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 800.8169559999988,
+          "median": 975.2989519999992,
+          "maximum": 1040.3562459999994
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 405.636493,
+          "median": 430.9732779999995,
+          "maximum": 577.0216629999995
+        },
+        "medianTimeReductionPercent": 55.8111615811518,
+        "rangesOverlap": false
+      },
+      "warmConstructorMs": {
+        "baseline": {
+          "count": 7,
+          "minimum": 522.6181690000003,
+          "median": 574.55708,
+          "maximum": 765.080852
+        },
+        "candidate": {
+          "count": 7,
+          "minimum": 177.27570200000002,
+          "median": 191.64442400000007,
+          "maximum": 502.4680910000002
+        },
+        "medianTimeReductionPercent": 66.64484162304639,
+        "rangesOverlap": false
+      },
+      "work": {
+        "baseline": {
+          "temporaryRanges": 32767,
+          "copiedIDsIntoRanges": 3440640,
+          "nativeSorts": 32767,
+          "comparisons": 17230429,
+          "sortWrites": 3440640,
+          "orderWrites": 3440640,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 10321920
+        },
+        "candidate": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 10784266,
+          "sortWrites": 0,
+          "orderWrites": 4276579,
+          "heapFallbacks": 1,
+          "measuredIDAssignments": 4276579
+        }
+      }
+    },
+    {
+      "scenario": "equal-8192",
+      "coldConstructorMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 18.07016299999998,
+          "median": 22.159693000000004,
+          "maximum": 26.258961999999997
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 17.479747000000003,
+          "median": 19.034091999999987,
+          "maximum": 19.184314999999998
+        },
+        "medianTimeReductionPercent": 14.104893059664757,
+        "rangesOverlap": true
+      },
+      "freshProcessWallMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 195.6271160000033,
+          "median": 208.91605999999592,
+          "maximum": 255.17967099999805
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 189.48988799999643,
+          "median": 197.46204600000056,
+          "maximum": 216.90508999999292
+        },
+        "medianTimeReductionPercent": 5.482591429302075,
+        "rangesOverlap": true
+      },
+      "warmConstructorMs": {
+        "baseline": {
+          "count": 7,
+          "minimum": 7.534965999999997,
+          "median": 11.748014999999981,
+          "maximum": 21.943077000000017
+        },
+        "candidate": {
+          "count": 7,
+          "minimum": 3.3110410000000456,
+          "median": 4.2517970000000105,
+          "maximum": 17.712912000000017
+        },
+        "medianTimeReductionPercent": 63.80837954326737,
+        "rangesOverlap": true
+      },
+      "work": {
+        "baseline": {
+          "temporaryRanges": 1023,
+          "copiedIDsIntoRanges": 81920,
+          "nativeSorts": 1023,
+          "comparisons": 80897,
+          "sortWrites": 81920,
+          "orderWrites": 81920,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 245760
+        },
+        "candidate": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 8191,
+          "sortWrites": 0,
+          "orderWrites": 0,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 0
+        }
+      }
+    },
+    {
+      "scenario": "organ-pipe-8192",
+      "coldConstructorMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 18.48705000000001,
+          "median": 20.13864000000001,
+          "maximum": 22.412042999999983
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 26.366987999999992,
+          "median": 29.20505799999998,
+          "maximum": 30.442202999999978
+        },
+        "medianTimeReductionPercent": -45.020011281794424,
+        "rangesOverlap": false
+      },
+      "freshProcessWallMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 190.80801200000133,
+          "median": 196.68194000000221,
+          "maximum": 267.04324199999974
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 204.4437870000038,
+          "median": 208.27367800000502,
+          "maximum": 231.38725500000146
+        },
+        "medianTimeReductionPercent": -5.893646361228022,
+        "rangesOverlap": true
+      },
+      "warmConstructorMs": {
+        "baseline": {
+          "count": 7,
+          "minimum": 7.838807000000003,
+          "median": 11.399457999999981,
+          "maximum": 17.832580000000007
+        },
+        "candidate": {
+          "count": 7,
+          "minimum": 6.426361999999983,
+          "median": 9.238552999999968,
+          "maximum": 26.005821999999966
+        },
+        "medianTimeReductionPercent": 18.95620826884943,
+        "rangesOverlap": true
+      },
+      "work": {
+        "baseline": {
+          "temporaryRanges": 1023,
+          "copiedIDsIntoRanges": 81920,
+          "nativeSorts": 1023,
+          "comparisons": 89089,
+          "sortWrites": 81920,
+          "orderWrites": 81920,
+          "heapFallbacks": 0,
+          "measuredIDAssignments": 245760
+        },
+        "candidate": {
+          "temporaryRanges": 0,
+          "copiedIDsIntoRanges": 0,
+          "nativeSorts": 0,
+          "comparisons": 395718,
+          "sortWrites": 0,
+          "orderWrites": 67947,
+          "heapFallbacks": 2,
+          "measuredIDAssignments": 67947
+        }
+      }
+    }
+  ],
+  "realTrackConstruction": [
+    {
+      "track": "aurel",
+      "triangles": 229376,
+      "maximumWorkerRssMiB": {
+        "baseline": 280.53125,
+        "candidate": 217.9140625
+      },
+      "importMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 812.8258950000001,
+          "median": 902.151714,
+          "maximum": 942.748474
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 595.284089,
+          "median": 596.212825,
+          "maximum": 840.0993930000001
+        },
+        "medianTimeReductionPercent": 33.91213298742345,
+        "rangesOverlap": true
+      },
+      "trackMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 38.429340000000025,
+          "median": 39.23919999999998,
+          "maximum": 41.647306999999955
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 40.22576700000002,
+          "median": 40.77069599999993,
+          "maximum": 44.16264699999999
+        },
+        "medianTimeReductionPercent": -3.9029745764438406,
+        "rangesOverlap": true
+      },
+      "contactMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 770.522277,
+          "median": 798.398311,
+          "maximum": 809.2941450000001
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 272.73088200000007,
+          "median": 282.60034300000007,
+          "maximum": 310.094325
+        },
+        "medianTimeReductionPercent": 64.6040905765393,
+        "rangesOverlap": false
+      },
+      "contactReadySinceProcessTimeOriginMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 1732.008316,
+          "median": 1797.194437,
+          "maximum": 1881.427877
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 995.979872,
+          "median": 1008.077618,
+          "maximum": 1286.905457
+        },
+        "medianTimeReductionPercent": 43.908260717590906,
+        "rangesOverlap": false
+      },
+      "warmBVHMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 720.1045600000002,
+          "median": 795.1851350000002,
+          "maximum": 969.073144
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 200.0820110000002,
+          "median": 246.1919640000001,
+          "maximum": 391.36215500000003
+        },
+        "medianTimeReductionPercent": 69.03966722164643,
+        "rangesOverlap": false
+      }
+    },
+    {
+      "track": "vellamar",
+      "triangles": 229376,
+      "maximumWorkerRssMiB": {
+        "baseline": 276.72265625,
+        "candidate": 220.8515625
+      },
+      "importMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 543.2344929999999,
+          "median": 557.631353,
+          "maximum": 571.2133990000001
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 581.68664,
+          "median": 652.161084,
+          "maximum": 657.610353
+        },
+        "medianTimeReductionPercent": -16.952011484189256,
+        "rangesOverlap": false
+      },
+      "trackMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 48.52472799999998,
+          "median": 49.88035000000002,
+          "maximum": 49.91040500000008
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 46.37231200000008,
+          "median": 48.44112300000006,
+          "maximum": 51.702045999999996
+        },
+        "medianTimeReductionPercent": 2.8853586632811457,
+        "rangesOverlap": true
+      },
+      "contactMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 681.156183,
+          "median": 711.243375,
+          "maximum": 735.5043570000001
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 266.76658900000007,
+          "median": 280.45003600000007,
+          "maximum": 332.6161860000001
+        },
+        "medianTimeReductionPercent": 60.56904769060238,
+        "rangesOverlap": false
+      },
+      "contactReadySinceProcessTimeOriginMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 1412.774896,
+          "median": 1414.190667,
+          "maximum": 1417.772572
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 1058.622806,
+          "median": 1059.813012,
+          "maximum": 1069.896248
+        },
+        "medianTimeReductionPercent": 25.058689982147932,
+        "rangesOverlap": false
+      },
+      "warmBVHMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 632.5219080000002,
+          "median": 728.120535,
+          "maximum": 810.7540399999998
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 211.0122510000001,
+          "median": 231.71276199999988,
+          "maximum": 239.23637199999985
+        },
+        "medianTimeReductionPercent": 68.17659290436029,
+        "rangesOverlap": false
+      }
+    },
+    {
+      "track": "loirette",
+      "triangles": 423920,
+      "maximumWorkerRssMiB": {
+        "baseline": 331.30859375,
+        "candidate": 240.75390625
+      },
+      "importMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 516.0376610000001,
+          "median": 563.471975,
+          "maximum": 592.608673
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 548.594018,
+          "median": 559.665952,
+          "maximum": 620.095635
+        },
+        "medianTimeReductionPercent": 0.6754591477242666,
+        "rangesOverlap": true
+      },
+      "trackMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 109.83104100000003,
+          "median": 111.27042500000005,
+          "maximum": 116.32653900000003
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 109.89286000000004,
+          "median": 111.160304,
+          "maximum": 156.7486580000001
+        },
+        "medianTimeReductionPercent": 0.0989669986432129,
+        "rangesOverlap": true
+      },
+      "contactMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 1165.274902,
+          "median": 1318.5174620000003,
+          "maximum": 1436.357662
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 522.487852,
+          "median": 686.8365040000001,
+          "maximum": 706.4510569999999
+        },
+        "medianTimeReductionPercent": 47.908425652689616,
+        "rangesOverlap": false
+      },
+      "contactReadySinceProcessTimeOriginMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 1899.525028,
+          "median": 2114.154174,
+          "maximum": 2197.406461
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 1311.179484,
+          "median": 1462.001394,
+          "maximum": 1503.884137
+        },
+        "medianTimeReductionPercent": 30.846983063970246,
+        "rangesOverlap": false
+      },
+      "warmBVHMs": {
+        "baseline": {
+          "count": 3,
+          "minimum": 1035.9699100000007,
+          "median": 1052.5112870000003,
+          "maximum": 1057.585701
+        },
+        "candidate": {
+          "count": 3,
+          "minimum": 400.1912619999998,
+          "median": 450.271972,
+          "maximum": 517.1884279999999
+        },
+        "medianTimeReductionPercent": 57.21927379197788,
+        "rangesOverlap": false
+      }
+    }
+  ],
+  "responseModel": {
+    "runs": [
+      {
+        "evidence": "29-response-benchmark.json",
+        "combined": {
+          "baseline": {
+            "count": 5,
+            "minimum": 180.42886700000003,
+            "median": 191.90295399999997,
+            "maximum": 243.23226200000005
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 17.255206999999984,
+            "median": 18.075845999999956,
+            "maximum": 95.565181
+          },
+          "medianTimeReductionPercent": 90.58073592759808,
+          "rangesOverlap": false
+        },
+        "queryOnly": {
+          "baseline": {
+            "count": 5,
+            "minimum": 167.64705700000002,
+            "median": 168.22419200000002,
+            "maximum": 185.15753199999995
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 10.849537999999995,
+            "median": 13.914560999999992,
+            "maximum": 24.438645000000008
+          },
+          "medianTimeReductionPercent": 91.72856125235543,
+          "rangesOverlap": false
+        }
+      },
+      {
+        "evidence": "29-response-benchmark-final.json",
+        "combined": {
+          "baseline": {
+            "count": 5,
+            "minimum": 169.754346,
+            "median": 184.343687,
+            "maximum": 215.39757999999995
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 17.748793000000035,
+            "median": 18.009209999999996,
+            "maximum": 31.35440299999999
+          },
+          "medianTimeReductionPercent": 90.23063371841967,
+          "rangesOverlap": false
+        },
+        "queryOnly": {
+          "baseline": {
+            "count": 5,
+            "minimum": 161.30205,
+            "median": 178.010901,
+            "maximum": 265.73480200000006
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 11.026292999999953,
+            "median": 11.328771000000074,
+            "maximum": 11.657260000000008
+          },
+          "medianTimeReductionPercent": 93.63591165689338,
+          "rangesOverlap": false
+        }
+      }
+    ],
+    "factoryCalls": {
+      "baseline": {
+        "operations": 10000,
+        "arrayFrom": 10000,
+        "typedArraySubarray": 20000
+      },
+      "candidate": {
+        "operations": 10000,
+        "arrayFrom": 0,
+        "typedArraySubarray": 0
+      }
+    },
+    "initialBaselineOnly": {
+      "combined": {
+        "milliseconds": 223.04578899999996,
+        "checksum": -5133122.879146846
+      },
+      "queryOnly": {
+        "milliseconds": 190.53824199999997,
+        "checksum": -5130658.792429991
+      }
+    },
+    "observationsPerCompleteExperiment": 131072,
+    "queryTriplesPerCompleteExperiment": 786432
+  },
+  "rigidIntegration": [
+    {
+      "evidence": "34-rigid-step-benchmark.json",
+      "baselineHeadLabel": "5edead7a44c8ccb5a187b22b750ce2bda7715128",
+      "candidateHeadLabel": "676d4c8531695638537bf62af5a74ca8edbe41ef",
+      "baselineRigidSHA256": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "candidateRigidSHA256": "eb0caeec3e61745282a3b1fbde6950f7fa64fcfe8ea0072626fdeb95ab41324a",
+      "ownedObjects": {
+        "baseline": [
+          [
+            14,
+            1
+          ]
+        ],
+        "candidate": [
+          [
+            19,
+            2
+          ]
+        ]
+      },
+      "timedStepsPerSource": 10485760,
+      "workloads": [
+        {
+          "id": "apx01",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 245.53722600000037,
+            "median": 257.1527839999999,
+            "maximum": 312.9788160000003
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 283.08107900000005,
+            "median": 302.2334209999999,
+            "maximum": 333.85749999999996
+          },
+          "medianTimeReductionPercent": -17.530682071091274,
+          "rangesOverlap": true
+        },
+        {
+          "id": "apx01",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 231.04438200000004,
+            "median": 246.509722,
+            "maximum": 283.00494100000014
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 286.66910999999993,
+            "median": 318.429224,
+            "maximum": 356.6872649999999
+          },
+          "medianTimeReductionPercent": -29.175117888453883,
+          "rangesOverlap": false
+        },
+        {
+          "id": "tc1",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 230.314208,
+            "median": 241.33621099999993,
+            "maximum": 284.29635599999983
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 314.60191699999996,
+            "median": 320.6482780000001,
+            "maximum": 478.01555499999995
+          },
+          "medianTimeReductionPercent": -32.86372429208322,
+          "rangesOverlap": false
+        },
+        {
+          "id": "tc1",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 247.76202899999998,
+            "median": 293.298661,
+            "maximum": 315.54531399999996
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 286.60272399999985,
+            "median": 298.205287,
+            "maximum": 302.20576700000004
+          },
+          "medianTimeReductionPercent": -1.672911149089762,
+          "rangesOverlap": true
+        },
+        {
+          "id": "gpr1",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 235.95702499999993,
+            "median": 259.70872800000006,
+            "maximum": 271.460155
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 308.808953,
+            "median": 319.536778,
+            "maximum": 399.8494169999999
+          },
+          "medianTimeReductionPercent": -23.036595828231054,
+          "rangesOverlap": false
+        },
+        {
+          "id": "gpr1",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 223.76023400000008,
+            "median": 257.43913799999996,
+            "maximum": 365.89428
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 284.4687839999999,
+            "median": 287.037507,
+            "maximum": 438.09899700000005
+          },
+          "medianTimeReductionPercent": -11.497229686963939,
+          "rangesOverlap": true
+        },
+        {
+          "id": "mx450",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 230.08621999999968,
+            "median": 247.53514399999995,
+            "maximum": 314.46268699999996
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 289.6885820000002,
+            "median": 309.6421990000001,
+            "maximum": 364.1217200000001
+          },
+          "medianTimeReductionPercent": -25.090196889375903,
+          "rangesOverlap": true
+        },
+        {
+          "id": "mx450",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 232.3755369999999,
+            "median": 250.06973100000005,
+            "maximum": 376.24890900000014
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 279.920842,
+            "median": 308.18576800000005,
+            "maximum": 346.62442699999974
+          },
+          "medianTimeReductionPercent": -23.239932625032502,
+          "rangesOverlap": true
+        }
+      ]
+    },
+    {
+      "evidence": "41-atomic-vs-scalars.json",
+      "baselineHeadLabel": "ff6bceb7627d448db72ff29de538aa10251fcb22",
+      "candidateHeadLabel": "676d4c8531695638537bf62af5a74ca8edbe41ef",
+      "baselineRigidSHA256": "eb0caeec3e61745282a3b1fbde6950f7fa64fcfe8ea0072626fdeb95ab41324a",
+      "candidateRigidSHA256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7",
+      "ownedObjects": {
+        "baseline": [
+          [
+            19,
+            2
+          ]
+        ],
+        "candidate": [
+          [
+            14,
+            2
+          ]
+        ]
+      },
+      "timedStepsPerSource": 10485760,
+      "workloads": [
+        {
+          "id": "apx01",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 280.08233599999994,
+            "median": 288.782501,
+            "maximum": 300.2208770000002
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 225.74428899999998,
+            "median": 241.64983399999983,
+            "maximum": 245.10863800000016
+          },
+          "medianTimeReductionPercent": 16.32116448773334,
+          "rangesOverlap": false
+        },
+        {
+          "id": "apx01",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 283.93122100000005,
+            "median": 285.82432000000017,
+            "maximum": 429.65632000000005
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 213.06467799999996,
+            "median": 229.99065399999995,
+            "maximum": 254.45979199999988
+          },
+          "medianTimeReductionPercent": 19.534260065763544,
+          "rangesOverlap": false
+        },
+        {
+          "id": "tc1",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 276.65940100000006,
+            "median": 301.29951100000017,
+            "maximum": 423.8112399999999
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 208.37331200000006,
+            "median": 232.35787800000003,
+            "maximum": 252.0073400000001
+          },
+          "medianTimeReductionPercent": 22.88142877205005,
+          "rangesOverlap": false
+        },
+        {
+          "id": "tc1",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 268.188356,
+            "median": 289.3581609999999,
+            "maximum": 299.38907500000005
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 212.8269469999999,
+            "median": 227.769409,
+            "maximum": 243.84601099999998
+          },
+          "medianTimeReductionPercent": 21.28460859273982,
+          "rangesOverlap": false
+        },
+        {
+          "id": "gpr1",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 273.620805,
+            "median": 298.171165,
+            "maximum": 362.734606
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 230.5713249999999,
+            "median": 234.483812,
+            "maximum": 269.35192800000004
+          },
+          "medianTimeReductionPercent": 21.359326613624752,
+          "rangesOverlap": false
+        },
+        {
+          "id": "gpr1",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 277.2442839999999,
+            "median": 280.80991300000005,
+            "maximum": 306.72992499999987
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 219.69617699999992,
+            "median": 227.92771300000004,
+            "maximum": 232.9937010000001
+          },
+          "medianTimeReductionPercent": 18.83202748615217,
+          "rangesOverlap": false
+        },
+        {
+          "id": "mx450",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 275.1798240000003,
+            "median": 277.80747700000006,
+            "maximum": 327.02804000000015
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 217.90330599999993,
+            "median": 229.23525999999993,
+            "maximum": 369.86246099999994
+          },
+          "medianTimeReductionPercent": 17.484128765907958,
+          "rangesOverlap": true
+        },
+        {
+          "id": "mx450",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 278.35510499999987,
+            "median": 286.430832,
+            "maximum": 310.4396710000001
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 222.98480599999994,
+            "median": 223.71624399999996,
+            "maximum": 239.132429
+          },
+          "medianTimeReductionPercent": 21.89519457877358,
+          "rangesOverlap": false
+        }
+      ]
+    },
+    {
+      "evidence": "41-original-vs-scalars.json",
+      "baselineHeadLabel": "5edead7a44c8ccb5a187b22b750ce2bda7715128",
+      "candidateHeadLabel": "676d4c8531695638537bf62af5a74ca8edbe41ef",
+      "baselineRigidSHA256": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "candidateRigidSHA256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7",
+      "ownedObjects": {
+        "baseline": [
+          [
+            14,
+            1
+          ]
+        ],
+        "candidate": [
+          [
+            14,
+            2
+          ]
+        ]
+      },
+      "timedStepsPerSource": 10485760,
+      "workloads": [
+        {
+          "id": "apx01",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 237.31135099999983,
+            "median": 250.02365099999997,
+            "maximum": 326.7293789999999
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 215.23206,
+            "median": 275.67999299999997,
+            "maximum": 302.83845599999995
+          },
+          "medianTimeReductionPercent": -10.261566014808743,
+          "rangesOverlap": true
+        },
+        {
+          "id": "apx01",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 229.89494400000012,
+            "median": 254.28230699999995,
+            "maximum": 297.56067800000005
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 234.84632900000003,
+            "median": 262.12872200000004,
+            "maximum": 405.7031559999998
+          },
+          "medianTimeReductionPercent": -3.0857101670074494,
+          "rangesOverlap": true
+        },
+        {
+          "id": "tc1",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 231.88931299999967,
+            "median": 262.21369200000004,
+            "maximum": 309.2124019999999
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 224.84954799999997,
+            "median": 247.3280209999998,
+            "maximum": 280.61128900000006
+          },
+          "medianTimeReductionPercent": 5.676923613889784,
+          "rangesOverlap": true
+        },
+        {
+          "id": "tc1",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 234.95769700000005,
+            "median": 253.81065000000012,
+            "maximum": 329.7588360000001
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 227.422465,
+            "median": 285.7037139999999,
+            "maximum": 322.772945
+          },
+          "medianTimeReductionPercent": -12.565691786376876,
+          "rangesOverlap": true
+        },
+        {
+          "id": "gpr1",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 242.542281,
+            "median": 257.4656869999999,
+            "maximum": 335.30756500000007
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 218.042999,
+            "median": 230.53776800000003,
+            "maximum": 275.477585
+          },
+          "medianTimeReductionPercent": 10.45883795769642,
+          "rangesOverlap": true
+        },
+        {
+          "id": "gpr1",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 224.6464460000002,
+            "median": 266.72696900000005,
+            "maximum": 328.45007899999973
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 207.9492140000002,
+            "median": 268.5817769999999,
+            "maximum": 303.33399700000007
+          },
+          "medianTimeReductionPercent": -0.6953957475517969,
+          "rangesOverlap": true
+        },
+        {
+          "id": "mx450",
+          "hz": 120,
+          "baseline": {
+            "count": 5,
+            "minimum": 272.9341649999999,
+            "median": 295.2217029999997,
+            "maximum": 349.17737799999986
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 221.49851100000024,
+            "median": 235.53660600000012,
+            "maximum": 305.1503070000001
+          },
+          "medianTimeReductionPercent": 20.217042444199862,
+          "rangesOverlap": true
+        },
+        {
+          "id": "mx450",
+          "hz": 240,
+          "baseline": {
+            "count": 5,
+            "minimum": 249.65943500000003,
+            "median": 267.92580699999985,
+            "maximum": 328.83484599999997
+          },
+          "candidate": {
+            "count": 5,
+            "minimum": 228.501076,
+            "median": 232.53744099999994,
+            "maximum": 317.79819
+          },
+          "medianTimeReductionPercent": 13.208270750864969,
+          "rangesOverlap": true
+        }
+      ]
+    }
+  ],
+  "equalityScope": {
+    "realTrackCallsAcross18Workers": 55944,
+    "realTrackSpatialPositionsPerTrack": 444,
+    "realTrackTopLevelQueryFormsPerPosition": 7,
+    "rigidDistinctTrajectoryPositionsSharedAcrossExperiments": 131072,
+    "rigidScalarsPerState": 29,
+    "rigidScalarComparisonsPerExperiment": 3801088,
+    "rigidRejectedCallsPerExperiment": 768,
+    "rigidCorrectedRetriesPerExperiment": 384,
+    "allThreeRigidExactRecordsIdentical": true,
+    "fullPredictorRecordedCounts": {
+      "tracks": 32,
+      "reconciliations": 4096,
+      "poseReads": 97536,
+      "renders": 12288,
+      "authoritativeReads": 4096
+    }
+  },
+  "provenanceCaveats": [
+    "Agent 13 historical JSON contains checkout paths but no source hashes or commit IDs; its retained baseline BVH/math files now match the original reference.",
+    "Agent 41 candidate HEAD labels identify the checkout parent, not the uncommitted scalar source; the archived content hashes identify the measured implementation.",
+    "The archived full-predictor comparison script formerly hardcoded baselineCommit 5edead7 despite accepting arbitrary source roots. This review fixes future metadata using Git lookup, leaves historical JSON unchanged, and validates the existing agent 29 baseline with actual file hashes.",
+    "Earlier operation-count and isolated timing records do not establish browser FPS, total game CPU, UI startup, transient heap allocation, or universal gains."
+  ]
+}

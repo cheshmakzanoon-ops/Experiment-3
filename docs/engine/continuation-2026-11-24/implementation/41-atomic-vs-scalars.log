@@ -1,0 +1,190 @@
+(node:19) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:35) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:43) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:59) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:67) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:91) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "output": "/engine-work-4e0075ccccb3/reports/41-atomic-vs-scalars.json",
+  "exactStates": 131072,
+  "recovery": [
+    {
+      "name": "invalid-position",
+      "rejections": 256,
+      "recoveries": 128,
+      "errors": [
+        "Invalid rigid-body integration state"
+      ]
+    },
+    {
+      "name": "singular-midpoint",
+      "rejections": 256,
+      "recoveries": 128,
+      "errors": [
+        "Singular rigid-body midpoint solve"
+      ]
+    },
+    {
+      "name": "translation-overflow",
+      "rejections": 256,
+      "recoveries": 128,
+      "errors": [
+        "Non-finite rigid body"
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "id": "apx01",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 280.08233599999994,
+          "median": 288.782501,
+          "maximum": 300.2208770000002
+        },
+        "candidate": {
+          "minimum": 225.74428899999998,
+          "median": 241.64983399999983,
+          "maximum": 245.10863800000016
+        }
+      },
+      "candidateMedianChangePercent": -16.32116448773334
+    },
+    {
+      "id": "apx01",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 283.93122100000005,
+          "median": 285.82432000000017,
+          "maximum": 429.65632000000005
+        },
+        "candidate": {
+          "minimum": 213.06467799999996,
+          "median": 229.99065399999995,
+          "maximum": 254.45979199999988
+        }
+      },
+      "candidateMedianChangePercent": -19.534260065763544
+    },
+    {
+      "id": "tc1",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 276.65940100000006,
+          "median": 301.29951100000017,
+          "maximum": 423.8112399999999
+        },
+        "candidate": {
+          "minimum": 208.37331200000006,
+          "median": 232.35787800000003,
+          "maximum": 252.0073400000001
+        }
+      },
+      "candidateMedianChangePercent": -22.88142877205005
+    },
+    {
+      "id": "tc1",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 268.188356,
+          "median": 289.3581609999999,
+          "maximum": 299.38907500000005
+        },
+        "candidate": {
+          "minimum": 212.8269469999999,
+          "median": 227.769409,
+          "maximum": 243.84601099999998
+        }
+      },
+      "candidateMedianChangePercent": -21.28460859273982
+    },
+    {
+      "id": "gpr1",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 273.620805,
+          "median": 298.171165,
+          "maximum": 362.734606
+        },
+        "candidate": {
+          "minimum": 230.5713249999999,
+          "median": 234.483812,
+          "maximum": 269.35192800000004
+        }
+      },
+      "candidateMedianChangePercent": -21.359326613624752
+    },
+    {
+      "id": "gpr1",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 277.2442839999999,
+          "median": 280.80991300000005,
+          "maximum": 306.72992499999987
+        },
+        "candidate": {
+          "minimum": 219.69617699999992,
+          "median": 227.92771300000004,
+          "maximum": 232.9937010000001
+        }
+      },
+      "candidateMedianChangePercent": -18.83202748615217
+    },
+    {
+      "id": "mx450",
+      "hz": 120,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 275.1798240000003,
+          "median": 277.80747700000006,
+          "maximum": 327.02804000000015
+        },
+        "candidate": {
+          "minimum": 217.90330599999993,
+          "median": 229.23525999999993,
+          "maximum": 369.86246099999994
+        }
+      },
+      "candidateMedianChangePercent": -17.484128765907958
+    },
+    {
+      "id": "mx450",
+      "hz": 240,
+      "milliseconds": {
+        "baseline": {
+          "minimum": 278.35510499999987,
+          "median": 286.430832,
+          "maximum": 310.4396710000001
+        },
+        "candidate": {
+          "minimum": 222.98480599999994,
+          "median": 223.71624399999996,
+          "maximum": 239.132429
+        }
+      },
+      "candidateMedianChangePercent": -21.89519457877358
+    }
+  ]
+}
+(node:7) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

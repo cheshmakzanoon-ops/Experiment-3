@@ -16,12 +16,7 @@ export class RigidBody {
   private localOmega = new Vec3();
   private localTorque = new Vec3();
   private midpoint = new Vec3();
-  private oldOmega = new Vec3();
-  private nextPosition = new Vec3();
-  private nextVelocity = new Vec3();
   private nextOmega = new Vec3();
-  private nextAcceleration = new Vec3();
-  private nextAngularAcceleration = new Vec3();
   private nextOrientation = new Quat();
   clear() {
     this.force.set(0, 0, 0);
@@ -68,10 +63,19 @@ export class RigidBody {
       throw new Error('Invalid rigid-body integration state');
     // Stage the complete step: a failed solve or non-finite candidate must
     // leave the caller's last accepted state and vector identities intact.
-    this.nextAcceleration.copy(this.force).scale(1 / this.mass);
-    this.nextVelocity.copy(this.velocity).addScaled(this.nextAcceleration, dt);
-    this.nextPosition.copy(this.position).addScaled(this.nextVelocity, dt);
-    this.oldOmega.copy(this.omega);
+    // Scalar candidates keep the same multiply/add order without copying
+    // temporary vectors. Public state remains untouched until every candidate
+    // has passed the existing finite checks below.
+    const inverseMass = 1 / this.mass,
+      ax = this.force.x * inverseMass,
+      ay = this.force.y * inverseMass,
+      az = this.force.z * inverseMass,
+      vx = this.velocity.x + ax * dt,
+      vy = this.velocity.y + ay * dt,
+      vz = this.velocity.z + az * dt,
+      px = this.position.x + vx * dt,
+      py = this.position.y + vy * dt,
+      pz = this.position.z + vz * dt;
     this.orientation.inverseRotate(this.omega, this.localOmega);
     this.orientation.inverseRotate(this.torque, this.localTorque);
 
@@ -153,24 +157,26 @@ export class RigidBody {
     this.localTorque.set(this.localTorque.x / ix, this.localTorque.y / iy, this.localTorque.z / iz);
     nextQ.rotate(this.localTorque, this.localTorque);
     this.nextOmega.addScaled(this.localTorque, dt * 0.5);
-    this.nextAngularAcceleration
-      .copy(this.nextOmega)
-      .sub(this.oldOmega)
-      .scale(1 / dt);
+    // omega is still the accepted value: no old-omega copy is needed while
+    // the step is staged. Preserve subtraction then reciprocal multiplication.
+    const inverseDt = 1 / dt,
+      alphaX = (this.nextOmega.x - this.omega.x) * inverseDt,
+      alphaY = (this.nextOmega.y - this.omega.y) * inverseDt,
+      alphaZ = (this.nextOmega.z - this.omega.z) * inverseDt;
     if (
-      !this.nextPosition.finite() ||
-      !this.nextVelocity.finite() ||
+      !Number.isFinite(px + py + pz) ||
+      !Number.isFinite(vx + vy + vz) ||
       !this.nextOmega.finite() ||
-      !this.nextAcceleration.finite() ||
-      !this.nextAngularAcceleration.finite() ||
+      !Number.isFinite(ax + ay + az) ||
+      !Number.isFinite(alphaX + alphaY + alphaZ) ||
       !Number.isFinite(nextQ.x + nextQ.y + nextQ.z + nextQ.w)
     )
       throw new Error('Non-finite rigid body');
-    this.position.copy(this.nextPosition);
-    this.velocity.copy(this.nextVelocity);
+    this.position.set(px, py, pz);
+    this.velocity.set(vx, vy, vz);
     this.omega.copy(this.nextOmega);
-    this.acceleration.copy(this.nextAcceleration);
-    this.angularAcceleration.copy(this.nextAngularAcceleration);
+    this.acceleration.set(ax, ay, az);
+    this.angularAcceleration.set(alphaX, alphaY, alphaZ);
     q.x = nextQ.x;
     q.y = nextQ.y;
     q.z = nextQ.z;

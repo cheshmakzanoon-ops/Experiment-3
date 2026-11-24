@@ -1,0 +1,95 @@
+{
+  "agent": 42,
+  "capturedAt": "2026-11-24T19:38:21.622605+00:00",
+  "head": "93416f81c9bfe4f1df894888bd7c03d904b64058",
+  "description": "Selected current runtime and test files; HEAD plus working tree SHA-256 identities. Other agents own concurrent work. This is not a complete repository tree fingerprint.",
+  "sha256": {
+    "src/workers/fixed-step-clock.ts": "199d9b2d0c54b3bcc3c4cc4fe38bfa70d4ec4e8ef30efa48aa37d0cab72aa3cd",
+    "src/workers/physics.worker.ts": "e74905738cb3762c52f7dbccef2df388e409bc0842044bac68dff2cce936445a",
+    "src/workers/open-world.worker.ts": "9e0ec2a623e7ba7214b1736d28ce82356d2bab91d3cee620679f1662839faf84",
+    "src/workers/frame-buffer-pool.ts": "0c4ce93b427dfd738372b0ec65c265dbb20cebf7e162ecea378beffb93e9c45a",
+    "src/workers/input-queue.ts": "77034c2f9c9a3d8596223cfb00fa199d6449b9b4ed374e70eac0e0d15ae76747",
+    "src/workers/surface-channel.ts": "42e0d36957b632fd651b9c6ab27a9234fcfb8db4d76ed8bb980a7559c3a92bdc",
+    "src/core/flashback.ts": "9bd126a7bb16608bd7b4afe730b9b7670e353dbb929724f811d031cca3264249",
+    "src/simulation/world.ts": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1",
+    "src/simulation/open-world/session.ts": "52fdb78595a7eaaf7e8ddb7938361ca284b5eb519ae2f46aeef0f9365fdbb68a",
+    "src/simulation/rigid.ts": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7",
+    "src/simulation/config.ts": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e",
+    "src/simulation/protocol.ts": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+    "src/storage/telemetry-sampler.ts": "9329fa1ef0135e851645f11b8ba7b520662ba4621e96587ba4a56b7a4e7e2321",
+    "tests/engine-clock-accounting.test.ts": "b25d9c1923a297df7ab97f4cfe2a8d787328fdbe609f00d9daa7f629d1b7f857",
+    "tests/worker-fixed-step-clock.test.ts": "5ffd41ac6c777c0b986f48766287ed6156c144b7efa94601075c2f3e27297aff",
+    "tests/open-world-worker-clock.test.ts": "bafed1f565c1ff4a7d023981b4a751feb7f01000446d08b966c6bb73798891b0"
+  },
+  "verification": {
+    "vitest": "29 passed across 3 files",
+    "lint": "passed",
+    "scopedTypes": "passed",
+    "nodeHeapMb": 512,
+    "vitestMaxWorkers": 1
+  },
+  "observations": [
+    {
+      "kind": "CLOCK_ACCOUNTING_SEEDED",
+      "observation": {
+        "hz": 120,
+        "events": 32768,
+        "callbacks": 67718,
+        "pauses": 1320,
+        "resets": 926,
+        "callbackResets": 976,
+        "callbackRebases": 1326,
+        "failures": 1678,
+        "rejected": 1292,
+        "elapsedDrops": 3216,
+        "budgetDrops": 4411,
+        "interruptedDrops": 3004,
+        "maxErrorSeconds": 7.105427357601002e-15
+      }
+    },
+    {
+      "kind": "CLOCK_ACCOUNTING_SEEDED",
+      "observation": {
+        "hz": 240,
+        "events": 32768,
+        "callbacks": 84679,
+        "pauses": 1320,
+        "resets": 926,
+        "callbackResets": 976,
+        "callbackRebases": 1326,
+        "failures": 1678,
+        "rejected": 1292,
+        "elapsedDrops": 3216,
+        "budgetDrops": 7198,
+        "interruptedDrops": 3004,
+        "maxErrorSeconds": 7.105427357601002e-15
+      }
+    },
+    {
+      "kind": "CLOCK_ACCOUNTING_WORKER",
+      "observation": {
+        "kind": "circuit",
+        "completedTicks": 153,
+        "chargedSeconds": 13.11225,
+        "remainderSeconds": 0.0034166666666670537,
+        "elapsedDroppedSeconds": 9.400500000000001,
+        "budgetDroppedSeconds": 2.3333333333333326,
+        "interruptedSeconds": 0.1,
+        "maxErrorSeconds": 5.329070518200751e-15
+      }
+    },
+    {
+      "kind": "CLOCK_ACCOUNTING_WORKER",
+      "observation": {
+        "kind": "festival",
+        "completedTicks": 153,
+        "chargedSeconds": 13.11225,
+        "remainderSeconds": 0.0034166666666670537,
+        "elapsedDroppedSeconds": 9.400500000000001,
+        "budgetDroppedSeconds": 2.3333333333333326,
+        "interruptedSeconds": 0.1,
+        "maxErrorSeconds": 5.329070518200751e-15
+      }
+    }
+  ]
+}

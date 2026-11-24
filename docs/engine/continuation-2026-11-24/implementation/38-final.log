@@ -1,0 +1,12 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ✓ tests/worker-rewind-ownership.test.ts (3 tests) 6672ms
+   ✓ worker rewind, input and recording ownership > restores and resumes exact input ticks while every ordinary transport is held  4274ms
+   ✓ worker rewind, input and recording ownership > init replaces a blocked rewind and discards its old intent without letting late credits complete it  1461ms
+   ✓ worker rewind, input and recording ownership > Festival event and driver transitions own queued shifts even when all ordinary frames are held  904ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  12:09:28
+   Duration  9.02s (transform 1.17s, setup 0ms, collect 2.13s, tests 6.67s, environment 0ms, prepare 53ms)

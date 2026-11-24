@@ -125,6 +125,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         paused = true;
         lastInput = performance.now();
         clock.reset(lastInput);
+        stepMs = 0;
         pool = new FrameBufferPool((HEADER + simulation.cars.length * CAR_STRIDE) * 4, 5, 6);
         lastSent = -1;
         lastSurface = -1;

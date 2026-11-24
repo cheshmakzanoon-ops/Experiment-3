@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -6,6 +7,16 @@ import { pathToFileURL } from 'node:url';
 const [baselineRoot, candidateRoot, output] = process.argv.slice(2);
 if (!baselineRoot || !candidateRoot) throw new Error('Usage: node --experimental-transform-types 24-prediction-ownership-comparison.mjs BASELINE_REPO CANDIDATE_REPO [OUTPUT_JSON]');
 const paths = { baseline: resolve(baselineRoot, 'src/net/prediction.ts'), candidate: resolve(candidateRoot, 'src/net/prediction.ts') };
+// HEAD labels identify checkout parents; sourceSHA256 identifies actual file
+// contents, including unpublished changes in dirty checkouts.
+const checkoutCommits = Object.fromEntries(
+  Object.entries({ baseline: baselineRoot, candidate: candidateRoot }).map(([name, root]) => [
+    name,
+    execFileSync('git', ['-C', resolve(root), 'rev-parse', '--verify', 'HEAD'], {
+      encoding: 'utf8',
+    }).trim(),
+  ]),
+);
 const [baseline, candidate, snapshot, config] = await Promise.all([
   import(pathToFileURL(paths.baseline)), import(pathToFileURL(paths.candidate)),
   import(pathToFileURL(resolve(candidateRoot, 'src/net/snapshot.ts'))),
@@ -61,6 +72,6 @@ for (let run = 0; run < 32; run++) {
   for (const key of metrics) { assert.deepStrictEqual(b.stats[key], a.stats[key]); record({ key, value: b.stats[key] }); }
 }
 const sourceSHA256 = Object.fromEntries(Object.entries(paths).map(([name, path]) => [name, createHash('sha256').update(readFileSync(path)).digest('hex')]));
-const evidence = { node: process.version, baselineCommit: '5edead7a44c8ccb5a187b22b750ce2bda7715128', tracks: 32, reconciliations, poseReads, renders, authoritativeReads, traceSHA256: digest.digest('hex'), sourceSHA256 };
+const evidence = { node: process.version, baselineCommit: checkoutCommits.baseline, candidateCommit: checkoutCommits.candidate, tracks: 32, reconciliations, poseReads, renders, authoritativeReads, traceSHA256: digest.digest('hex'), sourceSHA256 };
 if (output) writeFileSync(output, JSON.stringify(evidence, null, 2) + '\n');
 console.log(JSON.stringify(evidence, null, 2));

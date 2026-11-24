@@ -91,3 +91,7 @@ The controlled clock does not test real CPU-budget exhaustion, operating-system 
 The circuit fixture covers the ordinary Formula practice path and water/rubber/marble surface arrays, not motocross terrain deformation. The Festival case uses the existing road-car/event path with traffic disabled. Models, visual rendering, physical controllers and audio hardware are outside this test. No full-project compiler run or browser result is claimed by this agent.
 
 All six repository files remain unstaged. No commit or push was performed.
+
+## Completed native browser gate
+
+The coordinator retrieved [focused runtime run 45469677287](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45469677287), job 138713911618, at commit `93416f81c9bfe4f1df894888bd7c03d904b64058`. The full compiler/build gate and **all 13 browser tests passed**, including both actual-worker tests: circuit transfer/backpressure/rewind (3.0 seconds) and Festival field-size ownership (1.6 seconds). The unchanged full recorded-playback test also passed. This supersedes the pending-browser status at agent handoff. Node rehearsal and browser execution remain separate evidence; neither claims physical GPU performance or a bound on all required control snapshots.

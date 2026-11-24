@@ -39,16 +39,16 @@ Every numbered row reserves one distinct agent assignment for this continuation.
 | 33 | 6 | Integrate bounded network history and state ownership across actual client/server outage and recovery. | Complete;2 integration cases; twin90-second sessions plus token rejoin; exact mutation wire/render hashes. |
 | 34 | 6 | Measure atomic rigid-step runtime cost and exact successful dynamics independently. | Complete;131,072 exact states;768 rejects/384 retries;20,971,520 timing calls disclose19–303ns overhead perstep. |
 | 35 | 6 | Repair factory cleanup replacing construction errors; integrate actual renderer instrumentation/cancellation consumers. | Complete;5 pre-fix failures;14 new cases;80 focused passes; rendering/art unchanged. |
-| 36 | 6 | Validate actual browser worker transfer, stalled-consumer and recovery ownership. | Complete implementation; Node rehearsal521 outbound/10 return transfers;2 native tests await remoteCI. |
+| 36 | 6 | Validate actual browser worker transfer, stalled-consumer and recovery ownership. | Complete;both actualworker tests passed within13-test Chromium run45469677287 at93416f8. |
 | 37 | 7 | Repair stale renderer-build/startup generation publication after asynchronous cancellation. | Complete;18 pre-fix failures;23 new cases;143 focused passes; owner-safe candidate publication. |
-| 38 | 7 | Integrate input edges, rewind, surface backpressure and real worker recording ownership. | Running |
+| 38 | 7 | Integrate input edges, rewind, surface backpressure and real worker recording ownership. | Complete;3 combined integration cases; exact direct-driverFloat32/Float64 rewind/state comparisons; no productionfault. |
 | 39 | 7 | Review asynchronous mirror reconciliation, commit backlog and obsolete completion races. | Running |
-| 40 | 7 | Verify actual host surface consumer callbacks and ACK ownership across replacement/failure. | Running |
-| 41 | 7 | Awaiting evidence-based assignment | Pending |
-| 42 | 7 | Awaiting evidence-based assignment | Pending |
-| 43 | 8 | Awaiting evidence-based assignment | Pending |
-| 44 | 8 | Awaiting evidence-based assignment | Pending |
-| 45 | 8 | Awaiting evidence-based assignment | Pending |
+| 40 | 7 | Verify actual host surface consumer callbacks and ACK ownership across replacement/failure. | Complete;10 integrated host/channel/replay cases passed;no production fault. |
+| 41 | 7 | Reduce atomic rigid-step staging overhead while preserving exactness and rollback. | Complete;57 focused cases;16.32–22.88% lower driver medians versus prior atomic source;original timing mixed. |
+| 42 | 7 | Independent scheduler conservation and worker reinitialization audit | Complete: 65,536 independently checked events; 29 focused tests pass; stale STEP_MS reset fixed |
+| 43 | 8 | Independently recompute performance and verify measurement provenance | Complete: all 296 numerical summaries verified; source identities audited; comparison metadata repaired |
+| 44 | 8 | Measure cached swept-OBB queries against original with exact-result checks | Active |
+| 45 | 8 | Verify exact cross-mode dynamics and frames against original source | Active |
 | 46 | 8 | Awaiting evidence-based assignment | Pending |
 | 47 | 8 | Awaiting evidence-based assignment | Pending |
 | 48 | 8 | Awaiting evidence-based assignment | Pending |

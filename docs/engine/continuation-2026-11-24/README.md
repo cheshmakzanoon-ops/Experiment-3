@@ -26,9 +26,9 @@ No 3D models, character models, authored environments, textures, materials, trac
 | 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | Complete |
 | 4 | 19–24 | Bounded network history, snapshot ownership and audio event lifetime | Complete |
 | 5 | 25–30 | Replay endpoints, controller/audio continuity and real-workload measurements | Complete |
-| 6 | 31–36 | Input, audio and shared resource lifecycle | Implemented; native worker gate pending |
+| 6 | 31–36 | Input, audio and shared resource lifecycle | Complete; native audio/worker gates passed |
 | 7 | 37–42 | Cross-subsystem integration and regression repairs | In progress |
-| 8 | 43–48 | Reproducible performance and deterministic comparisons | Pending |
+| 8 | 43–48 | Reproducible performance and deterministic comparisons | In progress |
 | 9 | 49–54 | Independent adversarial reviews and targeted corrections | Pending |
 | 10 | 55–60 | Final validation, scope audit and publication verification | Pending |
 
@@ -89,7 +89,7 @@ The fourth publication batch (agents 19–25) passed the full project TypeScript
 
 Power-unit scheduling retains continuous elapsed time down to 2 Hz, correcting the 5 Hz half-rate defect while preserving exact 10/30/60 Hz seeded scheduling. Clock discontinuities retire the prior audio timeline. Replacing an established gamepad now neutralizes controls and reports device loss before reading the replacement; explicit selection and resume retain their existing semantics.
 
-Actual unchanged Aurel, Vellamar and Loirette collision meshes built 48–65% faster by cold median in this environment, with identical mesh bytes, BVH nodes/leaf order and 55,944 recorded query calls across the workers. ResponseModel removes transient matrix/view allocations; its isolated 250,000-operation training/query median was 18.01 ms versus 184.34 ms, with all samples and outliers retained. These results do not assert a frame-rate improvement. Reports 28–29 provide portable measurement scripts, distributions and source identities.
+Actual unchanged Aurel, Vellamar and Loirette collision meshes used 48–65% less cold construction time by median in this environment, with identical mesh bytes, BVH nodes/leaf order and 55,944 recorded query calls across the workers. ResponseModel removes transient matrix/view allocations; its isolated 250,000-operation training/query median was 18.01 ms versus 184.34 ms, with all samples and outliers retained. These results do not assert a frame-rate improvement. Reports 28–29 provide portable measurement scripts, distributions and source identities.
 
 Real persistence validation added 33 subprocess cases, including 27 SIGKILLs across physical save-write boundaries. Incomplete pairs failed certification and were repaired from complete local data. Empty-local recovery retains its documented readable-data salvage behavior; the result does not claim power-loss durability or an atomic cross-file disk transaction.
 
@@ -99,7 +99,7 @@ The fifth publication batch (agents 26–30) passed complete project TypeScript 
 
 Actual controller/input-pump/session integration reproduced a secondary Festival host exception when a pause transport failure destroyed the session during input sampling. The host now rechecks the sampled session identity and driving permission before publishing; both failing cases pass while preserving the original transport failure.
 
-Audio integration reproduced six old fixed-oscillator parameter timelines surviving reset. Reset now cancels future turbo, transmission and motor gain/frequency automation at actual device time while preserving the existing output fade and synthesis. Three real OfflineAudioContext tests are prepared for the remote native gate; they are not yet counted as passed.
+Audio integration reproduced six old fixed-oscillator parameter timelines surviving reset. Reset now cancels future turbo, transmission and motor gain/frequency automation at actual device time while preserving the existing output fade and synthesis. Three real OfflineAudioContext tests cover cadence, reset and terminal silence; all passed in the remote native gate at `676d4c8`.
 
 Two real client/server integration cases compare twin 90-second sessions under stale ACKs, downlink silence and jitter, then test timeout/token rejoin. Detached-output mutation leaves wire/render hashes identical, retention remains bounded, and teardown leaves no queued timer work. Reports 31–33 distinguish integration fixtures from hardware/network claims.
 
@@ -107,10 +107,20 @@ The sixth publication batch (completed agents 31–33 and the subprocess fixture
 
 Native audio integration at `676d4c8` passed all three new OfflineAudioContext cases within an 11-test passing browser run; the global lint/content/build validation also passed. Independent rigid-step measurement preserved 131,072 exact states but recorded 19–303 ns additional median work per step in designed drivers. The correctness improvement has a measured cost, not a claimed integration-speed gain. Report 34 retains all samples and limits. Renderer integration then reproduced construction errors being replaced by cleanup errors; its narrow factory fix preserves the original thrown value and cancellation outcome, with 14 new integration cases and 80 focused passes.
 
-Actual-worker browser fixtures now cover circuit stalls and Festival field resizing. A Node worker-thread rehearsal transferred 521 outgoing buffers and 10 returns with native detachment, exercising bounded ordinary reserves and ordered rewind recovery. Browser execution of those two new tests remains pending.
+Actual-worker browser fixtures now cover circuit stalls and Festival field resizing. A Node worker-thread rehearsal transferred 521 outgoing buffers and 10 returns with native detachment, exercising bounded ordinary reserves and ordered rewind recovery. Both new worker tests subsequently passed in Chromium at `93416f8`, within a 13-test successful focused browser gate.
 
 ### Wave 7: renderer startup ownership
 
 A cancelled caller did not cancel the underlying RAF/factory promise. Exact host-method tests reproduced 18 failures in which obsolete work disposed or overwrote a newer renderer, published stale progress, or failed to retire its own late candidate. Renderer request serials plus the existing session generation now guard asynchronous boundaries and local-candidate publication. All 23 new cases and 143 combined focused cases passed; selected tracks, templates, material data and renderer configuration remain unchanged.
 
 The seventh publication batch (agents 34–37) passed the full project TypeScript check on its immutable staged-source snapshot with a 2.5 GiB heap. The initial 2 GiB process hit its heap limit; that interrupted compiler attempt is not counted as a pass. Later source work was excluded from the verified snapshot.
+
+### Atomic staging refinement
+
+Following the recorded atomic-step cost, agent 41 removed five private staging vectors by retaining the same translation and derived acceleration arithmetic in scalar locals. Public state still commits only after all validation; solver limits and normal numerical outputs are unchanged. The direct previous-atomic versus scalar comparison used 16.32–22.88% less median integration-driver time across eight workloads. A separate comparison against the original solver is mixed, with overlapping/noisy ranges, so no claim is made that every safety cost disappeared. Both experiments are retained; their 131,072 shared trajectory positions are not additive unique coverage.
+
+### Clock conservation and performance review
+
+Agent 42 independently checked 65,536 scheduler events at 120/240 Hz and exercised both real worker entry points through retained frame buffers, pauses, injected pre-step failures and reinitialization. The conservation error remained below 7.11e-15 seconds. A same-worker circuit reinitialization now clears the previous step-duration diagnostic, matching its reset tick/drop counters and Festival behavior. This diagnostic fix does not change the timestep or physics budget.
+
+Agent 43 independently recomputed all 296 stored timing summaries and verified measured source identities. Reports retain the synthetic organ-pipe cold-build regression, import-time variation and original-versus-scalar rigid cost differences. Repeated benchmark state positions are not summed as unique test coverage. The report also distinguishes parent commit labels from the actual hashes of unpublished measured source.

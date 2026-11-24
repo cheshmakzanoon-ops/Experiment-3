@@ -1,0 +1,32 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ✓ tests/open-world-worker-clock.test.ts (6 tests) 7702ms
+   ✓ festival worker fixed-step scheduling > bounds a live stall to 24 fixed ticks, reports lost time and applies the stale-input brake  2373ms
+   ✓ festival worker fixed-step scheduling > excludes a long pause and preserves the active fractional tick  1021ms
+   ✓ festival worker fixed-step scheduling > yields after costly ticks and resumes without carrying whole-tick work debt  974ms
+   ✓ festival worker fixed-step scheduling > reinitializes paused with clean clock counters, fractional time and step-cost diagnostics  1260ms
+   ✓ festival worker fixed-step scheduling > sends status at exact 100 ms deadlines even when every pooled frame is held  1018ms
+   ✓ festival worker fixed-step scheduling > delivers each event result before its batch frame and status, preserving command receipts  1055ms
+stdout | tests/engine-clock-accounting.test.ts > independent fixed-step accounting > conserves time across seeded mixed lifetimes at 120 Hz
+CLOCK_ACCOUNTING_SEEDED {"hz":120,"events":32768,"callbacks":67718,"pauses":1320,"resets":926,"callbackResets":976,"callbackRebases":1326,"failures":1678,"rejected":1292,"elapsedDrops":3216,"budgetDrops":4411,"interruptedDrops":3004,"maxErrorSeconds":7.105427357601002e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > independent fixed-step accounting > conserves time across seeded mixed lifetimes at 240 Hz
+CLOCK_ACCOUNTING_SEEDED {"hz":240,"events":32768,"callbacks":84679,"pauses":1320,"resets":926,"callbackResets":976,"callbackRebases":1326,"failures":1678,"rejected":1292,"elapsedDrops":3216,"budgetDrops":7198,"interruptedDrops":3004,"maxErrorSeconds":7.105427357601002e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > actual worker clock ownership > circuit conserves active time through transport stalls, pauses, failure and reinitialization
+CLOCK_ACCOUNTING_WORKER {"kind":"circuit","completedTicks":153,"chargedSeconds":13.11225,"remainderSeconds":0.0034166666666670537,"elapsedDroppedSeconds":9.400500000000001,"budgetDroppedSeconds":2.3333333333333326,"interruptedSeconds":0.1,"maxErrorSeconds":5.329070518200751e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > actual worker clock ownership > festival conserves active time through transport stalls, pauses, failure and reinitialization
+CLOCK_ACCOUNTING_WORKER {"kind":"festival","completedTicks":153,"chargedSeconds":13.11225,"remainderSeconds":0.0034166666666670537,"elapsedDroppedSeconds":9.400500000000001,"budgetDroppedSeconds":2.3333333333333326,"interruptedSeconds":0.1,"maxErrorSeconds":5.329070518200751e-15}
+
+ ✓ tests/engine-clock-accounting.test.ts (4 tests) 3018ms
+   ✓ actual worker clock ownership > circuit conserves active time through transport stalls, pauses, failure and reinitialization  1442ms
+   ✓ actual worker clock ownership > festival conserves active time through transport stalls, pauses, failure and reinitialization  1408ms
+ ✓ tests/worker-fixed-step-clock.test.ts (19 tests) 809ms
+   ✓ the circuit worker bounds costly catch-up and exposes the lost time in its frame  795ms
+
+ Test Files  3 passed (3)
+      Tests  29 passed (29)
+   Start at  12:36:23
+   Duration  13.97s (transform 1.25s, setup 0ms, collect 1.88s, tests 11.53s, environment 1ms, prepare 158ms)
