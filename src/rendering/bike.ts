@@ -103,6 +103,8 @@ import { BIKE_STATES } from '../simulation/bike.ts';
 import { chassisLean } from '../simulation/bike-definitions.ts';
 import { vehicleAt, type VehicleDefinition } from '../simulation/vehicles.ts';
 import type { Track } from '../simulation/track.ts';
+import { offroadCourse } from '../simulation/offroad/venues.ts';
+import { MotocrossRiderSight } from './offroad/motocross-rider-sight.ts';
 import { MotorcycleRoadPreview, type GpRiderSight } from './motorcycle-camera.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
@@ -2398,6 +2400,7 @@ export class BikeShells {
   prefitDirtService = true;
   private readonly roadContact = new RoadBikeContactPose();
   private readonly roadPreview = new MotorcycleRoadPreview();
+  private readonly mxSight?: MotocrossRiderSight;
   private readonly riderForward = new T.Vector3();
   private readonly mxRecoveryPose = new MxRecoveryPose();
   private readonly helmetUp = new T.Vector3();
@@ -2429,6 +2432,9 @@ export class BikeShells {
   private readonly lift = new T.Vector3();
   constructor(private readonly track?: Track) {
     this.root.name = 'Motorcycles (procedural)';
+    const course = track && offroadCourse(track.circuit);
+    if (track && course && (course.kind === 'motocross' || course.kind === 'supercross'))
+      this.mxSight = new MotocrossRiderSight(track, course);
   }
   /** Is entrant `id` a motorcycle in this snapshot? */
   static isBike(frame: Float32Array, id: number) {
@@ -2896,10 +2902,14 @@ export class BikeShells {
     v.leanRate = sampleBikeField(a, b, o, B.LEAN_RATE, t);
     v.gpBody = riderBody?.sample(a, b, t, o, v.riding);
     v.sight = undefined;
-    if (this.track && model.rider.gp && v.riding && !source[o + F.IN_PIT]) {
+    if (this.track && v.riding && !source[o + F.IN_PIT] &&
+        (model.rider.gp || (this.mxSight && model instanceof DirtBikeModel))) {
       this.riderForward.set(0, 0, 1).applyQuaternion(model.root.quaternion);
-      v.sight = this.roadPreview.rider(this.track, a[o + F.S], b[o + F.S], t,
-        sampleValue(a, b, o + F.LATERAL, t), v.speed, Math.atan2(this.riderForward.x, this.riderForward.z));
+      const heading = Math.atan2(this.riderForward.x, this.riderForward.z);
+      const lateral = sampleValue(a, b, o + F.LATERAL, t);
+      v.sight = model instanceof DirtBikeModel
+        ? this.mxSight?.sample(a[o + F.S], b[o + F.S], t, lateral, v.speed, heading, model.root.position.y, bike.cgHeight)
+        : this.roadPreview.rider(this.track, a[o + F.S], b[o + F.S], t, lateral, v.speed, heading);
     }
     const rider = model.rider;
     if (v.riding && rider.root.parent !== model.sprung) {

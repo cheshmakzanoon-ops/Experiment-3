@@ -135,8 +135,13 @@ export function motocrossHeadFrame(
     lean = clamp(finite(pose.lean), -1.3, 1.3),
     corner = clamp(lean * 0.5 * travelling + finite(pose.steer) * 0.85 * (1 - travelling), -0.6, 0.6),
     path = clamp(finite(pose.travelYaw), -0.65, 0.65),
-    yaw = clamp(corner * (1 - 0.72 * smooth(0.04, 0.34, Math.abs(path))) + path * 0.86, -0.72, 0.72);
-  gaze.set(0.3 + clamp(finite(pose.tuck), 0, 1) * 0.12 + gazePitch, yaw, lean * 0.84, 'YXZ');
+    bodyYaw = clamp(corner * (1 - 0.72 * smooth(0.04, 0.34, Math.abs(path))) + path * 0.86, -0.72, 0.72),
+    attention = clamp(finite(pose.sight?.weight), 0, 1),
+    anticipation = attention * (0.68 - 0.36 * smooth(0.08, 0.42, Math.abs(path))),
+    yaw = bodyYaw + (clamp(finite(pose.sight?.yaw), -0.62, 0.62) - bodyYaw) * anticipation,
+    pitch = 0.3 + clamp(finite(pose.tuck), 0, 1) * 0.12 + gazePitch -
+      clamp(finite(pose.sight?.gradeChange), -0.26, 0.23) * attention * 0.45;
+  gaze.set(pitch, yaw, lean * 0.84, 'YXZ');
   target.copy(chest).invert().multiply(gazeFrame.setFromEuler(gaze));
   return target;
 }

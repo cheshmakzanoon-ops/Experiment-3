@@ -1249,6 +1249,7 @@ export class DirtBikeModel {
         dab: v.dab ?? 0,
         body: v.body ?? 0,
         startBrace: v.startBrace,
+        sight: v.sight,
         time: v.time,
         chassisPitch,
         travelYaw: motocrossTravelYaw(this.scratch.x, this.scratch.z, v.velocityX, v.velocityZ),
