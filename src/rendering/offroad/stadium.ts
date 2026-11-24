@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { MxArenaHaze } from './mx-arena-haze.ts';
 import { MxStadiumAudience } from './mx-stadium-audience.ts';
 import { installMxRoofBounce, mxArenaLampGrid, MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
@@ -33,65 +34,6 @@ function member(a: T.Vector3, b: T.Vector3, radius: number) {
   return g;
 }
 
-/** Floodlight shafts through the arena's suspended dust: single scattering
- * in a thin haze, so each beam is brightest beside its lamp, dims as the cone
- * spreads, and fades before the floor, at its silhouette and near the lens.
- * One additive draw of open cones; no lights, shadows, textures or depth. */
-function hazeBeamMaterial() {
-  return new T.ShaderMaterial({
-    name: 'Arena floodlight haze beams',
-    uniforms: {
-      beamColour: { value: new T.Color(0xeaf4ff) },
-      // Dust hangs under the roof through the evening: shafts read clearly.
-      beamStrength: { value: 0.12 },
-    },
-    vertexShader: /* glsl */ `
-varying float vBeamAlong;
-varying vec3 vBeamView;
-varying vec3 vBeamNormal;
-void main() {
-  vBeamAlong = 1.0 - uv.y;
-  vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-  vBeamView = mvPosition.xyz;
-  vBeamNormal = normalMatrix * normal;
-  gl_Position = projectionMatrix * mvPosition;
-}`,
-    fragmentShader: /* glsl */ `
-uniform vec3 beamColour;
-uniform float beamStrength;
-varying float vBeamAlong;
-varying vec3 vBeamView;
-varying vec3 vBeamNormal;
-void main() {
-  // The chord through a cone is longest along its axis: fade the silhouette.
-  float facing = abs( dot( normalize( vBeamNormal ), normalize( -vBeamView ) ) );
-  float chord = facing * facing;
-  float spread = 1.0 / ( 1.0 + 6.0 * vBeamAlong );
-  float ends = smoothstep( 0.0, 0.08, vBeamAlong ) * ( 1.0 - smoothstep( 0.45, 1.0, vBeamAlong ) );
-  float near = smoothstep( 2.0, 12.0, length( vBeamView ) );
-  gl_FragColor = vec4( beamColour * ( beamStrength * chord * spread * ends * near ), 1.0 );
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
-}`,
-    blending: T.AdditiveBlending,
-    transparent: true,
-    depthWrite: false,
-    fog: false,
-  });
-}
-
-function hazeBeam(lamp: T.Vector3, target: T.Vector3) {
-  const direction = target.clone().sub(lamp),
-    length = direction.length();
-  const g = new T.CylinderGeometry(0.42, 3.1, length, 14, 1, true);
-  g.translate(0, -length / 2, 0);
-  g.applyQuaternion(
-    new T.Quaternion().setFromUnitVectors(new T.Vector3(0, -1, 0), direction.normalize()),
-  );
-  g.translate(lamp.x, lamp.y, lamp.z);
-  return g;
-}
-
 /** Stepped arena with open-web roof trusses, housed round floodlights,
  * original event ribbons and two bounded spectator batches. All static
  * structure is merged by material; crowd occupancy never adds draw calls. */
@@ -112,6 +54,7 @@ export class Stadium {
   private stopCrowdDetail: (() => void) | null = null;
   private disposed = false;
   private readonly pass = new MxCrowdPass(86);
+  private readonly haze = new MxArenaHaze();
   private readonly crowdUniforms = {
     crowdPassA: this.pass.a,
     crowdPassB: this.pass.b,
@@ -579,7 +522,7 @@ export class Stadium {
           const pin = new T.Vector3(side * 0.64, 0.188, 0).applyMatrix4(mount);
           rigging.push(member(pin, new T.Vector3(pin.x, y - 0.8, z), 0.027));
         }
-        if ((i + k) % 2 === 0) beams.push(hazeBeam(origin, target));
+        if ((i + k) % 2 === 0) beams.push(this.haze.beam(origin, target));
       }
     }
     for (const part of Object.values(floodlight)) part.dispose();
@@ -603,7 +546,7 @@ export class Stadium {
     for (const g of beams) g.dispose();
     if (shafts) {
       shafts.computeBoundingSphere();
-      const haze = new T.Mesh(shafts, hazeBeamMaterial());
+      const haze = new T.Mesh(shafts, this.haze.material());
       haze.name = 'Arena floodlight haze beams';
       // Additive light drawn after the bowl; it never casts or receives.
       haze.renderOrder = 2;
@@ -656,6 +599,7 @@ export class Stadium {
     const cycle = Math.PI * 2;
     this.crowdUniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
     this.pass.update(frame);
+    this.haze.update(frame);
     this.crowdUniforms.crowdReaction.value.set(
       frame ? 0.17 : 0.72 + Math.sin(time * 0.37) * 0.1,
       frame ? 0.12 : 0.45,

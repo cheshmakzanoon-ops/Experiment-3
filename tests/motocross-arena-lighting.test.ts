@@ -7,6 +7,9 @@ import {
 } from '../src/rendering/offroad/mx-arena-lighting.ts';
 import { MxArenaBikeLight } from '../src/rendering/offroad/mx-arena-bike-light.ts';
 import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from '../src/rendering/offroad/mx-floodlight.ts';
+import { MxArenaHaze } from '../src/rendering/offroad/mx-arena-haze.ts';
+import { CAR_STRIDE, F, H, HEADER, O, OFFROAD_BASE, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import { MATERIAL } from '../src/simulation/surface-material.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
@@ -149,6 +152,58 @@ describe('supercross roof floodlight grid', () => {
     } finally {
       setMxQuality('high');
     }
+  });
+
+  it('lights airborne dust only in the banks crossed by dry loaded rear wheels', () => {
+    const haze = new MxArenaHaze();
+    const shafts = [0, 60].map((x) => haze.beam(new T.Vector3(x + 5, 26, 0), new T.Vector3(x, 1, 0)));
+    const material = haze.material();
+    const density = material.uniforms.beamDust.value as Float32Array;
+    const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+    frame[H.CARS] = 2;
+    for (let id = 0; id < 2; id++) {
+      const o = carBase(id), rear = o + WHEEL_BASE + 2 * WHEEL_STRIDE;
+      frame[o + F.X] = 10 + id * 60;
+      frame[o + F.VX] = 20;
+      frame[rear + W.LOAD] = 600;
+      frame[rear + W.SLIP] = 0.32;
+      frame[rear + W.SURFACE] = MATERIAL.DIRT;
+    }
+    const first = carBase(0), second = carBase(1);
+    frame[second + OFFROAD_BASE + O.AIRBORNE] = 1;
+    haze.update(frame);
+    const dry = density[0];
+    expect(dry).toBeGreaterThan(0.5);
+    expect(density[1]).toBe(0);
+    frame[second + OFFROAD_BASE + O.AIRBORNE] = 0;
+    haze.update(frame);
+    expect(density[1]).toBe(dry);
+    frame[first + OFFROAD_BASE + O.MOISTURE] = 0.7;
+    haze.update(frame);
+    expect(density[0]).toBeCloseTo(dry * 0.09, 5);
+    expect(density[1]).toBe(dry);
+    frame[first + OFFROAD_BASE + O.MOISTURE] = 0;
+    frame[first + F.VX] = -20;
+    haze.update(frame);
+    expect(density[0]).toBe(0);
+    frame[first + F.VX] = 20;
+    frame[first + WHEEL_BASE + 2 * WHEEL_STRIDE + W.LOAD] = 0;
+    haze.update(frame);
+    expect(density[0]).toBe(0);
+    frame[first + WHEEL_BASE + 2 * WHEEL_STRIDE + W.LOAD] = 600;
+    haze.update();
+    expect(density.every(value => value === 0)).toBe(true);
+    haze.update(frame);
+    expect(density[0]).toBe(dry);
+    expect(density[1]).toBe(dry);
+    for (let i = 0; i < shafts.length; i++) {
+      const beam = shafts[i].getAttribute('mxBeam');
+      expect(beam.getW(0)).toBe(i);
+      expect(beam.getY(0)).toBeLessThan(-0.9);
+      expect(beam.getX(0)).toBeLessThan(0);
+      shafts[i].dispose();
+    }
+    material.dispose();
   });
 
   it('retains its single haze draw on Medium without enabling High surface detail', () => {
