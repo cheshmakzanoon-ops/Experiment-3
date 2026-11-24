@@ -320,3 +320,43 @@ describe('motocross stadium audience', () => {
     expect(arena.root.children).toHaveLength(0);
   });
 });
+
+
+it('draws every chair intersecting each race and reflection lens with its original transform and colour', () => {
+  const arena = new Stadium(rigTrack('arena-nord-sx')), sections = arena.chairSections;
+  const mesh = sections.mesh, total = mesh.count;
+  const colour = new T.Color(), m = new T.Matrix4(), box = new T.Box3();
+  const originals = new Map<string, {bounds: T.Box3; colour: number}>();
+  const key = () => m.elements.slice(12,15).join(',');
+  for (let i = 0; i < total; i++) {
+    mesh.getMatrixAt(i,m); mesh.getColorAt(i,colour);
+    originals.set(key(),{bounds:box.copy(mesh.geometry.boundingBox!).applyMatrix4(m).clone(),colour:colour.getHex()});
+  }
+  const camera = new T.PerspectiveCamera(47, 1.6,.1,800);
+  const centre = mesh.boundingBox!.getCenter(new T.Vector3());
+  camera.position.copy(centre);camera.position.y += 3;
+  const frustum = new T.Frustum(), projection = new T.Matrix4();
+  const counts = [];
+  try {
+    for (const [x,y,z] of [[0,0,1],[1,0,0],[-1,0,0],[0,0,-1],[0,1,0]]) {
+      camera.lookAt(camera.position.clone().add(new T.Vector3(x,y,z)));camera.updateMatrixWorld();
+      sections.present(camera);
+      const before = mesh.instanceMatrix.version;
+      sections.present(camera);
+      expect(mesh.instanceMatrix.version).toBe(before);
+      counts.push(mesh.count);
+      frustum.setFromProjectionMatrix(projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
+      const drawn = new Set<string>();
+      for (let i = 0; i < mesh.count; i++) {
+        mesh.getMatrixAt(i,m);mesh.getColorAt(i,colour);
+        const k = key();drawn.add(k);
+        if (originals.get(k)?.colour !== colour.getHex()) throw new Error('Changed seat or chair colour during compaction');
+      }
+      expect(drawn.size).toBe(mesh.count);
+      for (const [id,seat] of originals)
+        if (frustum.intersectsBox(seat.bounds) && !drawn.has(id)) throw new Error('Visible chair omitted from this lens');
+    }
+    expect(Math.max(...counts)).toBeLessThan(total * .6);
+    expect(counts.at(-1)).toBe(0);
+  } finally { arena.dispose(); }
+});

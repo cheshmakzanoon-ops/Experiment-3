@@ -215,7 +215,9 @@ describe('original Blender-authored motocross kit', () => {
     ) as T.InstancedMesh;
     expect(stadium.crowd.count / chairs.count).toBeGreaterThan(0.78);
     expect(stadium.crowd.count / chairs.count).toBeLessThan(0.86);
-    expect(chairs.geometry.index!.count / 3).toBe(20);
+    expect(chairs.geometry.index!.count / 3).toBe(32);
+    chairs.geometry.computeBoundingBox();
+    expect(chairs.geometry.boundingBox!.min.y).toBeLessThan(.005);
     expect(chairs.instanceColor).toBeTruthy();
     expect((chairs.material as T.MeshStandardMaterial).metalness).toBe(0);
     expect(chairs.count).toBeGreaterThan(1000);

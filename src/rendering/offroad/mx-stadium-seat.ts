@@ -1,7 +1,7 @@
 import * as T from 'three';
 
 /** Injection-moulded stadium bucket. The pan and raked back share a rolled
- * transition. Twenty indexed triangles per seat include the front return,
+ * transition. The indexed shell includes the front return,
  * lateral bolsters, tapered shoulders and the downturn at the upper rim. */
 export function mxStadiumSeatGeometry() {
   const profile = [
@@ -30,6 +30,26 @@ export function mxStadiumSeatGeometry() {
       indices.push(a, a + 1, b, b, a + 1, b + 1);
     }
   }
+  // Folded dark pedestal through to the concrete tread. The saddle
+  // spreads the load under the pan; the front is open to shoe clearance.
+  const foot = positions.length / 3;
+  for (const [y, centre, w, d, shade] of [[.002,-.014,.083,.069,.22],[.444,-.046,.055,.054,.36]]) {
+    for (const [x,z] of [[-1,-1],[-1,1],[1,1],[1,-1]]) {
+      positions.push(x*w,y,centre+z*d); colours.push(shade,shade,shade);
+    }
+  }
+  for (let i = 0; i < 4; i++) {
+    const j = (i+1)%4;
+    indices.push(foot+i,foot+j,foot+i+4,foot+i+4,foot+j,foot+j+4);
+  }
+  const saddle = positions.length / 3;
+  for (const [x,y,w] of [[-.158,.466,.086],[0,.435,.067],[.158,.466,.086]]) {
+    for (const z of [-1,1]) {
+      positions.push(x,y,-.039+z*w); colours.push(.35,.35,.35);
+    }
+  }
+  indices.push(saddle,saddle+1,saddle+2,saddle+1,saddle+3,saddle+2,
+    saddle+2,saddle+3,saddle+4,saddle+3,saddle+5,saddle+4);
   const geometry = new T.BufferGeometry();
   geometry.name = 'Moulded stadium seat shell with rolled rims';
   geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));

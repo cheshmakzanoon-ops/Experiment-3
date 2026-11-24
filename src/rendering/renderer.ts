@@ -629,6 +629,13 @@ export class RacingRenderer {
     // PCSS for the sun's 0.53° disc (studio/shadow-filter.ts reads it as radius).
     this.sun.shadow.radius = sunPenumbraScale(this.sun.shadow.camera);
     this.circuit = new CircuitScene(track, true);
+    if (track.circuit.id === 'arena-nord-sx') {
+      const before = this.scene.onBeforeRender;
+      this.scene.onBeforeRender = (...args) => {
+        before.apply(this.scene, args);
+        this.circuit.offroad?.stadium?.chairSections.present(args[2]);
+      };
+    }
     // Catalogue tunnels are sheltered: no rain is born under a roof (WP30).
     const kit = this.circuit.venueKit;
     if (kit) this.effects.sheltered = (x, z) => kit.covers(x, z);

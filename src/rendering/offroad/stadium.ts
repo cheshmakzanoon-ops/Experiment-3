@@ -2,6 +2,7 @@ import * as T from 'three';
 import { MxStadiumAudience } from './mx-stadium-audience.ts';
 import { installMxRoofBounce, mxArenaLampGrid, MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
+import { MxStadiumChairSections } from './mx-stadium-chair-sections.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mxPressSuite } from './mx-press-suite.ts';
 import { mxRoofDeck } from './mx-roof-deck.ts';
@@ -104,6 +105,7 @@ export class Stadium {
   readonly timing: MxTimingBoard;
   /** The roof's regular floodlight grid (world metres): lamp (i, k) hangs at
    * (minX + (i + 0.5) * spanX / columns, y, minZ + (k + 0.5) * spanZ / rows). */
+  readonly chairSections: MxStadiumChairSections;
   readonly lampGrid: ReturnType<typeof mxArenaLampGrid>;
   private readonly textures = new Set<T.Texture>();
   private stopHaze: (() => void) | null = null;
@@ -500,15 +502,8 @@ export class Stadium {
       vertexColors: true,
       side: T.DoubleSide,
     });
-    const chairs = new T.InstancedMesh(seatGeometry, polymer, chairsBySection.length);
-    chairs.name = 'Moulded stadium chairs (instanced)';
-    chairsBySection.forEach((matrix, index) => {
-      chairs.setMatrixAt(index, matrix);
-      chairs.setColorAt(index, chairColours[index]);
-    });
-    chairs.receiveShadow = true;
-    chairs.computeBoundingSphere();
-    this.root.add(chairs);
+    this.chairSections = new MxStadiumChairSections(seatGeometry, polymer, chairsBySection, chairColours);
+    this.root.add(this.chairSections.mesh);
     const span = box.getSize(new T.Vector3());
     this.lampGrid = mxArenaLampGrid(track);
     const outer = STADIUM.tiers * STADIUM.depth + STADIUM.concourse;
