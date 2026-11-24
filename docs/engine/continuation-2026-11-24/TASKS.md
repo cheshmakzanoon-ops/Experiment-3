@@ -17,14 +17,14 @@ Every numbered row reserves one distinct agent assignment for this continuation.
 | 11 | 2 | Cache invariant quaternion interpolation in swept collision | Complete: 59 focused tests; exact reference and operation counts |
 | 12 | 2 | Save mirror transaction completeness and restart recovery | Complete: 139 focused tests; lint and CJS syntax passed |
 | 13 | 3 | Deterministic BVH median partition and constructor work | Complete: 35 focused tests; exact hierarchy and query comparisons |
-| 14 | 3 | Atomic rigid-body integration on rejected steps | Running |
-| 15 | 3 | Queue discrete worker shift edges at simulation ticks | Running |
-| 16 | 3 | Respect cancellation at construction callback boundaries | Running |
-| 17 | 3 | Awaiting evidence-based assignment | Pending |
-| 18 | 3 | Awaiting evidence-based assignment | Pending |
-| 19 | 4 | Awaiting evidence-based assignment | Pending |
-| 20 | 4 | Awaiting evidence-based assignment | Pending |
-| 21 | 4 | Awaiting evidence-based assignment | Pending |
+| 14 | 3 | Atomic rigid-body integration on rejected steps | Complete: 68 focused tests, 6144 exact baseline steps |
+| 15 | 3 | Queue discrete worker shift edges at simulation ticks | Complete: 83 focused tests; four-mode and replay equivalence |
+| 16 | 3 | Respect cancellation at construction callback boundaries | Complete: 46 focused tests, lint and formatting passed |
+| 17 | 3 | Isolate optional whole-frame GPU query faults | Complete: 64 focused tests, scoped typecheck and lint |
+| 18 | 3 | Evaluate the final permitted Newton correction | Complete: 51 focused tests, unchanged ordinary-step results |
+| 19 | 4 | Bound diagnostic samples with chronological recent windows | Running |
+| 20 | 4 | Own remote interpolation snapshots at API boundaries | Running |
+| 21 | 4 | Cancel and retire scheduled audio transient voices | Running |
 | 22 | 4 | Awaiting evidence-based assignment | Pending |
 | 23 | 4 | Awaiting evidence-based assignment | Pending |
 | 24 | 4 | Awaiting evidence-based assignment | Pending |

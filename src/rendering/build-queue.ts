@@ -44,8 +44,7 @@ export class BuildQueue {
     this.started = true;
     this.tasks.sort((a, b) => a.priority - b.priority);
   }
-  private execute(task: Task, now: () => number) {
-    const start = now();
+  private execute(task: Task, now: () => number, start = now()) {
     task.work();
     const elapsed = Math.max(0, now() - start);
     this.statistics.tasks++;
@@ -76,30 +75,39 @@ export class BuildQueue {
       throw new Error('Invalid construction slice budget');
     this.begin();
     const total = this.tasks.length;
-    let started = now();
+    const stopped = () => {
+      if (!cancelled()) return false;
+      this.statistics.cancelled = true;
+      return true;
+    };
     try {
+      if (stopped()) return false;
+      let started = now();
       for (let index = 0; index < total; index++) {
-        if (cancelled()) {
-          this.statistics.cancelled = true;
-          return false;
-        }
+        if (stopped()) return false;
         const task = this.tasks[index];
         // Report the pending task before yielding: progress is actual work,
         // not a cosmetic timer or an intentionally delayed loading screen.
         progress({ completed: index, total, label: task.label, fraction: index / total });
+        if (stopped()) return false;
         if (index === 0 || now() - started >= budgetMilliseconds) {
+          if (stopped()) return false;
           this.statistics.yields++;
           await yieldControl();
-          if (cancelled()) {
-            this.statistics.cancelled = true;
-            return false;
-          }
+          if (stopped()) return false;
           started = now();
         }
-        this.execute(task, now);
+        if (stopped()) return false;
+        const taskStarted = now();
+        if (stopped()) return false;
+        this.execute(task, now, taskStarted);
       }
-      this.complete = true;
+      if (stopped()) return false;
       progress({ completed: total, total, label: 'Scene ready', fraction: 1 });
+      // A notification can synchronously dispose the owner. Publish readiness
+      // only after its callbacks have returned with ownership still intact.
+      if (stopped()) return false;
+      this.complete = true;
       return true;
     } finally {
       this.tasks.length = 0;

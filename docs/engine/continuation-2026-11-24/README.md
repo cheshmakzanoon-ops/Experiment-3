@@ -23,8 +23,8 @@ No 3D models, character models, authored environments, textures, materials, trac
 |---|---|---|---|
 | 1 | 01–06 | Remaining defects and performance opportunities across the shared engine | Complete: 17 independently recorded findings |
 | 2 | 07–12 | Critical worker, recording and persistence repairs; collision sweep work | Complete |
-| 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | In progress |
-| 4 | 19–24 | Replay, telemetry, persistence and long-session memory | Pending audit |
+| 3 | 13–18 | Simulation queries, numerical failure recovery, input edges and resource boundaries | Complete |
+| 4 | 19–24 | Bounded network history, snapshot ownership and audio event lifetime | In progress |
 | 5 | 25–30 | Network interpolation, codecs and bounded work | Pending audit |
 | 6 | 31–36 | Input, audio and shared resource lifecycle | Pending audit |
 | 7 | 37–42 | Cross-subsystem integration and regression repairs | Pending |
@@ -64,3 +64,11 @@ Surface publications now use a bounded 120-packet acknowledgement window, preser
 The local executor was replaced after resource failures. Published work was intact, unfinished patches were recovered from preserved blobs, and completed implementations were tested again in the restored workspace. The new results are recorded in each implementation report; interrupted commands are not counted as passes. The original source reference is retained separately for comparisons.
 
 The coordinator's full `tsc --noEmit` passed on an immutable staged-source checkout with a 2 GiB heap. Three unchanged JSON manifests omitted by sparse checkout were read from Git to satisfy existing imports. Type-only annotations corrected the new test fixtures' map value type and intentional read-only terrain-set inspection. The runtime algorithms and fixture behavior were unchanged by those annotations. The first published batch also passed the remote full build and native/replay browser job; see [its CI evidence](implementation/first-batch-ci.md).
+
+### Wave 3: state, input and optional instrumentation
+
+Rejected rigid-body steps now preserve public state and object identities. The solver tests its final allowed correction without changing the iteration limit or tolerance. Successful normal-range dynamics match 6,144 frozen-reference steps exactly. Circuit and Festival workers retain bounded FIFO shift pulses and record application ticks for deterministic rewind; ordinary Formula, MotoGP, motocross and Festival traces are unchanged. Construction checks cancellation at external callback boundaries. Whole-frame GPU timing errors disable optional sampling while allowing rendering and frame accounting to continue.
+
+Reports 14–18 retain the focused regression commands and limits. In particular, the solver correction fixture uses extreme numerical values, and GL fault injection establishes ownership/exception behavior without asserting hardware GPU performance.
+
+The wave-3 integration also passed the complete project TypeScript check on an immutable staged-source snapshot with a 2 GiB heap. The second published batch (`3c3bf02`) subsequently passed [remote typecheck/build and native lifecycle/replay validation](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45451671524). A separate full-game paused-grid browser test timed out while loading in the settings-transition workflow; its trace is being investigated and is not counted as a pass.

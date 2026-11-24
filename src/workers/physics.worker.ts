@@ -2,6 +2,7 @@
 import { FixedStepClock } from './fixed-step-clock.ts';
 import { FrameBufferPool } from './frame-buffer-pool.ts';
 import { SurfaceChannel } from './surface-channel.ts';
+import { ShiftInputQueue } from './input-queue.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
@@ -15,6 +16,7 @@ let simulation: Simulation | null = null,
   lastInput = performance.now(),
   stepMs = 0;
 const clock = new FixedStepClock();
+const shifts = new ShiftInputQueue();
 const surfaces = new SurfaceChannel();
 let pendingFlashback = false;
 let pool: FrameBufferPool | null = null;
@@ -37,6 +39,7 @@ function recorder(sim: Simulation) {
 }
 /** Swap in the re-simulated session at the flashback tick and report it. */
 function finishFlashback(job: Resimulation) {
+  shifts.clear();
   simulation = job.simulation;
   log.truncate(job.target);
   telemetry = recorder(simulation);
@@ -110,6 +113,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         engineering();
         break;
       case 'init':
+        shifts.clear();
         probe.reset();
         simulation = new Simulation(msg.options);
         sessionOptions = msg.options;
@@ -128,7 +132,10 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         snapshot();
         break;
       case 'input':
-        applyInput(msg.input);
+        if (simulation && !paused && !rewind && !pendingFlashback) shifts.push(msg.input.shift);
+        // Analog levels and DRS/overtake retain their immediate semantics.
+        // A neutral sample must not erase a shift awaiting its physics tick.
+        applyInput({ ...msg.input, shift: 0 });
         lastInput = performance.now();
         break;
       case 'pause':
@@ -141,6 +148,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         lastInput = performance.now();
         clock.rebase(lastInput);
         if (paused) {
+          shifts.clear();
           telemetry?.flush();
           telemetry?.flushReplay();
           applyInput(controls());
@@ -157,6 +165,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         break;
       case 'autopilot':
         if (simulation) {
+          if (simulation.autoPlayer !== msg.value) shifts.clear();
           log.autopilot(simulation.tick, msg.value);
           simulation.autoPlayer = msg.value;
         }
@@ -173,6 +182,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         )
           throw new Error('Invalid flashback request');
         paused = true;
+        shifts.clear();
         telemetry?.flush();
         telemetry?.flushReplay();
         rewind = new Resimulation(sessionOptions, log.entries.slice(), msg.tick);
@@ -192,6 +202,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
     }
   } catch (error) {
     paused = true;
+    shifts.clear();
     send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
   }
 };
@@ -218,10 +229,15 @@ setInterval(() => {
     return;
   }
   try {
-    if (now - lastInput > 750) applyInput({ ...controls(), brake: 0.4 });
+    if (now - lastInput > 750) {
+      shifts.clear();
+      applyInput({ ...controls(), brake: 0.4 });
+    }
     const start = performance.now(),
       before = clock.ticks;
     clock.advance(now, (dt) => {
+      const shift = shifts.take();
+      if (shift) applyInput({ ...simulation!.cars[0].input, shift });
       simulation!.step(dt);
       telemetry?.capture(stepMs, clock.droppedSeconds);
       // Service phases last 0.8-1.7 s. A stalled consumer (every pooled frame
@@ -253,6 +269,7 @@ setInterval(() => {
     }
   } catch (error) {
     paused = true;
+    shifts.clear();
     send({
       type: 'error',
       message: error instanceof Error ? (error.stack ?? error.message) : String(error),

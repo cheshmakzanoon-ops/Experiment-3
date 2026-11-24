@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { FixedStepClock } from './fixed-step-clock.ts';
 import { FrameBufferPool } from './frame-buffer-pool.ts';
+import { ShiftInputQueue } from './input-queue.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import { OpenWorldSimulation } from '../simulation/open-world/session.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
@@ -18,6 +19,7 @@ let simulation: OpenWorldSimulation | null = null,
   lastSent = -1,
   lastStatus = -Infinity;
 const clock = new FixedStepClock();
+const shifts = new ShiftInputQueue();
 /** Transferable frame buffers of the current field size. The field grows
  * when an event adds rivals and shrinks when it ends: the pool is refilled at
  * the new size then, because buffers of the old size coming back from the
@@ -57,6 +59,7 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
   try {
     switch (msg.type) {
       case 'init': {
+        shifts.clear();
         const start = performance.now();
         simulation = new OpenWorldSimulation(msg.options);
         paused = true;
@@ -71,7 +74,8 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         break;
       }
       case 'input':
-        applyInput(msg.input);
+        if (simulation && !paused) shifts.push(msg.input.shift);
+        applyInput({ ...msg.input, shift: 0 });
         lastInput = performance.now();
         break;
       case 'pause':
@@ -79,6 +83,7 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         lastInput = performance.now();
         clock.rebase(lastInput);
         if (paused) {
+          shifts.clear();
           applyInput(controls());
           snapshot(true);
           status();
@@ -97,6 +102,9 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
           else send({ type: 'error', message, fatal: false });
           break;
         }
+        // A successful reset, travel, event or driver transition invalidates
+        // pending intent belonging to the previous driving state.
+        if (msg.command.type !== 'traffic') shifts.clear();
         // A field change or teleport: deliver the new state at once.
         if (simulation && (simulation.cars.length !== before || paused)) snapshot(true);
         status();
@@ -111,6 +119,7 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
     }
   } catch (error) {
     paused = true;
+    shifts.clear();
     send({ type: 'error', message: error instanceof Error ? error.message : String(error), fatal: true });
   }
 };
@@ -121,11 +130,16 @@ setInterval(() => {
     return;
   }
   try {
-    if (now - lastInput > 750) applyInput({ ...controls(), brake: 0.4 });
+    if (now - lastInput > 750) {
+      shifts.clear();
+      applyInput({ ...controls(), brake: 0.4 });
+    }
     const start = performance.now(),
       before = clock.ticks,
       cars = simulation.cars.length;
     clock.advance(now, (dt) => {
+      const shift = shifts.take();
+      if (shift) applyInput({ ...simulation!.player.input, shift });
       simulation!.step(dt);
       const result = simulation!.takeResult();
       if (result) send({ type: 'result', result });
@@ -140,6 +154,7 @@ setInterval(() => {
     if (performance.now() - lastStatus >= 100) status();
   } catch (error) {
     paused = true;
+    shifts.clear();
     send({
       type: 'error',
       message: error instanceof Error ? (error.stack ?? error.message) : String(error),

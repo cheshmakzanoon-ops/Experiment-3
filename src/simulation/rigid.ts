@@ -17,6 +17,12 @@ export class RigidBody {
   private localTorque = new Vec3();
   private midpoint = new Vec3();
   private oldOmega = new Vec3();
+  private nextPosition = new Vec3();
+  private nextVelocity = new Vec3();
+  private nextOmega = new Vec3();
+  private nextAcceleration = new Vec3();
+  private nextAngularAcceleration = new Vec3();
+  private nextOrientation = new Quat();
   clear() {
     this.force.set(0, 0, 0);
     this.torque.set(0, 0, 0);
@@ -51,6 +57,8 @@ export class RigidBody {
       Math.min(ix, iy, iz) <= 0 ||
       !this.force.finite() ||
       !this.torque.finite() ||
+      !this.position.finite() ||
+      !this.velocity.finite() ||
       !this.omega.finite() ||
       (spinStart !== undefined && !spinStart.finite()) ||
       (spinEnd !== undefined && !spinEnd.finite()) ||
@@ -58,9 +66,11 @@ export class RigidBody {
       Math.abs(Math.hypot(q.x, q.y, q.z, q.w) - 1) > 1e-5
     )
       throw new Error('Invalid rigid-body integration state');
-    this.acceleration.copy(this.force).scale(1 / this.mass);
-    this.velocity.addScaled(this.acceleration, dt);
-    this.position.addScaled(this.velocity, dt);
+    // Stage the complete step: a failed solve or non-finite candidate must
+    // leave the caller's last accepted state and vector identities intact.
+    this.nextAcceleration.copy(this.force).scale(1 / this.mass);
+    this.nextVelocity.copy(this.velocity).addScaled(this.nextAcceleration, dt);
+    this.nextPosition.copy(this.position).addScaled(this.nextVelocity, dt);
     this.oldOmega.copy(this.omega);
     this.orientation.inverseRotate(this.omega, this.localOmega);
     this.orientation.inverseRotate(this.torque, this.localTorque);
@@ -110,29 +120,60 @@ export class RigidBody {
       y -= ((d * e - c) * fx + (1 - b * e) * fy + (b * c - d) * fz) / determinant;
       z -= ((c * f - e) * fx + (a * e - f) * fy + (1 - a * c) * fz) / determinant;
     }
-    if (!converged) throw new Error('Rigid-body midpoint solve did not converge');
+    if (!converged) {
+      // The twelfth correction has not yet had its residual tested. Accept
+      // it at the same tolerance, without taking a thirteenth Newton step.
+      const mx = (x0 + x) * 0.5,
+        my = (y0 + y) * 0.5,
+        mz = (z0 + z) * 0.5;
+      const fx = x - x0 - dt * kx * my * mz - (dt * (hy * mz - hz * my)) / ix;
+      const fy = y - y0 - dt * ky * mz * mx - (dt * (hz * mx - hx * mz)) / iy;
+      const fz = z - z0 - dt * kz * mx * my - (dt * (hx * my - hy * mx)) / iz;
+      if (!(Math.max(Math.abs(fx), Math.abs(fy), Math.abs(fz)) < tolerance))
+        throw new Error('Rigid-body midpoint solve did not converge');
+    }
     this.midpoint.set((x0 + x) * 0.5, (y0 + y) * 0.5, (z0 + z) * 0.5);
     this.orientation.rotate(this.midpoint, this.midpoint);
     // integrateWorld's normalized quaternion increment is a Cayley rotation.
     // Paired with the midpoint drift, it preserves the WORLD momentum vector,
     // not just its magnitude. Never substitute the endpoint angular velocity.
-    this.orientation.integrateWorld(this.midpoint, dt);
-    this.orientation.rotate(
+    const nextQ = this.nextOrientation;
+    nextQ.x = q.x;
+    nextQ.y = q.y;
+    nextQ.z = q.z;
+    nextQ.w = q.w;
+    nextQ.integrateWorld(this.midpoint, dt);
+    nextQ.rotate(
       this.localOmega.set(x - dx / (2 * ix), y - dy / (2 * iy), z - dz / (2 * iz)),
-      this.omega,
+      this.nextOmega,
     );
-    this.inverseInertia(this.torque, this.localTorque);
-    this.omega.addScaled(this.localTorque, dt * 0.5);
-    this.angularAcceleration
-      .copy(this.omega)
+    // The final kick uses the candidate orientation, in the same order as
+    // inverseInertia, without exposing that orientation before validation.
+    nextQ.inverseRotate(this.torque, this.localTorque);
+    this.localTorque.set(this.localTorque.x / ix, this.localTorque.y / iy, this.localTorque.z / iz);
+    nextQ.rotate(this.localTorque, this.localTorque);
+    this.nextOmega.addScaled(this.localTorque, dt * 0.5);
+    this.nextAngularAcceleration
+      .copy(this.nextOmega)
       .sub(this.oldOmega)
       .scale(1 / dt);
     if (
-      !this.position.finite() ||
-      !this.velocity.finite() ||
-      !this.omega.finite() ||
-      !Number.isFinite(q.x + q.y + q.z + q.w)
+      !this.nextPosition.finite() ||
+      !this.nextVelocity.finite() ||
+      !this.nextOmega.finite() ||
+      !this.nextAcceleration.finite() ||
+      !this.nextAngularAcceleration.finite() ||
+      !Number.isFinite(nextQ.x + nextQ.y + nextQ.z + nextQ.w)
     )
       throw new Error('Non-finite rigid body');
+    this.position.copy(this.nextPosition);
+    this.velocity.copy(this.nextVelocity);
+    this.omega.copy(this.nextOmega);
+    this.acceleration.copy(this.nextAcceleration);
+    this.angularAcceleration.copy(this.nextAngularAcceleration);
+    q.x = nextQ.x;
+    q.y = nextQ.y;
+    q.z = nextQ.z;
+    q.w = nextQ.w;
   }
 }
