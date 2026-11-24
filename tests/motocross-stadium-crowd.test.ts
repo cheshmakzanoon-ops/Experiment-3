@@ -398,3 +398,51 @@ it('keeps every occupied Valley Ridge seat in one volumetric shadow sculpt acros
     material.dispose();
   }
 });
+
+it('submits the same terrace guests, poses and clothing during partial seat handoffs', () => {
+  const material = new T.MeshStandardMaterial(), n = 96;
+  const poses = Array.from({ length: n }, (_, i) => new T.Matrix4().makeTranslation((i % 16) - 7.5, Math.floor(i / 16) * 0.3, 0));
+  const colours = poses.map((_, i) => new T.Color().setHSL(i / n, 0.5, 0.4));
+  const block = new CrowdCluster(poses, colours, 791, material, 1, 0, false, 0, 1);
+  const all = new CrowdCluster(poses, colours, 791, material, 1);
+  const seats = (mesh: T.InstancedMesh, range: T.Vector2, length: number) => {
+    const phase = mesh.geometry.getAttribute('spectatorPhase');
+    const style = mesh.geometry.getAttribute('spectatorStyle');
+    const skin = mesh.geometry.getAttribute('spectatorSkin');
+    const result = [];
+    for (let i = 0; i < length; i++) {
+      const rank = Math.min(0.9999999, phase.getX(i) / (2 * Math.PI));
+      if (rank < range.x || rank >= range.y) continue;
+      result.push([phase.getX(i), ...mesh.instanceMatrix.array.slice(i * 16 + 12, i * 16 + 15),
+        ...mesh.instanceColor!.array.slice(i * 3, i * 3 + 3), style.getX(i), style.getY(i), style.getZ(i), style.getW(i),
+        skin.getX(i), skin.getY(i), skin.getZ(i)]);
+    }
+    return result.sort((a, b) => a[0] - b[0]);
+  };
+  const shadows = new ShadowProxies();
+  shadows.shadowSubstitutes = () => block.shadowSubstitutes();
+  try {
+    for (const distance of [20, 52, 100, 230, 320, 455, 550, 230, 52]) {
+      block.update(0, new T.Vector3(0, 0.75, distance), 0, undefined, 58, 16 / 9, false, 1080);
+      const counts = block.levels.map(m => m.count);
+      const check = () => {
+        for (const [i, mesh] of block.levels.entries()) if (mesh.visible) {
+          const range = block.lodRanges[i];
+          expect(seats(mesh, range, mesh.count)).toEqual(seats(all.levels[i], range, n));
+          expect(mesh.instanceMatrix.count).toBe(n);
+        }
+      };
+      check();
+      if (distance === 52) expect(counts[0]).toBeLessThan(n * 0.7);
+      if (distance === 230) expect(counts[1] + counts[2]).toBe(n);
+      shadows.withCasters(check);
+      expect(block.levels.map(m => m.count)).toEqual(counts);
+    }
+  } finally {
+    for (const cluster of [block, all]) for (const mesh of cluster.levels) {
+      mesh.geometry.dispose(); (mesh.material as T.Material).dispose();
+      mesh.customDepthMaterial?.dispose(); mesh.customDistanceMaterial?.dispose(); mesh.dispose();
+    }
+    material.dispose();
+  }
+});

@@ -3130,7 +3130,7 @@ export class RacingRenderer {
       crowdPersonnel: {
         ...PEOPLE_ASSET,
         clusters: this.circuit.crowdClusters.length,
-        population: this.circuit.crowdClusters.reduce((n, c) => n + c.levels[0].count, 0),
+        population: this.circuit.crowdClusters.reduce((n, c) => n + c.levels[0].instanceMatrix.count, 0),
         // LOD selections, not a claim that off-frustum instances were drawn.
         selectedByLevel: [0, 1, 2, 3].map((level) =>
           this.circuit.crowdClusters.reduce(
@@ -3256,7 +3256,7 @@ export class RacingRenderer {
       crowdPersonnel: {
         ...PEOPLE_ASSET,
         clusters: this.circuit.crowdClusters.length,
-        population: this.circuit.crowdClusters.reduce((n, c) => n + c.levels[0].count, 0),
+        population: this.circuit.crowdClusters.reduce((n, c) => n + c.levels[0].instanceMatrix.count, 0),
         // LOD selections, not a claim that off-frustum instances were drawn.
         selectedByLevel: [0, 1, 2, 3].map((level) =>
           this.circuit.crowdClusters.reduce(

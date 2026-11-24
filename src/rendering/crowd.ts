@@ -9,6 +9,7 @@ import {
   spectatorKitGeometry,
 } from './human-kit.ts';
 import { installAudienceActions } from './audience-actions.ts';
+import { MxTerraceSeats } from './offroad/mx-terrace-seats.ts';
 import { detailDistance } from './view-detail.ts';
 import type { ShadowSubstitute } from './shadow-proxies.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -475,6 +476,7 @@ export class CrowdCluster {
   readonly levels: readonly T.InstancedMesh[];
   private readonly normalCasters: ShadowSubstitute[];
   private readonly gpCasters: ShadowSubstitute[];
+  private readonly mxSeats?: MxTerraceSeats;
   private readonly mxCasters?: [ShadowSubstitute[], ShadowSubstitute[]];
   private gpShadowDetail = false;
   readonly uniforms = {
@@ -601,8 +603,10 @@ export class CrowdCluster {
     this.normalCasters = [this.makeShadowPair(0, 1)];
     // On the outdoor terraces both sculpts can be visible during a seat-by-seat
     // transition. One volumetric shadow sculpt covers their combined guest list.
-    if (mxSeatSide)
+    if (mxSeatSide) {
+      this.mxSeats = new MxTerraceSeats(levels);
       this.mxCasters = [[this.makeShadowPair(0, 1, true)], [this.makeShadowPair(1, 2, true)]];
+    }
     // The low 3D sculpt preserves limbs, seat contact and gesturing. Its
     // shadow remains volumetric at every angle, including low afternoon sun.
     this.gpCasters = gpSeatSide
@@ -611,6 +615,7 @@ export class CrowdCluster {
   }
   private makeShadowPair(fine: number, coarse: number, includeVisibleCoarse = false): ShadowSubstitute {
     const source = this.lodRanges[fine], target = this.lodRanges[coarse], saved = new T.Vector2();
+    let savedCount = 0;
     return {
       fine: this.levels[fine],
       coarse: this.levels[coarse],
@@ -620,8 +625,15 @@ export class CrowdCluster {
         if (includeVisibleCoarse && target.y > target.x)
           target.set(Math.min(target.x, source.x), Math.max(target.y, source.y));
         else target.copy(source);
+        if (this.mxSeats) {
+          savedCount = this.levels[coarse].count;
+          this.levels[coarse].count = this.mxSeats.count(coarse, target);
+        }
       },
-      end: () => { target.copy(saved); },
+      end: () => {
+        target.copy(saved);
+        if (this.mxSeats) this.levels[coarse].count = savedCount;
+      },
     };
   }
   shadowSubstitute() { return this.normalCasters[0]; }
@@ -689,7 +701,9 @@ export class CrowdCluster {
     this.level = crowdDetail(visualDistance, this.level, this.gpShadowDetail);
     crowdLodRanges(visualDistance, this.lodRanges, this.gpShadowDetail);
     this.levels.forEach((mesh, i) => {
-      mesh.visible = this.lodRanges[i].y > this.lodRanges[i].x;
+      const range = this.lodRanges[i];
+      if (this.mxSeats) mesh.count = this.mxSeats.count(i, range);
+      mesh.visible = range.y > range.x;
     });
     // Both frequencies wrap at their own complete cycle, avoiding a long-race
     // float-time jump. The exact same replay timestamp restores the same pose.
