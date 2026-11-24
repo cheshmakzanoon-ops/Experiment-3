@@ -188,7 +188,7 @@ vec3 crowdPivot() {
 /** Match colour and shadow deformation. Bounded angles are smaller than the
  * expanded instance bounds. No wall-clock animation, opacity sorting or alpha
  * test is needed; colour/skin variation comes from original vertex attributes. */
-export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms, colour: boolean) {
+export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms, colour: boolean, clipInactiveSeats = false) {
   material.onBeforeCompile = (shader) => {
     if (!shader.vertexShader.includes('#include <begin_vertex>'))
       throw new Error('Crowd shader position hook missing');
@@ -199,6 +199,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     shader.vertexShader =
       (uniforms.crowdPassA ? '#define MX_CROWD_PASS\n' : '') +
       (uniforms.crowdGpYaw ? '#define GP_CROWD_GAZE\n' : '') +
+      (clipInactiveSeats ? 'uniform vec2 crowdLodRange;\n' : '') +
       'varying float vCrowdRank;\n' +
       deform +
       (colour
@@ -208,6 +209,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
       `vCrowdRank = min(.9999999, spectatorPhase / 6.28318530718);
+${clipInactiveSeats ? 'if (vCrowdRank < crowdLodRange.x || vCrowdRank >= crowdLodRange.y) { gl_Position = vec4(2., 2., 2., 1.); return; }' : ''}
 // Shells: 0 body, 1 cap, 2 phone, 3 resting arms, 4 folded arms, 6 cup.
 float crowdArmsFolded = crowdCrossed();
 float crowdPhone = step(.82, spectatorStyle.w) * (1. - crowdArmsFolded);
@@ -454,7 +456,7 @@ vColor.rgb = vec3(1.);`,
     }
   };
   material.customProgramCacheKey = () =>
-    `apex-procedural-crowd-v16-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}`;
+    `apex-procedural-crowd-v16-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}${clipInactiveSeats ? '-mx-seat-range' : ''}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail, gpCards = false): CrowdDetail {
@@ -473,6 +475,7 @@ export class CrowdCluster {
   readonly levels: readonly T.InstancedMesh[];
   private readonly normalCasters: ShadowSubstitute[];
   private readonly gpCasters: ShadowSubstitute[];
+  private readonly mxCasters?: [ShadowSubstitute[], ShadowSubstitute[]];
   private gpShadowDetail = false;
   readonly uniforms = {
     crowdClock: { value: new T.Vector2() },
@@ -550,9 +553,9 @@ export class CrowdCluster {
         installGpCrowdCard(colorMaterial, this.lodRanges[level], Math.abs((authoredFamily ?? Math.floor(seed / 7)) % 2));
       else if (level === 3) installCrowdImpostorShader(colorMaterial, this.lodRanges[level]);
       else {
-        installCrowdShader(colorMaterial, uniforms, true);
-        installCrowdShader(depth!, uniforms, false);
-        installCrowdShader(distanceMaterial!, uniforms, false);
+        installCrowdShader(colorMaterial, uniforms, true, !!mxSeatSide);
+        installCrowdShader(depth!, uniforms, false, !!mxSeatSide);
+        installCrowdShader(distanceMaterial!, uniforms, false, !!mxSeatSide);
       }
       if (atlas && level < 2) {
         for (const material of [colorMaterial, depth!, distanceMaterial!])
@@ -596,23 +599,36 @@ export class CrowdCluster {
     }
     this.levels = levels;
     this.normalCasters = [this.makeShadowPair(0, 1)];
+    // On the outdoor terraces both sculpts can be visible during a seat-by-seat
+    // transition. One volumetric shadow sculpt covers their combined guest list.
+    if (mxSeatSide)
+      this.mxCasters = [[this.makeShadowPair(0, 1, true)], [this.makeShadowPair(1, 2, true)]];
     // The low 3D sculpt preserves limbs, seat contact and gesturing. Its
     // shadow remains volumetric at every angle, including low afternoon sun.
     this.gpCasters = gpSeatSide
       ? [...this.normalCasters, this.makeShadowPair(1, 2)]
       : this.normalCasters;
   }
-  private makeShadowPair(fine: number, coarse: number): ShadowSubstitute {
+  private makeShadowPair(fine: number, coarse: number, includeVisibleCoarse = false): ShadowSubstitute {
     const source = this.lodRanges[fine], target = this.lodRanges[coarse], saved = new T.Vector2();
     return {
       fine: this.levels[fine],
       coarse: this.levels[coarse],
-      begin: () => { saved.copy(target); target.copy(source); },
+      includeVisibleCoarse,
+      begin: () => {
+        saved.copy(target);
+        if (includeVisibleCoarse && target.y > target.x)
+          target.set(Math.min(target.x, source.x), Math.max(target.y, source.y));
+        else target.copy(source);
+      },
       end: () => { target.copy(saved); },
     };
   }
   shadowSubstitute() { return this.normalCasters[0]; }
-  shadowSubstitutes() { return this.gpShadowDetail ? this.gpCasters : this.normalCasters; }
+  shadowSubstitutes() {
+    if (this.mxCasters) return this.mxCasters[this.levels[0].visible ? 0 : 1];
+    return this.gpShadowDetail ? this.gpCasters : this.normalCasters;
+  }
   update(
     time: number,
     camera: T.Vector3,

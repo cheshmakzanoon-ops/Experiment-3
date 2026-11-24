@@ -1,3 +1,5 @@
+import { CrowdCluster } from '../src/rendering/crowd.ts';
+import { ShadowProxies } from '../src/rendering/shadow-proxies.ts';
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { crowdGarmentColour } from '../src/rendering/crowd-wardrobe.ts';
@@ -359,4 +361,40 @@ it('draws every chair intersecting each race and reflection lens with its origin
     expect(Math.max(...counts)).toBeLessThan(total * .6);
     expect(counts.at(-1)).toBe(0);
   } finally { arena.dispose(); }
+});
+
+it('keeps every occupied Valley Ridge seat in one volumetric shadow sculpt across a camera cut and both handoffs', () => {
+  const material = new T.MeshStandardMaterial();
+  const block = new CrowdCluster([new T.Matrix4()], [new T.Color(0xffddaa)], 9, material, 1, 0, false, 0, 1);
+  const shadows = new ShadowProxies();
+  shadows.shadowSubstitutes = () => block.shadowSubstitutes();
+  const camera = new T.Vector3();
+  try {
+    for (const distance of [20, 52, 100, 230, 340, 450, 550, 52]) {
+      block.update(0, camera.set(0, 0, distance), 0, undefined, 58, 16 / 9, false, 1080);
+      const state = block.levels.map(level => [level.visible, level.castShadow]);
+      const ranges = block.lodRanges.map(range => range.clone());
+      shadows.withCasters(() => {
+        const casting = block.levels.flatMap((level, i) => level.visible && level.castShadow ? [i] : []);
+        expect(casting.length).toBeLessThanOrEqual(1);
+        for (let rank = 0; rank < 1; rank += 1 / 128) {
+          const expected = ranges.slice(0, 3).some(r => rank >= r.x && rank < r.y);
+          expect(casting.some(i => rank >= block.lodRanges[i].x && rank < block.lodRanges[i].y)).toBe(expected);
+        }
+        if (distance < 58) expect(casting).toEqual([1]);
+        else if (distance < 420) expect(casting).toEqual([2]);
+      });
+      expect(block.levels.map(level => [level.visible, level.castShadow])).toEqual(state);
+      expect(block.lodRanges).toEqual(ranges);
+    }
+  } finally {
+    for (const level of block.levels) {
+      level.geometry.dispose();
+      (level.material as T.Material).dispose();
+      level.customDepthMaterial?.dispose();
+      level.customDistanceMaterial?.dispose();
+      level.dispose();
+    }
+    material.dispose();
+  }
 });

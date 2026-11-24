@@ -271,6 +271,8 @@ function groupKey(frame: T.Object3D, mesh: T.Mesh) {
 export interface ShadowSubstitute {
   fine: T.Object3D;
   coarse: T.Object3D;
+  /** The coarse tier can cover its own visible instances and the fine tier together. */
+  includeVisibleCoarse?: boolean;
   /** Prepare/restore the coarse tier for drawing every instance of `fine`. */
   begin?: () => void;
   end?: () => void;
@@ -419,19 +421,19 @@ export class ShadowProxies {
       caster.mesh.visible = true;
     }
     const muted: T.Object3D[] = [],
-      shown: ShadowSubstitute[] = [];
+      shown: { pair: ShadowSubstitute; wasVisible: boolean }[] = [];
     for (const pair of this.shadowSubstitutes()) {
       const { fine, coarse } = pair;
-      if (!fine.visible || coarse.visible || !visibleChain(fine)) continue;
+      if (!fine.visible || (coarse.visible && !pair.includeVisibleCoarse) || !visibleChain(fine)) continue;
       fine.traverse((o) => {
         if (o.castShadow) {
           o.castShadow = false;
           muted.push(o);
         }
       });
+      shown.push({ pair, wasVisible: coarse.visible });
       coarse.visible = true;
       pair.begin?.();
-      shown.push(pair);
     }
     this.substitutedPairs = shown.length;
     try {
@@ -439,8 +441,9 @@ export class ShadowProxies {
     } finally {
       for (const caster of this.casters) caster.mesh.visible = false;
       for (const o of muted) o.castShadow = true;
-      for (const pair of shown) {
-        pair.coarse.visible = false;
+      for (let i = shown.length - 1; i >= 0; i--) {
+        const { pair, wasVisible } = shown[i];
+        pair.coarse.visible = wasVisible;
         pair.end?.();
       }
     }
