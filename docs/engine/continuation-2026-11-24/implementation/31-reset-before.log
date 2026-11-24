@@ -1,0 +1,112 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ❯ tests/power-unit-reset-automation.test.ts (14 tests | 6 failed | 8 skipped) 35ms
+   × power-unit fixed graph reset ownership > cancels the old future turbo frequency timeline before reopening output 14ms
+     → expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+   × power-unit fixed graph reset ownership > cancels the old future turbo gain timeline before reopening output 3ms
+     → expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+   × power-unit fixed graph reset ownership > cancels the old future whine frequency timeline before reopening output 4ms
+     → expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+   × power-unit fixed graph reset ownership > cancels the old future whine gain timeline before reopening output 3ms
+     → expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+   × power-unit fixed graph reset ownership > cancels the old future motor frequency timeline before reopening output 6ms
+     → expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+   × power-unit fixed graph reset ownership > cancels the old future motor gain timeline before reopening output 3ms
+     → expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+   ↓ power-unit fixed graph reset ownership > still cancels every independent owner after a failed turbo frequency cancellation
+   ↓ power-unit fixed graph reset ownership > still cancels every independent owner after a failed turbo gain cancellation
+   ↓ power-unit fixed graph reset ownership > still cancels every independent owner after a failed whine frequency cancellation
+   ↓ power-unit fixed graph reset ownership > still cancels every independent owner after a failed whine gain cancellation
+   ↓ power-unit fixed graph reset ownership > still cancels every independent owner after a failed motor frequency cancellation
+   ↓ power-unit fixed graph reset ownership > still cancels every independent owner after a failed motor gain cancellation
+   ↓ power-unit fixed graph reset ownership > cancels from native device time while preserving the existing output fade
+   ↓ power-unit fixed graph reset ownership > drops the old parameter schedule when a discontinuity creates a new timeline
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/power-unit-reset-automation.test.ts > power-unit fixed graph reset ownership > cancels the old future turbo frequency timeline before reopening output
+ FAIL  tests/power-unit-reset-automation.test.ts > power-unit fixed graph reset ownership > cancels the old future turbo gain timeline before reopening output
+ FAIL  tests/power-unit-reset-automation.test.ts > power-unit fixed graph reset ownership > cancels the old future whine frequency timeline before reopening output
+ FAIL  tests/power-unit-reset-automation.test.ts > power-unit fixed graph reset ownership > cancels the old future whine gain timeline before reopening output
+ FAIL  tests/power-unit-reset-automation.test.ts > power-unit fixed graph reset ownership > cancels the old future motor frequency timeline before reopening output
+ FAIL  tests/power-unit-reset-automation.test.ts > power-unit fixed graph reset ownership > cancels the old future motor gain timeline before reopening output
+AssertionError: expected [ { kind: 'target', …(2) }, …(10) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "kind": "target",
++     "time": 0,
++     "value": 3430.769230769231,
++   },
++   {
++     "kind": "target",
++     "time": 0.1,
++     "value": 20,
++   },
++   {
++     "kind": "target",
++     "time": 0.2,
++     "value": 3879.3846153846152,
++   },
++   {
++     "kind": "target",
++     "time": 0.3,
++     "value": 20,
++   },
++   {
++     "kind": "target",
++     "time": 0.4,
++     "value": 4394.461538461539,
++   },
++   {
++     "kind": "target",
++     "time": 0.5,
++     "value": 20,
++   },
++   {
++     "kind": "target",
++     "time": 0.6,
++     "value": 4976,
++   },
++   {
++     "kind": "target",
++     "time": 0.7,
++     "value": 20,
++   },
++   {
++     "kind": "target",
++     "time": 0.8,
++     "value": 5624,
++   },
++   {
++     "kind": "target",
++     "time": 0.9,
++     "value": 20,
++   },
++   {
++     "kind": "target",
++     "time": 1,
++     "value": 6338.461538461539,
++   },
++ ]
+
+ ❯ tests/power-unit-reset-automation.test.ts:56:33
+     54|       expect(param.events.some((event) => event.time >= 0.2 && event.v…
+     55|       f.audio.reset();
+     56|       expect(pending(param, 0)).toEqual([]);
+       |                                 ^
+     57|       expect(param.events.at(-1)).toEqual({ kind: 'cancel', time: 0, v…
+     58|       f.audio.update(frame(0), 0, 0.05, 1, true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 8 skipped (14)
+   Start at  11:39:06
+   Duration  687ms (transform 282ms, setup 0ms, collect 360ms, tests 35ms, environment 0ms, prepare 72ms)

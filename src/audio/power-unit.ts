@@ -296,6 +296,15 @@ export class PowerUnitAudio {
       const failures: unknown[] = [];
       for (const cleanup of [
         () => this.burstFilter.frequency.cancelScheduledValues(t),
+        // A new presentation can reopen output immediately. Retire every old
+        // fixed-graph target as well as burst automation, without changing the
+        // current oscillator state or the existing output fade.
+        () => this.turbo.frequency.cancelScheduledValues(t),
+        () => this.turboGain.gain.cancelScheduledValues(t),
+        () => this.whine.frequency.cancelScheduledValues(t),
+        () => this.whineGain.gain.cancelScheduledValues(t),
+        () => this.motor.frequency.cancelScheduledValues(t),
+        () => this.motorGain.gain.cancelScheduledValues(t),
         () => this.output.gain.cancelScheduledValues(t),
         () => this.output.gain.setTargetAtTime(0, t, 0.02),
       ]) {

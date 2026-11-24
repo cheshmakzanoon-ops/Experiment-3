@@ -505,11 +505,14 @@ export class GameApp {
     this.input = new InputController(this.settings, (name) => this.action(name));
     this.inputPump = new InputPump((dt) => {
       if (this.errorStopped || document.hidden) return;
-      if (this.festival) {
-        if (!this.festival.drivingInputEnabled) this.input.pollActions(['pause']);
+      const festival = this.festival;
+      if (festival) {
+        if (!festival.drivingInputEnabled) this.input.pollActions(['pause']);
         else {
           const input = this.input.update(dt);
-          this.festival.input(input);
+          // An input action can pause or synchronously close this session.
+          if (this.festival !== festival || !festival.drivingInputEnabled) return;
+          festival.input(input);
           input.shift = 0;
         }
         return;

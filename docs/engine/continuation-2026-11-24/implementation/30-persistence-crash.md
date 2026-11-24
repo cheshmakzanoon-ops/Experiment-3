@@ -98,3 +98,11 @@ Observed checkout HEAD after checks: `360d3de1d910b77e9bdca933f47df8d5bc99a69a`.
 - No model, character, environment, track geometry, vehicle tuning, sound profile, asset, dependency, or production code was changed by this agent. No staging, commit, or push was performed.
 
 File ownership released after validation.
+
+## Coordinator integration correction
+
+The broad validate job at `54506ca` caught four `no-require-imports` errors in the CommonJS subprocess fixture. The agent's scoped ESLint command covered the TypeScript suite but did not cover this helper; the native/compiler gate passed independently. This was a test-helper lint failure, not a save-recovery assertion failure.
+
+The coordinator converted the helper's module loading to supported dynamic imports inside an async entry function, retaining the CommonJS desktop module default exports, actual filesystem operations, crash points and explicit nonzero error exit. No lint rule or test assertion was disabled. ESLint then passed for both the test and helper, and all **33 crash/restart cases passed again** (12.78 seconds total). These are the same cases, not additional unique coverage.
+
+Updated helper SHA-256: `020e706dd6c956e541621ac8d3a90c79840bdc85a02867b0441c613d6cb7992b`. Production persistence code remains unchanged. The prior source fingerprints describe the original agent handoff.

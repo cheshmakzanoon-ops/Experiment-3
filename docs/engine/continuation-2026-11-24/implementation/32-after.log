@@ -1,0 +1,22 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ✓ tests/controller-session-ownership.test.ts (16 tests) 76ms
+ ✓ tests/festival-fatal-worker.test.ts (16 tests) 6389ms
+   ✓ Festival worker failure classification > marks an interval step failure fatal and holds simulation until its host closes it  2055ms
+   ✓ Festival worker failure classification > marks an interval status failure fatal and holds simulation until its host closes it  309ms
+   ✓ Festival worker failures through the session receiver > rejects startup once for an actual init construction failure and releases readiness ownership  433ms
+   ✓ Festival worker failures through the session receiver > rejects startup once for an actual init frame failure and releases readiness ownership  353ms
+   ✓ Festival worker failures through the session receiver > rejects startup once for an actual init status failure and releases readiness ownership  363ms
+   ✓ Festival worker failures through the session receiver > closes the running host once for an actual step failure, rejects all pending commands and ignores queued work  350ms
+   ✓ Festival worker failures through the session receiver > keeps native worker errors terminal and settles command deadlines once  352ms
+   ✓ Festival worker failures through the session receiver > keeps decode worker errors terminal and settles command deadlines once  361ms
+   ✓ Festival worker failures through the session receiver > keeps actual correlated and uncorrelated command validation errors recoverable, including legacy error messages  344ms
+ ✓ tests/input-controller-lifecycle.test.ts (16 tests) 22ms
+ ✓ tests/controller-replacement.test.ts (16 tests) 16ms
+ ✓ tests/input-pump.test.ts (4 tests) 7ms
+
+ Test Files  5 passed (5)
+      Tests  68 passed (68)
+   Start at  11:37:48
+   Duration  10.63s (transform 1.33s, setup 0ms, collect 3.16s, tests 6.51s, environment 1ms, prepare 251ms)

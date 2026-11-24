@@ -94,3 +94,13 @@ Actual unchanged Aurel, Vellamar and Loirette collision meshes built 48–65% fa
 Real persistence validation added 33 subprocess cases, including 27 SIGKILLs across physical save-write boundaries. Incomplete pairs failed certification and were repaired from complete local data. Empty-local recovery retains its documented readable-data salvage behavior; the result does not claim power-loss durability or an atomic cross-file disk transaction.
 
 The fifth publication batch (agents 26–30) passed complete project TypeScript compilation on an immutable snapshot of its staged source. The later native-audio and controller/network integration work was excluded while still in progress.
+
+### Wave 6: integration repairs
+
+Actual controller/input-pump/session integration reproduced a secondary Festival host exception when a pause transport failure destroyed the session during input sampling. The host now rechecks the sampled session identity and driving permission before publishing; both failing cases pass while preserving the original transport failure.
+
+Audio integration reproduced six old fixed-oscillator parameter timelines surviving reset. Reset now cancels future turbo, transmission and motor gain/frequency automation at actual device time while preserving the existing output fade and synthesis. Three real OfflineAudioContext tests are prepared for the remote native gate; they are not yet counted as passed.
+
+Two real client/server integration cases compare twin 90-second sessions under stale ACKs, downlink silence and jitter, then test timeout/token rejoin. Detached-output mutation leaves wire/render hashes identical, retention remains bounded, and teardown leaves no queued timer work. Reports 31–33 distinguish integration fixtures from hardware/network claims.
+
+The sixth publication batch (completed agents 31–33 and the subprocess fixture lint correction) passed complete project TypeScript compilation on an immutable staged-source snapshot. The preceding commit passed all eight focused native tests and 9,134 broad unit tests, with the same four documented content failures; [its full CI account](implementation/fifth-batch-ci.md) also records the fixed helper lint failure and skipped broad browser jobs.

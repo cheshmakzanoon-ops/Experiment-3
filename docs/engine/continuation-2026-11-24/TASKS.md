@@ -34,12 +34,12 @@ Every numbered row reserves one distinct agent assignment for this continuation.
 | 28 | 5 | Measure actual unchanged track-contact meshes, BVH trees and contact queries against the original implementation. | Complete; 3 real tracks, 55,944 query calls exact; cold construction median reduction48–65%. |
 | 29 | 5 | Measure and remove safe hot-path prediction response allocations while preserving exact adaptive arithmetic. | Complete; 17 new tests,75 focused cases; 786,432 exact gain/yaw comparisons; isolated allocation and timing evidence. |
 | 30 | 5 | Validate real-filesystem mirror crash/restart and certificate recovery boundaries. | Complete; 33 integration cases including27 SIGKILLs; scoped compiler/lint passed; no production defect. |
-| 31 | 6 | Validate actual browser audio scheduling, reset and offline transient lifetime; add focused CI coverage. | Running; native execution will use remote CI. |
-| 32 | 6 | Verify controller replacement and pause ownership through real input pump/session consumers. | Running |
-| 33 | 6 | Integrate bounded network history and state ownership across actual client/server outage and recovery. | Running |
-| 34 | 6 | Awaiting evidence-based assignment | Pending |
-| 35 | 6 | Awaiting evidence-based assignment | Pending |
-| 36 | 6 | Awaiting evidence-based assignment | Pending |
+| 31 | 6 | Repair stale oscillator automation on reset and add actual browser audio rendering coverage. | Complete implementation;6 pre-fix failures,14 new regressions,98 focused passes;3 native tests await remoteCI. |
+| 32 | 6 | Integrate real input/session ownership; repair synchronous Festival exit during input sampling. | Complete;16 integration cases,68 focused passes;2 exact pre-fix reproductions; narrow host guard. |
+| 33 | 6 | Integrate bounded network history and state ownership across actual client/server outage and recovery. | Complete;2 integration cases; twin90-second sessions plus token rejoin; exact mutation wire/render hashes. |
+| 34 | 6 | Measure atomic rigid-step runtime cost and exact successful dynamics independently. | Running |
+| 35 | 6 | Review actual renderer and construction consumers for optional-instrumentation and cancellation ownership. | Running |
+| 36 | 6 | Validate actual browser worker transfer, stalled-consumer and recovery ownership. | Running; remote native execution required. |
 | 37 | 7 | Awaiting evidence-based assignment | Pending |
 | 38 | 7 | Awaiting evidence-based assignment | Pending |
 | 39 | 7 | Awaiting evidence-based assignment | Pending |

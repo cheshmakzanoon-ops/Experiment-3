@@ -1,0 +1,50 @@
+
+ RUN  v3.2.4 /engine-work-4e0075ccccb3/repo
+
+ ❯ tests/controller-session-ownership.test.ts (16 tests | 2 failed) 69ms
+   ✓ controller and session publication ownership > circuit: automatic replacement during a pump run publishes pause before any further drive command 14ms
+   ✓ controller and session publication ownership > circuit: same-slot replacement during a pump run publishes pause before any further drive command 3ms
+   ✓ controller and session publication ownership > circuit: disconnect first during a pump run publishes pause before any further drive command 3ms
+   ✓ controller and session publication ownership > circuit: blur during a pump run publishes pause before any further drive command 2ms
+   ✓ controller and session publication ownership > circuit: hidden during a pump run publishes pause before any further drive command 2ms
+   ✓ controller and session publication ownership > circuit: canceled timer callbacks cannot publish into a resumed pump generation 2ms
+   ✓ controller and session publication ownership > festival: automatic replacement during a pump run publishes pause before any further drive command 4ms
+   ✓ controller and session publication ownership > festival: same-slot replacement during a pump run publishes pause before any further drive command 2ms
+   ✓ controller and session publication ownership > festival: disconnect first during a pump run publishes pause before any further drive command 3ms
+   ✓ controller and session publication ownership > festival: blur during a pump run publishes pause before any further drive command 3ms
+   ✓ controller and session publication ownership > festival: hidden during a pump run publishes pause before any further drive command 3ms
+   ✓ controller and session publication ownership > festival: canceled timer callbacks cannot publish into a resumed pump generation 2ms
+   ✓ controller and session publication ownership > circuit replay action-only polling cannot publish a held replacement or resume playback 3ms
+   ✓ controller and session publication ownership > Festival terminal ownership cancels pending work and leaves later pump callbacks without a drive target 2ms
+   × controller and session publication ownership > Festival device loss can exit synchronously on a pause transport failure without dereferencing the departed session 18ms
+     → expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+   × controller and session publication ownership > Festival pause button can exit synchronously on a pause transport failure without dereferencing the departed session 2ms
+     → expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/controller-session-ownership.test.ts > controller and session publication ownership > Festival device loss can exit synchronously on a pause transport failure without dereferencing the departed session
+ FAIL  tests/controller-session-ownership.test.ts > controller and session publication ownership > Festival pause button can exit synchronously on a pause transport failure without dereferencing the departed session
+AssertionError: expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"TypeError: Cannot read properties of null (reading 'input')"
+
+ ❯ tests/controller-session-ownership.test.ts:454:37
+    452|     if (cause === 'device loss') f.setPads([heldReplacement(0)]);
+    453|     else f.first.buttons[9] = button(1);
+    454|     expect(() => f.pump.poll()).not.toThrow();
+       |                                     ^
+    455|     expect(f.app.festival).toBeNull();
+    456|     expect(f.app.state).toBe('menu');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 14 passed (16)
+   Start at  11:37:30
+   Duration  2.17s (transform 612ms, setup 0ms, collect 1.89s, tests 69ms, environment 0ms, prepare 64ms)
