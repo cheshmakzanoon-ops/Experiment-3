@@ -242,12 +242,12 @@ export function installFacadeStreetLight(material: T.MeshStandardMaterial) {
 
 /** `gp`: the motorcycle-GP venues' turf and gravel (ground/gp-ground.ts);
  * every other venue's palette is built exactly as before. */
-export function venueKitMaterials(style: VenueThemeStyle, gp = false) {
+export function venueKitMaterials(style: VenueThemeStyle, gp = false, arenaFloor?: T.MeshPhysicalMaterial) {
   const groundKind =
     style.ground === 'sand' ? 'gravel' : style.ground === 'grass' ? 'grass' : 'concrete';
-  const ground = surfaceMaterial(groundKind, groundKind === 'concrete' ? 'concrete' : undefined);
+  const ground = arenaFloor ?? surfaceMaterial(groundKind, groundKind === 'concrete' ? 'concrete' : undefined);
   // Grass keeps the circuit's original grass look; other grounds are tinted.
-  if (style.ground !== 'grass') ground.color.set(style.groundTint).multiplyScalar(1.25);
+  if (!arenaFloor && style.ground !== 'grass') ground.color.set(style.groundTint).multiplyScalar(1.25);
   if (groundKind === 'gravel') installGravelFinish(ground);
   const gravel = surfaceMaterial('gravel');
   installGravelFinish(gravel);
@@ -321,7 +321,7 @@ export function venueKitMaterials(style: VenueThemeStyle, gp = false) {
     installScannedTurf(ground);
     installVergeFinish(ground, gp);
   } else if (groundKind === 'gravel') installScannedGravel(ground);
-  else installScannedConcrete(ground);
+  else if (!arenaFloor) installScannedConcrete(ground);
   installScannedGravel(gravel);
   if (gp) {
     installGpGravel(gravel, style.landform);

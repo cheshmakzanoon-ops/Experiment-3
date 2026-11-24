@@ -13,6 +13,7 @@ import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../gro
 import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
+import { installMxArenaApron } from './mx-arena-apron.ts';
 import { installMxSoilParallax } from './mx-soil-parallax.ts';
 import { mxStartLanes } from './mx-launch-soil.ts';
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
@@ -117,6 +118,7 @@ export class TerrainView {
       installMxBrakingBumps(this.material);
       installMxTerrainShadow(this.material);
       installMxSoilParallax(this.material);
+      if (this.supercross) installMxArenaApron(this.material, true);
     }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { MxStadiumAudience } from './mx-stadium-audience.ts';
-import { installMxRoofBounce, MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
+import { installMxRoofBounce, mxArenaLampGrid, MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mxPressSuite } from './mx-press-suite.ts';
@@ -104,7 +104,7 @@ export class Stadium {
   readonly timing: MxTimingBoard;
   /** The roof's regular floodlight grid (world metres): lamp (i, k) hangs at
    * (minX + (i + 0.5) * spanX / columns, y, minZ + (k + 0.5) * spanZ / rows). */
-  readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
+  readonly lampGrid: ReturnType<typeof mxArenaLampGrid>;
   private readonly textures = new Set<T.Texture>();
   private stopHaze: (() => void) | null = null;
   private stopCrowdDetail: (() => void) | null = null;
@@ -510,13 +510,7 @@ export class Stadium {
     chairs.computeBoundingSphere();
     this.root.add(chairs);
     const span = box.getSize(new T.Vector3());
-    Object.assign(this.lampGrid, {
-      minX: min.x,
-      minZ: min.z,
-      spanX: span.x,
-      spanZ: span.z,
-      y: floor + STADIUM.roof - MX_LAMP_OPTICS.belowRoof,
-    });
+    this.lampGrid = mxArenaLampGrid(track);
     const outer = STADIUM.tiers * STADIUM.depth + STADIUM.concourse;
     const roof = new T.Mesh(
       mxRoofDeck(span.x + 2 * outer, span.z + 2 * outer, 'arena'),

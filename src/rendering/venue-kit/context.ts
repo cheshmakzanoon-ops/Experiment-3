@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mxArenaApronMaterial } from '../offroad/mx-arena-apron.ts';
 import { mod } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
@@ -42,7 +43,8 @@ export class VenueKitContext {
   constructor(readonly track: Track) {
     this.meta = track.circuit.catalogue!;
     this.style = VENUE_THEMES[this.meta.theme];
-    this.materials = venueKitMaterials(this.style, isGpCourse(track));
+    const arenaFloor = track.circuit.id === 'arena-nord-sx' ? mxArenaApronMaterial(track) : undefined;
+    this.materials = venueKitMaterials(this.style, isGpCourse(track), arenaFloor);
     this.root.name = `Venue kit · ${this.meta.venueName} (${this.meta.layout})`;
   }
   /** Register a circular footprint that planting and scatter must avoid. */

@@ -9,6 +9,7 @@ import {
   isMotocrossVenue,
   MX_BOUNDARY,
 } from '../src/rendering/offroad/mx-boundary.ts';
+import { MX_ARENA_LIGHT_HOOK } from '../src/rendering/offroad/mx-arena-lighting.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 
@@ -102,6 +103,29 @@ describe('full motocross venue construction', () => {
       // The former unguarded mechanics-area ribbon was scanned asphalt even
       // though the main track ribbon was already correctly suppressed.
       expect(asphaltMeshes(scene.surfaces)).toHaveLength(0);
+      // Survey from above so a concrete skirt cannot cover the real dirt
+      // while the right material still exists underneath it.
+      if (id === 'arena-nord-sx') {
+        const survey = new T.Raycaster();
+        const roots = [scene.surfaces, scene.offroad!.terrain!.group];
+        const lamps = scene.offroad!.stadium!.lampGrid;
+        scene.group.updateMatrixWorld(true);
+        const owners = new Set<string>();
+        for (let row = 0; row < 6; row++) {
+          for (let col = 0; col < 8; col++) {
+            survey.ray.origin.set(lamps.minX + (col + .5) * lamps.spanX / 8, lamps.y,
+              lamps.minZ + (row + .5) * lamps.spanZ / 6);
+            survey.ray.direction.set(0, -1, 0);
+            const hit = survey.intersectObjects(roots)[0];
+            expect(hit).toBeDefined();
+            const mesh = hit.object as T.Mesh;
+            const mat = Array.isArray(mesh.material) ? mesh.material[hit.face!.materialIndex] : mesh.material;
+            owners.add(mat.name);
+            expect(studioHookKeys(mat)).toContain(MX_ARENA_LIGHT_HOOK);
+          }
+        }
+        expect([...owners].sort()).toEqual(['APEX library soil', 'Arena Nord graded clay apron']);
+      }
       const paintedPitEdges: T.Object3D[] = [];
       scene.surfaces.traverse((object) => {
         const width = object.userData.strip?.width;

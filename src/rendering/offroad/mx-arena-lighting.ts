@@ -1,7 +1,8 @@
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import { MX_LAMP_OPTICS } from './mx-floodlight.ts';
-import { STADIUM } from './stadium-dimensions.ts';
+import { STADIUM, stadiumFloor } from './stadium-dimensions.ts';
+import type { Track } from '../../simulation/track.ts';
 
 export const MX_ARENA_LIGHT_HOOK = 'mx-arena-floodlights-v2';
 
@@ -15,6 +16,14 @@ export interface MxArenaGrid {
   y: number;
   columns: number;
   rows: number;
+}
+
+export function mxArenaLampGrid(track: Track): MxArenaGrid {
+  const { min, max } = stadiumFloor(track);
+  return {
+    minX: min.x, minZ: min.z, spanX: max.x - min.x, spanZ: max.z - min.z,
+    y: min.y + STADIUM.roof - MX_LAMP_OPTICS.belowRoof, columns: 8, rows: 5,
+  };
 }
 
 /** Floodlights of the supercross roof: 40 lamps on a regular 8 x 5 grid, each

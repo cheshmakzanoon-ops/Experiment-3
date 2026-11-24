@@ -388,6 +388,8 @@ export function concrete(options: ConcreteOptions = {}) {
 
 // --- Soil (off-road venues) -------------------------------------------------
 export interface SoilOptions {
+  /** A prepared, uniform patch outside the deformable racing surface. */
+  prepared?: { colour: number; moisture: number; compaction: number };
   /** Detail tile in metres. */
   tile?: number;
 }
@@ -417,8 +419,8 @@ export function soil(options: SoilOptions = {}) {
   const repeat = 1 / clamp(options.tile ?? 1.4, 0.05, 20);
   const material = new T.MeshPhysicalMaterial({
     name: 'APEX library soil',
-    color: 0xffffff,
-    vertexColors: true,
+    color: options.prepared?.colour ?? 0xffffff,
+    vertexColors: !options.prepared,
     roughness: 0.97,
     metalness: 0,
     map: textures.get('soil', 'albedo', repeat),
@@ -431,14 +433,18 @@ export function soil(options: SoilOptions = {}) {
   material.color.multiplyScalar(ALBEDO_SCALE);
   const local = { apexSoilWetness: { value: 0 } as T.IUniform<number> };
   material.userData.soil = local;
-  chainShaderHook(material, 'library-soil-v1', (shader) => {
+  const prepared = options.prepared;
+  chainShaderHook(material, prepared ? 'library-prepared-soil-v1' : 'library-soil-v1', (shader) => {
     Object.assign(shader.uniforms, local);
     injectDeclarations(
       shader,
       'common',
-      'attribute vec3 apexSoilState;\nvarying vec3 vApexSoil;',
+      (prepared ? 'uniform vec3 apexSoilState;' : 'attribute vec3 apexSoilState;') + '\nvarying vec3 vApexSoil;',
       'vertex',
     );
+    if (prepared) shader.uniforms.apexSoilState = {
+      value: new T.Vector3(prepared.moisture, prepared.compaction, 0),
+    };
     injectAfter(shader, 'begin_vertex', SOIL_VERTEX, 'vertex');
     injectDeclarations(
       shader,
