@@ -30,9 +30,11 @@ export class InputController {
   private steering = 0;
   private previousButtons = new Set<number>();
   private enabled = false;
+  private disposed = false;
   private generation = 0;
   private buttons = new ControllerActions();
   private touch = releasedTouch();
+  private touchPointers = new Map<number, { element: HTMLElement; action: TouchAction }>();
   gamepadName = 'KEYBOARD';
   deviceStatus = '';
   private lastDevice = '';
@@ -40,6 +42,7 @@ export class InputController {
   private suppressedDevice = '';
   private blockedMapping: Settings['mapping'] | null = null;
   private touchEvents = new AbortController();
+  private readonly ownerDocument = typeof document === 'undefined' ? null : document;
   constructor(
     public settings: Settings,
     private action: (name: string) => void,
@@ -48,14 +51,26 @@ export class InputController {
     window.addEventListener('keyup', this.keyUp);
     window.addEventListener('blur', this.blur);
     window.addEventListener('gamepaddisconnected', this.disconnected);
+    this.ownerDocument?.addEventListener('visibilitychange', this.visibilityChanged);
   }
   private keyDown = (e: KeyboardEvent) => {
-    const target = e.target as HTMLElement;
-    // Dialog widgets and native Escape cancellation own their keys even when
-    // the previous driving/replay mode had input enabled.
-    if (e.defaultPrevented || target.closest?.('dialog[open]')) return;
-    if (target.matches('input,select,textarea,button') && !this.enabled) return;
+    if (this.disposed || this.ownerDocument?.hidden || e.defaultPrevented) return;
+    // Widgets own their keys even if driving remains enabled. The composed path
+    // also identifies focused widgets inside a shadow root; window/document
+    // targets do not implement Element methods.
+    if (
+      [e.target, ...(e.composedPath?.() ?? [])].some((target) => {
+        const element = target as HTMLElement | null;
+        const widgets = 'dialog[open],input,select,textarea,button';
+        return (
+          element?.isContentEditable || element?.closest?.(widgets) || element?.matches?.(widgets)
+        );
+      })
+    )
+      return;
     if (!this.enabled && e.code !== 'Escape') return;
+    // A repeat arriving after reset/focus loss is not a fresh press.
+    if (e.repeat && !this.keys.has(e.code)) return;
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'F3', 'Tab'].includes(e.code))
       e.preventDefault();
     this.keys.add(e.code);
@@ -97,6 +112,9 @@ export class InputController {
     this.reset();
     if (this.enabled) this.action('blur');
   };
+  private visibilityChanged = () => {
+    if (this.ownerDocument?.hidden) this.blur();
+  };
   private disconnected = (event: GamepadEvent) => {
     if (this.lastDevice === `${event.gamepad.index}:${event.gamepad.id}`)
       this.deviceFault('Selected controller disconnected.', false);
@@ -107,6 +125,7 @@ export class InputController {
       this.blockedMapping = this.settings.mapping;
     }
     this.deviceStatus = message;
+    this.buttons.reset();
     this.reset();
     if (message !== this.lastFault) {
       this.lastFault = message;
@@ -115,6 +134,7 @@ export class InputController {
     return this.state;
   }
   setEnabled(value: boolean) {
+    if (this.disposed) return;
     this.enabled = value;
     this.reset();
   }
@@ -126,6 +146,15 @@ export class InputController {
     this.previousButtons.clear();
     this.lastDevice = '';
     this.touch = releasedTouch();
+    const pointers = [...this.touchPointers];
+    this.touchPointers.clear();
+    for (const [pointerId, { element }] of pointers) {
+      try {
+        if (element.hasPointerCapture?.(pointerId)) element.releasePointerCapture(pointerId);
+      } catch {
+        // The browser may already have cancelled a pointer during focus loss.
+      }
+    }
   }
   private observeButtons(pad: Gamepad) {
     const identity = `${pad.index}:${pad.id}`;
@@ -147,6 +176,7 @@ export class InputController {
   }
   /** The selected gamepad, for output-only cues such as rumble. */
   activePad(): Gamepad | null {
+    if (this.disposed) return null;
     try {
       return selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
     } catch {
@@ -156,6 +186,7 @@ export class InputController {
   /** Paused/replay UI may poll a small action allowlist without ever reading or
    * publishing drive axes. Suppressed buttons are still observed, not delayed. */
   pollActions(allowed: ActionContext | readonly ButtonAction[]) {
+    if (this.disposed || this.ownerDocument?.hidden) return;
     let pad: Gamepad | null;
     try {
       pad = selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
@@ -178,23 +209,41 @@ export class InputController {
     this.dispatchButtons(pad, allowed);
   }
   bindTouch(element: HTMLElement, action: TouchAction) {
+    if (this.disposed) return;
     const options = { signal: this.touchEvents.signal };
     element.addEventListener(
       'pointerdown',
       (e) => {
+        if (!this.enabled || this.ownerDocument?.hidden) return;
         e.preventDefault();
-        element.setPointerCapture(e.pointerId);
-        this.touch[action] = true;
+        try {
+          element.setPointerCapture(e.pointerId);
+        } catch {
+          // A cancelled pointer cannot own a control without capture.
+          return;
+        }
+        this.touchPointers.set(e.pointerId, { element, action });
+        this.syncTouch();
       },
       options,
     );
-    const release = () => (this.touch[action] = false);
+    const release = (e: PointerEvent) => {
+      for (const [pointerId, owner] of this.touchPointers) {
+        if (owner.element === element && (e.pointerId === undefined || e.pointerId === pointerId))
+          this.touchPointers.delete(pointerId);
+      }
+      this.syncTouch();
+    };
     element.addEventListener('pointerup', release, options);
     element.addEventListener('pointercancel', release, options);
     element.addEventListener('lostpointercapture', release, options);
   }
+  private syncTouch() {
+    this.touch = releasedTouch();
+    for (const { action } of this.touchPointers.values()) this.touch[action] = true;
+  }
   update(dt: number) {
-    if (!this.enabled) return this.state;
+    if (!this.enabled || this.ownerDocument?.hidden) return this.state;
     const b = this.settings.bindings,
       k = this.keys,
       t = this.touch;
@@ -327,10 +376,16 @@ export class InputController {
     return this.state;
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.enabled = false;
+    this.buttons.reset();
+    this.reset();
     window.removeEventListener('keydown', this.keyDown);
     window.removeEventListener('keyup', this.keyUp);
     window.removeEventListener('blur', this.blur);
     window.removeEventListener('gamepaddisconnected', this.disconnected);
+    this.ownerDocument?.removeEventListener('visibilitychange', this.visibilityChanged);
     this.touchEvents.abort();
   }
 }

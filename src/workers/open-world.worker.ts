@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { FixedStepper } from '../core/math.ts';
+import { FixedStepClock } from './fixed-step-clock.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import { OpenWorldSimulation } from '../simulation/open-world/session.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
@@ -12,12 +12,11 @@ import type { FromOpenWorld, ToOpenWorld } from './open-world-protocol.ts';
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 let simulation: OpenWorldSimulation | null = null,
   paused = true,
-  previous = performance.now(),
-  lastInput = previous,
+  lastInput = performance.now(),
   stepMs = 0,
   lastSent = -1,
   lastStatus = -Infinity;
-const clock = new FixedStepper();
+const clock = new FixedStepClock();
 /** Transferable frame buffers of the current field size. The field grows
  * when an event adds rivals and shrinks when it ends: the pool is refilled at
  * the new size then, because buffers of the old size coming back from the
@@ -59,10 +58,10 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
       case 'init': {
         const start = performance.now();
         simulation = new OpenWorldSimulation(msg.options);
-        clock.reset();
         paused = true;
-        previous = performance.now();
-        lastInput = previous;
+        lastInput = performance.now();
+        clock.reset(lastInput);
+        stepMs = 0;
         fillPool(frameBytes());
         lastSent = -1;
         send({ type: 'ready', buildMs: performance.now() - start, vehicle: simulation.player.definition.id });
@@ -76,8 +75,8 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         break;
       case 'pause':
         paused = msg.value;
-        previous = performance.now();
-        lastInput = previous;
+        lastInput = performance.now();
+        clock.rebase(lastInput);
         if (paused) {
           applyInput(controls());
           snapshot(true);
@@ -107,16 +106,17 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
   }
 };
 setInterval(() => {
-  const now = performance.now(),
-    elapsed = (now - previous) / 1000;
-  previous = now;
-  if (paused || !simulation) return;
+  const now = performance.now();
+  if (paused || !simulation) {
+    clock.rebase(now);
+    return;
+  }
   try {
     if (now - lastInput > 750) applyInput({ ...controls(), brake: 0.4 });
     const start = performance.now(),
       before = clock.ticks,
       cars = simulation.cars.length;
-    clock.advance(elapsed, (dt) => {
+    clock.advance(now, (dt) => {
       simulation!.step(dt);
       const result = simulation!.takeResult();
       if (result) send({ type: 'result', result });
@@ -128,7 +128,7 @@ setInterval(() => {
       snapshot();
       lastSent = simulation.tick;
     }
-    if (performance.now() - lastStatus > 100) status();
+    if (performance.now() - lastStatus >= 100) status();
   } catch (error) {
     paused = true;
     send({

@@ -2,9 +2,10 @@ import { packTelemetry, TELEMETRY_BATCH_ROWS, TELEMETRY_STRIDE } from './telemet
 import type { Simulation } from '../simulation/world.ts';
 
 /**
- * Recording pages are exactly one second of data (60 telemetry rows or
- * 15 replay snapshots). Start small, then grow only when the browser has not
- * recycled transferred pages quickly enough. Sixty pages absorbs a long
+ * Full recording pages hold one second of data (60 telemetry rows or
+ * 15 replay snapshots); explicit flushes can send partial pages. Start small,
+ * then grow only when the browser has not recycled transferred pages quickly
+ * enough. Sixty pages absorbs a long
  * render/main-thread hitch and slow GitHub-hosted software rendering without
  * compromising capture continuity; the reserve remains bounded and is released
  * back toward the six-page steady-state pool after recycling.
@@ -16,6 +17,8 @@ export const RECORDING_TRANSPORT_MAX_PAGES = 60;
 
 class ElasticTransferPool {
   private readonly pool: Float32Array[] = [];
+  private readonly localBuffers = new WeakSet<ArrayBuffer>();
+  private readonly transferred = new Set<ArrayBuffer>();
   private allocated = 0;
   constructor(
     private readonly length: number,
@@ -34,14 +37,45 @@ class ElasticTransferPool {
     for (let i = 0; i < this.initialPages; i++) this.pool.push(this.allocate());
   }
   private allocate() {
+    const page = new Float32Array(this.length);
+    this.localBuffers.add(page.buffer);
     this.allocated++;
-    return new Float32Array(this.length);
+    return page;
   }
   acquire() {
     return this.pool.pop() ?? (this.allocated < this.maxPages ? this.allocate() : undefined);
   }
+  beginTransfer(buffer: ArrayBuffer) {
+    this.transferred.add(buffer);
+  }
+  cancelTransfer(buffer: ArrayBuffer) {
+    // A throwing postMessage leaves ownership here unless it already detached
+    // the page. A synchronous consumer may also have recycled it before throwing.
+    return (
+      buffer.byteLength === this.length * Float32Array.BYTES_PER_ELEMENT &&
+      this.transferred.delete(buffer)
+    );
+  }
   recycle(buffer: ArrayBuffer) {
     if (buffer.byteLength !== this.length * Float32Array.BYTES_PER_ELEMENT) return;
+    let outgoing: ArrayBuffer | undefined;
+    if (this.transferred.has(buffer)) outgoing = buffer;
+    else {
+      // Transfer back from a worker produces a new ArrayBuffer identity. Accept
+      // one such return only against a detached outgoing page. Known local pages
+      // are active, idle or retired; accepting one twice aliases live recordings
+      // and can incorrectly shrink the allocation count below outstanding pages.
+      if (this.localBuffers.has(buffer)) return;
+      for (const candidate of this.transferred) {
+        if (candidate.byteLength === 0) {
+          outgoing = candidate;
+          break;
+        }
+      }
+    }
+    if (!outgoing) return;
+    this.transferred.delete(outgoing);
+    this.localBuffers.add(buffer);
     // Elastic pages are a hitch reserve, not permanent session growth. Once
     // enough returned pages restore the ordinary reserve, let surplus buffers
     // become collectible and lower the allocation ceiling accordingly.
@@ -49,7 +83,7 @@ class ElasticTransferPool {
       this.allocated--;
       return;
     }
-    if (this.pool.length < this.allocated) this.pool.push(new Float32Array(buffer));
+    this.pool.push(new Float32Array(buffer));
   }
   get pages() {
     return this.allocated;
@@ -57,8 +91,9 @@ class ElasticTransferPool {
 }
 
 /** Captures every second physics tick, irrespective of snapshot recycling or
- * render FPS. One-second transferable pages begin with a six-second reserve and
- * can grow to a bounded sixty-second reserve when the main thread is stalled.
+ * render FPS. Transferable pages begin with a six-page reserve and can grow to
+ * a bounded sixty-page reserve when the main thread is stalled. Full pages
+ * hold one second of capture; frequent partial flushes use that reserve sooner.
  * If the consumer remains unavailable beyond that reserve, the gap is reported
  * explicitly rather than fabricating a continuous capture. */
 export class TelemetrySampler {
@@ -87,50 +122,77 @@ export class TelemetrySampler {
   capture(stepMs = 0, droppedSeconds = 0) {
     const tick = this.simulation.tick;
     if (tick % 2 || tick === this.lastTick) return;
+    // A failed send can leave a full page owned here. Retry it before appending
+    // another row, so the retry cannot overflow or overwrite the captured batch.
+    if (this.rows === TELEMETRY_BATCH_ROWS) this.flush();
+    if (this.replayRows === 15) this.flushReplay();
     this.lastTick = tick;
     this.simulation.writeFrame(this.scratch, stepMs, droppedSeconds);
+    // Stage both streams before delivery, so a failed replay send cannot skip
+    // the telemetry sample from the same physics tick.
     if (tick % REPLAY_TICKS === 0) this.captureReplay();
     this.page ??= this.telemetryPool.acquire();
-    if (!this.page) {
+    if (this.page) {
+      packTelemetry(this.scratch, this.page, this.rows * TELEMETRY_STRIDE);
+      this.rows++;
+    } else {
       if (!this.warned)
         this.warning(
-          `Telemetry capture gap: the browser did not return recording buffers within the ${RECORDING_TRANSPORT_MAX_PAGES}-second transport reserve.`,
+          `Telemetry capture gap: the browser exhausted the ${RECORDING_TRANSPORT_MAX_PAGES}-page transport reserve before returning recording buffers.`,
         );
       this.warned = true;
-      return;
     }
-    packTelemetry(this.scratch, this.page, this.rows * TELEMETRY_STRIDE);
-    this.rows++;
+    if (this.replayRows === 15) this.flushReplay();
     if (this.rows === TELEMETRY_BATCH_ROWS) this.flush();
   }
   flush() {
     if (!this.page || !this.rows) return;
     const page = this.page,
-      rows = this.rows;
+      rows = this.rows,
+      buffer = page.buffer as ArrayBuffer;
     this.page = undefined;
     this.rows = 0;
-    this.send(page.buffer as ArrayBuffer, rows);
+    this.telemetryPool.beginTransfer(buffer);
+    try {
+      this.send(buffer, rows);
+    } catch (error) {
+      if (this.telemetryPool.cancelTransfer(buffer)) {
+        this.page = page;
+        this.rows = rows;
+      }
+      throw error;
+    }
   }
   private captureReplay() {
     this.replayPage ??= this.replayPool.acquire();
     if (!this.replayPage) {
       if (!this.replayWarned)
         this.warning(
-          `Replay capture gap: the browser did not return recording buffers within the ${RECORDING_TRANSPORT_MAX_PAGES}-second transport reserve.`,
+          `Replay capture gap: the browser exhausted the ${RECORDING_TRANSPORT_MAX_PAGES}-page transport reserve before returning recording buffers.`,
         );
       this.replayWarned = true;
       return;
     }
     this.replayPage.set(this.scratch, this.replayRows * this.scratch.length);
-    if (++this.replayRows === 15) this.flushReplay();
+    this.replayRows++;
   }
   flushReplay() {
     if (!this.replayPage || !this.replayRows) return;
     const page = this.replayPage,
-      rows = this.replayRows;
+      rows = this.replayRows,
+      buffer = page.buffer as ArrayBuffer;
     this.replayPage = undefined;
     this.replayRows = 0;
-    this.sendReplay(page.buffer as ArrayBuffer, rows);
+    this.replayPool.beginTransfer(buffer);
+    try {
+      this.sendReplay(buffer, rows);
+    } catch (error) {
+      if (this.replayPool.cancelTransfer(buffer)) {
+        this.replayPage = page;
+        this.replayRows = rows;
+      }
+      throw error;
+    }
   }
   recycleReplay(buffer: ArrayBuffer) {
     this.replayPool.recycle(buffer);

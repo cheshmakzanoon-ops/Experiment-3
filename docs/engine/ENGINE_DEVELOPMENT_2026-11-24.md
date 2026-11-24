@@ -45,8 +45,8 @@ Specific assignments are refined against findings from preceding waves.
 
 | Wave | Agents | Engine focus | Status |
 |---|---:|---|---|
-| 1 | 1–6 | Fixed-step scheduling, input cadence, live/replay timing, worker snapshots | In progress |
-| 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | Pending |
+| 1 | 1–6 | Fixed-step scheduling, input cadence, live/replay timing, worker snapshots | Complete |
+| 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | In progress |
 | 3 | 13–18 | Collision queries, numerical stability, simulation throughput | Pending |
 | 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Pending |
 | 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Pending |
@@ -81,3 +81,22 @@ individual tick remains indivisible. A synthetic 100 ms backlog with 6 ms
 ticks now performs two ticks and reports 83.3 ms discarded instead of running
 the full catch-up batch. This is a deterministic scheduling test, not an FPS
 benchmark. The Festival worker will adopt the same clock in the second batch.
+
+### Wave 1 — second batch
+
+Festival now uses the same bounded-work clock, including pause/reinitialization
+and an exact 100 ms status deadline. Recording pools reject duplicate local
+returns, maintain outstanding-transfer credits, and preserve attached pages
+when a send fails. Both recording streams stage a shared tick before either
+stream is delivered. Controls become neutral on disposal or visibility loss;
+keyboard widgets and individual touch pointers retain ownership of their inputs.
+
+All six assignments completed with focused regression suites. The first batch
+is published as `db3b4f13c135cbe8b0ad35ff49cd36cfeea7a5d9`. Full-project
+compiler runs are serialized because concurrent instances exceeded available
+memory; a compiler termination is not counted as a passing check.
+
+Wave 1 integration: **81 tests passed across six suites**. Full project
+`tsc --noEmit --extendedDiagnostics` passed after serialization (3,112+ files;
+approximately 2.0 GiB compiler memory). Scoped ESLint and whitespace checks
+passed. No excluded content files were changed.
