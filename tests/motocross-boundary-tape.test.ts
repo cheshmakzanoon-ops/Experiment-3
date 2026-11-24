@@ -1,3 +1,4 @@
+import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
@@ -44,3 +45,64 @@ describe('MX boundary tape', () => {
     dressing.dispose();
   });
 });
+
+
+it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
+  'grounds every %s takeoff and landing marker and perimeter blade on its rendered triangle',
+  (venue) => {
+    const track = rigTrack(venue),
+      view = new TerrainView(track),
+      dressing = new MxCourseDressing(track);
+    const ray = new T.Raycaster(),
+      down = new T.Vector3(0, -1, 0),
+      at = new T.Vector3();
+    const matrix = new T.Matrix4(),
+      point = new T.Vector3(),
+      colour = new T.Color();
+    const ties: T.Vector3[] = [];
+    try {
+      view.group.updateMatrixWorld(true);
+      for (const name of ['Surveyed jump lip and landing markers', 'MX course-edge stakes']) {
+        const markers = dressing.root.getObjectByName(name) as T.InstancedMesh;
+        const jump = name.startsWith('Surveyed'),
+          paints = new Set<number>();
+        for (let i = 0; i < markers.count; i++) {
+          markers.getMatrixAt(i, matrix);
+          point.setFromMatrixPosition(matrix);
+          ray.set(at.copy(point).addScaledVector(down, -4), down);
+          const hit = ray.intersectObject(view.group, true)[0];
+          expect(hit).toBeDefined();
+          // Jump collars sit flush. Perimeter blades embed twelve mm. These
+          // independent triangle rays also see overlapping neighbouring lanes.
+          expect(Math.abs(point.y - hit.point.y + (jump ? 0 : 0.012))).toBeLessThan(0.002);
+          if (jump) {
+            markers.getColorAt(i, colour);
+            paints.add(colour.getHex());
+            expect(colour.getHex()).toBe(matrix.elements[5] > 0.8 ? 0xe98243 : 0xe2dcc1);
+          } else
+            ties.push(
+              new T.Vector3(0, 0.58, 0.006 * Math.sin((Math.PI * 0.58) / 0.82)).applyMatrix4(
+                matrix,
+              ),
+            );
+        }
+        if (jump) expect(paints.size).toBe(2);
+      }
+      if (venue === 'valley-ridge-mx') {
+        const tape = dressing.turf.getObjectByName('MX boundary tape') as T.Mesh;
+        const pos = tape.geometry.getAttribute('position');
+        for (let start = 0; start < pos.count; start += 18)
+          for (const end of [start, start + 16]) {
+            point
+              .fromBufferAttribute(pos, end)
+              .add(at.fromBufferAttribute(pos, end + 1))
+              .multiplyScalar(0.5);
+            expect(ties.some((tie) => tie.distanceToSquared(point) < 0.000001)).toBe(true);
+          }
+      }
+    } finally {
+      view.dispose();
+      dressing.dispose();
+    }
+  },
+);

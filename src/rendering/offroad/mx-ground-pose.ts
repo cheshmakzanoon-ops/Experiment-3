@@ -66,3 +66,66 @@ export function mxFootprintMatrix(
     .makeBasis(right, up, forward)
     .setPosition(x + up.x * offset, (a + b + c + d) / 4 + up.y * offset, z + up.z * offset);
 }
+
+/** Survey the two real mesh triangles under a narrow marker. On a convex
+ * take-off the analytic profile can stand several centimetres above the
+ * straight chord actually drawn between render rows. Work in world XZ so
+ * the installed height remains correct through the inside of a bend. */
+export function mxMarkerFoot(
+  track: Track,
+  terrain: TrackTerrainSurface['terrain'],
+  s: number,
+  lateral: number,
+) {
+  const length = track.length;
+  const station = ((s % length) + length) % length;
+  const along = COURSE_CELL.along * 2,
+    across = COURSE_CELL.lateral * 2;
+  const p = track.at(station, trackPoint());
+  const x = p.x + p.nx * lateral,
+    z = p.z + p.nz * lateral;
+  const ray = new T.Ray(new T.Vector3(x, p.y + 100, z), new T.Vector3(0, -1, 0));
+  const hit = new T.Vector3(),
+    nearest = trackPoint();
+  function vertex(r: number, c: number) {
+    const at = Math.min(length, r * along);
+    track.at(at, p);
+    let l = terrain.lateralMin + c * across;
+    if (p.curvature * l > 0.85) l = 0.85 / p.curvature;
+    return new T.Vector3(p.x + p.nx * l, terrain.baseHeight(at, l), p.z + p.nz * l);
+  }
+  function ground(at: number, l: number) {
+    const r = Math.floor(at / along);
+    const c = Math.min(
+      terrain.renderColumns - 1,
+      Math.max(0, Math.floor((l - terrain.lateralMin) / across)),
+    );
+    const test = (row: number, column: number) => {
+      if (column < 0 || column >= terrain.renderColumns) return -Infinity;
+      row = (row + terrain.renderRows) % terrain.renderRows;
+      const a = vertex(row, column),
+        b = vertex(row, column + 1),
+        d = vertex(row + 1, column),
+        e = vertex(row + 1, column + 1);
+      return ray.intersectTriangle(a, d, b, false, hit) ||
+        ray.intersectTriangle(e, b, d, false, hit)
+        ? hit.y
+        : -Infinity;
+    };
+    const y = test(r, c);
+    if (Number.isFinite(y)) return y;
+    // A curved row's straight edge can put the world point in the next cell.
+    let adjacent = -Infinity;
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++)
+        if (dr || dc) adjacent = Math.max(adjacent, test(r + dr, c + dc));
+    return adjacent;
+  }
+  const l = track.nearest(x, z, nearest);
+  // Adjacent arena lanes can overlap on their verges. The upper strip is the
+  // ground a spectator actually sees beneath the shaft.
+  const gap = Math.abs(((nearest.s - station + 1.5 * length) % length) - length * 0.5);
+  const top =
+    gap > 6 ? Math.max(ground(station, lateral), ground(nearest.s, l)) : ground(station, lateral);
+  return Number.isFinite(top) ? top : terrain.baseHeight(station, lateral);
+}

@@ -4,7 +4,8 @@ import { mxOutdoorFinish } from './mx-finish-line.ts';
 import { MxVenueWind } from './mx-venue-wind.ts';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
-import { mxFootprintMatrix, mxFurnitureGround } from './mx-ground-pose.ts';
+import { mxFootprintMatrix, mxFurnitureGround, mxMarkerFoot } from './mx-ground-pose.ts';
+import { mxJumpMarkerGeometry } from './mx-jump-marker.ts';
 import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
 import { attachMxClothShadows, installMxClothWind } from './mx-event-cloth.ts';
@@ -54,6 +55,11 @@ function mxCourseStakeGeometry() {
   geometry.computeBoundingSphere();
   return geometry;
 }
+
+interface MxTapePost { station: number; tie: T.Vector3 }
+
+const TAPE_HEIGHT = .58;
+const TAPE_HALF_WIDTH = .022;
 
 export interface MxDressingStats {
   stakes: number;
@@ -110,7 +116,10 @@ export class MxCourseDressing {
   private readonly shoulderViews: MxShoulderView[] = [];
   private stopTufts: (() => void) | null = null;
   private disposed = false;
-  constructor(private readonly track: Track, private readonly wind = new MxVenueWind()) {
+  constructor(
+    private readonly track: Track,
+    private readonly wind = new MxVenueWind(),
+  ) {
     const surface = Track.offroadOf(track);
     if (
       !(surface instanceof TrackTerrainSurface) ||
@@ -136,8 +145,9 @@ export class MxCourseDressing {
       name: 'MX flexible course stakes',
     });
     const orange = new T.MeshStandardMaterial({
-      color: 0xc97542,
-      roughness: 0.72,
+      color: 0xffffff,
+      vertexColors: true,
+      roughness: 0.55,
       name: 'MX jump crest markers',
     });
     const steel = new T.MeshStandardMaterial({
@@ -152,19 +162,25 @@ export class MxCourseDressing {
     const r = new Random(36072);
     const stakes: T.Matrix4[] = [],
       blocks: T.Matrix4[] = [],
-      markers: T.Matrix4[] = [];
+      markers: T.Matrix4[] = [],
+      markerColours: T.Color[] = [];
     const pole = mxCourseStakeGeometry();
-    const staked: Record<'-1' | '1', number[]> = { '-1': [], '1': [] };
+    const staked: Record<'-1' | '1', MxTapePost[]> = { '-1': [], '1': [] };
     for (let s = 4; s < track.length - 3; s += indoor ? 7 : 8) {
       track.at(s, this.point);
       for (const side of [-1, 1] as const) {
         const l = side * (course.legalWidth(this.point.width, s, side) + 0.18);
         if (!this.clear(s, l, 0.12)) continue;
         this.pose(s, l);
+        this.object.position.y = mxMarkerFoot(track, this.surface.terrain, s, l) - 0.012;
         this.object.rotateZ((r.next() - 0.5) * 0.13);
         this.object.updateMatrix();
         stakes.push(this.object.matrix.clone());
-        if (!indoor) staked[String(side) as '-1' | '1'].push(s);
+        if (!indoor) {
+          const bow = 0.006 * Math.sin((Math.PI * TAPE_HEIGHT) / 0.82);
+          const tie = new T.Vector3(0, TAPE_HEIGHT, bow).applyMatrix4(this.object.matrix);
+          staked[String(side) as '-1' | '1'].push({ station: s, tie });
+        }
         if (indoor && Math.floor(s / 7) % 2 === 0) {
           this.pose(s, l + side * 0.54);
           const { x, z } = this.object.position;
@@ -191,7 +207,9 @@ export class MxCourseDressing {
           const l = side * (course.legalWidth(this.point.width, s, side) + 0.45);
           if (!this.clear(s, l, 0.2)) continue;
           this.pose(s, l);
+          this.object.position.y = mxMarkerFoot(track, this.surface.terrain, s, l);
           this.object.scale.set(1, s === jump.takeoff ? 1 : 0.55, 1);
+          markerColours.push(new T.Color(s === jump.takeoff ? 0xe98243 : 0xe2dcc1));
           this.object.updateMatrix();
           markers.push(this.object.matrix.clone());
         }
@@ -200,9 +218,10 @@ export class MxCourseDressing {
     this.stats.jumpMarkers = markers.length;
     this.instances(
       'Surveyed jump lip and landing markers',
-      new T.CylinderGeometry(0.075, 0.1, 1.3, 8).translate(0, 0.65, 0),
+      mxJumpMarkerGeometry(),
       orange,
       markers,
+      markerColours,
     );
     if (!indoor) {
       this.shoulders(r);
@@ -258,7 +277,8 @@ export class MxCourseDressing {
           }
           // These upright column covers are unprinted. Two webbing bands
           // wrap around the shaft, with the base seated at the timing line.
-          const cover = mxPaddingGeometry('post').rotateX(Math.PI / 2)
+          const cover = mxPaddingGeometry('post')
+            .rotateX(Math.PI / 2)
             .scale(0.78 / 0.68, 1.65 / 2.1, 0.78 / 0.58)
             .translate(side * span, 0.825, 0);
           this.part(cover, pad);
@@ -344,42 +364,54 @@ export class MxCourseDressing {
    * and white ribbon at knee height that sags a few centimetres between posts.
    * It follows the same edge and the same clearance as the stakes, never
    * crossing a gap where a stake was refused. Its own group and one draw. */
-  private boundaryTape(staked: Record<'-1' | '1', number[]>) {
+  private boundaryTape(staked: Record<'-1' | '1', MxTapePost[]>) {
     const course = this.surface.course,
-      positions: number[] = [],
+      track = this.track;
+    const positions: number[] = [],
       uvs: number[] = [],
       indices: number[] = [],
       normals: number[] = [];
     const segments = 8,
-      height = 0.58,
-      half = 0.022,
       stripe = 0.42;
+    const here = new T.Vector3(),
+      normal = new T.Vector3();
+    const samples = Array.from({ length: segments + 1 }, () => new T.Vector3());
     let spans = 0;
-    for (const key of ['-1', '1'] as const) {
-      const side = Number(key) as -1 | 1,
-        list = staked[key];
+    for (const list of Object.values(staked)) {
       for (let i = 0; i + 1 < list.length; i++) {
         const from = list[i],
           to = list[i + 1];
-        if (to - from > 8.6) continue;
-        const first = positions.length / 3;
-        let run = 0,
-          previous: T.Vector3 | null = null;
+        if (to.station - from.station > 8.6) continue;
+        let clear = true;
         for (let k = 0; k <= segments; k++) {
-          const t = k / segments,
-            s = from + (to - from) * t,
-            at = this.track.at(s, this.point);
-          const lateral = side * (course.legalWidth(at.width, s, side) + 0.18),
-            x = at.x + at.nx * lateral,
-            z = at.z + at.nz * lateral,
-            sag = 0.05 * Math.sin(Math.PI * t),
-            y = this.surface.terrain.baseHeight(s, lateral) + height - sag;
-          const here = new T.Vector3(x, y, z);
-          if (previous) run += here.distanceTo(previous);
-          previous = here;
-          // The ribbon's face looks across the course: normal along the lateral.
-          positions.push(x, y + half, z, x, y - half, z);
-          normals.push(at.nx, 0, at.nz, at.nx, 0, at.nz);
+          const t = k / segments;
+          here.lerpVectors(from.tie, to.tie, t);
+          here.y -= 0.05 * Math.sin(Math.PI * t);
+          const p = this.nearby,
+            l = track.nearest(here.x, here.z, p);
+          const above = here.y - this.surface.terrain.baseHeight(p.s, l);
+          // A free span cannot turn a horizontal corner or rise with the
+          // middle of a jump. Leave an opening where that chord cuts a lane
+          // or the dirt would reach the tape.
+          if (
+            Math.abs(l) < course.legalWidth(p.width, p.s, l) + 0.065 ||
+            above < 0.38 ||
+            above > 0.72
+          ) {
+            clear = false;
+            break;
+          }
+          samples[k].copy(here);
+        }
+        if (!clear) continue;
+        const first = positions.length / 3;
+        normal.set(to.tie.z - from.tie.z, 0, from.tie.x - to.tie.x).normalize();
+        let run = 0;
+        for (let k = 0; k <= segments; k++) {
+          const { x, y, z } = samples[k];
+          if (k) run += samples[k].distanceTo(samples[k - 1]);
+          positions.push(x, y + TAPE_HALF_WIDTH, z, x, y - TAPE_HALF_WIDTH, z);
+          normals.push(normal.x, 0, normal.z, normal.x, 0, normal.z);
           uvs.push(run / stripe, 1, run / stripe, 0);
           if (k > 0) {
             const a = first + (k - 1) * 2;
@@ -620,32 +652,38 @@ export class MxCourseDressing {
    * spectator screens in references 035 and 037. Keep access gaps at both
    * ends and beside service sites; check the full chord on tight switchbacks. */
   private raceBanners(material: T.Material, hardware: T.Material) {
-    const track = this.track, course = this.surface.course;
+    const track = this.track,
+      course = this.surface.course;
     const occupied = [...this.trackside.plan.sites, ...this.courseSites.landmarks];
     const panels: T.Vector3[] = [];
     const pin = (s: number, side: number, setback: number) => {
       const p = track.at(s, this.point);
       const l = side * Math.max(p.width + 3.6, course.legalWidth(p.width, s, side) + setback);
-      const x = p.x + p.nx * l, z = p.z + p.nz * l;
+      const x = p.x + p.nx * l,
+        z = p.z + p.nz * l;
       return new T.Vector3(x, mxFurnitureGround(track, x, z), z);
     };
     const point = new T.Vector3();
     const safe = (a: T.Vector3, b: T.Vector3) => {
       for (const t of [0, 0.25, 0.5, 0.75, 1]) {
         point.lerpVectors(a, b, t);
-        const { x, y, z } = point, p = this.nearby;
+        const { x, y, z } = point,
+          p = this.nearby;
         const l = track.nearest(x, z, p);
-        if (Math.abs(l) < course.legalWidth(p.width, p.s, l) + 0.65 ||
-            mxFurnitureGround(track, x, z) > y + 0.11 ||
-            inStandFootprint(track, x, z, 0.45) ||
-            occupied.some(site => Math.hypot(x - site.x, z - site.z) < site.radius + 0.9)) return false;
+        if (
+          Math.abs(l) < course.legalWidth(p.width, p.s, l) + 0.65 ||
+          mxFurnitureGround(track, x, z) > y + 0.11 ||
+          inStandFootprint(track, x, z, 0.45) ||
+          occupied.some((site) => Math.hypot(x - site.x, z - site.z) < site.radius + 0.9)
+        )
+          return false;
       }
       point.lerpVectors(a, b, 0.5);
-      return !panels.some(mid => mid.distanceToSquared(point) < 20);
+      return !panels.some((mid) => mid.distanceToSquared(point) < 20);
     };
     this.frame.identity();
     const stake = ({ x, y, z }: T.Vector3) => {
-      this.part(new T.CylinderGeometry(0.024, 0.031, 1.12, 7).translate(x, y + 0.50, z), hardware);
+      this.part(new T.CylinderGeometry(0.024, 0.031, 1.12, 7).translate(x, y + 0.5, z), hardware);
       for (const height of [0.26, 0.96]) {
         const tie = new T.TorusGeometry(0.039, 0.009, 4, 9).rotateX(Math.PI / 2);
         this.part(tie.translate(x, y + height, z), hardware);
@@ -653,9 +691,12 @@ export class MxCourseDressing {
     };
     const run = (start: number, step: number, count: number, side: number, banked: boolean) => {
       const setback = banked ? 3.55 : 1.45;
-      let a = pin(start, side, setback), previousMounted = false;
+      let a = pin(start, side, setback),
+        previousMounted = false;
       for (let i = 0; i < count; i++) {
-        const s = start + i * step, b = pin(s + step, side, setback), mounted = safe(a, b);
+        const s = start + i * step,
+          b = pin(s + step, side, setback),
+          mounted = safe(a, b);
         if (mounted) {
           if (!previousMounted) stake(a);
           stake(b);
@@ -671,35 +712,53 @@ export class MxCourseDressing {
     for (const berm of course.spec.berms) {
       if (!berm.side) continue;
       const arc = mod(berm.to - berm.from, track.length);
-      const span = Math.min(arc * 0.8, 58), count = Math.floor(span / 8);
+      const span = Math.min(arc * 0.8, 58),
+        count = Math.floor(span / 8);
       if (count >= 2) run(berm.from + (arc - span) / 2, span / count, count, berm.side, true);
     }
     for (let s = 136; s < track.length - 100; s += 24)
       run(s - 4, 8, 1, Math.floor(s / 24) % 2 ? 1 : -1, false);
   }
-  private banner(s: number, side: number, ends: [T.Vector3, T.Vector3], material: T.Material, row: number) {
+  private banner(
+    s: number,
+    side: number,
+    ends: [T.Vector3, T.Vector3],
+    material: T.Material,
+    row: number,
+  ) {
     const along = ends[1].clone().sub(ends[0]);
     const normal = new T.Vector3(along.z, 0, -along.x).normalize();
     // Present the correctly printed face to the active racing lane on each
     // side. The reverse of a single-layer trackside banner transmits its ink.
     const g = new T.PlaneGeometry(1, 1, 24, 5);
-    const p = g.getAttribute('position'), uv = g.getAttribute('uv');
+    const p = g.getAttribute('position'),
+      uv = g.getAttribute('uv');
     const wind = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
-      const u = uv.getX(i), v = uv.getY(i);
+      const u = uv.getX(i),
+        v = uv.getY(i);
       const t = side < 0 ? 1 - u : u;
-      const belly = 4 * t * (1 - t), hem = Math.sin(Math.PI * v);
-      const y = T.MathUtils.lerp(ends[0].y, ends[1].y, t) + 0.25 + 0.72 * v
-        - belly * (0.095 - 0.035 * hem);
-      const crease = Math.sin((t * 5.4 + v * 0.48) * Math.PI * 2)
-        + 0.32 * Math.sin((t * 10.8 - v * 0.65) * Math.PI * 2);
+      const belly = 4 * t * (1 - t),
+        hem = Math.sin(Math.PI * v);
+      const y =
+        T.MathUtils.lerp(ends[0].y, ends[1].y, t) + 0.25 + 0.72 * v - belly * (0.095 - 0.035 * hem);
+      const crease =
+        Math.sin((t * 5.4 + v * 0.48) * Math.PI * 2) +
+        0.32 * Math.sin((t * 10.8 - v * 0.65) * Math.PI * 2);
       const fold = belly * (0.036 + 0.062 * hem) * crease;
       // Ties hold each corner off the pole so the hems don't pass through it.
       const chordT = 0.004 + 0.992 * t;
-      p.setXYZ(i, ends[0].x + along.x * chordT + normal.x * fold, y,
-        ends[0].z + along.z * chordT + normal.z * fold);
-      const deflection = belly * (0.030 + 0.041 * hem);
-      wind.set([normal.x * deflection, normal.z * deflection, s * 0.21 + t * 12.4 + 2.1 * y], i * 3);
+      p.setXYZ(
+        i,
+        ends[0].x + along.x * chordT + normal.x * fold,
+        y,
+        ends[0].z + along.z * chordT + normal.z * fold,
+      );
+      const deflection = belly * (0.03 + 0.041 * hem);
+      wind.set(
+        [normal.x * deflection, normal.z * deflection, s * 0.21 + t * 12.4 + 2.1 * y],
+        i * 3,
+      );
     }
     g.setAttribute('mxCloth', new T.Float32BufferAttribute(wind, 3));
     g.computeVertexNormals();
