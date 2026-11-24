@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45360107638
-- commit: `2c153f544d` · Press a directional soil lip from each sliding motocross tyre
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-24T08:53:46Z · updated: 2026-11-24T09:01:36Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45360832299
+- commit: `6a34a032d8` · Seat tyre shadows and roost on the actual deformed receiver facet
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-24T08:58:45Z · updated: 2026-11-24T09:06:52Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | success | 7 |  |
 | browser (day) | success | 6 |  |
-| browser (night) | success | 7 |  |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
