@@ -91,6 +91,25 @@ describe('forest belts', () => {
     );
   });
 
+  it('gives the Valley Ridge fallback conifers an open needle silhouette in the same batches as hardwoods', () => {
+    stubCanvas();
+    const track = new Track('clear',false,undefined,CIRCUITS['valley-ridge-mx']);
+    const group = new T.Group(), plan = forestBeltPlan(track), matrix = new T.Matrix4();
+    const total = buildForestBelts(track,group);
+    const meshes = group.children as T.InstancedMesh[];
+    expect(plan.filter(t => t.conifer).length).toBeGreaterThan(100);
+    expect(total).toBe(plan.length);
+    expect(meshes.every(mesh => mesh.name.startsWith('Forest belt canopy'))).toBe(true);
+    const scale = new T.Vector3();
+    let conifers = 0;
+    for (const mesh of meshes) for (let i = 0; i < mesh.count; i++) {
+      mesh.getMatrixAt(i,matrix);
+      scale.setFromMatrixScale(matrix);
+      if (scale.x / scale.y < .73) conifers++;
+    }
+    expect(conifers).toBe(plan.filter(t => t.conifer).length);
+  });
+
   it('builds unshadowed, density-scalable 240 m buckets within the draw allocation', () => {
     stubCanvas();
     const group = new T.Group();

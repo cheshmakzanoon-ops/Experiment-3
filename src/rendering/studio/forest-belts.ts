@@ -250,7 +250,7 @@ export function buildForestBelts(
 ) {
   const trees = forestBeltPlan(track, services, extraExclusion);
   if (!trees.length) return 0;
-  if (isGpCourse(track)) {
+  if (isGpCourse(track) || track.circuit.id === 'valley-ridge-mx') {
     // Both species select their own painted atlas quadrant from the width
     // to height ratio. Needled branch gaps survive against a bright valley
     // and firs share the same culled batch and depth pass as the leaf crowns.

@@ -57,6 +57,13 @@ interface Chunk {
 const COMPACT_STEP = 2;
 const COMPACT_MARGIN = 2.5;
 
+/** Size of a crown on the colour target, relative to a 1080-line,
+ * 58-degree riding camera. The projection includes the actual optical zoom. */
+export function forestViewScale(camera: T.Camera, height: number) {
+  if (!('isPerspectiveCamera' in camera) || !Number.isFinite(height) || height <= 0) return 1;
+  return T.MathUtils.clamp(height / 1080 * camera.projectionMatrix.elements[5] * Math.tan(29 * Math.PI / 180),.5,2);
+}
+
 /** Contact occlusion: a soft dark disc on the ground under each crown (the
  * sky the crown hides from the ground beneath it), drawn within
  * `CONTACT_DISTANCE` metres. */
@@ -264,11 +271,14 @@ export class PhotoForest {
    * would be collapsed by the shader anyway, at full vertex cost).
    * `density` (0..1) keeps the same leading share of each species as the
    * impostors' density count. */
-  update(camera: T.Camera, preset: QualityPreset, density = 1) {
+  update(camera: T.Camera, preset: QualityPreset, density = 1, viewScale = 1) {
     camera.getWorldPosition(this.eye);
-    PhotoForest.setEye(this.eye, preset);
-    const distanceChanged = this.nearEnd !== VEGETATION.near[preset];
-    this.nearEnd = VEGETATION.near[preset];
+    PhotoForest.setEye(this.eye, preset, viewScale);
+    // Cache outward in two-metre steps. Small lens changes still move the
+    // shader's fade continuously without repacking a whole grove per frame.
+    const reach = Math.ceil(vegetationUniforms.vegLod.value.y / COMPACT_STEP) * COMPACT_STEP;
+    const distanceChanged = this.nearEnd !== reach;
+    this.nearEnd = reach;
     const share = Math.min(1, Math.max(0, density));
     for (const chunk of this.chunks) {
       const gap = this.eye.distanceTo(chunk.centre) - chunk.radius;
@@ -324,11 +334,11 @@ export class PhotoForest {
   }
 
   /** Shared uniforms for every photographic plant and grass clump. */
-  static setEye(eye: T.Vector3, preset: QualityPreset) {
+  static setEye(eye: T.Vector3, preset: QualityPreset, viewScale = 1) {
     vegetationUniforms.vegEye.value.copy(eye);
-    const near = VEGETATION.near[preset],
+    const near = VEGETATION.near[preset] * viewScale,
       grass = VEGETATION.grass[preset];
-    vegetationUniforms.vegLod.value.set(near - VEGETATION.band, near, grass * 0.7, grass);
+    vegetationUniforms.vegLod.value.set(near - VEGETATION.band * viewScale, near, grass * 0.7, grass);
   }
 
   diagnostics() {

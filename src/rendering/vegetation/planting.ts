@@ -16,7 +16,7 @@ import type { QualityPreset } from '../options.ts';
 import { forestBeltPlan, FOREST_BELTS } from '../studio/forest-belts.ts';
 import { drawnTerrain, terrainFor } from '../terrain.ts';
 import { inServiceFootprint, type ServiceSite } from '../venue-service-plan.ts';
-import { PhotoForest, type PhotoPlant } from './forest.ts';
+import { PhotoForest, forestViewScale, type PhotoPlant } from './forest.ts';
 import { gpBankGrass, grassPlan, TrackGrass } from './grass.ts';
 import { inGpSpectatorBank, type GpBankProfile } from '../venue-kit/gp-spectator-bank-sites.ts';
 import type { VegetationLibrary } from './library.ts';
@@ -307,8 +307,9 @@ export class PhotoPlanting {
     return out;
   }
 
-  update(camera: T.Camera, preset: QualityPreset, density = 1) {
-    this.forest.update(camera, preset, density);
+  update(camera: T.Camera, preset: QualityPreset, density = 1, height = 1080) {
+    const scale = this.options.track.circuit.id === 'valley-ridge-mx' ? forestViewScale(camera,height) : 1;
+    this.forest.update(camera, preset, density, scale);
     this.grass?.update(camera, VEGETATION.grass[preset]);
   }
   diagnostics() {

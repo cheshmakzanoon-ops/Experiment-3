@@ -1496,7 +1496,7 @@ export class RacingRenderer {
           return false;
       }
       this.circuit.vegetation?.update(this.camera, this.quality);
-      this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
+      this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity, this.renderHeight);
       await yieldControl();
       if (stopped()) return false;
       // Changing preset can replace the sky and soil photographs. Warm the new
@@ -2445,7 +2445,7 @@ export class RacingRenderer {
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
     this.circuit.venueKit?.update(this.camera, this.night, this.bloom.energyConserving);
     this.circuit.vegetation?.update(this.camera, this.quality);
-    this.circuit.photoPlanting?.update(this.camera, this.preset, this.graphics.vegetationDensity);
+    this.circuit.photoPlanting?.update(this.camera, this.preset, this.graphics.vegetationDensity, this.scenePass.target.height);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     if (this.tyreEquipment?.root.visible) this.tyreEquipment.update(this.camera, this.quality);

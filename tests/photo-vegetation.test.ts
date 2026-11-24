@@ -18,7 +18,7 @@ import {
   treeRole,
 } from '../src/rendering/vegetation/species.ts';
 import { GRASS, grassPlan } from '../src/rendering/vegetation/grass.ts';
-import { PhotoForest } from '../src/rendering/vegetation/forest.ts';
+import { PhotoForest, forestViewScale } from '../src/rendering/vegetation/forest.ts';
 import {
   photoVegetationEnabled,
   type VegetationLibrary,
@@ -304,6 +304,36 @@ describe('photographic forest chunks', () => {
       dispose() {},
     } as unknown as VegetationLibrary;
   }
+  it('keeps photographic trunks and crown cards only where the motocross lens resolves them', () => {
+    const forest = new PhotoForest(stubLibrary());
+    const trees = [16,42,83,135].map(x => ({
+      species: SPECIES.linden, x, y: 0, z: 0, scale: 1, yaw: 0, tint: [1,1,1] as const,
+    }));
+    forest.add(trees,{label:'Ridge',shadows:true,chunk:200});
+    const camera = new T.PerspectiveCamera(58,16/9,.1,1600);
+    const near = forest.root.children.find(m => m.userData.photoVegetation === 'cards') as T.InstancedMesh;
+    const far = forest.root.children.find(m => m.userData.photoVegetation === 'impostor') as T.InstancedMesh;
+    const inspect = (height: number) => {
+      camera.updateProjectionMatrix();
+      forest.update(camera,'high',1,forestViewScale(camera,height));
+      expect(far.count).toBe(trees.length);
+      return near.count;
+    };
+    try {
+      expect(inspect(540)).toBe(1);
+      expect(vegetationUniforms.vegLod.value.y).toBeCloseTo(28);
+      expect(inspect(1080)).toBe(2);
+      const upload = near.instanceMatrix.version;
+      expect(inspect(1080)).toBe(2);
+      expect(near.instanceMatrix.version).toBe(upload);
+      camera.zoom = 2;
+      expect(inspect(1080)).toBe(3);
+      camera.zoom = 1;
+      expect(inspect(540)).toBe(1);
+      expect(vegetationUniforms.vegLod.value.w).toBe(VEGETATION.grass.high);
+    } finally { forest.dispose(); }
+  });
+
   it('draws impostors everywhere and cards and trunks only in chunks near the camera', () => {
     const forest = new PhotoForest(stubLibrary());
     const plants = Array.from({ length: 60 }, (_, i) => ({
