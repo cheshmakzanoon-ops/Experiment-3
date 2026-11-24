@@ -149,6 +149,9 @@ export class PreparationTrace {
     };
     this.current = record;
     const report = (label: string) => {
+      // Async stages can outlive their run or resume after a replacement starts.
+      // Keep both the loading message and the frozen timings with the live run.
+      if (this.current !== record || record.status !== 'preparing') return;
       const time = this.now(),
         previous = record.stages.at(-1);
       if (previous) previous.ended = time;

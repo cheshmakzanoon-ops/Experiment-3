@@ -46,8 +46,8 @@ Specific assignments are refined against findings from preceding waves.
 | Wave | Agents | Engine focus | Status |
 |---|---:|---|---|
 | 1 | 1–6 | Fixed-step scheduling, input cadence, live/replay timing, worker snapshots | Complete |
-| 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | In progress |
-| 3 | 13–18 | Collision queries, numerical stability, simulation throughput | Pending |
+| 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | Complete |
+| 3 | 13–18 | Collision queries, numerical stability, simulation throughput | In progress |
 | 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Pending |
 | 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Pending |
 | 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Pending |
@@ -100,3 +100,38 @@ Wave 1 integration: **81 tests passed across six suites**. Full project
 `tsc --noEmit --extendedDiagnostics` passed after serialization (3,112+ files;
 approximately 2.0 GiB compiler memory). Scoped ESLint and whitespace checks
 passed. No excluded content files were changed.
+
+### Wave 2 — resource infrastructure
+
+Completed assignments repair exhausted texture-cache retries, asynchronous
+background/PMREM resource ownership, gain-map conversion cleanup, GPU query
+validation, frame-fence lifetime, and stale graphics-preparation reports.
+Successful decoding, shader math, atlas sizing, filtering, lighting choices,
+model data and environment layouts are unchanged. PMREM ownership follows
+the repository's existing guarded Three r180 adapter pattern.
+
+Festival sessions now support cancellation throughout asynchronous startup.
+Disposal rejects readiness and command waits, clears owned timers and animation
+callbacks, and ignores late worker replies. A fatal worker failure terminates
+startup instead of allowing it to install later resources. Host application
+cancellation and renderer-owned late loader cleanup are tracked follow-ups.
+
+Wave 2 integration passed **178 tests across 13 resource/preparation suites**,
+plus **27 Festival lifecycle tests**. Successful-path resource behavior is
+preserved; an independent review also checked the two conversion ownership
+changes together. No artwork or environment content was changed.
+
+Wave 2's changed TypeScript files and their imported dependency graph passed
+the project compiler options in a scoped project (1,470 files, approximately
+936 MiB compiler memory). Scoped ESLint passed. Two whole-project compiler
+attempts were terminated by the host memory limit; they are not passing checks.
+Final validation will cover the full project again, using separate root groups
+if the memory constraint persists.
+
+### Pre-existing broad-suite findings
+
+The baseline CI report for `a0ae513e79` records failures in livery metadata,
+CPU-backed texture resampling, vehicle calibration/catalogue snapshots,
+localization dictionaries, and shadow batching. These predate this programme.
+Engine-related failures will be investigated within scope; changing model art
+or vehicle specifications merely to satisfy a snapshot is excluded.

@@ -13,14 +13,30 @@ export class GpuTimer {
     this.supported = !!this.ext;
   }
   private invalidate(lost: boolean) {
-    if (!lost) {
-      if (this.current && this.ext) this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
-      if (this.current) this.gl.deleteQuery(this.current);
-      for (const query of this.queries) this.gl.deleteQuery(query);
-    }
+    const current = this.current;
+    const queries = this.queries;
     this.current = null;
-    this.queries.length = 0;
+    this.queries = [];
     this.milliseconds = null;
+    if (lost) return;
+    // Detach ownership first and attempt the rest even if one cleanup throws.
+    const failures: unknown[] = [];
+    try {
+      if (current && this.ext && !this.gl.isContextLost())
+        this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
+    } catch (error) {
+      failures.push(error);
+    }
+    if (current) queries.push(current);
+    for (const query of queries) {
+      if (this.gl.isContextLost()) break;
+      try {
+        this.gl.deleteQuery(query);
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    if (failures.length) throw failures[0];
   }
   begin() {
     const gl = this.gl, ext = this.ext;
@@ -30,13 +46,17 @@ export class GpuTimer {
     if (this.current) return; // An unmatched begin must not nest a GL query.
     const first = this.queries[0];
     if (first && gl.getQueryParameter(first, gl.QUERY_RESULT_AVAILABLE)) {
-      const value = gl.getQueryParameter(first, gl.QUERY_RESULT) / 1e6;
-      if (Number.isFinite(value) && value >= 0) {
-        this.milliseconds = value;
+      const value: unknown = gl.getQueryParameter(first, gl.QUERY_RESULT);
+      // A lost context can return null, which arithmetic would coerce to zero.
+      // Recheck validity after reading before publishing a completed sample.
+      if (gl.isContextLost()) { this.invalidate(true); return; }
+      if (gl.getParameter(ext.GPU_DISJOINT_EXT)) { this.invalidate(false); return; }
+      if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        this.milliseconds = value / 1e6;
         this.sampleSequence++;
       } else this.milliseconds = null;
-      gl.deleteQuery(first);
       this.queries.shift();
+      gl.deleteQuery(first);
     }
     if (this.queries.length >= 4) return;
     this.current = gl.createQuery();
@@ -53,7 +73,7 @@ export class GpuTimer {
   }
   dispose() {
     if (this.disposed) return;
-    this.invalidate(this.gl.isContextLost());
     this.disposed = true;
+    this.invalidate(this.gl.isContextLost());
   }
 }

@@ -16,11 +16,12 @@ export class GpuFrameGate {
   private completed = 0;
   private deferred = 0;
   private refreshes = 0;
-  private fencedAt = 0;
-  private refreshedAt = 0;
+  private fencedAt: number | null = null;
+  private refreshedAt: number | null = null;
   private latency = 0;
-  private polledAt = 0;
+  private polledAt: number | null = null;
   private activeWaitMs = 0;
+  private latencySampleValid = false;
 
   constructor(
     private readonly gl: WebGL2RenderingContext,
@@ -38,7 +39,7 @@ export class GpuFrameGate {
       throw new Error('Invalid GPU frame polling limits');
   }
 
-  /** Smoothed wall time from a submission to an observed GPU completion. */
+  /** Smoothed submission-to-completion wall time with uninterrupted polling. */
   get completionLatencyMs() {
     return this.latency;
   }
@@ -51,35 +52,35 @@ export class GpuFrameGate {
   ready(): boolean {
     const gl = this.gl;
     if (this.disposed || this.failure) return false;
-    if (gl.isContextLost()) {
-      this.fence = null;
-      return false;
-    }
+    if (this.contextLost()) return false;
     if (!this.fence) return true;
-    const result = gl.clientWaitSync(this.fence, 0, 0);
-    const now = this.now();
-    const gap = Math.max(0, now - this.polledAt);
-    const continuous = gap < 250;
-    this.polledAt = now;
-    // A hidden tab or a held editor is not evidence of a stalled driver.
-    this.activeWaitMs = continuous ? this.activeWaitMs + gap : 0;
-    if (result === gl.TIMEOUT_EXPIRED) {
-      this.deferred++;
-      if (this.activeWaitMs >= this.stallTimeoutMs)
-        return this.fail('GPU frame completion stalled; no further frames were submitted');
-      if (now - this.refreshedAt >= this.waitBoundMs) {
-        gl.flush();
-        this.refreshedAt = now;
-        this.refreshes++;
+    try {
+      const result = gl.clientWaitSync(this.fence, 0, 0);
+      if (this.contextLost()) return false;
+      const now = this.observeClock();
+      if (result === gl.TIMEOUT_EXPIRED) {
+        this.deferred++;
+        if (this.activeWaitMs >= this.stallTimeoutMs)
+          return this.fail('GPU frame completion stalled; no further frames were submitted');
+        if (now !== null && this.refreshedAt !== null && now - this.refreshedAt >= this.waitBoundMs) {
+          gl.flush();
+          this.refreshedAt = now;
+          this.refreshes++;
+          this.contextLost();
+        }
+        return false;
       }
-      return false;
+      if (result !== gl.ALREADY_SIGNALED && result !== gl.CONDITION_SATISFIED)
+        return this.fail('Unable to check GPU frame completion');
+      this.release();
+      if (this.contextLost()) return false;
+      if (this.latencySampleValid && now !== null && this.fencedAt !== null)
+        this.sample(now - this.fencedAt);
+      this.completed = this.submitted;
+      return true;
+    } catch (error) {
+      return this.fail(this.failure ?? 'Unable to check GPU frame completion', error);
     }
-    if (result !== gl.ALREADY_SIGNALED && result !== gl.CONDITION_SATISFIED)
-      return this.fail('Unable to check GPU frame completion');
-    if (continuous) this.sample(now - this.fencedAt);
-    this.release();
-    this.completed = this.submitted;
-    return true;
   }
 
   /** Explicit preparation draws may supersede a fence: the later fence covers
@@ -87,38 +88,75 @@ export class GpuFrameGate {
   submittedFrame(): void {
     const gl = this.gl;
     if (this.disposed) throw new Error('GPU frame gate is disposed');
+    if (this.contextLost()) return;
     if (this.failure) throw new Error(this.failure);
-    if (gl.isContextLost()) {
-      this.fence = null;
-      return;
+    try {
+      this.release();
+      this.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+      if (this.contextLost()) return;
+      if (!this.fence) this.fail('Unable to allocate GPU frame fence');
+      const now = this.now();
+      this.fencedAt = this.polledAt = this.refreshedAt = Number.isFinite(now) ? now : null;
+      this.latencySampleValid = this.fencedAt !== null;
+      this.activeWaitMs = 0;
+      this.submitted++;
+      gl.flush();
+      this.contextLost();
+    } catch (error) {
+      this.fail(this.failure ?? 'Unable to submit GPU frame fence', error);
     }
-    this.release();
-    this.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-    if (!this.fence) this.fail('Unable to allocate GPU frame fence');
-    this.fencedAt = this.polledAt = this.refreshedAt = this.now();
-    this.activeWaitMs = 0;
-    this.submitted++;
-    gl.flush();
   }
 
-  private fail(message: string): never {
+  private fail(message: string, cause?: unknown): never {
     this.failure = message;
-    this.release();
-    throw new Error(message);
+    try {
+      this.release();
+    } catch (error) {
+      cause ??= error;
+    }
+    throw new Error(message, { cause });
+  }
+
+  private contextLost(): boolean {
+    if (!this.gl.isContextLost()) return false;
+    // A restored context cannot complete work owned by this gate's old context.
+    this.failure ??= 'GPU context lost; pending frames cannot be completed';
+    this.fence = null;
+    this.activeWaitMs = 0;
+    return true;
+  }
+
+  private observeClock(): number | null {
+    const value = this.now();
+    const now = Number.isFinite(value) ? value : null;
+    const gap = now !== null && this.polledAt !== null ? now - this.polledAt : NaN;
+    const continuous = Number.isFinite(gap) && gap >= 0 && gap < 250;
+    // An interrupted polling chain invalidates this submission's latency sample,
+    // even if polling resumes before completion. Clock resets retain the fence.
+    if (!continuous) this.latencySampleValid = false;
+    if (!Number.isFinite(gap) || gap < 0) {
+      this.fencedAt = null;
+      this.refreshedAt = now;
+    }
+    this.polledAt = now;
+    this.activeWaitMs = continuous ? this.activeWaitMs + gap : 0;
+    return now;
   }
 
   private sample(elapsed: number) {
+    if (!Number.isFinite(elapsed) || elapsed < 0) return;
     this.latency = this.latency ? this.latency * 0.8 + elapsed * 0.2 : elapsed;
   }
 
   diagnostics() {
+    const elapsed = this.fence && this.fencedAt !== null ? this.now() - this.fencedAt : 0;
     return {
       pending: this.fence !== null,
       submitted: this.submitted,
       completed: this.completed,
       deferredCallbacks: this.deferred,
       flushRefreshes: this.refreshes,
-      pendingMs: this.fence ? Math.max(0, this.now() - this.fencedAt) : 0,
+      pendingMs: Number.isFinite(elapsed) ? Math.max(0, elapsed) : 0,
       activeWaitMs: this.fence ? this.activeWaitMs : 0,
       failure: this.failure,
       latencyMs: this.latency,
@@ -126,13 +164,14 @@ export class GpuFrameGate {
   }
 
   private release(): void {
-    if (this.fence && !this.gl.isContextLost()) this.gl.deleteSync(this.fence);
+    const fence = this.fence;
     this.fence = null;
+    if (fence && !this.gl.isContextLost()) this.gl.deleteSync(fence);
   }
 
   dispose(): void {
     if (this.disposed) return;
-    this.release();
     this.disposed = true;
+    this.release();
   }
 }

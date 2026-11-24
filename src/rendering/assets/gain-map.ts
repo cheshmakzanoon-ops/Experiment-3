@@ -72,18 +72,23 @@ async function decode(bytes: Uint8Array, size?: DecodeSize): Promise<DecodedSky>
 
 function texture(image: DecodedSky, name: string, srgb: boolean) {
   const t = new T.Texture(image as unknown as HTMLImageElement);
-  t.name = name;
-  t.flipY = false;
-  t.colorSpace = srgb ? T.SRGBColorSpace : T.NoColorSpace;
-  if (!srgb) t.format = T.RedFormat;
-  t.wrapS = T.RepeatWrapping;
-  t.wrapT = T.ClampToEdgeWrapping;
-  t.magFilter = T.LinearFilter;
-  t.minFilter = T.LinearMipmapLinearFilter;
-  t.generateMipmaps = true;
-  t.anisotropy = srgb ? 4 : 1;
-  t.needsUpdate = true;
-  return t;
+  try {
+    t.name = name;
+    t.flipY = false;
+    t.colorSpace = srgb ? T.SRGBColorSpace : T.NoColorSpace;
+    if (!srgb) t.format = T.RedFormat;
+    t.wrapS = T.RepeatWrapping;
+    t.wrapT = T.ClampToEdgeWrapping;
+    t.magFilter = T.LinearFilter;
+    t.minFilter = T.LinearMipmapLinearFilter;
+    t.generateMipmaps = true;
+    t.anisotropy = srgb ? 4 : 1;
+    t.needsUpdate = true;
+    return t;
+  } catch (error) {
+    t.dispose();
+    throw error;
+  }
 }
 
 /** Fetch and decode one shipped `.hdr.jpg` (it must carry a gain-map layout). */
@@ -120,21 +125,44 @@ export async function loadGainMapTextures(
   }
   const baseImage = a.value,
     gainImage = b.value;
-  const base = texture(baseImage, `${file.path} base`, true),
-    gain = texture(gainImage, `${file.path} gain`, false);
-  return {
-    base,
-    gain,
-    gainMax: layout.gainMax,
-    width: baseImage.width,
-    height: baseImage.height,
-    bytes: bytes.length,
-    dispose() {
-      base.dispose();
-      gain.dispose();
-      for (const image of [baseImage, gainImage]) if ('close' in image) image.close();
-    },
+  let base: T.Texture | undefined,
+    gain: T.Texture | undefined,
+    disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    // Each handle owns its bitmap; a failing disposal listener must not strand
+    // the other handle or either decoded image.
+    try {
+      base?.dispose();
+    } finally {
+      try {
+        gain?.dispose();
+      } finally {
+        try {
+          if ('close' in baseImage) baseImage.close();
+        } finally {
+          if ('close' in gainImage) gainImage.close();
+        }
+      }
+    }
   };
+  try {
+    base = texture(baseImage, `${file.path} base`, true);
+    gain = texture(gainImage, `${file.path} gain`, false);
+    return {
+      base,
+      gain,
+      gainMax: layout.gainMax,
+      width: baseImage.width,
+      height: baseImage.height,
+      bytes: bytes.length,
+      dispose,
+    };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }
 
 /** Linear half-float equirectangular radiance of a texture pair (one draw),
@@ -144,6 +172,9 @@ export function decodeGainMapToHalfFloat(
   pair: GainMapTextures,
   scale = 1,
 ) {
+  const previous = renderer.getRenderTarget(),
+    face = renderer.getActiveCubeFace(),
+    mip = renderer.getActiveMipmapLevel();
   const target = new T.WebGLRenderTarget(pair.width, pair.height, {
     type: T.HalfFloatType,
     format: T.RGBAFormat,
@@ -154,37 +185,52 @@ export function decodeGainMapToHalfFloat(
     magFilter: T.LinearFilter,
     wrapS: T.RepeatWrapping,
   });
-  target.texture.mapping = T.EquirectangularReflectionMapping;
-  const material = new T.RawShaderMaterial({
-    glslVersion: T.GLSL3,
-    depthTest: false,
-    depthWrite: false,
-    uniforms: {
-      base: { value: pair.base },
-      gain: { value: pair.gain },
-      gainMax: { value: pair.gainMax },
-      scale: { value: scale },
-    },
-    vertexShader: `precision highp float;
+  let material: T.RawShaderMaterial | undefined,
+    geometry: T.PlaneGeometry | undefined;
+  try {
+    try {
+      target.texture.mapping = T.EquirectangularReflectionMapping;
+      material = new T.RawShaderMaterial({
+        glslVersion: T.GLSL3,
+        depthTest: false,
+        depthWrite: false,
+        uniforms: {
+          base: { value: pair.base },
+          gain: { value: pair.gain },
+          gainMax: { value: pair.gainMax },
+          scale: { value: scale },
+        },
+        vertexShader: `precision highp float;
       in vec3 position; in vec2 uv; out vec2 vUv;
       void main() { vUv = vec2(uv.x, 1.0 - uv.y); gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }`,
-    fragmentShader: `precision highp float;
+        fragmentShader: `precision highp float;
       uniform sampler2D base; uniform sampler2D gain; uniform float gainMax; uniform float scale;
       in vec2 vUv; out vec4 radiance;
       void main() {
         radiance = vec4(texture(base, vUv).rgb * exp2(texture(gain, vUv).r * gainMax) * scale, 1.0);
       }`,
-  });
-  const quad = new T.Mesh(new T.PlaneGeometry(1, 1), material);
-  const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  const previous = renderer.getRenderTarget();
-  try {
-    renderer.setRenderTarget(target);
-    renderer.render(quad, camera);
-  } finally {
-    renderer.setRenderTarget(previous);
-    material.dispose();
-    quad.geometry.dispose();
+      });
+      geometry = new T.PlaneGeometry(1, 1);
+      const quad = new T.Mesh(geometry, material);
+      const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      try {
+        renderer.setRenderTarget(target);
+        renderer.render(quad, camera);
+      } finally {
+        renderer.setRenderTarget(previous, face, mip);
+      }
+    } finally {
+      try {
+        material?.dispose();
+      } finally {
+        geometry?.dispose();
+      }
+    }
+    // Ownership transfers only after drawing, restoration and temporary
+    // resource disposal have all completed.
+    return target;
+  } catch (error) {
+    target.dispose();
+    throw error;
   }
-  return target;
 }

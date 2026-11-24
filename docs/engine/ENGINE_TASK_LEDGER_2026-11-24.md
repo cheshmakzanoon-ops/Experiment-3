@@ -18,12 +18,23 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 
 | Agent | Assignment | Result |
 |---|---|---|
-| 07 | Asynchronous environment loader cache and GPU cleanup (no content changes) | Running |
+| 07 | Asynchronous environment loader cache and GPU cleanup (no content changes) | Fixed failed conversion cleanup and cache ownership; 14 tests passed |
 | 08 | Texture-loader retry, concurrent cache and disposal ownership | Fixed exhausted-role cache eviction; 7 tests passed |
-| 09 | GPU timing queries and frame-fence lifecycle | Running |
-| 10 | Gain-map decoding resource ownership and borrowed render-state restoration | Running |
-| 11 | Festival session asynchronous startup/disposal and worker request cleanup | Queued |
-| 12 | Graphics preparation/settings transition cancellation | Queued |
+| 09 | GPU timing queries and frame-fence lifecycle | Fixed invalid samples, lost-context ownership and cleanup errors; 77 tests passed |
+| 10 | Gain-map decoding resource ownership and borrowed render-state restoration | Fixed failed-target leaks and face/mip restoration; 12 tests passed |
+| 11 | Festival session asynchronous startup/disposal and worker request cleanup | Fixed cancellation, readiness/command deadlines and late callbacks; 27 tests passed |
+| 12 | Graphics preparation/settings transition cancellation | Fixed stale progress callbacks; 71 focused tests passed |
+
+## Wave 3 — simulation throughput and bounded work
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 13 | BVH nearest-hit traversal performance and deterministic reference checks | Running |
+| 14 | Collision broad-phase filtering and contact invariants | Running |
+| 15 | Terrain residency queue, cache bounds and prefetch scheduling (no height/geometry changes) | Running |
+| 16 | Flashback resimulation CPU slicing without dropping recorded ticks | Queued |
+| 17 | Snapshot encoding/validation hot path and allocation behavior | Queued |
+| 18 | Festival late-loader ownership after renderer disposal (no scene changes) | Queued |
 
 ## Remaining waves
 

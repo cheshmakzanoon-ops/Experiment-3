@@ -45,21 +45,76 @@ const cache = new WeakMap<T.WebGLRenderer, Map<string, Cached>>();
 async function decodeFile(renderer: T.WebGLRenderer, file: ShippedFile, scale: number) {
   if (file.format === 'ultrahdr' && file.gainMap) {
     const pair = await loadGainMapTextures(file);
-    const canRender =
-      renderer.extensions.has('EXT_color_buffer_float') ||
-      renderer.extensions.has('EXT_color_buffer_half_float');
-    if (canRender) {
-      const target = decodeGainMapToHalfFloat(renderer, pair, scale);
-      pair.dispose();
-      return { texture: target.texture, release: () => target.dispose() };
+    let target: T.WebGLRenderTarget | undefined;
+    try {
+      try {
+        const canRender =
+          renderer.extensions.has('EXT_color_buffer_float') ||
+          renderer.extensions.has('EXT_color_buffer_half_float');
+        if (canRender) {
+          target = decodeGainMapToHalfFloat(renderer, pair, scale);
+          const decoded = target;
+          return { texture: decoded.texture, release: () => decoded.dispose() };
+        }
+      } finally {
+        pair.dispose();
+      }
+    } catch (error) {
+      // A failing disposal listener must not strand the completed output.
+      target?.dispose();
+      throw error;
     }
-    pair.dispose();
   }
   const loader = file.path.endsWith('.hdr') ? new HDRLoader() : new UltraHDRLoader();
   loader.setDataType(T.HalfFloatType);
   const texture = await loader.loadAsync(assetUrl(file.path));
   texture.mapping = T.EquirectangularReflectionMapping;
   return { texture, release: () => texture.dispose() };
+}
+
+interface PMREM180 {
+  _setSize(size: number): void;
+  _allocateTargets(): T.WebGLRenderTarget;
+}
+
+function createPmrem(renderer: T.WebGLRenderer, texture: T.Texture) {
+  const previous = renderer.getRenderTarget(),
+    face = renderer.getActiveCubeFace(),
+    mip = renderer.getActiveMipmapLevel(),
+    xr = renderer.xr.enabled,
+    autoClear = renderer.autoClear;
+  let generator: T.PMREMGenerator | undefined, output: T.WebGLRenderTarget | undefined;
+  try {
+    try {
+      generator = new T.PMREMGenerator(renderer);
+      // r180's public conversion does not release its output when a draw
+      // throws. Acquire that output from the unchanged native factory first;
+      // the generator still owns its ping-pong target, geometry and materials.
+      const native = generator as unknown as PMREM180;
+      if (
+        T.REVISION !== '180' ||
+        typeof native._setSize !== 'function' ||
+        typeof native._allocateTargets !== 'function'
+      )
+        throw new Error('Environment conversion requires the Three r180 PMREM interface');
+      native._setSize(texture.image.width / 4);
+      output = native._allocateTargets();
+      generator.fromEquirectangular(texture, output);
+      return output;
+    } finally {
+      try {
+        generator?.dispose();
+      } finally {
+        // Three restores these only when conversion reaches its final draw.
+        renderer.xr.enabled = xr;
+        renderer.autoClear = autoClear;
+        renderer.setRenderTarget(previous, face, mip);
+      }
+    }
+  } catch (error) {
+    output?.dispose();
+    throw error;
+  }
 }
 
 export async function loadEnvironment(
@@ -80,30 +135,39 @@ export async function loadEnvironment(
   if (!entry) {
     const promise = (async () => {
       const decoded = await decodeFile(renderer, file, scale);
-      decoded.texture.mapping = T.EquirectangularReflectionMapping;
-      decoded.texture.name = `${id} ${file.role}`;
-      const generator = new T.PMREMGenerator(renderer);
       try {
-        const pmrem = generator.fromEquirectangular(decoded.texture);
+        decoded.texture.mapping = T.EquirectangularReflectionMapping;
+        decoded.texture.name = `${id} ${file.role}`;
+        const pmrem = createPmrem(renderer, decoded.texture);
         return {
           background: decoded.texture,
           environment: pmrem.texture,
           release() {
-            decoded.release();
-            pmrem.dispose();
+            try {
+              decoded.release();
+            } finally {
+              pmrem.dispose();
+            }
           },
         };
-      } finally {
-        generator.dispose();
+      } catch (error) {
+        decoded.release();
+        throw error;
       }
     })();
     entry = { promise, users: 0 };
     perRenderer.set(key, entry);
-    promise.catch(() => perRenderer!.delete(key));
   }
-  entry.users++;
-  const loaded = await entry.promise;
   const held = entry;
+  held.users++;
+  let loaded: Awaited<Cached['promise']>;
+  try {
+    loaded = await held.promise;
+  } catch (error) {
+    held.users--;
+    if (perRenderer.get(key) === held) perRenderer.delete(key);
+    throw error;
+  }
   let released = false;
   return {
     id,
@@ -120,7 +184,7 @@ export async function loadEnvironment(
       if (released) return;
       released = true;
       if (--held.users <= 0) {
-        perRenderer!.delete(key);
+        if (perRenderer.get(key) === held) perRenderer.delete(key);
         loaded.release();
       }
     },

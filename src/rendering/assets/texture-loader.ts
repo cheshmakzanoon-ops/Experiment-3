@@ -95,6 +95,7 @@ function loadRole(renderer: T.WebGLRenderer, files: ShippedFile[], prefer: 'ktx2
   const key = `${files[0].path}:${prefer}`;
   let pending = cache.get(key);
   if (!pending) {
+    const roleCache = cache;
     const ordered = [...files].sort((a, b) =>
       a.format === prefer ? -1 : b.format === prefer ? 1 : 0,
     );
@@ -115,7 +116,12 @@ function loadRole(renderer: T.WebGLRenderer, files: ShippedFile[], prefer: 'ktx2
         }
       }
       return null;
-    })();
+    })().then((source) => {
+      // Share the whole fallback attempt, but let a later request retry a
+      // transient failure. Successful decoded sources remain cached.
+      if (!source && roleCache.get(key) === pending) roleCache.delete(key);
+      return source;
+    });
     cache.set(key, pending);
   }
   return pending;
