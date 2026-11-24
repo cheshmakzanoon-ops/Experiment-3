@@ -2,6 +2,7 @@ import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { CircuitScene } from '../src/rendering/circuit.ts';
 import { buildVenueLighting } from '../src/rendering/venue-lighting.ts';
+import { MX_VAN_TYRE_SETTLE } from '../src/rendering/offroad/mx-service-wheel.ts';
 import { LIGHT_POOL_HOOK, lightPoolUniforms } from '../src/rendering/studio/light-pools.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 import {
@@ -125,6 +126,22 @@ describe('full motocross venue construction', () => {
           }
         }
         expect([...owners].sort()).toEqual(['APEX library soil', 'Arena Nord graded clay apron']);
+      } else {
+        const vans = scene.offroad!.dressing!.root.getObjectByName('MX team vans') as T.InstancedMesh;
+        const matrix = new T.Matrix4(), contact = new T.Vector3(), ray = new T.Raycaster();
+        const down = new T.Vector3(0, -1, 0), roots = [scene.surfaces, scene.offroad!.terrain!.group];
+        scene.group.updateMatrixWorld(true);
+        for (let i = 0; i < vans.count; i++) {
+          vans.getMatrixAt(i, matrix);
+          for (const x of [-.896, .896]) for (const z of [-1.70, 1.66]) {
+            contact.set(x, MX_VAN_TYRE_SETTLE, z).applyMatrix4(matrix);
+            ray.ray.origin.copy(contact).y += 1;
+            ray.ray.direction.copy(down);
+            const surface = ray.intersectObjects(roots)[0];
+            expect(surface).toBeDefined();
+            expect(Math.abs(surface.point.y - contact.y)).toBeLessThan(.002);
+          }
+        }
       }
       const paintedPitEdges: T.Object3D[] = [];
       scene.surfaces.traverse((object) => {

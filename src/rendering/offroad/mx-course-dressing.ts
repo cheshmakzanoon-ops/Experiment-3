@@ -6,6 +6,7 @@ import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxFootprintMatrix, mxFurnitureGround, mxMarkerFoot } from './mx-ground-pose.ts';
 import { fitMxScrim, installMxScrim } from './mx-track-scrim.ts';
+import { MX_VAN_TYRE_SETTLE } from './mx-service-wheel.ts';
 import { mxJumpMarkerGeometry } from './mx-jump-marker.ts';
 import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
@@ -586,7 +587,7 @@ export class MxCourseDressing {
         if (Math.abs(l) < course.legalWidth(this.nearby.width, this.nearby.s, l) + 6) continue;
         if (!free(x, z, 2.6) || inStandFootprint(track, x, z, 3)) continue;
         const yaw = Math.atan2(near.tx, near.tz) + (along > 0 ? 0 : Math.PI);
-        vans.push(mxFootprintMatrix(track, x, z, yaw, 1.792, 3.36, -0.012));
+        vans.push(mxFootprintMatrix(track, x, z, yaw, 1.792, 3.36, -MX_VAN_TYRE_SETTLE));
         vanCrews.push(index % 4);
         vanColours.push(
           new T.Color([0xe9ebe8, 0x2b3a46, 0xc9ccc7, 0x5d1f22, 0x1f2224][vans.length % 5]),

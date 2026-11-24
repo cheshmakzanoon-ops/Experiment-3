@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
+import { mxServiceTyre, mxServiceWheelDish, mxServiceWheelLip, MX_VAN_TYRE_SETTLE } from '../src/rendering/offroad/mx-service-wheel.ts';
 import { fitMxScrim } from '../src/rendering/offroad/mx-track-scrim.ts';
 import { mxTeamVanGeometry } from '../src/rendering/offroad/mx-paddock-models.ts';
 import { MxVenueWind } from '../src/rendering/offroad/mx-venue-wind.ts';
@@ -111,6 +112,39 @@ describe('motocross event feather flags', () => {
     } finally {
       dressing.dispose();
     }
+  });
+
+  it('grounds the deformed van tyres and exposes the brake drum through six real wheel apertures', () => {
+    const tyre = mxServiceTyre();
+    const p = tyre.getAttribute('position'), n = tyre.getAttribute('normal');
+    const footprint = new T.Box3(), point = new T.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      point.fromBufferAttribute(p, i);
+      expect(point.y + 0.355).toBeGreaterThanOrEqual(MX_VAN_TYRE_SETTLE - 1e-6);
+      if (Math.abs(point.y + 0.355 - MX_VAN_TYRE_SETTLE) < 1e-6) footprint.expandByPoint(point);
+      expect(new T.Vector3().fromBufferAttribute(n, i).length()).toBeCloseTo(1, 4);
+    }
+    expect(footprint.max.z - footprint.min.z).toBeGreaterThan(0.14);
+    expect(footprint.max.x - footprint.min.x).toBeGreaterThan(0.10);
+    tyre.computeBoundingBox();
+    expect(tyre.boundingBox!.max.y).toBeCloseTo(0.355, 5);
+    tyre.dispose();
+    const material = new T.MeshBasicMaterial();
+    for (const side of [-1, 1]) {
+      const dish = new T.Mesh(mxServiceWheelDish(side), material);
+      const lip = new T.Mesh(mxServiceWheelLip(side), material);
+      const shoot = (mesh: T.Mesh, radius: number, angle: number) =>
+        new T.Raycaster(new T.Vector3(side * .25, radius * Math.sin(angle), -side * radius * Math.cos(angle)),
+          new T.Vector3(-side, 0, 0)).intersectObject(mesh)[0];
+      for (let i = 0; i < 6; i++) {
+        const angle = i * Math.PI / 3;
+        expect(shoot(dish, .123, angle)).toBeUndefined();
+        expect(side * shoot(dish, .123, angle + Math.PI / 6).point.x).toBeGreaterThan(.05);
+        expect(side * shoot(lip, .181, angle + .02).point.x).toBeGreaterThan(.078);
+      }
+      dish.geometry.dispose(); lip.geometry.dispose();
+    }
+    material.dispose();
   });
 
   it('centres four rolled eyelets and their paired ties on each sloped scrim with the print facing either lane', () => {

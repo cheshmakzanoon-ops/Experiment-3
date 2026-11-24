@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mxServiceTyre, mxServiceWheelDish, mxServiceWheelLip } from './mx-service-wheel.ts';
 import { mxVanPrint } from './mx-van-print.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
@@ -199,17 +200,6 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
   box(0.47, 0.095, 0.018, STRIPE, 0, 0.505, 2.684);
   box(0.014, 1.63, 0.025, TRIM, 0, 1.445, -2.619);
   box(0.16, 0.038, 0.032, TRIM, 0.105, 1.15, -2.622);
-  const wheelProfile = [
-    [0.181, -0.102],
-    [0.285, -0.106],
-    [0.338, -0.08],
-    [0.355, -0.055],
-    [0.355, 0.055],
-    [0.338, 0.08],
-    [0.285, 0.106],
-    [0.181, 0.102],
-    [0.181, -0.102],
-  ].map(([r, y]) => new T.Vector2(r, y));
   for (const side of [-1, 1]) {
     // Trim and window insert stay inside the pressed door perimeter.
     sidePanel(
@@ -305,24 +295,15 @@ export function mxTeamVanGeometry(crews: readonly number[] = [0]) {
     box(0.084, 0.065, 0.013, INDICATOR, side * 0.842, 1.09, -2.664);
     box(0.084, 0.047, 0.013, LENS, side * 0.842, 0.985, -2.664);
     for (const z of [-1.7, 1.66]) {
-      put(
-        new T.LatheGeometry(wheelProfile, 20).rotateZ(Math.PI / 2),
-        RUBBER,
-        side * 0.896,
-        0.355,
-        z,
-      );
-      const rim = new T.CylinderGeometry(0.19, 0.19, 0.035, 20).rotateZ(Math.PI / 2);
-      put(rim, ALLOY, side * 0.976, 0.355, z);
-      for (let k = 0; k < 6; k++) {
-        const a = (k * Math.PI) / 3;
-        put(
-          new T.CircleGeometry(0.029, 7).rotateY((side * Math.PI) / 2),
-          TRIM,
-          side * 0.995,
-          0.355 + Math.cos(a) * 0.122,
-          z + Math.sin(a) * 0.122,
-        );
+      put(mxServiceTyre(), RUBBER, side * 0.896, 0.355, z);
+      put(mxServiceWheelDish(side), ALLOY, side * 0.896, 0.355, z);
+      put(mxServiceWheelLip(side), ALLOY, side * 0.896, 0.355, z);
+      const drum = new T.CylinderGeometry(.158, .158, .018, 20).rotateZ(Math.PI / 2);
+      put(drum, TRIM, side * .915, .355, z);
+      for (let k = 0; k < 5; k++) {
+        const angle = (2 * Math.PI * k) / 5 + .22;
+        const nut = new T.CylinderGeometry(.010, .011, .012, 6).rotateZ(Math.PI / 2);
+        put(nut, ALLOY, side * .978, .355 + .081 * Math.sin(angle), z + .081 * Math.cos(angle));
       }
       put(
         new T.CylinderGeometry(0.072, 0.08, 0.023, 12).rotateZ(Math.PI / 2),
