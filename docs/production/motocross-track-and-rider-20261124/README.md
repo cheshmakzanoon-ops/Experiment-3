@@ -24,13 +24,17 @@ The downshift guard accounts for rear-tyre regrip speed. A rider can still shift
 
 If another rider ends up travelling backwards along the verge, the marshal waits for space and for an approaching hairpin to clear before helping the rider turn. The bike rotates through the push and remount. Riders who have taken the chequered flag ease down the straights and roll the next jump while the rest of the field races.
 
-The boot has an articulated ankle brace, heel counter, wraparound toe bumper and an instep protector on the gear side. Narrow seams follow their physical width. The complete High-detail MX250 and rider use 139,107 triangles. The MX450 and rider use 137,467. Both fit the existing 140,000-triangle limit.
+At the handlebars, the brake hose leaves a bolted eye and crimp on the right master cylinder. Its upper and lower sections meet at the same position and tangent as the fork moves. The clutch cable on the left exits through its adjuster ferrule. Across 288 combinations of steering angle, fork height and detail level, the measured brake-hose join stayed within 0.001 mm and 0.08 degrees.
+
+The boot has an articulated ankle brace, heel counter, wraparound toe bumper and an instep protector on the gear side. Narrow seams follow their physical width. The complete High-detail MX250 and rider use 139,339 triangles. The MX450 and rider use 137,699. Both fit the existing 140,000-triangle limit.
 
 ![Production race boot and gear-selector motion](rider-equipment.jpg)
 
 The MX450 downshift below follows 33 consecutive 120 Hz simulation samples. Playback is at one-quarter speed.
 
 ![Slow-motion MX450 downshift showing the boot clearing and pressing the gear selector](gear-selector.webp)
+
+On the MX250 and MX450, a locked wheel keeps its spokes sharp while the other wheel can remain blurred. The spoke material now keeps neighbouring fragments available through lighting before it discards near-transparent pixels. The old ordering made a held close-up change by up to three RGB levels at the same two screen pixels. All four independent brake-lock, reverse and rewind image checks now reproduce the same held pixels.
 
 ## What the cameras submit
 
@@ -52,9 +56,11 @@ When a dry, stationary race view is late, the renderer reserves more frames for 
 
 ## Race verification
 
-The focused suite passed 914 motocross tests and 35 reflection tests. The off-road calibration passed all 20 jump cases and all 11 race scenarios. In the seeded eight-rider races, Valley Ridge recorded one crash and Arena Nord recorded three. Both fields finished with no retirements. The replay-cadence check made 1,520 matrix comparisons per bike and venue pairing, 6,080 total, with zero matrix-element difference.
+The focused suite passed all 957 checks across 97 files, including 916 motocross checks, 35 reflection checks and six spoke-exposure checks. The off-road calibration passed all 20 jump cases and all 11 race scenarios. In the seeded eight-rider races, Valley Ridge recorded one crash and Arena Nord recorded three. Both fields finished with no retirements. The replay-cadence check made 1,520 matrix comparisons per bike and venue pairing, 6,080 total, with zero matrix-element difference.
 
-The 960 × 600 High and 1280 × 800 Low journeys completed both venues with an eight-rider field. High used an extended screenshot timeout on SwiftShader. The race captures use the production menu, worker, gate, manual controls and race cameras. The isolated before-and-after images use deterministic camera positions for comparison. GPU timings from software rendering cannot establish a console frame rate.
+Three prepared eight-rider camera cuts took 0.77, 0.87 and 0.95 ms for the CPU pose update on the test host. The figure excludes scene preparation and GPU drawing.
+
+The eight-rider gameplay checks completed both venues at 1280 × 800 on Low and High, and at 960 × 600 on High. The gallery uses the 1280 × 800 High captures. The standard 45-second screenshot window expired on High at the larger size. An isolated run completed both venues on SwiftShader with a 180-second screenshot window. The race captures use the production menu, worker, gate, manual controls and race cameras. The isolated before-and-after images use deterministic camera positions for comparison. GPU timings from software rendering cannot establish a console frame rate.
 
 ### Twelve-rider races
 
@@ -72,11 +78,12 @@ Both bike classes raced together over a scheduled two laps. All 96 entrants were
 Run these commands at the repository root after `npm ci`. The full-grid run writes its per-entrant finish times, incidents, terrain measurements and failures to `test-results/motocross-full-grid.json`.
 
 ```sh
-npx vitest run tests/motocross tests/reflections.test.ts --maxWorkers=2
+npx vitest run tests/motocross tests/reflections.test.ts tests/road-wheel-exposure.test.ts --maxWorkers=2
 npm run test:offroad
 node --experimental-transform-types scripts/offroad-races.ts --mx-full-grid
 npx vite-node --script scripts/bench/motocross-field.ts --cadence
 npm run build
 npm run check:bundle
+npx playwright test --config=playwright.motocross.config.ts e2e/42-motocross-bike.spec.ts e2e/47-motocross-trackside-models.spec.ts --workers=1
 APEX_MOTOCROSS_JOURNEY_QUALITY=high npx playwright test --config=playwright.motocross.config.ts e2e/45-motocross-gameplay.spec.ts
 ```
