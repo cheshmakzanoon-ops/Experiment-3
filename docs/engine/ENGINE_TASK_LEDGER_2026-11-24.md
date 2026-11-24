@@ -53,10 +53,21 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 |---|---|---|
 | 25 | Replay IndexedDB connection, disposal and late open ownership | Fixed terminal disposal, late opens and transaction abort cleanup; 18 tests passed |
 | 26 | SaveStore connection retry, blocked opens and transaction recovery | Fixed retry/ownership, transaction completion and atomic scheduling failures; 35 tests passed |
-| 27 | Telemetry export cancellation, backpressure and asynchronous ownership | Running |
-| 28 | Diagnostic recording ring capacity and bulk append work | Running |
-| 29 | Session replay paging, truncation and asynchronous failure audit | Running |
-| 30 | Desktop save mirror transaction completion and revision ordering | Queued |
+| 27 | Telemetry export cancellation, backpressure and asynchronous ownership | Fixed malformed reply handling and contained auxiliary worker errors; 29 tests passed |
+| 28 | Diagnostic recording ring capacity and bulk append work | Validated replay capacity and bounded telemetry bulk copies; 191 focused tests passed |
+| 29 | Session replay paging, truncation and asynchronous failure audit | Fixed reopened surface hashes, future-only surfaces and overlapping page-ID write ownership; 101 tests passed |
+| 30 | Desktop save mirror transaction completion and revision ordering | Fixed snapshot revision adoption, monotonic counters and atomic transaction failure handling; 75 tests passed |
+
+## Wave 6 — rendering infrastructure
+
+| Agent | Assignment | Result |
+|---|---|---|
+| 31 | Texture-budget ownership, CPU-read canvas backing and resampling | Fixed shared-source refresh propagation; corrected obsolete canvas-context fixture; 34 tests passed |
+| 32 | Shadow-proxy batching invariants and baseline draw-count investigation | Kept production batching unchanged; corrected stale limits and verified articulated geometry/ownership; 12 tests passed |
+| 33 | Snapshot interpolation and reusable presentation buffers | Running |
+| 34 | Native PMREM audit and reflection resource disposal | Running |
+| 35 | Draw-ledger audit and timestamp-query ownership | Running |
+| 36 | Circuit renderer asynchronous lifetime integration | Queued |
 
 ## Remaining waves
 

@@ -209,34 +209,72 @@ export class SaveStore {
   /** Desktop shell only (window.motobound.desktop): mirrors writes to atomic JSON files. */
   private mirror = DesktopMirror.detect();
   private open() {
-    return (this.db ??= new Promise<IDBDatabase>((resolve, reject) => {
+    if (this.db) return this.db;
+    let resolve!: (db: IDBDatabase) => void;
+    let reject!: (error: unknown) => void;
+    const pending = new Promise<IDBDatabase>((ready, failed) => {
+      resolve = ready;
+      reject = failed;
+    });
+    this.db = pending;
+    let connection: IDBDatabase | null = null;
+    const fail = (error: unknown) => {
+      // A blocked request can finish after a later attempt has already opened.
+      if (this.db === pending) this.db = null;
+      const closed = connection;
+      connection = null;
+      closed?.close();
+      reject(error);
+    };
+    try {
       if (!globalThis.indexedDB) {
-        reject(new Error('IndexedDB unavailable; settings will last for this session only.'));
-        return;
+        throw new Error('IndexedDB unavailable; settings will last for this session only.');
       }
       const request = indexedDB.open('apex-formula', 1);
-      request.onupgradeneeded = () => request.result.createObjectStore('saved');
-      request.onsuccess = () =>
-        resolve(
-          this.mirror
-            ? this.mirror.reconcile(idbKv(request.result)).then(() => request.result)
-            : request.result,
-        );
-      request.onerror = () => {
-        this.db = null;
-        reject(request.error ?? new Error('Storage unavailable'));
+      request.onupgradeneeded = () => {
+        if (this.db !== pending) {
+          request.transaction?.abort();
+          return;
+        }
+        request.result.createObjectStore('saved');
       };
+      request.onsuccess = () => {
+        const db = request.result;
+        if (this.db !== pending) {
+          db.close();
+          return;
+        }
+        connection = db;
+        db.onversionchange = () =>
+          fail(new Error('Local storage changed in another tab. Try again.'));
+        db.onclose = () => fail(new Error('Local storage connection closed. Try again.'));
+        try {
+          if (this.mirror) {
+            void this.mirror.reconcile(idbKv(db)).then(() => {
+              if (this.db === pending) resolve(db);
+            }, fail);
+          } else resolve(db);
+        } catch (error) {
+          fail(error);
+        }
+      };
+      request.onerror = () => fail(request.error ?? new Error('Storage unavailable'));
       request.onblocked = () =>
-        reject(new Error('Close older MOTOBOUND tabs to update local storage.'));
-    }));
+        fail(new Error('Close older MOTOBOUND tabs to update local storage.'));
+    } catch (error) {
+      fail(error);
+    }
+    return pending;
   }
   async read(key: string): Promise<unknown> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('saved', 'readonly'),
         r = tx.objectStore('saved').get(key);
-      r.onsuccess = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
+      tx.oncomplete = () => resolve(r.result);
+      r.onerror = () => reject(r.error ?? new Error('Read failed'));
+      tx.onerror = () => reject(tx.error ?? new Error('Read failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('Read aborted'));
     });
   }
   /** Keep the previous value as `key:backup` and write the new one in the
@@ -245,29 +283,46 @@ export class SaveStore {
   async writeWithBackup(key: string, value: unknown) {
     const db = await this.open();
     return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction('saved', 'readwrite'),
-        store = tx.objectStore('saved'),
-        previous = store.get(key);
+      const tx = db.transaction('saved', 'readwrite');
+      let previousValue: unknown;
       let revision = 0;
-      previous.onsuccess = () => {
-        if (previous.result !== undefined) store.put(previous.result, backupKey(key));
-        store.put(value, key);
-        if (this.mirror) revision = this.mirror.stamp(store);
+      const abort = (error: unknown) => {
+        reject(error);
+        try {
+          tx.abort();
+        } catch {
+          /* the transaction has already finished */
+        }
       };
       tx.oncomplete = () => {
         this.mirror?.written(
           [
-            ...(previous.result !== undefined
-              ? ([[backupKey(key), previous.result]] as const)
-              : []),
+            ...(previousValue !== undefined ? ([[backupKey(key), previousValue]] as const) : []),
             [key, value],
           ],
           revision,
         );
         resolve();
       };
-      tx.onerror = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error ?? new Error('Save failed'));
       tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
+      try {
+        const store = tx.objectStore('saved'),
+          previous = store.get(key);
+        previous.onerror = () => reject(previous.error ?? new Error('Save failed'));
+        previous.onsuccess = () => {
+          try {
+            previousValue = previous.result;
+            if (previousValue !== undefined) store.put(previousValue, backupKey(key));
+            store.put(value, key);
+            if (this.mirror) revision = this.mirror.stamp(store);
+          } catch (error) {
+            abort(error);
+          }
+        };
+      } catch (error) {
+        abort(error);
+      }
     });
   }
   /** Read `key`, falling back to its backup when the primary is unusable. */
@@ -290,25 +345,38 @@ export class SaveStore {
   async keys(prefix = ''): Promise<string[]> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const r = db.transaction('saved', 'readonly').objectStore('saved').getAllKeys();
-      r.onsuccess = () =>
+      const tx = db.transaction('saved', 'readonly'),
+        r = tx.objectStore('saved').getAllKeys();
+      tx.oncomplete = () =>
         resolve(r.result.filter((k): k is string => typeof k === 'string' && k.startsWith(prefix)));
-      r.onerror = () => reject(r.error);
+      r.onerror = () => reject(r.error ?? new Error('Read failed'));
+      tx.onerror = () => reject(tx.error ?? new Error('Read failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('Read aborted'));
     });
   }
   async write(key: string, value: unknown) {
     const db = await this.open();
     return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction('saved', 'readwrite'),
-        store = tx.objectStore('saved');
-      store.put(value, key);
-      const revision = this.mirror ? this.mirror.stamp(store) : 0;
+      const tx = db.transaction('saved', 'readwrite');
+      let revision = 0;
       tx.oncomplete = () => {
         this.mirror?.written([[key, value]], revision);
         resolve();
       };
-      tx.onerror = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error ?? new Error('Save failed'));
       tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
+      try {
+        const store = tx.objectStore('saved');
+        store.put(value, key);
+        if (this.mirror) revision = this.mirror.stamp(store);
+      } catch (error) {
+        reject(error);
+        try {
+          tx.abort();
+        } catch {
+          /* the transaction has already finished */
+        }
+      }
     });
   }
 }

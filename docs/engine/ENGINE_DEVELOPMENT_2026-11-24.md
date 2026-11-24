@@ -51,8 +51,8 @@ Specific assignments are refined against findings from preceding waves.
 | 2 | 7–12 | Runtime ownership, asynchronous lifecycle, resource reuse | Complete |
 | 3 | 13–18 | Collision queries, numerical stability, simulation throughput | Complete |
 | 4 | 19–24 | Worker protocols, input validation, cancellation and recovery | Complete |
-| 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | In progress |
-| 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | Pending |
+| 5 | 25–30 | Replay, telemetry, recording, persistence and bounded memory | Complete |
+| 6 | 31–36 | Rendering infrastructure, frame scheduling and quality transitions | In progress |
 | 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Pending |
 | 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Pending |
 | 9 | 49–54 | Performance measurement and adversarial integration review | Pending |
@@ -229,6 +229,61 @@ memory). The full application/renderer graph remains delegated to CI because
 local attempts were terminated by host memory pressure. All changed files have
 scoped lint and behavior coverage; the whole-project CI receipt is tracked after
 publication.
+
+Wave 4 commit `02d2f97c79e5f79fce6ed80d6bdc020ead8a756a` passed the full CI
+`validate` job, including repository lint, content validation, TypeScript,
+production/demo/static builds and committed-source preservation. Its full
+off-road calibration/race job also passed. Validation receipt:
+https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45401257871/job/138470333158
+
+A broader local network-test run exited with a closed worker IPC channel after
+its lifecycle suite passed. It produced no failing assertion and is not counted
+as a passing full-network check; the selected codec/control/lifecycle results
+above remain the verified local coverage.
+
+### Wave 5 — replay and persistence consistency
+
+Replay IndexedDB storage now rejects work after disposal, closes late opens,
+handles version changes, and waits for transaction completion. SaveStore can
+retry failed/blocked opens, closes obsolete connections, and aborts partially
+enqueued writes on synchronous failures. Read success is published only after
+its transaction commits. The two stores retain their existing keys and formats.
+
+Session replay tracks individual pending page objects across flashback page-ID
+reuse. Reopened surface records retain validated hashes when resealed, and
+truncation removes all future-only surface records. Controlled regressions cover
+overlapping writes and evicted/reloaded pages; replay data and physics are
+unchanged.
+
+Telemetry export rejects malformed replies through its promise and contains
+auxiliary worker errors. Cancellation, sequence ownership, CSV schema and bytes
+are preserved. The tests also exercise the real export-worker handler in-process
+with transferred buffers and a live wrapped recording; this is not a claim of
+full browser Worker validation.
+
+Diagnostic replay recorders reject invalid capacities and use complete slots
+for fractional durations. Telemetry bulk append skips rows that the same batch
+would overwrite and uses at most two contiguous copies. For a controlled
+60-row ring receiving 6,000 rows at head 17, copy calls fall from 6,000 to two and
+copied float values from 1,368,000 to 13,680. Ring contents, ordering, truncation
+and exported CSV match the row-at-a-time reference.
+
+Desktop mirroring now uses the revision of the snapshot actually loaded or
+seeded, retains the highest observed revision across retries, and reports the
+actual entry count. Its IndexedDB adapter waits for completed transactions and
+aborts failed write batches. Bridge/API signatures are unchanged. These fixes
+provide instance-local ordering; the existing backend does not provide atomic
+cross-process comparison or cross-device conflict resolution.
+
+All six assignments have targeted regression coverage and scoped lint. Their
+new suites cover 18 replay-store, 35 SaveStore, 27 export, 31 recorder, seven
+session-paging and 22 desktop-mirror cases. Storage transaction tests use
+controlled IndexedDB doubles; native-browser ordering remains an integration
+validation target.
+
+Wave 5 integration passed **140 tests across all six new storage suites**. Its
+source and test dependency graph passed TypeScript with the project options
+(619 files, about 262 MiB compiler memory).
 
 ### Pre-existing broad-suite findings
 

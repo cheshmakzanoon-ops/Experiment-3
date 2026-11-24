@@ -32,42 +32,76 @@ export interface MirrorReport {
   detail?: string;
 }
 
-const done = <T>(request: IDBRequest<T>) =>
-  new Promise<T>((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+const revisionOf = (value: unknown) =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : 0;
 
 export function idbKv(db: IDBDatabase, storeName = 'saved'): MirrorKv {
-  const store = (mode: IDBTransactionMode) =>
-    db.transaction(storeName, mode).objectStore(storeName);
+  // Request success does not imply transaction success: even a completed cursor
+  // can be followed by an abort. Publish results only once the transaction commits.
+  const transact = <T>(
+    mode: IDBTransactionMode,
+    run: (store: IDBObjectStore, abort: (error: unknown) => void) => () => T,
+  ) =>
+    new Promise<T>((resolve, reject) => {
+      const tx = db.transaction(storeName, mode);
+      let result: () => T;
+      const abort = (error: unknown) => {
+        reject(error);
+        try {
+          tx.abort();
+        } catch {
+          /* the transaction has already finished */
+        }
+      };
+      tx.oncomplete = () => {
+        try {
+          resolve(result());
+        } catch (error) {
+          reject(error);
+        }
+      };
+      tx.onerror = () => reject(tx.error ?? new Error('Mirror transaction failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('Mirror transaction aborted'));
+      try {
+        result = run(tx.objectStore(storeName), abort);
+      } catch (error) {
+        // A synchronous put/clone failure must also roll back earlier queued puts.
+        abort(error);
+      }
+    });
+  const resultOf = <T>(request: IDBRequest<T>, abort: (error: unknown) => void) => {
+    request.onerror = () => abort(request.error ?? new Error('Mirror request failed'));
+    return () => request.result;
+  };
   return {
-    keys: async () => (await done(store('readonly').getAllKeys())).map(String),
-    get: (key) => done(store('readonly').get(key)),
-    async entries() {
-      const out: Record<string, unknown> = {};
-      const request = store('readonly').openCursor();
-      await new Promise<void>((resolve, reject) => {
+    keys: () =>
+      transact('readonly', (store, abort) => {
+        const result = resultOf(store.getAllKeys(), abort);
+        return () => result().map(String);
+      }),
+    get: (key) => transact('readonly', (store, abort) => resultOf(store.get(key), abort)),
+    entries: () =>
+      transact('readonly', (store, abort) => {
+        const out: Record<string, unknown> = {};
+        const request = store.openCursor();
+        resultOf(request, abort);
         request.onsuccess = () => {
-          const cursor = request.result;
-          if (!cursor) return resolve();
-          out[String(cursor.key)] = cursor.value;
-          cursor.continue();
+          try {
+            const cursor = request.result;
+            if (!cursor) return;
+            out[String(cursor.key)] = cursor.value;
+            cursor.continue();
+          } catch (error) {
+            abort(error);
+          }
         };
-        request.onerror = () => reject(request.error);
-      });
-      return out;
-    },
-    putMany(entries) {
-      return new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(storeName, 'readwrite');
-        const target = tx.objectStore(storeName);
-        for (const [key, value] of Object.entries(entries)) target.put(value, key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-        tx.onabort = () => reject(tx.error ?? new Error('Restore aborted'));
-      });
-    },
+        return () => out;
+      }),
+    putMany: (entries) =>
+      transact('readwrite', (store, abort) => {
+        for (const [key, value] of Object.entries(entries)) resultOf(store.put(value, key), abort);
+        return () => undefined;
+      }),
   };
 }
 
@@ -94,23 +128,30 @@ export class DesktopMirror {
   async reconcile(kv: MirrorKv): Promise<MirrorReport> {
     try {
       const info = await this.bridge.saves.info();
+      const file = revisionOf(info.revision);
+      this.revision = Math.max(this.revision, file);
       const keys = (await kv.keys()).filter((key) => key !== REVISION_KEY);
-      const stored = await kv.get(REVISION_KEY);
-      const local = typeof stored === 'number' && Number.isSafeInteger(stored) ? stored : 0;
-      const file = Number.isSafeInteger(info.revision) ? info.revision : 0;
-      this.revision = Math.max(local, file);
+      const local = revisionOf(await kv.get(REVISION_KEY));
+      this.revision = Math.max(this.revision, local);
 
       if (info.keys.length > 0 && (file > local || keys.length === 0)) {
         const snapshot = await this.bridge.saves.load();
-        await kv.putMany({ ...snapshot.entries, [REVISION_KEY]: this.revision });
-        return { action: 'restored', keys: info.keys.length, revision: this.revision };
+        // Metadata and load are separate IPC calls; the loaded data may be newer.
+        const revision = (this.revision = Math.max(this.revision, revisionOf(snapshot.revision)));
+        await kv.putMany({ ...snapshot.entries, [REVISION_KEY]: revision });
+        return {
+          action: 'restored',
+          keys: Object.keys(snapshot.entries).filter((key) => key !== REVISION_KEY).length,
+          revision,
+        };
       }
       if (keys.length > 0 && (local > file || info.keys.length === 0)) {
-        this.revision = Math.max(local, file) + 1;
-        const { [REVISION_KEY]: _own, ...entries } = await kv.entries();
-        await this.bridge.saves.seed(entries, this.revision);
-        await kv.putMany({ [REVISION_KEY]: this.revision });
-        return { action: 'seeded', keys: keys.length, revision: this.revision };
+        const { [REVISION_KEY]: stored, ...entries } = await kv.entries();
+        // The entries transaction can also observe a later local write than get().
+        const revision = (this.revision = Math.max(this.revision, revisionOf(stored)) + 1);
+        await this.bridge.saves.seed(entries, revision);
+        await kv.putMany({ [REVISION_KEY]: revision });
+        return { action: 'seeded', keys: Object.keys(entries).length, revision };
       }
       return {
         action: keys.length || info.keys.length ? 'in-sync' : 'none',

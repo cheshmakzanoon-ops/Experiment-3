@@ -96,8 +96,13 @@ export class ReplayRecorder {
     readonly cars: number,
     seconds = 1200,
   ) {
-    this.capacity = seconds * 15;
+    if (!Number.isSafeInteger(cars) || cars < 1) throw new Error('Invalid replay car count');
+    if (!Number.isFinite(seconds) || seconds <= 0) throw new Error('Invalid replay capacity');
+    // Fractional durations still need complete slots for the fixed 15 Hz samples.
+    this.capacity = Math.ceil(seconds * 15);
     this.stride = HEADER + cars * RC;
+    if (!Number.isSafeInteger(this.capacity * this.stride))
+      throw new Error('Invalid replay capacity');
     this.data = new Float32Array(this.capacity * this.stride);
   }
   append(frame: Float32Array) {
@@ -199,14 +204,19 @@ export class TelemetryRecorder {
   appendBatch(batch: Float32Array, rows: number) {
     if (!Number.isInteger(rows) || rows < 0 || rows * this.stride > batch.length)
       throw new Error('Invalid telemetry batch');
-    for (let row = 0; row < rows; row++) {
-      this.data.set(
-        batch.subarray(row * this.stride, (row + 1) * this.stride),
-        this.head * this.stride,
-      );
-      this.head = (this.head + 1) % this.capacity;
-      this.count = Math.min(this.count + 1, this.capacity);
-    }
+    if (!rows) return;
+    const retained = Math.min(rows, this.capacity);
+    const skipped = rows - retained;
+    // Skipped rows would be overwritten by this batch. Advance past their slots
+    // so the retained suffix has exactly the same physical order as single rows.
+    const start = (this.head + skipped) % this.capacity;
+    const first = Math.min(retained, this.capacity - start);
+    const source = skipped * this.stride;
+    const split = source + first * this.stride;
+    this.data.set(batch.subarray(source, split), start * this.stride);
+    if (first < retained) this.data.set(batch.subarray(split, rows * this.stride), 0);
+    this.head = (this.head + rows) % this.capacity;
+    this.count = Math.min(this.count + rows, this.capacity);
   }
   /** D31 flashback: drop the rows recorded after `time` (column 0, seconds). */
   truncate(time: number) {

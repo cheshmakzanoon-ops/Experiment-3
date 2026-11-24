@@ -14,14 +14,31 @@ export class TelemetryExport {
       try {
         const worker = new CsvWorker({ name: 'apex-telemetry-export' });
         this.worker = worker;
-        worker.onmessage = (event: MessageEvent<{ id: number; blob?: Blob; error?: string }>) => {
-          if (id !== this.sequence || event.data.id !== id) return;
-          const { blob, error } = event.data;
+        worker.onmessage = (event: MessageEvent<unknown>) => {
+          if (id !== this.sequence) return;
+          const reply = event.data;
+          if (
+            !reply ||
+            typeof reply !== 'object' ||
+            !('id' in reply) ||
+            !Number.isSafeInteger(reply.id)
+          ) {
+            this.release();
+            reject(new Error('Export worker returned invalid data'));
+            return;
+          }
+          if (reply.id !== id) return;
+          const blob = 'blob' in reply ? reply.blob : undefined;
+          const error = 'error' in reply ? reply.error : undefined;
           this.release();
-          if (error || !blob) reject(new Error(error ?? 'Export worker returned no data'));
+          if (typeof error === 'string') reject(new Error(error));
+          else if (!(blob instanceof Blob)) reject(new Error('Export worker returned no data'));
           else resolve(blob);
         };
         worker.onerror = (event) => {
+          // This auxiliary failure belongs to the export promise, including
+          // late errors from a cancelled job, rather than global app failure.
+          event.preventDefault?.();
           if (id !== this.sequence) return;
           this.release();
           reject(new Error(event.message));

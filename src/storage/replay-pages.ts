@@ -38,6 +38,9 @@ export interface ReplayPageStore {
 export class IndexedReplayStore implements ReplayPageStore {
   private db: Promise<IDBDatabase>;
   private session = globalThis.crypto.randomUUID();
+  private connection: IDBDatabase | null = null;
+  private closed = false;
+  private disposal: Promise<void> | null = null;
   constructor() {
     this.db = new Promise((resolve, reject) => {
       if (!globalThis.indexedDB) {
@@ -45,12 +48,38 @@ export class IndexedReplayStore implements ReplayPageStore {
         return;
       }
       const request = indexedDB.open('apex-replay-cache', 1);
+      let settled = false;
+      const fail = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
       request.onupgradeneeded = () => request.result.createObjectStore('pages');
-      request.onerror = () => reject(request.error ?? new Error('Replay cache open failed'));
-      request.onblocked = () => reject(new Error('Another tab blocked the replay cache'));
+      request.onerror = () => fail(request.error ?? new Error('Replay cache open failed'));
+      request.onblocked = () => fail(new Error('Another tab blocked the replay cache'));
       request.onsuccess = () => {
         const db = request.result;
-        db.onversionchange = () => db.close();
+        // An open request cannot be cancelled after a blocked event. It can
+        // still succeed after rejection or while disposal is awaiting it.
+        if (settled || this.closed) {
+          db.close();
+          if (!settled) {
+            settled = true;
+            resolve(db);
+          }
+          return;
+        }
+        settled = true;
+        this.connection = db;
+        db.onversionchange = () => {
+          this.closed = true;
+          this.closeConnection(db);
+        };
+        db.onclose = () => {
+          this.closed = true;
+          this.connection = null;
+          db.onversionchange = db.onclose = null;
+        };
         resolve(db);
       };
     });
@@ -58,43 +87,91 @@ export class IndexedReplayStore implements ReplayPageStore {
     // unhandled rejection while a newly-created session has not filled a page.
     void this.db.catch(() => undefined);
   }
-  async put(page: ReplayPage) {
-    const db = await this.db;
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction('pages', 'readwrite');
-      tx.objectStore('pages').put(page, [this.session, page.id]);
-      tx.oncomplete = () => resolve();
-      tx.onabort = tx.onerror = () => reject(tx.error ?? new Error('Replay page write failed'));
+  private assertOpen() {
+    if (this.closed) throw new Error('Replay cache is closed');
+  }
+  private closeConnection(db: IDBDatabase) {
+    if (this.connection !== db) return;
+    this.connection = null;
+    db.onversionchange = db.onclose = null;
+    db.close();
+  }
+  private transaction<T>(
+    db: IDBDatabase,
+    mode: IDBTransactionMode,
+    failure: string,
+    enqueue: (store: IDBObjectStore) => IDBRequest<T>,
+  ) {
+    return new Promise<T>((resolve, reject) => {
+      const tx = db.transaction('pages', mode);
+      let request: IDBRequest<T>;
+      const clear = () => {
+        tx.oncomplete = tx.onabort = tx.onerror = null;
+      };
+      tx.oncomplete = () => {
+        clear();
+        resolve(request.result);
+      };
+      tx.onabort = tx.onerror = () => {
+        clear();
+        reject(tx.error ?? new Error(failure));
+      };
+      try {
+        request = enqueue(tx.objectStore('pages'));
+      } catch (error) {
+        clear();
+        // A synchronous request failure does not automatically abort the
+        // transaction. Release it, retaining the original enqueue failure.
+        try {
+          tx.abort();
+        } catch {
+          // The transaction may already have become inactive.
+        }
+        reject(error);
+      }
     });
+  }
+  async put(page: ReplayPage) {
+    this.assertOpen();
+    const db = await this.db;
+    this.assertOpen();
+    await this.transaction(db, 'readwrite', 'Replay page write failed', (store) =>
+      store.put(page, [this.session, page.id]),
+    );
   }
   async get(id: number) {
+    this.assertOpen();
     const db = await this.db;
-    return new Promise<ReplayPage>((resolve, reject) => {
-      const tx = db.transaction('pages', 'readonly');
-      const request = tx.objectStore('pages').get([this.session, id]);
-      let page: ReplayPage | undefined;
-      request.onsuccess = () => {
-        page = request.result as ReplayPage | undefined;
-      };
-      tx.oncomplete = () =>
-        page ? resolve(page) : reject(new Error(`Replay page ${id} is missing`));
-      tx.onabort = tx.onerror = () => reject(tx.error ?? new Error('Replay page read failed'));
-    });
+    this.assertOpen();
+    const page = await this.transaction<ReplayPage | undefined>(
+      db,
+      'readonly',
+      'Replay page read failed',
+      (store) => store.get([this.session, id]),
+    );
+    if (!page) throw new Error(`Replay page ${id} is missing`);
+    return page;
   }
-  async dispose() {
+  dispose() {
+    if (this.disposal) return this.disposal;
+    // Stop new operations synchronously, including those awaiting open().
+    this.closed = true;
+    this.disposal = this.disposeConnection();
+    return this.disposal;
+  }
+  private async disposeConnection() {
     const db = await this.db;
+    // A late open or version change may already have closed this connection.
+    if (this.connection !== db) return;
     try {
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('pages', 'readwrite');
-        tx.objectStore('pages').delete(
+      // IndexedDB queues this exclusive transaction after earlier page work.
+      await this.transaction(db, 'readwrite', 'Replay cache cleanup failed', (store) =>
+        store.delete(
           IDBKeyRange.bound([this.session, 0], [this.session, Number.MAX_SAFE_INTEGER]),
-        );
-        tx.oncomplete = () => resolve();
-        tx.onabort = tx.onerror = () =>
-          reject(tx.error ?? new Error('Replay cache cleanup failed'));
-      });
+        ),
+      );
     } finally {
-      db.close();
+      this.closeConnection(db);
     }
   }
 }
@@ -136,7 +213,9 @@ export class SessionReplay {
   private pendingReads = new Map<number, Promise<void>>();
   private preparedSeekTime: number | null = null;
   private failedReads = new Set<number>();
-  private writing = new Set<number>();
+  // A flashback can queue a replacement while the old page with the same id
+  // is still writing. Count and protect each page object independently.
+  private writing = new Set<ReplayPage>();
   private writes: Promise<void> = Promise.resolve();
   private lastTime = -Infinity;
   private surface: SurfaceRecord | null = null;
@@ -273,14 +352,14 @@ export class SessionReplay {
       })),
     });
     this.cache.set(page.id, page);
-    this.writing.add(page.id);
+    this.writing.add(page);
     this.writes = this.writes.then(async () => {
       try {
         await this.store.put(page);
       } catch (error) {
         this.fail(`Replay storage failed: ${String(error)}`);
       } finally {
-        this.writing.delete(page.id);
+        this.writing.delete(page);
         this.trim();
       }
     });
@@ -297,8 +376,8 @@ export class SessionReplay {
   }
   private trim() {
     if (this.cache.size <= 4) return;
-    for (const id of this.cache.keys()) {
-      if (!this.writing.has(id)) this.cache.delete(id);
+    for (const [id, page] of this.cache) {
+      if (!this.writing.has(page)) this.cache.delete(id);
       if (this.cache.size <= 4) break;
     }
   }
@@ -398,6 +477,9 @@ export class SessionReplay {
               hashWords(record.data) !== witness.hash
             )
               throw new Error('Incompatible replay page: recorded surface changed');
+            // Loaded records have new identities. A flashback may reopen this
+            // page and carry them into newly sealed pages on the resumed run.
+            this.surfaceHashes.set(record, witness.hash);
             if (performance.now() >= deadline) {
               await new Promise<void>((resolve) => setTimeout(resolve, 0));
               if (!currentTimeline()) return;
@@ -569,8 +651,8 @@ export class SessionReplay {
     if (this.current.count && this.current.frames[H.TIME] <= time) return this.current;
     let id = this.metadata.length - 1;
     while (id >= 0 && this.metadata[id].start > time) id--;
-    if (id < 0 || this.writing.has(id)) return null;
-    return this.cache.get(id) ?? null;
+    const page = this.cache.get(id);
+    return page && !this.writing.has(page) ? page : null;
   }
   /** D31 flashback: can the recording be cut back to `time` synchronously? */
   canTruncate(time: number) {
@@ -607,7 +689,7 @@ export class SessionReplay {
     this.totalCount = this.metadata.reduce((sum, meta) => sum + meta.count, 0) + count;
     // Keep the weather keyframe valid at the cut and drop the old future's.
     let keep = page.surfaces.length;
-    while (keep > 1 && page.surfaces[keep - 1].time > time) keep--;
+    while (keep > 0 && page.surfaces[keep - 1].time > time) keep--;
     page.surfaces.length = keep;
     this.surface = page.surfaces[keep - 1] ?? null;
     return true;
@@ -636,7 +718,7 @@ export class SessionReplay {
       cached: [...this.cache.keys()],
       pending: [...this.pendingReads.keys()],
       failed: [...this.failedReads],
-      writing: [...this.writing],
+      writing: [...this.writing].map((page) => page.id),
     };
   }
   get bytes() {
