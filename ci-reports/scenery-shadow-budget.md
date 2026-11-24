@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45339527056
-- commit: `78f1dfe47b` · Fit Valley Ridge banner eyelets and pole lashings and shade their reverse-side ink and woven hems
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-24T06:18:53Z · updated: 2026-11-24T07:37:39Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45339676301
+- commit: `76a473c7c1` · Submit only the occupied rank ranges of Valley Ridge spectator sculpts while preserving every visible guest
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-24T06:20:07Z · updated: 2026-11-24T07:59:20Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (sunset) | success | 13 |  |
+| browser (sunset) | success | 14 |  |
+| browser (night) | success | 14 |  |
+| browser (day) | success | 14 |  |
