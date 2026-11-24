@@ -56,6 +56,17 @@ The focused suite passed 914 motocross tests and 35 reflection tests. The off-ro
 
 The 960 × 600 High and 1280 × 800 Low journeys completed both venues with an eight-rider field. High used an extended screenshot timeout on SwiftShader. The race captures use the production menu, worker, gate, manual controls and race cameras. The isolated before-and-after images use deterministic camera positions for comparison. GPU timings from software rendering cannot establish a console frame rate.
 
+### Twelve-rider races
+
+Both bike classes raced together over a scheduled two laps. All 96 entrants were classified. Across eight races, the simulation recorded 17 falls and the longest stop was 16.01 seconds. Rain was outside the roof at Arena Nord. The [per-rider report](full-grid-results.json) contains finishes, crashes, recoveries and measured rut depth.
+
+| Venue | Weather | Seeds | Classified | Falls | Longest stop |
+| --- | --- | --- | ---: | ---: | ---: |
+| Valley Ridge | Clear | 60704, 60705 | 24 / 24 | 2 | 10.86 s |
+| Valley Ridge | Rain | 60709, 60710 | 24 / 24 | 1 | 15.58 s |
+| Arena Nord | Clear | 60724, 60725 | 24 / 24 | 5 | 11.29 s |
+| Arena Nord | Rain | 60729, 60730 | 24 / 24 | 9 | 16.01 s |
+
 ### Reproduce the checks
 
 Run these commands at the repository root after `npm ci`. The full-grid run writes its per-entrant finish times, incidents, terrain measurements and failures to `test-results/motocross-full-grid.json`.
