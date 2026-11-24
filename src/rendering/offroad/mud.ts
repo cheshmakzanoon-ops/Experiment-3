@@ -52,6 +52,10 @@ offroadMudHeight = 0.0;
 offroadMudThick = 0.0;
 offroadMudFilm = 0.0;
 if ( offroadMud * offroadMudExposure > 0.002 ) {
+	float deposit = offroadMud * offroadMudExposure;
+#ifdef MX_MUD_RETENTION
+	deposit *= MX_MUD_RETENTION;
+#endif
 	// Roost is flung along the machine: splats stretch slightly fore-aft.
 	vec3 flung = vOffroadMudPos * vec3( 1.0, 1.0, 0.72 );
 	float n = 0.67 * offroadMudNoise( flung * 9.0 ) +
@@ -60,7 +64,7 @@ if ( offroadMud * offroadMudExposure > 0.002 ) {
 	// Lower parts (fenders, legs, sills) catch the roost first.
 	float low = clamp( 0.6 - vOffroadMudPos.y, 0.0, 1.0 );
 	// Never a uniform coat: at most ~80 % of a part, splattered from below.
-	float cover = 0.8 * offroadMud * offroadMudExposure;
+	float cover = 0.8 * deposit;
 	float aa = clamp( fwidth( n ), 0.009, 0.1 );
 	float field = n + 0.3 * low * cover;
 	offroadMudMask = smoothstep( 1.0 - cover - aa, 1.10 - cover + aa, field );
@@ -80,7 +84,7 @@ if ( offroadMud * offroadMudExposure > 0.002 ) {
 	// face normal comes from derivatives: no smooth normal exists yet here.
 	vec3 dustFace = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) );
 	float settle = 0.55 + 0.45 * smoothstep( -0.2, 0.8, ( vec4( dustFace, 0.0 ) * viewMatrix ).y );
-	float film = offroadMud * offroadMudExposure * ( 0.1 + low * 0.42 ) * settle *
+	float film = deposit * ( 0.1 + low * 0.42 ) * settle *
 		( 0.55 + 0.9 * n ) * ( 1.0 - offroadMudWet * 0.7 );
 	offroadMudFilm = film;
 	vec3 dust = vec3( 0.215, 0.157, 0.094 ), mud = vec3( 0.057, 0.038, 0.022 );

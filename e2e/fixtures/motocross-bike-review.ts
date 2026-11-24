@@ -569,3 +569,5 @@ export function captureMotocrossFieldSharing() {
 }
 
 export { measureGoggleTransmission } from './motocross-goggle-transmission.ts';
+
+export { measureMxBrakeTrack } from './motocross-rotor-contact.ts';

@@ -128,9 +128,13 @@ it('locates the wiped metal and pad heat at the same wheel radius after batching
   const rotor = new T.MeshPhysicalMaterial();
   expect(installMxRotorFinish(rotor)).toBe(true);
   expect(installMxRotorFinish(rotor)).toBe(false);
+  installMud(rotor, mudUniforms());
   const shader = compile(rotor);
   expect(shader.vertexShader).toContain('vMxRotorPlane = uv;');
   expect(shader.fragmentShader).toContain('fwidth(mxRotorRadius)');
+  const face = shader.fragmentShader.indexOf('mxPadFace = smoothstep');
+  expect(face).toBeGreaterThan(0);
+  expect(shader.fragmentShader.indexOf('deposit *= MX_MUD_RETENTION;')).toBeGreaterThan(face);
   expect(shader.fragmentShader).toContain('.035 * mxPadMarks');
   expect(shader.fragmentShader).toContain('totalEmissiveRadiance *= .08 + .92 * mxSweptBand');
   rotor.dispose();

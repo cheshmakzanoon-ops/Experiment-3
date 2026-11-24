@@ -225,8 +225,8 @@ export class DirtBikeModel {
     });
     this.rearRotor = this.frontRotor.clone();
     this.rearRotor.name = 'Motocross rear stainless wave rotor';
-    installMxRotorFinish(this.frontRotor);
-    installMxRotorFinish(this.rearRotor);
+    installMxRotorFinish(this.frontRotor, !supermoto);
+    installMxRotorFinish(this.rearRotor, !supermoto);
     const chainMaterial = new T.MeshStandardMaterial({
       color: 0x938165,
       metalness: 0.78,

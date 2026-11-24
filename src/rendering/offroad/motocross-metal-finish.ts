@@ -98,15 +98,30 @@ export function installMotocrossMetalFinish(
 
 /** Contact runs around the outer steel track. The unswept carrier stays
  * oxidised and cooler. Wheel-plane UVs survive posing and rigid batching. */
-export function installMxRotorFinish(material: T.MeshStandardMaterial) {
-  return chainShaderHook(material, 'mx-swept-stainless-rotor-v1', (shader) => {
+export function installMxRotorFinish(material: T.MeshStandardMaterial, wipeMud = true) {
+  const key = wipeMud ? 'mx-swept-stainless-rotor-v2' : 'mx-swept-stainless-rotor-v1';
+  return chainShaderHook(material, key, (shader) => {
     injectDeclarations(shader, 'common', 'varying vec2 vMxRotorPlane;', 'vertex');
     injectAfter(shader, 'begin_vertex', 'vMxRotorPlane = uv;', 'vertex');
-    injectDeclarations(shader, 'common', 'varying vec2 vMxRotorPlane; float mxSweptBand; float mxPadMarks;', 'fragment');
+    injectDeclarations(shader, 'common', `varying vec2 vMxRotorPlane;
+      float mxSweptBand, mxPadMarks, mxPadFace;
+      ${wipeMud ? '#define MX_MUD_RETENTION (1.0 - .9 * mxSweptBand * mxPadFace)' : ''}
+    `, 'fragment');
     injectBefore(shader, 'color_fragment', `
       float mxRotorRadius = length(vMxRotorPlane);
       float mxRotorFootprint = max(fwidth(mxRotorRadius), .0001);
       mxSweptBand = smoothstep(.775 - mxRotorFootprint, .807 + mxRotorFootprint, mxRotorRadius);
+      // The flat pad faces sweep mud off. The walls of a vent or of the
+      // scalloped rim can be at the very same radius and still retain it.
+      // UVs are wheel-plane metres divided by disc radius. Dividing their
+      // projected area by true surface area makes this independent of view,
+      // rigid batching and front/rear rotor size. Side walls project to zero.
+      #ifdef MX_MUD_RETENTION
+      vec2 du = dFdx(vMxRotorPlane), dv = dFdy(vMxRotorPlane);
+      float wheelArea = abs(du.x * dv.y - du.y * dv.x);
+      float surfaceArea = length(cross(dFdx(vViewPosition), dFdy(vViewPosition)));
+      mxPadFace = smoothstep(4., 30., wheelArea / max(surfaceArea, 1.e-12));
+      #endif
       float mxResolveMarks = 1. - smoothstep(.0017, .0058, mxRotorFootprint);
       mxPadMarks = mxResolveMarks * mxSweptBand *
         (.58 * cos(mxRotorRadius * 576.) + .42 * cos(mxRotorRadius * 369.));

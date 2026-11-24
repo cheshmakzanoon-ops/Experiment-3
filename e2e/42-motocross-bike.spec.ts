@@ -6,6 +6,7 @@ import type {
   captureMotocrossBike,
   captureMotocrossFieldSharing,
   measureGoggleTransmission,
+  measureMxBrakeTrack,
 } from './fixtures/motocross-bike-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
@@ -18,6 +19,7 @@ type CaptureOptions = {
 };
 type CaptureResult = ReturnType<typeof captureMotocrossBike>[number];
 type Review = {
+  rotor: (rear: boolean) => Promise<ReturnType<typeof measureMxBrakeTrack>>;
   goggle: (detail: 'high' | 'mid') => Promise<ReturnType<typeof measureGoggleTransmission>>;
   field: () => Promise<ReturnType<typeof captureMotocrossFieldSharing>>;
   capture: (options: CaptureOptions) => Promise<ReturnType<typeof captureMotocrossBike>>;
@@ -125,7 +127,10 @@ const test = base.extend<{ review: Review }>({
     const goggle = (detail: 'high' | 'mid') => page.evaluate((lod) =>
       (window as unknown as { MotocrossReview: { measureGoggleTransmission: typeof measureGoggleTransmission } })
         .MotocrossReview.measureGoggleTransmission(lod), detail);
-    await use({ capture, attach, field, goggle });
+    const rotor = (rear: boolean) => page.evaluate((back) =>
+      (window as unknown as { MotocrossReview: { measureMxBrakeTrack: typeof measureMxBrakeTrack } })
+        .MotocrossReview.measureMxBrakeTrack(back), rear);
+    await use({ capture, attach, field, goggle, rotor });
     expect(errors).toEqual([]);
   },
 });
@@ -547,6 +552,22 @@ test('wet roost blocks light through individual deposits on both production gogg
     expect(measured.wetOpaque).toBeGreaterThan(measured.usedOpaque);
     expect(measured.wetClear).toBeGreaterThan(measured.clearPixels * 0.65);
     expect(measured.changedOnReturn).toBe(0);
+    expect(measured.calls).toBe(1);
+    expect(measured.glError).toBe(0);
+  }
+});
+
+test('both brake tracks retain their wiped faces while the disc carriers take wet roost', async ({ review }, info) => {
+  for (const rear of [false, true]) {
+    const measured = await review.rotor(rear);
+    await info.attach(rear ? 'rear-rotor' : 'front-rotor', {
+      body: JSON.stringify(measured), contentType: 'application/json',
+    });
+    expect(measured.track.pixels).toBeGreaterThan(1000);
+    expect(measured.carrier.pixels).toBeGreaterThan(1000);
+    expect(measured.carrier.meanChange).toBeGreaterThan(8);
+    expect(measured.track.meanChange).toBeLessThan(measured.carrier.meanChange * 0.35);
+    expect(measured.restored).toBe(true);
     expect(measured.calls).toBe(1);
     expect(measured.glError).toBe(0);
   }
