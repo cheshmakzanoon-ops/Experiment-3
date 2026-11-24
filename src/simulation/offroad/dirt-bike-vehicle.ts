@@ -327,10 +327,14 @@ export class DirtBikeVehicle extends BikeVehicle {
     const spec = this.spec;
     const next = clamp(this.gear + Math.sign(direction), 1, spec.gearRatios.length - 2);
     if (next === this.gear) return;
-    const nextRpm =
-      (this.rearSpin * spec.gearRatios[next + 1] * spec.finalDrive * this.gearing * 30) /
-      Math.PI;
-    if (nextRpm > spec.limiterRPM) return;
+    if (next < this.gear) {
+      // A rear-brake slide can stop the shaft while the chassis is still fast.
+      // Check the new ratio at both the current wheel speed and rolling regrip.
+      const rolling = Math.abs(this.dynamics.speed) / this.bikeSpec.rearWheelRadius;
+      const omega = Math.max(rolling, Math.abs(this.rearSpin));
+      const rpm = omega * spec.gearRatios[next + 1] * spec.finalDrive * this.gearing * 30 / Math.PI;
+      if (rpm > spec.limiterRPM) return;
+    }
     this.gear = next;
     this.shiftClock = Math.max(0.02, this.bikeSpec.shiftCut);
   }

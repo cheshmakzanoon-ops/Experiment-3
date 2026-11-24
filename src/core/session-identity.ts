@@ -89,8 +89,9 @@ import {
  * Support-class road riders reserve tyre capacity and brake along their actual lane.
  * v33: each GP contact evacuates water at its measured axle load and ground speed.
  * v34: GP kerbs, service shoulders and native runoff follow individual corner footprints.
- * v35: manual GP clutch input exchanges torque with the measured rear shaft. */
-export const SIMULATION_VERSION = 35;
+ * v35: manual GP clutch input exchanges torque with the measured rear shaft.
+ * v36: ridden motocross gear selection accounts for rear-wheel slip and regrip. */
+export const SIMULATION_VERSION = 36;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

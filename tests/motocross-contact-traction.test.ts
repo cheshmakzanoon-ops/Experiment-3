@@ -21,6 +21,32 @@ function flatBike(definition: VehicleDefinition, raw = false) {
 }
 
 describe('motocross suspension contact traction', () => {
+  it.each([MX_250, MX_450])('$id protects a locked rear on a downshift and lets a spinning rear upshift', (definition) => {
+    const { bike, track } = flatBike(definition, true);
+    bike.step(DT, track);
+    bike.autoShift = false;
+    const spec = definition.spec;
+    const firstGear = spec.gearRatios[2] * spec.finalDrive * bike.gearing;
+    const radius = definition.bike!.rearWheelRadius;
+    const firstLimit = spec.limiterRPM * Math.PI / (30 * firstGear);
+
+    bike.gear = 2;
+    bike.dynamics.speed = firstLimit * radius * 1.1;
+    bike.rearSpin = 0;
+    bike.shift(-1);
+    expect(bike.gear).toBe(2);
+    expect(bike.shiftClock).toBe(0);
+
+    bike.dynamics.speed = firstLimit * radius * 0.8;
+    bike.shift(-1);
+    expect(bike.gear).toBe(1);
+    bike.shiftClock = 0;
+    bike.rearSpin = firstLimit * spec.gearRatios[2] / spec.gearRatios[3] * 1.15;
+    bike.shift(1);
+    expect(bike.gear).toBe(2);
+    expect(bike.shiftClock).toBeCloseTo(definition.bike!.shiftCut);
+  });
+
   it.each([MX_250, MX_450])('$id damps a sideways landing against the local cross slope', (def) => {
     const track = rigTrack('valley-ridge-mx'), p = track.at(35, trackPoint());
     const sample = track.sample.bind(track);
