@@ -1,1 +1,255 @@
-logs unavailable (expired or not accessible)
+### scenarios (job 138274660557)
+--- error digest (first 120 matching lines) ---
+209:scenarios	Run npm run test:physics	2026-11-24T06:57:57.0107155Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+scenarios	Set up job	2026-11-24T06:56:49.7986682Z ##[endgroup]
+scenarios	Set up job	2026-11-24T06:56:49.7987222Z ##[group]Runner Image
+scenarios	Set up job	2026-11-24T06:56:49.7987933Z Image: ubuntu-24.04
+scenarios	Set up job	2026-11-24T06:56:49.7988871Z Version: 20261116.376.1
+scenarios	Set up job	2026-11-24T06:56:49.7990093Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.376/images/ubuntu/Ubuntu2404-Readme.md
+scenarios	Set up job	2026-11-24T06:56:49.7992187Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.376
+scenarios	Set up job	2026-11-24T06:56:49.7993316Z ##[endgroup]
+scenarios	Set up job	2026-11-24T06:56:49.7994445Z ##[group]GITHUB_TOKEN Permissions
+scenarios	Set up job	2026-11-24T06:56:49.7996729Z Contents: read
+scenarios	Set up job	2026-11-24T06:56:49.7997381Z Metadata: read
+scenarios	Set up job	2026-11-24T06:56:49.7998066Z ##[endgroup]
+scenarios	Set up job	2026-11-24T06:56:49.8000452Z Secret source: Actions
+scenarios	Set up job	2026-11-24T06:56:49.8001499Z Cache mode: write
+scenarios	Set up job	2026-11-24T06:56:49.8002292Z Prepare workflow directory
+scenarios	Set up job	2026-11-24T06:56:49.8362832Z Prepare all required actions
+scenarios	Set up job	2026-11-24T06:56:49.8413564Z Getting action download info
+scenarios	Set up job	2026-11-24T06:56:50.1928003Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+scenarios	Set up job	2026-11-24T06:56:50.3920856Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+scenarios	Set up job	2026-11-24T06:56:50.4815190Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+scenarios	Set up job	2026-11-24T06:56:50.7066706Z Complete job name: scenarios
+scenarios	Run actions/checkout@v4	﻿2026-11-24T06:56:50.8028794Z ##[group]Run actions/checkout@v4
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8029756Z with:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8030243Z   repository: cheshmakzanoon-ops/Experiment-3
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8034029Z   token: ***
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8034458Z   ssh-strict: true
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8034886Z   ssh-user: git
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8035312Z   persist-credentials: true
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8035783Z   clean: true
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8036205Z   sparse-checkout-cone-mode: true
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8036717Z   fetch-depth: 1
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8037131Z   fetch-tags: false
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8037557Z   show-progress: true
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8037987Z   lfs: false
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8038390Z   submodules: false
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8039066Z   set-safe-directory: true
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8039568Z   allow-unsafe-pr-checkout: false
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:50.8040348Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.0923888Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.0925986Z ##[group]Getting Git version info
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.0926766Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.0927855Z [command]/usr/bin/git version
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1060330Z git version 2.56.1
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1104208Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1111413Z Temporarily overriding HOME='/home/runner/work/_temp/08849c5a-2e52-43a1-a6a9-049aea4239f2' before making global git config changes
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1113909Z Adding repository directory to the temporary git global config as a safe directory
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1117789Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1188965Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1193931Z ##[group]Initializing the repository
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1198292Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1364323Z hint: Using 'master' as the name for the initial branch. This default branch name
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1366606Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1368130Z hint: to use in all of your new repositories, which will suppress this warning,
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1369639Z hint: call:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1370335Z hint:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1371171Z hint: 	git config --global init.defaultBranch <name>
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1372144Z hint:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1373049Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1374677Z hint: 'development'. The just-created branch can be renamed via this command:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1375912Z hint:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1376553Z hint: 	git branch -m <name>
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1377293Z hint:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1378364Z hint: Disable this message with "git config set advice.defaultBranchName false"
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1380399Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1387781Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1446948Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1448192Z ##[group]Disabling automatic garbage collection
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1450956Z [command]/usr/bin/git config --local gc.auto 0
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1495458Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1496650Z ##[group]Setting up auth
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1505559Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.1549802Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2007763Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2054470Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2303545Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2350245Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2599999Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2650655Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2651816Z ##[group]Fetching the repository
+scenarios	Run actions/checkout@v4	2026-11-24T06:56:51.2664523Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +e7777962670e11fbe008d22d67c565239b94eab6:refs/remotes/origin/main
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8526341Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8528178Z  * [new ref]         e7777962670e11fbe008d22d67c565239b94eab6 -> origin/main
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8532757Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8534743Z ##[group]Determining the checkout info
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8537055Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8539544Z [command]/usr/bin/git sparse-checkout disable
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8611288Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8651961Z ##[group]Checking out the ref
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:05.8655674Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:06.9064396Z Updating files:  45% (4350/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:06.9229579Z Updating files:  46% (4383/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:06.9615610Z Updating files:  47% (4479/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:06.9813038Z Updating files:  48% (4574/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:06.9899783Z Updating files:  49% (4669/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:06.9966120Z Updating files:  50% (4764/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0170004Z Updating files:  51% (4860/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0305447Z Updating files:  52% (4955/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0418928Z Updating files:  53% (5050/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0503660Z Updating files:  54% (5146/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0575593Z Updating files:  55% (5241/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0652358Z Updating files:  56% (5336/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0733146Z Updating files:  57% (5431/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0796915Z Updating files:  58% (5527/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.0940727Z Updating files:  59% (5622/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.1130285Z Updating files:  60% (5717/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.1223331Z Updating files:  61% (5813/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.1350809Z Updating files:  62% (5908/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.1536028Z Updating files:  63% (6003/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.1738569Z Updating files:  64% (6098/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.2000421Z Updating files:  65% (6194/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.2398991Z Updating files:  66% (6289/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.2622855Z Updating files:  67% (6384/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.2814751Z Updating files:  68% (6480/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.3155899Z Updating files:  69% (6575/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.3407346Z Updating files:  70% (6670/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.3470753Z Updating files:  71% (6765/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.3539895Z Updating files:  72% (6861/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.3801448Z Updating files:  73% (6956/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.4383267Z Updating files:  74% (7051/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.5779972Z Updating files:  75% (7146/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.8712663Z Updating files:  76% (7242/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.8809950Z Updating files:  77% (7337/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.9095673Z Updating files:  77% (7342/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.9195596Z Updating files:  78% (7432/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.9267439Z Updating files:  79% (7528/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.9623672Z Updating files:  80% (7623/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.9845607Z Updating files:  81% (7718/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:07.9942829Z Updating files:  82% (7813/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0102851Z Updating files:  83% (7909/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0180781Z Updating files:  84% (8004/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0354571Z Updating files:  85% (8099/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0429917Z Updating files:  86% (8195/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0505936Z Updating files:  87% (8290/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0579837Z Updating files:  88% (8385/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0656567Z Updating files:  89% (8480/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0731428Z Updating files:  90% (8576/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0800784Z Updating files:  91% (8671/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0868333Z Updating files:  92% (8766/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.0936441Z Updating files:  93% (8862/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1003050Z Updating files:  94% (8957/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1075055Z Updating files:  95% (9052/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1146549Z Updating files:  96% (9147/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1212027Z Updating files:  97% (9243/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1385596Z Updating files:  98% (9338/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1386460Z Updating files:  99% (9433/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1387125Z Updating files: 100% (9528/9528)
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1387777Z Updating files: 100% (9528/9528), done.
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1485305Z Switched to a new branch 'main'
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1491655Z branch 'main' set up to track 'origin/main'.
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1623443Z ##[endgroup]
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1687621Z [command]/usr/bin/git log -1 --format=%H
+scenarios	Run actions/checkout@v4	2026-11-24T06:57:08.1726590Z e7777962670e11fbe008d22d67c565239b94eab6
+scenarios	Run actions/setup-node@v4	﻿2026-11-24T06:57:08.2020146Z ##[group]Run actions/setup-node@v4
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2020482Z with:
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2020702Z   node-version: 22
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2020916Z   cache: npm
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2021119Z   always-auth: false
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2021347Z   check-latest: false
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2023837Z   token: ***
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.2024057Z ##[endgroup]
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.3570586Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.3576942Z (node:2355) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.3577698Z (Use `node --trace-deprecation ...` to show where the warning was created)
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.3580752Z ##[group]Environment details
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.8140471Z node: v22.23.5
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.8140917Z npm: 10.9.9
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.8141206Z yarn: 1.22.22
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.8142186Z ##[endgroup]
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.8164905Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:08.9290953Z /home/runner/.npm
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:09.2095688Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:09.2201538Z (node:2355) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:10.4960629Z Received 9258240 of 34424064 (26.9%), 8.8 MBs/sec
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:10.7146509Z Received 34424064 of 34424064 (100.0%), 26.9 MBs/sec
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:10.7147262Z Cache Size: ~33 MB (34424064 B)
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:10.7175905Z [command]/usr/bin/tar -xf /home/runner/work/_temp/c423da88-e93a-46c4-b75e-aff4d028eb0e/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:10.8174622Z Cache restored successfully
+scenarios	Run actions/setup-node@v4	2026-11-24T06:57:10.8195753Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-24T06:57:10.8408262Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:10.8409518Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:10.8450137Z shell: /usr/bin/bash -e {0}
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:10.8450429Z ##[endgroup]
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:14.2492377Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:14.7819266Z 
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:14.7821573Z added 194 packages in 3s
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:15.5565735Z (node:2403) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-24T06:57:15.5567464Z (Use `node --trace-warnings ...` to show where the warning was created)
+scenarios	Run npm run test:physics	﻿2026-11-24T06:57:15.5722350Z ##[group]Run npm run test:physics
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.5722688Z ^[[36;1mnpm run test:physics^[[0m
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.5744084Z shell: /usr/bin/bash -e {0}
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.5744346Z ##[endgroup]
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.6904908Z 
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.6905717Z > apex-formula-laboratory@0.1.0 test:physics
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.6906923Z > node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits && npm run test:journey
+scenarios	Run npm run test:physics	2026-11-24T06:57:15.6907667Z 
+scenarios	Run npm run test:physics	2026-11-24T06:57:57.0107155Z ##[error]The operation was canceled.
+scenarios	Scenario evidence, including failures	﻿2026-11-24T06:57:57.0209834Z ##[group]Run actions/upload-artifact@v4
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0210162Z with:
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0210367Z   name: physics-scenarios
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0211536Z   path: docs/scenario-results.json
+scenarios	Scenario evidence, including failures	docs/dynamics-benchmark.json
+scenarios	Scenario evidence, including failures	docs/marshal-integration.json
+scenarios	Scenario evidence, including failures	docs/pit-integration.json
+scenarios	Scenario evidence, including failures	docs/wet-pit-results.json
+scenarios	Scenario evidence, including failures	docs/integrated-driving.json
+scenarios	Scenario evidence, including failures	docs/rotation-benchmark.json
+scenarios	Scenario evidence, including failures	docs/race-classification.json
+scenarios	Scenario evidence, including failures	docs/vellamar-race.json
+scenarios	Scenario evidence, including failures	docs/reference-targets.json
+scenarios	Scenario evidence, including failures	
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0212761Z   retention-days: 7
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0212981Z   if-no-files-found: warn
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0213215Z   compression-level: 6
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0213427Z   overwrite: false
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0213645Z   include-hidden-files: false
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.0213885Z ##[endgroup]
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2089571Z (node:2466) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2091344Z (Use `node --trace-deprecation ...` to show where the warning was created)
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2317212Z Multiple search paths detected. Calculating the least common ancestor of all paths
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2322823Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3/docs. This will be the root directory of the artifact
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2324990Z With the provided path, there will be 10 files uploaded
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2326371Z Artifact name is valid!
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.2327067Z Root directory input is valid!
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.6357827Z Beginning upload of artifact content to blob storage
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.6716089Z (node:2466) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:57.9406733Z Uploaded bytes 10449
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:58.0042229Z Finished uploading artifact content to blob storage!
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:58.0043408Z SHA256 digest of uploaded artifact zip is 9f7ac30425646e678cbfef2ffeb20f4bed97c3785fe1cd839aa3e9f74444c180
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:58.0051197Z Finalizing artifact upload
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:58.4086101Z Artifact physics-scenarios.zip successfully finalized. Artifact ID 14897780788
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:58.4087660Z Artifact physics-scenarios has been successfully uploaded! Final size is 10449 bytes. Artifact ID is 14897780788
+scenarios	Scenario evidence, including failures	2026-11-24T06:57:58.4095225Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45344182366/artifacts/14897780788
+scenarios	Post Run actions/checkout@v4	﻿2026-11-24T06:57:58.4334950Z Post job cleanup.
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5315797Z [command]/usr/bin/git version
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5349402Z git version 2.56.1
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5400387Z Temporarily overriding HOME='/home/runner/work/_temp/6a2de14d-e9e1-4c40-b8c0-704eb9e7a7c3' before making global git config changes
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5402037Z Adding repository directory to the temporary git global config as a safe directory
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5403469Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5458201Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5510668Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5918143Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5960790Z http.https://github.com/.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.5994287Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.6053987Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.6461638Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+scenarios	Post Run actions/checkout@v4	2026-11-24T06:57:58.6527140Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+scenarios	Complete job	﻿2026-11-24T06:57:58.7124317Z Cleaning up orphan processes
+scenarios	Complete job	2026-11-24T06:57:58.7547704Z Terminate orphan process: pid (2437) (npm run test:physics)
+scenarios	Complete job	2026-11-24T06:57:58.7615252Z Terminate orphan process: pid (2448) (sh)
+scenarios	Complete job	2026-11-24T06:57:58.7642954Z Terminate orphan process: pid (2449) (node)
+scenarios	Complete job	2026-11-24T06:57:58.7748292Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
