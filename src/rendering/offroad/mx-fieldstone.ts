@@ -1,10 +1,11 @@
 import * as T from 'three';
 import { valueNoise } from '../terrain-profile.ts';
+import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
 
 /** Rounded fracture planes give an embedded stone a settled base, bedding
  * and a broken crown. Vertex relief is in local metres so it follows every
  * instance orientation; the streamed rock scan supplies the finer grain. */
-export function mxFieldstoneGeometry() {
+export function mxFieldstoneGeometry(meadow = false) {
   const geometry = new T.IcosahedronGeometry(1, 3);
   const positions = geometry.getAttribute('position');
   const colours = new Float32Array(positions.count * 3);
@@ -27,7 +28,16 @@ export function mxFieldstoneGeometry() {
       0.9,
     );
     const shade = 0.74 + broad * 0.16 + fractured * 0.1 + strata * 0.035;
-    colours.set([shade * (0.98 + strata * 0.02), shade, shade * (1.03 - strata * 0.06)], i * 3);
+    // On the meadow, buried sides hold dark soil and shaded rock carries
+    // muted lichen. Fractured quarry plates use the exposed mineral palette.
+    const base = meadow ? 0.64 + 0.36 * T.MathUtils.smoothstep(ry, -0.52, 0.23) : 1;
+    const lichen = meadow ? T.MathUtils.smoothstep(ry - 0.26 * rz, 0.12, 0.66) *
+      T.MathUtils.smoothstep(fractured + broad * 0.38, 0.58, 0.97) : 0;
+    colours.set([
+      shade * base * (0.98 + strata * 0.02 - lichen * 0.13),
+      shade * base * (1 + lichen * 0.035),
+      shade * base * (1.03 - strata * 0.06 - lichen * 0.29),
+    ], i * 3);
     const key = [x, y, z].map((n) => Math.round(n * 100000)).join('/');
     keys.push(key);
     if (!normalsByPoint.has(key)) normalsByPoint.set(key, new T.Vector3());
@@ -47,4 +57,30 @@ export function mxFieldstoneGeometry() {
   geometry.computeBoundingSphere();
   geometry.name = 'Weathered fractured fieldstone';
   return geometry;
+}
+
+/** The rock scan is calibrated in metres. A sphere's stock 0–1 UV mapped
+ * a whole quarry photograph around both a pebble and a two-metre boulder.
+ * Scale both scan axes by this stone's actual circumference and meridian;
+ * the same origin and derivatives drive albedo, normal and roughness. */
+export function installMxFieldstoneScan(material: T.MeshStandardMaterial) {
+  return chainShaderHook(material, 'mx-fieldstone-metres-v1', (shader) => {
+    injectAfter(shader, 'uv_vertex', `
+      #if defined(USE_INSTANCING) && (defined(USE_MAP) || defined(USE_NORMALMAP) || defined(USE_ROUGHNESSMAP))
+      float breadth = 0.5 * (length(instanceMatrix[0].xyz) + length(instanceMatrix[2].xyz));
+      float height = length(instanceMatrix[1].xyz);
+      vec2 metres = vec2(5.55 * breadth, 1.42 * (breadth + height));
+      vec2 origin = fract(instanceMatrix[3].xz * vec2(0.137, 0.193)) * 3.7;
+      vec3 coords = vec3(uv * metres + origin, 1.0);
+      #ifdef USE_MAP
+        vMapUv = (mapTransform * coords).xy;
+      #endif
+      #ifdef USE_NORMALMAP
+        vNormalMapUv = (normalMapTransform * coords).xy;
+      #endif
+      #ifdef USE_ROUGHNESSMAP
+        vRoughnessMapUv = (roughnessMapTransform * coords).xy;
+      #endif
+      #endif`, 'vertex');
+  });
 }

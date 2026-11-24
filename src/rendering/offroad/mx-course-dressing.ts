@@ -8,7 +8,7 @@ import { mxFootprintMatrix, mxFurnitureGround, mxMarkerFoot } from './mx-ground-
 import { fitMxScrim, installMxScrim } from './mx-track-scrim.ts';
 import { MX_VAN_TYRE_SETTLE } from './mx-service-wheel.ts';
 import { mxJumpMarkerGeometry } from './mx-jump-marker.ts';
-import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
+import { installMxFieldstoneScan, mxFieldstoneGeometry } from './mx-fieldstone.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
 import { attachMxClothShadows, installMxClothWind } from './mx-event-cloth.ts';
 import { mxStrawBale } from './mx-straw-bale.ts';
@@ -787,7 +787,8 @@ export class MxCourseDressing {
       fernColours: T.Color[] = [],
       shrubPoses: T.Matrix4[] = [],
       shrubColours: T.Color[] = [],
-      stonePoses: T.Matrix4[] = [];
+      stonePoses: T.Matrix4[] = [],
+      stoneColours: T.Color[] = [];
     const plantGeometry = {
       grass: mxShoulderPlantGeometry('grass'),
       fern: mxShoulderPlantGeometry('fern'),
@@ -926,16 +927,23 @@ export class MxCourseDressing {
         track.isPitSection(s)
       )
         continue;
-      this.object.rotation.set(
-        random.next() * 0.7,
-        random.next() * Math.PI * 2,
-        random.next() * 0.5,
-      );
-      const rock = 0.5 + random.next() * 1.6;
-      this.object.scale.set(rock, rock * 0.65, rock * 0.9);
-      this.object.position.set(rockX, mxFurnitureGround(track, rockX, rockZ) + rock * 0.14, rockZ);
+      const split = random.next(), yaw = random.next() * Math.PI * 2;
+      const weathered = random.next(), size = 0.5 + random.next() * 1.6;
+      const width = size * (0.86 + 0.51 * split);
+      const height = size * (0.32 + 0.59 * (1 - split) * (0.68 + 0.32 * weathered));
+      const depth = size * (0.67 + 0.40 * weathered);
+      // A slab lies along its bed. The support under its whole footprint
+      // sets the tilt, so a downhill lip sits into the turf with the uphill end.
+      const support = mxFootprintMatrix(track, rockX, rockZ, yaw, width * 1.28, depth * 1.28);
+      this.object.position.set(0, height * (0.01 + 0.18 * weathered), 0);
+      this.object.rotation.set((weathered - 0.5) * 0.23, 0, (split - 0.5) * 0.26);
+      this.object.scale.set(width, height, depth);
       this.object.updateMatrix();
-      stonePoses.push(this.object.matrix.clone());
+      stonePoses.push(support.multiply(this.object.matrix));
+      const bed = valueNoise(rockX * 0.047, rockZ * 0.047);
+      stoneColours.push(new T.Color().setRGB(
+        0.82 + 0.23 * bed, 0.87 + 0.10 * weathered, 0.86 + 0.14 * (1 - bed),
+      ));
     }
     // Darker intermediate-height plants sit behind the cropped grass, in
     // connected patches rather than a uniform strip of identical bushes.
@@ -1004,6 +1012,7 @@ export class MxCourseDressing {
       name: 'MX weathered shoulder stones',
     });
     installScannedMaps(rockMaterial, 'rock', libraryAlbedo(rockMaterial));
+    installMxFieldstoneScan(rockMaterial);
     this.instances(
       'MX shoulder grass islands',
       plantGeometry.grass,
@@ -1052,7 +1061,7 @@ export class MxCourseDressing {
         if (tufts) tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
         for (const { mesh, full } of verge) mesh.count = high ? full : Math.floor(full * 0.45);
       });
-    this.instances('MX shoulder stones', mxFieldstoneGeometry(), rockMaterial, stonePoses);
+    this.instances('MX shoulder stones', mxFieldstoneGeometry(true), rockMaterial, stonePoses, stoneColours);
     if (!grassPoses.length && !fernPoses.length && !shrubPoses.length && !tuftPoses.length)
       grassMaterial.dispose();
     if (!stonePoses.length) rockMaterial.dispose();

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { BuildQueue } from '../src/rendering/build-queue.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
 import { OffroadScene } from '../src/rendering/offroad/index.ts';
+import { mxFurnitureGround } from '../src/rendering/offroad/mx-ground-pose.ts';
 import { MxFieldCover } from '../src/rendering/offroad/mx-field-cover.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import { MX_SOIL_COLOURS, MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
@@ -180,6 +181,29 @@ describe('reference-informed MX environments', () => {
         expect(dressing.stats.bermScrimSpans).toBeGreaterThan(8);
         expect(dressing.stats.grassClumps).toBeGreaterThan(1000);
         expect(dressing.stats.stones).toBeGreaterThan(30);
+        const rocks = dressing.root.getObjectByName('MX shoulder stones') as T.InstancedMesh;
+        const scales: number[] = [], tints = new Set<number>();
+        const width = new T.Vector3(), height = new T.Vector3(), shade = new T.Color();
+        const vertex = new T.Vector3();
+        const shape = rocks.geometry.getAttribute('position');
+        for (let i = 0; i < rocks.count; i++) {
+          rocks.getMatrixAt(i, m);
+          const x = m.elements[12], z = m.elements[14], ground = mxFurnitureGround(track, x, z);
+          scales.push(height.setFromMatrixColumn(m, 1).length() / width.setFromMatrixColumn(m, 0).length());
+          rocks.getColorAt(i, shade);
+          tints.add(shade.getHex());
+          let base = Infinity, crown = -Infinity;
+          for (let j = 0; j < shape.count; j++) {
+            vertex.fromBufferAttribute(shape, j).applyMatrix4(m);
+            base = Math.min(base, vertex.y);
+            crown = Math.max(crown, vertex.y);
+          }
+          expect(base).toBeLessThan(ground);
+          expect(crown).toBeGreaterThan(ground);
+        }
+        expect(Math.min(...scales)).toBeLessThan(0.30);
+        expect(Math.max(...scales)).toBeGreaterThan(0.80);
+        expect(tints.size).toBeGreaterThan(35);
         expect(dressing.stats.canopies).toBeGreaterThan(0);
       } else {
         expect(dressing.stats.blocks).toBeGreaterThan(25);
