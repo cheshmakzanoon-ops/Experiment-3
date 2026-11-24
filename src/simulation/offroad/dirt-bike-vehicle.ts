@@ -1772,14 +1772,16 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.rutRear = t.depthAt(this.contacts[2].lateral, this.contacts[2].s);
     }
   }
-  override restart(track: Track, reason: 'rider' | 'stranded' = 'rider') {
-    this.planRemount(track, reason === 'stranded');
+  override restart(track: Track, reason: 'rider' | 'stranded' | 'wrong-way' = 'rider') {
+    this.planRemount(track, reason !== 'rider');
     const d = this.dynamics;
-    if (!this.inPit && Math.hypot(this.remount.x - d.x, this.remount.z - d.z) > 3) {
+    const pushDistance = Math.hypot(this.remount.x - d.x, this.remount.z - d.z);
+    if (!this.inPit && (reason === 'wrong-way' || pushDistance > 3)) {
       // A beached machine is assisted across the feature visibly. An
       // instantaneous 20–40 m restart can skip a timing gate, leaving the
       // rider a whole circulation behind despite having reached the exit.
-      // Recovery crosses that ground; no lap progress is manufactured.
+      // A turned-around rider uses the same animated push even when the
+      // destination is close, so the bike rotates back over multiple ticks.
       d.speed = 0;
       d.state = 'remount';
       d.stateClock = 0;

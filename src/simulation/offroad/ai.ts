@@ -327,6 +327,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     c.input.brake = Math.max(c.input.brake, clamp((c.speed - rejoin) * 0.4, 0, 1));
   }
   private stuck = 0;
+  private wrongWay = 0;
   private progressX = NaN;
   private progressZ = NaN;
   /** Marshal assistance: a bike pinned against a tyre wall or beached on a
@@ -334,7 +335,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private unstick(dt: number, track: Track, race: RaceDirector) {
     const c = this.rider;
     if (race.phase !== PHASE.RACING || race.raceTime <= 5 || !c.riding) {
-      this.stuck = 0;
+      this.stuck = this.wrongWay = 0;
       this.progressX = c.dynamics.x;
       this.progressZ = c.dynamics.z;
       return;
@@ -343,24 +344,45 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     // A beached rear tyre can repeatedly spin up or hop without moving the
     // machine. Those brief spikes must not restart the assistance clock.
     const d = c.dynamics;
-    const travelled = Math.hypot(d.x - this.progressX, d.z - this.progressZ);
+    const dx = d.x - this.progressX, dz = d.z - this.progressZ;
+    const travelled = Math.hypot(dx, dz);
     this.progressX = d.x;
     this.progressZ = d.z;
-    if (!Number.isFinite(travelled) || travelled >= 0.5 * dt) this.stuck = 0;
-    if (c.airborne || travelled >= 0.5 * dt) return;
-    // Count actual drive effort while stationary. Passing traffic can
-    // briefly hold a beached rider on the brakes; that pause does not mean
-    // the bike moved. A continuously queued rider accrues no effort, and
-    // assistance still starts only on a tick asking for drive.
-    if (c.aiTarget <= 0.5 || c.input.throttle <= 0.2 || c.input.brake >= 0.1) return;
-    this.stuck += dt;
-    // Pedals hold the last traffic decision between planner updates. A
-    // newly arrived rider must be sampled before committing a marshal push.
-    if (this.stuck < STUCK_SECONDS || !this.trafficRefreshed) return;
-    this.stuck = 0;
+    // A ground rider can end up pinned along the outside facing backward.
+    // The wheels still move, so the stationary-drive timer never sees it.
+    // Require sustained backward chassis travel and heading on the verge,
+    // then use the same visible dismount and push as a beached machine.
+    const p = c.trackPosition;
+    const ridingBackwards =
+      c.definition.tireFamily === 'knobby' && !c.airborne && !c.input.reverse && c.speed < 7 &&
+      Math.abs(c.lateral) > p.width - 1.5 && dx * p.tx + dz * p.tz < -dt &&
+      Math.sin(d.heading) * p.tx + Math.cos(d.heading) * p.tz < -0.7;
+    this.wrongWay = ridingBackwards ? this.wrongWay + dt : 0;
+    const stationary = travelled < 0.5 * dt;
+    if (!stationary) this.stuck = 0;
+    // Passing traffic may interrupt a beached rider's accumulated effort.
+    // A brake-held queue contributes no drive effort.
+    const driving = stationary && !c.airborne && c.aiTarget > 0.5 &&
+      c.input.throttle > 0.2 && c.input.brake < 0.1;
+    if (driving) this.stuck += dt;
+    const backwardRecovery = this.wrongWay >= STUCK_SECONDS;
+    const ready = backwardRecovery || (driving && this.stuck >= STUCK_SECONDS);
+    if (!ready || !this.trafficRefreshed) return;
+    if (backwardRecovery) {
+      // A slow bike can follow the outside of a hairpin back into the lane
+      // under its own steering. Look along its actual direction of travel
+      // before asking the marshal to stand the bike up in approaching traffic.
+      const bend = track.at(c.s - Math.max(6, 3 * c.speed), squarePoint);
+      if (p.tx * bend.tx + p.tz * bend.tz < Math.SQRT1_2) return;
+      if (this.field.some(other =>
+        other !== c && !other.retired && Math.abs(other.lateral - c.lateral) < 3 &&
+        Math.hypot(other.body.position.x - d.x, other.body.position.z - d.z) < 3 + 0.8 * other.speed,
+      )) return;
+    }
+    this.wrongWay = this.stuck = 0;
     // At the course edge facing the course, never back on a face it could
     // not climb (the adapter's restart point).
-    c.restart(track, 'stranded');
+    c.restart(track, backwardRecovery ? 'wrong-way' : 'stranded');
     this.decisions.pushes++;
   }
   /** Slow up a face a rider holds the drive that carries the grade: the
@@ -566,6 +588,10 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       c = this.rider,
       L = track.length;
     if (!course || c.airborne) return desired;
+    // Classified riders share the circuit with the field still racing. Ease
+    // down on the flat and roll the next feature from its normal approach.
+    const coolingDown = c.finishTime > 0 && c.definition.tireFamily === 'knobby';
+    if (coolingDown) desired = Math.min(desired, 12);
     const inside = course.jumpAt(c.s);
     if (
       inside &&
@@ -605,10 +631,10 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       faceLength = j.takeoff - j.start,
       toFace = run - faceLength,
       onFace = toFace < 0.5;
-    // Under a yellow flag nobody jumps: roll it. Otherwise clear the gap
-    // only when the run-up and every other limit leave the hold speed.
+    // Marshalled and classified riders roll the feature. A racing rider
+    // may clear it when the run-up and traffic leave enough speed.
     const flag = race.control.flags[c.id],
-      yellow = flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
+      rollRequired = coolingDown || flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
     // A roll reaches the foot of the face with the speed whose energy carries
     // the bike up to the lip at a walking roll: up a 30° face of loose soil
     // the drive barely holds the grade (and not at all when it is wet), so
@@ -629,9 +655,9 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       const clearance = j.end - j.takeoff - into + 2;
       return clearance / Math.max(0.1, other.speed) >= run / Math.max(hold, c.speed);
     });
-    if (!same || !this.plan!.locked || ((yellow || blocked) && this.plan!.clear && canBrake)) {
+    if (!same || !this.plan!.locked || ((rollRequired || blocked) && this.plan!.clear && canBrake)) {
       const reachable = this.reach(c.speed, Math.max(0, toFace - 1), c.definition.ai.topSpeed);
-      const clear = !yellow && !blocked && reachable >= hold - (j.forgiving ? 0.8 : 0.25);
+      const clear = !rollRequired && !blocked && reachable >= hold - (j.forgiving ? 0.8 : 0.25);
       if (blocked && same && this.plan!.clear && !clear) this.decisions.aborts++;
       if (!same) {
         if (clear) this.decisions.clears++;

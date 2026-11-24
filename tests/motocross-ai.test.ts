@@ -201,7 +201,90 @@ describe('motocross committed jump handoff', () => {
   });
 });
 
+describe('motocross cool-down lap', () => {
+  it.each([false, true])('uses the classified rider’s pace and jump plan only after the flag (%s)', finished => {
+    const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', weather: 'clear',
+      circuit: 'valley-ridge-mx', opponents: 0, vehicles: ['mx450'], seed: 60704 });
+    for (let tick = 0; tick < 720; tick++) sim.step(1 / 120);
+    const rider = sim.cars[0] as DirtBikeVehicle, driver = sim.ai[0] as DirtBikeAIDriver;
+    rider.place(sim.track, 22);
+    rider.dynamics.speed = 13;
+    rider.gear = 2;
+    if (finished) rider.finishTime = 125;
+    sim.autoPlayer = true;
+    let target = 0;
+    for (let tick = 0; tick < 1800; tick++) {
+      sim.step(1 / 120);
+      if (rider.s > 25 && rider.s < 100) target = Math.max(target, rider.aiTarget);
+    }
+    expect(rider.s).toBeGreaterThan(160);
+    expect(rider.dynamics.crashes).toBe(0);
+    if (finished) {
+      expect(target).toBeCloseTo(12);
+      expect(driver.decisions.clears).toBe(0);
+      expect(driver.decisions.rolls).toBeGreaterThan(0);
+    } else {
+      expect(target).toBeGreaterThan(20);
+      expect(driver.decisions.clears).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe('motocross AI rejoining', () => {
+  it.each([['mx250', -1], ['mx450', 1]] as const)(
+    '%s turns back down the course in a continuous marshal push after sustained wrong-way verge travel', (vehicle, side) => {
+      const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', weather: 'clear',
+        circuit: 'valley-ridge-mx', opponents: 0, vehicles: [vehicle], seed: 60704 });
+      const dt = 1 / 120;
+      for (let tick = 0; tick < 720; tick++) sim.step(dt);
+      const rider = sim.cars[0] as DirtBikeVehicle, driver = sim.ai[0] as DirtBikeAIDriver;
+      const shoulder = sim.track.at(76, trackPoint()).width - 0.15;
+      rider.place(sim.track, 76, side * shoulder);
+      rider.dynamics.heading += Math.PI + 0.035;
+      rider.dynamics.speed = 3;
+      rider.gear = 1;
+      sim.autoPlayer = true;
+      let assisting = 0, maxTurn = 0;
+      for (let tick = 0; tick < 1440; tick++) {
+        const before = rider.dynamics.heading;
+        sim.step(dt);
+        if (rider.dynamics.state === 'remount') {
+          assisting++;
+          maxTurn = Math.max(maxTurn, Math.abs(mod(rider.dynamics.heading - before + Math.PI, 2 * Math.PI) - Math.PI));
+        }
+        if (tick === 359) expect(driver.decisions.pushes).toBe(0);
+      }
+      expect(driver.decisions.pushes).toBe(1);
+      expect(assisting).toBeGreaterThan(100);
+      expect(maxTurn).toBeLessThan(0.05);
+      expect(rider.s).toBeGreaterThan(100);
+      expect(rider.dynamics.crashes).toBe(0);
+    });
+
+  it('waits for adjacent traffic to clear before turning a wrong-way bike around', () => {
+    const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', weather: 'clear',
+      circuit: 'valley-ridge-mx', opponents: 1, vehicles: ['mx250', 'mx450'], seed: 60704 });
+    for (let tick = 0; tick < 720; tick++) sim.step(1 / 120);
+    const rider = sim.cars[0] as DirtBikeVehicle, traffic = sim.cars[1];
+    const driver = sim.ai[0] as DirtBikeAIDriver;
+    rider.place(sim.track, 76, sim.track.at(76, trackPoint()).width - 0.15);
+    rider.dynamics.heading += Math.PI + 0.035;
+    rider.dynamics.speed = 3;
+    rider.gear = 1;
+    sim.autoPlayer = true;
+    let firstPush = -1;
+    for (let tick = 0; tick < 1500; tick++) {
+      const gap = tick < 660 ? 0 : 43;
+      traffic.place(sim.track, rider.s + gap, rider.lateral - 2.2);
+      sim.step(1 / 120);
+      if (driver.decisions.pushes && firstPush < 0) firstPush = tick / 120;
+    }
+    expect(firstPush).toBeGreaterThanOrEqual(5.5);
+    expect(firstPush).toBeLessThan(6);
+    expect(driver.decisions.pushes).toBe(1);
+    expect(rider.dynamics.crashes).toBe(0);
+  });
+
   it.each([-1, 1])('slows a rider facing across the lane on side %s before driving onward', (side) => {
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,
