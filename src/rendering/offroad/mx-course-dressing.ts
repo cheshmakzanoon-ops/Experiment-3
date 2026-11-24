@@ -5,6 +5,7 @@ import { MxVenueWind } from './mx-venue-wind.ts';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxFootprintMatrix, mxFurnitureGround, mxMarkerFoot } from './mx-ground-pose.ts';
+import { fitMxScrim, installMxScrim } from './mx-track-scrim.ts';
 import { mxJumpMarkerGeometry } from './mx-jump-marker.ts';
 import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
@@ -138,7 +139,10 @@ export class MxCourseDressing {
       side: T.DoubleSide,
       name: 'MX printed woven barriers',
     });
-    if (!indoor) installMxClothWind(cloth, this.venueTime, true, this.wind);
+    if (!indoor) {
+      installMxClothWind(cloth, this.venueTime, true, this.wind);
+      installMxScrim(cloth, true);
+    }
     const yellow = new T.MeshStandardMaterial({
       color: 0xc8cf56,
       roughness: 0.68,
@@ -329,7 +333,9 @@ export class MxCourseDressing {
       if (material === cloth && !indoor) {
         // Banners bolted to the gantry share the cloth material but do
         // not move. All geometries need the same schema for one batch.
-        for (const part of geometries)
+        for (const part of geometries) {
+          if (!part.hasAttribute('mxScrimPanel'))
+            part.setAttribute('mxScrimPanel', new T.BufferAttribute(new Float32Array(part.getAttribute('position').count * 3), 3));
           if (!part.hasAttribute('mxCloth')) {
             part.setAttribute(
               'mxCloth',
@@ -339,6 +345,7 @@ export class MxCourseDressing {
               ),
             );
           }
+        }
       }
       const geometry = mergeGeometries(geometries, false);
       for (const g of geometries) g.dispose();
@@ -347,7 +354,11 @@ export class MxCourseDressing {
       mesh.name = material.name;
       mesh.castShadow = mesh.receiveShadow = true;
       geometry.computeBoundingSphere();
-      if (material === cloth && !indoor) attachMxClothShadows(mesh, this.venueTime, this.wind);
+      if (material === cloth && !indoor) {
+        attachMxClothShadows(mesh, this.venueTime, this.wind);
+        installMxScrim(mesh.customDepthMaterial!, false);
+        installMxScrim(mesh.customDistanceMaterial!, false);
+      }
       this.root.add(mesh);
     }
     // Materials created for an empty batch still have a lifecycle.
@@ -700,7 +711,7 @@ export class MxCourseDressing {
         if (mounted) {
           if (!previousMounted) stake(a);
           stake(b);
-          this.banner(s + step / 2, side, [a, b], material, this.stats.banners % 2);
+          this.banner(s + step / 2, side, [a, b], material, hardware, this.stats.banners % 2);
           panels.push(new T.Vector3().lerpVectors(a, b, 0.5));
           this.stats.banners++;
           if (banked) this.stats.bermScrimSpans++;
@@ -724,6 +735,7 @@ export class MxCourseDressing {
     side: number,
     ends: [T.Vector3, T.Vector3],
     material: T.Material,
+    hardware: T.Material,
     row: number,
   ) {
     const along = ends[1].clone().sub(ends[0]);
@@ -762,6 +774,7 @@ export class MxCourseDressing {
     }
     g.setAttribute('mxCloth', new T.Float32BufferAttribute(wind, 3));
     g.computeVertexNormals();
+    for (const fastener of fitMxScrim(g, ends, side)) this.part(fastener, hardware);
     this.part(mxAtlasRow(g, row), material);
   }
   private shoulders(random: Random) {

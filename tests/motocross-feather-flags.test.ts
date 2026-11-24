@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
+import { fitMxScrim } from '../src/rendering/offroad/mx-track-scrim.ts';
 import { mxTeamVanGeometry } from '../src/rendering/offroad/mx-paddock-models.ts';
 import { MxVenueWind } from '../src/rendering/offroad/mx-venue-wind.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
@@ -112,6 +113,37 @@ describe('motocross event feather flags', () => {
     }
   });
 
+  it('centres four rolled eyelets and their paired ties on each sloped scrim with the print facing either lane', () => {
+    for (const side of [-1, 1]) {
+      const posts: [T.Vector3, T.Vector3] = [new T.Vector3(-4, 0, 0), new T.Vector3(4, 0.8, 0)];
+      const panel = new T.PlaneGeometry(1, 1, 24, 5);
+      const uv = panel.getAttribute('uv'), pos = panel.getAttribute('position');
+      for (let i = 0; i < pos.count; i++) {
+        const t = side < 0 ? 1 - uv.getX(i) : uv.getX(i);
+        pos.setXYZ(i, -4 + 8 * (0.004 + 0.992 * t), 0.8 * t + 0.25 + 0.72 * uv.getY(i), 0);
+      }
+      const kit = fitMxScrim(panel, posts, side);
+      expect(kit).toHaveLength(12);
+      const panelWidth = panel.getAttribute('mxScrimPanel').getZ(0);
+      expect(panelWidth).toBeCloseTo(8 * 0.992, 5);
+      for (let eye = 0; eye < 4; eye++) {
+        kit[eye * 3].computeBoundingBox();
+        const centre = kit[eye * 3].boundingBox!.getCenter(new T.Vector3());
+        expect(Math.abs(centre.x)).toBeCloseTo(panelWidth / 2 - 0.048, 4);
+        const t = ((centre.x + 4) / 8 - 0.004) / 0.992;
+        expect(centre.y).toBeCloseTo(0.8 * t + 0.25 + (eye % 2 ? 0.72 - 0.026 : 0.026), 4);
+        for (const tie of kit.slice(eye * 3 + 1, eye * 3 + 3)) {
+          tie.computeBoundingBox();
+          expect(tie.boundingBox!.distanceToPoint(centre)).toBeLessThan(0.007);
+          const post = posts[centre.x < 0 ? 0 : 1];
+          expect(Math.min(Math.abs(tie.boundingBox!.min.x - post.x), Math.abs(tie.boundingBox!.max.x - post.x))).toBeLessThan(0.003);
+        }
+      }
+      for (const piece of kit) piece.dispose();
+      panel.dispose();
+    }
+  });
+
   it('pins the sail seams and replays the same wind field in the colour and two shadow passes', () => {
     const wind = new MxVenueWind();
     const dressing = new MxCourseDressing(rigTrack('valley-ridge-mx'), wind);
@@ -133,6 +165,8 @@ describe('motocross event feather flags', () => {
         } as StudioShader;
         material.onBeforeCompile(shader, {} as T.WebGLRenderer);
         expect(shader.vertexShader).toContain('transformed.xz += mxCloth.xy');
+        expect(shader.fragmentShader).toContain('if (eye < .0085');
+        expect(shader.fragmentShader.includes('if (!gl_FrontFacing)')).toBe(kind === 'standard');
         expect(shader.uniforms.mxVenueWind).toBe(wind);
         return shader.uniforms.mxClothTime;
       };
