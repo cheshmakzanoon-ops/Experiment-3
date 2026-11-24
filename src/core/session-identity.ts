@@ -93,8 +93,10 @@ import {
  * v36: ridden motocross gear selection accounts for rear-wheel slip and regrip;
  * v37: exposed motocross jump and berm flanks use packed fill.
  * v38: motocross tyres distribute soil pressure across their moving footprints.
- * Riders respond to that support, occupied landings and walking caution traffic. */
-export const SIMULATION_VERSION = 38;
+ * Riders respond to occupied landings and walking caution traffic.
+ * v39: motocross boot support applies a finite roll moment. Riders account
+ * for uphill queue starts and recent falls on the approach to a triple. */
+export const SIMULATION_VERSION = 39;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -97,6 +97,15 @@ describe('motocross committed jump handoff', () => {
     }
   });
 
+  it.each([['recent', 40, true], ['settled', 90, false]] as const)(
+    'reconsiders a technical triple after a %s pitch fall on a different gap', (_, elapsed, roll) => {
+      const { sim, bike, jump, ai } = tripleApproach('mx450', 28);
+      bike.crashCauses.push({ cause: 'crash-front', s: jump.start - 180, time: bike.clock - elapsed });
+      ai.update(1 / 120, sim.track, sim.cars, sim.race);
+      expect(ai.decisions.rolls > 0).toBe(roll);
+      expect(ai.decisions.clears > 0).toBe(!roll);
+    },
+  );
   it.each([
     { lateral: 3.5, roll: true, previous: 'none' },
     { lateral: 11, roll: false, previous: 'none' },

@@ -661,7 +661,23 @@ export class DirtBikeVehicle extends BikeVehicle {
         // A foot down props the lean in slow, tight corners.
         if (Math.abs(this.dab) > 0.5) {
           const limit = this.air.dabLean + 0.12;
-          if (Math.abs(d.lean) > limit) {
+          const knobby = motocross && this.definition.tireFamily === 'knobby';
+          if (knobby && Math.sign(this.dab) === Math.sign(d.lean) && Math.abs(d.lean) > limit) {
+            // The planted boot supplies a finite roll moment. Snapping the
+            // pose to the support angle in one substep gives a grazing rider
+            // tens of rad/s of fictitious spin at the barrier contact point.
+            const side = Math.sign(this.dab), rate = side * d.leanRate;
+            const support = clamp((Math.abs(this.dab) - 0.35) / 0.65, 0, 1);
+            // Bound the restoring moment to one gravity at the combined CG.
+            const acceleration = support * G / this.bikeSpec.cgHeight;
+            const target = -Math.min(1.8, Math.sqrt(2 * acceleration * (Math.abs(d.lean) - limit)));
+            // The ground can push the boot upright. As weight comes off,
+            // it cannot pull a bike that is already recovering back down.
+            const supported = Math.min(rate, Math.max(target, rate - acceleration * dt));
+            // The roll solver already advanced this step with the unaided rate.
+            d.lean += side * (supported - rate) * dt;
+            d.leanRate = side * supported;
+          } else if (!knobby && Math.abs(d.lean) > limit) {
             d.lean = Math.sign(d.lean) * limit;
             d.leanRate *= 0.5;
           }

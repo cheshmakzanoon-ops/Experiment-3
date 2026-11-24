@@ -245,17 +245,17 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     );
   }
 
-  /** The safe short route remains available after a failed landing. A flat
-   * impact makes the centre mound of another triple a poor choice. Two
-   * recent failures with the same pitch error also call for a short line
-   * on a gap while the rider regains control. */
+  /** Failed landings inform the next choice. After a flat impact or any
+   * recent landing fall, roll the centre mound of a triple. Two recent
+   * failures with the same pitch error also call for a short line on a gap. */
   private needsShortLanding(jump: JumpSurvey, length: number) {
     let nose = 0, tail = 0;
     for (const fall of this.rider.crashCauses) {
       if (!fall.cause.startsWith('crash-')) continue;
       if (mod(fall.s - jump.takeoff + 1, length) <= jump.end - jump.takeoff + 3) return true;
-      if (fall.cause === 'crash-flat' && jump.kind === 'triple') return true;
-      if (jump.forgiving || this.rider.clock - fall.time > 120) continue;
+      const age = this.rider.clock - fall.time;
+      if (jump.kind === 'triple' && (fall.cause === 'crash-flat' || age < 60)) return true;
+      if (jump.forgiving || age > 120) continue;
       if (fall.cause === 'crash-front' && ++nose === 2) return true;
       if (fall.cause === 'crash-rear' && ++tail === 2) return true;
     }
@@ -338,9 +338,13 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       if (Math.abs(c.lateral) + outwardTravel > squarePoint.width - 0.8) {
         const inward = clamp(2.2 * error - 0.4 * d.lean, -1, 1);
         c.input.steer = outside > 0 ? Math.min(c.input.steer, inward) : Math.max(c.input.steer, inward);
-        // Leave enough drive to turn uphill while keeping weight on the front.
+        // A stopped knobby tyre needs enough drive to overcome the bank's
+        // grade. Release this allowance as the bike moves or the front lifts.
         const frontShare = clamp(c.forceFront / (d.mass * G), 0, 1);
-        c.input.throttle = Math.min(c.input.throttle, 0.24 + 0.3 * frontShare);
+        const hillStart = c.definition.tireFamily === 'knobby'
+          ? Math.max(0, Math.sin(c.groundPitch)) * clamp(1 - c.speed / 2, 0, 1) * Math.min(1, frontShare / 0.3)
+          : 0;
+        c.input.throttle = Math.min(c.input.throttle, 0.24 + 0.3 * frontShare + hillStart);
         return;
       }
     }

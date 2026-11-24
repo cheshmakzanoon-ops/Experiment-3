@@ -43,12 +43,14 @@ describe('heading guard of the off-road riders', () => {
     expect(1.2).toBeGreaterThan(headingGuardLimit(1.2, HAIRPIN, 7));
   });
 
-  it.each(['stadium event', 'twelve MX450s'] as const)('releases a cautioned turn-one queue with %s', async (field) => {
+  it.each(['stadium event', 'twelve MX450s', 'wet mixed grid'] as const)('releases a cautioned turn-one queue with %s', async (field) => {
     const event = EVENTS.find((e) => e.id === 'arena-nord-supercross')!;
+    const wet = field === 'wet mixed grid';
     const sim = new Simulation(field === 'stadium event' ? eventSession(event, DEFAULT_OPTIONS) : {
       ...DEFAULT_OPTIONS,
       mode: 'race', ruleset: 'motocross-moto', circuit: 'arena-nord-sx',
-      laps: 2, opponents: 11, seed: 50206, weather: 'clear', vehicles: Array(12).fill('mx450'),
+      laps: 2, opponents: 11, seed: wet ? 60730 : 50206, weather: wet ? 'rain' : 'clear',
+      vehicles: Array.from({ length: 12 }, (_, i) => wet && i % 2 ? 'mx250' : 'mx450'),
     });
     sim.autoPlayer = true;
     const session = sim.offroad!;
@@ -76,6 +78,6 @@ describe('heading guard of the off-road riders', () => {
     expect(sim.race.raceTime).toBeGreaterThan(49);
     // scripts/offroad-races.ts PARKED_LIMIT is 20 s; a crash and its remount alone take 9-10 s.
     expect(longest).toBeLessThan(18);
-    if (field === 'twelve MX450s') expect(heldUnderCaution).toBe(true);
+    if (field !== 'stadium event') expect(heldUnderCaution).toBe(true);
   }, 120_000);
 });

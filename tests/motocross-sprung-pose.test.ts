@@ -464,6 +464,7 @@ it.each([
       current = sim.makeFrame();
     const rewind: { a: Float32Array; b: Float32Array; matrices: number[] }[] = [];
     let flight = 0,
+      touchdowns = 0,
       onGround = 0,
       planted = 0,
       held = 0,
@@ -477,13 +478,19 @@ it.each([
       unassigned[o + OFFROAD_BASE + O.SLOT] = 0;
       pose(unassigned, unassigned);
       expect(calls.mock.calls.at(-1)![0].startBrace).toBe(0);
-      for (let tick = 1; tick <= 40 * 120; tick++) {
+      // The rider chooses its line. Run past the initial 40 seconds when a
+      // technical approach needs more time to produce two actual landings.
+      for (let tick = 1; tick <= 60 * 120 && (tick <= 40 * 120 || touchdowns < 2); tick++) {
         sim.step(1 / 120);
         if (tick % 4) continue;
         [previous, current] = [current, previous];
         sim.writeFrame(current);
         terrain.record(sim.offroad!.terrain.renderDelta(), current[H.TIME], true);
-        if (tick % 20) continue;
+        const airborne = current[o + OFFROAD_BASE + O.AIRBORNE] >= 0.5;
+        const landed = !airborne && previous[o + OFFROAD_BASE + O.AIRBORNE] >= 0.5;
+        if (landed) touchdowns++;
+        // Examine every recorded flight frame and the first grounded frame.
+        if (tick % 20 && !airborne && !landed) continue;
         const model = pose(previous, current);
         const v = calls.mock.calls.at(-1)![0];
         if (!v.riding) continue;
@@ -494,7 +501,6 @@ it.each([
           expect(v.startBrace).toBe(0);
           released++;
         } else if (v.startBrace! > 0 && v.startBrace! < 1) launching++;
-        const airborne = current[o + OFFROAD_BASE + O.AIRBORNE] >= 0.5;
         if (airborne) flight++;
         else onGround++;
         for (const [side, contact] of inspectMotocrossRiderContacts(model, v.dab).entries()) {
@@ -508,13 +514,14 @@ it.each([
           expect(contact.ankleError).toBeLessThan(0.009);
           planted++;
         }
-        if (airborne || tick % 160 === 0)
+        if (airborne || landed || tick % 160 === 0)
           rewind.push({
             a: previous.slice(),
             b: current.slice(),
             matrices: attachmentMatrices(model),
           });
       }
+      expect(touchdowns).toBeGreaterThanOrEqual(2);
       expect(flight).toBeGreaterThan(5);
       expect(onGround).toBeGreaterThan(100);
       expect(planted).toBeGreaterThan(400);

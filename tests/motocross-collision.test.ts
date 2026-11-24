@@ -6,7 +6,7 @@ import { CollisionSolver } from '../src/simulation/collision.ts';
 import { controls, DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { MX_250, MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
-import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { rigBike, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { trackPoint } from '../src/simulation/track.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
@@ -56,6 +56,32 @@ describe('motocross collision and sprung vertical velocity', () => {
       expect(bike.body.velocity.length()).toBeLessThan(0.25);
       expect(bike.dynamics.crashes).toBe(0);
     }
+  });
+
+  it.each([-1, 1])('builds a finite roll moment when the boot meets the ground on side %i', (side) => {
+    const track = rigTrack('arena-nord-sx'), dt = 1 / 240;
+    // Two riders enter the same slow turn. Seat the initial leaned chassis
+    // before crossing the threshold at which the inside boot takes load.
+    const approach = (planted: boolean, rollRate = 0.8) => {
+      const bike = rigBike(MX_450, track, 54, 5);
+      bike.dynamics.lean = side * 0.85;
+      bike.dynamics.leanRate = side * rollRate;
+      bike.input.steer = side * 0.9;
+      bike.step(dt, track);
+      bike.dab = planted ? side * 0.49 : 0;
+      const lean = bike.dynamics.lean;
+      bike.step(dt, track);
+      return { bike, rollTravel: Math.abs(bike.dynamics.lean - lean) };
+    };
+    const free = approach(false), foot = approach(true);
+    expect(side * foot.bike.dab).toBeGreaterThan(0.5);
+    expect(side * foot.bike.dynamics.leanRate).toBeLessThan(side * free.bike.dynamics.leanRate);
+    expect(foot.rollTravel).toBeLessThan(2 * dt);
+    expect(foot.bike.body.omega.length()).toBeLessThan(2);
+    expect(Math.abs(foot.bike.body.velocity.y)).toBeLessThan(1);
+    const freeRecovery = approach(false, -3), lifting = approach(true, -3);
+    expect(lifting.bike.dynamics.lean).toBe(freeRecovery.bike.dynamics.lean);
+    expect(lifting.bike.dynamics.leanRate).toBe(freeRecovery.bike.dynamics.leanRate);
   });
 
   it.each([MX_250, MX_450])(
