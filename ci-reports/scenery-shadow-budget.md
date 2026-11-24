@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45363712259
-- commit: `e0138a1bb1` · Render wet soil as light-blocking deposits on motocross goggle tear-offs
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-24T09:17:03Z · updated: 2026-11-24T09:24:52Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45365404928
+- commit: `291aa1657f` · Turn motocross riders' helmets and eyes toward the berm exit and surveyed landing
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-24T09:27:42Z · updated: 2026-11-24T09:35:34Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
+| browser (night) | success | 7 |  |
+| browser (day) | success | 5 |  |
 | browser (sunset) | success | 7 |  |
-| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
