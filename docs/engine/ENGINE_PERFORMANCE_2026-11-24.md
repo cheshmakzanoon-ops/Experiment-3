@@ -6,6 +6,13 @@ The revised engine performs less repeated work in five measured paths while retu
 
 The independent comparison used original commit [`a0ae513e7982f0b4719296519752e0ae5f1983f8`](https://github.com/cheshmakzanoon-ops/Experiment-3/tree/a0ae513e7982f0b4719296519752e0ae5f1983f8) and revised commit [`9dc4811ff986e9b410bdcfb5f631db19130ce95f`](https://github.com/cheshmakzanoon-ops/Experiment-3/tree/9dc4811ff986e9b410bdcfb5f631db19130ce95f). The measured files were clean in both checkouts. The [machine-readable result](ENGINE_PERFORMANCE_2026-11-24.json) records individual source hashes, Node version, output hashes, counts and equality checks. Later commits can be checked against those source hashes before carrying the measurements forward.
 
+The final [scope audit](ENGINE_SCOPE_AUDIT_2026-11-24.md) independently confirmed
+that all nine operation-count source files and all four route-measurement source
+files retain those exact measured identities at final production commit
+`b282f121b5766df26466d413d2c685b2f826799d`. The recorded measurements therefore
+remain applicable to those unchanged modules. This is a verified source carry-forward,
+not a claim that the benchmarks were rerun on the final commit.
+
 | Measured path and fixture                                                           |                                        Original work | Revised work | Verified result                                                                                      |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------: | -----------: | ---------------------------------------------------------------------------------------------------- |
 | BVH: 128 rays through 512 parallel layers                                           | 8,448 hit-point resolutions and 8,448 normalizations |  128 of each | Every returned hit flag, triangle, distance, point and normal agrees exactly                         |

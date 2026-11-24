@@ -2,12 +2,16 @@
 
 ## Status and evidence boundary
 
-The latest completed focused CI run used published wave 9 source
-`6a665033c37f3d760ac0de92cad4c9417ec3ddd5` and finished **six passed, one
-failed**. Its whole TypeScript check and direct Vite build passed, and its
-graphics backend was verified as Mesa llvmpipe. The one failure was an incidental
-observer-order assertion in the native mirror-adapter test. The reviewed
-assertion correction still requires a passing published-source rerun.
+**All seven selected native/replay cases passed** against final published commit
+`b282f121b5766df26466d413d2c685b2f826799d`, tree
+`1472d9c28a270af720507d90f490d52ff5ca1fbb`:
+[run 45419620728, job 138535240120](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620728/job/138535240120).
+The job completed successfully at 15:00:28 UTC, after its whole TypeScript check
+and direct Vite build passed. It verified Mesa llvmpipe and reported
+`7 passed (2.2m)`, with zero retries and the original deadline. The corrected
+mirror case passed all rollback, read-rejection, recovered-data and page-error
+assertions. The earlier wave-9 result remains recorded below as six passed and
+one failed observer-order assertion; it has not been relabelled as a pass.
 
 Agent 52 prepared six native-browser lifecycle regressions and a focused CI job
 for those cases plus the existing complete replay-state scenario. **No local
@@ -48,7 +52,7 @@ Electron filesystem bridge or its cross-process behavior.
 The existing `e2e/replay-state.spec.ts` remains unchanged by this assignment. It
 contains the earlier host regression for pausing an exact-end seek and restarting
 from the retained floor, along with its original main-thread stall, replay,
-modal, audio and focus-ownership assertions. Its local execution remains pending.
+modal, audio and focus-ownership assertions. The local attempt was blocked by the executor's socket policy; the final published-source CI run below completed the entire case successfully.
 
 ## Local preparation checks
 
@@ -84,12 +88,72 @@ socket() failed: Operation not permitted (1)
 
 No alternative launch flags or execution surface was used to bypass that
 restriction. The Vite attempt returned exit 137 while transforming modules;
-no successful local production bundle or replay run is claimed. The preparation report recorded these launch/build failures; the primary CI
+no successful local production bundle or replay run is claimed for that attempt.
+The preparation report recorded these launch/build failures; the primary CI
 links below retain the later published-source evidence.
 
 ## Focused CI path
 
-### First native execution receipt
+### Final native execution receipt — wave 10
+
+The final job checked out exactly
+`b282f121b5766df26466d413d2c685b2f826799d` and completed its whole TypeScript
+check and direct production build before browser execution. Vite transformed
+1,094 modules and reported an 11.82-second build. Backend verification recorded
+`ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)`.
+
+| Selected native/application case | Final-source CI result |
+| --- | --- |
+| Replay session isolation | Passed |
+| Disposal during replay database open | Passed |
+| Save backup rollback and later recovery | Passed |
+| Save connection version-change recovery | Passed |
+| Desktop mirror IndexedDB adapter, including post-abort recovery | Passed |
+| Worker transfer reuse | Passed |
+| Complete replay-state scenario, including exact-end seek/pause/restart | Passed |
+
+The mirror case passed at 14:58:21 UTC; the complete replay case passed at
+15:00:23 UTC. The [completed job](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620728/job/138535240120)
+finished successfully at 15:00:28 UTC. The [evidence artifact](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620728/artifacts/14933807988)
+retains the build and browser logs, per-case attachments, source commit/tree
+receipts, dependency-lock digest, backend identity and build identity. Its
+workflow retention is seven days; the job log also records each result.
+
+The mirror assertion was the only test change from wave 9 in this focused
+selection. The fixture, complete replay scenario, workflow and Playwright
+configuration were unchanged. All six native cases and the complete application
+replay case executed once, with one worker, zero retries and the original
+300-second deadline. No local browser bypass or additional build hook was used.
+
+### Separate wet-presentation gate — wave 10
+
+The existing [wet-presentation job, 138543129772](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45419620548/job/138543129772)
+also completed successfully on the same final source at 15:23:28 UTC. Its log
+records `7 passed (7.8m)` with the independently verified backend
+`ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)`.
+
+| Existing browser coverage | Passed cases |
+| --- | ---: |
+| Directional rain geometry, fog, occlusion and near-plane safety | 1 |
+| Moving wet frames and held chase, cockpit and trackside views | 1 |
+| Race-finish production signal, crew and canopy pixels, continuity and resource bounds | 3 |
+| Full production-grid index compaction, held HDR channels and bounded buffers | 1 |
+| Simulation-driven spray, rain, wind and particle cleanup | 1 |
+
+This is a separate completed gate, with its own existing cases and configuration;
+its count is not folded into the seven focused Mesa lifecycle/replay cases.
+Both receipts use software graphics. Neither establishes physical GPU speed,
+physical audio/controller behavior or completion of all sixteen broad browser
+shards and four owner-QA jobs.
+
+At the 24 November 2026, 15:28:32 UTC snapshot of the final full workflow,
+seven broad browser jobs were running and nine were queued; all four owner-QA
+jobs were running. Those unfinished jobs are not counted as passes. The full
+validation job and all four unit partitions had completed; their exact results
+and four unchanged baseline unit failures are in the
+[CI validation report](ENGINE_CI_VALIDATION_2026-11-24.md).
+
+### First native execution receipt — wave 9
 
 The focused job executed against published wave 9 commit
 `6a665033c37f3d760ac0de92cad4c9417ec3ddd5`, tree
@@ -127,9 +191,10 @@ data-commit guarantee. The correction retains checks against early resolution,
 missing/duplicate observations, rollback failure and failed recovery.
 
 This is a correction to an incidental test-observer assumption. No production
-storage code changed for it. A subsequent CI run is required before the
-corrected case is counted as passed. The first run remains **six passed, one
-failed**, with zero retries and the original 300-second test deadline.
+storage code changed for it. The final-source rerun above subsequently passed
+the corrected case, including recovery and page-error assertions. The first
+run remains **six passed, one failed**, with zero retries and the original
+300-second test deadline.
 
 The existing `ci.yml` manual trigger has no file-selection input and runs the
 complete browser inventory across 16 shards. Its ordinary coverage remains
@@ -161,5 +226,5 @@ The workflow triggers on relevant source/test changes on `main` and also support
 manual dispatch. A queued workflow is not a pass. Native browser execution,
 software rendering, physical GPU performance and physical audio/controller
 acceptance are separate claims. The focused CI evidence establishes only the
-selected native/application behavior on the verified software backend; physical
+selected native/application behavior on the verified software backends; physical
 GPU performance and physical audio/controller acceptance remain unmeasured.

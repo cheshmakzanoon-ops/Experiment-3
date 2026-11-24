@@ -2,11 +2,11 @@
 
 ## Finding and boundary
 
-**No out-of-scope model, character, authored environment, material-definition, or vehicle-tuning edits were found in the reviewed changes.** This is a source and content-integrity audit by agent 51. Runtime code that loads, uses, schedules, or releases existing resources has changed; the resources and their authored definitions have not.
+**No out-of-scope model, character, authored environment, material-definition, or vehicle-tuning edits were found in the reviewed changes.** This report combines agent 51's original source/content inspection and agent 60's final publication audit. The final production boundary is `b282f121b5766df26466d413d2c685b2f826799d`. Runtime code that loads, uses, schedules, or releases existing resources has changed; the resources and their authored definitions have not.
 
-The baseline is `a0ae513e7982f0b4719296519752e0ae5f1983f8`. The first audit covered committed work through `9dc4811ff986e9b410bdcfb5f631db19130ce95f` and the six pending wave-8 source files listed below. Later work requires a refresh of this boundary; this report does not pre-approve subsequent changes.
+The baseline is `a0ae513e7982f0b4719296519752e0ae5f1983f8`. Agent 51's first audit covered committed work through `9dc4811ff986e9b410bdcfb5f631db19130ce95f` and the six then-pending wave-8 source files listed below. Agent 60's final refresh extends the protected-object and runtime-scope checks through all ten waves at `b282f121b5766df26466d413d2c685b2f826799d`, tree `1472d9c28a270af720507d90f490d52ff5ca1fbb`. All six original checkpoint blobs remain exact matches at that final boundary. This report does not pre-approve later production changes.
 
-| Pending source file at the audit checkpoint | Git blob ID of inspected contents |
+| Then-pending source file at agent 51's initial checkpoint | Git blob ID retained at final publication |
 | --- | --- |
 | `src/net/client.ts` | `7e728a2c8a5f4cad785be9a29cf86be5649609c9` |
 | `src/net/event-loop.ts` | `4d14913956f6094e55bfc205005d7e99d8add99b` |
@@ -15,13 +15,57 @@ The baseline is `a0ae513e7982f0b4719296519752e0ae5f1983f8`. The first audit cove
 | `src/net/transport.ts` | `f5e9e8f491077651619479bd0dbf08fc38281f86` |
 | `src/simulation/open-world/route-path.ts` | `6cd11b85ecfcb7bad14ae5867cd2b9426e789c82` |
 
-The reviewed baseline-to-worktree diff contained 53 changed or added production source files. Other changes were tests, engineering documentation, and existing CI-generated reports. Untracked additions were inspected by path: test/reference helpers and performance evidence, with no model or environment additions.
+Agent 51's baseline-to-worktree diff contained 53 changed or added production source files. The final published production boundary contains 54 such paths; the additional path is networking lifecycle code in `src/net/server.ts`. Other changes are tests, engineering documentation, measurement tooling and existing CI-generated reports, with no model or authored-environment additions.
+
+## Final publication refresh — agent 60
+
+**Scope audit passed for the final production commit.** Agent 60 independently retrieved the complete Git trees for the original baseline and the final published source through the repository API. Both recursive responses reported `truncated: false`.
+
+| Boundary | Git object |
+| --- | --- |
+| Original engine commit | [`a0ae513e7982f0b4719296519752e0ae5f1983f8`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/a0ae513e7982f0b4719296519752e0ae5f1983f8) |
+| Original tree | `3e5dd0888f193dbde62f6ce5cdebdd1c2ee9847c` |
+| Final production commit | [`b282f121b5766df26466d413d2c685b2f826799d`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/b282f121b5766df26466d413d2c685b2f826799d) |
+| Final production tree | `1472d9c28a270af720507d90f490d52ff5ca1fbb` |
+
+The baseline contains 9,545 blob paths and the final production tree 9,640. Their union contains 174 added, removed or changed paths, including 54 production-source files and 60 unit-test suite files. These totals include automated report changes and are specifically bounded to the final production commit; subsequent evidence-only commits can add reports without changing the tested engine.
+
+Every protected group in the tables below retains exactly the baseline path inventory, file modes and blob IDs. All eleven sorted-manifest SHA-256 values were independently regenerated from the final tree and match the original audit. This includes all 2,996 asset-extension files, all 231 public files, all 44 public models, source JSON/assets, vehicle catalogue, selected protocol/default definitions and dependency/build configuration.
+
+This final refresh verifies published Git objects. It does not claim another physical-filesystem rehash: the physical-file counts below remain agent 51's original checks. Agent 60's executor was unavailable, so this auditor used repository API contents and independent JavaScript comparisons rather than a local checkout or test process.
+
+### Final runtime changes inspected
+
+Only four production files differ between wave 9 and the final production commit:
+
+| File | Final change reviewed | Final Git blob |
+| --- | --- | --- |
+| `src/main.ts` | `GameApp.dispose` revokes ownership before callbacks, attempts independent cleanup, stops the owned haptic device, disposes UI audio, and observes asynchronous replay cleanup rejection | `65ffeafc1c674b84dc75d9298c3c17dcdc1f1f49` |
+| `src/session/free-roam.ts` | `FestivalSession.dispose` detaches owned children before callbacks and attempts all worker/session cleanup after a failure | `39cc4723ca05409ef09375860cb7e92deb7861cb` |
+| `src/rendering/open-world/festival-renderer.ts` | `FestivalRenderer.dispose` detaches optional children, clears ownership arrays, and attempts all existing resource cleanup before rethrowing the first failure | `ad136d06d11bc7e6f9c09f909c9777e72a413dc0` |
+| `src/net/server.ts` | Terminal phase/observer guards, independent connection/timer cleanup, and rejection/closure of transports offered to an already ended server | `83a04e11c1b2578b8938b41f77436ad0db4731c9` |
+
+Agent 60 read the complete wave-9/final versions of those files. A read-only TypeScript AST extraction by agent 59 identified the exact three `dispose` method ranges. Agent 60 then removed only those ranges from the independently fetched file contents and compared the entire remainders. All three complete remainders were identical, with matching independently calculated SHA-256 values:
+
+| Class | Other class members preserved | SHA-256 of complete file with only `dispose` removed |
+| --- | ---: | --- |
+| `GameApp` | 197 | `35b0b8fe1fd544cb6290efaa7a00c5fa9cacb70922b670aa160c7e143ad4c95d` |
+| `FestivalSession` | 51 | `e981790660c4345cfb500b7b9fa64797d7f2ea8668c8aa9f463bfd14850fca83` |
+| `FestivalRenderer` | 108 | `4243072061061d7f21bf86262ed77c4896114805efb628a41f7fe4d03b00e1f4` |
+
+The AST parse had no diagnostics and found one named class and one `dispose` method in each version. The protected remainder includes constructors, scene construction, material values, model/vegetation selection, placement, update/draw methods and all other text outside the method. Resource disposal intentionally changes terminal behavior; it does not edit authored resource definitions. The server changes operate on transport, phase and callback ownership, without editing simulation dynamics, message schemas, vehicle specifications or art.
+
+### Evidence-source continuity
+
+All nine recorded source files behind the actual-module operation-count comparison retain their measured wave-7 blob IDs. All four route-measurement source files retain their measured wave-8 blob IDs. Every one of the 189 `src/core/` and `src/simulation/` files used by the same-tick determinism receipt retains its wave-8 mode and blob ID, with no additions or removals. These checks carry forward the recorded input identity; they do not claim another benchmark or simulation execution.
+
+The final [regression inventory](ENGINE_REGRESSION_INVENTORY_2026-11-24.md) preserves the original frozen working-tree test boundary, then records agent 58's independent mapping of all 1,074 production inputs, 851 test inputs and four configuration inputs to the published final tree. Agent 60 independently confirmed those path counts, the exact 60-suite selection, the receipt's case/attempt accounting, and the SHA-256 content hashes of all four final production files against that frozen receipt. The [completion audit](ENGINE_COMPLETION_AUDIT_2026-11-24.md) separates those results from native-browser and broader CI evidence.
 
 ## Content-integrity checks
 
-The audit compared baseline and current Git tree objects, inspected the working-tree diff, checked the protected public/source-asset index entries, and recomputed Git blob hashes from every physically present file in the groups below. Each group matched the baseline exactly. Groups overlap; their counts must not be added together.
+Agent 51 compared baseline and current Git tree objects, inspected the working-tree diff, checked the protected public/source-asset index entries, and recomputed Git blob hashes from every physically present file in the groups below. Agent 60 independently rechecked the complete published path/mode/blob inventories at the final production commit and regenerated every manifest digest. Each group matched the baseline exactly at both checkpoints. Physical rehash counts are the original agent-51 counts. Groups overlap; their counts must not be added together.
 
-| Protected content group | Tracked files | Files physically rehashed | Result |
+| Protected content group | Tracked files, also unchanged at final publication | Originally physically rehashed by agent 51 | Result |
 | --- | ---: | ---: | --- |
 | Complete `public/` directory | 231 | 231 | Identical |
 | `public/models/`, included in the row above | 44 | 44 | Identical |
@@ -37,7 +81,7 @@ The audit compared baseline and current Git tree objects, inspected the working-
 
 The repository uses sparse checkout. The 2,717 asset-extension files omitted from the working directory were checked by their tracked Git objects, not by claiming that missing local files were read. The asset-extension set was `.blend`, `.glb`, `.gltf`, `.gz`, `.obj`, `.fbx`, `.png`, `.jpg`, `.jpeg`, `.webp`, `.ktx2`, `.hdr`, `.exr`, `.mp3`, `.ogg`, `.wav`, `.veg`, `.ttf`, `.woff`, `.woff2`, `.wasm`, `.svg`, and `.bin`.
 
-The following aggregate hashes make the checked content sets explicit. Each SHA-256 digest covers sorted records of `mode + NUL + path + NUL + Git-blob-ID + newline`. Baseline and inspected current-content digests were identical.
+The following aggregate hashes make the checked content sets explicit. Each SHA-256 digest covers sorted records of `mode + NUL + path + NUL + Git-blob-ID + newline`. Baseline, original-audit and final-publication digests were identical. Agent 60 independently regenerated all eleven values from the complete final Git tree.
 
 | Content group | SHA-256 of content manifest |
 | --- | --- |
@@ -57,7 +101,7 @@ For example, the Formula driver asset `src/rendering/apx01-driver.glb.gz` retain
 
 ## Mixed source files: runtime changes reviewed in context
 
-Filename matching alone would be insufficient: some large runtime files refer to models and authored environments. Their diffs were reviewed directly, and TypeScript syntax-tree extraction compared named declarations and class members with the baseline.
+Filename matching alone would be insufficient: some large runtime files refer to models and authored environments. Agent 51 reviewed their original diffs directly and used TypeScript syntax-tree extraction to compare named declarations and class members with the baseline. The following table records that initial inspection. The final refresh above separately covers the later three disposal-method changes and networking changes; it does not treat these filenames as unrestricted allowances.
 
 | File or group | Inspected change | Content preserved |
 | --- | --- | --- |
@@ -143,4 +187,4 @@ The expected output at this checkpoint is `231 b86dd5b10cc6dafd4e973e9ceadcf22ac
 
 This audit establishes the reviewed change scope and exact protected-content identity. It does not measure frame rate, establish physical GPU/audio/controller behavior, verify every lifecycle change, or replace deterministic simulation and browser tests. Those results belong in the development and performance reports. It also does not claim that all CI jobs passed or treat existing catalogue/livery test failures as permission to alter assets or vehicle tuning.
 
-Only this audit document was written by agent 51. No production code, tests, assets, models, dependencies, commits or remote branches were modified by the audit.
+Agent 51 wrote the original scope document. Agent 60 refreshed this document and prepared the companion completion audit. Neither audit assignment modified production code, test implementations, assets, models, dependencies or remote branch references. The final report handoff contains documentation objects only; the coordinating agent owns publication.

@@ -20,6 +20,34 @@ decoration, textures, material appearance, asset exports, vehicle specifications
 and artistic changes. Runtime infrastructure that operates on these resources
 may be improved without altering the resources or their intended appearance.
 
+## Final outcome
+
+All **60 distinct agent assignments across ten waves** are complete. The final
+production changes are published on `main` at
+[`b282f121b5766df26466d413d2c685b2f826799d`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/b282f121b5766df26466d413d2c685b2f826799d).
+The programme changes 54 production-source files, adds 55 unit-test suites,
+updates five existing suites and retains reusable performance/determinism
+harnesses plus independent evidence reports. All excluded authored content,
+vehicle tuning and dependencies retain their baseline identities.
+
+| Final verification at the published engine source | Result |
+|---|---|
+| Consolidated changed-suite execution | 60 files; 1,072 passes, zero failed/skipped; 1,068 distinct displayed file/name identities |
+| Full unit CI | 840 files; 8,645 passes and four exact pre-existing baseline failures |
+| Full CI lint, content checks and TypeScript | Passed |
+| Product and demo builds, output guards and source-stability checks | Passed |
+| Focused native IndexedDB/Worker and complete replay browser scenario | Seven of seven passed on verified Mesa llvmpipe |
+| Physics and offroad scenarios | Passed |
+| Additional wet-presentation browser checks | Seven passed on verified SwiftShader |
+| Same-tick baseline comparison | Six scenarios, 14,406 complete snapshot/selected-state observations matched; measured source identity retained at final publication |
+| Final scope audit | All 11 protected manifests match; 2,996 asset-extension files unchanged |
+
+Counts from separate runs overlap and are not added together. The four remaining
+broad-unit failures concern original livery/catalogue/localization content; exact
+baseline comparisons are retained. The full release workflow has not been
+certified all green, and the long browser/owner matrices are reported separately.
+The implementation, final code validation and scoped engine programme are complete.
+
 ## Architecture
 
 - Circuit racing, road motorcycles, and motocross share `RacingRenderer` and
@@ -29,6 +57,29 @@ may be improved without altering the resources or their intended appearance.
 - Festival uses `FestivalSession`, `FestivalRenderer`, and
   `OpenWorldSimulation`, reusing the graphics context and vehicle systems.
 - Rendering is based on Three.js; the project's game systems are TypeScript.
+
+## Evidence guide
+
+The final production checkpoint is `b282f121b5766df26466d413d2c685b2f826799d`.
+The reports below keep implementation, measured work, regression execution and
+publication evidence separately identifiable. Per-agent test counts overlap;
+only the consolidated inventory supplies the programme's selected-suite total.
+
+| Report | Contents |
+|---|---|
+| [Task ledger](ENGINE_TASK_LEDGER_2026-11-24.md) | All 60 numbered agent assignments across the ten waves |
+| [Performance evidence](ENGINE_PERFORMANCE_2026-11-24.md) | Actual baseline comparisons, operation counts, output hashes and reusable benchmark commands |
+| [Cross-mode determinism](ENGINE_DETERMINISM_2026-11-24.md) | Six same-tick simulation comparisons, complete snapshot hashes and source identities |
+| [Regression inventory](ENGINE_REGRESSION_INVENTORY_2026-11-24.md) | All 60 selected suites, 1,072 passing executions, conservative unique-name accounting and published-input verification |
+| [Scope audit](ENGINE_SCOPE_AUDIT_2026-11-24.md) | Protected assets, catalogue, configuration and mixed-file runtime boundaries |
+| [Clock and transfer review](ENGINE_CLOCK_TRANSFER_REVIEW_2026-11-24.md) | Reentrant publication ownership and composed worker/input timing checks |
+| [Persistence review](ENGINE_PERSISTENCE_REVIEW_2026-11-24.md) | Transaction completion, save-copy consistency and failure recovery |
+| [Physics review](ENGINE_PHYSICS_REVIEW_2026-11-24.md) | Adversarial contact, interpolation and terrain invariants |
+| [Resource review](ENGINE_RESOURCE_REVIEW_2026-11-24.md) | Host/session/renderer/audio/haptic terminal ownership |
+| [Network review](ENGINE_NETWORK_REVIEW_2026-11-24.md) | Server observer cancellation, teardown failures, late acceptance and reliable delivery |
+| [Browser validation](ENGINE_BROWSER_VALIDATION_2026-11-24.md) | Native IndexedDB and Worker checks, complete replay scenario and verified backend |
+| [CI validation](ENGINE_CI_VALIDATION_2026-11-24.md) | Exact workflow jobs, compiler/build results and baseline failure comparisons |
+| [Completion audit](ENGINE_COMPLETION_AUDIT_2026-11-24.md) | Independent final source, evidence and scope acceptance |
 
 ## Acceptance criteria
 
@@ -59,7 +110,7 @@ Specific assignments are refined against findings from preceding waves.
 | 7 | 37–42 | Audio graph lifecycle, input devices and session transitions | Complete |
 | 8 | 43–48 | Determinism, shared runtime integration and open-world engine services | Complete |
 | 9 | 49–54 | Performance measurement and adversarial integration review | Complete |
-| 10 | 55–60 | Independent regression audits, remaining fixes and final validation | In progress |
+| 10 | 55–60 | Independent regression audits, remaining fixes and final validation | Complete |
 
 ## Validation environment
 
@@ -86,6 +137,7 @@ Published engine checkpoints:
 | 7 | `9dc4811` |
 | 8 | `c4e62c6` |
 | 9 | `6a66503` |
+| 10 | `b282f12` (final production changes) |
 
 Automated CI-report commits are preserved between engine checkpoints;
 publication never force-updates `main`.
@@ -611,8 +663,27 @@ process per file and no retries. Conservative file/name deduplication gives
 without inventing additional unique names. Source, test and configuration hashes
 were unchanged throughout the run. These totals are independent of overlapping
 agent runs. See the [regression inventory](ENGINE_REGRESSION_INVENTORY_2026-11-24.md).
-Corrected native IndexedDB/Worker cases, the complete replay scenario, final
-CI and the independent scope audit remain the final published-source gates.
+On the published final commit, all **seven focused browser cases passed**:
+six native IndexedDB/Worker cases and the complete replay scenario. The corrected
+mirror test now verifies rollback, rejection, recovery and error absence with
+Chromium's observed event ordering. The backend was verified as Mesa llvmpipe,
+so this is software-rendered browser evidence. The full CI validation job also
+passed repository lint, content checks, whole TypeScript and product/demo builds.
+The final independent scope audit passed at the exact same production tree.
+All four broad unit partitions subsequently completed on that same commit:
+**8,645 passed and four failed across 840 files**, with zero skipped or pending
+cases and no unhandled-runner/source-guard errors. The four failures exactly match
+the original baseline titles, assertions and values: APX-01 livery metadata,
+gpr1 calibration hash, missing localization dictionary keys and the frozen gpr1
+catalogue-growth hash. Their test sources remain unchanged. No new engine unit
+failure occurred. Full physics scenarios, offroad scenarios and wet-presentation
+validation also passed; the wet run separately passed seven browser cases on
+verified SwiftShader. The focused seven-case run uses verified Mesa.
+
+The full repository workflow is not presented as all green: its four baseline
+unit failures remain visible, and the larger browser/owner matrices were still
+in progress at the final core-evidence snapshot. Detailed job identities,
+counts and limitations are in the [CI report](ENGINE_CI_VALIDATION_2026-11-24.md).
 
 The restored candidate passed whole-project `tsc --noEmit --extendedDiagnostics`
 across 3,169 files (approximately 2.3 GiB compiler memory), scoped lint for every

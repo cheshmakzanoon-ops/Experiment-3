@@ -34,6 +34,14 @@ run and fails if either tree changes during execution. Both manifests contained
 These receipts describe the wave 8 source boundary. Subsequent engine changes
 require another comparison if they can affect the simulated outputs.
 
+The final [scope audit](ENGINE_SCOPE_AUDIT_2026-11-24.md) independently verified
+that all 189 core/simulation files retain their exact wave-8 modes and Git blob
+identities at `b282f121b5766df26466d413d2c685b2f826799d`, with no added or removed
+files in that set. The recorded deterministic results therefore carry forward to
+those unchanged simulation inputs. No second run on the final commit is implied;
+the final host, resource-disposal and server-lifetime changes receive their own
+regression and browser evidence.
+
 ## Scenarios and observed coverage
 
 All scenarios use seed 73021. Non-event scenarios receive a fresh, deterministic

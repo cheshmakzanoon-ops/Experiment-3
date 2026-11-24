@@ -97,8 +97,8 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 |---|---|---|
 | 49 | Reproducible baseline operation counts and performance evidence | Confirmed exact outputs and BVH/telemetry/collision/route work reductions against actual baseline modules; reusable scripts and hashed receipts retained |
 | 50 | Same-tick cross-mode deterministic baseline comparison | Six scenarios passed: 14,406 complete snapshots and selected Float64 state comparisons, plus 4,802 Festival traffic/status comparisons |
-| 51 | Independent models, environments, tuning and dependency scope audit | Audit passed through wave 8: 2,996 asset-file Git objects unchanged, mixed runtime files inspected; final refresh pending |
-| 52 | Native browser integration and persistence/replay verification | Prepared six real IndexedDB/Worker regressions plus focused read-only CI workflow; 535-file TS/discovery/static checks passed; local browser launch blocked by socket policy |
+| 51 | Independent models, environments, tuning and dependency scope audit | Original audit passed through wave 8; agent 60 final refresh confirms all 2,996 asset-file Git objects and reviewed runtime boundaries through the final production commit |
+| 52 | Native browser integration and persistence/replay verification | Prepared six real IndexedDB/Worker regressions plus focused read-only CI workflow; final published-source run passed all six native cases and the complete replay scenario (7/7), verified Mesa backend |
 | 53 | Independent clocks, input and transfer ownership review | Found and fixed nested publication recovery stealing a newer frame owner; seven new cases and 50 distinct focused tests passed |
 | 54 | Independent persistence, replay and export adversarial review | Fixed caller mutation making desktop mirror differ from committed save; 13 new cases and 134 storage/replay/export tests passed |
 
@@ -110,5 +110,5 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 | 56 | Audio, renderer and host lifetime integration review | Fixed failure-isolated, reentrant teardown in three existing dispose methods; all 18 integration cases passed again after recovery |
 | 57 | Combined networking recovery and service ownership review | Fixed terminal server observer/acceptance ownership; all 11 integration and four unchanged selected lifecycle/resilience cases passed on recovered source |
 | 58 | Consolidated regression execution and unique-test inventory | Completed all 60 suites: 1,072 passing executions, zero failed/skipped, 1,068 distinct file/name identities; four parameterized title collisions documented; all input hashes unchanged |
-| 59 | CI triage, complete compiler/build checks and baseline distinction | Wave-9 audit complete: 8,608 passing tests, four exact baseline failures, full lint/compiler/build and scenario jobs passed; final-source rerun pending |
-| 60 | Final task, scope, publication and evidence audit | Independent protected-object and measured-source audit passed through wave 9; final tree and receipts pending |
+| 59 | CI triage, complete compiler/build checks and baseline distinction | Complete: final native 7/7, whole lint/content/compiler/product/demo builds and scenario jobs passed; broad units 8,645 passed/four exact baseline failures across 840 files |
+| 60 | Final task, scope, publication and evidence audit | Complete: final source, all 11 protected manifests, measured-source continuity, 60-suite inventory, three dispose-only file boundaries and exact-source CI accounting independently audited |
