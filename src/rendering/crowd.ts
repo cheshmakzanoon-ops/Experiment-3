@@ -497,12 +497,13 @@ export class CrowdCluster {
     private readonly gpSeatSide = 0,
     standingBank = false,
     private readonly formulaSeatSide = 0,
+    private readonly mxSeatSide = 0,
   ) {
     if (!matrices.length || matrices.length !== colors.length || !Number.isSafeInteger(seed))
       throw new Error('Invalid spectator cluster');
     this.root.name = `Authored crowd cluster ${seed}`;
     this.root.userData.authoredPeople = PEOPLE_ASSET;
-    if (gpSeatSide || formulaSeatSide) {
+    if (gpSeatSide || formulaSeatSide || mxSeatSide) {
       this.gpYaw = { value: 0 };
       this.gpSeats = { value: new T.Vector3() };
     }
@@ -633,11 +634,11 @@ export class CrowdCluster {
     this.centre.copy(this.localCentre).applyMatrix4(this.root.matrixWorld);
     this.gpShadowDetail = !!this.gpSeatSide && gpGrid;
     const formulaGaze = formulaGrid && !!this.formulaSeatSide;
-    const trackTraffic = this.gpShadowDetail || formulaGaze;
+    const trackTraffic = this.gpShadowDetail || formulaGaze || !!this.mxSeatSide;
     const distance = this.centre.distanceTo(camera);
     const lensDistance = detailDistance(distance, fov, aspect);
     // A face occupying four pixels at 540p spans sixteen pixels at 2160p.
-    // Scale the GP stands' existing handoff bands to the colour target. The
+    // Scale the track-facing stands' handoff bands to the colour target. The
     // actual metre distance below still governs reactions to passing traffic.
     const visualDistance = trackTraffic && Number.isFinite(renderHeight) && renderHeight > 0
       ? lensDistance * clamp(1080 / renderHeight, 0.5, 2)
@@ -649,7 +650,7 @@ export class CrowdCluster {
     );
     if (this.gpYaw && this.gpSeats) {
       const m = this.root.matrixWorld.elements;
-      const side = (this.gpSeatSide || this.formulaSeatSide) / (Math.hypot(m[8], m[10]) || 1);
+      const side = (this.gpSeatSide || this.formulaSeatSide || this.mxSeatSide) / (Math.hypot(m[8], m[10]) || 1);
       const scan = trackTraffic && frame && visualDistance < 480;
       const lead = formulaGaze ? 0.135 : 0;
       this.gpYaw.value = scan ? gpSpectatorYaw(frame, this.centre, side * m[8], side * m[10], lead) : 0;

@@ -1,5 +1,9 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
+import { CrowdCluster } from '../src/rendering/crowd.ts';
+import { buildGrandstand, type standMaterials } from '../src/rendering/grandstand.ts';
+import { venuePlan } from '../src/rendering/venue-plan.ts';
+import { PHASE } from '../src/simulation/race.ts';
 import { MarshalStaffView, type MarshalLocation } from '../src/rendering/marshal-staff.ts';
 import {
   mxMarshalLocations,
@@ -211,4 +215,52 @@ describe('MX spectators and flag marshals', () => {
       }
     },
   );
+});
+
+it('Valley Ridge grandstand seats track a passing pack and use the actual race or broadcast lens', () => {
+  const track = rigTrack('valley-ridge-mx');
+  const site = venuePlan(track).grandstands[0];
+  const props = new T.Group(), crowd = new T.Group(), clusters: CrowdCluster[] = [];
+  const materials = Object.fromEntries(
+    ['concrete', 'steel', 'roof', 'underside', 'seats', 'people', 'sign']
+      .map(name => [name,new T.MeshStandardMaterial()]),
+  ) as ReturnType<typeof standMaterials>;
+  buildGrandstand(track,props,crowd,site,materials,clusters);
+  try {
+    const cluster = clusters[0];
+    const frame = new Float32Array(HEADER + CAR_STRIDE), o = carBase(0);
+    frame[H.CARS] = 1; frame[H.PHASE] = PHASE.RACING; frame[o+F.SPEED] = 27;
+    crowd.updateMatrixWorld(true);
+    const mesh = cluster.levels[0], seat = new T.Matrix4(), centre = new T.Vector3();
+    const v = new T.Vector3();
+    for (let i = 0; i < mesh.count; i++) {
+      mesh.getMatrixAt(i,seat); centre.add(v.setFromMatrixPosition(seat));
+    }
+    mesh.localToWorld(centre.multiplyScalar(1/mesh.count));
+    const m = cluster.root.matrixWorld.elements;
+    const along = new T.Vector3(m[8],0,m[10]).normalize().multiplyScalar(site.side);
+    const front = new T.Vector3(-along.z,0,along.x);
+    const near = centre.clone().addScaledVector(front,17);
+    const far = centre.clone().addScaledVector(front,146);
+    function pass(station: number) {
+      const rider = near.clone().addScaledVector(along,station);
+      frame[o+F.X] = rider.x; frame[o+F.Z] = rider.z;
+      cluster.update(4,near,0,frame,58,16/9,false,1080);
+      return cluster.gpYaw!.value;
+    }
+    const arriving = pass(-21);
+    expect(arriving).toBeLessThan(-.12);
+    expect(pass(21)).toBeGreaterThan(.12);
+    expect(pass(-21)).toBe(arriving);
+    frame[H.PHASE] = PHASE.GRID;
+    expect(pass(21)).toBe(0);
+    cluster.update(4,far,0,frame,58,16/9,false,540);
+    expect(cluster.levels.map(l => l.visible)).toEqual([false,false,true,false]);
+    cluster.update(4,far,0,frame,58,16/9,false,1080);
+    expect(cluster.levels.map(l => l.visible)).toEqual([false,true,false,false]);
+    cluster.update(4,far,0,frame,12,16/9,false,1080);
+    expect(cluster.levels[0].visible).toBe(true);
+  } finally {
+    disposeOffroadResources([props,crowd]);
+  }
 });

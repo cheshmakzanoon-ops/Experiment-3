@@ -335,6 +335,7 @@ export function buildGrandstand(
       gpAudience ? side : 0,
       false,
       formulaSeats ? side : 0,
+      track.circuit.id === 'valley-ridge-mx' ? side : 0,
     );
     peopleRoot.add(cluster.root);
     clusters?.push(cluster);
