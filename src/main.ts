@@ -1657,7 +1657,9 @@ export class GameApp {
         !this.ui.telemetryModal.open && !this.ui.modal.open && !document.hidden,
       );
       const fraction = this.replay.sample(targetTime, this.replayA, this.replayB);
-      if (fraction === null) {
+      const offroad = this.renderer.circuit.offroad;
+      if (fraction === null || (offroad && !offroad.showReplayAt(
+        lerp(this.replayA[H.TIME], this.replayB[H.TIME], fraction), this.replay))) {
         this.replayStall.buffering++;
         this.replayStall.lastBufferedTarget = targetTime;
         this.ui.setText('replayTime', this.replay.error ?? 'BUFFERING RECORDED LAP…');
@@ -1676,7 +1678,6 @@ export class GameApp {
         );
         this.appliedReplaySurfaceTime = surface.time;
       }
-      this.renderer.circuit.offroad?.showAt(lerp(this.replayA[H.TIME], this.replayB[H.TIME], fraction));
       a = this.replayA;
       b = this.replayB;
       // Attribute writes mutate the DOM even when unchanged; write only changes.
@@ -1914,6 +1915,7 @@ export class GameApp {
     // asynchronous page read. A seek is not a catch-up interval for effects.
     this.replayClock.seek(value, this.replayFloor(), this.replay.duration);
     this.replay.prepareSeek(this.replayClock.position);
+    this.renderer?.circuit.offroad?.invalidateReplayRoost();
     this.renderer?.reset();
     this.audio.stop();
   }
@@ -2413,7 +2415,7 @@ export class GameApp {
         this.liveSurface.marbles,
         this.liveSurface.frozen,
       );
-    this.renderer?.circuit.offroad?.showAt(null);
+    this.renderer?.circuit.offroad?.returnToLive(this.replay);
     this.input.setEnabled(false);
     this.renderer?.reset();
     this.ui.showMode(this.state);

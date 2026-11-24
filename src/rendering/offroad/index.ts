@@ -1,3 +1,4 @@
+import type { SessionReplay } from '../../storage/replay-pages.ts';
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import {
@@ -50,6 +51,8 @@ export class OffroadScene {
   readonly roost: Roost;
   readonly marshalLocations: MarshalLocation[] = [];
   private lastTime = NaN;
+  private replayTime = NaN;
+  private replayCut = true;
   private readonly wind = new MxVenueWind();
   private disposed = false;
   private readonly pending: {
@@ -206,6 +209,32 @@ export class OffroadScene {
     if (time === null) this.terrain?.showLive();
     else this.terrain?.showAt(time);
     this.syncLooseSoil();
+  }
+  /** A slider seek, camera hold and ordinary forward playback have
+   * different histories, even when two requests are only a frame apart. */
+  invalidateReplayRoost() {
+    this.replayCut = true;
+  }
+  showReplayAt(time: number, replay: Pick<SessionReplay, 'visitRecentFrames'>) {
+    this.showAt(time);
+    if (this.disposed || !this.roost.clods) return true;
+    if (this.replayCut || time < this.replayTime || time - this.replayTime > 0.25) {
+      const last = this.roost.rebuildAt(time, replay);
+      if (last === null) return false;
+      this.lastTime = last;
+      this.replayCut = false;
+    }
+    this.replayTime = time;
+    return true;
+  }
+  returnToLive(replay: SessionReplay | null) {
+    this.showAt(null);
+    this.replayTime = NaN;
+    this.replayCut = true;
+    if (this.disposed || !this.roost.clods) return;
+    const last = replay ? this.roost.rebuildAt(replay.end, replay) : null;
+    if (last === null) this.roost.clear();
+    this.lastTime = last ?? NaN;
   }
   private syncLooseSoil() {
     if (!this.terrain || !this.looseSoil) return;

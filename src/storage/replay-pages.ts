@@ -461,6 +461,31 @@ export class SessionReplay {
     }
     return pageId;
   }
+  /** Visit a causal slice of the stored worker frames without moving the
+   * replay clock or decoding a different weather surface. Preroll uses at
+   * most two pages, which cover over twenty seconds at the normal page
+   * size. A disk miss never hands the consumer a partial interval. */
+  visitRecentFrames(endTime: number, duration: number, visit: (frame: Float32Array) => void) {
+    if (this.closed || !this.count || !Number.isFinite(endTime + duration) || duration < 0)
+      return false;
+    const end = clamp(endTime, this.start, this.end);
+    const start = Math.max(this.start, end - duration);
+    const last = this.pageAt(end);
+    const first = Math.max(last - 1, this.pageAt(start));
+    const earlier = this.read(first);
+    const later = first === last ? earlier : this.read(last);
+    if (!earlier || !later) return false;
+    const walk = (page: ReplayPage) => {
+      for (let index = 0; index < page.count; index++) {
+        const offset = index * this.stride, time = page.frames[offset + H.TIME];
+        if (time > end) break;
+        if (time >= start) visit(page.frames.subarray(offset, offset + this.stride));
+      }
+    };
+    walk(earlier);
+    if (later !== earlier) walk(later);
+    return true;
+  }
   sample(seconds: number, a: Float32Array, b: Float32Array): number | null {
     if (this.closed || !this.count || !Number.isFinite(seconds)) return null;
     if (a.length !== this.stride || b.length !== this.stride)

@@ -1,3 +1,4 @@
+import type { SessionReplay } from '../../storage/replay-pages.ts';
 import * as T from 'three';
 import { disposeOffroadResources } from './owned-resources.ts';
 import { clamp, Random } from '../../core/math.ts';
@@ -585,18 +586,18 @@ export class Roost {
     }
   }
 
-  private shadows(frame: Float32Array) {
+  private shadows(frame: Float32Array, present: boolean) {
     const mesh = this.contactShadows;
     if (!mesh) return;
     let count = 0;
     this.loaded.fill(0);
-    this.chassisShade?.begin();
+    if (present) this.chassisShade?.begin();
     for (let id = 0; id < Math.min(64, frame[H.CARS]); id++) {
       const o = carBase(id),
         def = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
       if (def.dynamicsKind !== 'bike' || frame[o + F.RETIRED] > 0.5) continue;
       this.q.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
-      if (this.track && this.groundHeight && def.bike?.offroad)
+      if (present && this.track && this.groundHeight && def.bike?.offroad)
         this.chassisShade?.add(frame[o + F.X], frame[o + F.Y], frame[o + F.Z], this.q,
           def.spec.wheelbase, this.track, this.groundHeight, this.startPad);
       if (frame[o + OFFROAD_BASE + O.AIRBORNE] > 0.5) continue;
@@ -607,6 +608,7 @@ export class Roost {
         const patch = (this.patches[slot] ??= mxWheelPatch());
         this.sampleWheel(frame, o, wheel === 0, def, patch);
         this.loaded[slot] = 1;
+        if (!present) continue;
         const pose = this.shadowPose;
         pose.position.copy(patch.position);
         pose.position.y += 0.022;
@@ -620,6 +622,7 @@ export class Roost {
         mesh.setMatrixAt(count++, pose.matrix);
       }
     }
+    if (!present) return;
     this.chassisShade?.end();
     mesh.count = count;
     markItems(mesh.instanceMatrix, 0, count - 1);
@@ -744,17 +747,46 @@ export class Roost {
     markItems(mesh.instanceColor!, 0, count - 1);
     markItems(clodWet, 0, count - 1);
   }
+  /** Recreate the visible lifetime from recorded wheel loads, winding,
+   * landing impulses and wind. Only the final cloud is uploaded. */
+  rebuildAt(time: number, replay: Pick<SessionReplay, 'visitRecentFrames'>): number | null {
+    if (!this.clods || !this.enabled) return time;
+    let last = NaN;
+    // Nearby slider positions share a common start, so the same tyres
+    // keep the same emission sequence while the camera scrubs a landing.
+    const duration = time - Math.floor(time) + 3.75;
+    const ready = replay.visitRecentFrames(time, duration, (frame) => {
+      const stamp = frame[H.TIME];
+      if (!Number.isFinite(last) || stamp - last > 0.25) this.clear();
+      const dt = Number.isFinite(last) && stamp - last <= 0.25 ? stamp - last : 0;
+      this.advance(frame, dt, false);
+      last = stamp;
+    });
+    if (!ready) return null;
+    if (!Number.isFinite(last)) this.clear();
+    this.publish();
+    return Number.isFinite(last) ? last : time;
+  }
   update(frame: Float32Array, dt: number) {
+    this.advance(frame, dt, true);
+  }
+  private advance(frame: Float32Array, dt: number, present: boolean) {
     if (this.disposed) return;
     if (!Number.isFinite(dt) || dt < 0) return;
     this.points.visible = this.enabled;
-    this.exhaust?.update(frame, this.enabled ? this.density : 0, this.windExposed);
-    this.shadows(frame);
+    if (present) this.exhaust?.update(frame, this.enabled ? this.density : 0, this.windExposed);
+    this.shadows(frame, present);
     if (this.clods) {
       this.clods.visible = this.enabled;
       // A camera move or a held race snapshot can change the contact shadow
       // projection above. The debris itself has no elapsed time to advance.
-      if (dt === 0) return;
+      if (dt === 0) {
+        if (!present) {
+          for (let id = 0; id < Math.min(64, frame[H.CARS]); id++)
+            this.wasAirborne[id] = frame[carBase(id) + OFFROAD_BASE + O.AIRBORNE] > 0.5 ? 1 : 0;
+        }
+        return;
+      }
     }
     const step = Math.min(dt, this.motocross ? 0.1 : 0.05);
     if (this.motocross) {
@@ -867,7 +899,7 @@ export class Roost {
       this.collisionCursor = (this.collisionCursor + ROOST_GROUND_SAMPLES) % ROOST_CAPACITY;
     if (!this.enabled || dt === 0) {
       this.lastMachine.fill(0);
-      this.publish();
+      if (present) this.publish();
       return;
     }
     const r = this.random,
@@ -1009,7 +1041,7 @@ export class Roost {
         }
       }
     }
-    this.publish();
+    if (present) this.publish();
   }
   clear() {
     this.exhaust?.clear();

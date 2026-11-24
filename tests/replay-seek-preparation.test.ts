@@ -259,3 +259,20 @@ describe('replay seek preparation before rendering', () => {
     await replay.dispose();
   });
 });
+
+it('exposes a causal debris preroll across a page boundary without moving the selected weather', async () => {
+  const { store, replay } = await recording();
+  const a = new Float32Array(replay.stride), b = new Float32Array(replay.stride);
+  replay.sample(replay.duration, a, b);
+  const weather = replay.surfaceState.time, read = deferred(store);
+  const end = Math.fround(5 + 8 / 15);
+  const ticks: number[] = [], visit = (frame: Float32Array) => ticks.push(frame[H.TICK]);
+  expect(replay.visitRecentFrames(end, 0.18, visit)).toBe(false);
+  expect(ticks).toEqual([]);
+  for (const id of read.requests) read.release(id);
+  await replay.settle();
+  expect(replay.visitRecentFrames(end, 0.18, visit)).toBe(true);
+  expect(ticks).toEqual([48, 56, 64]);
+  expect(replay.surfaceState.time).toBe(weather);
+  await replay.dispose();
+});

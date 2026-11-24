@@ -56,6 +56,15 @@ test('opaque motocross soil fragments respond to scene lighting while dust and c
         body: Buffer.from(sample.image.split(',')[1], 'base64'),
         contentType: 'image/png',
       });
+    const [beforeCloud, raisedCloud, returnedCloud] = result.rewind;
+    expect(raisedCloud.hash).not.toBe(beforeCloud.hash);
+    expect(returnedCloud.hash).toBe(raisedCloud.hash);
+    expect(returnedCloud.calls).toBe(raisedCloud.calls);
+    expect(returnedCloud.resources).toEqual(raisedCloud.resources);
+    expect(returnedCloud.glError).toBe(0);
+    await info.attach((wet ? 'wet' : 'dry') + '-reconstructed-roost.png', {
+      body: Buffer.from(returnedCloud.image.split(',')[1], 'base64'), contentType: 'image/png',
+    });
     expect(result.sourceUnchanged).toBe(true);
     expect(result.clods).toBeGreaterThan(20);
     expect(result.clods).toBeLessThanOrEqual(result.active);

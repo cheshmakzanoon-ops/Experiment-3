@@ -115,10 +115,32 @@ export function captureMotocrossRoostLighting(wet: boolean) {
   const repeat = sample('fragments-held');
   roost.clods!.visible = false;
   const hidden = sample('fragments-hidden');
+  const clods = roost.clods!.count, active = roost.active;
+  floor.visible = roost.points.visible = roost.contactShadows!.visible = roost.clods!.visible = true;
+  const frames: Float32Array[] = [];
+  for (let tick = 0; tick <= 65; tick++) {
+    const f = frame.slice();
+    f[H.TIME] = tick / 15;
+    f[H.TICK] = tick * 8;
+    frames.push(f);
+  }
+  const history = { visitRecentFrames(end: number, duration: number, visit: (f: Float32Array) => void) {
+    for (const f of frames) if (f[H.TIME] >= end - duration && f[H.TIME] <= end) visit(f);
+    return true;
+  } };
+  const scrub = (time: number, label: string) => {
+    roost.rebuildAt(time, history);
+    roost.update(frames[Math.round(time * 15)], 0);
+    return sample(label);
+  };
+  const beforeCloud = scrub(0, 'before-roost');
+  const raisedCloud = scrub(2, 'recorded-roost');
+  scrub(4, 'later-roost');
+  const returnedCloud = scrub(2, 'restored-roost');
   const result = {
     wet,
-    clods: roost.clods!.count,
-    active: roost.active,
+    clods, active,
+    rewind: [beforeCloud, raisedCloud, returnedCloud],
     sourceUnchanged: frame.every((value, i) => value === source[i]),
     samples: [whole, left, right, repeat, hidden],
   };

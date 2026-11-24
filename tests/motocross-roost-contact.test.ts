@@ -77,6 +77,46 @@ function harness(riders = 1, venue: 'valley-ridge-mx' | 'arena-nord-sx' = 'valle
 }
 
 describe('lit motocross soil and independent touchdown contacts', () => {
+  it('rebuilds airborne soil from past wheel loads on a cold seek and gives the same cloud on return', () => {
+    const h = harness(), frames: Float32Array[] = [];
+    for (let tick = 0; tick <= 75; tick++) {
+      h.frame[H.TIME] = tick / 15;
+      h.frame[H.TICK] = tick * 8;
+      h.frame[h.o + O.MOISTURE] = 0.26;
+      if (tick > 48) h.load(0, 0);
+      frames.push(h.frame.slice());
+    }
+    const history = { visitRecentFrames(end: number, duration: number, visit: (f: Float32Array) => void) {
+      for (const f of frames) if (f[H.TIME] <= end && f[H.TIME] >= end - duration) visit(f);
+      return true;
+    } };
+    const visible = () => {
+      const g = h.roost.points.geometry;
+      const dots = [];
+      for (let i = 0; i < g.drawRange.count; i++) {
+        const slot = g.index!.getX(i);
+        dots.push(new T.Vector3().fromBufferAttribute(g.getAttribute('position'), slot).toArray(),
+          g.getAttribute('mxParticleAlpha').getX(slot));
+      }
+      const chips = Array.from(h.roost.clods!.instanceMatrix.array.slice(0, h.roost.clods!.count * 16));
+      return { dots, chips };
+    };
+    expect(h.roost.rebuildAt(3, history)).toBe(3);
+    const launch = visible();
+    expect(launch.dots.length).toBeGreaterThan(30);
+    expect(launch.chips.length).toBeGreaterThan(160);
+    expect(h.roost.rebuildAt(3.4, { visitRecentFrames: () => false })).toBeNull();
+    expect(visible()).toEqual(launch);
+    h.roost.rebuildAt(4.8, history);
+    expect(visible().chips).toHaveLength(0);
+    h.roost.rebuildAt(0, history);
+    expect(visible()).toEqual({ dots: [], chips: [] });
+    h.roost.rebuildAt(3, history);
+    expect(visible()).toEqual(launch);
+    h.roost.update(frames[45], 0);
+    expect(visible()).toEqual(launch);
+  });
+
   it('emits the two-stroke plume at the tipped silencer, with outdoor drift and repeatable seeks', () => {
     for (const venue of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
       const { roost, frame, b } = harness(1, venue), mesh = roost.exhaust!.points;
