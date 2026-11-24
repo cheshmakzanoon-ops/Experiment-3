@@ -25,7 +25,7 @@ export const MX_SX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.fre
   sand: 0x86684a,
 });
 
-export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v5';
+export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v6';
 
 const DECLARATIONS = /* glsl */ `
 varying vec4 vMxCourse;
@@ -332,7 +332,7 @@ export function installMxSoilDetail(
     injectDeclarations(
       shader,
       'common',
-      'attribute vec4 mxCourse;\nattribute float mxCourseWidth;\nattribute vec4 mxCourseWear;\nattribute float mxSoilTopo;\nvarying vec4 vMxCourse;\nvarying float vMxCourseWidth;\nvarying vec4 vMxCourseWear;\nvarying float vMxSoilTopo;',
+      'attribute vec4 mxCourse;\nattribute float mxCourseWidth;\nattribute vec4 mxCourseWear;\nattribute vec3 mxSoilTopo;\nvarying vec4 vMxCourse;\nvarying float vMxCourseWidth;\nvarying vec4 vMxCourseWear;\nvarying float vMxSoilTopo;',
       'vertex',
     );
     injectAfter(
@@ -341,10 +341,10 @@ export function installMxSoilDetail(
       `vMxCourse = mxCourse;
 vMxCourseWidth = mxCourseWidth;
 vMxCourseWear = mxCourseWear;
-vMxSoilTopo = mxSoilTopo;
+vMxSoilTopo = mxSoilTopo.x;
 // Presentation drainage: water runs off crests and lips and lingers in
 // hollows and at berm feet. Every wetness consumer clamps the sum.
-vApexSoil.x += ( max( mxSoilTopo, 0.0 ) * 0.16 - max( -mxSoilTopo, 0.0 ) * 0.22 )
+vApexSoil.x += ( max( mxSoilTopo.x, 0.0 ) * 0.16 - max( -mxSoilTopo.x, 0.0 ) * 0.22 )
   * clamp( mxCourse.z, 0.0, 1.0 );`,
       'vertex',
     );

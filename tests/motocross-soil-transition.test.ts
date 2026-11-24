@@ -8,13 +8,13 @@ import {
   sampleMxSoilTransition,
 } from '../src/rendering/offroad/mx-soil-transition.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
-import { COURSE_CELL, SOIL_KINDS, type SoilKind } from '../src/simulation/offroad/course.ts';
+import { COURSE_CELL, SOIL_KINDS, SOILS, type SoilKind } from '../src/simulation/offroad/course.ts';
 import {
   TrackTerrainSurface,
   type CourseTerrain,
 } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
-import { Track } from '../src/simulation/track.ts';
+import { Track, trackPoint, surfaceSample } from '../src/simulation/track.ts';
 
 const soilIndex = (kind: SoilKind) => SOIL_KINDS.indexOf(kind);
 
@@ -182,4 +182,27 @@ describe('MX construction-time soil boundary integration', () => {
       view.dispose();
     },
   );
+});
+
+it('uses the surveyed packed fill under both wheels and the dirt shader on the side of Ridge Table', () => {
+  const track = rigTrack('valley-ridge-mx');
+  const terrain = (Track.offroadOf(track) as TrackTerrainSurface).terrain;
+  const s = terrain.course.jumps.find(j => j.name === 'RIDGE TABLE')!.takeoff;
+  const p = track.at(s, trackPoint());
+  const w = p.width;
+  for (const side of [-1,1]) {
+    const l = (w + 1.65) * side;
+    const cell = terrain.cellIndex(l,s);
+    expect(terrain.soilKind(cell)).toBe('hardpack');
+    expect(terrain.contact(l,s).material).toBe('hardpack');
+    expect(sampleMxSoilTransition(terrain,l,s).weights[SOIL_KINDS.indexOf('hardpack')]).toBeGreaterThan(.93);
+    expect(terrain.soilKind(terrain.cellIndex(side*(w+4.3),s))).toBe('turf');
+  }
+  const ordinaryShoulder = (terrain.course.spec.berms[0].from + terrain.course.spec.berms[0].to) * .5;
+  const inside = -(track.at(ordinaryShoulder,p).width + 2.5);
+  expect(terrain.soilKind(terrain.cellIndex(inside,ordinaryShoulder))).toBe('turf');
+  const point = track.at(ordinaryShoulder,p);
+  const contact = surfaceSample();
+  track.sample(point.x + point.nx * inside, point.z + point.nz * inside, contact);
+  expect(contact.surface).toBe(SOILS.turf.material);
 });

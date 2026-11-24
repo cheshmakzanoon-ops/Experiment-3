@@ -66,6 +66,7 @@ export class CourseTerrain extends TerrainTile {
   readonly renderColumns: number;
   readonly renderRows: number;
   private readonly point = trackPoint();
+  private readonly bankRelief = relief();
   private readonly rutCentres?: Float64Array;
   constructor(
     readonly track: Track,
@@ -105,7 +106,15 @@ export class CourseTerrain extends TerrainTile {
     }
   }
   private soilAtCell(s: number, lateral: number, p: TrackPoint) {
-    return this.course.soilAt(s, lateral, p.width);
+    const cell = this.course.soilAt(s, lateral, p.width);
+    const shoulder = Math.abs(lateral) - p.width;
+    if (this.course.kind === 'motocross' && cell.soil === 'turf' && shoulder > .6 && shoulder < 3.6) {
+      // Freshly built jump flanks and the back of a berm expose packed fill.
+      // An ordinary grassy verge on the same hillside keeps its turf.
+      const face = this.course.relief(s, lateral, p, this.bankRelief);
+      if (face.h > .16) cell.soil = 'hardpack';
+    }
+    return cell;
   }
   /** Ground without ruts at (s, lateral). */
   baseHeight(s: number, lateral: number) {

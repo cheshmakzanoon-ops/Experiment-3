@@ -13,6 +13,7 @@ import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../gro
 import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
+import { installMxCutBank } from './mx-cut-bank.ts';
 import { installMxArenaApron } from './mx-arena-apron.ts';
 import { installMxSoilParallax } from './mx-soil-parallax.ts';
 import { mxStartLanes } from './mx-launch-soil.ts';
@@ -119,6 +120,7 @@ export class TerrainView {
       installMxTerrainShadow(this.material);
       installMxSoilParallax(this.material);
       if (this.supercross) installMxArenaApron(this.material, true);
+      else installMxCutBank(this.material);
     }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
@@ -168,7 +170,8 @@ export class TerrainView {
       mxCourseWear = this.motocross ? new Float32Array(count * 4) : null,
       mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
       mxBrakingWork = this.motocross ? new Float32Array(count * 4) : null,
-      mxSoilTopo = this.motocross ? new Float32Array(count) : null,
+      topoSize = this.supercross ? 1 : 3,
+      mxSoilTopo = this.motocross ? new Float32Array(count * topoSize) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
       keep = new Uint8Array(count);
@@ -188,6 +191,12 @@ export class TerrainView {
         const x = p.x + p.nx * lateral,
           z = p.z + p.nz * lateral,
           h = t.course.groundAt(s, lateral, p, section, bank);
+        if (mxSoilTopo && !this.supercross) {
+          // Surveyed fill height and falling outward grade. A naturally
+          // sloping hillside has neither, even on an inclined straight.
+          mxSoilTopo[k * topoSize + 1] = section.h;
+          mxSoilTopo[k * topoSize + 2] = -Math.sign(lateral) * section.dl;
+        }
         base[k] = h;
         position[k * 3] = x;
         position[k * 3 + 1] = h;
@@ -282,7 +291,7 @@ export class TerrainView {
                 4 -
               h,
             far = (height(r - 5, c, k) + height(r + 5, c, k)) / 2 - h;
-          mxSoilTopo[k] = clamp((near * 0.6 + far * 0.4) / 0.22, -1, 1);
+          mxSoilTopo[k * topoSize] = clamp((near * 0.6 + far * 0.4) / 0.22, -1, 1);
         }
     }
     const index: number[] = [];
@@ -313,7 +322,7 @@ export class TerrainView {
     if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
     if (mxBrakingWork)
       geometry.setAttribute('mxBrakingWork', new T.BufferAttribute(mxBrakingWork, 4));
-    if (mxSoilTopo) geometry.setAttribute('mxSoilTopo', new T.BufferAttribute(mxSoilTopo, 1));
+    if (mxSoilTopo) geometry.setAttribute('mxSoilTopo', new T.BufferAttribute(mxSoilTopo, topoSize));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);
