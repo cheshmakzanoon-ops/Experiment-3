@@ -3538,30 +3538,48 @@ export class GameApp {
     };
   }
   dispose() {
-    window.removeEventListener('keydown', this.reviewKeyboard);
-    this.sessionReview.stop('Application disposed', true);
-    this.tabEvidence.dispose();
     if (this.disposed) return;
-    this.performanceCapture.interrupt('Application disposed');
-    this.interruptReview('Application disposed');
-    this.reviewVideo.dispose();
+    // Revoke host ownership before child callbacks can reenter or complete a
+    // pending start. One failed owner must not strand unrelated live resources.
     this.disposed = true;
     this.generation++;
-    this.exporter.cancel();
-    if (this.replay) void this.replay.dispose();
-    this.inputPump.dispose();
-    this.festivalOwner.cancel();
-    this.endDemoClock();
-    cancelAnimationFrame(this.timer);
-    clearTimeout(this.initTimeout);
-    this.worker?.terminate();
-    this.mediaView?.dispose();
-    this.referenceSession.dispose();
-    this.input.dispose();
-    this.menuFrames.dispose();
-    this.menuPreviewReceipt.dispose();
-    this.renderer?.dispose();
-    void this.audio.dispose().catch((e) => console.warn('Audio cleanup:', e));
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => window.removeEventListener('keydown', this.reviewKeyboard));
+    release(() => this.sessionReview.stop('Application disposed', true));
+    release(() => this.tabEvidence.dispose());
+    release(() => this.performanceCapture.interrupt('Application disposed'));
+    release(() => this.interruptReview('Application disposed'));
+    release(() => this.reviewVideo.dispose());
+    release(() => this.exporter.cancel());
+    release(() => {
+      if (this.replay)
+        void this.replay.dispose().catch((e) => console.warn('Replay cleanup:', e));
+    });
+    release(() => this.inputPump.dispose());
+    release(() => this.festivalOwner.cancel());
+    release(() => this.endDemoClock());
+    release(() => cancelAnimationFrame(this.timer));
+    release(() => clearTimeout(this.initTimeout));
+    release(() => this.worker?.terminate());
+    release(() => this.mediaView?.dispose());
+    release(() => this.referenceSession.dispose());
+    release(() => this.rumble.stop(null));
+    release(() => this.input.dispose());
+    release(() => this.menuFrames.dispose());
+    release(() => this.menuPreviewReceipt.dispose());
+    release(() => this.renderer?.dispose());
+    release(() => this.uiSounds.dispose());
+    release(() => {
+      void this.audio.dispose().catch((e) => console.warn('Audio cleanup:', e));
+    });
+    if (failures.length) throw failures[0];
   }
 }
 // The language is chosen before the interface exists: the saved setting (or the browser's

@@ -106,9 +106,9 @@ Agents own disjoint files within a concurrent batch; only the coordinator commit
 
 | Agent | Assignment | Result |
 |---|---|---|
-| 55 | Physics, contact and terrain invariants review | Running |
-| 56 | Audio, renderer and host lifetime integration review | Running |
-| 57 | Combined networking recovery and service ownership review | Running |
-| 58 | Consolidated regression execution and unique-test inventory | Queued |
-| 59 | CI triage, complete compiler/build checks and baseline distinction | Queued |
-| 60 | Final task, scope, publication and evidence audit | Queued |
+| 55 | Physics, contact and terrain invariants review | Completed; eight adversarial invariants passed again after checkout recovery; no production change |
+| 56 | Audio, renderer and host lifetime integration review | Fixed failure-isolated, reentrant teardown in three existing dispose methods; all 18 integration cases passed again after recovery |
+| 57 | Combined networking recovery and service ownership review | Fixed terminal server observer/acceptance ownership; all 11 integration and four unchanged selected lifecycle/resilience cases passed on recovered source |
+| 58 | Consolidated regression execution and unique-test inventory | Completed all 60 suites: 1,072 passing executions, zero failed/skipped, 1,068 distinct file/name identities; four parameterized title collisions documented; all input hashes unchanged |
+| 59 | CI triage, complete compiler/build checks and baseline distinction | Wave-9 audit complete: 8,608 passing tests, four exact baseline failures, full lint/compiler/build and scenario jobs passed; final-source rerun pending |
+| 60 | Final task, scope, publication and evidence audit | Independent protected-object and measured-source audit passed through wave 9; final tree and receipts pending |

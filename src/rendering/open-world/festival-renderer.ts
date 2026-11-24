@@ -1124,50 +1124,64 @@ export class FestivalRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    this.atmosphere.dispose();
-    scannedGround.detach(this.renderer);
-    this.terrain.dispose();
-    this.roads.dispose();
-    this.streetLights.dispose();
-    this.practicalLights.dispose();
-    this.buildings.dispose();
-    this.dressing.dispose();
-    this.crops.dispose();
-    this.details?.dispose();
+    const details = this.details,
+      streetDetails = this.streetDetails,
+      photoVegetation = this.photoVegetation;
     this.details = null;
-    this.streetDetails?.dispose();
     this.streetDetails = null;
-    this.contacts.dispose();
-    this.vegetation.dispose();
-    this.photoVegetation?.dispose();
     this.photoVegetation = null;
-    this.water.dispose();
-    this.markers.dispose();
-    this.reflection.dispose();
-    this.cars.dispose();
-    this.trails.dispose();
-    this.guidance.dispose();
-    this.orbit.dispose();
     this.vehiclePaint.length = 0;
     this.vehicleRoots.length = 0;
-    this.environment.dispose();
-    this.wet.dispose();
-    this.shadows.dispose();
-    this.effectPlayback.reset();
-    this.effects.group.traverse((node) => {
-      if (node instanceof T.Mesh || node instanceof T.Points) {
-        node.geometry.dispose();
-        for (const material of Array.isArray(node.material) ? node.material : [node.material])
-          material.dispose();
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
       }
-    });
-    this.bloom.dispose();
-    this.grade.dispose();
-    this.fxaa.dispose();
-    this.imagePipeline.dispose();
-    this.ultra.dispose();
-    this.photoSky.dispose();
-    this.composer.dispose();
-    this.scene.clear();
+    };
+    release(() => this.atmosphere.dispose());
+    release(() => scannedGround.detach(this.renderer));
+    release(() => this.terrain.dispose());
+    release(() => this.roads.dispose());
+    release(() => this.streetLights.dispose());
+    release(() => this.practicalLights.dispose());
+    release(() => this.buildings.dispose());
+    release(() => this.dressing.dispose());
+    release(() => this.crops.dispose());
+    release(() => details?.dispose());
+    release(() => streetDetails?.dispose());
+    release(() => this.contacts.dispose());
+    release(() => this.vegetation.dispose());
+    release(() => photoVegetation?.dispose());
+    release(() => this.water.dispose());
+    release(() => this.markers.dispose());
+    release(() => this.reflection.dispose());
+    release(() => this.cars.dispose());
+    release(() => this.trails.dispose());
+    release(() => this.guidance.dispose());
+    release(() => this.orbit.dispose());
+    release(() => this.environment.dispose());
+    release(() => this.wet.dispose());
+    release(() => this.shadows.dispose());
+    release(() => this.effectPlayback.reset());
+    release(() =>
+      this.effects.group.traverse((node) => {
+        if (node instanceof T.Mesh || node instanceof T.Points) {
+          release(() => node.geometry.dispose());
+          for (const material of Array.isArray(node.material) ? node.material : [node.material])
+            release(() => material.dispose());
+        }
+      }),
+    );
+    release(() => this.bloom.dispose());
+    release(() => this.grade.dispose());
+    release(() => this.fxaa.dispose());
+    release(() => this.imagePipeline.dispose());
+    release(() => this.ultra.dispose());
+    release(() => this.photoSky.dispose());
+    release(() => this.composer.dispose());
+    release(() => this.scene.clear());
+    if (failures.length) throw failures[0];
   }
 }

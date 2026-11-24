@@ -2,6 +2,13 @@
 
 ## Status and evidence boundary
 
+The latest completed focused CI run used published wave 9 source
+`6a665033c37f3d760ac0de92cad4c9417ec3ddd5` and finished **six passed, one
+failed**. Its whole TypeScript check and direct Vite build passed, and its
+graphics backend was verified as Mesa llvmpipe. The one failure was an incidental
+observer-order assertion in the native mirror-adapter test. The reviewed
+assertion correction still requires a passing published-source rerun.
+
 Agent 52 prepared six native-browser lifecycle regressions and a focused CI job
 for those cases plus the existing complete replay-state scenario. **No local
 native-browser test passed or failed an application assertion:** Chromium was
@@ -12,8 +19,8 @@ successful browser coverage.
 
 The source checkpoint at preparation was
 `c4e62c642d912037e5e9262b1b89d4fbfd9677fe`, plus the new tests and workflow in this
-wave. A later focused CI result must identify its own exact source commit and
-observed graphics backend before extending this evidence boundary.
+wave. The first focused CI result below identifies its exact source commit and
+observed graphics backend. Later results must preserve that identity boundary.
 
 ## Prepared native regressions
 
@@ -77,10 +84,52 @@ socket() failed: Operation not permitted (1)
 
 No alternative launch flags or execution surface was used to bypass that
 restriction. The Vite attempt returned exit 137 while transforming modules;
-no successful local production bundle or replay run is claimed. The build and
-browser logs are retained in the coordinator's execution workspace.
+no successful local production bundle or replay run is claimed. The preparation report recorded these launch/build failures; the primary CI
+links below retain the later published-source evidence.
 
 ## Focused CI path
+
+### First native execution receipt
+
+The focused job executed against published wave 9 commit
+`6a665033c37f3d760ac0de92cad4c9417ec3ddd5`, tree
+`b5ad2e0f14fef214fc05c81b636a72f17e24110b`:
+[run 45413157534, job 138512113073](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45413157534/job/138512113073).
+
+Its complete TypeScript check and direct production build passed. It verified
+the software backend as
+`ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)`.
+
+| Selected native/application case | Wave-9 CI result |
+| --- | --- |
+| Replay session isolation | Passed |
+| Disposal during replay database open | Passed |
+| Save backup rollback and later recovery | Passed |
+| Save connection version-change recovery | Passed |
+| Desktop mirror IndexedDB adapter | Failed at the observer-order assertion |
+| Worker transfer reuse | Passed |
+| Complete replay-state scenario, including exact-end seek/pause/restart | Passed |
+
+The mirror-adapter case reached and passed the rollback and read-rejection
+assertions. Chromium observed `request-success`, `promise-rejected`,
+`transaction-abort`; the fixture expected the latter two observations in the
+opposite order. Recovered-data and page-error assertions after that ordering
+check were not reached and are not separately counted as passing in this run.
+
+The reviewed correction requires request success first, followed by exactly one
+rejection and one abort observation in either order, with no successful-read
+observation. All rollback, rejection, recovered-data and page-error assertions
+remain. Agent 59 independently reviewed the fixture and production adapter:
+the fixture deliberately aborts the real transaction after request success;
+the adapter publishes only on transaction completion and rejects on error or
+abort. The ordering of a separately registered observer is not an additional
+data-commit guarantee. The correction retains checks against early resolution,
+missing/duplicate observations, rollback failure and failed recovery.
+
+This is a correction to an incidental test-observer assumption. No production
+storage code changed for it. A subsequent CI run is required before the
+corrected case is counted as passed. The first run remains **six passed, one
+failed**, with zero retries and the original 300-second test deadline.
 
 The existing `ci.yml` manual trigger has no file-selection input and runs the
 complete browser inventory across 16 shards. Its ordinary coverage remains
@@ -111,4 +160,6 @@ e2e/engine-native-lifecycle.spec.ts e2e/replay-state.spec.ts \
 The workflow triggers on relevant source/test changes on `main` and also supports
 manual dispatch. A queued workflow is not a pass. Native browser execution,
 software rendering, physical GPU performance and physical audio/controller
-acceptance are separate claims; this assignment establishes none of the latter.
+acceptance are separate claims. The focused CI evidence establishes only the
+selected native/application behavior on the verified software backend; physical
+GPU performance and physical audio/controller acceptance remain unmeasured.

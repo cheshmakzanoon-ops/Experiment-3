@@ -110,7 +110,10 @@ test('native mirror adapter publishes only committed reads and atomic batches', 
   expect(report.writeFailure?.name).toBe('DataCloneError');
   expect(report.afterFailure).toEqual({ primary: { revision: 1 }, untouched: 'retained' });
   expect(report.readFailure).not.toBeNull();
-  expect(report.order).toEqual(['request-success', 'transaction-abort', 'promise-rejected']);
+  // Native Chromium can reject the read before our separate abort observer
+  // runs. Both must follow request success; a resolved read must never appear.
+  expect(report.order[0]).toBe('request-success');
+  expect(report.order.slice(1).sort()).toEqual(['promise-rejected', 'transaction-abort']);
   expect(report.recovered).toEqual({ revision: 1 });
   expect(errors).toEqual([]);
   await info.attach('native-mirror-transaction-boundary.json', {

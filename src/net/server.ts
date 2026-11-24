@@ -212,9 +212,31 @@ export class RaceServer {
     this.phase = phase;
     this.stats.phases.push({ phase, at: this.loop.now });
     this.config.onPhase?.(phase);
+    // Observers may synchronously end the session. The old transition no
+    // longer owns the right to construct a world or schedule more work.
+    return this.phase === phase;
   }
   /** Take ownership of a new connection. */
   accept(transport: Transport) {
+    if (this.phase === 'teardown') {
+      // Preserve late-client feedback without installing a new owner or timer
+      // on a terminal server, including acceptance from a teardown observer.
+      try {
+        transport.send(
+          encodeControl({ kind: 'reject', reason: 'the session has already started' }),
+          'reliable',
+        );
+      } catch (error) {
+        try {
+          transport.close('session over');
+        } catch {
+          // A second cleanup failure cannot replace the original send failure.
+        }
+        throw error;
+      }
+      transport.close('session over');
+      return;
+    }
     const now = this.loop.now,
       conn: Connection = {
         id: this.nextConnection++,
@@ -495,7 +517,7 @@ export class RaceServer {
     const check = this.lobby.readyCheck();
     if (!check.ok) throw new Error(`Not ready: ${check.reasons.join('; ')}`);
     this.lobby.locked = true;
-    this.setPhase('grid');
+    if (!this.setPhase('grid')) return;
     const options = this.lobby.sessionOptions(),
       world = new AuthoritativeWorld(options);
     this.world = world;
@@ -533,7 +555,7 @@ export class RaceServer {
   private beginRace() {
     if (this.phase !== 'grid') return;
     this.raceStartsAt = this.loop.now;
-    this.setPhase('race');
+    if (!this.setPhase('race')) return;
     this.stopTicks = this.loop.every(TICK_MS, () => this.tick());
   }
   private tick() {
@@ -693,10 +715,12 @@ export class RaceServer {
     return true;
   }
   private endRace(reason: RaceResults['reason']) {
+    // onTick may have ended the session at the same tick as a race limit.
+    if (this.phase !== 'race') return;
     const world = this.world as AuthoritativeWorld;
     this.stopTicks?.();
     this.stopTicks = null;
-    this.setPhase('results');
+    if (!this.setPhase('results')) return;
     if (this.pendingEvents.length) this.snapshot();
     this.record = createRecord(world);
     const running: ResultEntry[] = [],
@@ -739,11 +763,34 @@ export class RaceServer {
   /** Results → teardown: close every connection and stop all timers. */
   teardown() {
     if (this.phase === 'teardown') return;
-    this.stopTicks?.();
+    // Revoke local ownership before observers or transport cleanup can reenter.
+    this.phase = 'teardown';
+    const stopTicks = this.stopTicks,
+      connections = [...this.connections];
     this.stopTicks = null;
-    this.setPhase('teardown');
-    for (const conn of [...this.connections]) this.close(conn, 'session over');
+    this.connections.clear();
+    for (const conn of connections) conn.closed = true;
     for (const p of this.players.values()) p.connection = null;
+    let failed = false,
+      failure: unknown;
+    const finish = (release: () => void) => {
+      try {
+        release();
+      } catch (error) {
+        if (!failed) {
+          failed = true;
+          failure = error;
+        }
+      }
+    };
+    finish(() => stopTicks?.());
+    finish(this.stopSweep);
+    // Preserve the ordinary observer-before-close notification order.
+    finish(() => {
+      this.setPhase('teardown');
+    });
+    for (const conn of connections) finish(() => conn.transport.close('session over'));
+    if (failed) throw failure;
   }
   /** Input statistics per car (all connections of the driver), for reports. */
   inputStats() {

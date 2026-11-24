@@ -722,30 +722,54 @@ export class FestivalSession {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    this.lifetime.close();
-    const error = this.lifetime.signal.reason as Error;
-    this.settleReady(error);
-    this.rejectCommands(error);
-    this.releaseMouseLook();
-    window.removeEventListener('keydown', this.photoKeys, true);
-    this.controls?.dispose();
+    const controls = this.controls,
+      traffic = this.traffic,
+      riders = this.riders,
+      renderer = this.renderer,
+      hud = this.hud;
+    // Revoke child ownership before any cleanup callback can reenter. A child
+    // reporting failure must not keep the remaining session or workers alive.
     this.controls = null;
-    this.host.audio?.stop();
-    this.worker.onmessage = null;
-    this.worker.onerror = null;
-    this.tiles.onerror = null;
-    this.tiles.onmessageerror = null;
-    this.worker.terminate();
-    this.tiles.terminate();
-    this.traffic?.dispose();
     this.traffic = null;
-    this.riders?.dispose();
     this.riders = null;
-    this.renderer?.dispose();
-    this.hud?.dispose();
     this.renderer = null;
     this.hud = null;
     this.current = this.previous = null;
     this.status = null;
+    const failures: unknown[] = [];
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    release(() => this.lifetime.close());
+    const error = this.lifetime.signal.reason as Error;
+    release(() => this.settleReady(error));
+    release(() => this.rejectCommands(error));
+    release(() => this.releaseMouseLook());
+    release(() => window.removeEventListener('keydown', this.photoKeys, true));
+    release(() => controls?.dispose());
+    release(() => this.host.audio?.stop());
+    release(() => {
+      this.worker.onmessage = null;
+    });
+    release(() => {
+      this.worker.onerror = null;
+    });
+    release(() => {
+      this.tiles.onerror = null;
+    });
+    release(() => {
+      this.tiles.onmessageerror = null;
+    });
+    release(() => this.worker.terminate());
+    release(() => this.tiles.terminate());
+    release(() => traffic?.dispose());
+    release(() => riders?.dispose());
+    release(() => renderer?.dispose());
+    release(() => hud?.dispose());
+    if (failures.length) throw failures[0];
   }
 }

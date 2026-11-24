@@ -3,7 +3,10 @@
 ## Scope and baseline
 
 This programme improves the shared game engine of Experiment-3 on `main`.
-Baseline: `5bb8a45843c853fcdbfe3fe422d303b5c2932fca`.
+Engine baseline: `a0ae513e7982f0b4719296519752e0ae5f1983f8`. The starting
+branch checkpoint was `5bb8a45843c853fcdbfe3fe422d303b5c2932fca`; the difference
+consists only of automated CI reports. Performance and determinism comparisons
+use the original engine commit explicitly.
 
 The user requested 60 agents in 10 waves, with six distinct agent assignments
 per wave. Available execution capacity is three workers plus the coordinating
@@ -82,6 +85,7 @@ Published engine checkpoints:
 | 6 | `17c16ae` |
 | 7 | `9dc4811` |
 | 8 | `c4e62c6` |
+| 9 | `6a66503` |
 
 Automated CI-report commits are preserved between engine checkpoints;
 publication never force-updates `main`.
@@ -571,6 +575,54 @@ Wave 9 integration passed **55 tests across the two new review suites and the
 existing save-lifecycle suite**. The combined 621-file source/test/native-fixture
 graph passed TypeScript with the project options (about 279 MiB compiler memory).
 The three reusable measurement scripts and all changed code passed scoped lint.
+
+### Wave 10 — final ownership fixes and independent acceptance
+
+The physics review adds eight adversarial invariants for cached contact bounds,
+rotating contacts, deferred-hit ownership, reused interpolation outputs, and
+terrain failure/retry behavior. It makes no production physics or tuning change.
+
+The resource integration review follows application disposal through the Festival
+session and renderer. Three terminal disposal methods now revoke ownership before
+callbacks, attempt every independent cleanup after an exception, and preserve the
+first synchronous failure. Application disposal additionally closes its UI audio,
+stops the owned haptic actuator even after the pad disappears, and observes replay
+cleanup rejection. Resource construction, scenes, material definitions and authored
+content are unchanged. Eighteen composed regressions cover these ownership chains.
+
+The networking review fixes observer-requested teardown that previously allowed
+world construction, recurring ticks or results creation to continue afterward.
+Server teardown retires local connection/timer ownership before callbacks and
+attempts all external closes. New transports presented to a terminal server receive
+the existing rejection and close without installing another handler or deadline.
+Eleven composed cases plus four unchanged selected lifecycle/resilience cases pass.
+
+The execution host was replaced before the final wave was published. The first
+nine waves were already safe on main. The exact final production patches were
+recovered from retained agent records; two network-test tails were reconstructed
+and verified afresh. On the restored frozen checkout, all 37 new final-wave cases
+passed, plus the four unchanged network scenarios. This recovery is recorded so
+historical results are not mistaken for verification of reconstructed files.
+
+The final consolidated run passed all 60 changed unit suites (55 added and five
+modified): **1,072 passing test executions, zero failed or skipped**, with one
+process per file and no retries. Conservative file/name deduplication gives
+1,068 displayed identities; four parameterized title collisions are documented
+without inventing additional unique names. Source, test and configuration hashes
+were unchanged throughout the run. These totals are independent of overlapping
+agent runs. See the [regression inventory](ENGINE_REGRESSION_INVENTORY_2026-11-24.md).
+Corrected native IndexedDB/Worker cases, the complete replay scenario, final
+CI and the independent scope audit remain the final published-source gates.
+
+The restored candidate passed whole-project `tsc --noEmit --extendedDiagnostics`
+across 3,169 files (approximately 2.3 GiB compiler memory), scoped lint for every
+changed production/test file, and a direct Vite production build. The build
+transformed 1,094 modules in 15.27 seconds, passed the existing output IP guard,
+and passed the repository source-stability guard without changing inputs. It
+invoked neither npm build prehooks nor any model-generation command. The first
+compiler attempt identified a tracked JSON fixture omitted by sparse checkout;
+restoring its exact HEAD bytes resolved that checkout issue before the passing
+full compiler run.
 
 ### Pre-existing broad-suite findings
 
