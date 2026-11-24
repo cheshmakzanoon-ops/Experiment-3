@@ -13,6 +13,7 @@ import { liveryScheme } from '../car-livery.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
+import { installMxForkSurface, MX_STANCHION_LENGTH, MX_WIPER_Y } from './mx-fork-surface.ts';
 import { MxPresentationRoot } from './mx-presentation-root.ts';
 import {
   MotocrossAxles,
@@ -126,6 +127,7 @@ export class DirtBikeModel {
   private readonly frontBrakeLever = new T.Group();
   private readonly throttleTube = new T.Group();
   private readonly forkLower = new T.Group();
+  private readonly forkSeal?: T.IUniform<Float32Array>;
   private readonly frontSpin = new T.Group();
   private readonly rearWheel = new T.Group();
   private readonly rearSpin = new T.Group();
@@ -174,6 +176,9 @@ export class DirtBikeModel {
       ).getHex(),
     };
     this.axles = MotocrossAxles.of(definition);
+    if (!supermoto) this.forkSeal = installMxForkSurface(
+      m.forkLower, this.axles.lowerY(b.forkTravel), this.axles.lowerY(this.axles.sag.fork),
+    );
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
     // Moulded polypropylene with its glossy in-mould skin: a soft primary
@@ -683,10 +688,10 @@ export class DirtBikeModel {
     for (const side of [1, -1]) {
       add(
         this.forkLower,
-        new T.CylinderGeometry(0.024, 0.024, 0.68, sides / 2),
+        new T.CylinderGeometry(0.024, 0.024, MX_STANCHION_LENGTH, sides / 2),
         this.m.forkLower,
         side * 0.095,
-        0.34,
+        MX_STANCHION_LENGTH / 2,
         OFFSET,
       );
       add(this.forkLower, motocrossAxleLug(detail), castMaterial, side * 0.095, 0, OFFSET);
@@ -1140,6 +1145,7 @@ export class DirtBikeModel {
     // Convert it to the raked telescope's stroke; steering around that axis
     // must not change its extension or produce another chassis displacement.
     this.forkLower.position.y = this.axles.lowerY(fork);
+    if (this.forkSeal) this.forkSeal.value[1] = MX_WIPER_Y - this.forkLower.position.y;
     if (this.detail !== 'far') this.m.wheelExposure.update(v.frontOmega, v.rearOmega);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;

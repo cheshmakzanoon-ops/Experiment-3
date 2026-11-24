@@ -1,4 +1,7 @@
 import * as T from 'three';
+import { motocrossForkOuter } from '../src/rendering/offroad/motocross-detail.ts';
+import { MX_STANCHION_LENGTH } from '../src/rendering/offroad/mx-fork-surface.ts';
+import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   BikeMaterials,
@@ -981,4 +984,45 @@ it.each(['mid', 'high'] as const)('the %s shift sleeve bears on the top and sole
       expect(clearance).toBeLessThan(.006);
     }
   } finally {bike.dispose();materials.dispose();}
+});
+
+it.each(['mx250', 'mx450'] as const)('keeps the %s oil collar at the actual seal across suspension and detail changes', (id) => {
+  const definition = VEHICLES[id], materials = new BikeMaterials(0, 'dirt');
+  const coat = mudUniforms(), axles = MotocrossAxles.of(definition), sag = staticSag(definition);
+  const rigs = (['high', 'mid', 'far'] as const).map((detail) =>
+    new DirtBikeModel(definition, 0, detail, materials, coat));
+  const { wiper, tube } = motocrossForkOuter('high');
+  wiper.computeBoundingBox();
+  const hem = wiper.boundingBox!.min.y;
+  const proto = T.ShaderLib.physical;
+  const shader = {
+    uniforms: T.UniformsUtils.clone(proto.uniforms),
+    vertexShader: proto.vertexShader, fragmentShader: proto.fragmentShader,
+  } as StudioShader;
+  const pose: BikePoseValues = {
+    ...sag, steer: 0.25, frontRotation: 0, rearRotation: 0, chassisLean: 0.2, riderOffset: 0,
+    tuck: 0, brake: 0, rearBrake: 0, discTemp: 30, compoundColour: 0xffffff, riding: true,
+  };
+  try {
+    materials.forkLower.onBeforeCompile(shader, {} as T.WebGLRenderer);
+    const read = () => shader.uniforms.mxForkSeal.value as Float32Array;
+    expect(shader.uniforms.offroadMud).toBe(coat.offroadMud);
+    expect(shader.fragmentShader).toContain('deposit *= MX_MUD_RETENTION');
+    expect(read()[0] + axles.lowerY(definition.bike!.forkTravel)).toBeCloseTo(hem, 6);
+    for (const rig of rigs) {
+      for (const fork of [0, sag.fork, definition.bike!.forkTravel, sag.fork, 0]) {
+        rig.pose({ ...pose, fork });
+        const lower = rig.root.getObjectByName('Motocross sliding fork lowers')!;
+        expect(read()[1] + lower.position.y).toBeCloseTo(hem, 6);
+        expect(read()[1]).toBeGreaterThanOrEqual(read()[0]);
+        expect(read()[1]).toBeLessThan(MX_STANCHION_LENGTH);
+      }
+    }
+    expect(read()[1] + axles.lowerY(0)).toBeCloseTo(hem, 6);
+  } finally {
+    wiper.dispose();
+    tube.dispose();
+    for (const rig of rigs) rig.dispose();
+    materials.dispose();
+  }
 });

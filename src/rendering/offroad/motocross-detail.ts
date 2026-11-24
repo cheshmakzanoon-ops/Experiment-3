@@ -1,3 +1,4 @@
+import { MX_WIPER_Y } from './mx-fork-surface.ts';
 import * as T from 'three';
 import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js';
 import { bikeSurfaceMaps } from '../bike-surface-detail.ts';
@@ -193,7 +194,7 @@ export function motocrossForkOuter(detail: RiderDetail) {
     [0.0275, -0.204], [0.03, -0.069], [0.03, 0.216], [0.0285, 0.22],
   ]);
   const wiper = turn([
-    [bore, -0.378], [bore, -0.387], [0.028, -0.386], [0.0306, -0.38],
+    [bore, -0.378], [bore, MX_WIPER_Y], [0.028, -0.386], [0.0306, -0.38],
   ]);
   return { tube, wiper };
 }
