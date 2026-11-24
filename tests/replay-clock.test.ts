@@ -89,3 +89,85 @@ describe('§24.2 replay clock over a deterministic recording', () => {
     expect(clock.position).toBeCloseTo(replay.duration, 6);
   });
 });
+
+describe('replay clock input boundaries', () => {
+  it.each([NaN, Infinity, -Infinity, -1])(
+    'holds the last valid position for an invalid callback interval (%s)',
+    (wallDelta) => {
+      const clock = new ReplayClock();
+      clock.presented(2, 10);
+      const held = clock.target(wallDelta, 10, true);
+      expect(held).toBe(2);
+      clock.presented(held, 10);
+      expect(clock.playing).toBe(true);
+      expect(clock.target(0.25, 10, true)).toBe(2.25);
+    },
+  );
+
+  it.each([
+    { floor: NaN, duration: 10 },
+    { floor: Infinity, duration: 10 },
+    { floor: -Infinity, duration: 10 },
+    { floor: -1, duration: 10 },
+    { floor: 11, duration: 10 },
+    { floor: 0, duration: NaN },
+    { floor: 0, duration: Infinity },
+    { floor: 0, duration: -Infinity },
+    { floor: 0, duration: -1 },
+  ])('ignores an invalid control range ($floor, $duration)', ({ floor, duration }) => {
+    const clock = new ReplayClock();
+    clock.presented(2, 10);
+    clock.seek(5, floor, duration);
+    expect(clock.position).toBe(2);
+    expect(clock.seekPending).toBe(false);
+    clock.playing = false;
+    expect(clock.toggle(floor, duration)).toBe(false);
+    expect(clock.position).toBe(2);
+    expect(clock.seekPending).toBe(false);
+    expect(clock.toggle(0, 10)).toBe(true);
+    expect(clock.target(0.25, 10, true)).toBe(2.25);
+  });
+
+  it.each([NaN, Infinity, -Infinity, -1])(
+    'does not advance or acknowledge a seek with an invalid duration (%s)',
+    (duration) => {
+      const clock = new ReplayClock();
+      clock.seek(3, 0, 10);
+      clock.presented(3, duration);
+      expect(clock.position).toBe(3);
+      expect(clock.seekPending).toBe(true);
+      expect(clock.playing).toBe(true);
+      clock.presented(3, 10);
+      expect(clock.target(0.25, duration, true)).toBe(3);
+      expect(clock.target(0.25, 10, true)).toBe(3.25);
+    },
+  );
+
+  it.each([NaN, Infinity, -Infinity, -1, 11])(
+    'retains a pending seek after an invalid presentation acknowledgement (%s)',
+    (target) => {
+      const clock = new ReplayClock();
+      clock.seek(3, 0, 10);
+      clock.presented(target, 10);
+      expect(clock.position).toBe(3);
+      expect(clock.seekPending).toBe(true);
+      expect(clock.playing).toBe(true);
+      expect(clock.target(0.25, 10, true)).toBe(3);
+      clock.presented(3, 10);
+      expect(clock.seekPending).toBe(false);
+      expect(clock.target(0.25, 10, true)).toBe(3.25);
+    },
+  );
+
+  it('keeps a zero-duration recording at its only frame', () => {
+    const clock = new ReplayClock();
+    clock.seek(5, 0, 0);
+    expect(clock.position).toBe(0);
+    expect(clock.seekPending).toBe(true);
+    clock.presented(clock.target(5, 0, true), 0);
+    expect(clock.seekPending).toBe(false);
+    expect(clock.playing).toBe(false);
+    expect(clock.toggle(0, 0)).toBe(true);
+    expect(clock.target(0.25, 0, true)).toBe(0);
+  });
+});

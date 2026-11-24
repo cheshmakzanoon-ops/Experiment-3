@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { FixedStepper } from '../core/math.ts';
+import { FixedStepClock } from './fixed-step-clock.ts';
 import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
@@ -10,10 +10,9 @@ const probe = new EngineeringProbe();
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 let simulation: Simulation | null = null,
   paused = true,
-  previous = performance.now(),
-  lastInput = previous,
+  lastInput = performance.now(),
   stepMs = 0;
-const clock = new FixedStepper();
+const clock = new FixedStepClock();
 let pool: ArrayBuffer[] = [];
 let telemetry: TelemetrySampler | null = null;
 // D31 flashback: every applied input, the session options and a running rewind.
@@ -37,10 +36,9 @@ function finishFlashback(job: Resimulation) {
   simulation = job.simulation;
   log.truncate(job.target);
   telemetry = recorder(simulation);
-  clock.reset();
   probe.reset();
-  previous = performance.now();
-  lastInput = previous;
+  lastInput = performance.now();
+  clock.reset(lastInput);
   lastSent = simulation.tick;
   lastSurface = -1;
   lastPitPhase = simulation.cars[0].pitPhase;
@@ -94,10 +92,9 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         log = new InputLog();
         rewind = null;
         telemetry = recorder(simulation);
-        clock.reset();
         paused = true;
-        previous = performance.now();
-        lastInput = previous;
+        lastInput = performance.now();
+        clock.reset(lastInput);
         pool = Array.from(
           { length: 5 },
           () => new ArrayBuffer((HEADER + simulation!.cars.length * CAR_STRIDE) * 4),
@@ -118,8 +115,8 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         )
           throw new Error('Invalid worker pause sequence');
         paused = msg.value;
-        previous = performance.now();
-        lastInput = previous;
+        lastInput = performance.now();
+        clock.rebase(lastInput);
         if (paused) {
           telemetry?.flush();
           telemetry?.flushReplay();
@@ -177,10 +174,9 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
   }
 };
 setInterval(() => {
-  const now = performance.now(),
-    elapsed = (now - previous) / 1000;
-  previous = now;
+  const now = performance.now();
   if (rewind) {
+    clock.rebase(now);
     // Re-simulate in slices (~2000 steps per turn) so messages keep flowing.
     try {
       const job = rewind;
@@ -194,12 +190,15 @@ setInterval(() => {
     }
     return;
   }
-  if (paused || !simulation) return;
+  if (paused || !simulation) {
+    clock.rebase(now);
+    return;
+  }
   try {
     if (now - lastInput > 750) applyInput({ ...controls(), brake: 0.4 });
     const start = performance.now(),
       before = clock.ticks;
-    clock.advance(elapsed, (dt) => {
+    clock.advance(now, (dt) => {
       simulation!.step(dt);
       telemetry?.capture(stepMs, clock.droppedSeconds);
       // Service phases last 0.8-1.7 s. A stalled consumer (every pooled frame

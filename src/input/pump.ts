@@ -4,6 +4,8 @@
 export class InputPump {
   private handle: ReturnType<typeof setInterval> | null = null;
   private previous = 0;
+  private generation = 0;
+  private polling = false;
   ticks = 0;
   constructor(
     private sample: (dt: number) => void,
@@ -12,14 +14,25 @@ export class InputPump {
   start() {
     if (this.handle !== null) return;
     this.previous = this.now();
-    this.handle = setInterval(() => this.poll(), 1000 / 60);
+    const generation = ++this.generation;
+    this.handle = setInterval(() => {
+      if (generation === this.generation) this.poll();
+    }, 1000 / 60);
   }
+  /** An immediate sample belongs to the current run. Action handlers can stop
+   * or restart that run, but cannot recursively publish another sample. */
   poll() {
-    const now = this.now();
-    const dt = Math.max(0, Math.min(0.25, (now - this.previous) / 1000));
-    this.previous = now;
-    this.ticks++;
-    this.sample(dt);
+    if (this.handle === null || this.polling) return;
+    this.polling = true;
+    try {
+      const now = this.now();
+      const dt = Math.max(0, Math.min(0.25, (now - this.previous) / 1000));
+      this.previous = now;
+      this.ticks++;
+      this.sample(dt);
+    } finally {
+      this.polling = false;
+    }
   }
   dispose() {
     if (this.handle !== null) clearInterval(this.handle);

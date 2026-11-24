@@ -50,8 +50,9 @@ export const BINDING_LABELS: Record<BindingAction, string> = {
   flashback: N_('Flashback (last 30 s)'),
 };
 /** Actions added after bindings were first saved: a saved set without them
- * takes the first key it leaves free, like the clutch did. */
+ * takes the first key it leaves free. */
 const LATE_ACTION_KEYS: Partial<Record<BindingAction, readonly string[]>> = {
+  clutch: ['ShiftLeft', 'ShiftRight', 'ControlRight', 'ControlLeft', 'KeyQ', 'KeyZ'],
   drs: ['KeyF', 'KeyV', 'KeyN', 'KeyH'],
   overtake: ['KeyO', 'KeyU', 'KeyY', 'KeyJ'],
   flashback: ['KeyX', 'KeyK', 'KeyL', 'KeyI'],
@@ -73,13 +74,6 @@ export const validBindingCode = (code: unknown): code is string =>
 export function validateBindings(value: unknown): Bindings {
   const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
   const result = { ...DEFAULT_BINDINGS };
-  if (source.clutch === undefined) {
-    result.clutch =
-      ['ShiftLeft', 'ShiftRight', 'ControlRight', 'ControlLeft', 'KeyQ', 'KeyZ'].find(
-        (code) =>
-          !Object.entries(source).some(([name, value]) => name !== 'clutch' && value === code),
-      ) ?? 'ShiftLeft';
-  }
   const effective = (name: BindingAction) =>
     source[name] === undefined ? result[name] : source[name];
   if (Object.keys(source).length)
@@ -139,7 +133,10 @@ const KEYCAP: Readonly<Record<string, string>> = Object.freeze({
 });
 export function keyName(code: string) {
   if (Object.hasOwn(KEYCAP, code)) return KEYCAP[code];
-  return code.replace(/^Key/, '').replace(/^Digit/, '').replace(/^Numpad/, 'NUM ');
+  return code
+    .replace(/^Key/, '')
+    .replace(/^Digit/, '')
+    .replace(/^Numpad/, 'NUM ');
 }
 export function boundAction(bindings: Bindings, code: string): BindingAction | null {
   for (const action of Object.keys(DEFAULT_BINDINGS) as BindingAction[])
