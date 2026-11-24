@@ -212,7 +212,7 @@ export class Roost {
   private readonly chassisShade: MxChassisShade | null;
   /** Optional displayed terrain sampler, including live/replayed rut depth. */
   startPad: Pick<StartGate, 'padHeightAt'> | null = null;
-  groundHeight: ((s: number, lateral: number) => number) | null = null;
+  groundHeight: ((s: number, lateral: number, plane?: T.Plane) => number) | null = null;
   private readonly positions = new Float32Array(ROOST_CAPACITY * 3);
   private readonly velocities = new Float32Array(ROOST_CAPACITY * 3);
   private readonly colours = new Float32Array(ROOST_CAPACITY * 3);
@@ -250,6 +250,7 @@ export class Roost {
   private readonly q = new T.Quaternion();
   private readonly v = new T.Vector3();
   private readonly back = new T.Vector3();
+  private readonly groundPlane = new T.Plane();
   private readonly contactNormal = new T.Vector3(0, 1, 0);
   private readonly point = trackPoint();
   private readonly shadowPose = new T.Object3D();
@@ -424,16 +425,29 @@ export class Roost {
     if (this.motocross)
       this.maxLife[i] = this.life[i] = dust ? 2.1 + r.next() * 1.5 : 0.55 + r.next() * 0.5;
   }
-  /** Contact height/normal from displayed terrain. Before its mesh is built,
-   * the wheel's worker-reported rut depth supplies the course depression. */
+  /** The course mesh can supply the actual face at the time displayed.
+   * Intersect the world vertical through the contact with that face. The
+   * two-argument sampler remains usable while scenery is being built. */
+  private displayedHeight(s: number, lateral: number, x: number, z: number) {
+    const plane = this.groundPlane;
+    plane.normal.set(0, 0, 0);
+    const height = this.groundHeight!(s, lateral, plane);
+    const n = plane.normal;
+    return n.y > 0.1 ? -(n.x * x + n.z * z + plane.constant) / n.y : height;
+  }
   private contact(x: number, z: number, rut: number, fallback: number) {
     this.contactNormal.set(0, 1, 0);
     if (!this.track || !this.terrain) return fallback;
-    const p = this.point,
-      t = this.terrain.terrain;
-    const lateral = this.track.nearest(x, z, p),
-      s = p.s;
+    const p = this.point, t = this.terrain.terrain;
+    const lateral = this.track.nearest(x, z, p), s = p.s;
     const height = this.groundHeight;
+    const y = height
+      ? this.displayedHeight(s, lateral, x, z)
+      : t.baseHeight(s, lateral) - clamp(rut, 0, 0.3);
+    if (height && this.groundPlane.normal.y > 0.1) {
+      this.contactNormal.copy(this.groundPlane.normal);
+      return y;
+    }
     const across = height
       ? (height(s, lateral + 0.2) - height(s, lateral - 0.2)) / 0.4
       : (t.baseHeight(s, lateral + 0.2) - t.baseHeight(s, lateral - 0.2)) / 0.4;
@@ -443,7 +457,7 @@ export class Roost {
     this.contactNormal
       .set(-across * p.nx - along * p.tx, 1, -across * p.nz - along * p.tz)
       .normalize();
-    return height ? height(s, lateral) : t.baseHeight(s, lateral) - clamp(rut, 0, 0.3);
+    return y;
   }
   /** Last independently loaded tyre on the displayed frame. The renderer
    * owns these vectors; callers may read them until the next update. */
@@ -508,8 +522,14 @@ export class Roost {
       patch.station = this.point.s;
       patch.lateral = lateral;
       patch.position.y = this.groundHeight
-        ? this.groundHeight(this.point.s, lateral)
-        : this.terrain.terrain.baseHeight(this.point.s, lateral) - clamp(rut, 0, 0.3);
+        ? this.displayedHeight(patch.station, lateral, patch.position.x, patch.position.z)
+        : this.terrain.terrain.baseHeight(patch.station, lateral) - clamp(rut, 0, 0.3);
+      if (this.groundHeight && this.groundPlane.normal.y > 0.1) {
+        // Lean can place the tread on the other triangle of a rut. Use its
+        // face for the ejection, print width and tyre shadow together.
+        patch.normal.copy(this.groundPlane.normal);
+        axles.rollingTangent(this.axle, patch.normal, patch.forward);
+      }
     }
     const pad = this.startPad?.padHeightAt(patch.position.x, patch.position.z) ?? -Infinity;
     if (pad >= patch.position.y - 0.001) {

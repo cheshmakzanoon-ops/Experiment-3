@@ -97,7 +97,7 @@ export class OffroadScene {
     try {
       this.queue(construction, 'Off-road course terrain', 3, () => {
         this.terrain = new TerrainView(track, startLanes);
-        this.roost.groundHeight = (s, lateral) => this.terrain!.heightAt(s, lateral);
+        this.roost.groundHeight = (s, lateral, plane) => this.terrain!.heightAt(s, lateral, plane);
         // Night venues light the soil with the floodlight pools, like a ribbon.
         installLightPools(this.terrain.material);
         if (this.stadium) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);

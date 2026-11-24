@@ -68,6 +68,17 @@ export class MotocrossAxles {
     );
   }
 
+  rollingTangent(axle: T.Vector3, normal: T.Vector3, forward: T.Vector3) {
+    forward.crossVectors(axle, normal);
+    if (forward.lengthSq() < 1e-9) {
+      // A fallen wheel can be parallel to the ground. Its contact is broad
+      // and has no unique rolling tangent; keep a deterministic ground basis.
+      forward.set(Math.abs(normal.z) < 0.9 ? 0 : 1, 0, Math.abs(normal.z) < 0.9 ? 1 : 0);
+      forward.addScaledVector(normal, -forward.dot(normal));
+    }
+    return forward.normalize();
+  }
+
   /** Support point of the rounded tread in a bank's normal direction. At
    * large camber it reaches the shoulder. It cannot slide out past the tyre.
    * The returned forward vector is tangent to both ground and wheel plane. */
@@ -85,14 +96,7 @@ export class MotocrossAxles {
     const lateral = T.MathUtils.clamp(normal.dot(axle), -1, 1);
     const side = T.MathUtils.clamp(lateral, -width / crown, width / crown);
     const inward = radius - crown + crown * Math.sqrt(1 - side ** 2);
-    forward.crossVectors(axle, normal);
-    if (forward.lengthSq() < 1e-9) {
-      // A fallen wheel can be parallel to the ground. Its contact is broad
-      // and has no unique rolling tangent; keep a deterministic ground basis.
-      forward.set(Math.abs(normal.z) < 0.9 ? 0 : 1, 0, Math.abs(normal.z) < 0.9 ? 1 : 0);
-      forward.addScaledVector(normal, -forward.dot(normal));
-    }
-    forward.normalize();
+    this.rollingTangent(axle, normal, forward);
     position
       .crossVectors(forward, axle)
       .multiplyScalar(-inward)

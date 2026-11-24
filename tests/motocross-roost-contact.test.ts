@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
+import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
+import { MotocrossAxles } from '../src/rendering/offroad/motocross-axles.ts';
 import { MX_SILENCER_MOUNT } from '../src/rendering/offroad/mx-silencer.ts';
 import { Roost, ROOST_CAPACITY, ROOST_GROUND_SAMPLES } from '../src/rendering/offroad/roost.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
@@ -22,7 +24,7 @@ import {
 } from '../src/simulation/protocol.ts';
 import { MATERIAL } from '../src/simulation/surface-material.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
-import { vehicleIndex } from '../src/simulation/vehicles.ts';
+import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 
 const pending: Roost[] = [];
 afterEach(() => {
@@ -361,6 +363,48 @@ describe('lit motocross soil and independent touchdown contacts', () => {
     h.frame[h.o + O.AIRBORNE] = 1;
     h.roost.update(h.frame, 0);
     expect(h.roost.wheelPatch(0, false)).toBeUndefined();
+  });
+
+  it('rests the loaded tyre and its rolling direction on the displayed rut facet during a seek', () => {
+    const h = harness(), view = new TerrainView(h.track), axles = MotocrossAxles.of(VEHICLES.mx450);
+    try {
+      const relative = h.b + BIKE_BASE, quat = new T.Quaternion().fromArray(h.frame, h.b + F.QX);
+      quat.multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), 0.48));
+      quat.toArray(h.frame, h.b + F.QX);
+      h.frame[relative + B.FORK] = 0.19;
+      h.frame[relative + B.STEER] = 0.32;
+      const plane = new T.Plane(), normal = new T.Vector3();
+      let faceReads = 0;
+      h.roost.groundHeight = (s, l, out) => {
+        if (out) faceReads++;
+        return view.heightAt(s, l, out);
+      };
+      const patch = () => {
+        h.roost.update(h.frame, 0);
+        const sample = h.roost.wheelPatch(0, true)!;
+        expect(view.planeAtWorld(sample.position, plane)).toBe(true);
+        expect(Math.abs(plane.distanceToPoint(sample.position))).toBeLessThan(1e-6);
+        expect(sample.normal.dot(plane.normal)).toBeCloseTo(1, 7);
+        axles.hub(true, h.frame[relative + B.FORK], h.frame[relative + B.STEER], new T.Vector3(), normal);
+        normal.applyQuaternion(quat);
+        expect(Math.abs(sample.forward.dot(normal))).toBeLessThan(1e-6);
+        expect(Math.abs(sample.forward.dot(plane.normal))).toBeLessThan(1e-6);
+        return sample;
+      };
+      view.record({ blocks: new Float32Array(), wetness: 0, reset: true }, 0, true);
+      const initial = patch(), oldHeight = initial.position.y;
+      const cell = view.heightCellAt(initial.station, initial.lateral);
+      const stride = h.terrain.renderColumns;
+      const blocks = Float32Array.from([cell, cell + 1, cell + stride, cell + stride + 1]
+        .flatMap((i) => [i, 0.16, 0.4]));
+      view.record({ blocks, wetness: 0, reset: false }, 1, true);
+      expect(patch().position.y).toBeLessThan(oldHeight - 0.035);
+      view.showAt(0);
+      expect(patch().position.y).toBeCloseTo(oldHeight, 6);
+      expect(faceReads).toBe(12); // twice for each of two loaded wheels, three presentations
+    } finally {
+      view.dispose();
+    }
   });
 
   it('bounds terrain sampling even with many riders and releases both render resources', () => {
