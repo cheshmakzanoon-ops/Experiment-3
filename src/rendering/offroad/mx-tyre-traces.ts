@@ -110,7 +110,7 @@ function traceMaterial() {
       void main() {
         float u = abs(vTread.x);
         float footprint = 1.0 - smoothstep(0.78, 1.0, u);
-        float front = max(vPrint.z, 0.0);
+        float front = clamp(vPrint.z, 0.0, 1.0);
         float mid = smoothstep(0.18, 0.38, u);
         float shoulder = smoothstep(0.58, 0.8, u);
         // A narrow longitudinal front block and a broader rear drive block.
@@ -145,6 +145,21 @@ function traceMaterial() {
         float grain = mix(mix(soilChip(cell), soilChip(cell + vec2(1, 0)), weight.x),
           mix(soilChip(cell + vec2(0, 1)), soilChip(cell + 1.0), weight.x), weight.y);
         grain = mix(grain, 0.5, smoothstep(0.35, 1.2, length(fwidth(chip))));
+        if (vPrint.z > 1.5) {
+          // Rotation cuts an oval pocket and ejects the raised crumb to
+          // the back. Reversing the wheel reverses the authored footprint.
+          float axis = 2.0 * vTread.y - 1.0;
+          float oval = length(vec2(vTread.x * 0.98, axis * (0.98 + 0.12 * axis)));
+          float torn = oval + (grain - 0.5) * 0.20;
+          float aa = max(fwidth(oval), 0.045);
+          float hollow = 1.0 - smoothstep(0.72 - aa, 0.89 + aa, torn);
+          float bank = (1.0 - smoothstep(aa, 0.18 + aa, abs(torn - 0.94))) *
+            (0.44 - axis * 0.32) * (0.48 + 0.52 * grain);
+          float exposure = vPrint.x * resolvedAcross;
+          gl_FragColor = vec4(vec3(0.95, 0.80, 0.62) * bank * exposure * (0.39 - 0.15 * vContactShear.y),
+            hollow * exposure * (0.43 + 0.12 * vContactShear.y));
+          return;
+        }
         float lip = 0.91 + scrub * (0.09 + 0.19 * grain);
         float ridge = (1.0 - smoothstep(0.045, 0.23, abs(leading - lip))) * (0.32 + 0.68 * grain);
         float crease = 1.0 - smoothstep(0.025, 0.15, abs(leading - lip + 0.17));
@@ -161,6 +176,8 @@ export class MxTyreTraces {
   readonly mesh: T.Mesh<T.BufferGeometry, T.ShaderMaterial>;
   private readonly pages: Float32Array[] = [];
   private readonly previous: (Sample | undefined)[] = [];
+  private readonly spinSites: ({ machine: number; x: number; z: number; time: number;
+    cut: number; tread: number } | undefined)[] = [];
   private readonly patch = mxWheelPatch();
   private readonly road = trackPoint();
   private readonly side = new T.Vector3();
@@ -233,11 +250,12 @@ export class MxTyreTraces {
     if (!Number.isFinite(time) || time === this.lastTime) return;
     if (time < this.lastTime) {
       this.end = this.after(time);
-      this.previous.length = 0;
+      this.previous.length = this.spinSites.length = 0;
       this.resetDraw();
     }
     this.lastTime = time;
     this.previous.length = Math.min(64, cars) * 2;
+    this.spinSites.length = Math.min(64, cars);
     for (let id = 0; id < Math.min(64, cars); id++) {
       const o = carBase(id),
         machine = Math.round(frame[o + RACE_BASE + R.VEHICLE]);
@@ -251,14 +269,20 @@ export class MxTyreTraces {
         if (
           !def.bike?.offroad ||
           frame[o + F.RETIRED] > 0.5 ||
-          speed < 0.4 ||
           frame[o + OFFROAD_BASE + O.AIRBORNE] > 0.5 ||
           load < 55 ||
           !SOIL.has(frame[w + W.SURFACE])
         ) {
           this.previous[slot] = undefined;
+          if (!front) this.spinSites[id] = undefined;
           continue;
         }
+        if (speed < 0.4) {
+          this.previous[slot] = undefined;
+          if (!front) this.stationaryRear(frame, o, w, id, machine, time, sampler);
+          continue;
+        }
+        if (!front) this.spinSites[id] = undefined;
         const rx = frame[o + F.X],
           rz = frame[o + F.Z],
           steer = front ? frame[o + BIKE_BASE + B.STEER] : 0;
@@ -400,6 +424,52 @@ export class MxTyreTraces {
     }
   }
 
+  /** A loaded rear tyre can excavate the same patch while the chassis is
+   * held at walking pace. Integrate tread travel, then stamp once at that
+   * site. A sustained spin only renews the mark after its first cut fades. */
+  private stationaryRear(frame: Float32Array, body: number, wheel: number, id: number,
+    machine: number, time: number, sampler: Roost) {
+    const x = frame[body + F.X], z = frame[body + F.Z];
+    let site = this.spinSites[id];
+    if (!site || site.machine !== machine || time - site.time > 0.35 ||
+        Math.hypot(x - site.x, z - site.z) > 0.16) {
+      this.spinSites[id] = { machine, x, z, time, cut: -Infinity, tread: 0 };
+      return;
+    }
+    const dt = time - site.time;
+    site.time = time;
+    const def = vehicleAt(machine), radius = def.bike!.rearWheelRadius;
+    const tread = Math.abs(frame[wheel + W.OMEGA]) * radius;
+    if (tread < 1.5) {
+      site.tread = 0;
+      return;
+    }
+    site.tread += (tread - Math.abs(frame[body + F.SPEED])) * dt;
+    if (site.tread < 0.4 || time - site.cut < LIFE - 0.4) return;
+    sampler.recordedWheel(frame, body, false, def, this.patch);
+    const p = this.patch;
+    site.tread = 0;
+    site.cut = time;
+    if (p.onStartPad) return;
+    const road = this.track.at(p.station, this.road);
+    const radiusScale = 1 / Math.max(0.45, 1 - road.curvature * p.lateral);
+    const pressure = clamp(frame[wheel + W.LOAD] / 850, 0, 1);
+    const width = MotocrossAxles.of(def).rearWidth * (0.95 + 0.26 * pressure);
+    const length = (0.14 + 0.075 * pressure) * Math.sign(frame[wheel + W.OMEGA]);
+    this.side.crossVectors(p.normal, p.forward);
+    const sideS = (this.side.x * road.tx + this.side.z * road.tz) * width * radiusScale;
+    const sideL = (this.side.x * road.nx + this.side.z * road.nz) * width;
+    const alongS = (p.forward.x * road.tx + p.forward.z * road.tz) * length * radiusScale;
+    const alongL = (p.forward.x * road.nx + p.forward.z * road.nz) * length;
+    const index = this.end % ARCHIVE, off = (index % PAGE) * STRIDE;
+    const page = (this.pages[Math.floor(index / PAGE)] ??= new Float32Array(PAGE * STRIDE));
+    page.set([time, p.station - alongS, p.lateral - alongL, sideS, sideL,
+      p.station + alongS, p.lateral + alongL, sideS, sideL, 0, 1, 0.55 + 0.37 * pressure,
+      1, 2, 0, clamp(frame[body + OFFROAD_BASE + O.MOISTURE], 0, 1)], off);
+    this.end++;
+    this.first = Math.max(this.first, this.end - ARCHIVE);
+  }
+
   private resetDraw() {
     this.mesh.geometry.setDrawRange(0, 0);
     this.drawnEnd = 0;
@@ -496,7 +566,7 @@ export class MxTyreTraces {
     return this.end - this.first;
   }
   dispose() {
-    this.previous.length = this.pages.length = 0;
+    this.spinSites.length = this.previous.length = this.pages.length = 0;
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     this.mesh.removeFromParent();

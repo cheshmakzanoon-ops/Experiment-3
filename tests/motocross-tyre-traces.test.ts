@@ -84,6 +84,44 @@ function field(machine: 'mx450' | 'sm450' = 'mx450') {
 }
 
 describe('fresh motocross tyre impressions', () => {
+  it('cuts once under a spinning loaded rear on soil and replays the gouge without darkening a stopped bike', () => {
+    const h = field();
+    try {
+      const g = h.marks.mesh.geometry, rear = h.o + WHEEL_BASE + 2 * WHEEL_STRIDE;
+      h.frame[h.o + F.SPEED] = 0;
+      h.frame[rear + W.OMEGA] = 0;
+      for (let n = 0; n < 16; n++) h.drive(60, n / 15);
+      expect(h.marks.recordedSegments).toBe(0);
+      h.frame[rear + W.OMEGA] = 30;
+      for (let n = 16; n < 80; n++) h.drive(60, n / 15);
+      expect(h.marks.recordedSegments).toBe(1);
+      h.marks.show(5, h.surface);
+      expect(h.marks.visibleSegments).toBe(1);
+      expect(g.getAttribute('mxTrace').getW(0)).toBe(2);
+      const position = g.getAttribute('position');
+      const length = Math.hypot(position.getX(2)-position.getX(0),position.getZ(2)-position.getZ(0));
+      expect(length).toBeGreaterThan(0.28);
+      expect(length).toBeLessThan(0.44);
+      const footprint = Array.from(position.array.slice(0, 12));
+      h.marks.show(0.7, h.surface);
+      expect(h.marks.visibleSegments).toBe(0);
+      h.marks.show(5, h.surface);
+      expect(Array.from(position.array.slice(0, 12))).toEqual(footprint);
+      h.frame[rear + W.LOAD] = 0;
+      for (let n = 80; n < 130; n++) h.drive(61, n / 15);
+      expect(h.marks.recordedSegments).toBe(1);
+      h.frame[rear + W.LOAD] = 650;
+      h.frame[rear + W.SURFACE] = MATERIAL.ASPHALT;
+      for (let n = 130; n < 150; n++) h.drive(61, n / 15);
+      expect(h.marks.recordedSegments).toBe(1);
+      h.frame[rear + W.SURFACE] = MATERIAL.DIRT;
+      h.roost.startPad = { padHeightAt: () => 1000 };
+      for (let n = 150; n < 165; n++) h.drive(61, n / 15);
+      expect(h.marks.recordedSegments).toBe(1);
+    } finally {
+      h.dispose();
+    }
+  });
   it('lays 22 pairs per physical revolution, including reverse, wheel lock and older frames', () => {
     const h = field();
     const tau = 2 * Math.PI,

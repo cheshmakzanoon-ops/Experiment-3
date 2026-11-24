@@ -58,11 +58,22 @@ test('grounded MX and SX tyres leave reversible prints in photographed dirt on W
         contentType: 'image/png',
       });
     await info.attach(label + '-tyre-trace-metrics.json', {
-      body: JSON.stringify({ ...result, before: undefined, after: undefined }),
+      body: JSON.stringify(result, (key, value) => ['before', 'after', 'image'].includes(key) ? undefined : value),
       contentType: 'application/json',
     });
     expect(result.errors).toEqual([0, 0, 0, 0]);
     expect(result.segments).toBeGreaterThanOrEqual(300);
+    await info.attach(label + '-stationary-rear-wheel-cut.png', {
+      body: Buffer.from(result.wheelspin.image.split(',')[1], 'base64'), contentType: 'image/png',
+    });
+    const pocket = result.wheelspin;
+    expect(pocket.segments).toBe(1);
+    expect(pocket.changed).toBeGreaterThan(40);
+    expect(pocket.changed).toBeLessThan(4500);
+    expect(pocket.calls[1] - pocket.calls[0]).toBe(1);
+    expect(pocket.hashes[0]).toBe(pocket.hashes[2]);
+    expect(pocket.hashes[1]).toBe(pocket.hashes[3]);
+    expect(pocket.error).toBe(0);
     expect(result.changed).toBeGreaterThan(100);
     expect(result.changed).toBeLessThan(result.width * result.height * 0.35);
     expect(result.calls[1] - result.calls[0]).toBe(1);

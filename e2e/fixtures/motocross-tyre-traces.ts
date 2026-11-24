@@ -5,11 +5,14 @@ import {
   F,
   H,
   HEADER,
+  O,
+  OFFROAD_BASE,
   W,
   WHEEL_BASE,
   WHEEL_STRIDE,
   carBase,
 } from '../../src/simulation/protocol.ts';
+import { MATERIAL } from '../../src/simulation/surface-material.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { trackPoint } from '../../src/simulation/track.ts';
 import { disposeTextureLoaders } from '../../src/rendering/assets/texture-loader.ts';
@@ -76,6 +79,8 @@ export async function captureMxTyrePassage(
   const sliding = machine === 'sm450' ? new MxTyreTraces(sim.track) : null;
   const slideFrame = sliding ? new Float32Array(frame.length) : null;
   if (sliding) scene.add(sliding.mesh);
+  const stopped = new MxTyreTraces(sim.track);
+  scene.add(stopped.mesh);
   try {
     materials.prepare(renderer);
     scannedGround.attach(renderer, 'high');
@@ -112,6 +117,7 @@ export async function captureMxTyrePassage(
     const capture = (at: number, trail = marks) => {
       marks.mesh.visible = trail === marks;
       if (sliding) sliding.mesh.visible = trail === sliding;
+      stopped.mesh.visible = trail === stopped;
       trail.show(at, view);
       renderer.render(scene, camera);
       const gl = renderer.getContext(),
@@ -132,6 +138,25 @@ export async function captureMxTyrePassage(
       rewind = capture(-1),
       restored = capture(time);
     const slide = sliding && capture(time, sliding);
+    // Hold the chassis at the surveyed camera point and apply rear wheel
+    // speed after a stationary control frame on the same photographed dirt.
+    const parked = frame.slice(), rear = o + WHEEL_BASE + 2 * WHEEL_STRIDE;
+    const yaw = Math.atan2(p.tx, p.tz), rearArm = sim.cars[0].definition.bike!.cgToRear;
+    parked[o + F.X] = target.x + p.tx * rearArm;
+    parked[o + F.Z] = target.z + p.tz * rearArm;
+    parked[o + F.Y] = target.y + sim.cars[0].definition.bike!.cgHeight;
+    parked[o + F.QX] = parked[o + F.QZ] = parked[o + F.SPEED] = parked[o + OFFROAD_BASE + O.AIRBORNE] = 0;
+    parked[o + F.QY] = Math.sin(yaw / 2);
+    parked[o + F.QW] = Math.cos(yaw / 2);
+    parked[rear + W.SURFACE] = MATERIAL.DIRT;
+    parked[rear + W.LOAD] = 700;
+    parked[rear + W.OMEGA] = 30;
+    for (let n = 0; n < 20; n++) {
+      parked[H.TIME] = n / 15;
+      stopped.record(parked, roost);
+    }
+    const emptyPocket = capture(0, stopped), cutPocket = capture(1, stopped);
+    const pocketRewind = capture(0, stopped), pocketReturn = capture(1, stopped);
     return {
       circuit,
       machine,
@@ -140,6 +165,9 @@ export async function captureMxTyrePassage(
       changed: changedPixels(before.pixels, after.pixels),
       byteExactRewind: before.pixels.every((value, i) => value === rewind.pixels[i]),
       byteExactRestore: after.pixels.every((value, i) => value === restored.pixels[i]),
+      wheelspin: { segments: stopped.recordedSegments, changed: changedPixels(emptyPocket.pixels, cutPocket.pixels),
+        calls: [emptyPocket.calls, cutPocket.calls], hashes:[emptyPocket.hash,cutPocket.hash,pocketRewind.hash,pocketReturn.hash],
+        error: cutPocket.glError, before: emptyPocket.image, image: cutPocket.image },
       saturatedSlipControl:
         slide && sliding
           ? {
@@ -158,6 +186,7 @@ export async function captureMxTyrePassage(
       after: after.image,
     };
   } finally {
+    stopped.dispose();
     sliding?.dispose();
     marks.dispose();
     roost.dispose();
