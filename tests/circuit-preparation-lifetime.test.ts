@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
 import { PreparationTrace } from '../src/rendering/preparation.ts';
@@ -30,17 +31,21 @@ function fixture(entrants = 2) {
   const sceneTexture = new T.Texture();
   const sceneMaterial = new T.MeshBasicMaterial({ map: sceneTexture });
   const sceneGeometry = new T.BoxGeometry();
+  const outputPass = new OutputPass();
   scene.add(new T.Mesh(sceneGeometry, sceneMaterial), sun);
-  const resources = [sceneGeometry, sceneMaterial, sceneTexture].map((resource) => {
-    const disposed = vi.fn();
-    resource.addEventListener('dispose', disposed);
-    return { resource, disposed };
-  });
+  const resources = [sceneGeometry, sceneMaterial, sceneTexture, outputPass.material].map(
+    (resource) => {
+      const disposed = vi.fn();
+      resource.addEventListener('dispose', disposed);
+      return { resource, disposed };
+    },
+  );
   let bound: T.WebGLRenderTarget | null = null;
   const state = {
     disposed: false,
     scene,
     sun,
+    outputPass,
     preparation: new PreparationTrace(),
     preparationTimeoutMs: 50,
     showroomOnly: false,

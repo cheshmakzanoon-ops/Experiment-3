@@ -5,10 +5,16 @@ import { SolvaneDetails } from '../src/rendering/open-world/solvane-details.ts';
 import { StreetDetails } from '../src/rendering/open-world/street-details.ts';
 import { VegetationLibrary } from '../src/rendering/vegetation/library.ts';
 
-const renderers: FestivalRenderer[] = [];
+const renderers: {
+  renderer: FestivalRenderer;
+  owned: { dispose: ReturnType<typeof vi.fn> }[];
+}[] = [];
 
 afterEach(() => {
-  for (const renderer of renderers.splice(0)) renderer.dispose();
+  for (const { renderer, owned } of renderers.splice(0)) {
+    renderer.dispose();
+    for (const resource of owned) expect(resource.dispose).toHaveBeenCalledOnce();
+  }
   vi.restoreAllMocks();
 });
 
@@ -45,6 +51,8 @@ function fixture() {
     structures: [],
     preset: 'high',
     scene: new T.Scene(),
+    sky: { geometry: disposable(), material: disposable() },
+    sun: { shadow: disposable() },
     photoVegetation: null,
     photoLoading: null,
     details: null,
@@ -77,6 +85,7 @@ function fixture() {
     environment: disposable(),
     wet: disposable(),
     bloom: disposable(),
+    outputPass: disposable(),
     grade: disposable(),
     fxaa: disposable(),
     imagePipeline: disposable(),
@@ -88,8 +97,14 @@ function fixture() {
     effectPlayback: { reset: vi.fn() },
     effects: { group: new T.Group() },
   };
-  const renderer = Object.assign(Object.create(FestivalRenderer.prototype), state) as FestivalRenderer;
-  renderers.push(renderer);
+  const renderer = Object.assign(
+    Object.create(FestivalRenderer.prototype),
+    state,
+  ) as FestivalRenderer;
+  renderers.push({
+    renderer,
+    owned: [state.sky.geometry, state.sky.material, state.sun.shadow, state.outputPass],
+  });
   return { renderer, state };
 }
 

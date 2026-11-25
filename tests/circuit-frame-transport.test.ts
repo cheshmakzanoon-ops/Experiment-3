@@ -69,9 +69,10 @@ describe('circuit snapshot transport', () => {
   );
 
   it.each(['write', 'post'] as const)(
-    'recovers attached buffers after repeated %s failures without acknowledging an incomplete pause',
+    'keeps %s failures terminal until reinitialization restores the complete frame pool',
     async (failure) => {
       const h = await worker();
+      const step = vi.spyOn(h.Simulation.prototype, 'step');
       const writer =
         failure === 'write'
           ? vi.spyOn(h.Simulation.prototype, 'writeFrame').mockImplementation(() => {
@@ -81,20 +82,52 @@ describe('circuit snapshot transport', () => {
       h.transport.failFrame = failure === 'post';
       for (let sequence = 1; sequence <= 8; sequence++)
         h.send({ type: 'pause', value: true, sequence });
-      expect(h.messages.filter((message) => message.type === 'error')).toHaveLength(8);
+      expect(h.messages.filter((message) => message.type === 'error')).toEqual([
+        { type: 'error', message: `frame ${failure} failed` },
+      ]);
       expect(h.messages.filter((message) => message.type === 'pauseState')).toEqual([]);
       expect(h.frames()).toHaveLength(1);
       writer?.mockRestore();
       h.transport.failFrame = false;
+      const failedMessageCount = h.messages.length;
       h.send({ type: 'pause', value: false, sequence: 9 });
+      const retired = h.frames()[0].buffer;
+      h.send({ type: 'recycle', buffer: structuredClone(retired, { transfer: [retired] }) });
       for (let i = 0; i < 8; i++) h.advance(20);
-      // The initial frame is still held. Every other original slot survives all
-      // eight failed required snapshots and remains usable for ordinary delivery.
-      expect(h.frames()).toHaveLength(5);
-      expect(h.messages.filter((message) => message.type === 'error')).toHaveLength(8);
+      expect(h.messages).toHaveLength(failedMessageCount);
+      expect(h.frames()).toHaveLength(1);
+      expect(h.messages.filter((message) => message.type === 'pauseState')).toEqual([]);
+      expect(step).not.toHaveBeenCalled();
+
+      h.send({ type: 'init', options: { ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice' } });
+      expect(h.frames()).toHaveLength(2);
+      expect(new Float32Array(h.frames()[1].buffer)[H.TICK]).toBe(0);
+      h.send({ type: 'pause', value: false, sequence: 10 });
+      for (let i = 0; i < 8; i++) h.advance(20);
+      // A fresh session owns all five slots. The retired session's returned
+      // storage was ignored while failed and cannot revive its simulation.
+      const fresh = h.frames().slice(1);
+      expect(fresh).toHaveLength(5);
+      expect(new Set(fresh.map((frame) => frame.buffer)).size).toBe(5);
+      for (const { buffer } of fresh) {
+        expect(buffer.byteLength).toBe((HEADER + CAR_STRIDE) * 4);
+        expect(new Float32Array(buffer)[H.CARS]).toBe(1);
+      }
+      expect(new Float32Array(fresh.at(-1)!.buffer)[H.TICK]).toBeGreaterThan(0);
+      expect(step).toHaveBeenCalled();
+      expect(h.messages.filter((message) => message.type === 'error')).toHaveLength(1);
       expect(h.messages.filter((message) => message.type === 'pauseState')).toEqual([
-        { type: 'pauseState', sequence: 9, value: false, tick: 0 },
+        { type: 'pauseState', sequence: 10, value: false, tick: 0 },
       ]);
+      h.advance(100);
+      expect(h.frames()).toHaveLength(6);
+      const returned = structuredClone(fresh[0].buffer, { transfer: [fresh[0].buffer] });
+      h.send({ type: 'recycle', buffer: returned });
+      h.send({ type: 'recycle', buffer: returned });
+      h.advance(20);
+      expect(h.frames()).toHaveLength(7);
+      for (let i = 0; i < 8; i++) h.advance(20);
+      expect(h.frames()).toHaveLength(7);
     },
   );
 
