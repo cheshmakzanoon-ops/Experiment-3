@@ -46,7 +46,6 @@ let cancelled = 0,
 scope.setInterval = (handler: TimerHandler, delay?: number, ...args: unknown[]): number => {
   if (typeof handler !== 'function')
     throw new Error('Native idle witness requires function interval callbacks');
-  let owner!: IntervalOwner;
   const handle = nativeInterval(function (this: unknown, ...delivered: unknown[]) {
     callbacks++;
     owner.callbacks++;
@@ -63,7 +62,7 @@ scope.setInterval = (handler: TimerHandler, delay?: number, ...args: unknown[]):
       executing = previous;
     }
   }, delay, ...args);
-  owner = {
+  const owner: IntervalOwner = {
     owner: owners.length + 1,
     handle,
     delay: delay ?? null,

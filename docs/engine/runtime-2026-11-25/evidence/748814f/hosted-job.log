@@ -1,0 +1,326 @@
+﻿2026-11-25T15:24:40.1438072Z Current runner version: '2.338.2'
+##[group]Runner Image Provisioner
+Hosted Compute Agent
+Version: 20261111.635
+Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Build Date: 2026-11-11T01:49:01Z
+Worker ID: {1741612e-c69b-4f78-ae2c-ede3b251fc1a}
+Region: eastus
+Cloud: Azure
+##[endgroup]
+##[group]Operating System
+Ubuntu
+24.04.5
+LTS
+##[endgroup]
+##[group]Runner Image
+Image: ubuntu-24.04
+Version: 20261116.376.1
+Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.376/images/ubuntu/Ubuntu2404-Readme.md
+Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.376
+##[endgroup]
+##[group]GITHUB_TOKEN Permissions
+Contents: read
+Metadata: read
+##[endgroup]
+Secret source: Actions
+Cache mode: write
+Prepare workflow directory
+Prepare all required actions
+Getting action download info
+Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Complete job name: native-and-replay
+##[group]Run actions/checkout@v4
+with:
+  persist-credentials: false
+  repository: cheshmakzanoon-ops/Experiment-3
+  token: ***
+  ssh-strict: true
+  ssh-user: git
+  clean: true
+  sparse-checkout-cone-mode: true
+  fetch-depth: 1
+  fetch-tags: false
+  show-progress: true
+  lfs: false
+  submodules: false
+  set-safe-directory: true
+  allow-unsafe-pr-checkout: false
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+Syncing repository: cheshmakzanoon-ops/Experiment-3
+##[group]Getting Git version info
+Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+[command]/usr/bin/git version
+git version 2.56.1
+##[endgroup]
+Temporarily overriding HOME='/home/runner/work/_temp/677f0bf3-7c9a-4ebd-8e99-a33cfd1a0431' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+##[group]Initializing the repository
+[command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+[command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+##[endgroup]
+##[group]Disabling automatic garbage collection
+[command]/usr/bin/git config --local gc.auto 0
+##[endgroup]
+##[group]Setting up auth
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+##[endgroup]
+##[group]Fetching the repository
+[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +748814f648badd2e355c47c2f6ddc7321a0ed494:refs/remotes/origin/main
+From https://github.com/cheshmakzanoon-ops/Experiment-3
+ * [new ref]         748814f648badd2e355c47c2f6ddc7321a0ed494 -> origin/main
+##[endgroup]
+##[group]Determining the checkout info
+##[endgroup]
+[command]/usr/bin/git sparse-checkout disable
+[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+##[group]Checking out the ref
+[command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Updating files:  42% (4440/10389)
+Updating files:  43% (4468/10389)
+Updating files:  44% (4572/10389)
+Updating files:  45% (4676/10389)
+Updating files:  46% (4779/10389)
+Updating files:  47% (4883/10389)
+Updating files:  48% (4987/10389)
+Updating files:  49% (5091/10389)
+Updating files:  50% (5195/10389)
+Updating files:  51% (5299/10389)
+Updating files:  52% (5403/10389)
+Updating files:  53% (5507/10389)
+Updating files:  54% (5611/10389)
+Updating files:  55% (5714/10389)
+Updating files:  56% (5818/10389)
+Updating files:  57% (5922/10389)
+Updating files:  58% (6026/10389)
+Updating files:  59% (6130/10389)
+Updating files:  60% (6234/10389)
+Updating files:  61% (6338/10389)
+Updating files:  62% (6442/10389)
+Updating files:  63% (6546/10389)
+Updating files:  64% (6649/10389)
+Updating files:  65% (6753/10389)
+Updating files:  66% (6857/10389)
+Updating files:  67% (6961/10389)
+Updating files:  68% (7065/10389)
+Updating files:  69% (7169/10389)
+Updating files:  70% (7273/10389)
+Updating files:  71% (7377/10389)
+Updating files:  72% (7481/10389)
+Updating files:  73% (7584/10389)
+Updating files:  74% (7688/10389)
+Updating files:  75% (7792/10389)
+Updating files:  76% (7896/10389)
+Updating files:  76% (7906/10389)
+Updating files:  77% (8000/10389)
+Updating files:  78% (8104/10389)
+Updating files:  79% (8208/10389)
+Updating files:  80% (8312/10389)
+Updating files:  81% (8416/10389)
+Updating files:  82% (8519/10389)
+Updating files:  83% (8623/10389)
+Updating files:  84% (8727/10389)
+Updating files:  85% (8831/10389)
+Updating files:  86% (8935/10389)
+Updating files:  87% (9039/10389)
+Updating files:  88% (9143/10389)
+Updating files:  89% (9247/10389)
+Updating files:  90% (9351/10389)
+Updating files:  91% (9454/10389)
+Updating files:  92% (9558/10389)
+Updating files:  93% (9662/10389)
+Updating files:  94% (9766/10389)
+Updating files:  95% (9870/10389)
+Updating files:  96% (9974/10389)
+Updating files:  97% (10078/10389)
+Updating files:  98% (10182/10389)
+Updating files:  99% (10286/10389)
+Updating files: 100% (10389/10389)
+Updating files: 100% (10389/10389), done.
+Switched to a new branch 'main'
+branch 'main' set up to track 'origin/main'.
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+748814f648badd2e355c47c2f6ddc7321a0ed494
+##[group]Removing auth
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+##[endgroup]
+##[group]Run actions/setup-node@v4
+with:
+  node-version: 22
+  cache: npm
+  always-auth: false
+  check-latest: false
+  token: ***
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+(node:2423) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+##[group]Environment details
+node: v22.23.5
+npm: 10.9.9
+yarn: 1.22.22
+##[endgroup]
+[command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+/home/runner/.npm
+Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+(node:2423) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Received 34424064 of 34424064 (100.0%), 117.7 MBs/sec
+Cache Size: ~33 MB (34424064 B)
+[command]/usr/bin/tar -xf /home/runner/work/_temp/2377e137-f066-4786-affe-cfc47f1a5125/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+Cache restored successfully
+Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+##[group]Run set -euo pipefail
+set -euo pipefail
+git rev-parse HEAD > "$RUNNER_TEMP/engine-source-commit.txt"
+git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/engine-source-tree.txt"
+sha256sum package-lock.json > "$RUNNER_TEMP/engine-package-lock.sha256"
+sha256sum desktop/src/save-mirror.cjs > "$RUNNER_TEMP/engine-desktop-service.sha256"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+shell: /usr/bin/bash -e {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 194 packages in 3s
+(node:2477) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[group]Run set -euo pipefail
+set -euo pipefail
+node --experimental-transform-types scripts/source-stability.ts -- \
+  node node_modules/eslint/bin/eslint.js src tests e2e scripts \
+  2>&1 | tee "$RUNNER_TEMP/engine-runtime-lint.log"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+
+/home/runner/work/Experiment-3/Experiment-3/e2e/fixtures/engine-native-worker-idle-observer.ts
+##[error]  49:7  error  'owner' is never reassigned. Use 'const' instead  prefer-const
+
+✖ 1 problem (1 error, 0 warnings)
+
+(node:2518) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[error]Process completed with exit code 1.
+##[group]Run actions/upload-artifact@v4
+with:
+  name: engine-runtime-validation-748814f648badd2e355c47c2f6ddc7321a0ed494
+  retention-days: 7
+  if-no-files-found: error
+  path: test-results/
+playwright-report/
+browser-backend.json
+browser-progress.json
+dist/BUILD_IDENTITY.json
+/home/runner/work/_temp/engine-source-commit.txt
+/home/runner/work/_temp/engine-source-tree.txt
+/home/runner/work/_temp/engine-package-lock.sha256
+/home/runner/work/_temp/engine-desktop-service.sha256
+/home/runner/work/_temp/engine-runtime-lint.log
+/home/runner/work/_temp/engine-runtime-unit.log
+/home/runner/work/_temp/engine-runtime-build.log
+/home/runner/work/_temp/engine-runtime-probes.log
+/home/runner/work/_temp/engine-runtime-browser.log
+
+  compression-level: 6
+  overwrite: false
+  include-hidden-files: false
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+(node:2563) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Multiple search paths detected. Calculating the least common ancestor of all paths
+The least common ancestor is /home/runner/work. This will be the root directory of the artifact
+With the provided path, there will be 5 files uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+(node:2563) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Uploaded bytes 1287
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is 85584357dc85ffb6c76d69748429e82fd69759c261bae309b497ca76b8ab3aab
+Finalizing artifact upload
+Artifact engine-runtime-validation-748814f648badd2e355c47c2f6ddc7321a0ed494.zip successfully finalized. Artifact ID 15037522209
+Artifact engine-runtime-validation-748814f648badd2e355c47c2f6ddc7321a0ed494 has been successfully uploaded! Final size is 1287 bytes. Artifact ID is 15037522209
+Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45644838370/artifacts/15037522209
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.1
+Temporarily overriding HOME='/home/runner/work/_temp/949961d5-a496-43b0-996f-c200e09d44c9' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
