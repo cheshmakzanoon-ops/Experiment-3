@@ -1,5 +1,6 @@
 import type { Simulation } from '../simulation/world.ts';
 import type { FromWorker, ToWorker } from '../simulation/protocol.ts';
+import { MATERIALS } from '../simulation/surface-material.ts';
 
 export interface EngineeringWheel {
   origin: [number, number, number];
@@ -36,16 +37,71 @@ export type SurfaceMessage = Extract<FromWorker, { type: 'surface' }> & {
   /** Coalescing omitted scheduled replay keyframes; this is not continuous capture. */
   captureGap?: boolean;
 };
+export interface EngineeringMessage {
+  type: 'engineering';
+  epoch: number;
+  sequence: number;
+  sample: EngineeringSample;
+}
 export type ClientMessage =
   | Exclude<ToWorker, { type: 'pause' }>
   | { type: 'pause'; value: boolean; sequence?: number }
   | { type: 'surfaceAck'; epoch: number; sequence: number }
+  | { type: 'engineeringAck'; epoch: number; sequence: number }
   | { type: 'engineering'; enabled: boolean };
 export type WorkerMessage =
   | Exclude<FromWorker, { type: 'surface' }>
   | SurfaceMessage
   | PauseReceipt
-  | { type: 'engineering'; sample: EngineeringSample };
+  | EngineeringMessage;
+
+/** Optional inspection keeps one copied sample in flight. An occupied credit
+ * survives timeline/toggle changes: resetting cannot bypass a stalled host. */
+export class EngineeringChannel {
+  private readonly probe = new EngineeringProbe();
+  private epoch = 0;
+  private sequence = 0;
+  private outstanding: Pick<EngineeringMessage, 'epoch' | 'sequence'> | null = null;
+
+  reset() {
+    this.epoch++;
+    this.probe.reset();
+  }
+
+  enable(value: boolean) {
+    this.probe.enable(value);
+    this.epoch++;
+  }
+
+  publish(simulation: Simulation, send: (message: EngineeringMessage) => void): boolean {
+    if (this.outstanding) return false;
+    const sample = this.probe.sample(simulation);
+    if (!sample) return false;
+    const ticket = { epoch: this.epoch, sequence: ++this.sequence };
+    this.outstanding = ticket;
+    try {
+      send({ type: 'engineering', ...ticket, sample });
+      return true;
+    } catch (error) {
+      // A synchronous consumer may already have acknowledged this packet and
+      // published its successor. A failed old send cannot revoke that owner.
+      if (this.outstanding === ticket) this.outstanding = null;
+      throw error;
+    }
+  }
+
+  acknowledge(receipt: Pick<EngineeringMessage, 'epoch' | 'sequence'>): boolean {
+    if (
+      !Number.isSafeInteger(receipt.epoch) ||
+      !Number.isSafeInteger(receipt.sequence) ||
+      receipt.epoch !== this.outstanding?.epoch ||
+      receipt.sequence !== this.outstanding.sequence
+    )
+      return false;
+    this.outstanding = null;
+    return true;
+  }
+}
 
 /** The menu can open immediately, before the worker has processed pause.
  * A receipt is a FIFO barrier after the final frame and recording flushes, not
@@ -165,8 +221,7 @@ export function isEngineeringSample(value: unknown): value is EngineeringSample 
         Number.isFinite(w.loadN) &&
         w.loadN >= 0 &&
         Number.isInteger(w.surface) &&
-        w.surface >= 0 &&
-        w.surface <= 5 &&
+        MATERIALS[w.surface]?.id === w.surface &&
         Number.isInteger(w.cell) &&
         w.cell >= 0 &&
         w.cell < 512 * 7 &&

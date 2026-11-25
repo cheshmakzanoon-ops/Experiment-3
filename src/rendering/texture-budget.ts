@@ -186,15 +186,34 @@ export class TextureBudget {
     }
   }
   dispose() {
-    this.imported.dispose();
-    for (const [texture, asset] of this.assets) {
-      texture.dispose();
-      texture.source = asset.source.original;
-      texture.needsUpdate = true;
-    }
+    const assets = [...this.assets];
+    // Reentrant disposal must not revisit wrappers whose old owner is closing.
     this.assets.clear();
     this.sources.clear();
     this.groups.clear();
     this.detailData.clear();
+    let failed = false;
+    let failure: unknown;
+    const release = (dispose: () => void) => {
+      try {
+        dispose();
+      } catch (error) {
+        if (!failed) {
+          failed = true;
+          failure = error;
+        }
+      }
+    };
+    release(() => this.imported.dispose());
+    for (const [texture, asset] of assets)
+      release(() => {
+        try {
+          texture.dispose();
+        } finally {
+          texture.source = asset.source.original;
+          texture.needsUpdate = true;
+        }
+      });
+    if (failed) throw failure;
   }
 }

@@ -80,6 +80,14 @@ function claimOf(world: AuthoritativeWorld): RecordClaim {
 }
 /** Archive a finished (or time-limited) authoritative session. */
 export function createRecord(world: AuthoritativeWorld): SessionRecord {
+  // A final snapshot can disconnect a peer after the last completed step.
+  // Its takeover is stamped for the next step, outside this record's exclusive
+  // endTick. Retain the live journal for supervision; archive only consumed
+  // entries. Trimming only the current-boundary suffix leaves unrelated invalid
+  // entries subject to the existing encoder and verifier checks.
+  let count = world.journal.length;
+  while (count && world.journal[count - 1].tick === world.tick) count--;
+  const journal = count === world.journal.length ? world.journal : world.journal.slice(0, count);
   const options = world.sim.options,
     body: Omit<SessionRecord, 'digest'> = {
       format: RECORD_FORMAT,
@@ -88,8 +96,8 @@ export function createRecord(world: AuthoritativeWorld): SessionRecord {
       category: recordCategory(options),
       options,
       endTick: world.tick,
-      journalEntries: world.journal.length,
-      journal: toBase64(encodeJournal(world.journal)),
+      journalEntries: journal.length,
+      journal: toBase64(encodeJournal(journal)),
       claim: claimOf(world),
     };
   return { ...body, digest: recordDigest(body) };

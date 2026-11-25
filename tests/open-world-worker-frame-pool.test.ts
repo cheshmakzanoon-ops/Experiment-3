@@ -66,16 +66,18 @@ async function worker(options: Init['options'] = {}) {
     scope.onmessage!({ data });
     return data.buffer;
   };
-  send({
+  const init = () => send({
     type: 'init',
     options: { vehicle: 'tc1', weather: 'clear', assist: 'sport', seed: 73021, discovered: [], ...options },
   });
+  init();
   return {
     messages,
     posted,
     writes,
     steps,
     send,
+    init,
     advance,
     run,
     frames,
@@ -184,37 +186,63 @@ describe('festival worker frame buffer ownership', () => {
     expect(h.errors()).toEqual([]);
   });
 
-  it.each(['write', 'post'] as const)('recovers attached buffers after repeated %s failures', async (failure) => {
+  it.each(['write', 'post'] as const)('keeps %s failure terminal and restarts with a fresh bounded pool', async (failure) => {
     const h = await worker();
+    const failedBuffers: ArrayBufferLike[] = [];
+    const bytes = (HEADER + CAR_STRIDE) * 4;
     for (let i = 0; i < 5; i++) {
       if (failure === 'write') h.writes.mockImplementationOnce(() => { throw new Error('Injected frame write failure'); });
       else h.failNextPost('before-transfer');
       h.send({ type: 'pause', value: false });
       h.advance(20);
+      failedBuffers.push(h.writes.mock.calls.at(-1)![0].buffer);
+      expect(failedBuffers.at(-1)!.byteLength).toBe(bytes);
+      const steps = h.steps.mock.calls.length;
+      h.send({ type: 'pause', value: false });
+      h.advance(20);
+      expect(h.steps).toHaveBeenCalledTimes(steps);
+      expect(h.errors()).toHaveLength(i + 1);
+      expect(h.frames()).toHaveLength(i + 1);
+      if (i < 4) h.init();
     }
     expect(h.errors()).toHaveLength(5);
-    expect(h.frames()).toHaveLength(1);
+    expect(failedBuffers.every((buffer) => buffer.byteLength === bytes)).toBe(true);
+    h.init();
     h.send({ type: 'pause', value: false });
     h.run();
-    expect(h.frames()).toHaveLength(4);
+    expect(h.frames()).toHaveLength(9); // five failed-session frames + four fresh credits
     h.run();
-    expect(h.frames()).toHaveLength(4);
+    expect(h.frames()).toHaveLength(9);
     expect(h.errors()).toHaveLength(5);
   });
 
-  it('waits for a transferred frame to return even when its post callback then throws', async () => {
+  it('does not revive after a transferred post failure and recycles only after a fresh init', async () => {
     const h = await worker();
     h.failNextPost('after-transfer');
     h.send({ type: 'pause', value: false });
     h.advance(20);
     expect(h.frames()).toHaveLength(2);
     expect(h.errors()).toHaveLength(1);
+    const failedPost = h.posted.at(-1)!;
+    expect(failedPost.sent.buffer.byteLength).toBe(0);
+    expect(failedPost.received.buffer.byteLength).toBe((HEADER + CAR_STRIDE) * 4);
+    const steps = h.steps.mock.calls.length;
     h.send({ type: 'pause', value: false });
     h.run();
-    expect(h.frames()).toHaveLength(4);
+    expect(h.frames()).toHaveLength(2);
+    expect(h.steps).toHaveBeenCalledTimes(steps);
     h.recycle(h.frames()[1]);
     h.run();
-    expect(h.frames()).toHaveLength(5);
+    expect(h.frames()).toHaveLength(2);
+    expect(h.steps).toHaveBeenCalledTimes(steps);
+    expect(failedPost.received.buffer.byteLength).toBe(0);
+    h.init();
+    h.send({ type: 'pause', value: false });
+    h.run();
+    expect(h.frames()).toHaveLength(6); // two old frames + four new credits
+    h.recycle(h.frames()[2]);
+    h.run();
+    expect(h.frames()).toHaveLength(7);
     expect(h.errors()).toHaveLength(1);
   });
 

@@ -122,9 +122,36 @@ export function readControls(r: ByteReader, withRearBrake = true): Controls {
 }
 /** The exact value the server will apply for `c`. */
 export function quantizeControls(c: Controls): Controls {
-  const w = new ByteWriter(8);
-  writeControls(w, c);
-  return readControls(new ByteReader(w.finish()));
+  // Clamp/round exactly as the wire writer does. Integer coercion preserves
+  // DataView's NaN -> 0 and -0 -> +0 behavior without temporary byte storage.
+  const throttle = (Math.round(clamp(c.throttle, 0, 1) * 255) | 0) / 255,
+    brake = (Math.round(clamp(c.brake, 0, 1) * 255) | 0) / 255,
+    clutch = (Math.round(clamp(c.clutch, 0, 1) * 255) | 0) / 255,
+    steer = (Math.round(clamp(c.steer, -1, 1) * 32767) | 0) / 32767,
+    shiftCode = SHIFT_CODE(c.shift),
+    ers = c.ers === 0 ? 0 : c.ers === 2 ? 2 : 1,
+    manualClutch = !!c.manualClutch,
+    reverse = !!c.reverse,
+    drs = !!c.drs,
+    overtake = !!c.overtake,
+    pit = !!c.pit,
+    riderLean = (Math.round(clamp(c.riderLean ?? 0, -1, 1) * 63) | 0) / 63,
+    rearBrake = (Math.round(clamp(c.rearBrake ?? 0, 0, 1) * 255) | 0) / 255;
+  return {
+    throttle,
+    brake,
+    clutch,
+    rearBrake,
+    steer,
+    riderLean,
+    shift: shiftCode === 1 ? 1 : shiftCode === 2 ? -1 : 0,
+    ers,
+    manualClutch,
+    reverse,
+    drs,
+    overtake,
+    pit,
+  };
 }
 export const CONTROLS_WIRE_BYTES = 8;
 

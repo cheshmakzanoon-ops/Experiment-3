@@ -24,19 +24,28 @@ export class SessionLifetime {
   wait<T>(work: Promise<T>, cancel?: () => void): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       let settled = false;
-      const finish = (complete: () => void) => {
+      const finish = (complete: () => void, failed = false) => {
         if (settled) return;
         settled = true;
         this.signal.removeEventListener('abort', abort);
-        cancel?.();
+        try {
+          cancel?.();
+        } catch (error) {
+          // Cleanup must not strand the wait or replace its original failure.
+          // On success, report cleanup failure through the owned promise.
+          if (!failed) {
+            reject(error);
+            return;
+          }
+        }
         complete();
       };
-      const abort = () => finish(() => reject(this.signal.reason));
+      const abort = () => finish(() => reject(this.signal.reason), true);
       // Keep both handlers even after cancellation: shared loaders can fail
       // later, but that failure no longer belongs to the departed session.
       work.then(
         (value) => finish(() => resolve(value)),
-        (error: unknown) => finish(() => reject(error)),
+        (error: unknown) => finish(() => reject(error), true),
       );
       if (this.signal.aborted) abort();
       else this.signal.addEventListener('abort', abort, { once: true });

@@ -22,6 +22,18 @@ Distinct worker assignments actually started are listed below. Planned assignmen
 | 16 | 3 | `w03d_texture_budget` | complete |
 | 17 | 3 | `w03e_renderer_release` | complete |
 | 18 | 3 | `w03f_audio_preview` | complete |
+| 19 | 4 | `w04a_session_settlement` | complete |
+| 20 | 4 | `w04b_diagnostics_backpressure` | complete |
+| 21 | 4 | `w04c_command_atomicity` | complete |
+| 22 | 4 | `w04d_control_quantization` | complete |
+| 23 | 4 | `w04e_status_backpressure` | complete |
+| 24 | 4 | `w04f_export_audit` | complete |
+| 25 | 5 | `w05a_worker_input_lifetime` | complete |
+| 26 | 5 | `w05b_network_integration` | complete |
+| 27 | 5 | `w05c_recording_integration` | complete |
+| 28 | 5 | `w05d_festival_integration` | complete |
+| 29 | 5 | `w05e_audio_input_integration` | complete |
+| 30 | 5 | `w05f_texture_renderer_integration` | complete |
 
 ## Programme
 

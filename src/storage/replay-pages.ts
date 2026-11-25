@@ -647,10 +647,14 @@ export class SessionReplay {
   /** The page that would hold the end of the recording after `truncate(time)`:
    * the open page, or a cached, fully written recent page; null otherwise. */
   private truncationPage(time: number) {
-    if (this.closed || this.failure || !Number.isFinite(time) || time < this.start) return null;
-    if (this.current.count && this.current.frames[H.TIME] <= time) return this.current;
+    if (this.closed || this.failure || !Number.isFinite(time) || time < 0) return null;
+    // Flashback receipts use the simulation's double clock; stored poses use
+    // Float32. Compare in the pose domain so upward rounding keeps its target.
+    const poseTime = Math.fround(time);
+    if (poseTime < this.start) return null;
+    if (this.current.count && this.current.frames[H.TIME] <= poseTime) return this.current;
     let id = this.metadata.length - 1;
-    while (id >= 0 && this.metadata[id].start > time) id--;
+    while (id >= 0 && this.metadata[id].start > poseTime) id--;
     const page = this.cache.get(id);
     return page && !this.writing.has(page) ? page : null;
   }
@@ -672,9 +676,10 @@ export class SessionReplay {
       for (const id of [...this.failedReads]) if (id >= page.id) this.failedReads.delete(id);
       this.current = page;
     }
-    const stride = this.stride;
+    const stride = this.stride,
+      poseTime = Math.fround(time);
     let count = 0;
-    while (count < page.count && page.frames[count * stride + H.TIME] <= time) count++;
+    while (count < page.count && page.frames[count * stride + H.TIME] <= poseTime) count++;
     page.count = count;
     page.frames.fill(0, count * stride);
     this.frameHash = HASH_SEED;

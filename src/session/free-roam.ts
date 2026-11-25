@@ -394,7 +394,7 @@ export class FestivalSession {
     this.lifetime.check();
     host.loaded();
     this.lifetime.check();
-    if (destination && !renderer.ready(x, z)) {
+    if (!renderer.ready(x, z)) {
       this.setPaused(true);
       host.toast('The destination is still loading. Try again from the pause menu.');
     } else this.post({ type: 'pause', value: false });
@@ -430,10 +430,13 @@ export class FestivalSession {
     this.settleReady(error);
     this.rejectCommands(error);
     if (this.booting || fatal) this.lifetime.close(error);
-    this.host.toast(`Festival error: ${error.message}`);
-    // A running host must release the closed session's canvas/input ownership.
-    // Startup failures instead propagate through start() to the host owner.
-    if (leave) this.host.exit();
+    try {
+      this.host.toast(`Festival error: ${error.message}`);
+    } finally {
+      // Reporting cannot retain the closed session's canvas/input ownership.
+      // Startup failures instead propagate through start() to the host owner.
+      if (leave) this.host.exit();
+    }
   }
   private receive(msg: FromOpenWorld) {
     if (this.disposed) return;
@@ -459,23 +462,36 @@ export class FestivalSession {
         this.settleReady();
         break;
       }
-      case 'status':
-        this.status = msg.status;
-        this.achievements.observe(msg.status);
-        if (this.renderer) {
-          for (const id of msg.status.discovered) {
-            if (!this.renderer.discovered.has(id)) {
-              this.renderer.discovered.add(id);
-              if (!this.save.discovered.includes(id)) {
-                this.save.discovered.push(id);
-                void this.persist();
+      case 'status': {
+        const worker = this.worker;
+        const ownsStatus = () => !this.disposed && this.worker === worker;
+        try {
+          if (!Number.isSafeInteger(msg.sequence) || msg.sequence < 1)
+            throw new Error('Invalid festival status receipt');
+          this.status = msg.status;
+          this.achievements.observe(msg.status);
+          if (this.renderer) {
+            for (const id of msg.status.discovered) {
+              if (!this.renderer.discovered.has(id)) {
+                this.renderer.discovered.add(id);
+                if (!this.save.discovered.includes(id)) {
+                  this.save.discovered.push(id);
+                  void this.persist();
+                }
               }
             }
+            this.renderer.activeEvent = msg.status.event?.id ?? null;
+            this.renderer.gate = msg.status.event?.gate ?? null;
           }
-          this.renderer.activeEvent = msg.status.event?.id ?? null;
-          this.renderer.gate = msg.status.event?.gate ?? null;
+        } catch (error) {
+          if (ownsStatus()) this.fail(error instanceof Error ? error : new Error(String(error)), true);
+        } finally {
+          // A consumer can synchronously close or replace its session. Only
+          // the still-owning worker may receive this packet's credit back.
+          if (ownsStatus()) this.post({ type: 'statusAck', sequence: msg.sequence });
         }
         break;
+      }
       case 'result':
         this.recordResult(msg.result);
         break;

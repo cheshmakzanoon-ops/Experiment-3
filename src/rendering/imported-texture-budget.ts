@@ -154,20 +154,35 @@ export class ImportedTextureBudget {
   }
 
   dispose() {
-    for (const asset of this.assets) {
-      for (const texture of asset.textures) {
-        texture.dispose();
-        texture.source = asset.original;
-        if (asset.coverage) {
-          texture.mipmaps = [];
-          texture.generateMipmaps = true;
-        }
-        texture.needsUpdate = true;
-      }
-      asset.textures.clear();
-    }
+    const assets = [...this.assets];
+    // Retire this batch before user/Three disposal listeners can reenter it.
+    // A later registration still starts a fresh, reusable budget owner.
     this.registered.clear();
     this.sources.clear();
     this.assets.clear();
+    let failed = false;
+    let failure: unknown;
+    for (const asset of assets) {
+      const textures = [...asset.textures];
+      asset.textures.clear();
+      for (const texture of textures) {
+        try {
+          texture.dispose();
+        } catch (error) {
+          if (!failed) {
+            failed = true;
+            failure = error;
+          }
+        } finally {
+          texture.source = asset.original;
+          if (asset.coverage) {
+            texture.mipmaps = [];
+            texture.generateMipmaps = true;
+          }
+          texture.needsUpdate = true;
+        }
+      }
+    }
+    if (failed) throw failure;
   }
 }

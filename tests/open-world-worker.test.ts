@@ -38,7 +38,10 @@ it('keeps delivering frames when an event changes the field size, and after it e
   const drain = () => {
     for (const msg of received.splice(0)) {
       if (msg.type === 'error') throw new Error(msg.message);
-      if (msg.type === 'status') status = msg.status;
+      if (msg.type === 'status') {
+        status = msg.status;
+        send({ type: 'statusAck', sequence: msg.sequence });
+      }
       if (msg.type !== 'frame') continue;
       const frame = new Float32Array(msg.buffer);
       sizes.push(frame.length);

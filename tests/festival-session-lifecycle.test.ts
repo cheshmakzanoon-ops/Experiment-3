@@ -227,6 +227,42 @@ describe('FestivalSession lifetime', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it.each(['default spawn', 'selected destination'] as const)('keeps %s paused when terrain misses the startup deadline', async (location) => {
+    renderer.ready.mockReturnValue(false);
+    const initialPost = doubles.state.onPost!;
+    doubles.state.onPost = (worker, message) => {
+      initialPost(worker, message);
+      if (message.type === 'command' && message.command.type === 'travel')
+        queueMicrotask(() => worker.onmessage?.({ data: { type: 'command-result', requestId: message.requestId! } }));
+    };
+    const run = start(hostDouble(), location === 'selected destination' ? { travel: 'coast-trap' } : {});
+    await advanceUntil(() => renderer.prestream.mock.calls.length > 0);
+    await vi.advanceTimersByTimeAsync(21000);
+    const session = liveSession(run), worker = doubles.workers[0];
+    expect(session.drivingInputEnabled).toBe(false);
+    expect(run.host.loaded).toHaveBeenCalledOnce();
+    expect(run.host.toast).toHaveBeenCalledWith('The destination is still loading. Try again from the pause menu.');
+    expect(worker.postMessage.mock.calls.filter(([message]) => message.type === 'pause' && !message.value)).toHaveLength(0);
+    expect(worker.postMessage).toHaveBeenLastCalledWith({ type: 'pause', value: true }, []);
+    expect(renderer.prepareGpu).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('resumes a default spawn that becomes ready while its first view is warming', async () => {
+    renderer.ready.mockReturnValue(false);
+    renderer.prepareGpu.mockImplementation(async () => {
+      renderer.ready.mockReturnValue(true);
+      return true;
+    });
+    const run = start();
+    await advanceUntil(() => renderer.prestream.mock.calls.length > 0);
+    await vi.advanceTimersByTimeAsync(21000);
+    expect(liveSession(run).drivingInputEnabled).toBe(true);
+    expect(run.host.toast).not.toHaveBeenCalled();
+    expect(doubles.workers[0].postMessage).toHaveBeenLastCalledWith({ type: 'pause', value: false }, []);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('does not start loading when its signal is already aborted', async () => {
     const cancellation = new AbortController();
     cancellation.abort();
@@ -425,7 +461,7 @@ describe('FestivalSession lifetime', () => {
     session.dispose();
     const loading = run.host.loading.mock.calls.length;
     receive({ data: frame() });
-    receive({ data: { type: 'status', status: { discovered: ['coast-trap'] } as FestivalStatus } });
+    receive({ data: { type: 'status', sequence: 1, status: { discovered: ['coast-trap'] } as FestivalStatus } });
     receive({ data: { type: 'result', result: { completed: true, eventId: 'coast-trap', stars: 3, time: 1 } as FestivalResult } });
     receive({ data: { type: 'error', message: 'Queued error' } });
     failure({ message: 'Queued crash' });

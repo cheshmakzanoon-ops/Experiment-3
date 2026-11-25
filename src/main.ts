@@ -1020,6 +1020,8 @@ export class GameApp {
     const session = crypto.randomUUID();
     await this.festivalOwner.start({
       load: () => {
+        // The Festival now owns startup; retire any circuit CSV still in flight.
+        this.exporter.cancel();
         // The festival opens in the player's LIGHT choice (AUTO is daylight there).
         this.applyLight(null, false);
         this.career.beginFestival({
@@ -1337,11 +1339,35 @@ export class GameApp {
           return;
         }
         if (message.type === 'engineering') {
-          if (!isEngineeringSample(message.sample)) {
-            this.fail(new Error('Invalid engineering response'));
-            return;
+          const engineeringWorker = this.worker;
+          const ownsEngineering = () => !cancelled() && this.worker === engineeringWorker;
+          try {
+            if (
+              !Number.isSafeInteger(message.epoch) ||
+              message.epoch < 1 ||
+              !Number.isSafeInteger(message.sequence) ||
+              message.sequence < 1 ||
+              !isEngineeringSample(message.sample)
+            )
+              throw new Error('Invalid engineering response');
+            if (this.renderer) this.renderer.engineering = message.sample;
+          } catch (error) {
+            if (ownsEngineering()) this.fail(error);
+          } finally {
+            // The consumer can synchronously dispose or replace this session.
+            // Return credit only to its original, still-active worker.
+            if (ownsEngineering()) {
+              try {
+                engineeringWorker?.postMessage({
+                  type: 'engineeringAck',
+                  epoch: message.epoch,
+                  sequence: message.sequence,
+                } satisfies ClientMessage);
+              } catch (error) {
+                if (ownsEngineering()) this.fail(error);
+              }
+            }
           }
-          if (this.renderer) this.renderer.engineering = message.sample;
           return;
         }
         if (message.type === 'error') {
@@ -3378,8 +3404,16 @@ export class GameApp {
     }
   }
   private async exportTelemetry() {
-    if (!this.telemetry || this.exporting) return;
-    const generation = this.generation;
+    const telemetry = this.telemetry,
+      generation = this.generation;
+    const current = () =>
+      !this.disposed &&
+      !this.errorStopped &&
+      !this.festivalStarting &&
+      !this.festival &&
+      generation === this.generation &&
+      telemetry === this.telemetry;
+    if (!telemetry || this.exporting || !current()) return;
     this.exporting = true;
     const button = document.querySelector<HTMLButtonElement>('[data-action="csv"]');
     if (button) {
@@ -3387,10 +3421,10 @@ export class GameApp {
       button.textContent = 'EXPORTING…';
     }
     try {
-      const blob = await this.exporter.export(this.telemetry.snapshot(), this.telemetry.count);
-      if (generation === this.generation) downloadBlob(blob, 'motobound-telemetry.csv');
+      const blob = await this.exporter.export(telemetry.snapshot(), telemetry.count);
+      if (current()) downloadBlob(blob, 'motobound-telemetry.csv');
     } catch (error) {
-      if (generation === this.generation) this.ui.toast(`Export failed: ${String(error)}`);
+      if (current()) this.ui.toast(`Export failed: ${String(error)}`);
     } finally {
       this.exporting = false;
       if (button) {
@@ -3538,6 +3572,7 @@ export class GameApp {
     };
     release(() => startup?.close(error instanceof Error ? error : new Error(String(error))));
     release(() => clearTimeout(initTimeout));
+    release(() => this.exporter.cancel());
     release(() => this.referenceSession?.interrupt('Application error.'));
     release(() => this.sessionReview.stop('Application error', true));
     release(() =>

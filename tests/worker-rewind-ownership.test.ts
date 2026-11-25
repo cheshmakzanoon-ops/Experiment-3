@@ -278,9 +278,9 @@ describe('worker rewind, input and recording ownership', () => {
     expect(circuitMessages.some((m) => m.type === 'flashback')).toBe(false);
     expect(Buffer.from(oldPage.buffer).equals(oldBytes)).toBe(true);
 
-    // Duplicate rewind requests are rejected without replacing the accepted
-    // target. A frame return supplies no surface credit; forged ACKs supply none.
-    sendCircuit({ type: 'flashback', tick: target - 8 });
+    // A frame return supplies no surface credit; forged ACKs supply none.
+    // Invalid duplicate requests are terminal and covered separately in
+    // engine-circuit-worker-terminal.test.ts.
     sendCircuit({ type: 'input', input: { ...controls(), shift: -1, throttle: 0.22 } });
     expected.setInput({ ...controls(), throttle: 0.22 });
     const returned = circuitFrames()[0].buffer;
@@ -370,9 +370,7 @@ describe('worker rewind, input and recording ownership', () => {
     ]);
     expect(circuitMessages[secondStart]).toMatchObject({ type: 'flashback', tick: secondTarget });
     expectState(circuit, expectedSecond);
-    expect(circuitMessages.filter((m) => m.type === 'error')).toEqual([
-      { type: 'error', message: 'Invalid flashback request' },
-    ]);
+    expect(circuitMessages.filter((m) => m.type === 'error')).toEqual([]);
     expect(detached.every((buffer) => buffer.byteLength === 0)).toBe(true);
   });
 

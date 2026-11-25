@@ -6,11 +6,16 @@ import type {
   FreeRoamOptions,
 } from '../simulation/open-world/session.ts';
 
+/** Preserve every status transition, with at most 6.4 seconds of normal 10 Hz
+ * delivery queued. A stalled host pauses stepping instead of losing events. */
+export const FESTIVAL_STATUS_CAPACITY = 64;
+
 /** Messages to the festival simulation worker. */
 export type ToOpenWorld =
   | { type: 'init'; options: Omit<FreeRoamOptions, 'region'> }
   | { type: 'input'; input: Controls }
   | { type: 'pause'; value: boolean }
+  | { type: 'statusAck'; sequence: number }
   | { type: 'command'; command: FestivalCommand; requestId?: number }
   | { type: 'recycle'; buffer: ArrayBuffer };
 /** Messages from the festival simulation worker. */
@@ -19,7 +24,7 @@ export type FromOpenWorld =
   /** A snapshot in the circuit layout and, in free roam, the ambient
    * traffic block (ambient-traffic.ts TRAFFIC_HEADER/TRAFFIC_STRIDE). */
   | { type: 'frame'; buffer: ArrayBuffer; traffic?: ArrayBuffer }
-  | { type: 'status'; status: FestivalStatus }
+  | { type: 'status'; sequence: number; status: FestivalStatus }
   | { type: 'result'; result: FestivalResult }
   | { type: 'command-result'; requestId: number; error?: string }
   /** Fatal simulation/transport failures close the session. Omitted `fatal`

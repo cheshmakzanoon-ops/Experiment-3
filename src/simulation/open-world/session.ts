@@ -122,6 +122,11 @@ export type FestivalCommand =
    * (TRY AGAIN), instead of standing on the gate. */
   | { type: 'travel'; event: string; runUp?: boolean }
   | { type: 'traffic'; value: boolean };
+/** A rejected request that has not changed any simulation state. Execution
+ * failures must remain ordinary errors so the worker closes the session. */
+export class FestivalCommandValidationError extends Error {
+  override name = 'FestivalCommandValidationError';
+}
 export interface FestivalCard {
   id: string;
   name: string;
@@ -503,7 +508,7 @@ export class OpenWorldSimulation {
         break;
       case 'start': {
         const event = this.events.find((e) => e.spec.id === cmd.event);
-        if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
+        if (!event) throw new FestivalCommandValidationError(`Unknown festival event ${cmd.event}`);
         if (this.mode === 'countdown' || this.mode === 'running') this.abandon();
         this.startEvent(event);
         break;
@@ -534,7 +539,7 @@ export class OpenWorldSimulation {
         break;
       case 'vehicle': {
         if (!Object.hasOwn(VEHICLES, cmd.id) || !festivalAdmits(VEHICLES[cmd.id]))
-          throw new Error(`Vehicle ${cmd.id} cannot run in the festival`);
+          throw new FestivalCommandValidationError(`Vehicle ${cmd.id} cannot run in the festival`);
         if (this.run) this.abandon();
         this.skills.reset();
         const old = this.player,
@@ -551,7 +556,7 @@ export class OpenWorldSimulation {
       }
       case 'travel': {
         const event = this.events.find((e) => e.spec.id === cmd.event);
-        if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
+        if (!event) throw new FestivalCommandValidationError(`Unknown festival event ${cmd.event}`);
         if (this.run) this.abandon();
         // Travel leaves the old event immediately. An active race still
         // emits its one abandonment; its pending result survives endRun.

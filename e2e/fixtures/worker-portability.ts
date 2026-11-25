@@ -33,6 +33,11 @@ export async function verifyWorkerPortability() {
           engineeringTicks.push(message.sample.tick);
           engineeringTick = message.sample.tick;
           engineeringActive = message.sample.aiActive;
+          physics.postMessage({
+            type: 'engineeringAck',
+            epoch: message.epoch,
+            sequence: message.sequence,
+          });
         } else if (message.type === 'error' || message.type === 'recordingWarning') {
           reject(new Error(message.message));
         } else if (message.type === 'surface') {

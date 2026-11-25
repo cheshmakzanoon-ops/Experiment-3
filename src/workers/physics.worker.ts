@@ -8,11 +8,12 @@ import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts'
 import { Simulation } from '../simulation/world.ts';
 import { controls, type Controls, type SessionOptions } from '../simulation/config.ts';
 import { InputLog, Resimulation, applyLoggedInput, flashbackFloor } from '../core/flashback.ts';
-import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
-const probe = new EngineeringProbe();
+import { EngineeringChannel, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
+const engineeringChannel = new EngineeringChannel();
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 let simulation: Simulation | null = null,
   paused = true,
+  failed = false,
   lastInput = performance.now(),
   stepMs = 0;
 const clock = new FixedStepClock();
@@ -43,7 +44,7 @@ function finishFlashback(job: Resimulation) {
   simulation = job.simulation;
   log.truncate(job.target);
   telemetry = recorder(simulation);
-  probe.reset();
+  engineeringChannel.reset();
   lastInput = performance.now();
   clock.reset(lastInput);
   lastSent = simulation.tick;
@@ -59,6 +60,16 @@ let lastSent = -1,
   lastPitPhase = 0;
 const send = (msg: WorkerMessage, transfer: Transferable[] = []) =>
   scope.postMessage(msg, transfer);
+function fail(message: string) {
+  // The host treats every worker error as terminal. Queued resumes must not
+  // revive partially changed state before it has processed that notification.
+  failed = true;
+  paused = true;
+  rewind = null;
+  pendingFlashback = false;
+  shifts.clear();
+  send({ type: 'error', message });
+}
 function publishSurface() {
   if (!simulation || rewind) return;
   const current = simulation,
@@ -89,9 +100,7 @@ function publishSurface() {
   }
 }
 function engineering() {
-  if (!simulation) return;
-  const sample = probe.sample(simulation);
-  if (sample) send({ type: 'engineering', sample });
+  if (simulation) engineeringChannel.publish(simulation, send);
 }
 function snapshot(required = false) {
   if (!simulation || !pool) return;
@@ -107,14 +116,24 @@ function snapshot(required = false) {
 scope.onmessage = (event: MessageEvent<ClientMessage>) => {
   try {
     const msg = event.data;
+    if (failed && msg.type !== 'init') {
+      // Retire already delivered ownership without capturing or publishing
+      // more state. Credits survive init, so dropping an ACK would strand it.
+      if (msg.type === 'surfaceAck') surfaces.acknowledge(msg);
+      else if (msg.type === 'engineeringAck') engineeringChannel.acknowledge(msg);
+      return;
+    }
     switch (msg.type) {
       case 'engineering':
-        probe.enable(msg.enabled);
+        engineeringChannel.enable(msg.enabled);
         engineering();
+        break;
+      case 'engineeringAck':
+        if (engineeringChannel.acknowledge(msg)) engineering();
         break;
       case 'init':
         shifts.clear();
-        probe.reset();
+        engineeringChannel.reset();
         simulation = new Simulation(msg.options);
         sessionOptions = msg.options;
         log = new InputLog();
@@ -131,6 +150,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         lastSurface = -1;
         lastPitPhase = simulation.cars[0].pitPhase;
         snapshot();
+        failed = false;
         break;
       case 'input':
         if (simulation && !paused && !rewind && !pendingFlashback) shifts.push(msg.input.shift);
@@ -202,13 +222,15 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         break;
     }
   } catch (error) {
-    paused = true;
-    shifts.clear();
-    send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
+    fail(error instanceof Error ? error.message : String(error));
   }
 };
 setInterval(() => {
   const now = performance.now();
+  if (failed) {
+    clock.rebase(now);
+    return;
+  }
   if (rewind) {
     clock.rebase(now);
     // Yield between complete ticks at the work budget or 2000-step cap so
@@ -220,8 +242,7 @@ setInterval(() => {
         finishFlashback(job);
       }
     } catch (error) {
-      rewind = null;
-      send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
+      fail(error instanceof Error ? error.message : String(error));
     }
     return;
   }
@@ -269,11 +290,6 @@ setInterval(() => {
       publishSurface();
     }
   } catch (error) {
-    paused = true;
-    shifts.clear();
-    send({
-      type: 'error',
-      message: error instanceof Error ? (error.stack ?? error.message) : String(error),
-    });
+    fail(error instanceof Error ? (error.stack ?? error.message) : String(error));
   }
 }, 4);
