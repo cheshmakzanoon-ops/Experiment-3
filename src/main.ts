@@ -1854,11 +1854,18 @@ export class GameApp {
     let a = live?.a ?? this.current,
       b = live?.b ?? this.current,
       alpha = live?.alpha ?? 1;
+    const revealHeldGate = this.dirtGateRelease === 'draw' && this.renderedState === 'paused';
+    const holdLiveGate = this.dirtGateRelease === 'released' && this.renderedState === 'driving';
     if (
-      this.state === 'driving' && this.dirtGateRelease === 'released' &&
-      this.renderedState === 'driving' && !this.viewportRedrawPending &&
-      this.renderer.canReuseDirtGate(a, b, alpha)
+      this.state === 'driving' && (revealHeldGate || holdLiveGate) &&
+      !this.viewportRedrawPending && this.renderer.canReuseDirtGate(a, b, alpha)
     ) {
+      if (revealHeldGate) {
+        // The briefing covered a completed tick-zero riding view with a DOM
+        // dialog. Give its removal a paint before releasing the worker.
+        this.renderedState = 'driving';
+        this.dirtGateRelease = 'paint';
+      }
       this.reusedDirtGateFrames++;
       this.previousTime = previousTime;
       return;
