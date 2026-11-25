@@ -1,9 +1,9 @@
 # Benchmark smoke
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45544501290
-- commit: `6a6bf02eb2` · Harden engine callback ownership and reduce CSV export memory
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45697808594
+- commit: `39d9d49788` · fix(motocross): improve contact dynamics and continuous recorded motion
 - event: push · status: completed · conclusion: **success**
-- started: 2026-11-25T04:06:37Z · updated: 2026-11-25T04:11:28Z
+- started: 2026-11-25T20:44:19Z · updated: 2026-11-25T20:49:11Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
