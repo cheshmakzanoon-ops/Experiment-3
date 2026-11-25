@@ -1,9 +1,9 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45534028010
-- commit: `f4d41b0c00` · Bound worker channels and harden engine session and replay ownership
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45544501165
+- commit: `6a6bf02eb2` · Harden engine callback ownership and reduce CSV export memory
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T02:35:19Z · updated: 2026-11-25T02:59:09Z
+- started: 2026-11-25T04:06:37Z · updated: 2026-11-25T04:28:33Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
