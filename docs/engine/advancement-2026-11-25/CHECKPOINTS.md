@@ -44,3 +44,29 @@ The artifact verifies **579 unit tests in 48 files** and **37 browser/replay
 tests**. The browser backend remains Mesa software graphics. Source identity,
 backend identity, full sanitized logs and the archive digest are retained under
 `evidence/checkpoint-b594cfc/`.
+
+## Runtime ownership, records and composed input
+
+`955bc20f98fa1397ce1e41cd877c78c41a42cab5` publishes the completed third and
+fourth implementation waves and four completed integration assignments. It
+includes shared GPU completion leases, Festival frame admission and idle pacing,
+retained-page suspension, UI/input teardown, credits and menu polling ownership,
+bounded dirty-range unions, unsupported flashback journal elimination, ghost
+first-passage lookup, telemetry closing-gap validation, audio sine-basis reuse,
+and exact input-packet capacity.
+
+The coordinator's frozen local checkpoint passed **793 tests in 58 files**.
+Subsequent focused composition groups passed independently, including the final
+**83 device/menu/page tests**. The actual-source network composition proof retains
+2,292 equal datagrams and 278,730 equal packet bytes, with the intended remote
+clock correction excluded from byte-equivalence claims. These are not timing or
+physical-device results.
+
+The [focused engine workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45568546604)
+completed successfully at this exact commit: **813 tests in 62 files**, full
+TypeScript checking, production build, and **37 native browser/replay cases**.
+The backend is WebGL2 through ANGLE/Mesa llvmpipe software graphics; the backend
+probe reports no GL error and explicitly does not validate physical hardware.
+Source identity, sanitized full logs, backend identity and the artifact digest
+are retained under `evidence/checkpoint-955bc20/`. The newly authored wave-6
+fixtures were not included in this checkpoint and require their own CI run.

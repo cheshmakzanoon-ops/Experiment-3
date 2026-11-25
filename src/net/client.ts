@@ -437,9 +437,11 @@ export class RaceClient {
       ackTick: Math.max(0, this.lastSnapshotTick),
       commands,
     });
+    // A transport may transfer ownership and detach this packet while sending.
+    const bytes = packet.byteLength;
     this.config.transport.send(packet, 'unreliable');
     this.stats.inputPackets++;
-    this.metricSamples.record('inputBytes', packet.length);
+    this.metricSamples.record('inputBytes', bytes);
     this.stats.commandCopies += commands.length;
   }
   private onSnapshot(s: Snapshot) {

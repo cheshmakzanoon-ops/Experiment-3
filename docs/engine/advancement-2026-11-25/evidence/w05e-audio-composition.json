@@ -1,0 +1,62 @@
+{
+  "purpose": "correctness only; no timing samples or rendered PCM",
+  "baseline": {
+    "root": "/dev/shm/aeebac160835-engine-baseline",
+    "suppliedCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+    "commitVerification": "Coordinator-provided pin; this runner checks named file hashes without invoking Git."
+  },
+  "current": {
+    "root": "/tmp/aeebac160835-engine/Experiment-3"
+  },
+  "node": "v24.22.3",
+  "typescript": "5.9.3",
+  "runnerSha256": "67334ae0bbdad63448d33b1ced7547767dc15b0513210b93e8cbe5329e52eb0c",
+  "workloadSha256": "607cf3109ff2f514fb7b32c7a8fda3a9c43b1e9a346e97087da054b9e70126e7",
+  "scope": "Actual EngineVoices modules, actual protocol and vehicle fixtures from each tree, recording AudioContext boundaries; named hashes are not a full dependency manifest.",
+  "contextSampleRates": [
+    44100,
+    48000,
+    96000
+  ],
+  "framesPerGraph": 12,
+  "voicesPerGraph": 4,
+  "oscillatorsPerGraph": 13,
+  "scheduledParamEvents": 1890,
+  "periodicWavesPerGraph": [
+    19,
+    19,
+    19
+  ],
+  "observationBytes": 487954,
+  "byteIdentical": true,
+  "baselineSha256": "2f0476466eacd6a2bb5fced0c8f912fa9f699692d3f6b8e5c0f2c9be3f09ec14",
+  "currentSha256": "2f0476466eacd6a2bb5fced0c8f912fa9f699692d3f6b8e5c0f2c9be3f09ec14",
+  "sources": {
+    "baseline": {
+      "src/audio/engine-voices.ts": "8b2adc3e531bccaa2f7bb0ab7dfc447a36cf9b2c78c4002afc90e3dc4c693bdb",
+      "src/audio/engine-loudness.ts": "01c9b225d95e3122fe3dff2278d40e8b279ef455bf5941c362d870adba5e3f00",
+      "src/audio/sound-profiles.ts": "7bb6f456d3999c242baeb436ebef40d6ec41a112aefba7c53ad3fe28f4af7490",
+      "src/audio/spatial.ts": "6843dd2be18814a7f6ba83256f40eea98b6abad8d903af6168741789f4d4bf35",
+      "src/audio/airborne-audio.ts": "3f105fd3228339fbd28866f2b6e0bfa06f298b19ec5f15c8eb113cb6c12d1958",
+      "src/audio/limiter-cue.ts": "fa979ce8c9af660c8c86640c6266af7e7ffeaeb5ed8148fba4381e7494b9e1eb",
+      "src/audio/mixer.ts": "8595deb250b0d0ee3db5f19dec933fbc4214c8a8e6478b81d41dd9e75c3fde22",
+      "src/simulation/protocol.ts": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+      "src/simulation/vehicles.ts": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "tests/fake-audio.ts": "aa91562332b655a4cee94608fbeb4b79a74d1464ec803413cfaa8b49b4778027"
+    },
+    "current": {
+      "src/audio/engine-voices.ts": "8b2adc3e531bccaa2f7bb0ab7dfc447a36cf9b2c78c4002afc90e3dc4c693bdb",
+      "src/audio/engine-loudness.ts": "19537125a0247ded5d1afb0992d5f9a7b4fcb4da318ec430f7ef3db045866c89",
+      "src/audio/sound-profiles.ts": "7bb6f456d3999c242baeb436ebef40d6ec41a112aefba7c53ad3fe28f4af7490",
+      "src/audio/spatial.ts": "6843dd2be18814a7f6ba83256f40eea98b6abad8d903af6168741789f4d4bf35",
+      "src/audio/airborne-audio.ts": "3f105fd3228339fbd28866f2b6e0bfa06f298b19ec5f15c8eb113cb6c12d1958",
+      "src/audio/limiter-cue.ts": "fa979ce8c9af660c8c86640c6266af7e7ffeaeb5ed8148fba4381e7494b9e1eb",
+      "src/audio/mixer.ts": "8595deb250b0d0ee3db5f19dec933fbc4214c8a8e6478b81d41dd9e75c3fde22",
+      "src/simulation/protocol.ts": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+      "src/simulation/vehicles.ts": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "tests/fake-audio.ts": "aa91562332b655a4cee94608fbeb4b79a74d1464ec803413cfaa8b49b4778027"
+    }
+  }
+}
