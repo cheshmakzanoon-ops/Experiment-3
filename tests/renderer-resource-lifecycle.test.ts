@@ -92,6 +92,7 @@ function rendererOwner(circuit: CircuitScene) {
       'exposure',
       'weatherPresentation',
       'bloom',
+      'outputPass',
       'fxaa',
       'scenePass',
       'grade',
@@ -110,7 +111,7 @@ function rendererOwner(circuit: CircuitScene) {
     cars: [],
     bikeShells: new BikeShells(),
   });
-  return { renderer, sun };
+  return { renderer, sun, outputPass: owners.outputPass };
 }
 
 beforeEach(() => {
@@ -142,7 +143,7 @@ describe('complete terrain-venue resource ownership', () => {
   it('cancels detached meadow work when the real renderer is torn down during preparation', async () => {
     setMxQuality('medium');
     const circuit = new CircuitScene(rigTrack('valley-ridge-mx'), true);
-    const { renderer } = rendererOwner(circuit);
+    const { renderer, outputPass } = rendererOwner(circuit);
     const meadow = circuit.offroad!.meadow!;
     const instances = vi.spyOn(T.InstancedMesh.prototype, 'dispose');
     let signal!: () => void,
@@ -166,6 +167,7 @@ describe('complete terrain-venue resource ownership', () => {
       await staged;
       expect(meadow.root.children).toHaveLength(0);
       renderer.dispose();
+      expect(outputPass.dispose).toHaveBeenCalledOnce();
       const released = instances.mock.contexts.filter(
         (object) => object instanceof T.InstancedMesh && object.name.startsWith('MX field grass '),
       );
@@ -224,7 +226,7 @@ describe('complete terrain-venue resource ownership', () => {
       const sharedDisposals = [...new Set(sharedMaps)].map((texture) =>
         vi.spyOn(texture, 'dispose'),
       );
-      const { renderer, sun } = rendererOwner(circuit);
+      const { renderer, sun, outputPass } = rendererOwner(circuit);
       const offroad = circuit.offroad!;
       const venueDisposals = watchResources(offroad.group);
       const ownedObjects: T.Object3D[] = [];
@@ -245,6 +247,7 @@ describe('complete terrain-venue resource ownership', () => {
       const shadowPass = vi.spyOn(sun.shadow.mapPass!, 'dispose');
 
       renderer.dispose();
+      expect(outputPass.dispose).toHaveBeenCalledOnce();
       expect(closeVenue).toHaveBeenCalledOnce();
       expect(offroad.group.parent).toBeNull();
       expect(offroad.group.children).toHaveLength(0);
@@ -288,6 +291,7 @@ describe('complete terrain-venue resource ownership', () => {
 
       renderer.dispose();
       offroad.dispose();
+      expect(outputPass.dispose).toHaveBeenCalledOnce();
       for (const dispose of venueDisposals) expect(dispose).toHaveBeenCalledOnce();
       for (const dispose of orphanDisposals) expect(dispose).toHaveBeenCalledTimes(1);
       expect(shadow).toHaveBeenCalledTimes(1);

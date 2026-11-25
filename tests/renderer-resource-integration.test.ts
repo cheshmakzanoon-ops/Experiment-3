@@ -124,6 +124,7 @@ function factoryFixture(options: { fail?: boolean; error?: unknown; cleanup?: bo
     exposure: release('exposure'),
     weatherPresentation: release('weather'),
     bloom: release('bloom'),
+    outputPass: release('outputPass'),
     fxaa: release('fxaa'),
     scenePass: release('scenePass'),
     grade: release('grade'),
@@ -214,6 +215,7 @@ describe('renderer factory owns construction and optional timer teardown', () =>
       expect(f.state.disposed).toBe(true);
       expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
       expect(f.state.composer.dispose).toHaveBeenCalledOnce();
+      expect(f.state.outputPass.dispose).toHaveBeenCalledOnce();
       expect(f.state.renderer.dispose).toHaveBeenCalledOnce();
       expect(f.g.calls.filter((call) => call === 'delete')).toHaveLength(1);
       expect(f.warn.mock.calls).toEqual([['Circuit renderer cleanup failed:', f.cleanupError]]);
@@ -245,6 +247,7 @@ describe('renderer factory owns construction and optional timer teardown', () =>
       expect(f.events).not.toContain('register');
       expect(f.events).not.toContain('reflect');
       expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
+      expect(f.state.outputPass.dispose).toHaveBeenCalledOnce();
       expect(f.state.renderer.dispose).toHaveBeenCalledOnce();
       expect(f.warn.mock.calls).toEqual([['Circuit renderer cleanup failed:', f.cleanupError]]);
     },
@@ -262,9 +265,11 @@ describe('renderer factory owns construction and optional timer teardown', () =>
     expect(f.construction.ready).toBe(true);
     expect(f.events).toEqual(['dependency', 'cars', 'register', 'reflect']);
     expect(f.state.renderer.dispose).not.toHaveBeenCalled();
+    expect(f.state.outputPass.dispose).not.toHaveBeenCalled();
     expect(f.warn).not.toHaveBeenCalled();
     f.renderer.dispose();
     expect(f.state.renderer.dispose).toHaveBeenCalledOnce();
+    expect(f.state.outputPass.dispose).toHaveBeenCalledOnce();
     expect(f.state.gpuFrames.dispose).toHaveBeenCalledOnce();
   });
 });

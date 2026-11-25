@@ -73,6 +73,7 @@ export class RacingAudio {
     this.cueSynth?.silence();
   }
   async previewDriving(settings: DrivingAudioSettings) {
+    if (this.muted) return;
     const starting = this.start();
     const ctx = this.context,
       generation = this.generation;
@@ -122,7 +123,19 @@ export class RacingAudio {
   private contactAttenuation = 0;
   /** The master volume setting (0..1). */
   volume = 0.45;
-  muted = false;
+  private isMuted = false;
+  get muted() {
+    return this.isMuted;
+  }
+  set muted(value: boolean) {
+    this.isMuted = value;
+    if (value) {
+      // Previews bypass the race master. Cancel both their scheduled tones and
+      // a pending activation, even if the player unmutes before it settles.
+      this.generation++;
+      this.previewSynth?.silence();
+    }
+  }
   /** The player's bus sliders (mixer.ts); applied on every update. */
   levels: AudioLevels = { ...DEFAULT_LEVELS };
   setLevels(value: unknown) {

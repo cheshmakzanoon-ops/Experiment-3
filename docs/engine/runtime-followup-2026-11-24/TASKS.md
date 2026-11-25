@@ -16,9 +16,12 @@ Distinct worker assignments actually started are listed below. Planned assignmen
 | 10 | 2 | `w02d_host_cleanup` | complete |
 | 11 | 2 | `w02e_server_snapshot` | complete |
 | 12 | 2 | `w02f_controller_edges` | complete |
-| 13 | 3 | `w03a_bvh_bounds` | running |
-| 14 | 3 | `w03b_contact_allocations` | running |
-| 15 | 3 | `w03c_contact_math` | running |
+| 13 | 3 | `w03a_bvh_bounds` | complete |
+| 14 | 3 | `w03b_contact_allocations` | complete |
+| 15 | 3 | `w03c_contact_math` | complete |
+| 16 | 3 | `w03d_texture_budget` | complete |
+| 17 | 3 | `w03e_renderer_release` | complete |
+| 18 | 3 | `w03f_audio_preview` | complete |
 
 ## Programme
 

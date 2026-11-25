@@ -415,6 +415,7 @@ export class RacingRenderer {
   private weatherPresentation = new WeatherPresentation();
   private composition = new RaceComposition();
   private bloom: LensBloomPass;
+  private readonly outputPass = new OutputPass();
   private scenePass: SceneAmbientPass;
   private grade = new BroadcastGradePass();
   private photoFocus: DepthOfFieldPass | null = null;
@@ -700,7 +701,7 @@ export class RacingRenderer {
     // Single-pixel fireflies are limited before the round-filtered pyramid.
     this.bloom = new LensBloomPass();
     this.composer.addPass(this.bloom);
-    this.composer.addPass(new OutputPass());
+    this.composer.addPass(this.outputPass);
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
     this.ultra = new UltraPipeline({
@@ -3538,6 +3539,8 @@ export class RacingRenderer {
     release(() => this.broadcastFocus?.dispose());
     release(() => this.geometrySurvey?.dispose());
     release(() => this.bloom.dispose());
+    // EffectComposer releases its own buffers, but not the registered passes.
+    release(() => this.outputPass.dispose());
     release(() => this.fxaa.dispose());
     release(() => this.scenePass.dispose());
     release(() => this.grade.dispose());

@@ -59,6 +59,7 @@ class AudioContextFixture extends FakeContext {
 type Host = Record<string, unknown> & { disposed: boolean; generation: number; dispose(): void };
 const stages = [
   'keyboard',
+  'blur',
   'review',
   'tab',
   'performance',
@@ -99,8 +100,13 @@ function fixture() {
     order.push('audio');
   });
   const warn = vi.fn();
+  const removeEventListener = vi.fn((type: string, _listener: unknown) => {
+    if (type === 'keydown') release.keyboard();
+    else if (type === 'blur') release.blur();
+    else throw new Error(`Unexpected host listener: ${type}`);
+  });
   const dispose = method(hostCode, {
-    window: { removeEventListener: release.keyboard },
+    window: { removeEventListener },
     cancelAnimationFrame: release.frame,
     clearTimeout: release.timeout,
     console: { warn },
@@ -109,6 +115,7 @@ function fixture() {
     disposed: false,
     generation: 17,
     reviewKeyboard: () => undefined,
+    suspendOnBlur: () => undefined,
     sessionReview: { stop: release.review },
     tabEvidence: { dispose: release.tab },
     performanceCapture: { interrupt: release.performance },
@@ -135,7 +142,7 @@ function fixture() {
       dispose.call(this);
     },
   };
-  return { host, release, replay, audio, order, warn };
+  return { host, release, replay, audio, order, warn, removeEventListener };
 }
 
 type DisposableOwner = Record<string, unknown> & { disposed: boolean; dispose(): void };
@@ -217,6 +224,7 @@ const rendererOwners = [
   'wet',
   'shadows',
   'bloom',
+  'outputPass',
   'grade',
   'fxaa',
   'imagePipeline',
@@ -235,6 +243,9 @@ function rendererFixture() {
   const dispose = method(rendererCode, { scannedGround: { detach: ground }, T });
   const scene = new T.Scene(),
     effects = new T.Group();
+  const sun = new T.DirectionalLight();
+  const sky = new T.Mesh(new T.BufferGeometry(), new T.MeshBasicMaterial());
+  const shadow = vi.spyOn(sun.shadow, 'dispose');
   // Empty generic geometry and materials exercise Three's actual disposal-event
   // behavior. No authored model, environment or artwork is loaded or changed.
   const meshes = [
@@ -242,9 +253,9 @@ function rendererFixture() {
     new T.Mesh(new T.BufferGeometry(), new T.MeshBasicMaterial()),
   ];
   effects.add(...meshes);
-  scene.add(effects);
-  const geometry = meshes.map((mesh) => vi.spyOn(mesh.geometry, 'dispose'));
-  const materials = meshes.flatMap((mesh) =>
+  scene.add(effects, sky, sun);
+  const geometry = [...meshes, sky].map((mesh) => vi.spyOn(mesh.geometry, 'dispose'));
+  const materials = [...meshes, sky].flatMap((mesh) =>
     Array.isArray(mesh.material) ? mesh.material : [mesh.material],
   );
   const material = materials.map((value) => vi.spyOn(value, 'dispose'));
@@ -258,11 +269,25 @@ function rendererFixture() {
     effectPlayback: { reset },
     effects: { group: effects },
     scene,
+    sun,
+    sky,
     dispose() {
       dispose.call(this);
     },
   };
-  return { renderer, release, ground, reset, meshes, geometry, materials, material, scene, clear };
+  return {
+    renderer,
+    release,
+    ground,
+    reset,
+    meshes,
+    geometry,
+    materials,
+    material,
+    scene,
+    clear,
+    shadow,
+  };
 }
 
 async function adopt(session: DisposableOwner) {
@@ -308,6 +333,7 @@ function expectRendererReleased(f: ReturnType<typeof rendererFixture>) {
   for (const release of [...f.geometry, ...f.material]) expect(release).toHaveBeenCalledTimes(1);
   expect(f.ground).toHaveBeenCalledTimes(1);
   expect(f.reset).toHaveBeenCalledTimes(1);
+  expect(f.shadow).toHaveBeenCalledTimes(1);
   expect(f.clear).toHaveBeenCalledTimes(1);
   expect(f.scene.children).toEqual([]);
 }
@@ -393,6 +419,10 @@ describe('terminal host resource ownership', () => {
     });
     f.host.dispose();
     expect(observed).toEqual([{ disposed: true, generation: 18 }]);
+    expect(f.removeEventListener.mock.calls).toEqual([
+      ['keydown', f.host.reviewKeyboard],
+      ['blur', f.host.suspendOnBlur],
+    ]);
     for (const name of stages) expect(f.release[name], name).toHaveBeenCalledTimes(1);
     expect(f.audio).toHaveBeenCalledTimes(1);
     expect(f.replay).toHaveBeenCalledTimes(1);

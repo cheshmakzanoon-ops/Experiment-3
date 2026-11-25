@@ -18,14 +18,12 @@ export class RoadContactFrame {
   inclination = 0;
 
   set(orientation: Quat, steering: number, normal: Vec3, camber = 0): boolean {
-    if (
-      !normal.finite() ||
-      !Number.isFinite(steering) ||
-      !Number.isFinite(camber) ||
-      normal.length() < 1e-8
-    )
+    if (!normal.finite() || !Number.isFinite(steering) || !Number.isFinite(camber))
       throw new Error('Invalid road-contact frame');
-    this.normal.copy(normal).normalize();
+    const normalLength = normal.length();
+    if (normalLength < 1e-8) throw new Error('Invalid road-contact frame');
+    // Accepted normals cannot take Vec3.normalize's near-zero fallback.
+    this.normal.copy(normal).scale(1 / normalLength);
     const c = Math.cos(camber);
     orientation.rotate(
       this.axle.set(c * Math.cos(steering), -Math.sin(camber), -c * Math.sin(steering)),

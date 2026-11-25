@@ -25,42 +25,47 @@ export class ImportedTextureBudget {
   private limit = 512;
   private anisotropy = 8;
 
-  register(texture: T.Texture) {
-    if (
-      this.registered.has(texture) ||
-      (texture.userData.suppliedPlayerTexture !== true &&
-        texture.userData.immutableAssetTexture !== true) ||
-      texture.userData.dynamic ||
-      texture.isRenderTargetTexture ||
-      texture instanceof T.DataTexture ||
-      texture instanceof T.CompressedTexture ||
-      texture.flipY ||
-      texture.premultiplyAlpha ||
-      !isImage(texture.image) ||
-      texture.image.width < 1 ||
-      texture.image.height < 1
-    )
-      return;
-    let asset = this.sources.get(texture.source);
-    if (!asset) {
-      const original = texture.source;
-      asset = {
-        original,
-        owned: new T.Source(original.data),
-        image: original.data as ImportedImage,
-        textures: new Set(),
-      };
-      this.sources.set(original, asset);
-      this.sources.set(asset.owned, asset);
-      this.assets.add(asset);
+  /** Acquire a whole traversal before updating each shared image once. */
+  register(textures: T.Texture | Iterable<T.Texture>) {
+    const pending = new Set<ImportedAsset>();
+    for (const texture of textures instanceof T.Texture ? [textures] : textures) {
+      if (
+        this.registered.has(texture) ||
+        (texture.userData.suppliedPlayerTexture !== true &&
+          texture.userData.immutableAssetTexture !== true) ||
+        texture.userData.dynamic ||
+        texture.isRenderTargetTexture ||
+        texture instanceof T.DataTexture ||
+        texture instanceof T.CompressedTexture ||
+        texture.flipY ||
+        texture.premultiplyAlpha ||
+        !isImage(texture.image) ||
+        texture.image.width < 1 ||
+        texture.image.height < 1
+      )
+        continue;
+      let asset = this.sources.get(texture.source);
+      if (!asset) {
+        const original = texture.source;
+        asset = {
+          original,
+          owned: new T.Source(original.data),
+          image: original.data as ImportedImage,
+          textures: new Set(),
+        };
+        this.sources.set(original, asset);
+        this.sources.set(asset.owned, asset);
+        this.assets.add(asset);
+      }
+      this.registered.add(texture);
+      asset.textures.add(texture);
+      // Release the old upload before changing its source identity. The bitmap
+      // itself belongs to the loader/renderer and must not be closed here.
+      texture.dispose();
+      texture.source = asset.owned;
+      pending.add(asset);
     }
-    this.registered.add(texture);
-    asset.textures.add(texture);
-    // Release the old upload before changing its source identity. The bitmap
-    // itself belongs to the loader/renderer and must not be closed here.
-    texture.dispose();
-    texture.source = asset.owned;
-    this.apply(asset);
+    for (const asset of pending) this.apply(asset);
   }
 
   configure(limit: number, anisotropy: number) {

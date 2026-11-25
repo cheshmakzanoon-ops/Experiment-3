@@ -40,6 +40,7 @@ function set() {
 function owner(...materials: T.Material[]) {
   const renderer = Object.create(RacingRenderer.prototype) as RacingRenderer;
   const inert = () => ({ dispose: vi.fn() });
+  const outputPass = inert();
   const owners = Object.fromEntries(
     [
       'renderer',
@@ -65,6 +66,7 @@ function owner(...materials: T.Material[]) {
     ].map((key) => [key, inert()]),
   );
   Object.assign(renderer, owners, {
+    outputPass,
     bikeShells: { disposeAll: vi.fn() },
     circuit: {
       disposePlanting() {},
@@ -79,7 +81,7 @@ function owner(...materials: T.Material[]) {
     sun: new T.DirectionalLight(),
     cars: [],
   });
-  return renderer;
+  return { renderer, outputPass };
 }
 
 beforeEach(() => {
@@ -107,9 +109,10 @@ describe('scene GPU handles and retained decoded image ownership', () => {
         expect(texture.image.width).toBe(2);
       });
       const disposals = clones.map((texture) => vi.spyOn(texture, 'dispose'));
-      const renderer = owner(material);
+      const { renderer, outputPass } = owner(material);
       renderer.dispose();
       renderer.dispose();
+      expect(outputPass.dispose).toHaveBeenCalledOnce();
       for (const dispose of disposals) expect(dispose).toHaveBeenCalledOnce();
       for (const image of source.images) {
         expect(image.close).not.toHaveBeenCalled();
@@ -160,12 +163,13 @@ describe('scene GPU handles and retained decoded image ownership', () => {
       separateSource = new T.Texture(image);
     const textures = [first, clone, separateSource],
       disposals = textures.map((texture) => vi.spyOn(texture, 'dispose'));
-    const renderer = owner(
+    const { renderer, outputPass } = owner(
       new T.MeshStandardMaterial({ map: first, normalMap: clone, roughnessMap: first }),
       new T.MeshBasicMaterial({ map: separateSource }),
     );
     renderer.dispose();
     renderer.dispose();
+    expect(outputPass.dispose).toHaveBeenCalledOnce();
     for (const dispose of disposals) expect(dispose).toHaveBeenCalledOnce();
     expect(image.close).toHaveBeenCalledOnce();
     expect([image.width, image.height]).toEqual([0, 0]);

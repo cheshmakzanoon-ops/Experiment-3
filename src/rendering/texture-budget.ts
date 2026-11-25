@@ -4,7 +4,7 @@ import { ImportedTextureBudget } from './imported-texture-budget.ts';
 interface CanvasSource {
   original: T.Source;
   image: HTMLCanvasElement;
-  groups: Set<CanvasAsset>;
+  groups: Map<string, CanvasAsset>;
 }
 interface CanvasAsset {
   source: CanvasSource;
@@ -27,6 +27,8 @@ export class TextureBudget {
   private limit = 512;
   private anisotropy = 8;
   register(root: T.Object3D) {
+    const pending = new Set<CanvasAsset>();
+    const imported = new Set<T.Texture>();
     root.traverse((object) => {
       if (!(object instanceof T.Mesh)) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
@@ -36,7 +38,7 @@ export class TextureBudget {
             (value.userData.suppliedPlayerTexture === true ||
               value.userData.immutableAssetTexture === true)
           ) {
-            this.imported.register(value);
+            imported.add(value);
             continue;
           }
           // Tiny prefiltered fabric maps retain their fixed resolution but obey
@@ -51,15 +53,14 @@ export class TextureBudget {
           if (!(value.image instanceof HTMLCanvasElement)) continue;
           let source = this.sources.get(value.source);
           if (!source) {
-            source = { original: value.source, image: value.image, groups: new Set() };
+            source = { original: value.source, image: value.image, groups: new Map() };
             this.sources.set(source.original, source);
           }
           const claim = value.userData.textureBudgetScale,
             scale = typeof claim === 'number' && claim > 1 ? Math.min(claim, 4) : 1,
-            cpuReadback = value.userData.cpuReadback === true;
-          let asset = [...source.groups].find(
-            (candidate) => candidate.scale === scale && candidate.cpuReadback === cpuReadback,
-          );
+            cpuReadback = value.userData.cpuReadback === true,
+            key = `${scale}:${cpuReadback}`;
+          let asset = source.groups.get(key);
           if (!asset) {
             asset = {
               source,
@@ -68,7 +69,7 @@ export class TextureBudget {
               cpuReadback,
               textures: new Set(),
             };
-            source.groups.add(asset);
+            source.groups.set(key, asset);
             this.sources.set(asset.owned, source);
             this.groups.add(asset);
           }
@@ -78,10 +79,15 @@ export class TextureBudget {
           // and share budget storage only between compatible resolution claims.
           value.dispose();
           value.source = asset.owned;
-          this.apply(asset);
+          pending.add(asset);
         }
       }
     });
+    // A traversal can contain many wrappers of one authored image. Repaint and
+    // invalidate each group once, but do not reuse generated pixels across calls:
+    // the authored canvas may have been painted before a later clone arrives.
+    for (const asset of pending) this.apply(asset);
+    this.imported.register(imported);
   }
   configure(limit: number, anisotropy: number) {
     if (limit === this.limit && anisotropy === this.anisotropy) return;
@@ -118,7 +124,7 @@ export class TextureBudget {
         if (!asset.textures.size) {
           this.groups.delete(asset);
           this.sources.delete(asset.owned);
-          asset.source.groups.delete(asset);
+          asset.source.groups.delete(`${asset.scale}:${asset.cpuReadback}`);
           if (!asset.source.groups.size) this.sources.delete(asset.source.original);
         }
       }
@@ -129,7 +135,7 @@ export class TextureBudget {
     if (!(texture instanceof T.CanvasTexture)) return;
     const asset = this.assets.get(texture);
     if (!asset) return;
-    for (const group of asset.source.groups) this.apply(group);
+    for (const group of asset.source.groups.values()) this.apply(group);
   }
   private apply(asset: CanvasAsset) {
     // A hero atlas spread over a whole vehicle (the GP-R3 livery) may claim a

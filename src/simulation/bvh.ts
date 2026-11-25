@@ -137,14 +137,32 @@ export class TriangleBVH {
       end,
     };
     const id = this.nodes.push(node) - 1;
+    let minX = Infinity,
+      minY = Infinity,
+      minZ = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity,
+      maxZ = -Infinity;
     for (let j = start; j < end; j++)
       for (let k = 0; k < 3; k++) {
-        const p = this.indices[this.order[j] * 3 + k] * 3;
-        for (let a = 0; a < 3; a++) {
-          node.min[a] = Math.min(node.min[a], this.vertices[p + a]);
-          node.max[a] = Math.max(node.max[a], this.vertices[p + a]);
-        }
+        const p = this.indices[this.order[j] * 3 + k] * 3,
+          x = this.vertices[p],
+          y = this.vertices[p + 1],
+          z = this.vertices[p + 2];
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+        minZ = Math.min(minZ, z);
+        maxZ = Math.max(maxZ, z);
       }
+    // Write bounds once per node; retain Math.min/max's signed-zero rules.
+    node.min[0] = minX;
+    node.min[1] = minY;
+    node.min[2] = minZ;
+    node.max[0] = maxX;
+    node.max[1] = maxY;
+    node.max[2] = maxZ;
     if (end - start > 8) {
       let axis = 0;
       for (let a = 1; a < 3; a++)

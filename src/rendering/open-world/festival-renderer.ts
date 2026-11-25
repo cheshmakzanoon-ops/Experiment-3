@@ -189,6 +189,7 @@ export class FestivalRenderer {
   private readonly scenePass: SceneAmbientPass;
   private readonly imagePipeline: FestivalFramePipeline;
   private readonly bloom = new LensBloomPass();
+  private readonly outputPass = new OutputPass();
   private readonly grade = new BroadcastGradePass();
   private readonly fxaa = new ShaderPass(FXAAShader);
   readonly ultra: UltraPipeline;
@@ -350,7 +351,7 @@ export class FestivalRenderer {
     );
     this.scenePass = this.imagePipeline.scenePass;
     this.composer.addPass(this.bloom);
-    this.composer.addPass(new OutputPass());
+    this.composer.addPass(this.outputPass);
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
     this.ultra = new UltraPipeline({
@@ -1162,8 +1163,12 @@ export class FestivalRenderer {
     release(() => this.guidance.dispose());
     release(() => this.orbit.dispose());
     release(() => this.environment.dispose());
+    release(() => this.sky.geometry.dispose());
+    release(() => this.sky.material.dispose());
     release(() => this.wet.dispose());
     release(() => this.shadows.dispose());
+    // The borrowed renderer outlives this region and its near-shadow targets.
+    release(() => this.sun.shadow.dispose());
     release(() => this.effectPlayback.reset());
     release(() =>
       this.effects.group.traverse((node) => {
@@ -1175,6 +1180,8 @@ export class FestivalRenderer {
       }),
     );
     release(() => this.bloom.dispose());
+    // EffectComposer releases its own buffers, but not the registered passes.
+    release(() => this.outputPass.dispose());
     release(() => this.grade.dispose());
     release(() => this.fxaa.dispose());
     release(() => this.imagePipeline.dispose());

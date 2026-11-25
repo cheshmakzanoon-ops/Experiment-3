@@ -111,13 +111,21 @@ export class TrackContactMesh {
           1,
           -p.tz * (p.gradient + alongDerivative) - p.nz * (bank + sideDerivative),
         ).normalize();
-        this.normals.set([n.x, n.y, n.z], i);
+        this.normals[i] = n.x;
+        this.normals[i + 1] = n.y;
+        this.normals[i + 2] = n.z;
         if (row < rows && col < columns - 1) {
           const a = row * columns + col,
             b = a + 1,
             c = a + columns,
             d = c + 1;
-          this.indices.set([a, c, b, b, c, d], (row * (columns - 1) + col) * 6);
+          const j = (row * (columns - 1) + col) * 6;
+          this.indices[j] = a;
+          this.indices[j + 1] = c;
+          this.indices[j + 2] = b;
+          this.indices[j + 3] = b;
+          this.indices[j + 4] = c;
+          this.indices[j + 5] = d;
         }
       }
     }

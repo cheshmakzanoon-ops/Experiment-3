@@ -331,7 +331,12 @@ export class Vehicle {
       slip =
         this.frontShare === null
           ? Math.max(Math.abs(t[this.drivenLeft].slip), Math.abs(t[this.drivenRight].slip))
-          : Math.max(...t.map((x) => Math.abs(x.slip))),
+          : Math.max(
+              Math.abs(t[0].slip),
+              Math.abs(t[1].slip),
+              Math.abs(t[2].slip),
+              Math.abs(t[3].slip),
+            ),
       grip = supported ? clamp(1 - slip / 0.12, 0, 1) : 0,
       wheels = this.frontShare === null ? 2 : 4,
       vehicle = (this.body.mass * this.spec.wheelRadius ** 2) / wheels;

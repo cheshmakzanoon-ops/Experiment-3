@@ -556,6 +556,7 @@ export class GameApp {
       if (this.state === 'menu') this.menuPreviewReceipt.request('resize');
       this.renderedState = null; // Restore a resized backdrop once, including behind an editor.
     });
+    window.addEventListener('blur', this.suspendOnBlur);
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         // A hidden tab may deliver no RAF at all. Break the active timing
@@ -2027,8 +2028,12 @@ export class GameApp {
       }
     }
   };
+  private readonly suspendOnBlur = () => this.suspendPlayback();
   private suspendPlayback() {
     this.rumble.stop(null);
+    // Input is disabled in menus and paused screens, but their audio previews
+    // still own scheduled tones. A driving pause stops the same graph below.
+    if (this.state !== 'driving') this.audio.stop();
     if (this.state === 'pregame') {
       this.gridClock.pause();
       this.gridPanel?.update(this.gridClock);
@@ -2037,7 +2042,6 @@ export class GameApp {
     if (this.state === 'driving') this.pause();
     else if (this.state === 'replay') {
       this.replayClock.playing = false;
-      this.audio.stop();
       this.ui.setText('replayPlay', 'PLAY');
     }
   }
@@ -3684,6 +3688,7 @@ export class GameApp {
       }
     };
     release(() => window.removeEventListener('keydown', this.reviewKeyboard));
+    release(() => window.removeEventListener('blur', this.suspendOnBlur));
     release(() => this.sessionReview.stop('Application disposed', true));
     release(() => this.tabEvidence.dispose());
     release(() => this.performanceCapture.interrupt('Application disposed'));
