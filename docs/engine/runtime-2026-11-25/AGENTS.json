@@ -86,20 +86,62 @@
       "wave": 2,
       "agent": "/root/w02f_server_ownership",
       "task": "Server deadline and transport callback ownership",
-      "status": "running"
+      "status": "complete"
     },
     {
       "number": 13,
       "wave": 3,
       "agent": "/root/w03a_input_retry",
       "task": "Controller fault retry ownership after mapping replacement",
-      "status": "running"
+      "status": "complete"
     },
     {
       "number": 14,
       "wave": 3,
       "agent": "/root/w03b_vehicle_cues",
       "task": "Vehicle-aware engine RPM and gear-limit driving cues",
+      "status": "complete"
+    },
+    {
+      "number": 15,
+      "wave": 3,
+      "agent": "/root/w03c_lazy_guidance",
+      "task": "Defer unused driving-audio route construction",
+      "status": "complete"
+    },
+    {
+      "number": 16,
+      "wave": 3,
+      "agent": "/root/w03d_lane_fifo",
+      "task": "Bounded lane-cache FIFO eviction",
+      "status": "complete"
+    },
+    {
+      "number": 17,
+      "wave": 3,
+      "agent": "/root/w03e_thermal_signature",
+      "task": "Skip redundant default frozen thermal parameter checks",
+      "status": "complete"
+    },
+    {
+      "number": 18,
+      "wave": 3,
+      "agent": "/root/w03f_codec_buffers",
+      "task": "Explicit packet writer buffer transfer with preserved copying API",
+      "status": "running"
+    },
+    {
+      "number": 19,
+      "wave": 4,
+      "agent": "/root/w04a_native_atomic",
+      "task": "Native IndexedDB atomic update and rollback acceptance",
+      "status": "running"
+    },
+    {
+      "number": 20,
+      "wave": 4,
+      "agent": "/root/w04b_native_startup",
+      "task": "Native startup promise cancellation and recovery acceptance",
       "status": "running"
     }
   ]

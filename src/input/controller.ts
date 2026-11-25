@@ -197,6 +197,10 @@ export class InputController {
   private observeButtons(pad: Gamepad) {
     const identity = deviceIdentity(pad);
     if (identity === this.lastDevice) return;
+    // Suppressed device/mapping pairs cannot reach this acquisition boundary.
+    // A settings retry or a new owner needs its own mandatory pause on failure,
+    // even when its diagnostic is identical to the previous owner's fault.
+    this.lastFault = '';
     // Holding a button through connect/resume cannot manufacture a new edge.
     this.previousButtons.clear();
     pad.buttons.forEach((button, index) => {

@@ -1,8 +1,9 @@
 import { clamp } from '../core/math.ts';
 import { GuideRoute } from '../rendering/driving-guide.ts';
 import { yellowFlag } from '../simulation/marshal.ts';
-import { F, H, carBase } from '../simulation/protocol.ts';
+import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
+import { FORMULA_APX01, VEHICLE_IDS, vehicleAt } from '../simulation/vehicles.ts';
 export interface DrivingAudioSettings {
   enabled: boolean;
   volume: number;
@@ -56,6 +57,10 @@ export interface DrivingCue {
   pan: number;
   duration: number;
 }
+// Keep the established Formula cue points relative to each powertrain's
+// authored automatic-shift calibration, including the conservative low-RPM cue.
+const UPSHIFT_RPM_SCALE = 11800 / FORMULA_APX01.spec.shiftRPM;
+const DOWNSHIFT_RPM_SCALE = 4800 / FORMULA_APX01.spec.downshiftRPM;
 /** Advisory, read-only, human-live-only cue arbitration. A geometric estimate
  * cannot guarantee the correct line or replace traffic awareness. One bounded
  * tone at a time, with dwell for noisy edge/direction conditions. */
@@ -93,6 +98,7 @@ export class DrivingCueDirector {
       settings.volume <= 0 ||
       !Number.isFinite(now) ||
       frame.length <= o + F.RETIRED ||
+      !Number.isInteger(frame[H.CARS]) ||
       frame[H.CARS] < 1 ||
       frame[H.PHASE] !== 2 ||
       frame[o + F.IN_PIT] ||
@@ -120,6 +126,25 @@ export class DrivingCueDirector {
         this.reset();
         return null;
       }
+    // Chassis-only legacy samples have no vehicle tail and retain Formula
+    // behavior. A present but invalid identity must not fall back silently.
+    const vehicleSlot = o + RACE_BASE + R.VEHICLE;
+    const recordedVehicle = frame.length > vehicleSlot ? frame[vehicleSlot] : 0;
+    if (
+      !Number.isInteger(recordedVehicle) ||
+      recordedVehicle < 0 ||
+      recordedVehicle >= VEHICLE_IDS.length
+    ) {
+      this.reset();
+      return null;
+    }
+    const spec = vehicleAt(recordedVehicle).spec;
+    const gear = frame[o + F.GEAR],
+      maxGear = spec.gearRatios.length - 2;
+    if (!Number.isInteger(gear) || gear < -1 || gear > maxGear) {
+      this.reset();
+      return null;
+    }
     if (now < this.lastSample || now - this.lastSample > 0.5) this.reset();
     this.lastSample = now;
     const tick = frame[H.TICK];
@@ -169,16 +194,16 @@ export class DrivingCueDirector {
         interval = 0.32;
       } else if (
         settings.gears &&
-        frame[o + F.GEAR] > 0 &&
-        frame[o + F.GEAR] < 8 &&
-        frame[o + F.RPM] > 11800 &&
+        gear > 0 &&
+        gear < maxGear &&
+        frame[o + F.RPM] > spec.shiftRPM * UPSHIFT_RPM_SCALE &&
         frame[o + F.THROTTLE] > 0.6
       )
         cue = { kind: 'upshift', frequency: 1100, pan: 0, duration: 0.09 };
       else if (
         settings.gears &&
-        frame[o + F.GEAR] > 1 &&
-        frame[o + F.RPM] < 4800 &&
+        gear > 1 &&
+        frame[o + F.RPM] < spec.downshiftRPM * DOWNSHIFT_RPM_SCALE &&
         frame[o + F.BRAKE] > 0.3 &&
         speed > 5
       )

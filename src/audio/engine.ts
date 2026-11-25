@@ -61,15 +61,17 @@ export class RacingAudio {
     this.reviewTap = new ReviewAudioTap(this.context, this.bus.output);
     return this.reviewTap;
   }
+  private cueTrack: Track | null = null;
   private cueDirector: DrivingCueDirector | null = null;
   private cueSettings = validateDrivingAudio(null);
   private cueSynth: CueSynth | null = null;
   private previewSynth: CueSynth | null = null;
   private lastPreview = -Infinity;
   configureDriving(track: Track, settings: DrivingAudioSettings) {
-    if (this.cueDirector?.track !== track) this.cueDirector = new DrivingCueDirector(track);
+    this.cueDirector?.reset();
+    if (this.cueTrack !== track) this.cueDirector = null;
+    this.cueTrack = track;
     this.cueSettings = validateDrivingAudio(settings);
-    this.cueDirector.reset();
     this.cueSynth?.silence();
   }
   async previewDriving(settings: DrivingAudioSettings) {
@@ -276,12 +278,22 @@ export class RacingAudio {
     if (!ctx || !this.master || ctx.currentTime - this.last < 0.025) return;
     this.last = ctx.currentTime;
     const time = ctx.currentTime;
-    const cue = this.cueDirector?.sample(
-      frame,
-      playing && liveHuman && !this.muted,
-      time,
-      this.cueSettings,
-    );
+    const cuesActive =
+      playing &&
+      liveHuman &&
+      !this.muted &&
+      this.cueSettings.enabled &&
+      this.cueSettings.volume > 0 &&
+      (this.cueSettings.brake ||
+        this.cueSettings.turns ||
+        this.cueSettings.gears ||
+        this.cueSettings.trackLimits ||
+        this.cueSettings.wrongWay);
+    // Configuration also runs in menus with cues off by default. Build its
+    // geometric route only when a live driver can use the enabled cues.
+    if (cuesActive && this.cueTrack && !this.cueDirector)
+      this.cueDirector = new DrivingCueDirector(this.cueTrack);
+    const cue = this.cueDirector?.sample(frame, cuesActive, time, this.cueSettings);
     if (cue) this.cueSynth?.play(cue, time, this.cueSettings.volume);
     if (!playing || !liveHuman || this.muted) this.cueSynth?.silence();
     this.master.gain.setTargetAtTime(
@@ -369,6 +381,10 @@ export class RacingAudio {
     this.wasPlaying = false;
   }
   dispose(): Promise<void> {
+    // A pending driving configuration can own a track before audio startup.
+    this.cueDirector?.reset();
+    this.cueDirector = null;
+    this.cueTrack = null;
     if (!this.context) return this.disposal ?? Promise.resolve();
     const context = this.context,
       reviewTap = this.reviewTap,

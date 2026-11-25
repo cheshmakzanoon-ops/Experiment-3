@@ -202,8 +202,9 @@ export class SurfaceThermalStep {
   private prepareMatrix(rainfall: number, cell = -1) {
     if (rainfall === this.matrixRainfall) return;
     // Preserve the single-rain fast path (notably every dry/covered cell).
-    // A changed rainfall must also notice any parameter edit since prepare().
-    this.refreshMatrixInputs();
+    // prepare() covers the frozen default; caller-owned parameters may change
+    // between cells and must still refresh when rainfall changes.
+    if (this.parameters !== SURFACE_THERMAL) this.refreshMatrixInputs();
     this.matrixRainfall = rainfall;
     const p = this.parameters;
     const dt = this.dt;

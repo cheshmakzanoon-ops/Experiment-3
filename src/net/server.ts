@@ -72,6 +72,9 @@ export interface RaceServerConfig {
 interface Connection {
   id: number;
   transport: Transport;
+  onMessage: NonNullable<Transport['onMessage']>;
+  onClose: NonNullable<Transport['onClose']>;
+  joinDeadline: number | null;
   player: Player | null;
   control: TokenBucket;
   input: TokenBucket;
@@ -198,6 +201,8 @@ export class RaceServer {
   private nextConnection = 1;
   private nextPlayer = 1;
   private stopTicks: (() => void) | null = null;
+  private countdownDeadline: number | null = null;
+  private resultsDeadline: number | null = null;
   private entries: GridEntry[] = [];
   private scratch: CarNetState[] = [];
   private readonly snapshotBatches: SnapshotBatch[] = [];
@@ -264,6 +269,9 @@ export class RaceServer {
       conn: Connection = {
         id: this.nextConnection++,
         transport,
+        onMessage: (data, channel) => this.receive(conn, data, channel),
+        onClose: (reason) => this.lost(conn, `closed by client: ${reason}`),
+        joinDeadline: null,
         player: null,
         control: new TokenBucket(RATES.control.perSecond, RATES.control.burst, now),
         input: new TokenBucket(RATES.input.perSecond, RATES.input.burst, now),
@@ -275,11 +283,14 @@ export class RaceServer {
       };
     this.stats.connections++;
     this.connections.add(conn);
-    transport.onMessage = (data, channel) => this.receive(conn, data, channel);
-    transport.onClose = (reason) => this.lost(conn, `closed by client: ${reason}`);
-    this.loop.after(this.timeouts.joinMs, () => {
+    transport.onMessage = conn.onMessage;
+    transport.onClose = conn.onClose;
+    const deadline = this.loop.after(this.timeouts.joinMs, () => {
+      if (conn.joinDeadline !== deadline) return;
+      conn.joinDeadline = null;
       if (!conn.player && !conn.closed) this.close(conn, 'no join received');
     });
+    conn.joinDeadline = deadline;
   }
   /** Send one reliable control message, never over the size the client
    * accepts (it would drop it silently). Callers chunk variable-length data. */
@@ -347,11 +358,31 @@ export class RaceServer {
     conn.closed = true;
     this.connections.delete(conn);
     conn.player = null;
+    this.releaseConnection(conn);
     this.closeTransport(conn, reason);
+  }
+  private cancelJoinDeadline(conn: Connection) {
+    const deadline = conn.joinDeadline;
+    conn.joinDeadline = null;
+    if (deadline !== null) this.loop.cancel(deadline);
+  }
+  private releaseConnection(conn: Connection) {
+    this.cancelJoinDeadline(conn);
+    const transport = conn.transport;
+    // A transport can already belong to another connection or server. Only
+    // detach this connection's handlers, before any external close callback.
+    if (transport.onMessage === conn.onMessage) transport.onMessage = null;
+    if (transport.onClose === conn.onClose) transport.onClose = null;
+  }
+  private closeReleasedTransport(conn: Connection, reason: string) {
+    const transport = conn.transport;
+    // A phase observer or an earlier peer's close can install a new owner
+    // after release. Its callbacks and transport must survive old cleanup.
+    if (transport.onMessage === null && transport.onClose === null) transport.close(reason);
   }
   private closeTransport(conn: Connection, reason: string) {
     try {
-      conn.transport.close(reason);
+      this.closeReleasedTransport(conn, reason);
     } catch (error) {
       this.transportError(conn, 'close', error);
     }
@@ -472,6 +503,7 @@ export class RaceServer {
     };
     this.players.set(id, player);
     conn.player = player;
+    this.cancelJoinDeadline(conn);
     this.send(conn, {
       kind: 'welcome',
       player: id,
@@ -515,9 +547,11 @@ export class RaceServer {
       holder.closed = true;
       holder.player = null;
       this.connections.delete(holder);
+      this.releaseConnection(holder);
     }
     player.connection = conn;
     conn.player = player;
+    this.cancelJoinDeadline(conn);
     player.disconnectedAt = null;
     player.prior.push(player.queue.stats);
     player.queue = new ServerInputQueue();
@@ -612,7 +646,12 @@ export class RaceServer {
       if (!this.ownsWorld(world, 'grid')) return;
     }
     this.raceStartsAt = this.loop.now + this.timeouts.gridCountdownMs;
-    this.loop.after(this.timeouts.gridCountdownMs, () => this.beginRace());
+    const deadline = this.loop.after(this.timeouts.gridCountdownMs, () => {
+      if (this.countdownDeadline !== deadline) return;
+      this.countdownDeadline = null;
+      this.beginRace();
+    });
+    this.countdownDeadline = deadline;
   }
   private beginRace() {
     if (this.phase !== 'grid') return;
@@ -777,6 +816,7 @@ export class RaceServer {
     conn.player = null;
     conn.closed = true;
     this.connections.delete(conn);
+    this.releaseConnection(conn);
     if (player.car === null || !this.world || (this.phase !== 'race' && this.phase !== 'grid')) {
       if (this.phase === 'lobby') {
         this.lobby.leave(player.id);
@@ -801,6 +841,7 @@ export class RaceServer {
     if (conn.closed) return;
     conn.closed = true;
     this.connections.delete(conn);
+    this.releaseConnection(conn);
     if (conn.player && conn.player.connection === conn) this.disconnect(conn.player, reason);
     conn.player = null;
   }
@@ -880,7 +921,12 @@ export class RaceServer {
         if (p.connection !== connection) break;
       }
     }
-    this.loop.after(this.timeouts.resultsLingerMs, () => this.teardown());
+    const deadline = this.loop.after(this.timeouts.resultsLingerMs, () => {
+      if (this.resultsDeadline !== deadline) return;
+      this.resultsDeadline = null;
+      this.teardown();
+    });
+    this.resultsDeadline = deadline;
   }
   /** Results → teardown: close every connection and stop all timers. */
   teardown() {
@@ -888,8 +934,12 @@ export class RaceServer {
     // Revoke local ownership before observers or transport cleanup can reenter.
     this.phase = 'teardown';
     const stopTicks = this.stopTicks,
+      countdownDeadline = this.countdownDeadline,
+      resultsDeadline = this.resultsDeadline,
       connections = [...this.connections];
     this.stopTicks = null;
+    this.countdownDeadline = null;
+    this.resultsDeadline = null;
     this.connections.clear();
     for (const conn of connections) {
       conn.closed = true;
@@ -911,11 +961,14 @@ export class RaceServer {
     };
     finish(() => stopTicks?.());
     finish(this.stopSweep);
+    if (countdownDeadline !== null) finish(() => this.loop.cancel(countdownDeadline));
+    if (resultsDeadline !== null) finish(() => this.loop.cancel(resultsDeadline));
+    for (const conn of connections) finish(() => this.releaseConnection(conn));
     // Preserve the ordinary observer-before-close notification order.
     finish(() => {
       this.setPhase('teardown');
     });
-    for (const conn of connections) finish(() => conn.transport.close('session over'));
+    for (const conn of connections) finish(() => this.closeReleasedTransport(conn, 'session over'));
     if (failed) throw failure;
   }
   /** Input statistics per car (all connections of the driver), for reports. */
