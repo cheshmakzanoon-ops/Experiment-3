@@ -1762,12 +1762,12 @@ export class RacingRenderer {
     this.audioView.reset();
     this.reflection.invalidate();
   }
-  /** The first advancing worker packet can arrive after the live gate has
-   * finished. A slow GPU can keep that exact gate image on screen in the gap.
-   * An equal-time control packet or a camera change still owns a fresh draw. */
-  canReuseDirtGate(a: Float32Array, b: Float32Array, alpha: number): boolean {
+  /** The briefing covers a completed riding view. Its removal can reveal that
+   * exact image even before the first reliable GPU timing sample. After release,
+   * only a slow GPU holds the gate while the first advancing packet arrives. */
+  canReuseDirtGate(a: Float32Array, b: Float32Array, alpha: number, revealBriefing = false): boolean {
     const shown = this.presented.value;
-    if (shown[H.TIME] !== 0 || this.gpuFrames.completionLatencyMs < 250) return false;
+    if (shown[H.TIME] !== 0 || (!revealBriefing && this.gpuFrames.completionLatencyMs < 250)) return false;
     if (
       this.follow !== 0 || this.mode !== this.renderedMode || this.presentedBackdrop !== 'circuit' ||
       this.lookX !== 0 || this.lookY !== 0 || !isMotocrossVenue(this.circuit.track)

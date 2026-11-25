@@ -1858,7 +1858,7 @@ export class GameApp {
     const holdLiveGate = this.dirtGateRelease === 'released' && this.renderedState === 'driving';
     if (
       this.state === 'driving' && (revealHeldGate || holdLiveGate) &&
-      !this.viewportRedrawPending && this.renderer.canReuseDirtGate(a, b, alpha)
+      !this.viewportRedrawPending && this.renderer.canReuseDirtGate(a, b, alpha, revealHeldGate)
     ) {
       if (revealHeldGate) {
         // The briefing covered a completed tick-zero riding view with a DOM

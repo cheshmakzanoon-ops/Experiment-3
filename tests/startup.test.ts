@@ -593,8 +593,8 @@ it('reuses only the identical live gate on a slow GPU while waiting for an advan
     lookX: 0, lookY: 0, presented: { value: shown }, gpuFrames: { completionLatencyMs: 11000 },
   });
   Object.assign(target.circuit, { track: { circuit: { offroad: { kind: 'motocross' } } } });
-  const held = (a: Float32Array, b: Float32Array, alpha: number) =>
-    RacingRenderer.prototype.canReuseDirtGate.call(typed, a, b, alpha);
+  const held = (a: Float32Array, b: Float32Array, alpha: number, revealBriefing = false) =>
+    RacingRenderer.prototype.canReuseDirtGate.call(typed, a, b, alpha, revealBriefing);
   expect(held(sample, sample, 1)).toBe(true);
   expect(held(sample, next, 0)).toBe(true);
   expect(held(sample, next, 0.00000006)).toBe(true);
@@ -610,6 +610,11 @@ it('reuses only the identical live gate on a slow GPU while waiting for an advan
   rig.lookX = 0;
   rig.gpuFrames.completionLatencyMs = 16;
   expect(held(sample, sample, 1)).toBe(false);
+  expect(held(sample, sample, 1, true)).toBe(true);
+  rig.gpuFrames.completionLatencyMs = 0;
+  expect(held(sample, sample, 1, true)).toBe(true);
+  expect(held(sample, input, 1, true)).toBe(false);
+  expect(held(sample, next, 1, true)).toBe(false);
   rig.gpuFrames.completionLatencyMs = 11000;
   rig.follow = 1;
   expect(held(sample, sample, 1)).toBe(false);

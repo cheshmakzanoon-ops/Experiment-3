@@ -64,46 +64,61 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   ) => {
     const path = info.outputPath(name);
     let digest = '';
-    let submission: number | undefined, paintObserved = false;
-    // A submitted camera/pose can precede its visible X11 image by a whole
-    // frame. Wait for that submission's fence and a browser paint opportunity.
-    await expect
-      .poll(
-        async () => {
+    let submission = 0;
+    let paintObserved = false;
+    try {
+      if (matchesFrame) {
+        // Observe the rider pose, its GPU fence and its visible pixels separately.
+        // On software WebGL one buffer swap can take as long as the target draw.
+        await expect.poll(async () => {
           if (errors.length) throw new Error(errors[0]);
-          if (matchesFrame && !paintObserved) {
-            const current = await diag();
-            if (!matchesFrame(current) || !current.renderer) return false;
-            const queue = current.renderer.gpuFrameQueue;
-            submission ??= queue.submitted;
-            if (!submission || queue.completed < submission) return false;
-            await page.evaluate(() => new Promise<void>(resolve =>
-              requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-            paintObserved = true;
-          }
-          await screenshot(path);
-          digest = screenImageDigest(await readFile(path), page.viewportSize()!, pauseButton) ?? '';
-          return digest !== '' && !images.has(digest);
-        },
-        {
+          const current = await diag();
+          if (!matchesFrame(current) || !current.renderer) return false;
+          submission = current.renderer.gpuFrameQueue.submitted;
+          return submission > 0;
+        }, {
           timeout: 45000,
           intervals: [250, 750, 1500],
-          message: `${name} presents a new game image`,
-        },
-      )
-      .toBe(true)
-      .catch(async (error: unknown) => {
-        const d = await page.evaluate(() => window.apexDiagnostics(true)).catch(() => null);
-        console.info('[MX presentation] ' + JSON.stringify({
-          image: name, state: d?.state, workerTime: d?.frame?.[H.TIME],
-          presentedTime: d?.presentation?.time, presentedFrames: d?.presentation?.frames,
-          presentedState: d?.presentation?.renderedState, queue: d?.renderer?.gpuFrameQueue,
-          reusedGateFrames: d?.gridPresentation.reusedDirtGateFrames,
-          draws: d?.renderer?.drawBreakdown, probe: d?.renderer?.reflectionProbe,
-          mainView: d?.visual?.census.main.slice(0, 8),
-        }));
-        throw error;
-      });
+          message: `${name} submits its requested riding pose`,
+        }).toBe(true);
+        await expect.poll(async () => {
+          if (errors.length) throw new Error(errors[0]);
+          return (await diag()).renderer?.gpuFrameQueue.completed ?? 0;
+        }, {
+          timeout: 45000,
+          intervals: [250, 750, 1500],
+          message: `${name} finishes drawing the submitted pose`,
+        }).toBeGreaterThanOrEqual(submission);
+      }
+      await expect.poll(async () => {
+        if (errors.length) throw new Error(errors[0]);
+        if (matchesFrame && !paintObserved) {
+          await page.evaluate(() => new Promise<void>(resolve =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+          paintObserved = true;
+        }
+        if (matchesFrame && !matchesFrame(await diag())) return false;
+        await screenshot(path);
+        digest = screenImageDigest(await readFile(path), page.viewportSize()!, pauseButton) ?? '';
+        return digest !== '' && !images.has(digest);
+      }, {
+        timeout: 45000,
+        intervals: [250, 750, 1500],
+        message: `${name} presents a new game image`,
+      }).toBe(true);
+    } catch (error: unknown) {
+      const d = await page.evaluate(() => window.apexDiagnostics(true)).catch(() => null);
+      console.info('[MX presentation] ' + JSON.stringify({
+        image: name, state: d?.state, workerTime: d?.frame?.[H.TIME],
+        targetSubmission: submission, paintObserved, riderWeight: d?.presentation?.car.riderWeight,
+        presentedTime: d?.presentation?.time, presentedFrames: d?.presentation?.frames,
+        presentedState: d?.presentation?.renderedState, queue: d?.renderer?.gpuFrameQueue,
+        reusedGateFrames: d?.gridPresentation.reusedDirtGateFrames,
+        draws: d?.renderer?.drawBreakdown, probe: d?.renderer?.reflectionProbe,
+        mainView: d?.visual?.census.main.slice(0, 8),
+      }));
+      throw error;
+    }
     images.add(digest);
     await info.attach(name, { path, contentType: 'image/png' });
     const snapshot = await diag();
