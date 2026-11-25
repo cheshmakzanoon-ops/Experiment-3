@@ -1,10 +1,10 @@
 # Benchmark smoke
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44678469289
-- commit: `1a5fb406a2` · Share rigid motocross meshes on the GPU and verify rider lifetime and display cadence
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45541153549
+- commit: `6314ba3ec7` · Measure engine kernels and retain exact-output performance evidence
 - event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T05:03:31Z · updated: 2026-11-20T05:08:16Z
+- started: 2026-11-25T03:36:33Z · updated: 2026-11-25T03:40:53Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| smoke | success | 4 |  |
+| smoke | success | 3 |  |
