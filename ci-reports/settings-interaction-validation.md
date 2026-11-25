@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45611188736
-- commit: `a7f1eb9798` · Give motocross riders, bikes and trackside animation follow-through
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45614815728
+- commit: `c2d6714769` · Reveal the completed motocross grid pose before starting its animation clock
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T12:10:11Z · updated: 2026-11-25T12:17:03Z
+- started: 2026-11-25T12:32:59Z · updated: 2026-11-25T12:52:54Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | failure | 6 | Original menu regression and transition ownership, without forced clicks or retries |
-| qa | skipped | -1 |  |
+| settings | success | 4 |  |
+| qa | failure | 14 | Review-tool specs of the settings and menu regression, on the QA build |
