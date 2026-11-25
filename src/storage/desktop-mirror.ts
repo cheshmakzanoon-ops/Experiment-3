@@ -85,6 +85,12 @@ function sameValue(a: unknown, b: unknown, path = new Set<unknown>()): boolean {
   }
 }
 
+function nextRevision(current: number, persisted: number) {
+  const previous = Math.max(current, persisted);
+  if (previous >= Number.MAX_SAFE_INTEGER) throw new RangeError('Desktop save revision exhausted');
+  return previous + 1;
+}
+
 const dataEntries = (entries: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(entries).filter(([key]) => key !== REVISION_KEY));
 
@@ -160,6 +166,8 @@ export function idbKv(db: IDBDatabase, storeName = 'saved'): MirrorKv {
 
 export class DesktopMirror {
   private revision = 0;
+  /** Last committed local state known to this owner, separate from reservations. */
+  private localRevision = 0;
   private acceptedRevision = 0;
   private pending = new Map<string, { value: unknown; revision: number }>();
   private inFlight: Promise<void> | null = null;
@@ -193,6 +201,7 @@ export class DesktopMirror {
       this.revision = Math.max(this.revision, file);
       const keys = (await kv.keys()).filter((key) => key !== REVISION_KEY);
       const local = revisionOf(await kv.get(REVISION_KEY));
+      this.localRevision = local;
       this.revision = Math.max(this.revision, local);
 
       if (keys.length > 0 && info.complete === false) return await this.seed(kv);
@@ -224,6 +233,9 @@ export class DesktopMirror {
         revision: this.revision,
       };
     } catch (error) {
+      // A failed full snapshot cannot be hidden by a later single-key delta.
+      this.blocked = true;
+      this.pending.clear();
       return {
         action: 'failed',
         keys: 0,
@@ -240,11 +252,14 @@ export class DesktopMirror {
     const snapshot = await kv.entries();
     const entries = dataEntries(snapshot);
     // Bind the new revision to the same local snapshot, not an earlier get().
-    const revision = (this.revision =
-      Math.max(this.revision, revisionOf(snapshot[REVISION_KEY])) + 1);
+    const revision = (this.revision = nextRevision(
+      this.revision,
+      revisionOf(snapshot[REVISION_KEY]),
+    ));
     // Reserve it locally before IPC: a partial legacy seed or lost reply must
     // never make its file appear newer than the complete source on restart.
     await kv.putMany({ [REVISION_KEY]: revision });
+    this.localRevision = revision;
     if (!(await this.bridge.saves.seed(entries, revision))) throw new Error('Mirror seed rejected');
     this.acceptedRevision = revision;
     this.blocked = false;
@@ -255,6 +270,7 @@ export class DesktopMirror {
     const revision = this.revision;
     const entries = dataEntries(snapshot.entries);
     await kv.putMany({ ...entries, [REVISION_KEY]: revision });
+    this.localRevision = revision;
     // A newer legacy file is still a valid restore source. After restoring it
     // (or all readable files when local storage was lost), upgrade the envelope
     // using the complete local snapshot, including local-only recovery keys.
@@ -266,9 +282,18 @@ export class DesktopMirror {
     return { action: 'restored', keys: Object.keys(entries).length, revision };
   }
 
-  /** Called inside a readwrite transaction: stamps the data being written. */
-  stamp(store: IDBObjectStore): number {
-    const revision = ++this.revision;
+  /** SaveStore supplies the revision read inside this same readwrite transaction.
+   * A foreign committed write invalidates this owner's incremental prefix. Keep
+   * persisting locally, but require reconciliation before certifying more deltas.
+   * The default retains direct single-owner callers that already own the local
+   * revision; production SaveStore always passes the transaction's actual value. */
+  stamp(store: IDBObjectStore, persistedRevision: unknown = this.localRevision): number {
+    const persisted = revisionOf(persistedRevision);
+    if (persisted !== this.localRevision) {
+      this.blocked = true;
+      this.pending.clear();
+    }
+    const revision = (this.revision = nextRevision(this.revision, persisted));
     store.put(revision, REVISION_KEY);
     return revision;
   }
@@ -277,6 +302,7 @@ export class DesktopMirror {
    * by key. On failure, the persisted local revision stays ahead of the complete
    * native prefix. Recovery re-seeds it before incremental writes can resume. */
   written(entries: readonly (readonly [string, unknown])[], revision: number) {
+    this.localRevision = Math.max(this.localRevision, revision);
     if (this.blocked) return;
     for (const [key, value] of entries) {
       const previous = this.pending.get(key);

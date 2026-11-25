@@ -22,6 +22,12 @@ on:
       - 'tests/festival-renderer-loader-lifecycle.test.ts'
       - 'tests/festival-session-lifecycle.test.ts'
       - 'tests/surface-channel-backpressure.test.ts'
+      - 'tests/net-event-loop-ownership.test.ts'
+      - 'tests/net-transport-lifetime.test.ts'
+      - 'tests/save-store-lifecycle.test.ts'
+      - 'tests/desktop-mirror-consistency.test.ts'
+      - 'tests/desktop-mirror-crash-recovery.test.ts'
+      - 'tests/desktop-mirror-recovery.test.ts'
       - 'tests/fake-audio.ts'
       - 'tests/net-helpers.ts'
       - 'e2e/engine-native-*.spec.ts'
@@ -84,6 +90,12 @@ jobs:
             tests/circuit-startup-settlement.test.ts tests/festival-ground-height.test.ts \
             tests/festival-renderer-loader-lifecycle.test.ts tests/festival-session-lifecycle.test.ts \
             tests/surface-channel-backpressure.test.ts \
+            tests/net-event-loop-ownership.test.ts \
+            tests/net-transport-lifetime.test.ts \
+            tests/save-store-lifecycle.test.ts \
+            tests/desktop-mirror-consistency.test.ts \
+            tests/desktop-mirror-crash-recovery.test.ts \
+            tests/desktop-mirror-recovery.test.ts \
             --pool=threads --maxWorkers=1 --minWorkers=1 --allowOnly=false --retry=0 \
             2>&1 | tee "$RUNNER_TEMP/engine-runtime-unit.log"
       - name: Verify engine baseline comparisons

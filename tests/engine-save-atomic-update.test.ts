@@ -26,8 +26,13 @@ class Transaction {
   readonly pending = new Map<string, unknown>();
   private reading = false;
   private aborted = false;
+  private readonly reads: { key: string; request: Request }[] = [];
   readonly store = {
-    get: vi.fn((_key: string) => this.read),
+    get: vi.fn((key: string) => {
+      const request = this.reads.length ? new Request() : this.read;
+      this.reads.push({ key, request });
+      return request;
+    }),
     put: vi.fn((value: unknown, key: string) => {
       // A deferred updater/write would run after this request event is inactive.
       if (!this.reading) throw new Error('Write outside the read-success callback');
@@ -47,12 +52,18 @@ class Transaction {
   constructor(private readonly data: Map<string, unknown>) {}
 
   readSuccess() {
-    this.read.result = structuredClone(this.data.get(this.store.get.mock.calls[0][0]));
-    this.reading = true;
-    try {
-      this.read.onsuccess?.();
-    } finally {
-      this.reading = false;
+    // Deliver the primary read, then any revision read queued by its callback.
+    for (const { key, request } of this.reads) {
+      if (this.aborted) break;
+      request.result = structuredClone(
+        this.pending.has(key) ? this.pending.get(key) : this.data.get(key),
+      );
+      this.reading = true;
+      try {
+        request.onsuccess?.();
+      } finally {
+        this.reading = false;
+      }
     }
   }
 
@@ -172,7 +183,7 @@ describe('SaveStore atomic updates', () => {
     const expected = structuredClone(value);
     value.laps.push(70);
     value.samples[0] = 99;
-    expect(f.desktop.stamp).toHaveBeenCalledExactlyOnceWith(tx.store);
+    expect(f.desktop.stamp).toHaveBeenCalledExactlyOnceWith(tx.store, 0);
     expect(tx.pending.get(REVISION_KEY)).toBe(7);
     expect(f.data.size).toBe(0);
     expect(f.desktop.written).not.toHaveBeenCalled();

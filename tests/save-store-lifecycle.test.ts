@@ -453,6 +453,7 @@ describe.each(['write', 'writeWithBackup'] as const)('SaveStore %s atomic comple
     await flush();
     const tx = db.transactions[0];
     if (method === 'writeWithBackup') tx.requests[0].succeed(before);
+    tx.requests.at(-1)!.succeed(data.get(REVISION_KEY));
     return { desktop, data, db, operation, tx };
   }
 
@@ -501,6 +502,7 @@ describe.each(['write', 'writeWithBackup'] as const)('SaveStore %s atomic comple
     await flush();
     const tx = db.transactions[0];
     if (method === 'writeWithBackup') tx.requests[0].succeed(before);
+    tx.requests.at(-1)!.succeed(data.get(REVISION_KEY));
     await expect(operation.result).resolves.toEqual({ error });
     expect(tx.abort).toHaveBeenCalledTimes(1);
     expect(data.get('profile')).toEqual(before);
@@ -550,6 +552,7 @@ describe('SaveStore backup request failures', () => {
     await flush();
     const tx = db.transactions[0];
     tx.requests[0].succeed(undefined);
+    tx.requests[1].succeed(data.get(REVISION_KEY));
     tx.complete();
     await expect(operation.result).resolves.toEqual({ value: undefined });
     expect(data.get('profile:backup')).toEqual({ laps: 2 });

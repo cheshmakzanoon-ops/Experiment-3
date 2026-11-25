@@ -19,7 +19,7 @@ import {
 import { clamp } from '../core/math.ts';
 import { DEFAULT_LEVELS, validateLevels, type AudioLevels } from '../audio/mixer.ts';
 import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/rumble.ts';
-import { DesktopMirror, idbKv } from './desktop-mirror.ts';
+import { DesktopMirror, idbKv, REVISION_KEY } from './desktop-mirror.ts';
 import { validateLanguage, type LanguageSetting } from '../i18n/locales.ts';
 import { DEFAULT_HUD_SCALE, validateHudScale, type HudScaleSetting } from '../core/hud-scale.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
@@ -266,6 +266,27 @@ export class SaveStore {
     }
     return pending;
   }
+  /** Read the shared revision while the caller's write transaction owns the
+   * store lock. No-op updates never call this, and browsers never issue it. */
+  private stamp(
+    store: IDBObjectStore,
+    accept: (revision: number) => void,
+    abort: (error: unknown) => void,
+  ) {
+    const mirror = this.mirror;
+    if (!mirror) return;
+    const request = store.get(REVISION_KEY);
+    request.onerror = () => abort(request.error ?? new Error('Revision read failed'));
+    request.onsuccess = () => {
+      try {
+        // Explicit zero is significant: an absent stored revision is not the
+        // mirror's optional direct-caller default after a connection reset.
+        accept(mirror.stamp(store, request.result ?? 0));
+      } catch (error) {
+        abort(error);
+      }
+    };
+  }
   async read(key: string): Promise<unknown> {
     const db = await this.open();
     return new Promise((resolve, reject) => {
@@ -334,7 +355,7 @@ export class SaveStore {
             writtenValue = this.mirror ? structuredClone(result) : result;
             const write = store.put(writtenValue, key);
             write.onerror = () => abort(write.error ?? new Error('Save failed'));
-            if (this.mirror) revision = this.mirror.stamp(store);
+            this.stamp(store, (value) => (revision = value), abort);
             changed = true;
           } catch (error) {
             abort(error);
@@ -387,7 +408,7 @@ export class SaveStore {
             // Both persisted copies must describe the same enqueue-time value.
             writtenValue = this.mirror ? structuredClone(value) : value;
             store.put(writtenValue, key);
-            if (this.mirror) revision = this.mirror.stamp(store);
+            this.stamp(store, (value) => (revision = value), abort);
           } catch (error) {
             abort(error);
           }
@@ -432,6 +453,14 @@ export class SaveStore {
       const tx = db.transaction('saved', 'readwrite');
       let writtenValue: unknown;
       let revision = 0;
+      const abort = (error: unknown) => {
+        reject(error);
+        try {
+          tx.abort();
+        } catch {
+          /* the transaction has already finished */
+        }
+      };
       tx.oncomplete = () => {
         this.mirror?.written([[key, writtenValue]], revision);
         resolve();
@@ -444,14 +473,9 @@ export class SaveStore {
         // Browser-only saves retain the ordinary IndexedDB cloning path.
         writtenValue = this.mirror ? structuredClone(value) : value;
         store.put(writtenValue, key);
-        if (this.mirror) revision = this.mirror.stamp(store);
+        this.stamp(store, (value) => (revision = value), abort);
       } catch (error) {
-        reject(error);
-        try {
-          tx.abort();
-        } catch {
-          /* the transaction has already finished */
-        }
+        abort(error);
       }
     });
   }

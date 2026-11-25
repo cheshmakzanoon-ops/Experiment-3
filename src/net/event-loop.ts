@@ -27,8 +27,12 @@ export class EventLoop {
     // Only a queued event owns this handle. Retired or unknown handles must
     // neither accumulate nor cancel a future event that receives that number.
     const event = this.queued.get(handle);
-    // Keep the heap slot/order until it is due, but release captured payloads now.
-    if (event) event.fn = null;
+    // Keep the heap slot/order until it is due, but release captured payloads
+    // and the retired handle lookup immediately.
+    if (event) {
+      event.fn = null;
+      this.queued.delete(handle);
+    }
   }
   /** Repeat `fn` every `periodMs` from `start`, at exact multiples (no drift).
    * Returns a function that stops the repetition. */
