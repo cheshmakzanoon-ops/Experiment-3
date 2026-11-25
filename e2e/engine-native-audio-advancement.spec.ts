@@ -2,12 +2,13 @@ import { expect, test, type Page } from '@playwright/test';
 import { build, version as esbuildVersion } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, relative, resolve, sep } from 'node:path';
 import type * as Fixture from './fixtures/engine-native-audio-advancement.ts';
 import {
   ORIGINAL_AUDIO_SOURCE,
   ORIGINAL_LOUDNESS_SOURCE,
 } from './fixtures/engine-native-audio-advancement-original.ts';
+import ARCHIVED_AUDIO_INPUTS from './fixtures/engine-native-audio-reference-inputs.json' with { type: 'json' };
 
 type NativeWindow = Window & {
   EngineNativeAudioAdvancement: typeof Fixture;
@@ -25,10 +26,22 @@ const gitBlob = (bytes: string | Uint8Array) =>
 test.beforeAll(async () => {
   expect(sha256(ORIGINAL_LOUDNESS_SOURCE)).toBe(ORIGINAL_AUDIO_SOURCE.sha256);
   expect(gitBlob(ORIGINAL_LOUDNESS_SOURCE)).toBe(ORIGINAL_AUDIO_SOURCE.gitBlob);
+  expect(ARCHIVED_AUDIO_INPUTS.commit).toBe(ORIGINAL_AUDIO_SOURCE.commit);
+  expect(Object.keys(ARCHIVED_AUDIO_INPUTS.inputs).sort()).toEqual(
+    ORIGINAL_AUDIO_SOURCE.unchanged.map((input) => input.path),
+  );
+  const originalInputs = new Map<string, string>([
+    [ORIGINAL_AUDIO_SOURCE.path, ORIGINAL_LOUDNESS_SOURCE],
+  ]);
   for (const input of ORIGINAL_AUDIO_SOURCE.unchanged) {
-    const bytes = readFileSync(resolve(input.path));
-    expect(sha256(bytes), `Original audio input changed: ${input.path}`).toBe(input.sha256);
-    expect(gitBlob(bytes), `Original audio input changed: ${input.path}`).toBe(input.gitBlob);
+    const bytes = ARCHIVED_AUDIO_INPUTS.inputs[input.path];
+    expect(sha256(bytes), `Archived original audio input changed: ${input.path}`).toBe(
+      input.sha256,
+    );
+    expect(gitBlob(bytes), `Archived original audio input changed: ${input.path}`).toBe(
+      input.gitBlob,
+    );
+    originalInputs.set(input.path, bytes);
   }
   const reference = await build({
     stdin: {
@@ -46,31 +59,39 @@ test.beforeAll(async () => {
     target: 'es2022',
     plugins: [
       {
-        name: 'actual-original-loudness-source',
+        name: 'actual-original-audio-sources',
         setup(builder) {
-          builder.onResolve({ filter: /^\.\/engine-loudness\.ts$/ }, () => ({
-            path: ORIGINAL_AUDIO_SOURCE.path,
-            namespace: 'original-audio',
-          }));
-          builder.onLoad({ filter: /.*/, namespace: 'original-audio' }, () => ({
-            contents: ORIGINAL_LOUDNESS_SOURCE,
-            // Preserve the original text and resolve its imports at their
-            // unchanged production location, without rewriting its arithmetic.
-            resolveDir: resolve('src/audio'),
+          builder.onResolve({ filter: /.*/ }, ({ path, resolveDir }) => {
+            const inputPath = relative(resolve('.'), resolve(resolveDir, path))
+              .split(sep)
+              .join('/');
+            if (!originalInputs.has(inputPath)) {
+              throw new Error(`Unarchived original audio dependency: ${inputPath}`);
+            }
+            return { path: inputPath, namespace: 'original-audio' };
+          });
+          builder.onLoad({ filter: /.*/, namespace: 'original-audio' }, ({ path }) => ({
+            contents: originalInputs.get(path)!,
+            // Use byte-exact historical inputs and their original import
+            // locations. The reference never falls back to live production text.
+            resolveDir: dirname(resolve(path)),
             loader: 'ts',
           }));
         },
       },
     ],
   });
-  const sharedInputs = Object.keys(reference.metafile.inputs)
-    .filter((path) => path.startsWith('src/') && !path.endsWith('/original-engine-voices-entry.ts'))
-    .sort();
-  expect(sharedInputs).toEqual(ORIGINAL_AUDIO_SOURCE.unchanged.map((input) => input.path));
+  expect(Object.keys(reference.metafile.inputs).sort()).toEqual(
+    [
+      ...[...originalInputs.keys()].map((path) => `original-audio:${path}`),
+      'src/audio/original-engine-voices-entry.ts',
+    ].sort(),
+  );
   const current = await build({
     entryPoints: [resolve('e2e/fixtures/engine-native-audio-advancement.ts')],
     bundle: true,
     write: false,
+    metafile: true,
     format: 'iife',
     globalName: 'EngineNativeAudioAdvancement',
     platform: 'browser',
@@ -81,8 +102,14 @@ test.beforeAll(async () => {
   provenance = {
     original: ORIGINAL_AUDIO_SOURCE,
     currentLoudnessSha256: sha256(readFileSync(resolve('src/audio/engine-loudness.ts'))),
+    currentInputs: Object.keys(current.metafile.inputs)
+      .sort()
+      .map((path) => {
+        const bytes = readFileSync(resolve(path));
+        return { path, bytes: bytes.length, sha256: sha256(bytes), gitBlob: gitBlob(bytes) };
+      }),
     esbuildVersion,
-    sharedInputCount: sharedInputs.length,
+    archivedInputCount: originalInputs.size,
     originalBundle: { bytes: Buffer.byteLength(original), sha256: sha256(original) },
     fixtureBundle: { bytes: Buffer.byteLength(fixture), sha256: sha256(fixture) },
   };
