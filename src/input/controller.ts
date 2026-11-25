@@ -15,6 +15,7 @@ import { boundAction, isHeld } from './bindings.ts';
 import { approach, clamp } from '../core/math.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import type { Settings } from '../storage/data.ts';
+import { MAX_PENDING_SHIFTS, ShiftInputQueue } from '../workers/input-queue.ts';
 export type TouchAction = 'left' | 'right' | 'throttle' | 'brake' | 'riderForward' | 'riderBack';
 const releasedTouch = (): Record<TouchAction, boolean> => ({
   left: false,
@@ -30,6 +31,7 @@ export class InputController {
   private keys = new Set<string>();
   private steering = 0;
   private previousButtons = new Set<number>();
+  private readonly pendingShifts = new ShiftInputQueue();
   private enabled = false;
   private disposed = false;
   private generation = 0;
@@ -89,8 +91,8 @@ export class InputController {
     }
     const action = boundAction(this.settings.bindings, e.code);
     if (action) e.preventDefault();
-    if (action === 'shiftUp') this.state.shift = 1;
-    else if (action === 'shiftDown') this.state.shift = -1;
+    if (action === 'shiftUp') this.queueShift(1);
+    else if (action === 'shiftDown') this.queueShift(-1);
     else if (
       action &&
       ![
@@ -108,6 +110,18 @@ export class InputController {
       this.action(action);
   };
   private keyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
+  private queueShift(direction: number) {
+    // The host acknowledges the exposed pulse by setting state.shift to zero.
+    // Include that staged pulse in the bound, and drop newest overflow while
+    // preserving the order of keyboard and gamepad edges already accepted.
+    if (this.pendingShifts.pending + Number(this.state.shift !== 0) < MAX_PENDING_SHIFTS)
+      this.pendingShifts.push(direction);
+    this.stageShift();
+  }
+  private stageShift() {
+    // Merely reading/updating controls must not consume an unacknowledged edge.
+    if (this.state.shift === 0) this.state.shift = this.pendingShifts.take();
+  }
   private blur = () => {
     // Inputs pressed while unfocused are a new baseline, not resume commands.
     this.buttons.reset();
@@ -159,6 +173,7 @@ export class InputController {
     this.generation++;
     this.keys.clear();
     this.steering = 0;
+    this.pendingShifts.clear();
     Object.assign(this.state, controls());
     this.previousButtons.clear();
     this.lastDevice = '';
@@ -366,7 +381,7 @@ export class InputController {
       ]) {
         if (index < 0) continue;
         const down = !!pad.buttons[index]?.pressed;
-        if (down && !this.previousButtons.has(index)) this.state.shift = direction;
+        if (down && !this.previousButtons.has(index)) this.queueShift(direction);
         if (down) this.previousButtons.add(index);
         else this.previousButtons.delete(index);
       }
@@ -399,6 +414,7 @@ export class InputController {
     this.state.reverse =
       isHeld(k, b, 'reverse') ||
       !!(pad && reverse >= 0 && !driveButtonOwner(m, reverse) && pad.buttons[reverse]?.pressed);
+    this.stageShift();
     return this.state;
   }
   dispose() {

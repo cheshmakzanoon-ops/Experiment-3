@@ -200,6 +200,7 @@ async function fixture(mode: 'circuit' | 'festival') {
     current: null,
     mediaView: null,
     audio: { stop: vi.fn() },
+    rumble: { stop: vi.fn() },
     referenceSession: { interrupt: vi.fn() },
     performanceCapture: { interrupt: vi.fn() },
     interruptReview: vi.fn(),

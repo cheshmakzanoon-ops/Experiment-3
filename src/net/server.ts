@@ -31,8 +31,8 @@ import type {
   SessionPhase,
 } from './messages.ts';
 import { createRecord, type SessionRecord } from './records.ts';
-import { emptyCarState, type CarNetState } from './snapshot.ts';
-import type { Transport } from './transport.ts';
+import { CAR_FLAG, emptyCarState, type CarNetState } from './snapshot.ts';
+import type { Channel, Transport } from './transport.ts';
 
 /** What happens to a car whose driver's connection is lost (WP54).
  * 'ai-takeover': the server AI drives it and it stays classified.
@@ -106,6 +106,10 @@ interface Player {
   /** Input statistics of earlier connections (before a rejoin). */
   prior: QueueStats[];
 }
+interface SnapshotBatch {
+  packets: { player: Player; connection: Connection; data: Uint8Array }[];
+  messages: ServerControl[];
+}
 export interface ServerStats {
   connections: number;
   rejectedJoins: { reason: string; at: number }[];
@@ -121,6 +125,15 @@ export interface ServerStats {
   /** Outbound control messages over the peer's size limit (never sent).
    * Variable-length payloads are chunked, so this stays 0. */
   oversizeMessages: number;
+  /** Total active peer failures, including errors older than the retained tail. */
+  transportErrorCount: number;
+  /** The newest 64 original thrown values, including cleanup failures. */
+  transportErrors: {
+    connection: number;
+    operation: 'send' | 'close';
+    at: number;
+    error: unknown;
+  }[];
 }
 
 /** Anonymous players get ids outside the account namespace (an account id
@@ -169,6 +182,8 @@ export class RaceServer {
     rejoins: [],
     starvations: 0,
     oversizeMessages: 0,
+    transportErrorCount: 0,
+    transportErrors: [],
   };
   private readonly connections = new Set<Connection>();
   private readonly players = new Map<string, Player>();
@@ -183,6 +198,9 @@ export class RaceServer {
   private stopTicks: (() => void) | null = null;
   private entries: GridEntry[] = [];
   private scratch: CarNetState[] = [];
+  private readonly snapshotBatches: SnapshotBatch[] = [];
+  private flushingSnapshots = false;
+  private snapshotReentered = false;
   private grid: Extract<ServerControl, { kind: 'grid' }> | null = null;
   readonly timeouts: Timeouts;
   private readonly starveTicks: number;
@@ -267,7 +285,20 @@ export class RaceServer {
       this.stats.oversizeMessages++;
       return;
     }
-    conn.transport.send(data, 'reliable');
+    this.sendData(conn, data, 'reliable');
+  }
+  /** Only transport calls are contained here: encoding, authoritative state
+   * changes and physics errors still propagate to the server's supervisor. */
+  private sendData(conn: Connection, data: Uint8Array, channel: Channel) {
+    if (conn.closed) return false;
+    try {
+      conn.transport.send(data, channel);
+      return true;
+    } catch (error) {
+      this.transportError(conn, 'send', error);
+    }
+    this.close(conn, 'transport send failed');
+    return false;
   }
   /** Race events in as many `events` messages as the size limit needs. */
   private sendEvents(conn: Connection, events: readonly RaceEvent[]) {
@@ -307,9 +338,23 @@ export class RaceServer {
   }
   private close(conn: Connection, reason: string) {
     if (conn.closed) return;
+    if (conn.player?.connection === conn) return this.disconnect(conn.player, reason);
     conn.closed = true;
     this.connections.delete(conn);
-    conn.transport.close(reason);
+    conn.player = null;
+    this.closeTransport(conn, reason);
+  }
+  private closeTransport(conn: Connection, reason: string) {
+    try {
+      conn.transport.close(reason);
+    } catch (error) {
+      this.transportError(conn, 'close', error);
+    }
+  }
+  private transportError(conn: Connection, operation: 'send' | 'close', error: unknown) {
+    this.stats.transportErrorCount++;
+    if (this.stats.transportErrors.length === 64) this.stats.transportErrors.shift();
+    this.stats.transportErrors.push({ connection: conn.id, operation, at: this.loop.now, error });
   }
   private strike(conn: Connection, reason: 'invalid' | 'rate') {
     conn.strikes++;
@@ -457,8 +502,15 @@ export class RaceServer {
       return this.reject(conn, 'this driver is still connected');
     const mismatch = identityMismatch(this.expectedIdentity(player.vehicle), message.identity);
     if (mismatch) return this.reject(conn, `content mismatch: ${mismatch}`);
-    if (holder) this.close(holder, 'replaced by a new connection');
-    const away = player.disconnectedAt === null ? 0 : this.loop.now - player.disconnectedAt;
+    const away = player.disconnectedAt === null ? 0 : this.loop.now - player.disconnectedAt,
+      closeHolder = holder && !holder.closed;
+    // Retire the previous owner and finish the replacement before its close
+    // callback can reenter the server with either connection.
+    if (holder) {
+      holder.closed = true;
+      holder.player = null;
+      this.connections.delete(holder);
+    }
     player.connection = conn;
     conn.player = player;
     player.disconnectedAt = null;
@@ -474,6 +526,8 @@ export class RaceServer {
     if (player.car !== null && this.world) this.world.setMode(player.car, 'ai');
     if (player.car !== null)
       this.stats.rejoins.push({ car: player.car, at: this.loop.now, afterMs: away });
+    if (closeHolder) this.closeTransport(holder, 'replaced by a new connection');
+    if (conn.closed || player.connection !== conn) return;
     this.send(conn, {
       kind: 'welcome',
       player: player.id,
@@ -604,9 +658,11 @@ export class RaceServer {
           this.disconnect(player, 'connection timed out');
       }
     }
+    if (this.phase !== 'race' || this.world !== world) return;
     world.step();
     for (const event of world.events) this.emit(event);
     if (world.tick % TICKS_PER_SNAPSHOT === 0) this.snapshot();
+    if (this.phase !== 'race' || this.world !== world) return;
     this.budget.record(this.wall() - start);
     this.config.onTick?.(world);
     const race = world.sim.race,
@@ -621,18 +677,38 @@ export class RaceServer {
     this.pendingEvents.push(event);
   }
   private snapshot() {
+    // One reentrant follow-up is enough to observe synchronous changes. More
+    // requests coalesce into the next scheduled snapshot without consuming
+    // contacts, events or input slack, bounding a dispatch to two batches.
+    if (this.flushingSnapshots) {
+      if (this.snapshotReentered) return;
+      this.snapshotReentered = true;
+    }
     const world = this.world as AuthoritativeWorld,
       now = this.loop.now,
-      race = world.sim.race;
+      race = world.sim.race,
+      recipients: { player: Player; connection: Connection }[] = [],
+      packets: SnapshotBatch['packets'] = [];
     for (const player of this.players.values()) {
-      const conn = player.connection;
-      if (!conn || conn.closed || player.car === null) continue;
-      const cars = this.scratch.map((s, car) =>
-        world.capture(car, car === player.car, s, this.byCar[car]?.ghost === true),
-      );
-      const slack = player.queue.takeSlack();
-      conn.transport.send(
-        encodeSnapshot({
+      const connection = player.connection;
+      if (connection && !connection.closed && player.car !== null)
+        recipients.push({ player, connection });
+    }
+    // No external callbacks run until every recipient owns its encoded
+    // packet. A nested snapshot may reuse scratch without changing this batch.
+    for (let car = 0; recipients.length && car < this.scratch.length; car++) {
+      const player = this.byCar[car],
+        full = !!player?.connection && !player.connection.closed,
+        state = world.capture(car, full, this.scratch[car], player?.ghost === true);
+      state.flags &= ~CAR_FLAG.FULL;
+    }
+    for (const { player, connection: conn } of recipients) {
+      const slack = player.queue.takeSlack(),
+        own = this.scratch[player.car as number];
+      own.flags |= CAR_FLAG.FULL;
+      let data: Uint8Array;
+      try {
+        data = encodeSnapshot({
           tick: world.tick,
           phase: race.phase,
           raceTime: race.time,
@@ -641,30 +717,57 @@ export class RaceServer {
           missing: player.missingWindow,
           echo: conn.echo,
           hold: now - conn.echoAt,
-          cars,
-        }),
-        'unreliable',
-      );
+          cars: this.scratch,
+        });
+      } finally {
+        own.flags &= ~CAR_FLAG.FULL;
+      }
+      packets.push({ player, connection: conn, data });
       player.missingWindow = 0;
-      this.stats.snapshotsSent++;
     }
+    const messages = this.eventMessages(this.pendingEvents);
+    this.pendingEvents = [];
+    // Consume this boundary's latches before a send can produce new contacts
+    // or events; those belong to the next snapshot, including reentrant ones.
     world.clearContacts();
-    if (this.pendingEvents.length) {
-      const messages = this.eventMessages(this.pendingEvents);
-      this.pendingEvents = [];
-      for (const p of this.players.values())
-        if (p.connection && p.car !== null)
-          for (const message of messages) this.send(p.connection, message);
+    this.snapshotBatches.push({ packets, messages });
+    if (this.flushingSnapshots) return;
+    this.flushingSnapshots = true;
+    try {
+      // Preserve packet/event order when a transport synchronously asks for
+      // another snapshot. It captures immediately and sends after this batch.
+      while (this.snapshotBatches.length) {
+        const batch = this.snapshotBatches.shift()!;
+        for (const { player, connection, data } of batch.packets) {
+          if (player.connection !== connection) continue;
+          if (this.sendData(connection, data, 'unreliable')) this.stats.snapshotsSent++;
+        }
+        for (const { player, connection } of batch.packets) {
+          if (player.connection !== connection) continue;
+          for (const message of batch.messages) this.send(connection, message);
+        }
+      }
+    } finally {
+      this.flushingSnapshots = false;
+      this.snapshotReentered = false;
     }
   }
   /** Connection lost (timeout, close, sever): AI takeover or ghost. */
   private disconnect(player: Player, reason: string) {
-    if (player.connection) this.close(player.connection, reason);
+    const conn = player.connection;
+    if (!conn) return;
+    const notifyClose = !conn.closed;
     player.connection = null;
+    conn.player = null;
+    conn.closed = true;
+    this.connections.delete(conn);
     if (player.car === null || !this.world || (this.phase !== 'race' && this.phase !== 'grid')) {
       if (this.phase === 'lobby') {
         this.lobby.leave(player.id);
         this.players.delete(player.id);
+      }
+      if (notifyClose) this.closeTransport(conn, reason);
+      if (this.phase === 'lobby') {
         this.broadcastLobby();
         // The one member nobody was waiting for may just have gone.
         this.maybeStart();
@@ -676,25 +779,18 @@ export class RaceServer {
     this.world.setMode(player.car, 'ai');
     this.stats.takeovers.push({ car: player.car, at: this.loop.now, reason });
     this.emit({ type: 'driver', car: player.car, mode: 'ai', reason, tick: this.world.tick });
+    if (notifyClose) this.closeTransport(conn, reason);
   }
   private lost(conn: Connection, reason: string) {
     if (conn.closed) return;
     conn.closed = true;
     this.connections.delete(conn);
     if (conn.player && conn.player.connection === conn) this.disconnect(conn.player, reason);
+    conn.player = null;
   }
   private forfeit(player: Player, reason: string) {
-    if (this.phase === 'lobby') {
-      this.lobby.leave(player.id);
-      this.players.delete(player.id);
-      if (player.connection) this.close(player.connection, reason);
-      player.connection = null;
-      this.broadcastLobby();
-      this.maybeStart();
-      return;
-    }
     player.forfeited = true;
-    if (player.connection && player.disconnectedAt === null) this.disconnect(player, reason);
+    if (player.connection) this.disconnect(player, reason);
   }
   /** Remove a player (rate abuse, host or platform moderation). */
   kick(playerId: string, reason: string, ban = false) {
@@ -769,7 +865,11 @@ export class RaceServer {
       connections = [...this.connections];
     this.stopTicks = null;
     this.connections.clear();
-    for (const conn of connections) conn.closed = true;
+    for (const conn of connections) {
+      conn.closed = true;
+      conn.player = null;
+    }
+    this.snapshotBatches.length = 0;
     for (const p of this.players.values()) p.connection = null;
     let failed = false,
       failure: unknown;
