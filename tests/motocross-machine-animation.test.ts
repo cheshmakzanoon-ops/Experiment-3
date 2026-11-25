@@ -56,6 +56,7 @@ it.each(fixtures)('%s reconstructs the two real suspension strokes between 30 Hz
   const bike = sim.cars[0] as DirtBikeVehicle, o = carBase(0);
   const display = new PresentedFrame(), window: Float32Array[] = [];
   let linearError = 0, machineError = 0, compared = 0, flexDifference = 0;
+  let reversalLinearError = 0, reversalError = 0, reversals = 0;
   bike.cgY += 0.13;
   bike.vy = -1.1;
   for (let tick = 0; tick <= 480; tick++) {
@@ -75,8 +76,20 @@ it.each(fixtures)('%s reconstructs the two real suspension strokes between 30 Hz
           const stroke = sampleBikeField(a, b, o, field, t);
           linearError += Math.abs(truth[p] - (a[p] + (b[p] - a[p]) * t));
           machineError += Math.abs(truth[p] - stroke);
-          expect(stroke).toBeGreaterThanOrEqual(Math.min(a[p], b[p]) - 1e-8);
-          expect(stroke).toBeLessThanOrEqual(Math.max(a[p], b[p]) + 1e-8);
+          const rate = o + (field === B.FORK ? MX_MOTION.FORK_RATE : MX_MOTION.SHOCK_RATE);
+          const travel = field === B.FORK ? bike.definition.bike!.forkTravel : bike.definition.bike!.shockTravel;
+          expect(stroke).toBeGreaterThanOrEqual(0);
+          expect(stroke).toBeLessThanOrEqual(Math.fround(travel));
+          if (a[rate] * b[rate] >= 0) {
+            expect(stroke).toBeGreaterThanOrEqual(Math.min(a[p], b[p]) - 1e-8);
+            expect(stroke).toBeLessThanOrEqual(Math.max(a[p], b[p]) + 1e-8);
+          } else {
+            // Measured rebound can peak between snapshots. Preserve physical
+            // travel and verify its accuracy against the intervening solver ticks.
+            reversalLinearError += Math.abs(truth[p] - (a[p] + (b[p] - a[p]) * t));
+            reversalError += Math.abs(truth[p] - stroke);
+            reversals++;
+          }
           expect(shown[p]).toBe(shown[hub + W.COMPRESSION]);
           expect(shown[hub + W.LENGTH] + shown[p]).toBeCloseTo(a[hub + W.LENGTH] + a[p], 5);
         }
@@ -93,6 +106,8 @@ it.each(fixtures)('%s reconstructs the two real suspension strokes between 30 Hz
   expect(compared).toBeGreaterThan(100);
   expect(linearError).toBeGreaterThan(0.015);
   expect(machineError).toBeLessThan(linearError * 0.85);
+  expect(reversals).toBeGreaterThan(0);
+  expect(reversalError).toBeLessThan(reversalLinearError * 0.85);
   expect(flexDifference).toBeGreaterThan(0.07);
 });
 

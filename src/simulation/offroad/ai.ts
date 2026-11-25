@@ -307,8 +307,11 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     // swept path while the heading is still legal for the bend. The lateral
     // velocity already contains the slip: use it to reserve front load
     // before the requested steering saturates on the outside shoulder.
+    // A finite body stroke can restore front load while that outward path
+    // is still unsafe. Support scales the pedal authority below; it must
+    // not switch off the geometric lane guard at a load threshold.
     if (courseKind === 'supercross' && c.definition.tireFamily === 'knobby' && !d.p.independentRearBrake && c.speed > 3 &&
-        c.forceFront < d.mass * G * 0.38 && race.phase === PHASE.RACING && race.raceTime > LAUNCH_SECONDS) {
+        race.phase === PHASE.RACING && race.raceTime > LAUNCH_SECONDS) {
       const across = c.body.velocity.x * squarePoint.nx + c.body.velocity.z * squarePoint.nz;
       const side = Math.sign(across), outward = Math.abs(across);
       const room = squarePoint.width - 0.55 - side * c.lateral;

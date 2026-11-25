@@ -172,9 +172,12 @@ describe('motocross suspension contact traction', () => {
       // Torque acts immediately even while an overspeed tyre is still driving.
       expect(firstRotors.get('rear')!).toBeLessThan(firstRotors.get('coast')!);
       expect(front.dynamics.frontBrakeForce).toBe(0);
-      expect(front.dynamics.speed).toBe(coast.dynamics.speed);
-      expect(front.dynamics.x).toBe(coast.dynamics.x);
-      expect(front.dynamics.z).toBe(coast.dynamics.z);
+      // The continuous automatic rider brace may change rear support by a
+      // floating-point-scale amount. The unloaded front supplies no brake
+      // force and cannot produce a measurable translation impulse.
+      expect(front.dynamics.speed).toBeCloseTo(coast.dynamics.speed, 8);
+      expect(front.dynamics.x).toBeCloseTo(coast.dynamics.x, 8);
+      expect(front.dynamics.z).toBeCloseTo(coast.dynamics.z, 8);
       expect(rear.dynamics.frontBrakeForce).toBe(0);
       expect(rear.dynamics.rearBrakeForce).toBeGreaterThan(300);
       expect(rear.dynamics.speed).toBeLessThan(coast.dynamics.speed);
@@ -198,8 +201,10 @@ describe('motocross suspension contact traction', () => {
           supported * bike.dynamics.p.mu * bike.dynamics.frontGrip! + 1e-8,
         );
       }
-      // This is still the initial brake response, not settled fork dive.
-      expect(Math.abs(bike.fork - initialFork)).toBeLessThan(0.001);
+      // Travel is now the physical endpoint, without a 20 ms visual delay.
+      // The initial brake response still occurs within 1% of full fork
+      // travel, well before a settled dive; support must remain causal.
+      expect(Math.abs(bike.fork - initialFork)).toBeLessThan(MX_450.bike!.forkTravel * 0.01);
       return bike.dynamics.frontBrakeForce;
     };
     const back = sample(-1),

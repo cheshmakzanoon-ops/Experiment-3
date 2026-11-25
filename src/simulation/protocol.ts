@@ -70,6 +70,36 @@ export const MX_PUSH = {
   VZ: WHEEL_CONTACT_BASE + 15,
   PHASE: WHEEL_CONTACT_BASE + 16,
 } as const;
+/** Optional fixed-tick rider tangents in the zero-mask MX contact tail.
+ * Positions remain in O.STANDING/O.DAB/O.BODY. A zero marker retains the original
+ * linear pose of older recordings; rates are normalized pose units/second. */
+export const MX_POSTURE = {
+  RECORDED: WHEEL_CONTACT_BASE + 17,
+  STANDING_RATE: WHEEL_CONTACT_BASE + 18,
+  DAB_RATE: WHEEL_CONTACT_BASE + 19,
+  BODY_RATE: WHEEL_CONTACT_BASE + 20,
+} as const;
+/** Optional accepted-shift trajectory in the last twelve zero-mask MX slots.
+ * The six initial conditions reproduce the controller's bounded handoffs and
+ * coordinated boot route. AGE is relative to acceptance; the split adapter
+ * clock keeps an event inside a snapshot interval precise in long sessions,
+ * independently of the Float32 race clock. EVENT is a wrapping 24-bit counter
+ * advanced by acceptance and reset. Unmarked recordings retain the three
+ * original MX_FOOT positions. No stride or protocol-version change. */
+export const MX_FOOT_TRAJECTORY = {
+  RECORDED: WHEEL_CONTACT_BASE + 21,
+  EVENT: WHEEL_CONTACT_BASE + 22,
+  AGE: WHEEL_CONTACT_BASE + 23,
+  DIRECTION: WHEEL_CONTACT_BASE + 24,
+  ANGLE: WHEEL_CONTACT_BASE + 25,
+  COVER: WHEEL_CONTACT_BASE + 26,
+  CLEAR: WHEEL_CONTACT_BASE + 27,
+  ANGLE_RATE: WHEEL_CONTACT_BASE + 28,
+  COVER_RATE: WHEEL_CONTACT_BASE + 29,
+  CLEAR_RATE: WHEEL_CONTACT_BASE + 30,
+  CLOCK_HI: WHEEL_CONTACT_BASE + 31,
+  CLOCK_LO: WHEEL_CONTACT_BASE + 32,
+} as const;
 export function hasMxFootControls(frame: Float32Array, car: number) {
   return frame[car + WHEEL_CONTACT_BASE] === 0 &&
     vehicleAt(frame[car + RACE_BASE + R.VEHICLE]).tireFamily === 'knobby' &&
@@ -91,6 +121,9 @@ export const MX_MOTION = {
 } as const;
 export function hasMxMachineMotion(frame: Float32Array, car: number) {
   return frame[car + MX_MOTION.VALID] === 1 && hasMxFootControls(frame, car);
+}
+export function hasMxRiderPosture(frame: Float32Array, car: number) {
+  return frame[car + MX_POSTURE.RECORDED] === 1 && hasMxFootControls(frame, car);
 }
 export const BC = {
   X: 0,

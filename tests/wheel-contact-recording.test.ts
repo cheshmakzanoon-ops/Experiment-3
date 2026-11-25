@@ -11,11 +11,14 @@ import {
   F,
   H,
   HEADER,
+  MX_FOOT_TRAJECTORY,
   PROTOCOL_VERSION,
   WHEEL_CONTACT_BASE,
   WHEEL_CONTACT_SIZE,
   WHEEL_CONTACT_STRIDE,
   carBase,
+  hasMxFootControls,
+  hasRoadBikeContact,
   snapshotIncompatibility,
   wheelContactBase,
 } from '../src/simulation/protocol.ts';
@@ -186,12 +189,40 @@ describe('measured wheel contact recording', () => {
         vehicles: [vehicle],
         circuit,
       });
-      const frame = sim.makeFrame();
-      expect(
-        Array.from(
-          frame.subarray(car + WHEEL_CONTACT_BASE, car + WHEEL_CONTACT_BASE + WHEEL_CONTACT_SIZE),
-        ),
-      ).toEqual(Array(WHEEL_CONTACT_SIZE).fill(0));
+      const expected = Array<number>(WHEEL_CONTACT_SIZE).fill(0);
+      if (vehicle === 'mx450') {
+        // Placement records the neutral trajectory and its reset identity.
+        // These optional MX fields do not activate any car-contact bits.
+        expected[MX_FOOT_TRAJECTORY.RECORDED - WHEEL_CONTACT_BASE] = 1;
+        expected[MX_FOOT_TRAJECTORY.EVENT - WHEEL_CONTACT_BASE] = 1;
+      }
+      for (const loadedInheritedState of [false, true]) {
+        if (loadedInheritedState) measuredContact(sim.cars[0]);
+        const frame = sim.makeFrame();
+        if (loadedInheritedState) {
+          // Even loaded inherited car hubs and a stale output buffer must
+          // not acquire a measurement tag or leak into the idle MX seed.
+          frame.fill(NaN, car + WHEEL_CONTACT_BASE, car + WHEEL_CONTACT_BASE + WHEEL_CONTACT_SIZE);
+          writeWheelContact(frame, car, sim.cars[0]);
+        }
+        expect(
+          Array.from(
+            frame.subarray(car + WHEEL_CONTACT_BASE, car + WHEEL_CONTACT_BASE + WHEEL_CONTACT_SIZE),
+          ),
+        ).toEqual(expected);
+        expect(frame[car + WHEEL_CONTACT_BASE]).toBe(0);
+        expect(hasMxFootControls(frame, car)).toBe(vehicle === 'mx450');
+        expect(hasRoadBikeContact(frame, car)).toBe(false);
+        expect(snapshotIncompatibility(frame, PROTOCOL_VERSION)).toBeNull();
+        for (let wheel = 0; wheel < 4; wheel++) {
+          const contact = wheelContactPose();
+          contact.valid = true;
+          contact.longitudinal = 1;
+          expect(sampleWheelContact(frame, frame, car, wheel, 1, contact)).toEqual(
+            wheelContactPose(),
+          );
+        }
+      }
     },
   );
 

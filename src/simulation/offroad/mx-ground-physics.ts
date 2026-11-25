@@ -277,15 +277,24 @@ export function stepMotocrossGround(
       0,
       rearOmega + (drive - rBrake - rear.fx * p.rearRadius) * h / p.rearInertia,
     );
-    const ax = netForward / p.mass - p.drag / p.mass - p.slope + yawRate * lateralSpeed;
-    const ay = slipNetSide / p.mass - yawRate * speed;
+    const ax = netForward / p.mass - p.drag / p.mass - p.slope;
+    const ay = slipNetSide / p.mass;
     const yawAcceleration = (p.frontArm * slipFSide - p.rearArm * slipRSide) / iz - 0.18 * yawRate;
     const camberYawRate = hasLean ? camberNetSide / (p.mass * Math.max(2, speed)) : 0;
     endLateralAcceleration = (slipNetSide + camberNetSide) / p.mass;
-    speed = Math.max(0, speed + ax * h);
-    lateralSpeed += ay * h;
+    const forward = Math.max(0, speed + ax * h);
+    const across = lateralSpeed + ay * h;
     yawRate = clamp(yawRate + yawAcceleration * h, -5, 5);
-    heading += (yawRate + camberYawRate) * h;
+    // Body-frame Coriolis terms only change coordinates. An explicit Euler
+    // update of (+yaw*side, -yaw*forward) adds kinetic energy every substep,
+    // even with both tyres unloaded. Apply the same exact rotation used by
+    // heading so a freely yawing chassis cannot bend its world momentum.
+    // Camber steering remains separate: its supported rolling path really
+    // turns the velocity, rather than merely re-expressing its coordinates.
+    const turn = yawRate * h, cosine = Math.cos(turn), sine = Math.sin(turn);
+    speed = Math.max(0, forward * cosine + across * sine);
+    lateralSpeed = across * cosine - forward * sine;
+    heading += turn + camberYawRate * h;
     dx += (Math.sin(heading) * speed + Math.cos(heading) * lateralSpeed) * h;
     dz += (Math.cos(heading) * speed - Math.sin(heading) * lateralSpeed) * h;
   }

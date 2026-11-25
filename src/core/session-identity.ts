@@ -95,8 +95,10 @@ import {
  * v38: motocross tyres distribute soil pressure across their moving footprints.
  * Riders respond to occupied landings and walking caution traffic.
  * v39: motocross boot support applies a finite roll moment. Riders account
- * for uphill queue starts and recent falls on the approach to a triple. */
-export const SIMULATION_VERSION = 39;
+ * for uphill queue starts and recent falls on the approach to a triple.
+ * v40: motocross coupled suspension stops, passive yaw-frame integration,
+ * continuous automatic rider posture and synchronized suspension output. */
+export const SIMULATION_VERSION = 40;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

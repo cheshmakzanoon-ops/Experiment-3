@@ -16,7 +16,7 @@ import {
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import { sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
 import { RoadBikeContactPose } from './road-bike-pose.ts';
-import { writeMxMachinePose } from './offroad/mx-machine-pose.ts';
+import { sanitizeMxMachinePose, writeMxMachinePose } from './offroad/mx-machine-pose.ts';
 import { Quaternion, Vector3 } from 'three';
 import {
   sampleBikeField,
@@ -109,7 +109,10 @@ export class PresentedFrame {
     if (this.value.length !== b.length) this.value = new Float32Array(b.length);
     const out = this.value;
     out.set(alpha < 1 ? a : b);
-    if (alpha === 0 || alpha === 1) return out;
+    if (alpha === 0 || alpha === 1) {
+      for (let id = 0; id < cars; id++) sanitizeMxMachinePose(out, carBase(id));
+      return out;
+    }
     this.blend(a, b, H.TIME, alpha);
     for (const field of SMOOTH_WEATHER) this.blend(a, b, field, alpha);
     for (let id = 0; id < cars; id++) {
@@ -124,7 +127,10 @@ export class PresentedFrame {
         this.velocity,
         this.angularVelocity,
       );
-      if (t === 0) continue;
+      if (t === 0) {
+        sanitizeMxMachinePose(out, o);
+        continue;
+      }
       // An interpolated pose carries an unwrapped display phase, not another
       // measured winding sample. Do not let it masquerade as raw solver data.
       if (t < 1) out[o + WHEEL_MOTION_BASE + M.VALID] = 0;

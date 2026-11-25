@@ -84,10 +84,19 @@ describe('motocross collision and sprung vertical velocity', () => {
       bike.dynamics.leanRate = side * rollRate;
       bike.input.steer = side * 0.9;
       bike.step(dt, track);
-      bike.dab = planted ? side * 0.49 : 0;
-      const lean = bike.dynamics.lean;
-      bike.step(dt, track);
-      return { bike, rollTravel: Math.abs(bike.dynamics.lean - lean) };
+      // Seed the authoritative finite-response foot state. Starting from
+      // rest at .49 takes two ticks to cross .5; both riders advance the
+      // same interval and every individual roll increment stays bounded.
+      const posture = bike.postureMotion!;
+      posture.reset(bike.standing, planted ? side * 0.49 : 0, posture.automaticBody);
+      bike.dab = posture.dab;
+      let rollTravel = 0;
+      for (let i = 0; i < 2; i++) {
+        const lean = bike.dynamics.lean;
+        bike.step(dt, track);
+        rollTravel = Math.max(rollTravel, Math.abs(bike.dynamics.lean - lean));
+      }
+      return { bike, rollTravel };
     };
     const free = approach(false), foot = approach(true);
     expect(side * foot.bike.dab).toBeGreaterThan(0.5);

@@ -1,5 +1,8 @@
 import { clamp } from '../../core/math.ts';
 
+/** Preserve the established manual authority outside a small neutral join. */
+const POSE_BLEND_RANGE = 0.15;
+
 /** Independent fore/aft rider stroke. The critically damped response has
  * finite travel (-1 back .. +1 forward), an analytic step and a bounded rate
  * even when the control reverses every tick. At omega=6 its worst full-range
@@ -34,9 +37,37 @@ export class RiderWeight {
     this.displacement = this.position - previous;
   }
   /** A full throw owns the body pose; neutral retains the calibrated rider
-   * posture. Intermediate input blends smoothly without exceeding its range. */
+   * posture. A local Hermite join gives both sides the same neutral slope
+   * (1 - automatic²), avoiding a rate jump when a moving stroke crosses zero.
+   * Outside the join the established manual authority is unchanged. */
   pose(automatic: number) {
     if (this.position === 0) return automatic;
-    return automatic + this.position * (1 - Math.sign(this.position) * automatic);
+    const magnitude = Math.abs(this.position),
+      share = 1 - Math.sign(this.position) * automatic,
+      linear = automatic + this.position * share,
+      u = magnitude / POSE_BLEND_RANGE;
+    if (u >= 1) return linear;
+    const remaining = 1 - u;
+    return linear + automatic * share * magnitude * remaining * remaining;
+  }
+  /** Exact pose tangent, including movement of the automatic posture. This
+   * only observes the stroke: its finite physical displacement and momentum
+   * remain owned by step(), independently of the presentation blend. */
+  poseRate(automatic: number, automaticRate = 0) {
+    if (this.position === 0)
+      return automaticRate + (1 - automatic * automatic) * this.velocity;
+    const magnitude = Math.abs(this.position),
+      sideAutomatic = Math.sign(this.position) * automatic,
+      u = magnitude / POSE_BLEND_RANGE;
+    let manualSlope = 1 - sideAutomatic,
+      automaticSlope = 1 - magnitude;
+    if (u < 1) {
+      const remaining = 1 - u;
+      // (1-u)(1-3u) lies in [-1/3, 1], keeping the manual slope
+      // nonnegative throughout the join for every automatic pose in [-1,1].
+      manualSlope *= 1 + sideAutomatic * remaining * (1 - 3 * u);
+      automaticSlope += (1 - 2 * sideAutomatic) * magnitude * remaining * remaining;
+    }
+    return manualSlope * this.velocity + automaticSlope * automaticRate;
   }
 }

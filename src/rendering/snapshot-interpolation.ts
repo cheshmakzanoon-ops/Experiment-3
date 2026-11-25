@@ -1,6 +1,7 @@
 import { Quaternion, Vector3 } from 'three';
 import { slerpDerivative } from './quaternion-derivative.ts';
 import { sampleMxJointField } from './offroad/mx-machine-pose.ts';
+import { sampleMxPostureField } from './offroad/mx-rider-pose.ts';
 import {
   B,
   BIKE_BASE,
@@ -17,6 +18,7 @@ import {
   WHEEL_STRIDE,
   WHEEL_CONTACT_BASE,
   ROAD_BIKE_CONTACT,
+  hasMxRiderPosture,
 } from '../simulation/protocol.ts';
 
 const targetQuaternion = new Quaternion();
@@ -129,7 +131,20 @@ export function sampleOffroadField(
     field >= O.JOKERS
   )
     return snapshotSource(a, b, alpha)[p + field];
-  if (field === O.STANDING) return sampleValue(a, b, p + field, riderAlpha(a, b, car, alpha));
+  if (field === O.STANDING || field === O.DAB || field === O.BODY) {
+    // A recorded rider cannot sweep through a placement, crash or remount.
+    // Applying this only to the optional contract preserves legacy poses and
+    // every other vehicle's existing interpolation exactly.
+    if (hasMxRiderPosture(a, car) || hasMxRiderPosture(b, car)) {
+      const t = riderAlpha(a, b, car, presentationAlpha(a, b, car, alpha));
+      if (t <= 0 || t >= 1) return sampleValue(a, b, p + field, t);
+      const posture = sampleMxPostureField(a, b, car, field, t);
+      if (posture !== undefined) return posture;
+      return sampleValue(a, b, p + field, t);
+    }
+    return sampleValue(a, b, p + field,
+      field === O.STANDING ? riderAlpha(a, b, car, alpha) : alpha);
+  }
   const t =
     field === O.AIR_TIME &&
     alpha < 1 &&

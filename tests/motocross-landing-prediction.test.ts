@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { G } from '../src/core/math.ts';
 import { controls, DEFAULT_SETUP, type Assist } from '../src/simulation/config.ts';
 import { MX_250, MX_450, SM_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rideLine, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { jumpHoldSpeed } from '../src/simulation/offroad/jump-target.ts';
+import { factoryBikeSag } from '../src/simulation/offroad/suspension-geometry.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
+import { surfaceSample, type Track } from '../src/simulation/track.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 
 const DT = 1 / 240;
@@ -64,7 +67,11 @@ function land(
     bike = run.bike,
     samples: { at: number; remaining: number; slope: number }[] = [];
   let incomingVy = 0,
-    incomingPlanar = 0,
+    incomingSpeed = 0,
+    incomingClock = 0,
+    incomingX = 0,
+    incomingZ = 0,
+    incomingRate = 0,
     incomingPitch = 0,
     incomingSide = 0,
     incomingHeading = 0;
@@ -75,9 +82,11 @@ function land(
     incomingSide = bike.slide;
     incomingHeading = bike.dynamics.heading;
     incomingPitch = bike.pitch;
-    incomingPlanar =
-      bike.dynamics.speed -
-      ((bike.dynamics.p.drag * bike.dynamics.speed ** 2) / bike.dynamics.mass) * dt;
+    incomingSpeed = bike.dynamics.speed;
+    incomingClock = bike.clock;
+    incomingX = bike.dynamics.x;
+    incomingZ = bike.dynamics.z;
+    incomingRate = bike.pitchRate;
     bike.step(dt, run.track);
   }
   expect(bike.airborne).toBe(false);
@@ -86,11 +95,31 @@ function land(
     ...run,
     samples,
     incomingVy,
-    incomingPlanar,
+    incomingSpeed,
+    incomingClock,
+    incomingX,
+    incomingZ,
+    incomingRate,
     incomingPitch,
     incomingSide,
     incomingHeading,
   };
+}
+
+/** Observe the real front wheel approaching its free-position contact. */
+function frontApproach(bike: DirtBikeVehicle, track: Track) {
+  const spec = bike.definition.bike!, sag = factoryBikeSag(bike.definition),
+    arm = spec.cgToFront, height = spec.cgHeight + sag.fork,
+    heading = bike.heading, h = heading + bike.airYaw,
+    free = bike.cgY + arm * Math.sin(bike.pitch) - height * Math.cos(bike.pitch),
+    patch = surfaceSample();
+  track.sample(bike.dynamics.x + Math.sin(h) * arm, bike.dynamics.z + Math.cos(h) * arm, patch, free);
+  const n = patch.normal,
+    vx = Math.sin(heading) * bike.dynamics.speed + Math.cos(heading) * bike.slide + Math.cos(h) * arm * bike.airYawRate,
+    vz = Math.cos(heading) * bike.dynamics.speed - Math.sin(heading) * bike.slide - Math.sin(h) * arm * bike.airYawRate;
+  return { gap: free - patch.height,
+    closing: -(n.x * vx + n.z * vz) / n.y - bike.vy -
+      (arm * Math.cos(bike.pitch) + height * Math.sin(bike.pitch)) * bike.pitchRate };
 }
 
 describe('motocross first-tyre landing prediction', () => {
@@ -162,25 +191,41 @@ describe('motocross first-tyre landing prediction', () => {
     '$id records incoming impact before a suspension impulse can soften the touchdown verdict',
     (definition) => {
       for (const dt of [1 / 120, 1 / 240, 1 / 480]) {
-        const { bike, incomingVy, incomingPlanar, incomingPitch, incomingSide, incomingHeading } =
+        const { bike, track, incomingVy, incomingSpeed, incomingClock, incomingX, incomingZ,
+            incomingPitch, incomingRate, incomingSide, incomingHeading } =
             land(definition, 'raw', 0, dt),
           landing = bike.lastLanding!,
           cos = Math.cos(incomingHeading),
-          sin = Math.sin(incomingHeading);
+          sin = Math.sin(incomingHeading),
+          free = landing.time - incomingClock,
+          k = bike.dynamics.p.drag / bike.dynamics.mass,
+          incomingPlanar = incomingSpeed / (1 + k * incomingSpeed * free),
+          eventVy = incomingVy - G * free,
+          travel = Math.log1p(k * incomingSpeed * free) / k,
+          x = incomingX + sin * travel + cos * incomingSide * free,
+          z = incomingZ + cos * travel - sin * incomingSide * free,
+          observed = bike as unknown as { airTorque: number; automaticBody: number },
+          eventPitch = incomingPitch + (incomingRate + observed.airTorque / bike.air.pitchInertia * free) *
+            Math.exp(-(0.3 + 0.5 * bike.standing) * free) * free;
+        expect(free).toBeGreaterThan(0);
+        expect(free).toBeLessThan(dt);
         const touching = [0, 2].filter(
-          (i) => (i === 0 ? bike.compressionFront : bike.compressionRear) > 0,
+          (i) => (i === 0 ? bike.forceFront : bike.forceRear) > 0,
         );
-        const cross =
-          touching.reduce((sum, i) => {
-            const n = bike.contacts[i].normal;
-            return sum - (n.x * cos - n.z * sin) / n.y;
-          }, 0) / touching.length;
-        const grade = Math.tan(landing.slope);
+        const patches = touching.map(i => {
+          const arm = i === 0 ? definition.bike!.cgToFront : -definition.bike!.cgToRear,
+            patch = surfaceSample();
+          track.sample(x + sin * arm, z + cos * arm, patch, bike.cgY);
+          return patch.normal;
+        });
+        const cross = patches.reduce((sum, n) => sum - (n.x * cos - n.z * sin) / n.y, 0) / patches.length;
+        const grade = patches.reduce((sum, n) => sum - (n.x * sin + n.z * cos) / n.y, 0) / patches.length;
         const expected =
-          (grade * incomingPlanar + cross * incomingSide - incomingVy) /
+          (grade * incomingPlanar + cross * incomingSide - eventVy) /
           Math.hypot(1, grade, cross);
+        expect(landing.slope).toBeCloseTo(Math.atan(grade), 8);
         expect(landing.normalSpeed).toBeCloseTo(expected, 8);
-        expect(landing.pitchError + landing.slope).toBeCloseTo(incomingPitch, 8);
+        expect(landing.pitchError + landing.slope).toBeCloseTo(eventPitch + observed.automaticBody * 0.06, 8);
         expect(landing.normalSpeed).toBeGreaterThan(4);
       }
     },
@@ -191,11 +236,14 @@ describe('motocross first-tyre landing prediction', () => {
       name: 'SKY TRIPLE',
       extraSpeed: 6,
     });
-    // A real excessive-speed takeoff followed by free flight. The larger
-    // supported contact timestep exercises an initial stroke that reaches
-    // the bump stop immediately, instead of bottoming over later samples.
-    // No chassis state, terrain sample, load or force is supplied by a test.
-    while (bike.airborne && bike.airTime < 4) bike.step(bike.airTime > 1 ? 1 / 30 : DT, track);
+    // Phase the unchanged 30 Hz step immediately before the observed front
+    // crossing so its supported remainder can physically reach full travel.
+    // A step whose event falls near its end cannot truthfully report a stop.
+    while (bike.airborne && bike.airTime < 4) {
+      const front = frontApproach(bike, track),
+        imminent = front.gap > 0 && front.closing > 0 && front.gap < front.closing * DT;
+      bike.step(imminent ? 1 / 30 : DT, track);
+    }
     const landing = bike.lastLanding!;
     expect(landing.airTime).toBeGreaterThan(2);
     expect(landing.normalSpeed).toBeGreaterThan(10);

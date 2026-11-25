@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { clamp } from '../src/core/math.ts';
 import { controls, DEFAULT_SETUP, type Assist } from '../src/simulation/config.ts';
 import { jumpHoldSpeed } from '../src/simulation/offroad/ai.ts';
@@ -66,26 +66,47 @@ function fly(run: ReturnType<typeof launch>, seconds: number) {
  * or recovered whip; this never writes attitude, speed or contact state. */
 function landWhip(assist: Assist, releaseAt: number, steer = 1, definition = MX_450) {
   const run = launch(assist, false, definition),
-    bike = run.bike;
+    bike = run.bike,
+    observed = bike as unknown as {
+      vertical(dt: number, boundary?: { front: boolean; rear: boolean; time: number }): void;
+    },
+    vertical = observed.vertical.bind(bike);
+  const touchdowns: { time: number; heading: number; yaw: number }[] = [];
+  // Observe the actual first-contact chassis basis before the landing record
+  // is written. The original solver receives the same call and state.
+  const spy = vi.spyOn(observed, 'vertical').mockImplementation((step, boundary) => {
+    if (boundary) touchdowns.push({
+      time: boundary.time,
+      heading: bike.dynamics.heading + bike.airYaw,
+      yaw: bike.airYaw,
+    });
+    return vertical(step, boundary);
+  });
   let peakYaw = 0,
     incomingX = 0,
     incomingZ = 0;
-  while (bike.airborne && bike.airTime < 4) {
-    const wanted =
-      (bike.landingTarget + 0.1 - bike.pitch - bike.riderBody * 0.06) /
-        Math.max(0.12, bike.landingIn) -
-      bike.pitchRate;
-    bike.input.throttle = clamp(wanted * 1.2, 0, 1);
-    bike.input.clutch = clamp(-wanted * 1.2, 0, 1);
-    bike.input.steer = bike.airTime < releaseAt ? steer : 0;
-    incomingX = bike.body.velocity.x;
-    incomingZ = bike.body.velocity.z;
-    bike.step(DT, run.track);
-    peakYaw = Math.max(peakYaw, Math.abs(bike.airYaw));
+  try {
+    while (bike.airborne && bike.airTime < 4) {
+      const wanted =
+        (bike.landingTarget + 0.1 - bike.pitch - bike.riderBody * 0.06) /
+          Math.max(0.12, bike.landingIn) -
+        bike.pitchRate;
+      bike.input.throttle = clamp(wanted * 1.2, 0, 1);
+      bike.input.clutch = clamp(-wanted * 1.2, 0, 1);
+      bike.input.steer = bike.airTime < releaseAt ? steer : 0;
+      incomingX = bike.body.velocity.x;
+      incomingZ = bike.body.velocity.z;
+      bike.step(DT, run.track);
+      peakYaw = Math.max(peakYaw, Math.abs(bike.airYaw));
+    }
+  } finally {
+    spy.mockRestore();
   }
   expect(bike.airborne).toBe(false);
   expect(bike.lastLanding!.airTime).toBeGreaterThan(0.8);
-  return { ...run, peakYaw, incomingX, incomingZ };
+  expect(touchdowns).toHaveLength(1);
+  expect(touchdowns[0].time).toBe(bike.lastLanding!.time);
+  return { ...run, peakYaw, incomingX, incomingZ, touchdown: touchdowns[0] };
 }
 
 describe('motocross player air control', () => {
@@ -333,7 +354,13 @@ describe('motocross whip and tyre alignment', () => {
         lengths = Math.hypot(run.incomingX, run.incomingZ) * Math.hypot(velocity.x, velocity.z);
       expect(Math.abs(cross / lengths)).toBeLessThan(1e-6);
       const actualSide = velocity.x * Math.cos(bike.heading) - velocity.z * Math.sin(bike.heading);
-      expect(actualSide).toBeCloseTo(contact.lateralSpeed, 8);
+      expect(actualSide).toBeCloseTo(bike.slide, 8);
+      // The landing record belongs to first contact; a held whip continues
+      // rotating the tyre basis during the remainder of the fixed tick.
+      const contactHeading = run.touchdown.heading,
+        contactSide = velocity.x * Math.cos(contactHeading) - velocity.z * Math.sin(contactHeading);
+      expect(contact.yawError).toBeCloseTo(run.touchdown.yaw, 8);
+      expect(contactSide).toBeCloseTo(contact.lateralSpeed, 8);
       expect(bike.dynamics.speed).toBeLessThan(Math.hypot(velocity.x, velocity.z) * 0.86);
       // The following real contact step judges the crossed landing and starts
       // the same visible recovery used by the rest of the motorcycle solver.

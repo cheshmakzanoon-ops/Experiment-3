@@ -4,7 +4,9 @@ import {
   C,
   ROAD_BIKE_CONTACT,
   MX_FOOT,
+  MX_FOOT_TRAJECTORY,
   MX_MOTION,
+  MX_POSTURE,
   MX_PUSH,
   WHEEL_CONTACT_BASE,
   WHEEL_CONTACT_SIZE,
@@ -33,6 +35,29 @@ export function writeWheelContact(out: Float32Array, car: number, vehicle: Vehic
         out[car + MX_FOOT.ANGLE] = stroke.angle;
         out[car + MX_FOOT.COVER] = stroke.cover;
         out[car + MX_FOOT.CLEAR] = stroke.clear;
+        const seed = stroke.seed, age = stroke.ageAt(vehicle.clock), clockHi = Math.fround(vehicle.clock);
+        if (Number.isFinite(clockHi) && Number.isFinite(Math.fround(age))) {
+          out[car + MX_FOOT_TRAJECTORY.RECORDED] = 1;
+          out[car + MX_FOOT_TRAJECTORY.EVENT] = seed.event;
+          out[car + MX_FOOT_TRAJECTORY.AGE] = age;
+          out[car + MX_FOOT_TRAJECTORY.DIRECTION] = seed.direction;
+          out[car + MX_FOOT_TRAJECTORY.ANGLE] = seed.angle;
+          out[car + MX_FOOT_TRAJECTORY.COVER] = seed.cover;
+          out[car + MX_FOOT_TRAJECTORY.CLEAR] = seed.clear;
+          out[car + MX_FOOT_TRAJECTORY.ANGLE_RATE] = seed.angleRate;
+          out[car + MX_FOOT_TRAJECTORY.COVER_RATE] = seed.coverRate;
+          out[car + MX_FOOT_TRAJECTORY.CLEAR_RATE] = seed.clearRate;
+          out[car + MX_FOOT_TRAJECTORY.CLOCK_HI] = clockHi;
+          out[car + MX_FOOT_TRAJECTORY.CLOCK_LO] = vehicle.clock - clockHi;
+        }
+        const posture = vehicle.postureMotion, bodyRate = vehicle.riderBodyRate;
+        if (posture && Number.isFinite(Math.fround(posture.standingRate)) &&
+            Number.isFinite(Math.fround(posture.dabRate)) && Number.isFinite(Math.fround(bodyRate))) {
+          out[car + MX_POSTURE.RECORDED] = 1;
+          out[car + MX_POSTURE.STANDING_RATE] = posture.standingRate;
+          out[car + MX_POSTURE.DAB_RATE] = posture.dabRate;
+          out[car + MX_POSTURE.BODY_RATE] = bodyRate;
+        }
         const motion = vehicle.machineMotion;
         if (motion?.valid) {
           out[car + MX_MOTION.VALID] = 1;

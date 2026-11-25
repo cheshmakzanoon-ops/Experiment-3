@@ -35,6 +35,21 @@ export const MOTOCROSS_CHASE = Object.freeze({
 type CameraTerrain = Pick<Track, 'at' | 'sample'>;
 type Position = { x: number; y: number; z: number };
 
+/** Exact first-order response to a measured target ramp. A change faster
+ * than the existing framing range can traverse in one lag is unresolved;
+ * retain the step response instead of inventing motion before that jump. */
+function followMeasuredTarget(
+  value: number, previous: number, target: number, dt: number, lag: number,
+  range: number, continuous = true,
+) {
+  if (dt === 0) return value;
+  const z = dt / lag, follow = -Math.expm1(-z), change = target - previous;
+  if (!continuous || Math.abs(change) > range * z)
+    return value + (target - value) * follow;
+  const ramp = z < 0.001 ? z * (0.5 + z * (-1 / 6 + z / 24)) : 1 - follow / z;
+  return value + (previous - value) * follow + change * ramp;
+}
+
 export interface MotocrossCameraFrame {
   anchor: Position;
   heading: number;
@@ -73,6 +88,8 @@ export class MotocrossChaseCamera {
   private freeEyeY = 0;
   private terrainLift = 0;
   private roll = 0;
+  private lastRollTarget = 0;
+  private lastMotion = 0;
   private gazeHeight = 0;
   private lastGazeTarget = 0;
   private landingOffset = 0;
@@ -131,6 +148,7 @@ export class MotocrossChaseCamera {
     const beforeEdge = takeoff ? h - clamp(frame.airTime, 0, h) :
       touchdown ? clamp(frame.airTime - this.flightTime, 0, h) : 0;
     const afterEdge = h - beforeEdge;
+    let headingSnapped = false;
     if (!this.initialized || h > 0) {
       if (movingInAir) this.flightHeading = Math.atan2(frame.velocityX!, frame.velocityZ!);
       if (!this.initialized) {
@@ -159,10 +177,27 @@ export class MotocrossChaseCamera {
         this.heading += angleDifference(this.lastHeadingTarget, this.heading) *
           -Math.expm1(-beforeEdge / MOTOCROSS_CHASE.headingLag);
       const error = angleDifference(targetHeading, this.heading);
-      this.heading = !this.initialized ||
-        (!Number.isFinite(this.flightHeading) && Math.abs(error) > MOTOCROSS_CHASE.headingSnap)
-        ? targetHeading
-        : this.heading + error * -Math.expm1(-afterEdge / MOTOCROSS_CHASE.headingLag);
+      if (!this.initialized ||
+        (!Number.isFinite(this.flightHeading) && Math.abs(error) > MOTOCROSS_CHASE.headingSnap)) {
+        this.heading = targetHeading;
+        headingSnapped = this.initialized;
+      } else if (afterEdge > 0) {
+        const z = afterEdge / MOTOCROSS_CHASE.headingLag;
+        const follow = -Math.expm1(-z);
+        const change = angleDifference(targetHeading, this.lastHeadingTarget);
+        // Integrate the measured heading ramp, unwrapped across +/-pi. An
+        // endpoint-only step response follows a continuous turn too closely
+        // at low refresh rates. A jump faster than the existing catch-up
+        // envelope is an unresolved turn/recovery: retain the step response
+        // instead of inventing a sweep before that discontinuity.
+        if (Math.abs(change) <= MOTOCROSS_CHASE.headingSnap * z) {
+          const ramp = z < 0.001 ? z * (0.5 - z / 6) : 1 - follow / z;
+          this.heading += angleDifference(this.lastHeadingTarget, this.heading) * follow +
+            change * ramp;
+        } else {
+          this.heading += error * follow;
+        }
+      }
       this.lastHeadingTarget = targetHeading;
     }
     const heaveLimit = MOTOCROSS_CHASE.maxHeaveOffset;
@@ -181,7 +216,10 @@ export class MotocrossChaseCamera {
       this.wasAirborne = frame.airborne;
       this.flightTime = frame.airborne ? frame.airTime : 0;
     } else if (h > 0) {
-      this.roll += (rollTarget - this.roll) * -Math.expm1(-h / 0.14);
+      this.roll = followMeasuredTarget(
+        this.roll, this.lastRollTarget, rollTarget, h, 0.14,
+        MOTOCROSS_CHASE.maximumRoll * motion, !headingSnapped && motion === this.lastMotion,
+      );
       const landedFlight = this.flightTime + beforeEdge;
       if (touchdown && landedFlight > 0.16) {
         const strength = clamp(
@@ -192,7 +230,10 @@ export class MotocrossChaseCamera {
         landingImpulse = -strength * motion * Math.min(1, landedFlight * 2);
       }
       this.wasAirborne = frame.airborne;
-      this.flightTime = frame.airborne ? Math.max(this.flightTime, frame.airTime) : 0;
+      // A touchdown and relaunch can occur between two airborne samples.
+      // The restarted recorded timer owns this new flight; retaining the
+      // preceding maximum would give a tiny hop the old flight's impact.
+      this.flightTime = frame.airborne ? frame.airTime : 0;
     }
     if (motion === 0) {
       this.roll = 0;
@@ -211,6 +252,12 @@ export class MotocrossChaseCamera {
         this.landingOffset += kick * afterEdge;
         this.landingVelocity += kick * (1 - omega * afterEdge);
       }
+    }
+    // A disabled motion setting clears its target too, even on a paused
+    // redraw. Other held redraws never advance measured target history.
+    if (!this.initialized || h > 0 || motion === 0) {
+      this.lastRollTarget = rollTarget;
+      this.lastMotion = motion;
     }
 
     const distance =
@@ -243,20 +290,28 @@ export class MotocrossChaseCamera {
     this.gaze.z -= sh * across;
     track.sample(this.gaze.x, this.gaze.z, this.probe, anchor.y - cgHeight);
     const groundAhead = this.probe.height,
-      groundRise = clamp(groundAhead + cgHeight - followY, -1.3, 2.3),
+      groundRiseLow = -1.3, groundRiseHigh = 2.3, groundRiseGain = 0.35,
+      landingAimLow = -5, landingAimHigh = 1.5,
+      airAimBlend = this.airBlend * 0.6,
+      groundRise = clamp(groundAhead + cgHeight - followY, groundRiseLow, groundRiseHigh),
       // Keep a modest downward view angle as look distance increases. A
       // fixed gaze height would lift the horizon and hide the next rut at
       // speed, while placing the helmet in the centre of the screen.
-      groundedAim = height - (distance + lookAhead) * 0.205 + groundRise * 0.35,
+      groundedAim = height - (distance + lookAhead) * 0.205 + groundRise * groundRiseGain,
       // In flight gaze descends toward the surface ahead, keeping the
       // downslope visible instead of following a nose-up chassis into the sky.
-      landingAim = clamp(groundAhead + 0.85 - followY, -5, 1.5),
-      wantedHeight = groundedAim * (1 - this.airBlend * 0.6) + landingAim * this.airBlend * 0.6;
+      landingAim = clamp(groundAhead + 0.85 - followY, landingAimLow, landingAimHigh),
+      wantedHeight = groundedAim * (1 - airAimBlend) + landingAim * airAimBlend,
+      gazeTargetRange = (groundRiseHigh - groundRiseLow) * groundRiseGain * (1 - airAimBlend) +
+        (landingAimHigh - landingAimLow) * airAimBlend;
     if (!this.initialized) this.gazeHeight = wantedHeight;
     else if (h > 0) {
       if (beforeEdge > 0)
         this.gazeHeight += (this.lastGazeTarget - this.gazeHeight) * -Math.expm1(-beforeEdge / 0.16);
-      this.gazeHeight += (wantedHeight - this.gazeHeight) * -Math.expm1(-afterEdge / 0.16);
+      this.gazeHeight = followMeasuredTarget(
+        this.gazeHeight, this.lastGazeTarget, wantedHeight, afterEdge, 0.16,
+        gazeTargetRange, !headingSnapped,
+      );
     }
     if (!this.initialized || h > 0) this.lastGazeTarget = wantedHeight;
     this.gaze.y = followY + this.gazeHeight + this.landingOffset * 0.25;

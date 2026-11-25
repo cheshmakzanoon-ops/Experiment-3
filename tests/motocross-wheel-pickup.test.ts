@@ -240,17 +240,19 @@ describe('motocross wheel pickup on actual surveyed landings', () => {
           // Independently check the free centre of mass, including while
           // the front rotor is stopped. Neither the contact forecast nor
           // wheel pickup may apply a tyre force before terrain contact.
-          const coast = speed - ((bike.dynamics.p.drag * speed ** 2) / bike.dynamics.mass) * DT;
+          const drag = bike.dynamics.p.drag / bike.dynamics.mass,
+            coast = speed / (1 + drag * speed * DT),
+            distance = Math.log1p(drag * speed * DT) / drag;
           expect(bike.dynamics.speed).toBeCloseTo(coast, 12);
           expect(bike.dynamics.x).toBeCloseTo(
-            x + (Math.sin(heading) * coast + Math.cos(heading) * slide) * DT,
+            x + Math.sin(heading) * distance + Math.cos(heading) * slide * DT,
             10,
           );
           expect(bike.dynamics.z).toBeCloseTo(
-            z + (Math.cos(heading) * coast - Math.sin(heading) * slide) * DT,
+            z + Math.cos(heading) * distance - Math.sin(heading) * slide * DT,
             10,
           );
-          expect(bike.cgY).toBeCloseTo(y + (vy - G * DT) * DT, 10);
+          expect(bike.cgY).toBeCloseTo(y + vy * DT - 0.5 * G * DT * DT, 10);
           stoppedInFlight += Number(bike.frontSpin === 0);
         }
       }

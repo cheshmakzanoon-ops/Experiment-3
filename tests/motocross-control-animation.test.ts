@@ -929,7 +929,7 @@ it.each(['mx250', 'mx450'])('%s records only accepted gear strokes and replays t
     expect(lift.left.y - rest.left.y).toBeGreaterThan(.02);
     expect(at(clearance).left.x - rest.left.x).toBeGreaterThan(.055);
     expect(lift.right.distanceTo(press.right)).toBeLessThan(1e-8);
-    expect(at(a,b,.5).angle).toBeCloseTo(-.01);
+    expect(at(a,b,.5).angle).toBeCloseTo(bike.gearStroke.sample((up[H.TIME] + down[H.TIME]) / 2).angle, 6);
     expect(at(a)).toEqual(lift);
     expect(at(settled)).toEqual(rest);
     bike.shiftClock = 0;

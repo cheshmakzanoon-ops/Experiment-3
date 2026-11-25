@@ -95,7 +95,6 @@ import {
   OFFROAD_BASE,
   MX_FOOT,
   MX_MOTION,
-  hasMxFootControls,
   RACE_BASE,
   W,
   WHEEL_BASE,
@@ -108,6 +107,7 @@ import type { Track } from '../simulation/track.ts';
 import { offroadCourse } from '../simulation/offroad/venues.ts';
 import { MotocrossRiderSight } from './offroad/motocross-rider-sight.ts';
 import { sampleMxFender } from './offroad/mx-machine-pose.ts';
+import { sampleMxFootField } from './offroad/mx-foot-pose.ts';
 import { MotorcycleRoadPreview, type GpRiderSight } from './motorcycle-camera.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
@@ -2899,10 +2899,9 @@ export class BikeShells {
         b[offroad + O.AIRBORNE] > 0.5 ? b[offroad + O.AIR_TIME] : 0,
         t,
       );
-      const left = hasMxFootControls(a, o), right = hasMxFootControls(b, o);
-      v.shiftAngle = T.MathUtils.lerp(left ? a[o + MX_FOOT.ANGLE] : 0, right ? b[o + MX_FOOT.ANGLE] : 0, t);
-      v.shiftCover = T.MathUtils.lerp(left ? a[o + MX_FOOT.COVER] : 0, right ? b[o + MX_FOOT.COVER] : 0, t);
-      v.shiftClear = T.MathUtils.lerp(left ? a[o + MX_FOOT.CLEAR] : 0, right ? b[o + MX_FOOT.CLEAR] : 0, t);
+      v.shiftAngle = sampleMxFootField(a, b, o, MX_FOOT.ANGLE, t);
+      v.shiftCover = sampleMxFootField(a, b, o, MX_FOOT.COVER, t);
+      v.shiftClear = sampleMxFootField(a, b, o, MX_FOOT.CLEAR, t);
       v.dirtSupportG = sampleValue(a, b, o + F.G_VERT, t);
       v.mxFrontFlex = sampleMxFender(a, b, o, true, t);
       v.mxRearFlex = sampleMxFender(a, b, o, false, t);
