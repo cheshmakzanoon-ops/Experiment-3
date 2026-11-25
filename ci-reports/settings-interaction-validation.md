@@ -1,9 +1,9 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45557220362
-- commit: `6c96144dad` · Prevent cross-mode startup races and smooth remote presentation clocks
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45568546593
+- commit: `955bc20f98` · Improve engine resource ownership, frame pacing, input lifetimes and record correctness
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T05:58:24Z · updated: 2026-11-25T06:19:11Z
+- started: 2026-11-25T07:29:33Z · updated: 2026-11-25T07:52:05Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
