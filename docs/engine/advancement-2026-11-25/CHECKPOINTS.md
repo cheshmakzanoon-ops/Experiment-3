@@ -182,3 +182,52 @@ per helper batch, or 0.333 microseconds more for the overlapping complete
 recording-upload scope, than the original append-only helper. The two scopes
 must not be added. W08E preserves all 52 rows and the unfavorable comparisons;
 this is no claim of universal speedup, native GPU duration, or game-wide FPS.
+
+## Corrected source — full focused acceptance
+
+`774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86` contains the explicit fixture
+cast repair, four test-only formatting corrections, the completed revised-range
+measurement and acceptance evidence. Its production `src` subtree is identical
+to `26efaeef`: `2d1bcc0f9b29f06761b8eb5c650bbbb53dd159a3`.
+
+The [exact-source workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45592833399)
+**passed 914 tests in 70 files, full TypeScript checking, the product/full Vite
+build and all 47 native browser/replay cases**. There were zero native failures,
+flaky results, skipped cases or retries. Source tree
+`5f466294eca0b188db58375a1caf4cd76088527b`, build fingerprint, lock digest,
+successful job steps, complete sanitized logs, the case index and all claimed
+native attachments are retained in
+[`evidence/checkpoint-774e62f/`](evidence/checkpoint-774e62f/result.json).
+Artifact `15012585753` is 1,300,824 bytes; the original ZIP SHA-256 is
+`3ae96693bf5bc12acdbd449592ef36b94bd1d05ffa9a1ce492d24e401cb2598a`.
+
+The strict shared-gate `vec4` witness matches both complete red/green images.
+The independent MeshBasic and raw `vec3` diagnostic controls still each differ
+in 64 of 256 bytes, through all three readback methods, and retain two explicit
+limitation annotations. This passing workflow does not certify those material
+paths, physical graphics/audio/controller hardware, whole-game BFCache
+eligibility, game-wide frame rate, or every broader repository workflow.
+
+Two native retained-page restores preserve the same paused document/worker;
+terminal reload releases the tracked owners once. Thirteen native audio renders
+cover 1,019,520 sample values under the declared PCM contract, and the real gain
+perturbation is rejected. The [native audit](w09c-native-evidence-audit.md)
+states the exact contracts and remaining boundaries. The earlier failed
+checkpoints above remain preserved without reclassification.
+
+## Final documentation and independent release review
+
+All **60 distinct assignments are complete in ten waves of six**. The final
+architecture, performance, reproduction, resource and evidence guides are
+indexed in [README](README.md) and [EVIDENCE_INDEX](EVIDENCE_INDEX.md).
+[RELEASE_REVIEW](RELEASE_REVIEW.md) records the sixtieth assignment's independent
+scope, source, protected-content and acceptance checks; it found no new blocking
+implementation defect or scope violation.
+
+The final documentation/evidence integration preserves accepted executable
+source `774e62fa`. Intervening report commit
+`ac4367bdf9a98a34a1123d7a325df41587a690e9` was inspected and retained; its
+25 changed paths are CI reports only. The final publication's Git parent and
+tree identify the delivered documentation separately from the exact source of
+the successful runtime workflow. No new runtime execution is claimed for this
+documentation integration.

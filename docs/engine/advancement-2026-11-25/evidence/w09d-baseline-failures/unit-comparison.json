@@ -1,0 +1,420 @@
+{
+  "originalBaseline": "350119e8ec0606e8c5de5b3ab80df41104025679",
+  "candidate": "774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86",
+  "selectedFiles": [
+    "tests/apx01-livery.test.ts",
+    "tests/vehicle-catalogue.test.ts",
+    "tests/vehicle-catalogue-growth.test.ts",
+    "tests/i18n.test.ts"
+  ],
+  "selectedNames": [
+    "is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon",
+    "records every machine inside its design bands at both timesteps",
+    "keeps every machine that existed before the growth bit-identical",
+    "passes for all seven dictionaries"
+  ],
+  "testNamePattern": "(?:is\\ the\\ player's\\ alone,\\ follows\\ a\\ livery\\ edit,\\ and\\ leaves\\ the\\ wings'\\ alloy\\ role\\ in\\ carbon|records\\ every\\ machine\\ inside\\ its\\ design\\ bands\\ at\\ both\\ timesteps|keeps\\ every\\ machine\\ that\\ existed\\ before\\ the\\ growth\\ bit\\-identical|passes\\ for\\ all\\ seven\\ dictionaries)$",
+  "scope": "Four targeted existing assertions only; unrelated cases filtered, no whole-suite claim; all source TS/JS/JSON/shader inputs plus named scripts/data/assets hashed",
+  "sameSelectedFiles": {
+    "tests/apx01-livery.test.ts": true,
+    "tests/vehicle-catalogue.test.ts": true,
+    "tests/vehicle-catalogue-growth.test.ts": true,
+    "tests/i18n.test.ts": true,
+    "package.json": true,
+    "package-lock.json": true,
+    "tsconfig.json": true,
+    "vitest.config.ts": true,
+    "docs/vehicle-calibration.json": true,
+    "docs/production/CONTENT_PIPELINE.md": true,
+    "scripts/dynamics-fixtures.ts": true,
+    "scripts/bike-calibration.ts": true,
+    "scripts/calibration-margins.ts": true,
+    "scripts/i18n-catalogue.ts": true,
+    "scripts/i18n-check.ts": true,
+    "scripts/ip-denylist.mjs": true,
+    "src/rendering/a61-rival-near.glb.gz": true,
+    "src/rendering/a61-rival-mid.glb.gz": true,
+    "src/rendering/a61-rival-far.glb.gz": true,
+    "src/rendering/apx01-shell.glb.gz": true,
+    "src/rendering/apx01-driver.glb.gz": true
+  },
+  "schema": 1,
+  "runs": {
+    "baseline": {
+      "cwd": "/dev/shm/aeebac160835-engine-baseline",
+      "command": [
+        "node",
+        "--max-old-space-size=768",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/apx01-livery.test.ts",
+        "tests/vehicle-catalogue.test.ts",
+        "tests/vehicle-catalogue-growth.test.ts",
+        "tests/i18n.test.ts",
+        "--testNamePattern",
+        "(?:is\\ the\\ player's\\ alone,\\ follows\\ a\\ livery\\ edit,\\ and\\ leaves\\ the\\ wings'\\ alloy\\ role\\ in\\ carbon|records\\ every\\ machine\\ inside\\ its\\ design\\ bands\\ at\\ both\\ timesteps|keeps\\ every\\ machine\\ that\\ existed\\ before\\ the\\ growth\\ bit\\-identical|passes\\ for\\ all\\ seven\\ dictionaries)$",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--allowOnly=false",
+        "--retry=0",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile",
+        "/tmp/aeebac160835-engine/validation/w09d-baseline-comparison/baseline.vitest.json"
+      ],
+      "returnCode": 1,
+      "elapsedSeconds": 8.15946787399298,
+      "sourceStable": true,
+      "logSha256": "70498091b07e5cc3a3537e50b16de13f1b3d753746f2c54bcfb7d7d7813b98e4",
+      "machineResult": true,
+      "counts": {
+        "numTotalTests": 52,
+        "numPassedTests": 0,
+        "numFailedTests": 4,
+        "numPendingTests": 48,
+        "numTodoTests": 0,
+        "numTotalTestSuites": 17,
+        "numFailedTestSuites": 8,
+        "success": false
+      },
+      "machineSha256": "da1f6c37d264e1772f649da17f419f08d3306c2d86b410518fb87ce34237f248",
+      "source": {
+        "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+        "tree": "2224939844137abcd06d1aed0d9618f74e05dc18",
+        "inputCount": 1099,
+        "allRecordedInputsMatchPinnedGitBlobs": true
+      },
+      "sourceInventoryFile": "baseline.inputs.json",
+      "executedAssertions": [
+        {
+          "file": "tests/apx01-livery.test.ts",
+          "fullName": "APX-01 hero livery layer is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'turned-alloy' not to be 'turned-alloy' // Object.is equality\n    at /dev/shm/aeebac160835-engine-baseline/tests/apx01-livery.test.ts:215:91\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runFiles (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1787:3)"
+          ]
+        },
+        {
+          "file": "tests/i18n.test.ts",
+          "fullName": "the catalogue and the dictionary gate passes for all seven dictionaries",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected [ { locale: 'de', …(4) }, …(13) ] to deeply equal []\n    at /dev/shm/aeebac160835-engine-baseline/tests/i18n.test.ts:207:48\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+          ]
+        },
+        {
+          "file": "tests/vehicle-catalogue-growth.test.ts",
+          "fullName": "catalogue growth (cars and road bikes) keeps every machine that existed before the growth bit-identical",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality\n    at /dev/shm/aeebac160835-engine-baseline/tests/vehicle-catalogue-growth.test.ts:85:58\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runFiles (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1787:3)"
+          ]
+        },
+        {
+          "file": "tests/vehicle-catalogue.test.ts",
+          "fullName": "WP30 destination catalogue records every machine inside its design bands at both timesteps",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: gpr1 calibration is stale: run npm run test:vehicles: expected 'eca1c71a' to be '5f121c00' // Object.is equality\n    at /dev/shm/aeebac160835-engine-baseline/tests/vehicle-catalogue.test.ts:109:83\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runFiles (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1787:3)"
+          ]
+        }
+      ],
+      "dictionaryProblems": [
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "de",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "de",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "fr",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "fr",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "es",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "es",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "pt-BR",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "pt-BR",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "it",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "it",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "pl",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "pl",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "tr",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "tr",
+          "warning": false
+        }
+      ]
+    },
+    "current": {
+      "cwd": "/tmp/aeebac160835-engine/Experiment-3",
+      "command": [
+        "node",
+        "--max-old-space-size=768",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/apx01-livery.test.ts",
+        "tests/vehicle-catalogue.test.ts",
+        "tests/vehicle-catalogue-growth.test.ts",
+        "tests/i18n.test.ts",
+        "--testNamePattern",
+        "(?:is\\ the\\ player's\\ alone,\\ follows\\ a\\ livery\\ edit,\\ and\\ leaves\\ the\\ wings'\\ alloy\\ role\\ in\\ carbon|records\\ every\\ machine\\ inside\\ its\\ design\\ bands\\ at\\ both\\ timesteps|keeps\\ every\\ machine\\ that\\ existed\\ before\\ the\\ growth\\ bit\\-identical|passes\\ for\\ all\\ seven\\ dictionaries)$",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--allowOnly=false",
+        "--retry=0",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile",
+        "/tmp/aeebac160835-engine/validation/w09d-baseline-comparison/current.vitest.json"
+      ],
+      "returnCode": 1,
+      "elapsedSeconds": 8.521160353004234,
+      "sourceStable": true,
+      "logSha256": "d93646918c1fad0cf2c0f2bc02b674a61e8603783310ff57a2d0290ddd162469",
+      "machineResult": true,
+      "counts": {
+        "numTotalTests": 52,
+        "numPassedTests": 0,
+        "numFailedTests": 4,
+        "numPendingTests": 48,
+        "numTodoTests": 0,
+        "numTotalTestSuites": 17,
+        "numFailedTestSuites": 8,
+        "success": false
+      },
+      "machineSha256": "a537a598259f19d061d4da719165e6c4d14d120a4e9b812e4171a5f8f4829009",
+      "source": {
+        "commit": "774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86",
+        "tree": "5f466294eca0b188db58375a1caf4cd76088527b",
+        "inputCount": 1100,
+        "allRecordedInputsMatchPinnedGitBlobs": true
+      },
+      "sourceInventoryFile": "current.inputs.json",
+      "executedAssertions": [
+        {
+          "file": "tests/apx01-livery.test.ts",
+          "fullName": "APX-01 hero livery layer is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'turned-alloy' not to be 'turned-alloy' // Object.is equality\n    at /tmp/aeebac160835-engine/Experiment-3/tests/apx01-livery.test.ts:215:91\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runFiles (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1787:3)"
+          ]
+        },
+        {
+          "file": "tests/i18n.test.ts",
+          "fullName": "the catalogue and the dictionary gate passes for all seven dictionaries",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected [ { locale: 'de', …(4) }, …(13) ] to deeply equal []\n    at /tmp/aeebac160835-engine/Experiment-3/tests/i18n.test.ts:207:48\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+          ]
+        },
+        {
+          "file": "tests/vehicle-catalogue-growth.test.ts",
+          "fullName": "catalogue growth (cars and road bikes) keeps every machine that existed before the growth bit-identical",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality\n    at /tmp/aeebac160835-engine/Experiment-3/tests/vehicle-catalogue-growth.test.ts:85:58\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runFiles (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1787:3)"
+          ]
+        },
+        {
+          "file": "tests/vehicle-catalogue.test.ts",
+          "fullName": "WP30 destination catalogue records every machine inside its design bands at both timesteps",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: gpr1 calibration is stale: run npm run test:vehicles: expected 'eca1c71a' to be '5f121c00' // Object.is equality\n    at /tmp/aeebac160835-engine/Experiment-3/tests/vehicle-catalogue.test.ts:109:83\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runFiles (file:///tmp/aeebac160835-engine/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1787:3)"
+          ]
+        }
+      ],
+      "dictionaryProblems": [
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "de",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "de",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "fr",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "fr",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "es",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "es",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "pt-BR",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "pt-BR",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "it",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "it",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "pl",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "pl",
+          "warning": false
+        },
+        {
+          "detail": "missing: Rear brake (GP motorcycle)",
+          "key": "Rear brake (GP motorcycle)",
+          "kind": "keys",
+          "locale": "tr",
+          "warning": false
+        },
+        {
+          "detail": "missing: GP rear brake button (−1 unbound)",
+          "key": "GP rear brake button (−1 unbound)",
+          "kind": "keys",
+          "locale": "tr",
+          "warning": false
+        }
+      ]
+    }
+  },
+  "runtime": {
+    "node": "v24.22.3",
+    "vitest": "3.2.4",
+    "dependencyPolicy": "Same installed locked dependencies, baseline node_modules symlinks to current; no npm lifecycle hooks invoked."
+  },
+  "limitations": [
+    "Exactly four selected assertions, one per file; 48 other cases were excluded by the explicit name filter.",
+    "The raw Vitest JSON suite totals include nested describe suites; the human log reports four test files.",
+    "The raw capture receipt also lists name-filtered cases as skipped; only passed/failed statuses are selected execution outcomes.",
+    "Elapsed times are execution receipts, not engine performance benchmarks.",
+    "No native browser execution was attempted by this audit."
+  ],
+  "sameFailureMessagesAfterRepositoryRootNormalization": true,
+  "sameDictionaryProblems": true
+}

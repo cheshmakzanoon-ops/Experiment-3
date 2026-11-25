@@ -1,0 +1,339 @@
+{
+  "commit": "774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86",
+  "tree": "5f466294eca0b188db58375a1caf4cd76088527b",
+  "workflowRun": 45592833399,
+  "jobId": 139131185041,
+  "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45592833399",
+  "conclusion": "success",
+  "artifactId": 15012585753,
+  "archiveBytes": 1300824,
+  "archiveSha256": "3ae96693bf5bc12acdbd449592ef36b94bd1d05ffa9a1ce492d24e401cb2598a",
+  "packageLockSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+  "unitTests": 914,
+  "unitFiles": 70,
+  "unitDurationSeconds": 189.0,
+  "fullTypeScriptCheck": "passed",
+  "productionBuild": "passed",
+  "builtProductIdentity": {
+    "version": 1,
+    "commit": "774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86",
+    "fingerprint": "08a29559c6223e8bef3d6c5af2229ea9421e1c6d9d9659e3144cd7c044267529",
+    "variant": "product",
+    "edition": "full"
+  },
+  "browserReportStats": {
+    "total": 47,
+    "expected": 47,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "browserReplayTestsPassed": 47,
+  "browserReplayTestsFailed": 0,
+  "browserRetries": 0,
+  "browserBackendIdentity": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "physicalHardwareValidated": false,
+  "diagnosticMaterialFailures": [
+    {
+      "path": "three-mesh-basic",
+      "nativeBulkDifferingBytes": 64,
+      "individualDifferingBytes": 64,
+      "threeDifferingBytes": 64,
+      "actualSha256": "c71a938f01e7932926a8a7de17446c1ab97662b2838cda203b18b5c6c23be6e2",
+      "expectedSha256": "0d1b5807a072040df4aab5871837e4296ddafc56a83226a1d098e6e86961c001"
+    },
+    {
+      "path": "raw-shader-vec3",
+      "nativeBulkDifferingBytes": 64,
+      "individualDifferingBytes": 64,
+      "threeDifferingBytes": 64,
+      "actualSha256": "c71a938f01e7932926a8a7de17446c1ab97662b2838cda203b18b5c6c23be6e2",
+      "expectedSha256": "0d1b5807a072040df4aab5871837e4296ddafc56a83226a1d098e6e86961c001"
+    }
+  ],
+  "diagnosticLimitationAnnotations": 2,
+  "nativeEvidence": {
+    "gpu": {
+      "witness": {
+        "kind": "test-only-explicit-vec4",
+        "material": "RawShaderMaterial",
+        "colourUniform": "vec4",
+        "imageBytes": 256,
+        "scope": "shared gate render ordering and ownership; no MeshBasic or vec3 material acceptance"
+      },
+      "redDifferingBytes": 0,
+      "greenDifferingBytes": 0,
+      "deletedFences": [
+        1,
+        2,
+        3
+      ],
+      "finishCalls": 0,
+      "releasedMemory": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "attributeUploadBytes": [
+        48,
+        49152,
+        24
+      ],
+      "attributeReadbackDifferences": {
+        "initialDifferences": 0,
+        "deferredDifferences": 0,
+        "duplicateDifferences": 0,
+        "disjointDifferences": 0,
+        "narrowDifferences": 0
+      }
+    },
+    "history": {
+      "sourceHash": "d4131727c5cea898728eee4d87a4bf512295e056b0cfa69f73fafb2905b78537",
+      "retainedCycles": 2,
+      "sameDocumentAndWorkerBothCycles": true,
+      "trustedPersistedShows": true,
+      "pausedTicks": [
+        [
+          57,
+          57
+        ],
+        [
+          95,
+          95
+        ]
+      ],
+      "pendingFrameAndInputOwnersPerCycle": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "terminalReloadNewDocumentAndWorker": true,
+      "terminalOwnedFrames": 0,
+      "terminalOwnedInputIntervals": 0,
+      "terminalDisposals": {
+        "rendererDisposals": 1,
+        "workerTerminations": 1,
+        "inputDisposals": 1,
+        "uiDisposals": 1,
+        "audioDisposals": 1,
+        "cueDisposals": 1
+      }
+    },
+    "audio": {
+      "renders": 13,
+      "renderedSamples": 1019520,
+      "exactInputDifferences": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allPcmComparisonsWithinContract": true,
+      "realGainPerturbationRejected": true,
+      "contextsClosedOnce": 3,
+      "allObservedNodesDisconnected": true,
+      "replacementNativeEnded": 3,
+      "abandonedResumeObserved": {
+        "afterOldCloses": "pending",
+        "afterReplacementEnded": "pending",
+        "afterDispose": "pending"
+      },
+      "sameRateSelfControlsWithinContract": 6,
+      "finalCueOwner": -1,
+      "finalCues": 0
+    },
+    "network": {
+      "packets": 768,
+      "matchedBytes": 94945,
+      "detachedSenders": 768,
+      "nativeErrors": [],
+      "cleanup": {
+        "closedPorts": 6,
+        "pendingNative": 0,
+        "pendingEvents": 0
+      }
+    },
+    "records": {
+      "wrappedRows": 630,
+      "ringHead": 100,
+      "exportedDifferences": 0,
+      "nativeExportDetached": true
+    },
+    "deviceBoundary": "Actual DOM/focus/RAF and owner classes; scripted navigator.getGamepads; physical controller not validated"
+  },
+  "notes": [
+    "Focused workflow success does not mean every other repository workflow passed.",
+    "47 passed native cases do not certify MeshBasic or raw vec3 image paths: both independently failed their diagnostic controls on this software backend, and remain visible in attachments and annotations.",
+    "Native software browser execution does not validate physical GPU, controller or audio hardware, full-game material equivalence, whole-game BFCache eligibility, or performance/FPS.",
+    "The failed26efaeef compiler checkpoint remains preserved separately.",
+    "Log copies strip ANSI escapes/trailing whitespace; decoded attachment JSON is normalized. The original ZIP digest preserves the exact upstream artifact identity."
+  ],
+  "files": [
+    {
+      "path": "engine-source-commit.txt",
+      "bytes": 41,
+      "sha256": "e2bc055358200a2598f3a94bebf7425dfef8c63deded7e7e06f568a0663a4dd3",
+      "origin": "original artifact member",
+      "originalSha256": "e2bc055358200a2598f3a94bebf7425dfef8c63deded7e7e06f568a0663a4dd3"
+    },
+    {
+      "path": "engine-source-tree.txt",
+      "bytes": 41,
+      "sha256": "1c1e9d15be1cb10465959f3139be1b0cf079ae7f8b6502b78da7b3c73e4ae558",
+      "origin": "original artifact member",
+      "originalSha256": "1c1e9d15be1cb10465959f3139be1b0cf079ae7f8b6502b78da7b3c73e4ae558"
+    },
+    {
+      "path": "engine-package-lock.sha256",
+      "bytes": 84,
+      "sha256": "c90128ae90874d85d2e41b65ad38d2056801a273b5f1ff924a25ba68ef9f6ee8",
+      "origin": "original artifact member",
+      "originalSha256": "c90128ae90874d85d2e41b65ad38d2056801a273b5f1ff924a25ba68ef9f6ee8"
+    },
+    {
+      "path": "engine-runtime-unit.log",
+      "bytes": 17797,
+      "sha256": "d6b3dbe441b6701849b4e9310d8fc02824253798ac71230aca864b94df40d2c0",
+      "origin": "original artifact member",
+      "originalSha256": "66196abc6478b88bf13c84b311caeb3706c5d8cc7cb023d458c80cc405770c46"
+    },
+    {
+      "path": "engine-runtime-build.log",
+      "bytes": 4067,
+      "sha256": "731378bc016b94212ca39b4a83ab825c8ccede5eb0b63f42ecf76a3513dbc97e",
+      "origin": "original artifact member",
+      "originalSha256": "b5ed962d717468ba5497f717242dd59d7ede5e6d517039bb6f2d737caead30d3"
+    },
+    {
+      "path": "engine-runtime-browser.log",
+      "bytes": 15661,
+      "sha256": "8cbe75463a31b06735f1616c5dc3c3f29b0e4142fe65769deccb83168561471b",
+      "origin": "original artifact member",
+      "originalSha256": "8cbe75463a31b06735f1616c5dc3c3f29b0e4142fe65769deccb83168561471b"
+    },
+    {
+      "path": "browser-backend.json",
+      "bytes": 325,
+      "sha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed",
+      "origin": "original artifact member",
+      "originalSha256": "9ddbe9ad44808a6870cd07050381a6a34e2a1dba36490aa7bd029cec6a6d15ed"
+    },
+    {
+      "path": "BUILD_IDENTITY.json",
+      "bytes": 205,
+      "sha256": "a3f7f69615a514e8877c11506fe701648f422fa5086ace456c2611310df56c34",
+      "origin": "original artifact member",
+      "originalSha256": "a3f7f69615a514e8877c11506fe701648f422fa5086ace456c2611310df56c34"
+    },
+    {
+      "path": "native-gpu-attribute-uploads.json",
+      "bytes": 2669,
+      "sha256": "24bafaf183ecf0390e3acbc5bb57b0422f1db79059e6b69b2d2b46b9103da3f4",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-gpu-shared-fences.json",
+      "bytes": 17152,
+      "sha256": "8700ad5292b61d85c5dd77bafe7e8377c9b85fe7205b60ec750040133b76d142",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-gpu-raster-path-diagnostics.json",
+      "bytes": 166313,
+      "sha256": "19087d4588a4caec46ceded58ade5587871948b3ddad93f3c91bf0c025142c59",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-audio-advancement-pcm.json",
+      "bytes": 87307,
+      "sha256": "deb7da083688a85e55aee4341d1b2aaedb9f622fd0a30500487fc19989dde956",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-audio-advancement-suspension.json",
+      "bytes": 26499,
+      "sha256": "81c0db417f1b4407f476f539977eb95276742a25caa65afc924c95cd7d69f430",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-page-history.json",
+      "bytes": 748367,
+      "sha256": "3a87facf4361981feac29a91f7b4912e9fb667fee37d3ff3f33fd1e7e937fb33",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-network-advancement.json",
+      "bytes": 68567,
+      "sha256": "861080c1e3b52244ed0de113e8bd537ba9ea6a746662eb1233671ebb224ec429",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-device-focus-ownership.json",
+      "bytes": 34857,
+      "sha256": "9ac7027f4be05496c3503b8fce244cd5eb9388d82e8eea2d0e25272e9d52e25f",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-device-content-ownership.json",
+      "bytes": 30889,
+      "sha256": "e1e96d92d28ffa8da0bf12a059b06b77fb0c8f80ea90d319f413e64aca628bef",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-ghost-before-reload.json",
+      "bytes": 973,
+      "sha256": "6b9cf8ee9bf946ffb44d928994c71b77d4eef2c690207b569401d32059f85b87",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-ghost-after-reload.json",
+      "bytes": 1048,
+      "sha256": "07bc15a6bb0fcf6be60b1e64cbb656eeeee636d6378cd620a6f2ec91af2dc31f",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "native-records-closing-gap.json",
+      "bytes": 2830,
+      "sha256": "a1720c6e9fec7f2de60f81c5524826009261bd722b3cfbfae781a287baac4b2a",
+      "origin": "normalized decoded Playwright attachment"
+    },
+    {
+      "path": "workflow-job.json",
+      "bytes": 3927,
+      "sha256": "52d1b400c28b60bdbd8ab3e921e1d010587c0e1301c9388658dd58101e3f5227",
+      "origin": "GitHub job metadata"
+    },
+    {
+      "path": "browser-case-results.json",
+      "bytes": 25347,
+      "sha256": "41cff16f127356a288c8a7a8ed677bd670c411f859577d820dd9d214cd26fd0f",
+      "origin": "derived Playwright result index"
+    },
+    {
+      "path": "native-diagnostic-annotations.json",
+      "bytes": 1156,
+      "sha256": "b749b0830e63d4e6765cf851d5a4697c57c8134123938bbb2241734101fbc01e",
+      "origin": "derived Playwright result index"
+    }
+  ]
+}

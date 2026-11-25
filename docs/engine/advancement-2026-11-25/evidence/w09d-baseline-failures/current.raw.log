@@ -1,0 +1,235 @@
+
+ RUN  v3.2.4 /tmp/aeebac160835-engine/Experiment-3
+
+ ❯ tests/i18n.test.ts (28 tests | 1 failed | 27 skipped) 767ms
+   ↓ messages: placeholders and plurals > fills placeholders and leaves unknown ones visible
+   ↓ messages: placeholders and plurals > picks plural branches by the language rules
+   ↓ messages: placeholders and plurals > supports exact matches and nested text around plurals
+   ↓ messages: placeholders and plurals > reads placeholders and plural branches back for the gate
+   ↓ messages: placeholders and plurals > rejects malformed messages
+   ↓ messages: placeholders and plurals > knows which plural categories each language needs
+   ↓ language choice > maps browser tags to supported languages
+   ↓ language choice > takes the first supported language of the ranking, else English
+   ↓ language choice > resolves auto and explicit settings
+   ↓ language choice > validates the stored setting
+   ↓ language choice > is part of Settings: older saves and unknown codes read as auto
+   ↓ t() and the dictionaries > is the English text itself under en, with or without a dictionary
+   ↓ t() and the dictionaries > escapes the message text but never the parameters
+   ↓ t() and the dictionaries > loads a dictionary on demand and switches back
+   ↓ t() and the dictionaries > falls back to English for a string a dictionary does not have, with English plurals
+   ↓ t() and the dictionaries > keeps the current language when asked for an unknown one
+   ↓ t() and the dictionaries > starts from the saved setting and survives unreadable storage
+   ↓ t() and the dictionaries > loads every shipped dictionary
+   ↓ numbers, units and dates in the language > keeps toFixed under English and swaps the decimal mark elsewhere
+   ↓ numbers, units and dates in the language > formats numbers, units and dates by the language
+   ↓ the catalogue and the dictionary gate > finds every string, with unique keys that all parse
+   × the catalogue and the dictionary gate > passes for all seven dictionaries 766ms
+     → expected [ { locale: 'de', …(4) }, …(13) ] to deeply equal []
+   ↓ the catalogue and the dictionary gate > supports exactly the seven Latin-script languages besides English
+   ↓ the catalogue and the dictionary gate > catches the defects it exists for
+   ↓ the catalogue and the dictionary gate > gives Polish the plural branches it needs everywhere
+   ↓ localised surfaces > translate the first-launch screen and keep the language dial out of the English markup contract
+   ↓ localised surfaces > translate the paddock plates, the dial labels and the loading stages
+   ↓ localised surfaces > offer every language under its own name
+ ❯ tests/apx01-livery.test.ts (4 tests | 1 failed | 3 skipped) 636ms
+   ↓ APX-01 hero livery layer > keeps every decal inside the atlas and the shader inside its own region tests
+   ↓ APX-01 hero livery layer > chains once, after the base livery, and carries its own uniforms and normal varying
+   ↓ APX-01 hero livery layer > lies on the real plates and the real wing of the authored near level
+   × APX-01 hero livery layer > is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon 427ms
+     → expected 'turned-alloy' not to be 'turned-alloy' // Object.is equality
+ ❯ tests/vehicle-catalogue.test.ts (7 tests | 1 failed | 6 skipped) 9ms
+   ↓ WP30 destination catalogue > pins the shared baselines the builder cannot import
+   ↓ WP30 destination catalogue > adds at least fourteen valid machines across the families
+   ↓ WP30 destination catalogue > keeps APX-01 and TC-1 content identical and appends to the snapshot index
+   ↓ WP30 destination catalogue > derives wheel centres from weight distribution and placement from CG height
+   × WP30 destination catalogue > records every machine inside its design bands at both timesteps 8ms
+     → gpr1 calibration is stale: run npm run test:vehicles: expected 'eca1c71a' to be '5f121c00' // Object.is equality
+   ↓ WP30 destination catalogue > groups the registry by class for presentation
+   ↓ WP30 destination catalogue > drives a field of different catalogue machines without numerical failure
+ ❯ tests/vehicle-catalogue-growth.test.ts (13 tests | 1 failed | 12 skipped) 9ms
+   ↓ catalogue growth (cars and road bikes) > reaches the 48-model destination with valid, uniquely hashed machines
+   × catalogue growth (cars and road bikes) > keeps every machine that existed before the growth bit-identical 8ms
+     → gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality
+   ↓ catalogue growth (cars and road bikes) > gives every catalogue machine and added bike a brief, bands and a calibration record
+   ↓ catalogue growth (cars and road bikes) > registers every new class with a family, a price and a race ruleset or none
+   ↓ calibration margins and trade-offs > keeps every growth machine clear of its band edges at both timesteps
+   ↓ calibration margins and trade-offs > publishes the near-edge list generated from the calibration report
+   ↓ calibration margins and trade-offs > keeps the road hot hatch below its racing counterpart in grip
+   ↓ calibration margins and trade-offs > trades GP-R2 braking against GP-R1 launch and top speed
+   ↓ calibration margins and trade-offs > simulates the turbo lag every brief claims
+   ↓ fan-assisted floor (XF-2) > holds the car down at rest and loses suction when the floor lifts
+   ↓ XF-2 AI envelope with a damaged floor > plans braking inside what the car can do as the fan floor loses its seal
+   ↓ XF-2 AI envelope with a damaged floor > takes the fan share of the envelope from the fan-off calibration fit
+   ↓ new machines on track > drives a field of the new chassis types without numerical failure
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/apx01-livery.test.ts > APX-01 hero livery layer > is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon
+AssertionError: expected 'turned-alloy' not to be 'turned-alloy' // Object.is equality
+ ❯ tests/apx01-livery.test.ts:215:91
+    213|         });
+    214|       for (const m of wingMaterials)
+    215|         expect((m as T.MeshStandardMaterial).userData.aurelManufacturi…
+       |                                                                                           ^
+    216|           'turned-alloy',
+    217|         );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/i18n.test.ts > the catalogue and the dictionary gate > passes for all seven dictionaries
+AssertionError: expected [ { locale: 'de', …(4) }, …(13) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "de",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "de",
++     "warning": false,
++   },
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "fr",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "fr",
++     "warning": false,
++   },
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "es",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "es",
++     "warning": false,
++   },
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "pt-BR",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "pt-BR",
++     "warning": false,
++   },
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "it",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "it",
++     "warning": false,
++   },
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "pl",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "pl",
++     "warning": false,
++   },
++   {
++     "detail": "missing: Rear brake (GP motorcycle)",
++     "key": "Rear brake (GP motorcycle)",
++     "kind": "keys",
++     "locale": "tr",
++     "warning": false,
++   },
++   {
++     "detail": "missing: GP rear brake button (−1 unbound)",
++     "key": "GP rear brake button (−1 unbound)",
++     "kind": "keys",
++     "locale": "tr",
++     "warning": false,
++   },
++ ]
+
+ ❯ tests/i18n.test.ts:207:48
+    205|   it('passes for all seven dictionaries', async () => {
+    206|     const { problems, counts, entries } = await checkAll();
+    207|     expect(problems.filter((p) => !p.warning)).toEqual([]);
+       |                                                ^
+    208|     for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
+    209|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/vehicle-catalogue-growth.test.ts > catalogue growth (cars and road bikes) > keeps every machine that existed before the growth bit-identical
+AssertionError: gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality
+
+Expected: "eca1c71a"
+Received: "5f121c00"
+
+ ❯ tests/vehicle-catalogue-growth.test.ts:85:58
+     83|   it('keeps every machine that existed before the growth bit-identical…
+     84|     for (const [id, hash] of Object.entries(FROZEN))
+     85|       expect(vehicleHash(VEHICLES[id]), `${id} changed`).toBe(hash);
+       |                                                          ^
+     86|     // Appended after the existing registry: snapshot indices are unch…
+     87|     expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/vehicle-catalogue.test.ts > WP30 destination catalogue > records every machine inside its design bands at both timesteps
+AssertionError: gpr1 calibration is stale: run npm run test:vehicles: expected 'eca1c71a' to be '5f121c00' // Object.is equality
+
+Expected: "5f121c00"
+Received: "eca1c71a"
+
+ ❯ tests/vehicle-catalogue.test.ts:109:83
+    107|       const entry = report.vehicles[id];
+    108|       expect(entry, `${id} missing from docs/vehicle-calibration.json`…
+    109|       expect(entry.hash, `${id} calibration is stale: run npm run test…
+       |                                                                                   ^
+    110|         vehicleHash(VEHICLES[id]),
+    111|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed (4)
+      Tests  4 failed | 48 skipped (52)
+   Start at  03:15:59
+   Duration  8.02s (transform 2.91s, setup 0ms, collect 5.89s, tests 1.42s, environment 1ms, prepare 202ms)
+
+JSON report written to /tmp/aeebac160835-engine/validation/w09d-baseline-comparison/current.vitest.json

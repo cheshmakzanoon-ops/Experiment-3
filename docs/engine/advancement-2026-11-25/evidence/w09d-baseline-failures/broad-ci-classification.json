@@ -1,0 +1,751 @@
+{
+  "run": 45579529296,
+  "runCommit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+  "rows": [
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-1.log",
+      "sha256": "b0fb9c31e724dbd81e263f523a360d697d9ae102c9a958a47470fe22187b7993",
+      "recordedJob": "### browser (1) (job 139087692821)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "23-apx01-views.spec.ts:13:3 › 27H.1 normal application: deterministic side whole-car inspection (4.2m)",
+          "details": [
+            "Error: expect(locator).toBeVisible() failed",
+            "Timeout:  120000ms"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "44-pit-wall-station.spec.ts:11:1 › A24 normal startup loads the authored station and retains it through practice (4.9m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 104,
+          "text": "2026-11-25T09:10:57.3821783Z [browser-failure]  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection\n2026-11-25T09:10:57.3826969Z Error: expect(locator).toBeVisible() failed\n2026-11-25T09:10:57.3827742Z \n2026-11-25T09:10:57.3828125Z Locator:  locator('#photoStudio')\n2026-11-25T09:10:57.3828741Z Expected: visible\n2026-11-25T09:10:57.3829212Z Received: hidden\n2026-11-25T09:10:57.3829688Z Timeout:  120000ms\n2026-11-25T09:10:57.3829970Z \n2026-11-25T09:10:57.3830151Z Call log:\n2026-11-25T09:10:57.3830990Z   - Expect \"toBeVisible\" with timeout 120000ms\n2026-11-25T09:10:57.3831899Z   - waiting for locator('#photoStudio')\n2026-11-25T09:10:57.3833246Z     20 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n2026-11-25T09:10:57.3834336Z        - unexpected value \"hidden\"\n2026-11-25T09:10:57.3834738Z \n2026-11-25T09:10:57.3835302Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/23-apx01-views.spec.ts:30:48"
+        },
+        {
+          "sourceLineInRetainedTail": 141,
+          "text": "2026-11-25T09:16:57.2529107Z [browser-failure]  >  > 44-pit-wall-station.spec.ts > A24 normal startup loads the authored station and retains it through practice\n2026-11-25T09:16:57.2530876Z Error: expect(received).toMatch(expected)\n2026-11-25T09:16:57.2531430Z \n2026-11-25T09:16:57.2531814Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:16:57.2532420Z Received string:  \"loading\"\n2026-11-25T09:16:57.2532722Z \n2026-11-25T09:16:57.2532876Z Call Log:\n2026-11-25T09:16:57.2533463Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:16:57.2534445Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:16:57.2535462Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/44-pit-wall-station.spec.ts:27:3"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-10.log",
+      "sha256": "3488d3247a34d369e912e8b5f0d4c815d7689279b83de38f42fe076fb87fe72e",
+      "recordedJob": "### browser (10) (job 139087692643)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-11.log",
+      "sha256": "552494a35a9750102a08dbf2a741760012232f1a1df124d1411c8a2ff001eb21",
+      "recordedJob": "### browser (11) (job 139087692697)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "25-people.spec.ts:5:1 › 27H.3 normal startup binds the retained authored people and populated crowd without primitive fallback (4.3m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 90,
+          "text": "2026-11-25T09:01:20.5782463Z [browser-failure]  >  > 25-people.spec.ts > 27H.3 normal startup binds the retained authored people and populated crowd without primitive fallback\n2026-11-25T09:01:20.5783513Z Error: expect(received).toMatch(expected)\n2026-11-25T09:01:20.5783887Z \n2026-11-25T09:01:20.5784138Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:01:20.5784764Z Received string:  \"loading\"\n2026-11-25T09:01:20.5784984Z \n2026-11-25T09:01:20.5785076Z Call Log:\n2026-11-25T09:01:20.5785771Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:01:20.5786413Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:01:20.5787114Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/25-people.spec.ts:31:3"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-12.log",
+      "sha256": "c8225f7f0923e99c0337cd3015a6f6047fbf0669f3500983788aff95db3f8dc6",
+      "recordedJob": "### browser (12) (job 139087692822)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "26-aurel-environment.spec.ts:5:1 › 27H.4 normal startup constructs the upgraded districts and retained event hall (5.2m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start (1.7m)",
+          "details": [
+            "Error: expect(received).toBe(expected) // Object.is equality",
+            "- Timeout 60000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 103,
+          "text": "2026-11-25T09:09:20.6206484Z [browser-failure]  >  > 26-aurel-environment.spec.ts > 27H.4 normal startup constructs the upgraded districts and retained event hall\n2026-11-25T09:09:20.6207875Z Error: expect(received).toMatch(expected)\n2026-11-25T09:09:20.6208555Z \n2026-11-25T09:09:20.6209062Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:09:20.6209847Z Received string:  \"loading\"\n2026-11-25T09:09:20.6210455Z \n2026-11-25T09:09:20.6210642Z Call Log:\n2026-11-25T09:09:20.6211296Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:09:20.6212297Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:09:20.6213503Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/26-aurel-environment.spec.ts:26:3"
+        },
+        {
+          "sourceLineInRetainedTail": 137,
+          "text": "2026-11-25T09:15:32.7065560Z [browser-failure]  >  > 50-grid-presentation.spec.ts > pre-race performance holds physics, seeks actual crew poses and hands control to the start\n2026-11-25T09:15:32.7067088Z Error: expect(received).toBe(expected) // Object.is equality\n2026-11-25T09:15:32.7067830Z \n2026-11-25T09:15:32.7068051Z Expected: \"paused\"\n2026-11-25T09:15:32.7068387Z Received: \"loading\"\n2026-11-25T09:15:32.7068570Z \n2026-11-25T09:15:32.7068666Z Call Log:\n2026-11-25T09:15:32.7069003Z - Timeout 60000ms exceeded while waiting on the predicate\n2026-11-25T09:15:32.7069587Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/50-grid-presentation.spec.ts:26:3"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-13.log",
+      "sha256": "cac7c0d327d8ee0de211a1fb2a15118c0144dd7b2863baf019cc3425c977fb27",
+      "recordedJob": "### browser (13) (job 139087692702)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "20-phase27h.spec.ts:9:1 › 27H: actual application loads the authored GLB and retains frozen native views and live paint (4.1m)",
+          "details": [
+            "Error: expect(locator).toBeVisible() failed",
+            "Timeout:  120000ms"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 118,
+          "text": "2026-11-25T09:15:50.9938523Z [browser-failure]  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint\n2026-11-25T09:15:50.9939683Z Error: expect(locator).toBeVisible() failed\n2026-11-25T09:15:50.9940030Z \n2026-11-25T09:15:50.9940191Z Locator:  locator('#photoStudio')\n2026-11-25T09:15:50.9940531Z Expected: visible\n2026-11-25T09:15:50.9940885Z Received: hidden\n2026-11-25T09:15:50.9941128Z Timeout:  120000ms\n2026-11-25T09:15:50.9941263Z \n2026-11-25T09:15:50.9941358Z Call log:\n2026-11-25T09:15:50.9941808Z   - Expect \"toBeVisible\" with timeout 120000ms\n2026-11-25T09:15:50.9942450Z   - waiting for locator('#photoStudio')\n2026-11-25T09:15:50.9943804Z     20 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n2026-11-25T09:15:50.9945095Z        - unexpected value \"hidden\"\n2026-11-25T09:15:50.9945556Z \n2026-11-25T09:15:50.9946154Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/20-phase27h.spec.ts:27:46"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-14.log",
+      "sha256": "95e12b254df1778847bff9c613e30332466aa3d6ecd858c54822e2442ede2bac",
+      "recordedJob": "### browser (14) (job 139087692555)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "49-festival-menu-access.spec.ts:479:1 › festival photo: keyboard return cannot activate the race card behind the controls (19.5s)",
+          "details": [
+            "TimeoutError: locator.click: Timeout 15000ms exceeded.",
+            "Waiting for locator('#festMenu').getByRole('button', { name: 'PHOTO MODE', exact: true })",
+            "at e2e/49-festival-menu-access.spec.ts:498:92 (second PHOTO MODE click)"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "55-start-finish.spec.ts:13:3 › Aurel start-finish: production night architecture, audience, screen and rewind (7.9m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 420000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "56-track-infrastructure.spec.ts:12:3 › A01-A07 complete production night scene, visible assets and recorded start (7.4m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 420000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 98,
+          "text": "2026-11-25T09:03:33.0380634Z [browser-failure]  >  > 49-festival-menu-access.spec.ts > festival photo: keyboard return cannot activate the race card behind the controls\n2026-11-25T09:03:33.0381644Z TimeoutError: locator.click: Timeout 15000ms exceeded.\n2026-11-25T09:03:33.0382441Z Call log:\n2026-11-25T09:03:33.0383483Z   - waiting for locator('#festMenu').getByRole('button', { name: 'PHOTO MODE', exact: true })\n2026-11-25T09:03:33.0383973Z \n2026-11-25T09:03:33.0384411Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/49-festival-menu-access.spec.ts:498:92"
+        },
+        {
+          "sourceLineInRetainedTail": 122,
+          "text": "2026-11-25T09:11:30.1161365Z [browser-failure]  >  > 55-start-finish.spec.ts > Aurel start-finish: production night architecture, audience, screen and rewind\n2026-11-25T09:11:30.1162076Z Test timeout of 420000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 124,
+          "text": "2026-11-25T09:11:30.1162727Z [browser-failure]  >  > 55-start-finish.spec.ts > Aurel start-finish: production night architecture, audience, screen and rewind\n2026-11-25T09:11:30.1163357Z Error: page.evaluate: Test timeout of 420000ms exceeded.\n2026-11-25T09:11:30.1163870Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/55-start-finish.spec.ts:48:31"
+        },
+        {
+          "sourceLineInRetainedTail": 144,
+          "text": "2026-11-25T09:18:57.6507862Z [browser-failure]  >  > 56-track-infrastructure.spec.ts > A01-A07 complete production night scene, visible assets and recorded start\n2026-11-25T09:18:57.6508537Z Test timeout of 420000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 146,
+          "text": "2026-11-25T09:18:57.6509215Z [browser-failure]  >  > 56-track-infrastructure.spec.ts > A01-A07 complete production night scene, visible assets and recorded start\n2026-11-25T09:18:57.6510164Z Error: page.evaluate: Test timeout of 420000ms exceeded.\n2026-11-25T09:18:57.6510717Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/56-track-infrastructure.spec.ts:47:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-15.log",
+      "sha256": "4cf7b6388e0e3c578ae48c2f2b7886f13ed4ae1e52574155073b46b384b48948",
+      "recordedJob": "### browser (15) (job 139087692819)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "23-apx01-views.spec.ts:13:3 › 27H.1 normal application: deterministic front whole-car inspection (4.0m)",
+          "details": [
+            "Error: expect(locator).toBeVisible() failed",
+            "Timeout:  120000ms"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU low-district preserves production resources and negative controls (5.4m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 114,
+          "text": "2026-11-25T09:13:20.4709974Z [browser-failure]  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic front whole-car inspection\n2026-11-25T09:13:20.4711540Z Error: expect(locator).toBeVisible() failed\n2026-11-25T09:13:20.4711896Z \n2026-11-25T09:13:20.4712074Z Locator:  locator('#photoStudio')\n2026-11-25T09:13:20.4712371Z Expected: visible\n2026-11-25T09:13:20.4712597Z Received: hidden\n2026-11-25T09:13:20.4712825Z Timeout:  120000ms\n2026-11-25T09:13:20.4712962Z \n2026-11-25T09:13:20.4713052Z Call log:\n2026-11-25T09:13:20.4713743Z   - Expect \"toBeVisible\" with timeout 120000ms\n2026-11-25T09:13:20.4727446Z   - waiting for locator('#photoStudio')\n2026-11-25T09:13:20.4728631Z     17 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n2026-11-25T09:13:20.4729718Z        - unexpected value \"hidden\"\n2026-11-25T09:13:20.4730054Z \n2026-11-25T09:13:20.4730522Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/23-apx01-views.spec.ts:30:48"
+        },
+        {
+          "sourceLineInRetainedTail": 150,
+          "text": "2026-11-25T09:20:23.1334434Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU low-district preserves production resources and negative controls\n2026-11-25T09:20:23.1335390Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 152,
+          "text": "2026-11-25T09:20:23.1336751Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU low-district preserves production resources and negative controls\n2026-11-25T09:20:23.1337715Z Error: page.evaluate: Test timeout of 300000ms exceeded.\n2026-11-25T09:20:23.1338372Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/37-race-surface-atmosphere.spec.ts:61:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-16.log",
+      "sha256": "b66836af55edfb31e03067e2dbc534e8796f54cfbc5e84365c56beef9bd63276",
+      "recordedJob": "### browser (16) (job 139087692669)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry (4.5m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "a26-overhead-garage-service-rig.spec.ts:11:1 › A26 production startup and practice entry retain the overhead rig with A22 and A33 (4.2m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 103,
+          "text": "2026-11-25T09:08:29.8362260Z [browser-failure]  >  > 45-a21-pit-building-frontage.spec.ts > A21 normal startup retains four frontage chunks and A22/A24 through practice entry\n2026-11-25T09:08:29.8363877Z Error: expect(received).toMatch(expected)\n2026-11-25T09:08:29.8364253Z \n2026-11-25T09:08:29.8364568Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:08:29.8365159Z Received string:  \"loading\"\n2026-11-25T09:08:29.8365375Z \n2026-11-25T09:08:29.8365531Z Call Log:\n2026-11-25T09:08:29.8366019Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:08:29.8366659Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:08:29.8367467Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/45-a21-pit-building-frontage.spec.ts:30:3"
+        },
+        {
+          "sourceLineInRetainedTail": 142,
+          "text": "2026-11-25T09:15:07.3109821Z [browser-failure]  >  > a26-overhead-garage-service-rig.spec.ts > A26 production startup and practice entry retain the overhead rig with A22 and A33\n2026-11-25T09:15:07.3110505Z Error: expect(received).toMatch(expected)\n2026-11-25T09:15:07.3110988Z \n2026-11-25T09:15:07.3111209Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:15:07.3111529Z Received string:  \"loading\"\n2026-11-25T09:15:07.3111875Z \n2026-11-25T09:15:07.3111938Z Call Log:\n2026-11-25T09:15:07.3112188Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:15:07.3112592Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:15:07.3113093Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a26-overhead-garage-service-rig.spec.ts:28:3"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-2.log",
+      "sha256": "4e9270206eb46a539c0f949bac44f1ee357c1c2441a75746c937b255aa8f1dbf",
+      "recordedJob": "### browser (2) (job 139087692616)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "02-wheel-fidelity.spec.ts:7:1 › actual wheel geometry follows recorded alignment without deforming rigid parts at any LOD (9.4s)",
+          "details": [
+            "Error: page.evaluate: Error: Expected four visible reduced wheel pivots"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit.",
+          "olderHistory": "Verified ancestor ffd2259 run 44617126580 passed this case; this is not an original-baseline failure proof."
+        },
+        {
+          "test": "23-apx01-views.spec.ts:13:3 › 27H.1 normal application: deterministic three-quarter whole-car inspection (3.3m)",
+          "details": [
+            "Error: expect(locator).toBeVisible() failed",
+            "Timeout:  120000ms"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "35-aurel-race-quality.spec.ts:143:1 › static Aurel traversal preserves the asset-loaded scene while dusk fill improves shadow readability (5.3m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: weather, full circuit and camera framing evidence (5.3m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-3.log",
+      "sha256": "09d4908524e905aa5e04451ef51942227409eb6b617c3b3536d9d6d01c3ba4ca",
+      "recordedJob": "### browser (3) (job 139087692659)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (3.1m)",
+          "details": [
+            "Error: expect(locator).toBeVisible() failed",
+            "Timeout:  120000ms"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "32-race-clarity.spec.ts:96:1 › normal-resolution eight-car night inspection follows the selected car and restores a held race (10.3m)",
+          "details": [
+            "Error: locator.click: Test timeout of 600000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "43-hero-garage.spec.ts:12:1 › A22 normal startup loads one authored garage and retains it through practice entry (4.2m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "49-festival-menu-access.spec.ts:400:1 › festival map: filters, event selection and keyboard focus survive redraws (4.2s)",
+          "details": [
+            "Error: expect(received).toMatchObject(expected)",
+            "Expected: { paused: false, throttle: 1 }",
+            "Received: { paused: false, throttle: 0 }",
+            "at e2e/49-festival-menu-access.spec.ts:475:5"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit.",
+          "olderHistory": "Verified ancestor ffd2259 run 44617126580 passed this case in browser 5; this is not an original-baseline failure proof."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 33,
+          "text": "2026-11-25T09:00:30.7548100Z [browser-failure]  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload\n2026-11-25T09:00:30.7549382Z Error: expect(locator).toBeVisible() failed\n2026-11-25T09:00:30.7549847Z \n2026-11-25T09:00:30.7550238Z Locator:  locator('#photoStudio')\n2026-11-25T09:00:30.7550560Z Expected: visible\n2026-11-25T09:00:30.7550802Z Received: hidden\n2026-11-25T09:00:30.7551229Z Timeout:  120000ms\n2026-11-25T09:00:30.7551487Z \n2026-11-25T09:00:30.7551607Z Call log:\n2026-11-25T09:00:30.7557668Z   - Expect \"toBeVisible\" with timeout 120000ms\n2026-11-25T09:00:30.7558620Z   - waiting for locator('#photoStudio')\n2026-11-25T09:00:30.7559591Z     17 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n2026-11-25T09:00:30.7560610Z        - unexpected value \"hidden\"\n2026-11-25T09:00:30.7560883Z \n2026-11-25T09:00:30.7561446Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:31:46"
+        },
+        {
+          "sourceLineInRetainedTail": 78,
+          "text": "2026-11-25T09:11:14.5177070Z [browser-failure]  >  > 32-race-clarity.spec.ts > normal-resolution eight-car night inspection follows the selected car and restores a held race\n2026-11-25T09:11:14.5177799Z Test timeout of 600000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 80,
+          "text": "2026-11-25T09:11:14.5178421Z [browser-failure]  >  > 32-race-clarity.spec.ts > normal-resolution eight-car night inspection follows the selected car and restores a held race\n2026-11-25T09:11:14.5178996Z Error: locator.click: Test timeout of 600000ms exceeded.\n2026-11-25T09:11:14.5179269Z Call log:\n2026-11-25T09:11:14.5179616Z   - waiting for locator('#modal [data-action=\"modalClose\"]')\n2026-11-25T09:11:14.5180131Z     - locator resolved to <button data-action=\"modalClose\">CLOSE</button>\n2026-11-25T09:11:14.5180533Z   - attempting click action\n2026-11-25T09:11:14.5180894Z     - waiting for element to be visible, enabled and stable\n2026-11-25T09:11:14.5181373Z \n2026-11-25T09:11:14.5181619Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/32-race-clarity.spec.ts:128:59"
+        },
+        {
+          "sourceLineInRetainedTail": 110,
+          "text": "2026-11-25T09:16:06.9032304Z [browser-failure]  >  > 43-hero-garage.spec.ts > A22 normal startup loads one authored garage and retains it through practice entry\n2026-11-25T09:16:06.9033649Z Error: expect(received).toMatch(expected)\n2026-11-25T09:16:06.9034295Z \n2026-11-25T09:16:06.9034786Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:16:06.9035314Z Received string:  \"loading\"\n2026-11-25T09:16:06.9035806Z \n2026-11-25T09:16:06.9035998Z Call Log:\n2026-11-25T09:16:06.9036377Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:16:06.9036952Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:16:06.9037553Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/43-hero-garage.spec.ts:29:3"
+        },
+        {
+          "sourceLineInRetainedTail": 150,
+          "text": "2026-11-25T09:21:00.6349313Z [browser-failure]  >  > 49-festival-menu-access.spec.ts > festival map: filters, event selection and keyboard focus survive redraws\n2026-11-25T09:21:00.6350086Z Error: expect(received).toMatchObject(expected)\n2026-11-25T09:21:00.6350404Z \n2026-11-25T09:21:00.6350535Z - Expected  - 1\n2026-11-25T09:21:00.6350794Z + Received  + 1\n2026-11-25T09:21:00.6350910Z \n2026-11-25T09:21:00.6351176Z   Object {\n2026-11-25T09:21:00.6351456Z     \"paused\": false,\n2026-11-25T09:21:00.6351720Z -   \"throttle\": 1,\n2026-11-25T09:21:00.6352409Z +   \"throttle\": 0,\n2026-11-25T09:21:00.6352737Z   }\n2026-11-25T09:21:00.6353261Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/49-festival-menu-access.spec.ts:475:5"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-4.log",
+      "sha256": "7073ae0bea10005ac00ea344c0802762e7757e48c5397c1017033426e3721107",
+      "recordedJob": "### browser (4) (job 139087692601)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "34-race-view-continuity.spec.ts:8:1 › current-camera car detail and active wheel poses survive immediate cuts and long-lens review (46.1s)",
+          "details": [
+            "Error: page.evaluate: Error: Expected four visible reduced wheel pivots"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit.",
+          "olderHistory": "Verified ancestor ffd2259 run 44617126580 passed this case; this is not an original-baseline failure proof."
+        },
+        {
+          "test": "a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry (4.3m)",
+          "details": [
+            "Error: expect(received).toMatch(expected)",
+            "- Timeout 240000ms exceeded while waiting on the predicate"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 64,
+          "text": "2026-11-25T08:56:22.8895709Z [browser-failure]  >  > 34-race-view-continuity.spec.ts > current-camera car detail and active wheel poses survive immediate cuts and long-lens review\n2026-11-25T08:56:22.8896983Z Error: page.evaluate: Error: Expected four visible reduced wheel pivots\n2026-11-25T08:56:22.8897564Z     at zT0 (<anonymous>:14583:143063)\n2026-11-25T08:56:22.8897985Z     at <anonymous>:14583:144328\n2026-11-25T08:56:22.8898396Z     at Array.map (<anonymous>)\n2026-11-25T08:56:22.8898741Z     at c (<anonymous>:14583:144247)\n2026-11-25T08:56:22.8899117Z     at Module.FT0 [as raceViewContinuity] (<anonymous>:14583:144744)\n2026-11-25T08:56:22.8899502Z     at async <anonymous>:317:30\n2026-11-25T08:56:22.8899777Z     at zT0 (<anonymous>:14583:143063)\n2026-11-25T08:56:22.8900080Z     at <anonymous>:14583:144328\n2026-11-25T08:56:22.8900371Z     at c (<anonymous>:14583:144247)\n2026-11-25T08:56:22.8900692Z     at Module.FT0 (<anonymous>:14583:144744)\n2026-11-25T08:56:22.8901004Z     at async <anonymous>:317:30\n2026-11-25T08:56:22.8901455Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/34-race-view-continuity.spec.ts:44:29"
+        },
+        {
+          "sourceLineInRetainedTail": 117,
+          "text": "2026-11-25T09:06:05.6982966Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry\n2026-11-25T09:06:05.6983730Z Error: expect(received).toMatch(expected)\n2026-11-25T09:06:05.6984036Z \n2026-11-25T09:06:05.6984245Z Expected pattern: /^(driving|briefing)$/\n2026-11-25T09:06:05.6984575Z Received string:  \"loading\"\n2026-11-25T09:06:05.6984715Z \n2026-11-25T09:06:05.6984790Z Call Log:\n2026-11-25T09:06:05.6985103Z - Timeout 240000ms exceeded while waiting on the predicate\n2026-11-25T09:06:05.6985532Z     at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)\n2026-11-25T09:06:05.6985979Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:34:3"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-5.log",
+      "sha256": "c569a4b30ec1d0cfaa416ee681b67ed51c4e1f45806e18127c84e474b0d588b0",
+      "recordedJob": "### browser (5) (job 139087692622)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls (5.3m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.5m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 720000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 96,
+          "text": "2026-11-25T09:01:42.2817878Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls\n2026-11-25T09:01:42.2819868Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 98,
+          "text": "2026-11-25T09:01:42.2821810Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls\n2026-11-25T09:01:42.2823588Z Error: page.evaluate: Test timeout of 300000ms exceeded.\n2026-11-25T09:01:42.2824784Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/37-race-surface-atmosphere.spec.ts:61:31"
+        },
+        {
+          "sourceLineInRetainedTail": 143,
+          "text": "2026-11-25T09:15:22.8417632Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day\n2026-11-25T09:15:22.8418606Z Test timeout of 720000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 145,
+          "text": "2026-11-25T09:15:22.8419529Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day\n2026-11-25T09:15:22.8420604Z Error: page.evaluate: Test timeout of 720000ms exceeded.\n2026-11-25T09:15:22.8421282Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-6.log",
+      "sha256": "f6738b9dd441ff30b7772446ef222a6a203b292d42aaca4836848e88badf9840",
+      "recordedJob": "### browser (6) (job 139087692619)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "07-reference-tools.spec.ts:254:1 › covered menu redraws once on resize and resumes after closing without freezing photo mode (2.5m)",
+          "details": [
+            "Error: expect(locator).toBeVisible() failed",
+            "Timeout:  60000ms"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.5m)",
+          "details": [
+            "Error: locator.fill: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 73,
+          "text": "2026-11-25T09:01:33.1436707Z [browser-failure]  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode\n2026-11-25T09:01:33.1437853Z Error: expect(locator).toBeVisible() failed\n2026-11-25T09:01:33.1438280Z \n2026-11-25T09:01:33.1438506Z Locator:  locator('#photoStudio')\n2026-11-25T09:01:33.1438881Z Expected: visible\n2026-11-25T09:01:33.1439267Z Received: hidden\n2026-11-25T09:01:33.1439513Z Timeout:  60000ms\n2026-11-25T09:01:33.1439668Z \n2026-11-25T09:01:33.1439764Z Call log:\n2026-11-25T09:01:33.1440162Z   - Expect \"toBeVisible\" with timeout 60000ms\n2026-11-25T09:01:33.1440584Z   - waiting for locator('#photoStudio')\n2026-11-25T09:01:33.1441177Z     14 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n2026-11-25T09:01:33.1441883Z        - unexpected value \"hidden\"\n2026-11-25T09:01:33.1442104Z \n2026-11-25T09:01:33.1442581Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:269:46"
+        },
+        {
+          "sourceLineInRetainedTail": 101,
+          "text": "2026-11-25T09:07:05.8616419Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload\n2026-11-25T09:07:05.8617264Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 103,
+          "text": "2026-11-25T09:07:05.8617941Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload\n2026-11-25T09:07:05.8618473Z Error: locator.fill: Test timeout of 300000ms exceeded.\n2026-11-25T09:07:05.8618718Z Call log:\n2026-11-25T09:07:05.8619001Z   - waiting for locator('[data-decal=\"text\"]')\n2026-11-25T09:07:05.8619549Z     - locator resolved to <input maxlength=\"14\" value=\"VOLTEX\" data-decal=\"text\" aria-label=\"Decal wordmark\"/>\n2026-11-25T09:07:05.8619959Z     - fill(\"NORTH\")\n2026-11-25T09:07:05.8620226Z   - attempting fill action\n2026-11-25T09:07:05.8620579Z     - waiting for element to be visible, enabled and editable\n2026-11-25T09:07:05.8620780Z \n2026-11-25T09:07:05.8621074Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:74:47"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-7.log",
+      "sha256": "3bfb1f535c8b496f031280469f13490c84e418f3d72f057c6ab9addd8719b99b",
+      "recordedJob": "### browser (7) (job 139087692645)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls (5.3m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 133,
+          "text": "2026-11-25T09:13:00.2924984Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls\n2026-11-25T09:13:00.2925923Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 135,
+          "text": "2026-11-25T09:13:00.2926800Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls\n2026-11-25T09:13:00.2927834Z Error: page.evaluate: Test timeout of 300000ms exceeded.\n2026-11-25T09:13:00.2928407Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/37-race-surface-atmosphere.spec.ts:61:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-8.log",
+      "sha256": "d489e93ff5665b080e811d66d44fe55882cafff3ede32bfd878443f54236636e",
+      "recordedJob": "### browser (8) (job 139087692650)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "a33-spare-wheel-set.spec.ts:54:3 › A33 real service motion, replay and stored wheels render in sunset (12.4m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 720000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 142,
+          "text": "2026-11-25T09:11:31.4772139Z [browser-failure]  >  > a33-spare-wheel-set.spec.ts > A33 real service motion, replay and stored wheels render in sunset\n2026-11-25T09:11:31.4773112Z Test timeout of 720000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 144,
+          "text": "2026-11-25T09:11:31.4774141Z [browser-failure]  >  > a33-spare-wheel-set.spec.ts > A33 real service motion, replay and stored wheels render in sunset\n2026-11-25T09:11:31.4775010Z Error: page.evaluate: Test timeout of 720000ms exceeded.\n2026-11-25T09:11:31.4775455Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a33-spare-wheel-set.spec.ts:118:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/browser-9.log",
+      "sha256": "8ab955c804704582f25df6e249b185fc283ccd740e908605a697c559fe37f9a5",
+      "recordedJob": "logs unavailable (expired or not accessible)",
+      "cancelledMarker": false,
+      "failedCaseExcerpts": [],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/owner-qa-1.log",
+      "sha256": "d755adb144f529e6f693722bd8495fc6f7c3adfbde73d2ad1fedb458fee53e6f",
+      "recordedJob": "### owner-qa (1) (job 139087692361)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (5.2m)",
+          "details": [
+            "Error: expect.toContainText: Target page, context or browser has been closed"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit.",
+          "parserNote": "Programme failure Error precedes its terminal cross in the retained stream; associated by explicit browser-failure marker, not preceding cross."
+        },
+        {
+          "test": "08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.1m)",
+          "details": [
+            "Error: expect(received).toBe(expected) // Object.is equality",
+            "Expected: \"driving\"",
+            "Received: \"loading\"",
+            "- Timeout 90000ms exceeded while waiting on the predicate",
+            "at e2e/08-reference-implementation.spec.ts:160:3"
+          ],
+          "originClassification": "Identical observed readiness assertion also failed on verified ancestor ffd2259; exact-original baseline reproduction and common root cause remain unproven."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 100,
+          "text": "2026-11-25T08:59:26.7389030Z [browser-failure]  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload\n2026-11-25T08:59:26.7392925Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 102,
+          "text": "2026-11-25T08:59:26.7394132Z [browser-failure]  >  > 07-reference-tools.spec.ts > reference tools: actual livery pixels persist through save, quality changes and reload\n2026-11-25T08:59:26.7395265Z Error: expect.toContainText: Target page, context or browser has been closed\n2026-11-25T08:59:26.7396126Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:43:46"
+        },
+        {
+          "sourceLineInRetainedTail": 159,
+          "text": "2026-11-25T09:20:05.4508928Z [browser-failure]  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards\n2026-11-25T09:20:05.4510699Z Error: expect(received).toBe(expected) // Object.is equality\n2026-11-25T09:20:05.4511169Z \n2026-11-25T09:20:05.4511418Z Expected: \"driving\"\n2026-11-25T09:20:05.4512525Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.1m)\n2026-11-25T09:20:05.4513433Z Received: \"loading\"\n2026-11-25T09:20:05.4513697Z \n2026-11-25T09:20:05.4513844Z Call Log:\n2026-11-25T09:20:05.4514350Z - Timeout 90000ms exceeded while waiting on the predicate\n2026-11-25T09:20:05.4515043Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/owner-qa-2.log",
+      "sha256": "5dd4c6ab5f5a7a7c27b27064a21d281d43b9b667d00007e5c4f28fa4756e04e6",
+      "recordedJob": "### owner-qa (2) (job 139087692278)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames (5.2m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames (5.4m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 109,
+          "text": "2026-11-25T08:59:38.5182118Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames\n2026-11-25T08:59:39.0177319Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 111,
+          "text": "2026-11-25T08:59:39.0178248Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames\n2026-11-25T08:59:39.0178909Z Error: page.evaluate: Test timeout of 300000ms exceeded.\n2026-11-25T08:59:39.0179377Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31"
+        },
+        {
+          "sourceLineInRetainedTail": 128,
+          "text": "2026-11-25T09:05:34.7471620Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames\n2026-11-25T09:05:34.7472750Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 130,
+          "text": "2026-11-25T09:05:34.7473351Z [browser-failure]  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet night frames\n2026-11-25T09:05:34.7477571Z Error: page.evaluate: Test timeout of 300000ms exceeded.\n2026-11-25T09:05:34.7478853Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/owner-qa-3.log",
+      "sha256": "c10598fb9f70f2756d0d2fd144b769d220408ce0efc120237952dd684a8457b5",
+      "recordedJob": "### owner-qa (3) (job 139087692285)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.2m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 720000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        },
+        {
+          "test": "a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in sunset (12.2m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 720000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 134,
+          "text": "2026-11-25T09:09:16.1122280Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day\n2026-11-25T09:09:16.1122682Z Test timeout of 720000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 136,
+          "text": "2026-11-25T09:09:16.1123104Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day\n2026-11-25T09:09:16.1123491Z Error: page.evaluate: Test timeout of 720000ms exceeded.\n2026-11-25T09:09:16.1123824Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31"
+        },
+        {
+          "sourceLineInRetainedTail": 166,
+          "text": "2026-11-25T09:22:03.9791366Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset\n2026-11-25T09:22:03.9792027Z Test timeout of 720000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 168,
+          "text": "2026-11-25T09:22:03.9792644Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset\n2026-11-25T09:22:03.9797114Z Error: page.evaluate: Test timeout of 720000ms exceeded.\n2026-11-25T09:22:03.9797620Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    },
+    {
+      "path": "ci-reports/logs/build-and-validation/owner-qa-4.log",
+      "sha256": "ba4f7a14be9b500930a96dc62b633621aea9da1fb1c39331e79a6b620330e79b",
+      "recordedJob": "### owner-qa (4) (job 139087692352)",
+      "cancelledMarker": true,
+      "failedCaseExcerpts": [
+        {
+          "test": "24-coupled-driver.spec.ts:9:1 › 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks (7.2m)",
+          "details": [
+            "Error: expect(received).toBeGreaterThan(expected)",
+            "Expected: > 0.5",
+            "Received: -0.6108652381980153",
+            "- Test timeout of 420000ms exceeded",
+            "at e2e/24-coupled-driver.spec.ts:80:5"
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit.",
+          "olderHistory": "Verified ancestor ffd2259 failed the case at a page.evaluate/context closure during the preceding steering polling path, not this signed pose-value assertion."
+        },
+        {
+          "test": "p0-cockpit-framing.spec.ts:8:3 › P0 actual cockpit: driving, full circuit and camera framing evidence (5.2m)",
+          "details": [
+            "Error: page.evaluate: Test timeout of 300000ms exceeded."
+          ],
+          "originClassification": "Unresolved: no execution of this browser case on original 350119e8 was captured by this audit."
+        }
+      ],
+      "scope": "error digest and last-250-line snapshot, not full logs or a baseline browser comparison",
+      "jobConclusion": "cancelled",
+      "failureBlocks": [
+        {
+          "sourceLineInRetainedTail": 98,
+          "text": "2026-11-25T09:01:24.0445495Z [browser-failure]  >  > 24-coupled-driver.spec.ts > 27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks\n2026-11-25T09:01:24.0446363Z Error: expect(received).toBeGreaterThan(expected)\n2026-11-25T09:01:24.0446660Z \n2026-11-25T09:01:24.0446817Z Expected: > 0.5\n2026-11-25T09:01:24.0447203Z Received:   -0.6108652381980153\n2026-11-25T09:01:24.0447395Z \n2026-11-25T09:01:24.0447508Z Call Log:\n2026-11-25T09:01:24.0447766Z - Test timeout of 420000ms exceeded\n2026-11-25T09:01:24.0448326Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/24-coupled-driver.spec.ts:80:5"
+        },
+        {
+          "sourceLineInRetainedTail": 154,
+          "text": "2026-11-25T09:17:56.0805660Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence\n2026-11-25T09:17:56.0806268Z Test timeout of 300000ms exceeded."
+        },
+        {
+          "sourceLineInRetainedTail": 156,
+          "text": "2026-11-25T09:17:56.0806902Z [browser-failure]  >  > p0-cockpit-framing.spec.ts > P0 actual cockpit: driving, full circuit and camera framing evidence\n2026-11-25T09:17:56.0807496Z Error: page.evaluate: Test timeout of 300000ms exceeded.\n2026-11-25T09:17:56.0808065Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/p0-cockpit-framing.spec.ts:51:31"
+        }
+      ],
+      "classification": "Cancelled job with individually retained case failures; remaining cases and infrastructure causes cannot be inferred from this partial log."
+    }
+  ],
+  "schema": 1,
+  "reportSnapshotCommit": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+  "originalBaselineBrowserComparison": "Not performed; the baseline-retained report is for 811ac2bc92, not baseline 350119e8, and relevant retained logs are unavailable.",
+  "caseFailureCount": 37,
+  "recordedBrowserJobCount": 20,
+  "allRecordedBrowserJobConclusions": "cancelled",
+  "jobConclusionIsNotCaseOutcome": true
+}

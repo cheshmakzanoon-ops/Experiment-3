@@ -7,9 +7,67 @@ into hardware acceptance.
 
 ## Current disposition
 
-**The exact-source run passed 914 focused tests in 70 files, then failed its
-full TypeScript check. The production build and native cases did not run.**
-The reviewed release candidate is
+**Corrected source `774e62f` passes 914 focused tests in 70 files, full TypeScript
+checking, the product/full production build, and all 47 native browser/replay
+cases.** Its two independently failing material diagnostic paths remain visible;
+this is software-browser acceptance of the stated contracts, not material-wide
+or physical-hardware acceptance.
+
+The completed [focused workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45592833399)
+and its retained artifact were inspected directly:
+
+| Item | Final inspected result |
+| --- | --- |
+| Source | `774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86` |
+| Tree | `5f466294eca0b188db58375a1caf4cd76088527b` |
+| Workflow / job | `45592833399` / `139131185041` |
+| Focused units | **914 passed in 70 files**, 189.00 seconds |
+| Full TypeScript check / production build | **Passed / passed** |
+| Build variant / edition | `product` / `full`; commit agrees with the source receipt |
+| Build fingerprint | `08a29559c6223e8bef3d6c5af2229ea9421e1c6d9d9659e3144cd7c044267529` |
+| Native browser/replay cases | **47 passed; zero unexpected, skipped, flaky or retried cases** |
+| Overall focused workflow | **Success** |
+| Artifact | `15012585753`; 1,300,824-byte original archive |
+| Original archive SHA-256 | `3ae96693bf5bc12acdbd449592ef36b94bd1d05ffa9a1ce492d24e401cb2598a` |
+| Backend | ANGLE / Mesa llvmpipe, LLVM 20.1.2, 256-bit software renderer |
+| Material diagnostic failures | MeshBasic and raw `vec3`: 64 of 256 bytes differ through each read method |
+
+The source, tree, lock and build receipts agree. The source hash recorded by the
+native history fixture also matches the exact committed `src/main.ts` blob.
+Every native case has one passed result at retry zero. The two material failures
+have two explicit `native-backend-raster-limitation` annotations, preserved in
+[`native-diagnostic-annotations.json`](evidence/checkpoint-774e62f/native-diagnostic-annotations.json).
+This workflow's success does not assert that every broader repository workflow
+passed.
+
+### Observed native contract results
+
+The [final result manifest](evidence/checkpoint-774e62f/result.json) indexes the
+complete retained attachments. The audit directly checked these observations:
+
+| Contract | Observed result at `774e62f` |
+| --- | --- |
+| Shared GPU ownership | Red and green each match all 256 expected bytes and hashes. Native fences 1, 2 and 3 are deleted once; the first two completed, the third was abandoned. No `finish` call or retained Three geometry, texture or program remains. |
+| Attribute publication | Complete native buffer differences are zero before/after publication; duplicate/full/narrow updates transfer 48 / 49,152 / 24 bytes. |
+| Retained history | Both trusted persisted shows retain the original document and worker. Paused worker ticks remain 57 → 57 and 95 → 95. Each restored owner has one RAF and input interval, balanced request accounting and no stale/duplicate delivery. |
+| Terminal reload | New document/worker identities; trusted non-persisted hide; zero owned frames/intervals and one disposal of each tracked renderer, worker, input, UI and audio owner. |
+| Native engine audio | Thirteen renders, 1,019,520 sample values; all four original/current pairs and six same-rate self-controls satisfy the stated PCM budget. Supplied-input differences are zero. The real gain perturbation is rejected. |
+| UI audio | Three contexts close exactly once; every observed node disconnects and source handler clears. The replacement receives three native ended events, retains ownership, and no old cue revives. The abandoned resume remains observably pending at all three checkpoints. |
+| Network transfers | 768 packets and 94,945 bytes match exactly; 768 sender views detach, six retained receiver buffers remain unchanged, all ports close and no transfers/events remain pending. |
+| Wrapped records | 630 rows at ring head 100; transferred CSV snapshot differences are zero and native export detachment occurs. IndexedDB reload preserves the ghost bytes and first-crossing behavior. |
+| Device ownership | Both actual DOM/focus/RAF cases pass with their stated scripted gamepad boundary; no physical controller claim is added. |
+
+The raw MeshBasic and `vec3` controls continue to produce their prior failed hash.
+Clear, exact texture upload, constant shader and `vec4` controls remain exact
+through bulk native, individual-pixel and Three reads. Native uniform values and
+RGBA8 attachment checks pass, with zero GL errors. These controls isolate the
+observed path but still do not identify a specific driver/compiler component.
+
+## Preserved compiler checkpoint
+
+The preceding exact-source run passed 914 focused tests in 70 files, then failed
+its full TypeScript check. Its production build and native cases did not run.
+That reviewed candidate was
 `26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1`, tree
 `0067cdfd51fb6b9cdecfa9cc1632f8ec19879b50`.
 
@@ -37,10 +95,13 @@ assignment made no source change or assertion change to resolve it.
 
 The five original artifact members are source/tree/lock receipts and the unit
 and compiler logs. There is no built-product identity, renderer receipt or native
-attachment for this candidate. Earlier native results cannot fill that gap; the
-corrected source still needs its own exact-source compiler/build/native run.
+attachment for this candidate. Earlier native results cannot fill that gap.
+The later `774e62f` run above provides its own evidence after the fixture typing
+repair; it does not rewrite this failure as a pass.
 
-The latest completed **native** evidence inspected here is
+## Earlier native failure retained
+
+The preceding completed native evidence inspected here is
 [`checkpoint-6cb1c88/result.json`](evidence/checkpoint-6cb1c88/result.json):
 
 | Item | Inspected result |
@@ -194,7 +255,7 @@ one browser worker, zero retries, `--forbid-only`, source identity receipts and
 always-retained failure artifacts. Local Chromium remains outside this audit;
 the already established local socket restriction was not retried or bypassed.
 
-## Exact-source artifact preservation and next gate
+## Exact-source artifact preservation
 
 The failed candidate archive is retained under
 [`evidence/checkpoint-26efaeef/`](evidence/checkpoint-26efaeef/result.json).
@@ -207,7 +268,18 @@ The archive includes sanitized complete logs, original/log-copy hashes, the
 job's actual step conclusions and an explicit absence of native/build identities.
 No skipped native step is counted as a pass or a failed browser assertion.
 
-The next corrected-source run must be evaluated from its own artifact, including:
+The successful corrected-source archive is retained under
+[`evidence/checkpoint-774e62f/`](evidence/checkpoint-774e62f/result.json).
+Its 24 files occupy approximately 1.27 MB and preserve the complete attachments
+needed for the claims above, including both history cycles and terminal reload
+in `native-page-history.json`. The raw ZIP remains at
+`/tmp/aeebac160835-engine/validation/engine-774e62f.zip`; extracted members and
+the decoded Playwright report remain in `validation/checkpoint8-artifact`.
+The lock digest is the same one recorded above. Sanitized logs and normalized
+attachment JSON each have an archived-file digest; original member digests and
+the original ZIP digest preserve their upstream identity separately.
+
+The completed inspection covers:
 
 1. Workflow/job/artifact IDs and the original ZIP byte count and SHA-256.
 2. Source commit/tree, dependency-lock digest, built product identity and the
@@ -220,9 +292,10 @@ The next corrected-source run must be evaluated from its own artifact, including
    input/record/upload and audio ownership evidence relevant to the release.
 
 The coordinator owns Git publication. This assignment downloaded and archived
-the focused artifact once; another copy is not an independent execution. The
+each focused artifact once; another copy is not an independent execution. The
 review used text/source inspection, existing-JSON inspection, remote status reads
 and artifact extraction. No local browser, test suite, compiler, build, timing
-workload, production mutation or protected-content edit was performed. A future
-passing native result must retain the GPU material limitation discussed above
-whenever its diagnostic still reproduces it.
+workload, production mutation or protected-content edit was performed. The
+passing native result retains the GPU material limitation discussed above.
+Subsequent executable-source changes require their own relevant acceptance;
+this report identifies the exact source that was actually tested.

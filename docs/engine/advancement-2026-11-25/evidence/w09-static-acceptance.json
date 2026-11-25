@@ -1,0 +1,647 @@
+{
+  "schemaVersion": 1,
+  "purpose": "W09B static review and test-only compiler repair; full compiler/build acceptance remains exact-source CI",
+  "failedCheckpoint": {
+    "commit": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+    "tree": "0067cdfd51fb6b9cdecfa9cc1632f8ec19879b50",
+    "workflowRun": 45590533223,
+    "unitTests": 914,
+    "unitFiles": 70,
+    "compilerError": "TS2352 at tests/engine-ui-opening-review.test.ts(63,14)",
+    "productionBuild": "not started after compiler failure",
+    "nativeTests": "skipped after compiler failure"
+  },
+  "repair": {
+    "path": "tests/engine-ui-opening-review.test.ts",
+    "description": "Explicit unknown bridge for the deliberately constructor-free controlled Interface fixture",
+    "sourceSha256": "5d98c5e4cadb7d97aa255a52ca8b9b7b6ce1bd8356eae7c4e8d3a337d37ce136",
+    "runtimeChange": false,
+    "assertionsChanged": false,
+    "emittedJavaScriptIdenticalToFailedCheckpoint": true,
+    "emittedJavaScriptSha256": "2333a3f81225e32c369630b7b42fca3b330cfc531a6a5419c4ff9aaf984aaf8d",
+    "syntacticDiagnostics": 0,
+    "boundedSemanticAttempt": {
+      "heapMiB": 640,
+      "scope": "Fixture source rooted with unchanged project options; imports actual Interface dependency graph",
+      "exitCode": 137,
+      "result": "incomplete; shell reported Killed before any diagnostic summary; not repeated"
+    },
+    "focusedTests": {
+      "passed": 7,
+      "files": 1,
+      "retry": 0,
+      "maxWorkers": 1,
+      "log": "\n RUN  v3.2.4 /tmp/aeebac160835-engine/Experiment-3\n\n \u2713 tests/engine-ui-opening-review.test.ts (7 tests) 15ms\n\n Test Files  1 passed (1)\n      Tests  7 passed (7)\n   Start at  03:07:57\n   Duration  2.67s (transform 1.46s, setup 0ms, collect 2.39s, tests 15ms, environment 0ms, prepare 59ms)\n\n"
+    },
+    "scopedEslint": "passed",
+    "scopedPrettier": "passed",
+    "whitespace": "passed",
+    "fullSemanticAcceptance": "pending fresh exact-source CI"
+  },
+  "changedCodeInputs": {
+    "baseline": "350119e8ec0606e8c5de5b3ab80df41104025679",
+    "head": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+    "purpose": "Checked changed-code contents; the one-line test type bridge is not yet a committed revision",
+    "node": "v24.22.3",
+    "packageLockSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "files": [
+      {
+        "path": "e2e/engine-native-audio-advancement.spec.ts",
+        "sha256": "2b2498e7a1e1373c289603feea62075af84639972bcab168dfa4c88034201bac"
+      },
+      {
+        "path": "e2e/engine-native-device-ownership.spec.ts",
+        "sha256": "2a7013782eb3d8962e21ac1e52bc38070588fdd4caeb34611c8def262b634e73"
+      },
+      {
+        "path": "e2e/engine-native-gpu-advancement.spec.ts",
+        "sha256": "ce04c43f22a2dfc771c7d8254db964bc292ac8e230de0de2fa553195ca82c46f"
+      },
+      {
+        "path": "e2e/engine-native-network-advancement.spec.ts",
+        "sha256": "c60a00276ebadb831021ad9f26a0b0f3e79eb05f57b37aa2c4c8c62b7ff5136b"
+      },
+      {
+        "path": "e2e/engine-native-page-history.spec.ts",
+        "sha256": "edc1db3424c3709eeeb2aabed533b9d81254a5b94078240aad17b6666ea96de2"
+      },
+      {
+        "path": "e2e/engine-native-records-advancement.spec.ts",
+        "sha256": "9394b23adb428f27f30a581ac420b46bebc731728899a9b75d549df4aecf44bc"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-audio-advancement-original.ts",
+        "sha256": "94005e96c7ff0421bb34adaccf20723cb400588692b09fcd92d8209f026610f7"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-audio-advancement.ts",
+        "sha256": "be2c713a7132d72dd8c8388228cbeeca8d92536e5e8dcba9fcef08cd7fceb533"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-device-ownership.ts",
+        "sha256": "05de4865672b93d543c74cb1db315c15d0f8881ebecf92e3b9d20e270a97edb1"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-gpu-advancement.ts",
+        "sha256": "1be702f4157d405d473afaa34e9f0b200a5d6c3097bb0771a118fb95ef4963cd"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-network-advancement.ts",
+        "sha256": "87254dd4d57798e2fa08e93d6d56d77ca6827a68f863e04d3eb51bdac430586d"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-page-history.ts",
+        "sha256": "85ad4ea1ef6c457f4d277dd226d462b65c84c6e2f154d1fcb7b345b096cefd00"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-page-history.worker.ts",
+        "sha256": "eb4cb9f6fc94cd7375603f05c4b81b014012c56f5e03728584dcde510f55a382"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-records-advancement.ts",
+        "sha256": "b90b00e6b494193da832567629b6a9d36d1ca4b6f7f63f0f1aa019ea72a0ddaa"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-records-advancement.worker.ts",
+        "sha256": "e847ad25b17960c49e855dba5766971562bebadd60f7cf6f88a1240871763c93"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-resources.ts",
+        "sha256": "6f68a76afe250b9d28bdd6b0afba7aa370a0a7f325811478d939e091d073ef91"
+      },
+      {
+        "path": "scripts/engine-advancement/audio-composition-proof.mjs",
+        "sha256": "67334ae0bbdad63448d33b1ced7547767dc15b0513210b93e8cbe5329e52eb0c"
+      },
+      {
+        "path": "scripts/engine-advancement/benchmark-smoke.mjs",
+        "sha256": "34935b54568d2c295b43a4ea798285419ed7bd72450640f2d1653e4d9ba9d0d4"
+      },
+      {
+        "path": "scripts/engine-advancement/benchmark-support.mjs",
+        "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-attributes-review.mjs",
+        "sha256": "3a7719e9ac5533c8b291b85088dcc2e904c7d359dc3c6e8f19fde323d1b7c0ce"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-attributes.mjs",
+        "sha256": "a4083d90c8ea62850de3fc19c38a1057a9aff31f44885d4e21340aa61e8ca97e"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-audio.mjs",
+        "sha256": "b718f86fda366ccb34c18ecc1165cd2ecf2ce5b11553f4c08cc19bed1d8c6cf7"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-lanes.mjs",
+        "sha256": "b1fe5bf8c925fe1a687443e9d4fe8d6ecbf83e5215db556dae5c1141cf685577"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-network.mjs",
+        "sha256": "b0a0d1dc7a0223b288f8ac6cb84b9b705919b86095197ab642a908e841f691f3"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-simulation.mjs",
+        "sha256": "2a245c4d6ba95897ce9ccdeb3535554d607dfa619a30b4ec07a614c6b5509e56"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-snapshot-crossover.mjs",
+        "sha256": "788c26240e16f31fda9b68dc2440576895d7db2a484b66ba896028945e08e49c"
+      },
+      {
+        "path": "scripts/engine-advancement/measure-surfaces.mjs",
+        "sha256": "cad5a077fa6626dcf1fb1e8ae0a9f79287ae5674cb012a170e56aa4e2e1e2a16"
+      },
+      {
+        "path": "scripts/engine-advancement/network-composition-proof.mjs",
+        "sha256": "ba15d8f4fa42f255725591a201a19eb7ab907330d9cde0f6727e517f58a869e6"
+      },
+      {
+        "path": "scripts/engine-advancement/physics-cache-edge-proof.mjs",
+        "sha256": "a33892a0c47bf1e71a2f03f06197cbefc85212bd4c7aaf6125b4238000426943"
+      },
+      {
+        "path": "src/audio/engine-loudness.ts",
+        "sha256": "19537125a0247ded5d1afb0992d5f9a7b4fcb4da318ec430f7ef3db045866c89"
+      },
+      {
+        "path": "src/audio/ui-sounds.ts",
+        "sha256": "b69e685b36692b58e5a307eeb674966665fe89e2180ea052664fc9f8bbc4b668"
+      },
+      {
+        "path": "src/core/flashback.ts",
+        "sha256": "9f9e9802beb8a0cd9685b522de0a1681b8259947673886084d8190bbd55c7f2f"
+      },
+      {
+        "path": "src/core/ghost-lap.ts",
+        "sha256": "aaeb9a4fe04fa3e2ddb2ebc00fdc7e16bbca536583160bd0c914221d6d2e194c"
+      },
+      {
+        "path": "src/input/controller.ts",
+        "sha256": "bf7e80a240d8acdbaea4e1f55462d8ea8d466f6544aafb6b21a38c61f6016423"
+      },
+      {
+        "path": "src/main.ts",
+        "sha256": "d4131727c5cea898728eee4d87a4bf512295e056b0cfa69f73fafb2905b78537"
+      },
+      {
+        "path": "src/net/client.ts",
+        "sha256": "7bb4fdd1ff32ab74cc65c8b93382ad0d22b39a02c04be802451e28c3a1a5b319"
+      },
+      {
+        "path": "src/net/codec.ts",
+        "sha256": "3b1e8185691a6c9e63fbacfdfb59af2e691aed8e255c7d645c92c708da97a79a"
+      },
+      {
+        "path": "src/net/interpolation.ts",
+        "sha256": "1c8110321d901625581aecb7c97afd4aa05a6e618ad22df71563327c5d345984"
+      },
+      {
+        "path": "src/net/server.ts",
+        "sha256": "4651dd030c86f285b7d0f0444d1bdb94db21ba346bce1ef3d04060e577132fc1"
+      },
+      {
+        "path": "src/net/snapshot.ts",
+        "sha256": "5bb5c19c1ed830a3f89dc553c1a7333c4d7dcc6f5a353ac2909f0193cd136b61"
+      },
+      {
+        "path": "src/rendering/attribute-ranges.ts",
+        "sha256": "91d17b1851b62667ee67c849f45821220677213846f92ab72fa3b31a7ea179a0"
+      },
+      {
+        "path": "src/rendering/open-world/festival-renderer.ts",
+        "sha256": "b652cdf41dc6be51458b343fbc7fa6b9ec80454aefcb411d30ce420b05c0cb7c"
+      },
+      {
+        "path": "src/rendering/renderer.ts",
+        "sha256": "24bcc9265f3b91aa939a7048666e5051449581deb9ae7686bf66bfca1a0de1a2"
+      },
+      {
+        "path": "src/rendering/shared-gpu-frame-gate.ts",
+        "sha256": "c37515ff8ffd9b5f68e2cd7620bd0682a2f52f660b6714377a20457fc50aa428"
+      },
+      {
+        "path": "src/session/free-roam.ts",
+        "sha256": "d35273af2f9cf742747619c092fb073afda0ff35c7840ed089cf2de8fe0cfa7f"
+      },
+      {
+        "path": "src/simulation/surface-thermal.ts",
+        "sha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12"
+      },
+      {
+        "path": "src/simulation/track.ts",
+        "sha256": "11c4f225e953670d86a75660a128a944a38c4105ccf08e00e52b2d0ed6453bc5"
+      },
+      {
+        "path": "src/simulation/weather.ts",
+        "sha256": "71da8aa301efa348cc373f560f17cb8a18cde32c9085cdc8f8dbb613dba57088"
+      },
+      {
+        "path": "src/storage/telemetry-plots.ts",
+        "sha256": "7f64415025beff630682ddc426495b2061fcb8dec1c20cb3d98dfbdcffd44dbf"
+      },
+      {
+        "path": "src/ui/credits.ts",
+        "sha256": "8de208a5feef2cee3e4b678355c5533aa12882039ed936c7f570332f318c1a1f"
+      },
+      {
+        "path": "src/ui/flashback.ts",
+        "sha256": "06040029989711f19e5d8005356947d3e1fc616345dd259b823dc8f41e14f70b"
+      },
+      {
+        "path": "src/ui/interface.ts",
+        "sha256": "4c88c868c77766aa1aba55e05a32b020f6dcac99066e613dd8ec7764435784e3"
+      },
+      {
+        "path": "src/ui/menu-gamepad.ts",
+        "sha256": "a329d42a8f00324de4c5e6ad64d822f913a351c61ca638999a78144f30a189f9"
+      },
+      {
+        "path": "src/workers/physics.worker.ts",
+        "sha256": "48a76fc57ad47aad7d6b1771d4f9f46ed337694929994b7a87e18a93a94bd317"
+      },
+      {
+        "path": "tests/circuit-startup-settlement.test.ts",
+        "sha256": "65cf372b70eacad9eff37876bca3087ce2d66887a3afc047ffd0e1107591ef41"
+      },
+      {
+        "path": "tests/engine-advancement-records.test.ts",
+        "sha256": "ec2142deecc9050c9583c11c6f45aee6f8846aae37092dcb56b15293c7881eb3"
+      },
+      {
+        "path": "tests/engine-attribute-range-coalescing.test.ts",
+        "sha256": "747384caa283e99a3730f59104fc5b21cfd526444412ed7b2a2266547799c5bd"
+      },
+      {
+        "path": "tests/engine-audio-advancement-composition.test.ts",
+        "sha256": "607cf3109ff2f514fb7b32c7a8fda3a9c43b1e9a346e97087da054b9e70126e7"
+      },
+      {
+        "path": "tests/engine-audio-preview-cancellation.test.ts",
+        "sha256": "3455ae384916d8349a9cb7762cb7660baf30d6a74e426922b84fafb0f03dd78e"
+      },
+      {
+        "path": "tests/engine-cross-mode-startup.test.ts",
+        "sha256": "af8f2d0d89b4fad418facc4e5ebbf770515cf5f108bfa873e44c85aa60080cfe"
+      },
+      {
+        "path": "tests/engine-device-lifecycle-composition.test.ts",
+        "sha256": "5e1bfc3fa4bced1290bc71754c8fac39b17a851a0f2c342d4fd422e1fbca178f"
+      },
+      {
+        "path": "tests/engine-export-host-ownership.test.ts",
+        "sha256": "4a4b735f519b54561cfbe5ccc13c4141bb672060de634690633c2fd18ce4bc4f"
+      },
+      {
+        "path": "tests/engine-festival-frame-pacing.test.ts",
+        "sha256": "2fd045571fda70f7854a7f1e2664a20bf752905f1871c5014bb0eccf88fd6606"
+      },
+      {
+        "path": "tests/engine-flashback-disabled-history.test.ts",
+        "sha256": "b807c313c4f8e16ca87907d8040f42e77bc59f80443a282ae346141dce20042e"
+      },
+      {
+        "path": "tests/engine-ghost-first-passage.test.ts",
+        "sha256": "448fb7eeb38b5c629cb8674f4398b24aefd0f431d521198254f5f372d0458260"
+      },
+      {
+        "path": "tests/engine-graphics-advancement-composition.test.ts",
+        "sha256": "12d3b0591b7cdf59779f5ebffbb312b3b248443e6e687656884bd2127a5f0af6"
+      },
+      {
+        "path": "tests/engine-host-failure-cleanup.test.ts",
+        "sha256": "d101a8f4f7e4195223bb92c837f63bc09e008728c92319742d068d9a0ef4deab"
+      },
+      {
+        "path": "tests/engine-input-encoder-capacity.test.ts",
+        "sha256": "7c26c785d563873475302e03f7e1c5275e59028081f797a1cc3891f82785084a"
+      },
+      {
+        "path": "tests/engine-loudness-coefficients.test.ts",
+        "sha256": "07f2211db3fc04da2a817b0317204fdaf288b4f77e01df23b4e289adca6f61c0"
+      },
+      {
+        "path": "tests/engine-loudness-sine-basis.test.ts",
+        "sha256": "06ec11e8c097315343e7e1a52d566613208ac512e4e979a01e7f3540d460bb02"
+      },
+      {
+        "path": "tests/engine-menu-gamepad-lifecycle.test.ts",
+        "sha256": "c0912b06ed951a130695d47543657fc9d5289afff34778dad01d675d67082cc9"
+      },
+      {
+        "path": "tests/engine-network-advancement-composition.test.ts",
+        "sha256": "7be3dee9bbfea5531709a20a645cc06a7d8b023db63e7dd09caec50ceca0072b"
+      },
+      {
+        "path": "tests/engine-network-clock-drift.test.ts",
+        "sha256": "11df9045452a50c9cd5f669ce90e186cbee00671174ee0348fe74aa968ff39a5"
+      },
+      {
+        "path": "tests/engine-page-lifecycle.test.ts",
+        "sha256": "2c3e62fe5f460d4f542a6f9fea2fa7153d9a9263266716cc8bad2f09fc92814b"
+      },
+      {
+        "path": "tests/engine-paved-lane-index.test.ts",
+        "sha256": "2cc39ba941aaf76aece6f61be9c7fd9a59dc25864aeb6c6c632ed78f92c36052"
+      },
+      {
+        "path": "tests/engine-record-boundaries-review.test.ts",
+        "sha256": "6de5d5534f0a3f563abed25f24c1a291f8c4a00a4f745dd5a4dfd90c8c49b645"
+      },
+      {
+        "path": "tests/engine-renderer-exclusive-release.test.ts",
+        "sha256": "5ccfa0c527572e962fc3428b986ba64653d759f158dabab165fc4eda0d4df883"
+      },
+      {
+        "path": "tests/engine-resource-integration.test.ts",
+        "sha256": "0160edd8bef470206d7212d2df0ee494795f5951bc70d3e9e3c74326165f9278"
+      },
+      {
+        "path": "tests/engine-shared-gpu-ownership.test.ts",
+        "sha256": "df9873b091dcfb93d46caf443e763ef86a6ca30de7dcd360d1da933cc45e3c12"
+      },
+      {
+        "path": "tests/engine-snapshot-batch-encoding.test.ts",
+        "sha256": "8ae35ee42dececf0f1625c1e63c92c3558142f62de6437d8b8d6c1333e78500c"
+      },
+      {
+        "path": "tests/engine-surface-coefficients.test.ts",
+        "sha256": "aa463f2512c62526047dff7ac728d9565b287333af7d02f9e8c4ef6e19409a2a"
+      },
+      {
+        "path": "tests/engine-surface-lane-integration.test.ts",
+        "sha256": "2af8df748d62c25a55556c094389763daabb651a50e9c6d4cad62ab642cd30e8"
+      },
+      {
+        "path": "tests/engine-telemetry-lap-gap.test.ts",
+        "sha256": "bfca7353a16c680e3c9fe4adc75939e70830e5ce6301f9893b5addba3764936b"
+      },
+      {
+        "path": "tests/engine-transfer-transport-accounting.test.ts",
+        "sha256": "3ca6ca5267d04a8fa6ba52093eaedea8b09c32eaee9f44eed02d6e3e2ec949b0"
+      },
+      {
+        "path": "tests/engine-ui-opening-review.test.ts",
+        "sha256": "5d98c5e4cadb7d97aa255a52ca8b9b7b6ce1bd8356eae7c4e8d3a337d37ce136"
+      },
+      {
+        "path": "tests/engine-worker-session-adversarial.test.ts",
+        "sha256": "22a071f51d978bf1bfd24a51d194b105b8369793af5a046c672c7453b21e2fe5"
+      },
+      {
+        "path": "tests/festival-ground-height.test.ts",
+        "sha256": "9f2667fc3787d03c962c7e9f9b4be7665259c488616c7708c4fcff9d63a20f77"
+      },
+      {
+        "path": "tests/festival-renderer-loader-lifecycle.test.ts",
+        "sha256": "ecd4b481154a6be5668787e232caf35f81eaac2af024c069939834c4a319f811"
+      },
+      {
+        "path": "tests/festival-session-lifecycle.test.ts",
+        "sha256": "f15dd7cb75513247d7a45edb5fd3b1ea42e311c0e09073e56dca558e11589d70"
+      }
+    ]
+  },
+  "eslint": {
+    "summary": {
+      "files": 89,
+      "errors": 0,
+      "warnings": 0,
+      "fatalErrors": 0
+    },
+    "results": []
+  },
+  "formatAudit": {
+    "checkedFiles": 91,
+    "failures": [
+      {
+        "path": "scripts/engine-advancement/network-composition-proof.mjs",
+        "baselinePresent": false,
+        "baselineFormatted": null,
+        "classification": "new file needs formatting"
+      },
+      {
+        "path": "src/input/controller.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/main.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/rendering/open-world/festival-renderer.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/rendering/renderer.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/session/free-roam.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/simulation/weather.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/ui/interface.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "src/workers/physics.worker.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "tests/engine-cross-mode-startup.test.ts",
+        "baselinePresent": false,
+        "baselineFormatted": null,
+        "classification": "new file needs formatting"
+      },
+      {
+        "path": "tests/engine-festival-frame-pacing.test.ts",
+        "baselinePresent": false,
+        "baselineFormatted": null,
+        "classification": "new file needs formatting"
+      },
+      {
+        "path": "tests/engine-network-advancement-composition.test.ts",
+        "baselinePresent": false,
+        "baselineFormatted": null,
+        "classification": "new file needs formatting"
+      },
+      {
+        "path": "tests/engine-page-lifecycle.test.ts",
+        "baselinePresent": false,
+        "baselineFormatted": null,
+        "classification": "new file needs formatting"
+      },
+      {
+        "path": "tests/festival-ground-height.test.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "tests/festival-session-lifecycle.test.ts",
+        "baselinePresent": true,
+        "baselineFormatted": false,
+        "classification": "file already failed formatting at baseline; no claim that all current style differences predate the task"
+      },
+      {
+        "path": "docs/engine/advancement-2026-11-25/w09b-build-static-acceptance.md",
+        "baselinePresent": false,
+        "baselineFormatted": null,
+        "classification": "new file needs formatting"
+      }
+    ],
+    "changedInputs": []
+  },
+  "formatRepair": {
+    "scope": "Four explicitly allocated task-created test files; formatting only",
+    "emission": {
+      "typescript": {
+        "target": "ES2022",
+        "module": "ESNext"
+      },
+      "normalization": {
+        "tool": "esbuild",
+        "loader": "js",
+        "target": "es2022",
+        "format": "esm",
+        "minifyWhitespace": true,
+        "legalComments": "none"
+      }
+    },
+    "files": [
+      {
+        "path": "tests/engine-cross-mode-startup.test.ts",
+        "beforeSha256": "af8f2d0d89b4fad418facc4e5ebbf770515cf5f108bfa873e44c85aa60080cfe",
+        "afterSha256": "2acc5205a8ebd4620060f3b248c4ef6869b36ccbadea657075bdf679eaf58484",
+        "rawTypescriptEmissionIdentical": false,
+        "normalizedEmittedJavaScriptIdentical": true,
+        "normalizedEmittedJavaScriptSha256": "2f649146e8b52996b25ce20b20b709aaf78215553c0fab2ac01cf91770df663c",
+        "syntaxDiagnostics": 0
+      },
+      {
+        "path": "tests/engine-festival-frame-pacing.test.ts",
+        "beforeSha256": "2fd045571fda70f7854a7f1e2664a20bf752905f1871c5014bb0eccf88fd6606",
+        "afterSha256": "b8fb0ca4a90405e59388933b7e0bd0a06c193156fe70cae4b6dc6e8894d1ec0c",
+        "rawTypescriptEmissionIdentical": false,
+        "normalizedEmittedJavaScriptIdentical": true,
+        "normalizedEmittedJavaScriptSha256": "88d2224dc13bb925093402d3f442f4a46162840c2ecdd5a97c4cea9035f4fa24",
+        "syntaxDiagnostics": 0
+      },
+      {
+        "path": "tests/engine-network-advancement-composition.test.ts",
+        "beforeSha256": "7be3dee9bbfea5531709a20a645cc06a7d8b023db63e7dd09caec50ceca0072b",
+        "afterSha256": "6de2cc7307083b8322984676855b4023e5a7ef0f1246adfbcc766b259215affc",
+        "rawTypescriptEmissionIdentical": false,
+        "normalizedEmittedJavaScriptIdentical": true,
+        "normalizedEmittedJavaScriptSha256": "bb853f71b91f2cfb733dc4b54206ead32d85366bbd72bfb0ff45da3092a0f078",
+        "syntaxDiagnostics": 0
+      },
+      {
+        "path": "tests/engine-page-lifecycle.test.ts",
+        "beforeSha256": "2c3e62fe5f460d4f542a6f9fea2fa7153d9a9263266716cc8bad2f09fc92814b",
+        "afterSha256": "873dfd3a449d6b7a076ea061fe9dc82ec2371664d61d4fd7035266936134ed19",
+        "rawTypescriptEmissionIdentical": false,
+        "normalizedEmittedJavaScriptIdentical": true,
+        "normalizedEmittedJavaScriptSha256": "ca834345e7ed0d520a4abfe2381e4ac43ed9d3a67eacfe6c62f1d54206283023",
+        "syntaxDiagnostics": 0
+      }
+    ],
+    "scopedEslint": "passed",
+    "scopedPrettier": "passed",
+    "whitespace": "passed",
+    "runtimeTests": "not repeated for formatting-only changes"
+  },
+  "remainingFormatDebt": {
+    "baselineFileLevel": [
+      "src/input/controller.ts",
+      "src/main.ts",
+      "src/rendering/open-world/festival-renderer.ts",
+      "src/rendering/renderer.ts",
+      "src/session/free-roam.ts",
+      "src/simulation/weather.ts",
+      "src/ui/interface.ts",
+      "src/workers/physics.worker.ts",
+      "tests/festival-ground-height.test.ts",
+      "tests/festival-session-lifecycle.test.ts"
+    ],
+    "taskCreatedRecordedEvidenceScript": "scripts/engine-advancement/network-composition-proof.mjs",
+    "scriptSha256": "ba15d8f4fa42f255725591a201a19eb7ab907330d9cde0f6727e517f58a869e6",
+    "policy": "Root retained recorded proof bytes; no global formatting pass claimed"
+  },
+  "coordinatorFinalAcceptance": {
+    "reviewer": "root coordinator after assignment 50 released its files",
+    "sourceCommit": "774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86",
+    "sourceTree": "5f466294eca0b188db58375a1caf4cd76088527b",
+    "workflowRun": 45592833399,
+    "jobId": 139131185041,
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45592833399",
+    "conclusion": "success",
+    "unitTests": 914,
+    "unitFiles": 70,
+    "fullTypeScriptCheck": "passed",
+    "productionBuild": "passed",
+    "buildIdentity": {
+      "version": 1,
+      "commit": "774e62fafdfd9ecd84001a2fcdb3b9f6ee973b86",
+      "fingerprint": "08a29559c6223e8bef3d6c5af2229ea9421e1c6d9d9659e3144cd7c044267529",
+      "variant": "product",
+      "edition": "full"
+    },
+    "artifactId": 15012585753,
+    "archiveBytes": 1300824,
+    "archiveSha256": "3ae96693bf5bc12acdbd449592ef36b94bd1d05ffa9a1ce492d24e401cb2598a",
+    "packageLockSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "browserReportStats": {
+      "total": 47,
+      "expected": 47,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "browserRetries": 0,
+    "retainedManifest": "checkpoint-774e62f/result.json",
+    "manifestMembersRehashed": 23,
+    "buildLog": {
+      "path": "engine-runtime-build.log",
+      "bytes": 4067,
+      "sha256": "731378bc016b94212ca39b4a83ab825c8ccede5eb0b63f42ecf76a3513dbc97e",
+      "origin": "original artifact member",
+      "originalSha256": "b5ed962d717468ba5497f717242dd59d7ede5e6d517039bb6f2d737caead30d3"
+    },
+    "jobMetadata": {
+      "path": "workflow-job.json",
+      "bytes": 3927,
+      "sha256": "52d1b400c28b60bdbd8ab3e921e1d010587c0e1301c9388658dd58101e3f5227",
+      "origin": "GitHub job metadata"
+    },
+    "limits": [
+      "The earlier compiler failure and incomplete local semantic attempt remain unchanged.",
+      "The overall changed-file formatting check is not green.",
+      "Mesa software backend; MeshBasic and raw vec3 diagnostics each still differ in 64 of 256 bytes.",
+      "No physical hardware or all-repository-workflow acceptance is implied."
+    ]
+  }
+}
