@@ -744,6 +744,36 @@ export function weatherSurfaceStart(preset: WeatherPreset): {
   }
 }
 
+/** Fixed cell slots for the unchanged drainage gain. The timestep belongs to
+ * the whole bank; each slot still checks the actual, possibly edited drainage.
+ * No rainfall/weather history is retained and storage never grows. */
+export class WaterStepCoefficients {
+  private dt = Number.NaN;
+  private readonly drainage: Float64Array;
+  private readonly gains: Float64Array;
+
+  constructor(cells: number) {
+    if (!Number.isSafeInteger(cells) || cells < 0)
+      throw new Error('Invalid surface water coefficient count');
+    this.drainage = new Float64Array(cells).fill(Number.NaN);
+    this.gains = new Float64Array(cells);
+  }
+
+  gain(cell: number, drainage: number, dt: number) {
+    if (!Number.isInteger(cell) || cell < 0 || cell >= this.gains.length)
+      throw new Error('Invalid surface water coefficient cell');
+    if (!Object.is(dt, this.dt)) {
+      this.dt = dt;
+      this.drainage.fill(Number.NaN);
+    }
+    if (!Object.is(drainage, this.drainage[cell])) {
+      this.drainage[cell] = drainage;
+      this.gains[cell] = -Math.expm1(-drainage * dt);
+    }
+    return this.gains[cell];
+  }
+}
+
 /** Exact constant-input first-order surface step. k is drainage/second,
  * source is rainfall minus evaporation in mm/second. Unlike forward Euler,
  * bounded water and temperature remain stable for a delayed surface update. */
@@ -752,6 +782,8 @@ export function advanceWater(
   sourceMmSec: number,
   drainagePerSec: number,
   dt: number,
+  coefficients?: WaterStepCoefficients,
+  cell = 0,
 ) {
   if (
     !Number.isFinite(waterMm) ||
@@ -764,7 +796,9 @@ export function advanceWater(
   )
     throw new Error('Invalid surface water step');
   if (drainagePerSec < 1e-12) return Math.max(0, waterMm + sourceMmSec * dt);
-  const gain = -Math.expm1(-drainagePerSec * dt);
+  const gain = coefficients
+    ? coefficients.gain(cell, drainagePerSec, dt)
+    : -Math.expm1(-drainagePerSec * dt);
   return Math.max(0, waterMm * (1 - gain) + (sourceMmSec * gain) / drainagePerSec);
 }
 

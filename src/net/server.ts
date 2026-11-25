@@ -5,7 +5,9 @@ import {
   chunkMessages,
   decodeClientMessage,
   encodeControl,
+  encodePreparedSnapshot,
   encodeSnapshot,
+  prepareSnapshotCars,
   sizeLimit,
 } from './codec.ts';
 import {
@@ -708,13 +710,12 @@ export class RaceServer {
         state = world.capture(car, full, this.scratch[car], player?.ghost === true);
       state.flags &= ~CAR_FLAG.FULL;
     }
+    // A sole recipient has no car serialization to share. Multi-recipient
+    // bytes live only in this call; queued batches retain owned packets alone.
+    const sharedCars = recipients.length > 1 ? prepareSnapshotCars(this.scratch) : null;
     for (const { player, connection: conn } of recipients) {
       const slack = player.queue.takeSlack(),
-        own = this.scratch[player.car as number];
-      own.flags |= CAR_FLAG.FULL;
-      let data: Uint8Array;
-      try {
-        data = encodeSnapshot({
+        snapshot = {
           tick: world.tick,
           phase: race.phase,
           raceTime: race.time,
@@ -724,9 +725,17 @@ export class RaceServer {
           echo: conn.echo,
           hold: now - conn.echoAt,
           cars: this.scratch,
-        });
-      } finally {
-        own.flags &= ~CAR_FLAG.FULL;
+        };
+      let data: Uint8Array;
+      if (sharedCars) data = encodePreparedSnapshot(snapshot, sharedCars, player.car as number);
+      else {
+        const own = this.scratch[player.car as number];
+        own.flags |= CAR_FLAG.FULL;
+        try {
+          data = encodeSnapshot(snapshot);
+        } finally {
+          own.flags &= ~CAR_FLAG.FULL;
+        }
       }
       packets.push({ player, connection: conn, data });
       player.missingWindow = 0;

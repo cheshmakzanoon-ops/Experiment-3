@@ -82,12 +82,17 @@ const VEL = 100,
   QUAT = 32767;
 const q16 = (v: number, scale: number) => Math.round(clamp(v * scale, -32767, 32767));
 
-export function writeCar(w: ByteWriter, c: CarNetState) {
-  w.u8(c.id).u8(c.flags);
+/** Fixed v3 car layout: the FULL extension follows pose and linear velocity. */
+export const CAR_COMPACT_BYTES = 39,
+  CAR_FULL_BYTES = 51,
+  CAR_FULL_OFFSET = 28;
+
+export function writeCar(w: ByteWriter, c: CarNetState, flags = c.flags) {
+  w.u8(c.id).u8(flags);
   w.f32(c.x).f32(c.y).f32(c.z);
   w.i16(q16(c.qx, QUAT)).i16(q16(c.qy, QUAT)).i16(q16(c.qz, QUAT)).i16(q16(c.qw, QUAT));
   w.i16(q16(c.vx, VEL)).i16(q16(c.vy, VEL)).i16(q16(c.vz, VEL));
-  if (c.flags & CAR_FLAG.FULL) {
+  if (flags & CAR_FLAG.FULL) {
     w.i16(q16(c.wx, OMEGA)).i16(q16(c.wy, OMEGA)).i16(q16(c.wz, OMEGA));
     w.i16(q16(c.ax, ACCEL)).i16(q16(c.ay, ACCEL)).i16(q16(c.az, ACCEL));
   }
@@ -164,14 +169,21 @@ export interface Snapshot {
   hold: number;
   cars: CarNetState[];
 }
-export function writeSnapshot(w: ByteWriter, s: Snapshot) {
-  if (s.cars.length > LIMITS.carsPerSnapshot) throw new Error('Too many cars in snapshot');
+export type SnapshotHeader = Omit<Snapshot, 'cars'>;
+/** Snapshot header excluding the message tag. */
+export const SNAPSHOT_HEADER_BYTES = 22;
+
+export function writeSnapshotHeader(w: ByteWriter, s: SnapshotHeader, count: number) {
   w.u32(s.tick).u8(s.phase).f32(s.raceTime);
   w.u32(s.ackSeq < 0 ? 0xffffffff : s.ackSeq);
   w.i8(clamp(Math.round(s.slack), -128, 127));
   w.u8(clamp(Math.round(s.missing), 0, 255));
   w.u32(s.echo >>> 0).u16(clamp(Math.round(s.hold), 0, 65535));
-  w.u8(s.cars.length);
+  w.u8(count);
+}
+export function writeSnapshot(w: ByteWriter, s: Snapshot) {
+  if (s.cars.length > LIMITS.carsPerSnapshot) throw new Error('Too many cars in snapshot');
+  writeSnapshotHeader(w, s, s.cars.length);
   for (const c of s.cars) writeCar(w, c);
 }
 export function readSnapshot(r: ByteReader): Snapshot {

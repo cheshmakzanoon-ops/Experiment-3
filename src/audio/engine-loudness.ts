@@ -56,11 +56,9 @@ export function normalisedWavePower(imag: Float32Array): { peak: number; power: 
 function biquadPower(
   b: readonly [number, number, number],
   a: readonly [number, number, number],
-  hz: number,
+  c1: number,
+  c2: number,
 ): number {
-  const w = (2 * Math.PI * hz) / SAMPLE_RATE,
-    c1 = Math.cos(w),
-    c2 = Math.cos(2 * w);
   const num =
     b[0] ** 2 + b[1] ** 2 + b[2] ** 2 + 2 * (b[0] * b[1] + b[1] * b[2]) * c1 + 2 * b[0] * b[2] * c2;
   const den =
@@ -94,18 +92,31 @@ const K2 = (() => {
   return { b: [1, -2, 1], a: [1, (2 * (k * k - 1)) / a0, (1 - k / q + k * k) / a0] } as const;
 })();
 export function kWeightPower(hz: number): number {
-  return (
-    biquadPower(K1.b as [number, number, number], K1.a as [number, number, number], hz) *
-    biquadPower(K2.b as [number, number, number], K2.a as [number, number, number], hz)
-  );
+  const w = (2 * Math.PI * hz) / SAMPLE_RATE;
+  return kWeightPowerAtCosines(Math.cos(w), Math.cos(2 * w));
+}
+
+function kWeightPowerAtCosines(c1: number, c2: number): number {
+  return biquadPower(K1.b, K1.a, c1, c2) * biquadPower(K2.b, K2.a, c1, c2);
+}
+
+type BiquadCoefficients = {
+  b: readonly [number, number, number];
+  a: readonly [number, number, number];
+};
+
+function lowpassCoefficients(cutoff: number, qDb = 0.5): BiquadCoefficients {
+  const w0 = (2 * Math.PI * clamp(cutoff, 10, SAMPLE_RATE / 2 - 1)) / SAMPLE_RATE,
+    alpha = Math.sin(w0) / (2 * 10 ** (qDb / 20)),
+    c = Math.cos(w0);
+  return { b: [(1 - c) / 2, 1 - c, (1 - c) / 2], a: [1 + alpha, -2 * c, 1 - alpha] };
 }
 
 /** |H|^2 of a Web Audio low-pass biquad (resonance `qDb`, in dB as the spec has it). */
 export function lowpassPower(hz: number, cutoff: number, qDb = 0.5): number {
-  const w0 = (2 * Math.PI * clamp(cutoff, 10, SAMPLE_RATE / 2 - 1)) / SAMPLE_RATE,
-    alpha = Math.sin(w0) / (2 * 10 ** (qDb / 20)),
-    c = Math.cos(w0);
-  return biquadPower([(1 - c) / 2, 1 - c, (1 - c) / 2], [1 + alpha, -2 * c, 1 - alpha], hz);
+  const { b, a } = lowpassCoefficients(cutoff, qDb);
+  const w = (2 * Math.PI * hz) / SAMPLE_RATE;
+  return biquadPower(b, a, Math.cos(w), Math.cos(2 * w));
 }
 
 const waveCache = new WeakMap<object, { imag: Float32Array; power: number; peak: number }[]>();
@@ -129,13 +140,28 @@ export function bandPower(
   hz: number,
   cutoff: number,
 ): number {
+  return bandPowerWithLowpass(profile, band, hz, lowpassCoefficients(cutoff));
+}
+
+function bandPowerWithLowpass(
+  profile: SoundProfile,
+  band: BandIndex,
+  hz: number,
+  lowpass: BiquadCoefficients,
+): number {
   const { imag, peak } = waves(profile)[band];
   let total = 0;
   for (let k = 1; k < imag.length; k++) {
     const f = k * hz;
     if (f > 20000) break; // band-limited: nothing above the audible range is synthesised
     const a = imag[k] / (peak || 1);
-    total += (a * a * kWeightPower(f) * lowpassPower(f, cutoff)) / 2;
+    // All three filters evaluate the same frequency; retain the exact cosines
+    // and biquad arithmetic rather than deriving one cosine from the other.
+    const w = (2 * Math.PI * f) / SAMPLE_RATE,
+      c1 = Math.cos(w),
+      c2 = Math.cos(2 * w);
+    total +=
+      (a * a * kWeightPowerAtCosines(c1, c2) * biquadPower(lowpass.b, lowpass.a, c1, c2)) / 2;
   }
   return total;
 }
@@ -163,8 +189,13 @@ export function loudnessScale(
   target: number,
 ): number {
   let power = 0;
+  let lowpass: BiquadCoefficients | undefined;
   for (let band = 0 as BandIndex; band < 3; band = (band + 1) as BandIndex)
-    if (gains[band] > 0) power += gains[band] ** 2 * bandPower(profile, band, bandHz[band], cutoff);
+    if (gains[band] > 0) {
+      // One cutoff per voice update; silent gains need neither coefficients nor waves.
+      lowpass ??= lowpassCoefficients(cutoff);
+      power += gains[band] ** 2 * bandPowerWithLowpass(profile, band, bandHz[band], lowpass);
+    }
   const rms = Math.sqrt(power);
   if (rms < 1e-9) return 1;
   return clamp(target / rms, NORMALISER_RANGE[0], NORMALISER_RANGE[1]);

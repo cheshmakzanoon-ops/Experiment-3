@@ -11,6 +11,7 @@ import {
   FROST,
   PRECIPITATION,
   groundCloud,
+  WaterStepCoefficients,
   WeatherTimeline,
   dustSettlingTarget,
   frozenCover,
@@ -159,7 +160,9 @@ export class Track {
   private contactMesh: TrackContactMesh | null = null;
   readonly #surfaceHeat = new Float64Array(CELL_ROWS * CELL_COLS);
   readonly #cellArea = new Float64Array(CELL_ROWS * CELL_COLS);
-  readonly #exposedThermal = new SurfaceThermalStep();
+  readonly #depression = new Float64Array(CELL_ROWS * CELL_COLS);
+  readonly #waterCoefficients = new WaterStepCoefficients(CELL_ROWS * CELL_COLS);
+  readonly #exposedThermal = new SurfaceThermalStep(SURFACE_THERMAL, CELL_ROWS * CELL_COLS);
   readonly #coveredThermal = new SurfaceThermalStep();
   /** Terrain venues (offroad/): the authoritative deformable ground, which
    * contact, casts and the rendered terrain read; null on paved circuits. A
@@ -236,7 +239,9 @@ export class Track {
     const kind = circuit.offroad?.kind;
     if (kind === 'motocross' || kind === 'supercross')
       this.laneIndex = new TrackLaneIndex(this.points);
-    else this.laneIndex = isGpCourse(this) ? new TrackLaneIndex(this.points, 2048) : null;
+    // Every paved ribbon shares the same conservative candidate pruning.
+    // Bound cells per instance so long courses and roaming queries stay finite.
+    else this.laneIndex = kind ? null : new TrackLaneIndex(this.points, 2048);
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
     this.#sampleWeather(0);
@@ -358,6 +363,7 @@ export class Track {
       const row = Math.floor(i / CELL_COLS),
         col = i % CELL_COLS,
         s = ((row + 0.5) / CELL_ROWS) * this.length;
+      this.#depression[i] = 0.65 + 0.35 * Math.sin(row * 0.113 + col * 0.4) ** 2;
       this.at(s, rowPoint);
       this.#cellArea[i] = (this.length / CELL_ROWS) * ((2 * rowPoint.width) / CELL_COLS);
       const lateral = (((col + 0.5) / CELL_COLS) * 2 - 1) * rowPoint.width;
@@ -681,7 +687,7 @@ export class Track {
       for (let r = 0; r < CELL_ROWS; r++)
         for (let c = 0; c < CELL_COLS; c++) {
           const i = r * CELL_COLS + c,
-            depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
+            depression = this.#depression[i],
             // Rain plus fog drip / dew (mm/h water equivalent, even over the cell).
             rainfall = this.sheltered[r]
               ? 0
@@ -705,6 +711,8 @@ export class Track {
             rainfall,
             this.drainage[i],
             this.#surfaceHeat[i] / (this.#cellArea[i] * step),
+            i,
+            this.#waterCoefficients,
           );
           this.water[i] = thermal.water;
           this.temperature[i] = thermal.surface;

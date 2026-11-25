@@ -7,7 +7,20 @@ import {
   type ClientControl,
   type ServerControl,
 } from './messages.ts';
-import { readSnapshot, writeSnapshot, type Snapshot } from './snapshot.ts';
+import {
+  CAR_COMPACT_BYTES,
+  CAR_FLAG,
+  CAR_FULL_BYTES,
+  CAR_FULL_OFFSET,
+  SNAPSHOT_HEADER_BYTES,
+  readSnapshot,
+  writeCar,
+  writeSnapshot,
+  writeSnapshotHeader,
+  type CarNetState,
+  type Snapshot,
+  type SnapshotHeader,
+} from './snapshot.ts';
 import type { Channel } from './transport.ts';
 
 /** First byte of every message. */
@@ -32,6 +45,59 @@ export function encodeInput(packet: InputPacket) {
 export function encodeSnapshot(snapshot: Snapshot) {
   const w = new ByteWriter(32 + snapshot.cars.length * 52).u8(MSG.SNAPSHOT);
   writeSnapshot(w, snapshot);
+  return w.finish();
+}
+
+/** Shared only during one captured server boundary; never sent to a transport. */
+export interface PreparedSnapshotCars {
+  readonly count: number;
+  readonly compact: Uint8Array;
+  readonly full: Uint8Array;
+}
+
+/** Quantize each captured car once for a multi-recipient snapshot boundary.
+ * FULL is an encoding override, so the caller's capture scratch is unchanged. */
+export function prepareSnapshotCars(cars: readonly CarNetState[]): PreparedSnapshotCars {
+  const count = cars.length;
+  if (count > LIMITS.carsPerSnapshot) throw new Error('Too many cars in snapshot');
+  const w = new ByteWriter(count * CAR_FULL_BYTES);
+  for (const car of cars) writeCar(w, car, car.flags | CAR_FLAG.FULL);
+  const full = w.finish(),
+    compact = new Uint8Array(count * CAR_COMPACT_BYTES),
+    extensionBytes = CAR_FULL_BYTES - CAR_COMPACT_BYTES;
+  for (let i = 0; i < count; i++) {
+    const from = i * CAR_FULL_BYTES,
+      to = i * CAR_COMPACT_BYTES;
+    compact.set(full.subarray(from, from + CAR_FULL_OFFSET), to);
+    compact[to + 1] &= ~CAR_FLAG.FULL;
+    compact.set(
+      full.subarray(from + CAR_FULL_OFFSET + extensionBytes, from + CAR_FULL_BYTES),
+      to + CAR_FULL_OFFSET,
+    );
+  }
+  return { count, compact, full };
+}
+
+/** Assemble an independently owned recipient packet from one boundary's car
+ * bytes. `fullCarIndex` is the owning car's array index, independent of its id.
+ * The ordinary encodeSnapshot path remains the reference for arbitrary flags. */
+export function encodePreparedSnapshot(
+  snapshot: SnapshotHeader,
+  cars: PreparedSnapshotCars,
+  fullCarIndex: number,
+) {
+  if (!Number.isInteger(fullCarIndex) || fullCarIndex < 0 || fullCarIndex >= cars.count)
+    throw new Error('Invalid full car index');
+  const extensionBytes = CAR_FULL_BYTES - CAR_COMPACT_BYTES,
+    w = new ByteWriter(1 + SNAPSHOT_HEADER_BYTES + cars.compact.length + extensionBytes).u8(
+      MSG.SNAPSHOT,
+    ),
+    compactOffset = fullCarIndex * CAR_COMPACT_BYTES,
+    fullOffset = fullCarIndex * CAR_FULL_BYTES;
+  writeSnapshotHeader(w, snapshot, cars.count);
+  w.bytes(cars.compact.subarray(0, compactOffset));
+  w.bytes(cars.full.subarray(fullOffset, fullOffset + CAR_FULL_BYTES));
+  w.bytes(cars.compact.subarray(compactOffset + CAR_COMPACT_BYTES));
   return w.finish();
 }
 export function encodeControl(message: ClientControl | ServerControl) {

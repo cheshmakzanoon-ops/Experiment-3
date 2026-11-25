@@ -1,5 +1,5 @@
 import { clamp } from '../core/math.ts';
-import { advanceWater } from './weather.ts';
+import { advanceWater, type WaterStepCoefficients } from './weather.ts';
 
 /** A reduced pavement column with a thin surface and a deeper heat reservoir.
  * Capacities are J/(m² K), conductances W/(m² K), heat flux W/m² and water mm.
@@ -81,7 +81,8 @@ function exponentialIntegral(eigenvalue: number, dt: number) {
 /** Reusable, allocation-free solution for cells sharing weather/exposure.
  * prepare() caches the environment; advanceWet() uses each cell's incoming
  * water mass for sensible cooling and only rebuilds the thermal matrix when
- * that rainfall changes. advance() retains the rainfall selected by prepare().
+ * its inputs change. Optional fixed cell slots retain those exact matrices
+ * across weather preparations. advance() retains prepare()'s rainfall.
  * The dry-column equation is linear; evaporation is held over each 0.5 s
  * production surface update and returns its heat to this same energy balance. */
 export class SurfaceThermalStep {
@@ -97,6 +98,14 @@ export class SurfaceThermalStep {
   private transfer = 0;
   private preparedRainfall = 0;
   private matrixRainfall = Number.NaN;
+  private matrixDt = Number.NaN;
+  private matrixAir = Number.NaN;
+  private matrixSurfaceCapacity = Number.NaN;
+  private matrixSubstrateCapacity = Number.NaN;
+  private matrixConduction = Number.NaN;
+  private matrixDeepConductance = Number.NaN;
+  private readonly cellRainfall: Float64Array;
+  private readonly cellMatrices: Float64Array;
   private e11 = 1;
   private e12 = 0;
   private e21 = 0;
@@ -104,7 +113,10 @@ export class SurfaceThermalStep {
   private q1 = 0;
   private q2 = 0;
 
-  constructor(readonly parameters: Readonly<SurfaceThermalParameters> = SURFACE_THERMAL) {
+  constructor(
+    readonly parameters: Readonly<SurfaceThermalParameters> = SURFACE_THERMAL,
+    matrixCells = 0,
+  ) {
     if (
       !Object.values(parameters).every(Number.isFinite) ||
       parameters.surfaceCapacity <= 0 ||
@@ -118,6 +130,10 @@ export class SurfaceThermalStep {
       ) < 0
     )
       throw new Error('Invalid pavement thermal parameters');
+    if (!Number.isSafeInteger(matrixCells) || matrixCells < 0)
+      throw new Error('Invalid pavement thermal coefficient count');
+    this.cellRainfall = new Float64Array(matrixCells).fill(Number.NaN);
+    this.cellMatrices = new Float64Array(matrixCells * 6);
   }
 
   prepare(
@@ -153,17 +169,55 @@ export class SurfaceThermalStep {
     const humidity = 0.5 + 0.42 * weather.cloud;
     this.vapour = humidity * saturationVapourPressure(weather.ambient);
     this.transfer = 0.000025 * (1 + 0.35 * Math.sqrt(wind));
-    // Even unchanged rain needs a new matrix when the timestep or air changes.
-    this.matrixRainfall = Number.NaN;
+    this.refreshMatrixInputs();
     this.prepareMatrix(this.preparedRainfall);
     return this;
   }
 
-  private prepareMatrix(rainfall: number) {
+  private refreshMatrixInputs() {
+    const p = this.parameters;
+    const dt = this.dt;
+    // Ambient, solar and vapour still refresh in prepare(). Only these inputs
+    // enter the matrix; compare parameter values because callers can retain a
+    // mutable object even though the solver exposes it as Readonly.
+    if (
+      !Object.is(dt, this.matrixDt) ||
+      !Object.is(this.air, this.matrixAir) ||
+      !Object.is(p.surfaceCapacity, this.matrixSurfaceCapacity) ||
+      !Object.is(p.substrateCapacity, this.matrixSubstrateCapacity) ||
+      !Object.is(p.conduction, this.matrixConduction) ||
+      !Object.is(p.deepConductance, this.matrixDeepConductance)
+    ) {
+      this.matrixDt = dt;
+      this.matrixAir = this.air;
+      this.matrixSurfaceCapacity = p.surfaceCapacity;
+      this.matrixSubstrateCapacity = p.substrateCapacity;
+      this.matrixConduction = p.conduction;
+      this.matrixDeepConductance = p.deepConductance;
+      this.matrixRainfall = Number.NaN;
+      this.cellRainfall.fill(Number.NaN);
+    }
+  }
+
+  private prepareMatrix(rainfall: number, cell = -1) {
     if (rainfall === this.matrixRainfall) return;
+    // Preserve the single-rain fast path (notably every dry/covered cell).
+    // A changed rainfall must also notice any parameter edit since prepare().
+    this.refreshMatrixInputs();
     this.matrixRainfall = rainfall;
     const p = this.parameters;
     const dt = this.dt;
+    const cached = cell >= 0 && cell < this.cellRainfall.length && Number.isInteger(cell);
+    const offset = cell * 6;
+    if (cached && rainfall === this.cellRainfall[cell]) {
+      this.e11 = this.cellMatrices[offset];
+      this.e12 = this.cellMatrices[offset + 1];
+      this.e21 = this.cellMatrices[offset + 2];
+      this.e22 = this.cellMatrices[offset + 3];
+      this.q1 = this.cellMatrices[offset + 4];
+      this.q2 = this.cellMatrices[offset + 5];
+      return;
+    }
     const a = -(this.air + rainfall * WATER_HEAT_CAPACITY + p.conduction) / p.surfaceCapacity;
     const b = p.conduction / p.surfaceCapacity;
     const c = p.conduction / p.substrateCapacity;
@@ -191,6 +245,15 @@ export class SurfaceThermalStep {
       const ff = exponentialIntegral(fast, dt);
       this.q1 = ((a - fast) * fs + (slow - a) * ff) / (gap * p.surfaceCapacity);
       this.q2 = (c * (fs - ff)) / (gap * p.surfaceCapacity);
+    }
+    if (cached) {
+      this.cellRainfall[cell] = rainfall;
+      this.cellMatrices[offset] = this.e11;
+      this.cellMatrices[offset + 1] = this.e12;
+      this.cellMatrices[offset + 2] = this.e21;
+      this.cellMatrices[offset + 3] = this.e22;
+      this.cellMatrices[offset + 4] = this.q1;
+      this.cellMatrices[offset + 5] = this.q2;
     }
   }
 
@@ -221,7 +284,8 @@ export class SurfaceThermalStep {
   /** Coupled film/temperature step; qTraffic is the road's share of tire work
    * per cell area. Actual incoming rainfall (mm/s) sets both the water supply
    * and sensible heat exchange, overriding prepare()'s rainfall for this call.
-   * Water removed by drainage does not evaporate a second time. */
+   * Water removed by drainage does not evaporate a second time. Optional cell
+   * slots retain matrix coefficients; a water bank can serve both exposures. */
   advanceWet(
     surface: number,
     substrate: number,
@@ -229,11 +293,20 @@ export class SurfaceThermalStep {
     rainfall: number,
     drainage: number,
     qTraffic = 0,
+    cell = -1,
+    waterCoefficients?: WaterStepCoefficients,
   ) {
     const potential = this.transfer * Math.max(0, saturationVapourPressure(surface) - this.vapour);
     this.evaporated = evaporatedWater(water, rainfall, potential, drainage, this.dt);
-    this.water = advanceWater(water, rainfall - potential, drainage, this.dt);
-    this.prepareMatrix(rainfall);
+    this.water = advanceWater(
+      water,
+      rainfall - potential,
+      drainage,
+      this.dt,
+      waterCoefficients,
+      cell,
+    );
+    this.prepareMatrix(rainfall, cell);
     return this.advanceColumn(
       surface,
       substrate,
