@@ -1,259 +1,257 @@
-### owner-qa (3) (job 139087692285)
+### owner-qa (3) (job 139107044065)
 --- error digest (first 120 matching lines) ---
-619:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1121468Z   ✘   2 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.2m)
-623:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1123491Z Error: page.evaluate: Test timeout of 720000ms exceeded.
-651:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9790476Z   ✘   3 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in sunset (12.2m)
-655:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9797114Z Error: page.evaluate: Test timeout of 720000ms exceeded.
-665:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:25:19.4029958Z ##[error]The operation was canceled.
+642:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9639256Z   ✘   2 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.2m)
+646:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9644957Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+671:owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:59:03.4146667Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.5631931Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.5998209Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.6018237Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.9372347Z Selecting previously unselected package xfonts-encodings.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.9488832Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.9495219Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.9757306Z Selecting previously unselected package xfonts-utils.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.9870551Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:22.9877335Z Unpacking xfonts-utils (1:7.7+6build3) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.0202270Z Selecting previously unselected package xfonts-cyrillic.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.0316360Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.0323532Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.0622889Z Selecting previously unselected package xfonts-scalable.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.0738071Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.0745670Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1184076Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1193783Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1210964Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1276718Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1377261Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1395413Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1412927Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1430405Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1485769Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1500561Z Setting up fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1517937Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1536343Z Setting up xfonts-utils (1:7.7+6build3) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1572735Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.1823630Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.2052063Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.3856418Z Processing triggers for man-db (2.12.0-4build2) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.3877883Z Not building database; man-db/auto-update is not 'true'.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.3889223Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9564906Z 
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9565823Z Running kernel seems to be up-to-date.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9566054Z 
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9566166Z No services need to be restarted.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9566288Z 
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9566389Z No containers need to be restarted.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9566872Z 
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9566986Z No user sessions are running outdated binaries.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9567129Z 
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:23.9567292Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:24.7661753Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:24.9682077Z |                                                                                |   0% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:25.2227376Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:25.3686859Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:25.5047509Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:25.6237971Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:25.7640123Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:25.8908014Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:26.0572631Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:26.1971978Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:26.4524081Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:26.5755151Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:28.7785946Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:28.7787402Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:28.9749665Z |                                                                                |   0% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.0250203Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.0477210Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.0609463Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.0703933Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.0784221Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.0947183Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.1076655Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.1106541Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.1161803Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.1331189Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.1677582Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:29.1679155Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:30.4021620Z |                                                                                |   0% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:30.6065429Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:30.6844718Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:30.7680297Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:30.8537066Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:30.9411965Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:31.0078383Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:31.0901800Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:31.1760267Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:31.2589797Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:31.3435920Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T08:53:32.4908014Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-25T08:53:32.5608907Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=3/4
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5610610Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=3/4^[[0m
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5628756Z shell: /usr/bin/bash -e {0}
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5628909Z env:
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5629073Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5629237Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5629387Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.5629530Z ##[endgroup]
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.6285546Z 
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.6286194Z > apex-formula-laboratory@0.1.0 test:e2e
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.6288518Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=3/4
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:32.6290148Z 
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:33.8148822Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:36.5737240Z 
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:36.5738006Z Running 10 tests using 1 worker, shard 3 of 4
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:36.5738234Z 
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:53:37.4866126Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:54:06.5836833Z [browser-progress] 29s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toBeVisible"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:54:36.5835171Z [browser-progress] 59s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:55:06.5840222Z [browser-progress] 89s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:55:36.5836602Z [browser-progress] 119s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:56:06.5844730Z [browser-progress] 149s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:56:29.5179682Z   ✓   1 e2e/a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry (2.9m)
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:56:29.5268888Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:56:36.5915097Z [browser-progress] 7s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Create context
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:57:06.5974960Z [browser-progress] 37s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Expect "toBeGreaterThan"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:57:36.5992599Z [browser-progress] 67s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:58:06.6228468Z [browser-progress] 97s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:58:36.6549360Z [browser-progress] 127s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:59:06.6839399Z [browser-progress] 157s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T08:59:36.7140595Z [browser-progress] 187s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:00:06.7449260Z [browser-progress] 217s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:00:36.7759303Z [browser-progress] 247s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:01:06.8045449Z [browser-progress] 277s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:01:36.8363387Z [browser-progress] 307s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:02:06.8669290Z [browser-progress] 337s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:02:36.8969222Z [browser-progress] 367s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:03:06.9299235Z [browser-progress] 397s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:03:36.9579373Z [browser-progress] 427s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:04:06.9861159Z [browser-progress] 457s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:04:37.0177013Z [browser-progress] 487s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:05:07.0464268Z [browser-progress] 518s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:05:37.0783246Z [browser-progress] 548s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:06:07.1085144Z [browser-progress] 578s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:06:37.1383470Z [browser-progress] 608s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:07:07.1689201Z [browser-progress] 638s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:07:37.1983777Z [browser-progress] 668s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:08:07.2283390Z [browser-progress] 698s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:08:37.2301041Z [browser-progress] 728s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Fixture "context"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:07.2543925Z [browser-progress] 758s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Fixture "browser"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1121468Z   ✘   2 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.2m)
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1122280Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1122682Z ^[[31mTest timeout of 720000ms exceeded.^[[39m
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1123104Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1123491Z Error: page.evaluate: Test timeout of 720000ms exceeded.
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:16.1123824Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:17.1276511Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:09:37.2639201Z [browser-progress] 20s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:10:07.2949126Z [browser-progress] 50s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:10:37.3243136Z [browser-progress] 80s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:11:07.3541372Z [browser-progress] 110s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:11:37.3871588Z [browser-progress] 140s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:12:07.4141537Z [browser-progress] 170s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:12:37.4489250Z [browser-progress] 200s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:13:07.4759546Z [browser-progress] 230s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:13:37.5041395Z [browser-progress] 260s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:14:07.5348813Z [browser-progress] 290s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:14:37.5484499Z [browser-progress] 320s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:15:07.5819329Z [browser-progress] 350s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:15:37.6094232Z [browser-progress] 380s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:16:07.6399754Z [browser-progress] 411s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:16:37.6708315Z [browser-progress] 441s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:17:07.7019222Z [browser-progress] 471s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:17:37.7299619Z [browser-progress] 501s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:18:07.7593557Z [browser-progress] 531s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:18:37.7919190Z [browser-progress] 561s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:19:07.8199320Z [browser-progress] 591s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:19:37.8493814Z [browser-progress] 621s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:20:07.8794805Z [browser-progress] 651s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:20:37.9099367Z [browser-progress] 681s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:21:07.9398364Z [browser-progress] 711s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:21:37.9478997Z [browser-progress] 741s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Fixture "browser"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9790476Z   ✘   3 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in sunset (12.2m)
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9791366Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9792027Z ^[[31mTest timeout of 720000ms exceeded.^[[39m
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9792644Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9797114Z Error: page.evaluate: Test timeout of 720000ms exceeded.
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:03.9797620Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:04.9954015Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:07.9469007Z [browser-progress] 3s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Expect "toBeDefined"
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:22:37.9699349Z [browser-progress] 33s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:23:07.9979831Z [browser-progress] 63s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:23:38.0299605Z [browser-progress] 93s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:24:08.0575758Z [browser-progress] 123s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:24:38.0899325Z [browser-progress] 153s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:25:08.1199435Z [browser-progress] 183s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in night / Evaluate
-owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:25:19.4029958Z ##[error]The operation was canceled.
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-25T09:25:19.4164569Z ##[group]Run actions/upload-artifact@v4
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4164854Z with:
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4165036Z   name: owner-qa-3-of-4
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4165394Z   path: test-results/
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.3038556Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.5573969Z Selecting previously unselected package fonts-freefont-ttf.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.5727986Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.5737302Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.6736580Z Selecting previously unselected package fonts-tlwg-loma-otf.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.6889588Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.6897960Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.7176091Z Selecting previously unselected package fonts-unifont.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.7329133Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.7338907Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.8570621Z Selecting previously unselected package fonts-wqy-zenhei.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.8724547Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:11.8849535Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.3959311Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.4144217Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.4927926Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.4965654Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.5403449Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.5432291Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.5961548Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.5994414Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.7896218Z Selecting previously unselected package xfonts-encodings.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.8048078Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.8056898Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.8407833Z Selecting previously unselected package xfonts-utils.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.8553828Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.8564398Z Unpacking xfonts-utils (1:7.7+6build3) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.9321310Z Selecting previously unselected package xfonts-cyrillic.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.9467694Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.9476502Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:12.9868896Z Selecting previously unselected package xfonts-scalable.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0017123Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0027592Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0548803Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0575023Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0597102Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0681834Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0808165Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0829631Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0849310Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0885317Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0957739Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0975453Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.0996188Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.1018282Z Setting up xfonts-utils (1:7.7+6build3) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.1067945Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.1442915Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.1793830Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.2589588Z Processing triggers for man-db (2.12.0-4build2) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.2618998Z Not building database; man-db/auto-update is not 'true'.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:13.2636019Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6403858Z 
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6404700Z Running kernel seems to be up-to-date.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6405263Z 
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6405611Z No services need to be restarted.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6406034Z 
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6406414Z No containers need to be restarted.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6407275Z 
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6408041Z No user sessions are running outdated binaries.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6408562Z 
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:14.6409264Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:15.8413844Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.0312766Z |                                                                                |   0% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.2099416Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.2951677Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.3823948Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.4589845Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.5265511Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.5918577Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.6522444Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.7100415Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.7698155Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:16.8268261Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.0949521Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.0952619Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.3298482Z |                                                                                |   0% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.3817014Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4036834Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4182550Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4266179Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4340714Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4404808Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4502640Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4541044Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4576173Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.4606411Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.5169107Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.5175403Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.6853706Z |                                                                                |   0% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.7945423Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.8595554Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.9145479Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:20.9698037Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:21.0189032Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:21.0568516Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:21.0937822Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:21.1328963Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:21.1801797Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:21.2230331Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
+owner-qa (3)	Run npx playwright install --with-deps chromium	2026-11-25T09:30:22.9840761Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-25T09:30:23.2832415Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=3/4
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2835775Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=3/4^[[0m
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2857931Z shell: /usr/bin/bash -e {0}
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2858218Z env:
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2858491Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2858805Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2859084Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.2859347Z ##[endgroup]
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.3840310Z 
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.3841158Z > apex-formula-laboratory@0.1.0 test:e2e
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.3846192Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=3/4
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:23.3849518Z 
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:25.6737635Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:29.9093653Z 
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:29.9094484Z Running 10 tests using 1 worker, shard 3 of 4
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:29.9095003Z 
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:31.4022730Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:30:59.9239317Z [browser-progress] 29s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toBeVisible"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:31:29.9273424Z [browser-progress] 59s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:31:59.9225498Z [browser-progress] 89s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:32:29.9389465Z [browser-progress] 119s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:32:59.9387492Z [browser-progress] 149s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:33:29.9399363Z [browser-progress] 179s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:33:59.9385096Z [browser-progress] 209s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:34:29.9391238Z [browser-progress] 239s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:34:59.9404803Z [browser-progress] 269s  >  > a31-wheel-gun.spec.ts > A31 loads the real GLB before normal practice entry / Expect "toMatch"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:35:17.8059355Z   ✓   1 e2e/a31-wheel-gun.spec.ts:11:1 › A31 loads the real GLB before normal practice entry (4.8m)
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:35:17.8178945Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:35:29.9522784Z [browser-progress] 12s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Create context
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:35:59.9829523Z [browser-progress] 42s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Create context
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:36:29.9825763Z [browser-progress] 72s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Add script tag
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:37:00.0129570Z [browser-progress] 102s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:37:30.0412933Z [browser-progress] 132s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:38:00.0719416Z [browser-progress] 162s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:38:30.1029432Z [browser-progress] 192s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:39:00.1319461Z [browser-progress] 222s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:39:30.1613850Z [browser-progress] 252s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:40:00.1913396Z [browser-progress] 282s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:40:30.2219386Z [browser-progress] 312s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:41:00.2529533Z [browser-progress] 342s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:41:30.2819250Z [browser-progress] 372s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:42:00.3113670Z [browser-progress] 402s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:42:30.3419052Z [browser-progress] 433s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:43:00.3719474Z [browser-progress] 463s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:43:30.4019285Z [browser-progress] 493s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:44:00.4313503Z [browser-progress] 523s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:44:30.4615842Z [browser-progress] 553s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:45:00.4939362Z [browser-progress] 583s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:45:30.5239363Z [browser-progress] 613s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:46:00.5529177Z [browser-progress] 643s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:46:30.5819479Z [browser-progress] 673s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:47:00.6139311Z [browser-progress] 703s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:47:30.6219271Z [browser-progress] 733s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Fixture "context"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:00.6509321Z [browser-progress] 763s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day / Fixture "browser"
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9639256Z   ✘   2 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in day (12.2m)
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9641343Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9642472Z ^[[31mTest timeout of 720000ms exceeded.^[[39m
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9643789Z [browser-failure]  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in day
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9644957Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:06.9645849Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:08.5031056Z [browser-progress] START  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:48:30.6530111Z [browser-progress] 22s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:49:00.6820959Z [browser-progress] 52s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:49:30.7159204Z [browser-progress] 82s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:50:00.7445858Z [browser-progress] 112s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:50:30.7734332Z [browser-progress] 142s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:51:00.8030938Z [browser-progress] 172s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:51:30.8338514Z [browser-progress] 202s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:52:00.8639405Z [browser-progress] 232s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:52:30.8931449Z [browser-progress] 262s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:53:00.9243619Z [browser-progress] 292s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:53:30.9550070Z [browser-progress] 322s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:54:00.9848934Z [browser-progress] 352s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:54:31.0159257Z [browser-progress] 383s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:55:01.0442650Z [browser-progress] 413s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:55:31.0605478Z [browser-progress] 443s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:56:01.0939576Z [browser-progress] 473s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:56:31.1239183Z [browser-progress] 503s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:57:01.1539151Z [browser-progress] 533s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:57:31.1834861Z [browser-progress] 563s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:58:01.2139104Z [browser-progress] 593s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:58:31.2434192Z [browser-progress] 623s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:59:01.2739237Z [browser-progress] 653s  >  > a31-wheel-gun.spec.ts > A31 real wheel-gun contact, replay and worktop tools render in sunset / Evaluate
+owner-qa (3)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T09:59:03.4146667Z ##[error]The operation was canceled.
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-25T09:59:03.4385873Z ##[group]Run actions/upload-artifact@v4
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4386393Z with:
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4386734Z   name: owner-qa-3-of-4
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4417783Z   path: test-results/
 owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
 owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
 owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
 owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4165794Z   retention-days: 7
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4165996Z   if-no-files-found: warn
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4166208Z   compression-level: 6
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4166414Z   overwrite: false
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4166799Z   include-hidden-files: false
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4167015Z env:
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4167198Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4167448Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4167681Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.4168032Z ##[endgroup]
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.7602006Z (node:4428) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:19.7605413Z (Use `node --trace-deprecation ...` to show where the warning was created)
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:20.0243665Z Multiple search paths detected. Calculating the least common ancestor of all paths
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:20.0244922Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:20.0245495Z With the provided path, there will be 4 files uploaded
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:20.0245940Z Artifact name is valid!
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:20.0246203Z Root directory input is valid!
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:20.7191871Z Beginning upload of artifact content to blob storage
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:21.0709573Z (node:4428) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:22.0079481Z Uploaded bytes 8388608
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:22.4919407Z Uploaded bytes 16777216
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:22.5771829Z Uploaded bytes 25165824
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:22.9015583Z Uploaded bytes 33554432
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:22.9028519Z Uploaded bytes 41943040
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:23.2358771Z Uploaded bytes 50331648
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:23.7479028Z Uploaded bytes 58720256
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.1581465Z Uploaded bytes 67108864
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.4134889Z Uploaded bytes 75497472
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.5601581Z Uploaded bytes 83886080
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.8680376Z Uploaded bytes 89161371
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.9651879Z Finished uploading artifact content to blob storage!
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.9678545Z SHA256 digest of uploaded artifact zip is 01dc2672e71b426ec9ec4b343b003c0fd9f5319a444d95730c41c4e4f7a71cd7
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:24.9918313Z Finalizing artifact upload
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:25.3416183Z Artifact owner-qa-3-of-4.zip successfully finalized. Artifact ID 15007683619
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:25.3417234Z Artifact owner-qa-3-of-4 has been successfully uploaded! Final size is 89161371 bytes. Artifact ID is 15007683619
-owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:25:25.3432660Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45579529296/artifacts/15007683619
-owner-qa (3)	Post Run actions/checkout@v4	﻿2026-11-25T09:25:25.3939681Z Post job cleanup.
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5194714Z [command]/usr/bin/git version
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5195956Z git version 2.56.1
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5220502Z Temporarily overriding HOME='/home/runner/work/_temp/3a3024f1-6abc-45f4-b33f-9d41de6cbe57' before making global git config changes
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5222197Z Adding repository directory to the temporary git global config as a safe directory
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5232097Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5234742Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.5310432Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.6138075Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.6140129Z http.https://github.com/.extraheader
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.6183767Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.6328136Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.6846272Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:25:25.6894356Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-owner-qa (3)	Complete job	﻿2026-11-25T09:25:25.7403646Z Cleaning up orphan processes
-owner-qa (3)	Complete job	2026-11-25T09:25:25.7635980Z Terminate orphan process: pid (3689) (npm run test:e2)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.7700047Z Terminate orphan process: pid (3700) (sh)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.7724822Z Terminate orphan process: pid (3701) (node)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.7839610Z Terminate orphan process: pid (3717) (sh)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.7863633Z Terminate orphan process: pid (3718) (npm run preview --port 4173)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.7979590Z Terminate orphan process: pid (3729) (sh)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.8003837Z Terminate orphan process: pid (3730) (node)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.8036669Z Terminate orphan process: pid (3738) (esbuild)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.8130989Z Terminate orphan process: pid (4318) (node)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.8158859Z Terminate orphan process: pid (4331) (headless_shell)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.8222478Z Terminate orphan process: pid (4388) (esbuild)
-owner-qa (3)	Complete job	2026-11-25T09:25:25.8284562Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4418644Z   retention-days: 7
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4419030Z   if-no-files-found: warn
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4419444Z   compression-level: 6
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4419841Z   overwrite: false
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4420219Z   include-hidden-files: false
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4420636Z env:
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4420980Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4421465Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4421906Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:03.4422310Z ##[endgroup]
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.0055896Z (node:4670) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.0094662Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.2523249Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.2525854Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.2527990Z With the provided path, there will be 3 files uploaded
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.2528924Z Artifact name is valid!
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.2529434Z Root directory input is valid!
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:04.6098125Z Beginning upload of artifact content to blob storage
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:05.1822913Z (node:4670) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:05.6101644Z Uploaded bytes 8388608
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:05.8741408Z Uploaded bytes 16777216
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:06.5925466Z Uploaded bytes 25165824
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:06.9938632Z Uploaded bytes 33554432
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.3828497Z Uploaded bytes 41943040
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.4758502Z Uploaded bytes 44581358
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.5258637Z Finished uploading artifact content to blob storage!
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.5288619Z SHA256 digest of uploaded artifact zip is 4bdea3f83b392b5cbe34d8c0ba7022200105383ad37675d12a35fb09638e2b11
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.5317953Z Finalizing artifact upload
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.8749342Z Artifact owner-qa-3-of-4.zip successfully finalized. Artifact ID 15010582069
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.8788801Z Artifact owner-qa-3-of-4 has been successfully uploaded! Final size is 44581358 bytes. Artifact ID is 15010582069
+owner-qa (3)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T09:59:07.8854950Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45585197324/artifacts/15010582069
+owner-qa (3)	Post Run actions/checkout@v4	﻿2026-11-25T09:59:07.9777115Z Post job cleanup.
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3041354Z [command]/usr/bin/git version
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3158370Z git version 2.56.1
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3338962Z Temporarily overriding HOME='/home/runner/work/_temp/aa7535a5-1f40-4776-a578-45302815deea' before making global git config changes
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3368325Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3370099Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3519574Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.3670215Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.5329958Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.5358274Z http.https://github.com/.extraheader
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.5959556Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.6581693Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.6584693Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (3)	Post Run actions/checkout@v4	2026-11-25T09:59:08.6586812Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (3)	Complete job	﻿2026-11-25T09:59:08.7705564Z Cleaning up orphan processes
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8470668Z Terminate orphan process: pid (3343) (npm run test:e2)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8593181Z Terminate orphan process: pid (3354) (sh)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8697249Z Terminate orphan process: pid (3355) (node)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8772081Z Terminate orphan process: pid (3371) (sh)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8815355Z Terminate orphan process: pid (3372) (npm run preview --port 4173)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8864927Z Terminate orphan process: pid (3383) (sh)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8909106Z Terminate orphan process: pid (3384) (node)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.8955550Z Terminate orphan process: pid (3392) (esbuild)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.9063651Z Terminate orphan process: pid (3858) (node)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.9145845Z Terminate orphan process: pid (3872) (headless_shell)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.9304042Z Terminate orphan process: pid (3926) (esbuild)
+owner-qa (3)	Complete job	2026-11-25T09:59:08.9620162Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
