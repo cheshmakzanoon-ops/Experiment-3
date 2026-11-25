@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45590533533
-- commit: `26efaeefdf` · Refine measured engine paths and close reentrant startup and UI ownership gaps
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T09:58:50Z · updated: 2026-11-25T10:00:22Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45611188876
+- commit: `a7f1eb9798` · Give motocross riders, bikes and trackside animation follow-through
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-25T12:10:11Z · updated: 2026-11-25T12:17:54Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
-| browser (sunset) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
-| browser (day) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (sunset) | success | 7 |  |
+| browser (night) | success | 7 |  |
+| browser (day) | success | 7 |  |
