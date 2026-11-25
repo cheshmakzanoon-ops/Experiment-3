@@ -1,259 +1,270 @@
-### unit-tests (3) (job 138728088792)
+### unit-tests (3) (job 138897812681)
 --- error digest (first 120 matching lines) ---
-764:unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3004989Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/i18n.test.ts^[[2m > ^[[22mthe catalogue and the dictionary gate^[[2m > ^[[22mpasses for all seven dictionaries
-877:unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3096223Z     ^[[90m208| ^[[39m    for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
-882:unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3104481Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/vehicle-catalogue-growth.test.ts^[[2m > ^[[22mcatalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical
-894:unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3194879Z     ^[[90m 87| ^[[39m    expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
-907:unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0618646Z ##[error]Process completed with exit code 1.
+875:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.6966441Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit: automatic replacement during a pump run publishes pause before any further drive command
+876:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.6970669Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit: same-slot replacement during a pump run publishes pause before any further drive command
+895:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7124980Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit: disconnect first during a pump run publishes pause before any further drive command
+896:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7126641Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit: blur during a pump run publishes pause before any further drive command
+926:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7170497Z     ^[[90m369| ^[[39m        expect(f.actions).toEqual([loss === 'blur' || loss === 'hidden…
+927:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7171747Z     ^[[90m370| ^[[39m        expect(f.messages.slice(start).map(({ type, value }) => ({ typ…
+931:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7175357Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit: hidden during a pump run publishes pause before any further drive command
+947:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7187021Z     ^[[90m369| ^[[39m        expect(f.actions).toEqual([loss === 'blur' || loss === 'hidden…
+948:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7188326Z     ^[[90m370| ^[[39m        expect(f.messages.slice(start).map(({ type, value }) => ({ typ…
+955:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7225815Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit: canceled timer callbacks cannot publish into a resumed pump generation
+969:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7255375Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/controller-session-ownership.test.ts^[[2m > ^[[22mcontroller and session publication ownership^[[2m > ^[[22mcircuit replay action-only polling cannot publish a held replacement or resume playback
+988:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7276536Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/i18n.test.ts^[[2m > ^[[22mthe catalogue and the dictionary gate^[[2m > ^[[22mpasses for all seven dictionaries
+1101:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7446868Z     ^[[90m208| ^[[39m    for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
+1106:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7454544Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/vehicle-catalogue-growth.test.ts^[[2m > ^[[22mcatalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical
+1118:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7468473Z     ^[[90m 87| ^[[39m    expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
+1220:unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:29.6297824Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:13.9835143Z  ^[[32m✓^[[39m tests/festival-cruise-routing.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 4330^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:13.9836296Z    ^[[33m^[[2m✓^[[22m^[[39m takes the block in the car’s travel direction when the closest marker lies behind it ^[[33m 421^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:13.9837134Z    ^[[33m^[[2m✓^[[22m^[[39m resumes a harbour cruise after marker stops without resetting the player into the opposite lane ^[[33m 2466^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:13.9838026Z    ^[[33m^[[2m✓^[[22m^[[39m brakes upright before taking the right-angle Market Street turn on the road superbike ^[[33m 1441^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:14.6738416Z  ^[[32m✓^[[39m tests/hud-colourblind.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:15.7710552Z  ^[[32m✓^[[39m tests/gp-engine-braking.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 364^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:15.7711873Z    ^[[33m^[[2m✓^[[22m^[[39m Road-racing engine braking shares the real rear contact budget^[[2m > ^[[22mdoes not heat a rear brake disc with drivetrain pumping work ^[[33m 359^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:16.5519277Z  ^[[32m✓^[[39m tests/festival-moorings.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 40^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:17.4867114Z  ^[[32m✓^[[39m tests/motocross-soil-pickup.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 194^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:22.8467851Z  ^[[32m✓^[[39m tests/festival-wipers.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[33m 4563^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:22.8468908Z    ^[[33m^[[2m✓^[[22m^[[39m fits both working blades on every Festival road car and parks them on the simulation clock ^[[33m 4563^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:23.5743547Z  ^[[32m✓^[[39m tests/machine-character.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 33^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:23.7497823Z  ^[[32m✓^[[39m tests/browser-shard-plan.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 18^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:46.0122038Z  ^[[32m✓^[[39m tests/pit-release.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 21491^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:46.0123246Z    ^[[33m^[[2m✓^[[22m^[[39m pit-release circular-wait regression^[[2m > ^[[22mphysically releases the blocked pair and services both without contact ^[[33m 5735^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:46.0124235Z    ^[[33m^[[2m✓^[[22m^[[39m anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car ^[[33m 15753^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:47.0447820Z  ^[[32m✓^[[39m tests/broadcast-camera-cycle.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 191^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:47.7734359Z  ^[[32m✓^[[39m tests/road-macro.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 26^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:48.0360141Z  ^[[32m✓^[[39m tests/effects-upload.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 44^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:48.3892772Z  ^[[32m✓^[[39m tests/terrain-tiles.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 168^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:50.1835761Z  ^[[32m✓^[[39m tests/motocross-shoulder-recovery.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 1075^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:50.1837158Z    ^[[33m^[[2m✓^[[22m^[[39m motocross shoulder recovery with intermittent wheel-speed pulses^[[2m > ^[[22mrecovers a beached mx250 without waiting for repeated speed pulses ^[[33m 680^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:50.1838277Z    ^[[33m^[[2m✓^[[22m^[[39m motocross shoulder recovery with intermittent wheel-speed pulses^[[2m > ^[[22mrecovers a beached mx450 without waiting for repeated speed pulses ^[[33m 394^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:55.6334543Z  ^[[32m✓^[[39m tests/festival-reversing-lamps.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[33m 4640^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:55.6335691Z    ^[[33m^[[2m✓^[[22m^[[39m keeps the ten road cars’ clear optics in the housing at each LOD and selects reverse on the discrete gear tick ^[[33m 4639^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:55.8299667Z  ^[[32m✓^[[39m tests/browser-progress-reporter.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 32^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:56.5306349Z  ^[[32m✓^[[39m tests/motorcycle-braking-plan.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:57.2392527Z  ^[[32m✓^[[39m tests/lap-reference.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:54:57.4564751Z  ^[[32m✓^[[39m tests/rotation.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 61^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:01.7642429Z  ^[[32m✓^[[39m tests/route-overpass.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 3532^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:01.7643724Z    ^[[33m^[[2m✓^[[22m^[[39m WP11 overpass route identity^[[2m > ^[[22man AI lap over and under the bridge never teleports progress or surface ^[[33m 3529^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:02.4444670Z  ^[[32m✓^[[39m tests/motorcycle-net-braking.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:02.6304318Z  ^[[32m✓^[[39m tests/windows-checkout-paths.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 24^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:03.3608832Z  ^[[32m✓^[[39m tests/motocross-timing-board.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:04.1983130Z  ^[[32m✓^[[39m tests/gp-track-pickup.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 138^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:06.0031568Z  ^[[32m✓^[[39m tests/road-rider-approach.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 1059^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:06.0032702Z    ^[[33m^[[2m✓^[[22m^[[39m sbk1000 budgets the weaker contact and lane correction over actual path length ^[[33m 350^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:06.1992207Z  ^[[32m✓^[[39m tests/quarry-surface-uv.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:07.7597825Z  ^[[32m✓^[[39m tests/pit-session-eligibility.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 850^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:09.1240473Z  ^[[32m✓^[[39m tests/aurel-drain-datum.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 134^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:10.0481941Z  ^[[32m✓^[[39m tests/trackside.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 59^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:10.2573896Z  ^[[32m✓^[[39m tests/gp-axle-carrier.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 24^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:10.4068686Z  ^[[32m✓^[[39m tests/bike-slipstream.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:11.1066492Z  ^[[32m✓^[[39m tests/festival-photographic-sky.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:11.2984508Z  ^[[32m✓^[[39m tests/motocross-brake-cue.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:11.4975792Z  ^[[32m✓^[[39m tests/formula-flap-drive.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 15^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:12.6389838Z  ^[[32m✓^[[39m tests/phase27g-venue.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 283^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:15.9612873Z  ^[[32m✓^[[39m tests/content-validation.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[33m 2650^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:15.9613953Z    ^[[33m^[[2m✓^[[22m^[[39m WP14 content validation^[[2m > ^[[22maccepts every registered and development definition ^[[33m 2648^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:16.1126554Z  ^[[32m✓^[[39m tests/dialog-close.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:16.3323983Z  ^[[32m✓^[[39m tests/motocross-roost-deflector.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 31^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:16.5063398Z  ^[[32m✓^[[39m tests/motocross-reference-review.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:16.6810085Z  ^[[32m✓^[[39m tests/gp-field-detail.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:17.3841566Z  ^[[32m✓^[[39m tests/gp-path-reaction.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:18.0574141Z  ^[[32m✓^[[39m tests/crew-kit.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:18.2140954Z  ^[[32m✓^[[39m tests/gpu-frame-responsiveness.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:18.4078299Z  ^[[32m✓^[[39m tests/gp-optics-drainage.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.0646208Z  ^[[32m✓^[[39m tests/event-cards.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.2832836Z  ^[[32m✓^[[39m tests/spray-plume.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3002272Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3003795Z ^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Failed Tests 2 ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3004239Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3004989Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/i18n.test.ts^[[2m > ^[[22mthe catalogue and the dictionary gate^[[2m > ^[[22mpasses for all seven dictionaries
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3019043Z ^[[31m^[[1mAssertionError^[[22m: expected [ { locale: 'de', …(4) }, …(13) ] to deeply equal []^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3019827Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3020982Z ^[[32m- Expected^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3021746Z ^[[31m+ Received^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3021947Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3022141Z ^[[32m- []^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3022498Z ^[[31m+ [^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3023221Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3023781Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3024510Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3025059Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3025504Z ^[[31m+     "locale": "de",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3025948Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3026356Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3026717Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3027276Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3027953Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3028473Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3028922Z ^[[31m+     "locale": "de",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3029344Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3029774Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3030123Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3030615Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3031287Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3031943Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3032399Z ^[[31m+     "locale": "fr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3032880Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3033267Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3033606Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3034148Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3034856Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3035346Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3035762Z ^[[31m+     "locale": "fr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3036235Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3036592Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3036980Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3037519Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3038120Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3038610Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3039050Z ^[[31m+     "locale": "es",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3039493Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3039845Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3040225Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3040722Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3041555Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3042389Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3042777Z ^[[31m+     "locale": "es",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3043228Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3043626Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3043970Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3044441Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3044991Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3045512Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3045939Z ^[[31m+     "locale": "pt-BR",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3046363Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3046716Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3047036Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3047526Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3048145Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3048665Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3049095Z ^[[31m+     "locale": "pt-BR",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3049559Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3049905Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3050216Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3050995Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3051592Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3052555Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3052963Z ^[[31m+     "locale": "it",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3053560Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3054134Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3054418Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3054962Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3055839Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3056314Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3056714Z ^[[31m+     "locale": "it",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3057242Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3057636Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3057935Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3059786Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3060378Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3060847Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3061298Z ^[[31m+     "locale": "pl",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3061937Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3062344Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3062658Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3063265Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3063919Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3064398Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3064879Z ^[[31m+     "locale": "pl",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3065299Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3065701Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3066059Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3066563Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3067159Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3067682Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3068120Z ^[[31m+     "locale": "tr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3068542Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3068911Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3069278Z ^[[31m+   {^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3069803Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3070451Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3070985Z ^[[31m+     "kind": "keys",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3071405Z ^[[31m+     "locale": "tr",^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3072040Z ^[[31m+     "warning": false,^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3072476Z ^[[31m+   },^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3072819Z ^[[31m+ ]^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3073010Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3073544Z ^[[36m ^[[2m❯^[[22m tests/i18n.test.ts:^[[2m207:48^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3091874Z     ^[[90m205| ^[[39m  ^[[34mit^[[39m(^[[32m'passes for all seven dictionaries'^[[39m^[[33m,^[[39m ^[[35masync^[[39m () ^[[33m=>^[[39m {
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3093300Z     ^[[90m206| ^[[39m    ^[[35mconst^[[39m { problems^[[33m,^[[39m counts^[[33m,^[[39m entries } ^[[33m=^[[39m ^[[35mawait^[[39m ^[[34mcheckAll^[[39m()^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3094606Z     ^[[90m207| ^[[39m    ^[[34mexpect^[[39m(problems^[[33m.^[[39m^[[34mfilter^[[39m((p) ^[[33m=>^[[39m ^[[33m!^[[39mp^[[33m.^[[39mwarning))^[[33m.^[[39m^[[34mtoEqual^[[39m([])^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3095481Z     ^[[90m   | ^[[39m                                               ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3096223Z     ^[[90m208| ^[[39m    for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3096851Z     ^[[90m209| ^[[39m  })^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3102319Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3103057Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3103437Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3104481Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/vehicle-catalogue-growth.test.ts^[[2m > ^[[22mcatalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3105833Z ^[[31m^[[1mAssertionError^[[22m: gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3106377Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3106772Z Expected: ^[[32m"eca1c71a"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3107247Z Received: ^[[31m"5f121c00"^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3107526Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3108066Z ^[[36m ^[[2m❯^[[22m tests/vehicle-catalogue-growth.test.ts:^[[2m85:58^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3134094Z     ^[[90m 83| ^[[39m  it('keeps every machine that existed before the growth bit-identical…
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3141593Z     ^[[90m 84| ^[[39m    ^[[35mfor^[[39m (^[[35mconst^[[39m [id^[[33m,^[[39m hash] ^[[35mof^[[39m ^[[33mObject^[[39m^[[33m.^[[39m^[[34mentries^[[39m(^[[33mFROZEN^[[39m))
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3183301Z     ^[[90m 85| ^[[39m      ^[[34mexpect^[[39m(^[[34mvehicleHash^[[39m(^[[33mVEHICLES^[[39m[id])^[[33m,^[[39m ^[[32m`^[[39m^[[36m${^[[39mid^[[36m}^[[39m^[[32m changed`^[[39m)^[[33m.^[[39m^[[34mtoBe^[[39m(hash)^[[33m;^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3192934Z     ^[[90m   | ^[[39m                                                         ^[[31m^^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3193980Z     ^[[90m 86| ^[[39m    // Appended after the existing registry: snapshot indices are unch…
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3194879Z     ^[[90m 87| ^[[39m    expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3195398Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3195870Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯^[[22m^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3196217Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3196322Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3196927Z ^[[2m Test Files ^[[22m ^[[1m^[[31m2 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m216 passed^[[39m^[[22m^[[90m (218)^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3199648Z ^[[2m      Tests ^[[22m ^[[1m^[[31m2 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m2393 passed^[[39m^[[22m^[[90m (2395)^[[39m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3200632Z ^[[2m   Start at ^[[22m 19:46:49
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3202059Z ^[[2m   Duration ^[[22m 509.67s^[[2m (transform 6.83s, setup 0ms, collect 119.23s, tests 359.65s, environment 32ms, prepare 10.52s)^[[22m
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3202751Z 
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:19.3484692Z JSON report written to /home/runner/work/_temp/unit-3.json
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0524617Z (node:2271) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0525575Z (Use `node --trace-warnings ...` to show where the warning was created)
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0618646Z ##[error]Process completed with exit code 1.
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0689990Z ##[group]Run actions/upload-artifact@v4
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0690304Z with:
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0690536Z   name: unit-validation-3-of-4
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0690883Z   path: /home/runner/work/_temp/unit-3.json
-unit-tests (3)	UNKNOWN STEP	/home/runner/work/_temp/unit-3.log
-unit-tests (3)	UNKNOWN STEP	
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0691347Z   retention-days: 7
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0691879Z   if-no-files-found: error
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0692174Z   compression-level: 6
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0692409Z   overwrite: false
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0692687Z   include-hidden-files: false
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.0692949Z ##[endgroup]
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.1969217Z (node:8500) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.1969928Z (Use `node --trace-deprecation ...` to show where the warning was created)
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.2008342Z Multiple search paths detected. Calculating the least common ancestor of all paths
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.2024812Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.2026259Z With the provided path, there will be 2 files uploaded
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.2027298Z Artifact name is valid!
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.2027737Z Root directory input is valid!
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.7741413Z Beginning upload of artifact content to blob storage
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:20.8021542Z (node:8500) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.3555532Z Uploaded bytes 132068
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.4503864Z Finished uploading artifact content to blob storage!
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.4504875Z SHA256 digest of uploaded artifact zip is 4a85f88e07403b0253f9ae0a2f62403ab0e31f33e82cb8660851b0b05627277a
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.4505348Z Finalizing artifact upload
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.8476901Z Artifact unit-validation-3-of-4.zip successfully finalized. Artifact ID 14958932651
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.8477677Z Artifact unit-validation-3-of-4 has been successfully uploaded! Final size is 132068 bytes. Artifact ID is 14958932651
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.8482211Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45473620366/artifacts/14958932651
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.8661200Z Post job cleanup.
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9312427Z [command]/usr/bin/git version
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9345831Z git version 2.56.1
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9372957Z Temporarily overriding HOME='/home/runner/work/_temp/5003f574-ccf9-4b02-be30-6a9889e828f8' before making global git config changes
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9374735Z Adding repository directory to the temporary git global config as a safe directory
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9376762Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9410555Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9437440Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9632261Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9650935Z http.https://github.com/.extraheader
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9659694Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9686282Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9863542Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:21.9896083Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:22.0186908Z Cleaning up orphan processes
-unit-tests (3)	UNKNOWN STEP	2026-11-24T19:55:22.0573132Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7317938Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7318407Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7318769Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7319783Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7320688Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7321381Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7321916Z ^[[31m+     "locale": "fr",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7322688Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7323180Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7323550Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7324201Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7324967Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7325658Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7326156Z ^[[31m+     "locale": "es",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7326677Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7327120Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7327495Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7328195Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7340515Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7341374Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7341911Z ^[[31m+     "locale": "es",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7342459Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7342942Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7343322Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7343970Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7344747Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7345360Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7345908Z ^[[31m+     "locale": "pt-BR",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7346447Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7346915Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7347281Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7347963Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7348828Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7379925Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7380553Z ^[[31m+     "locale": "pt-BR",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7381106Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7381558Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7381937Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7382580Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7383678Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7384316Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7384905Z ^[[31m+     "locale": "it",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7385437Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7385895Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7386276Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7387025Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7387885Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7388567Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7389292Z ^[[31m+     "locale": "it",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7389822Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7390313Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7390701Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7391429Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7392301Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7393039Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7393643Z ^[[31m+     "locale": "pl",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7394236Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7394774Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7395197Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7395984Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7396948Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7397711Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7398299Z ^[[31m+     "locale": "pl",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7398875Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7399543Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7428695Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7429771Z ^[[31m+     "detail": "missing: Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7430714Z ^[[31m+     "key": "Rear brake (GP motorcycle)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7431443Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7432151Z ^[[31m+     "locale": "tr",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7433014Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7433540Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7433951Z ^[[31m+   {^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7434761Z ^[[31m+     "detail": "missing: GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7435727Z ^[[31m+     "key": "GP rear brake button (−1 unbound)",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7436436Z ^[[31m+     "kind": "keys",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7437026Z ^[[31m+     "locale": "tr",^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7437607Z ^[[31m+     "warning": false,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7438172Z ^[[31m+   },^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7438560Z ^[[31m+ ]^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7438813Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7439462Z ^[[36m ^[[2m❯^[[22m tests/i18n.test.ts:^[[2m207:48^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7440765Z     ^[[90m205| ^[[39m  ^[[34mit^[[39m(^[[32m'passes for all seven dictionaries'^[[39m^[[33m,^[[39m ^[[35masync^[[39m () ^[[33m=>^[[39m {
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7442433Z     ^[[90m206| ^[[39m    ^[[35mconst^[[39m { problems^[[33m,^[[39m counts^[[33m,^[[39m entries } ^[[33m=^[[39m ^[[35mawait^[[39m ^[[34mcheckAll^[[39m()^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7444481Z     ^[[90m207| ^[[39m    ^[[34mexpect^[[39m(problems^[[33m.^[[39m^[[34mfilter^[[39m((p) ^[[33m=>^[[39m ^[[33m!^[[39mp^[[33m.^[[39mwarning))^[[33m.^[[39m^[[34mtoEqual^[[39m([])^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7445878Z     ^[[90m   | ^[[39m                                               ^[[31m^^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7446868Z     ^[[90m208| ^[[39m    for (const locale of TRANSLATED_LOCALES) expect(counts[locale]).to…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7447739Z     ^[[90m209| ^[[39m  })^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7448020Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7448472Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7448834Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7454544Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/vehicle-catalogue-growth.test.ts^[[2m > ^[[22mcatalogue growth (cars and road bikes)^[[2m > ^[[22mkeeps every machine that existed before the growth bit-identical
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7456512Z ^[[31m^[[1mAssertionError^[[22m: gpr1 changed: expected '5f121c00' to be 'eca1c71a' // Object.is equality^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7457416Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7457761Z Expected: ^[[32m"eca1c71a"^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7458395Z Received: ^[[31m"5f121c00"^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7458675Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7459525Z ^[[36m ^[[2m❯^[[22m tests/vehicle-catalogue-growth.test.ts:^[[2m85:58^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7460844Z     ^[[90m 83| ^[[39m  it('keeps every machine that existed before the growth bit-identical…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7462507Z     ^[[90m 84| ^[[39m    ^[[35mfor^[[39m (^[[35mconst^[[39m [id^[[33m,^[[39m hash] ^[[35mof^[[39m ^[[33mObject^[[39m^[[33m.^[[39m^[[34mentries^[[39m(^[[33mFROZEN^[[39m))
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7464633Z     ^[[90m 85| ^[[39m      ^[[34mexpect^[[39m(^[[34mvehicleHash^[[39m(^[[33mVEHICLES^[[39m[id])^[[33m,^[[39m ^[[32m`^[[39m^[[36m${^[[39mid^[[36m}^[[39m^[[32m changed`^[[39m)^[[33m.^[[39m^[[34mtoBe^[[39m(hash)^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7466220Z     ^[[90m   | ^[[39m                                                         ^[[31m^^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7467264Z     ^[[90m 86| ^[[39m    // Appended after the existing registry: snapshot indices are unch…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7468473Z     ^[[90m 87| ^[[39m    expect(VEHICLE_IDS.slice(0, Object.keys(FROZEN).length)).toEqual(O…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7469185Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7469658Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7469997Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7470591Z ^[[31m⎯⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Unhandled Errors ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯⎯^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7471244Z ^[[31m^[[1m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7471824Z Vitest caught 4 unhandled errors during the test run.
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7473209Z This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7473975Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7474479Z ^[[31m⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Uncaught Exception ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7475656Z ^[[31m^[[1mTypeError^[[22m: Cannot read properties of undefined (reading 'stop')^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7477145Z ^[[36m ^[[2m❯^[[22m Owner.suspendPlayback tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7478852Z     ^[[90m 59| ^[[39m    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.Modu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7480000Z     ^[[90m 60| ^[[39m  })^[[33m.^[[39moutputText^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7480999Z     ^[[90m 61| ^[[39m  return new Function(...Object.keys(dependencies), `${compiled}; retu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7481943Z     ^[[90m   | ^[[39m         ^[[31m^^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7482903Z     ^[[90m 62| ^[[39m    ^[[33m...^[[39m^[[33mObject^[[39m^[[33m.^[[39m^[[34mvalues^[[39m(dependencies)^[[33m,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7483792Z     ^[[90m 63| ^[[39m  ) ^[[35mas^[[39m object^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7484906Z ^[[90m ^[[2m❯^[[22m Owner.action tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7486395Z ^[[90m ^[[2m❯^[[22m InputController.action tests/controller-session-ownership.test.ts:^[[2m228:9^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7487680Z ^[[90m ^[[2m❯^[[22m InputController.deviceFault src/input/controller.ts:^[[2m149:30^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7489211Z ^[[90m ^[[2m❯^[[22m InputTarget.disconnected src/input/controller.ts:^[[2m123:12^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7490739Z ^[[90m ^[[2m❯^[[22m InputTarget.[nodejs.internal.kHybridDispatch] node:internal/event_target:^[[2m843:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7492127Z ^[[90m ^[[2m❯^[[22m InputTarget.dispatchEvent node:internal/event_target:^[[2m776:26^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7493487Z ^[[90m ^[[2m❯^[[22m Object.disconnect tests/controller-session-ownership.test.ts:^[[2m324:14^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7494858Z ^[[90m ^[[2m❯^[[22m tests/controller-session-ownership.test.ts:^[[2m361:44^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7496198Z ^[[90m ^[[2m❯^[[22m processTicksAndRejections node:internal/process/task_queues:^[[2m103:5^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7496813Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7498415Z ^[[31mThis error originated in "^[[1mtests/controller-session-ownership.test.ts^[[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7499778Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7500396Z ^[[31m⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Uncaught Exception ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7501771Z ^[[31m^[[1mTypeError^[[22m: Cannot read properties of undefined (reading 'stop')^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7503127Z ^[[36m ^[[2m❯^[[22m Owner.suspendPlayback tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7504387Z     ^[[90m 59| ^[[39m    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.Modu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7505372Z     ^[[90m 60| ^[[39m  })^[[33m.^[[39moutputText^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7506295Z     ^[[90m 61| ^[[39m  return new Function(...Object.keys(dependencies), `${compiled}; retu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7507127Z     ^[[90m   | ^[[39m         ^[[31m^^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7508021Z     ^[[90m 62| ^[[39m    ^[[33m...^[[39m^[[33mObject^[[39m^[[33m.^[[39m^[[34mvalues^[[39m(dependencies)^[[33m,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7508848Z     ^[[90m 63| ^[[39m  ) ^[[35mas^[[39m object^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7510663Z ^[[90m ^[[2m❯^[[22m Owner.action tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7512129Z ^[[90m ^[[2m❯^[[22m InputController.action tests/controller-session-ownership.test.ts:^[[2m228:9^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7513342Z ^[[90m ^[[2m❯^[[22m InputTarget.blur src/input/controller.ts:^[[2m115:28^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7514672Z ^[[90m ^[[2m❯^[[22m InputTarget.[nodejs.internal.kHybridDispatch] node:internal/event_target:^[[2m843:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7515982Z ^[[90m ^[[2m❯^[[22m InputTarget.dispatchEvent node:internal/event_target:^[[2m776:26^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7517147Z ^[[90m ^[[2m❯^[[22m tests/controller-session-ownership.test.ts:^[[2m362:44^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7518419Z ^[[90m ^[[2m❯^[[22m processTicksAndRejections node:internal/process/task_queues:^[[2m103:5^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7519935Z ^[[90m ^[[2m❯^[[22m node_modules/@vitest/runner/dist/chunk-hooks.js:^[[2m752:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7520460Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7521981Z ^[[31mThis error originated in "^[[1mtests/controller-session-ownership.test.ts^[[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7523320Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7523903Z ^[[31m⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Uncaught Exception ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7524978Z ^[[31m^[[1mTypeError^[[22m: Cannot read properties of undefined (reading 'stop')^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7526321Z ^[[36m ^[[2m❯^[[22m Owner.suspendPlayback tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7527605Z     ^[[90m 59| ^[[39m    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.Modu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7528471Z     ^[[90m 60| ^[[39m  })^[[33m.^[[39moutputText^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7529504Z     ^[[90m 61| ^[[39m  return new Function(...Object.keys(dependencies), `${compiled}; retu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7530304Z     ^[[90m   | ^[[39m         ^[[31m^^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7531234Z     ^[[90m 62| ^[[39m    ^[[33m...^[[39m^[[33mObject^[[39m^[[33m.^[[39m^[[34mvalues^[[39m(dependencies)^[[33m,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7532100Z     ^[[90m 63| ^[[39m  ) ^[[35mas^[[39m object^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7533263Z ^[[90m ^[[2m❯^[[22m Owner.action tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7534511Z ^[[90m ^[[2m❯^[[22m InputController.action tests/controller-session-ownership.test.ts:^[[2m228:9^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7535828Z ^[[90m ^[[2m❯^[[22m InputController.blur src/input/controller.ts:^[[2m115:28^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7537007Z ^[[90m ^[[2m❯^[[22m EventTarget.visibilityChanged src/input/controller.ts:^[[2m118:42^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7538406Z ^[[90m ^[[2m❯^[[22m EventTarget.[nodejs.internal.kHybridDispatch] node:internal/event_target:^[[2m843:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7539971Z ^[[90m ^[[2m❯^[[22m EventTarget.dispatchEvent node:internal/event_target:^[[2m776:26^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7541106Z ^[[90m ^[[2m❯^[[22m tests/controller-session-ownership.test.ts:^[[2m365:22^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7542325Z ^[[90m ^[[2m❯^[[22m processTicksAndRejections node:internal/process/task_queues:^[[2m103:5^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7543888Z ^[[90m ^[[2m❯^[[22m node_modules/@vitest/runner/dist/chunk-hooks.js:^[[2m752:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7544427Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7545928Z ^[[31mThis error originated in "^[[1mtests/controller-session-ownership.test.ts^[[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7546938Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7547528Z ^[[31m⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Uncaught Exception ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7548708Z ^[[31m^[[1mTypeError^[[22m: Cannot read properties of undefined (reading 'stop')^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7550358Z ^[[36m ^[[2m❯^[[22m Owner.suspendPlayback tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7551638Z     ^[[90m 59| ^[[39m    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.Modu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7552607Z     ^[[90m 60| ^[[39m  })^[[33m.^[[39moutputText^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7553606Z     ^[[90m 61| ^[[39m  return new Function(...Object.keys(dependencies), `${compiled}; retu…
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7554498Z     ^[[90m   | ^[[39m         ^[[31m^^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7555494Z     ^[[90m 62| ^[[39m    ^[[33m...^[[39m^[[33mObject^[[39m^[[33m.^[[39m^[[34mvalues^[[39m(dependencies)^[[33m,^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7556425Z     ^[[90m 63| ^[[39m  ) ^[[35mas^[[39m object^[[33m;^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7557536Z ^[[90m ^[[2m❯^[[22m Owner.action tests/controller-session-ownership.test.ts:^[[2m61:10^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7558978Z ^[[90m ^[[2m❯^[[22m InputController.action tests/controller-session-ownership.test.ts:^[[2m228:9^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7560373Z ^[[90m ^[[2m❯^[[22m InputTarget.blur src/input/controller.ts:^[[2m115:28^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7561880Z ^[[90m ^[[2m❯^[[22m InputTarget.[nodejs.internal.kHybridDispatch] node:internal/event_target:^[[2m843:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7563313Z ^[[90m ^[[2m❯^[[22m InputTarget.dispatchEvent node:internal/event_target:^[[2m776:26^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7564546Z ^[[90m ^[[2m❯^[[22m tests/controller-session-ownership.test.ts:^[[2m398:16^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7566148Z ^[[90m ^[[2m❯^[[22m processTicksAndRejections node:internal/process/task_queues:^[[2m103:5^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7567481Z ^[[90m ^[[2m❯^[[22m node_modules/@vitest/runner/dist/chunk-hooks.js:^[[2m752:20^[[22m^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7568021Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7569693Z ^[[31mThis error originated in "^[[1mtests/controller-session-ownership.test.ts^[[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7571235Z ^[[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7571535Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7571549Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7572322Z ^[[2m Test Files ^[[22m ^[[1m^[[31m3 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m216 passed^[[39m^[[22m^[[90m (219)^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7573670Z ^[[2m      Tests ^[[22m ^[[1m^[[31m9 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m2404 passed^[[39m^[[22m^[[90m (2413)^[[39m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7574662Z ^[[2m     Errors ^[[22m ^[[1m^[[31m4 errors^[[39m^[[22m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7575354Z ^[[2m   Start at ^[[22m 01:01:41
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7576722Z ^[[2m   Duration ^[[22m 706.92s^[[2m (transform 8.76s, setup 0ms, collect 155.13s, tests 512.62s, environment 45ms, prepare 14.36s)^[[22m
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7577494Z 
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:28.7577943Z JSON report written to /home/runner/work/_temp/unit-3.json
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:29.6193396Z (node:2426) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:29.6286606Z (Use `node --trace-warnings ...` to show where the warning was created)
+unit-tests (3)	Complete unit-suite partition without source changes	2026-11-25T01:13:29.6297824Z ##[error]Process completed with exit code 1.
+unit-tests (3)	Unit results, including failures	﻿2026-11-25T01:13:29.6376646Z ##[group]Run actions/upload-artifact@v4
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6376958Z with:
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6377265Z   name: unit-validation-3-of-4
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6377636Z   path: /home/runner/work/_temp/unit-3.json
+unit-tests (3)	Unit results, including failures	/home/runner/work/_temp/unit-3.log
+unit-tests (3)	Unit results, including failures	
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6378027Z   retention-days: 7
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6378256Z   if-no-files-found: error
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6378519Z   compression-level: 6
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6378738Z   overwrite: false
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6378951Z   include-hidden-files: false
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.6379385Z ##[endgroup]
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.7964254Z (node:8830) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.7965621Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.8011850Z Multiple search paths detected. Calculating the least common ancestor of all paths
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.8020400Z The least common ancestor is /home/runner/work/_temp. This will be the root directory of the artifact
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.8021566Z With the provided path, there will be 2 files uploaded
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.8022622Z Artifact name is valid!
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:29.8023180Z Root directory input is valid!
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.0662252Z Beginning upload of artifact content to blob storage
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.1028883Z (node:8830) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.1993416Z Uploaded bytes 138671
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.2266657Z Finished uploading artifact content to blob storage!
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.2267488Z SHA256 digest of uploaded artifact zip is 817175ae46395dcc7eaea82e0d2eff319f344e46397ac81ab5d1d46a5635fe7a
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.2269314Z Finalizing artifact upload
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.5797821Z Artifact unit-validation-3-of-4.zip successfully finalized. Artifact ID 14980189691
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.5799281Z Artifact unit-validation-3-of-4 has been successfully uploaded! Final size is 138671 bytes. Artifact ID is 14980189691
+unit-tests (3)	Unit results, including failures	2026-11-25T01:13:30.5807308Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45522566622/artifacts/14980189691
+unit-tests (3)	Post Run actions/checkout@v4	﻿2026-11-25T01:13:30.5993211Z Post job cleanup.
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6812392Z [command]/usr/bin/git version
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6850853Z git version 2.56.1
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6886484Z Temporarily overriding HOME='/home/runner/work/_temp/e70cfa59-eb00-4c20-a5cf-416368282a4c' before making global git config changes
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6888301Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6893223Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6928346Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.6958876Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.7174104Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.7194172Z http.https://github.com/.extraheader
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.7206252Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.7241597Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.7457355Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests (3)	Post Run actions/checkout@v4	2026-11-25T01:13:30.7492453Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests (3)	Complete job	﻿2026-11-25T01:13:30.7840456Z Cleaning up orphan processes
+unit-tests (3)	Complete job	2026-11-25T01:13:30.8181566Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
