@@ -1,0 +1,1387 @@
+{
+  "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+  "current": "6a6bf02eb2d89eeb6aeff32769ef3deb4a49f17c",
+  "review": "All added/removed lines in each of the 29 committed source diffs were reviewed. Member names include support state/type declarations where needed.",
+  "files": [
+    {
+      "path": "src/audio/engine.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "RacingAudio.previewDriving",
+        "RacingAudio.muted getter/setter",
+        "RacingAudio.isMuted state"
+      ],
+      "scope": "Preview activation/cancellation ownership: muted or non-running live audio cannot arm delayed tones; offline scheduling remains supported.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 71,
+          "baseline_count": 17,
+          "current_start": 71,
+          "current_count": 22,
+          "context": "export class RacingAudio {"
+        },
+        {
+          "baseline_start": 120,
+          "baseline_count": 11,
+          "current_start": 125,
+          "current_count": 23,
+          "context": "export class RacingAudio {"
+        }
+      ],
+      "hashes": {
+        "path": "src/audio/engine.ts",
+        "baseline_blob_oid": "071ab97c83987006a620fcffb70119d42ab5c149",
+        "current_blob_oid": "876571c970d7a2190eb4585dfdd57e166b2f2144",
+        "baseline_sha256": "d219bc64d24ad6377997d7d52dda53d62deb9124e0cf4d4abe03f1890f092832",
+        "current_sha256": "8d8208cb1e383546da49200e08b889a3fb8a18bb4a2772c2e66b22aa1be5f143",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/core/ghost-lap.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "ghost bounds/constants",
+        "validLapTime",
+        "validateGhost",
+        "GhostRecorder.observe",
+        "GhostRecorder.discardLap",
+        "GhostRecorder.pushSample"
+      ],
+      "scope": "Bound and validate recorded ghost storage using the existing accepted duration/minimum samples and a derived maximum sample bound; discard ineligible or malformed laps; existing version-1 record field shape retained.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 9,
+          "baseline_count": 12,
+          "current_start": 9,
+          "current_count": 25,
+          "context": "import {"
+        },
+        {
+          "baseline_start": 46,
+          "baseline_count": 18,
+          "current_start": 59,
+          "current_count": 21,
+          "context": "export function validateGhost("
+        },
+        {
+          "baseline_start": 106,
+          "baseline_count": 28,
+          "current_start": 122,
+          "current_count": 39,
+          "context": "export class GhostRecorder {"
+        },
+        {
+          "baseline_start": 141,
+          "baseline_count": 27,
+          "current_start": 168,
+          "current_count": 62,
+          "context": "export class GhostRecorder {"
+        },
+        {
+          "baseline_start": 172,
+          "baseline_count": 10,
+          "current_start": 234,
+          "current_count": 11,
+          "context": "export class GhostRecorder {"
+        }
+      ],
+      "hashes": {
+        "path": "src/core/ghost-lap.ts",
+        "baseline_blob_oid": "6f8906ccee9164f4ff13b7525030bb915ddbe4ee",
+        "current_blob_oid": "adb6eb918508bee336fc91812c798198bc2bdf7b",
+        "baseline_sha256": "9766853ddd0515cf71acd0a0cbcb25aefde14519aa43c48e36fadcf8ea4eb7ce",
+        "current_sha256": "13aff3c5f0a8821cc8dee48b7ba5e2a71ca0b8c5df1086b2e91701736c579391",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/input/button-actions.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "ControllerActions.poll"
+      ],
+      "scope": "Observe the entire button sample before dispatching at most one UI action, so callbacks cannot leave later held edges unconsumed.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 131,
+          "baseline_count": 21,
+          "current_start": 131,
+          "current_count": 21,
+          "context": "export class ControllerActions {"
+        },
+        {
+          "baseline_start": 159,
+          "baseline_count": 10,
+          "current_start": 159,
+          "current_count": 12,
+          "context": "export class ControllerActions {"
+        }
+      ],
+      "hashes": {
+        "path": "src/input/button-actions.ts",
+        "baseline_blob_oid": "22d57947ca2111df4e9923158d65c2b828aba864",
+        "current_blob_oid": "ab21da0a55a9de314eb2f677567f35acf40ec84c",
+        "baseline_sha256": "0e51d43e6830e256eb8143990cadc3481334d5de010ea4533161510c6100001f",
+        "current_sha256": "0e9e223259bcb842f4c0de87b868806de2e6548461d3d8e130b12b2881928e92",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/input/controller.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "pendingShifts ownership",
+        "InputController.keyDown",
+        "InputController.queueShift",
+        "InputController.stageShift",
+        "InputController.reset",
+        "InputController.update"
+      ],
+      "scope": "Bounded FIFO ownership for discrete shift edges through host acknowledgement, preserving accepted keyboard/gamepad order.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 13,
+          "baseline_count": 10,
+          "current_start": 13,
+          "current_count": 11,
+          "context": "import {"
+        },
+        {
+          "baseline_start": 28,
+          "baseline_count": 10,
+          "current_start": 29,
+          "current_count": 11,
+          "context": "const deviceIdentity = (pad: Gamepad) => `${pad.index}:${pad.id}:${pad.mapping}`"
+        },
+        {
+          "baseline_start": 87,
+          "baseline_count": 12,
+          "current_start": 89,
+          "current_count": 12,
+          "context": "export class InputController {"
+        },
+        {
+          "baseline_start": 106,
+          "baseline_count": 10,
+          "current_start": 108,
+          "current_count": 22,
+          "context": "export class InputController {"
+        },
+        {
+          "baseline_start": 157,
+          "baseline_count": 10,
+          "current_start": 171,
+          "current_count": 11,
+          "context": "export class InputController {"
+        },
+        {
+          "baseline_start": 364,
+          "baseline_count": 11,
+          "current_start": 379,
+          "current_count": 11,
+          "context": "export class InputController {"
+        },
+        {
+          "baseline_start": 397,
+          "baseline_count": 10,
+          "current_start": 412,
+          "current_count": 11,
+          "context": "export class InputController {"
+        }
+      ],
+      "hashes": {
+        "path": "src/input/controller.ts",
+        "baseline_blob_oid": "bccdbb25501465787383c80a020be442648e7082",
+        "current_blob_oid": "0da8af68ac1fe35311650cd6828dd1df81e43966",
+        "baseline_sha256": "ea988e7e795379ce0d7f5a0423b6c91b0e2c6a6195729c99bb6414098f2e0ba5",
+        "current_sha256": "44c3ea4b0d23fe4889bdf056156de41ab07cc9ad93fa3adfcfb4bc9bdbc75e54",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/main.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "GameApp.constructor blur registration",
+        "GameApp.startFestival load callback",
+        "GameApp.start engineering message callback",
+        "GameApp.suspendOnBlur",
+        "GameApp.suspendPlayback",
+        "GameApp.pause",
+        "GameApp.exportTelemetry",
+        "GameApp.fail",
+        "GameApp.dispose blur release"
+      ],
+      "scope": "Host worker/diagnostics credit ownership, asynchronous export ownership, error cleanup, and audio/haptic suspension; no presentation definition or quality default changes.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 554,
+          "baseline_count": 10,
+          "current_start": 554,
+          "current_count": 11,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 1017,
+          "baseline_count": 10,
+          "current_start": 1018,
+          "current_count": 12,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 1334,
+          "baseline_count": 15,
+          "current_start": 1337,
+          "current_count": 39,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 2025,
+          "baseline_count": 20,
+          "current_start": 2052,
+          "current_count": 24,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 2261,
+          "baseline_count": 10,
+          "current_start": 2292,
+          "current_count": 11,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 3370,
+          "baseline_count": 23,
+          "current_start": 3402,
+          "current_count": 31,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 3515,
+          "baseline_count": 28,
+          "current_start": 3555,
+          "current_count": 44,
+          "context": "export class GameApp {"
+        },
+        {
+          "baseline_start": 3665,
+          "baseline_count": 10,
+          "current_start": 3721,
+          "current_count": 11,
+          "context": "export class GameApp {"
+        }
+      ],
+      "hashes": {
+        "path": "src/main.ts",
+        "baseline_blob_oid": "0f0ebc1fbb933f21792dfda2dc926abb7da3a8db",
+        "current_blob_oid": "b28943fdba7a156a674a56ef23955ef8b74c1653",
+        "baseline_sha256": "615793eabeb4889aa8ae23568e5297a09139957b96cb8307be03630a9cfed259",
+        "current_sha256": "ff5170fcf7762035ee1ee9a0d5395f27a7a30cb928317fecd13c385ec8f1002b",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/net/authority.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "JOURNAL_ENTRIES_PER_CAR_TICK",
+        "NetDriver.shiftEdge",
+        "NetDriver.update",
+        "JournalEntry union",
+        "AuthoritativeWorld.setControls",
+        "AuthoritativeWorld.setLevelControls",
+        "AuthoritativeWorld.setMode",
+        "AuthoritativeWorld.apply",
+        "KIND journal tags",
+        "encodeJournal",
+        "decodeJournal"
+      ],
+      "scope": "Intentional live one-shot shifts and explicit journal tag 5; legacy control tags 0/4 keep persistent shift replay semantics; journal level snapshots have independent ownership.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 33,
+          "baseline_count": 13,
+          "current_start": 33,
+          "current_count": 13,
+          "context": "export const CHECKPOINT_TICKS = 1200;"
+        },
+        {
+          "baseline_start": 78,
+          "baseline_count": 32,
+          "current_start": 78,
+          "current_count": 41,
+          "context": "export function applyControls(car: Vehicle, input: Controls, phase: number, edge"
+        },
+        {
+          "baseline_start": 119,
+          "baseline_count": 11,
+          "current_start": 128,
+          "current_count": 13,
+          "context": "function overtakeWouldStart(driver: NetDriver) {"
+        },
+        {
+          "baseline_start": 175,
+          "baseline_count": 31,
+          "current_start": 186,
+          "current_count": 42,
+          "context": "export class AuthoritativeWorld {"
+        },
+        {
+          "baseline_start": 223,
+          "baseline_count": 12,
+          "current_start": 245,
+          "current_count": 22,
+          "context": "export class AuthoritativeWorld {"
+        },
+        {
+          "baseline_start": 378,
+          "baseline_count": 12,
+          "current_start": 410,
+          "current_count": 14,
+          "context": "export class AuthoritativeWorld {"
+        },
+        {
+          "baseline_start": 394,
+          "baseline_count": 11,
+          "current_start": 428,
+          "current_count": 14,
+          "context": "export function encodeJournal(entries: readonly JournalEntry[]) {"
+        },
+        {
+          "baseline_start": 417,
+          "baseline_count": 12,
+          "current_start": 454,
+          "current_count": 16,
+          "context": "export function decodeJournal("
+        }
+      ],
+      "hashes": {
+        "path": "src/net/authority.ts",
+        "baseline_blob_oid": "4775000a66deaac72d167ae7a88536ddf03cb28c",
+        "current_blob_oid": "1612dbb8eff4cf5ff4298e798040389d85629f29",
+        "baseline_sha256": "6150b8bf11a75cd7d54a0bd375d330bbbb1df53383192fd63c21db5d12f715e8",
+        "current_sha256": "40ae4f4f9e97de5430de21b3873682dfa8140a347ca325378297ee725bf2f0db",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/net/client.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "RaceClient.sample"
+      ],
+      "scope": "Rejecting a malformed current input clears shift together with other discrete edges instead of replaying the previous shift.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 414,
+          "baseline_count": 11,
+          "current_start": 414,
+          "current_count": 11,
+          "context": "export class RaceClient {"
+        }
+      ],
+      "hashes": {
+        "path": "src/net/client.ts",
+        "baseline_blob_oid": "61bfeef477d1676d102a90b83e9560ede09aae0e",
+        "current_blob_oid": "a0830a0b3e32cb3d69b690b265c9caf9875cd1d6",
+        "baseline_sha256": "0f6f0cd5fbc9d0535cc15fbcecdf0ea3086f5523fa3227c667c6810d3d070845",
+        "current_sha256": "87464b750e40da58f324d4a1b9eec83d6d29cd6414fa9b9396418e285307ab3c",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/net/input.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "quantizeControls"
+      ],
+      "scope": "Replace temporary byte encode/decode with exact wire-equivalent scalar clamp/round/coercion; control field layout and writer/reader unchanged.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 120,
+          "baseline_count": 13,
+          "current_start": 120,
+          "current_count": 40,
+          "context": "export function readControls(r: ByteReader, withRearBrake = true): Controls {"
+        }
+      ],
+      "hashes": {
+        "path": "src/net/input.ts",
+        "baseline_blob_oid": "031d159cf65ec861a564601d8696a0c209533d23",
+        "current_blob_oid": "b5dcfa89afb9263eca30c68f3dd1673f5dc434d2",
+        "baseline_sha256": "d7f1873380764b2f239bfc2b8609cd477b6d6af612804fbe1eb9e484d78c352a",
+        "current_sha256": "1aa7212dc76a5f0d0de10b694ede0f15c68a701368e2cddc1998c765ce061d30",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/net/records.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "createRecord"
+      ],
+      "scope": "Archive only consumed journal entries before exclusive endTick; trim the current-boundary suffix without changing record schema or digest rules.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 78,
+          "baseline_count": 20,
+          "current_start": 78,
+          "current_count": 28,
+          "context": "function claimOf(world: AuthoritativeWorld): RecordClaim {"
+        }
+      ],
+      "hashes": {
+        "path": "src/net/records.ts",
+        "baseline_blob_oid": "604d0f9a135fbb69cd018ba3c26c2d156d943f5e",
+        "current_blob_oid": "bfae1a0fe59b2b8443eb61cbd9456605339a655f",
+        "baseline_sha256": "68e934db43af3379956eba3fd5033548f187267f19eadf57e86ef38385d76402",
+        "current_sha256": "1f08725fa49871f41f240f1983bdefd08530f38a40efbf651016c22397ca97aa",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/net/server.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "SnapshotBatch and ownership state",
+        "ServerStats transport diagnostics",
+        "RaceServer.ownsWorld",
+        "RaceServer.send",
+        "RaceServer.sendData",
+        "RaceServer.close",
+        "RaceServer.closeTransport",
+        "RaceServer.transportError",
+        "RaceServer.rejoin",
+        "RaceServer.startGrid",
+        "RaceServer.tick",
+        "RaceServer.snapshot",
+        "RaceServer.disconnect",
+        "RaceServer.lost",
+        "RaceServer.forfeit",
+        "RaceServer.endRace",
+        "RaceServer.teardown"
+      ],
+      "scope": "Retire peer/session ownership before callbacks, isolate transport failures, share per-boundary capture with independently encoded recipient packets, bound reentrant batches, and stop stale grid/results work.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 29,
+          "baseline_count": 12,
+          "current_start": 29,
+          "current_count": 12,
+          "context": "import type {"
+        },
+        {
+          "baseline_start": 104,
+          "baseline_count": 10,
+          "current_start": 104,
+          "current_count": 14,
+          "context": "interface Player {"
+        },
+        {
+          "baseline_start": 119,
+          "baseline_count": 10,
+          "current_start": 123,
+          "current_count": 19,
+          "context": "export interface ServerStats {"
+        },
+        {
+          "baseline_start": 167,
+          "baseline_count": 10,
+          "current_start": 180,
+          "current_count": 12,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 181,
+          "baseline_count": 10,
+          "current_start": 196,
+          "current_count": 13,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 214,
+          "baseline_count": 10,
+          "current_start": 232,
+          "current_count": 13,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 265,
+          "baseline_count": 11,
+          "current_start": 286,
+          "current_count": 24,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 305,
+          "baseline_count": 13,
+          "current_start": 339,
+          "current_count": 27,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 455,
+          "baseline_count": 12,
+          "current_start": 503,
+          "current_count": 19,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 472,
+          "baseline_count": 10,
+          "current_start": 527,
+          "current_count": 12,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 545,
+          "baseline_count": 12,
+          "current_start": 602,
+          "current_count": 15,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 602,
+          "baseline_count": 13,
+          "current_start": 662,
+          "current_count": 15,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 619,
+          "baseline_count": 54,
+          "current_start": 681,
+          "current_count": 101,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 674,
+          "baseline_count": 29,
+          "current_start": 783,
+          "current_count": 22,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 718,
+          "baseline_count": 12,
+          "current_start": 820,
+          "current_count": 13,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 754,
+          "baseline_count": 12,
+          "current_start": 857,
+          "current_count": 21,
+          "context": "export class RaceServer {"
+        },
+        {
+          "baseline_start": 767,
+          "baseline_count": 11,
+          "current_start": 879,
+          "current_count": 15,
+          "context": "export class RaceServer {"
+        }
+      ],
+      "hashes": {
+        "path": "src/net/server.ts",
+        "baseline_blob_oid": "83a04e11c1b2578b8938b41f77436ad0db4731c9",
+        "current_blob_oid": "00326913422de8756fa060c16c1761d5ea99cabf",
+        "baseline_sha256": "315b55823d9c26c7817ac864a044e5a3ef429b98367d54e8d2fbf84a186fb916",
+        "current_sha256": "0eb3de9f8223fd6398f50187c8f1ae43123c334cd500a7f775929524e0aaa9de",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/rendering/assets/texture-source-ownership.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "disposeSceneTexture"
+      ],
+      "scope": "Independent exclusive bitmap release after texture-disposal errors, with shared/cache pixels kept borrowed and first error preserved.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 21,
+          "baseline_count": 17,
+          "current_start": 21,
+          "current_count": 31,
+          "context": "export function markSharedTextureSource(texture: T.Texture) {"
+        }
+      ],
+      "hashes": {
+        "path": "src/rendering/assets/texture-source-ownership.ts",
+        "baseline_blob_oid": "db2b293ebe46b0361ca0ba67ccc177dd621ae40f",
+        "current_blob_oid": "2a3233807daed1d500b8a279fed24f7b655204d4",
+        "baseline_sha256": "fb04a81ce938d01bc3ebe16ad572ebb93cb986b5d2e947fa420f34acf0c14d5f",
+        "current_sha256": "99f29f752164d820ea47b87725857d1ad0854abd4ee1d494c4511c277dab3cbb",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/rendering/imported-texture-budget.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "ImportedTextureBudget.register",
+        "ImportedTextureBudget.unregister",
+        "ImportedTextureBudget.dispose"
+      ],
+      "scope": "Batch shared image acquisition and retire/restore wrapper ownership on unregister/dispose; apply/resampling/filtering logic unchanged.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 23,
+          "baseline_count": 46,
+          "current_start": 23,
+          "current_count": 51,
+          "context": "export class ImportedTextureBudget {"
+        },
+        {
+          "baseline_start": 74,
+          "baseline_count": 23,
+          "current_start": 79,
+          "current_count": 28,
+          "context": "export class ImportedTextureBudget {"
+        },
+        {
+          "baseline_start": 147,
+          "baseline_count": 22,
+          "current_start": 157,
+          "current_count": 37,
+          "context": "export class ImportedTextureBudget {"
+        }
+      ],
+      "hashes": {
+        "path": "src/rendering/imported-texture-budget.ts",
+        "baseline_blob_oid": "f15934fbd975e965fd2a20a4ced5bb26d83eae42",
+        "current_blob_oid": "e237ad859d8f0b4f1735de0a0d84235465e69f7f",
+        "baseline_sha256": "06474e8906e7cc6debc447eab9c53eea3bfeded9c0334555bec15329206ba239",
+        "current_sha256": "abbbe4ed5b79171d37392bd83c875d23c8cdf26385cf684694af1a266ee67fb3",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/rendering/open-world/festival-renderer.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "FestivalRenderer.outputPass handle",
+        "FestivalRenderer.constructor pass registration",
+        "FestivalRenderer.dispose"
+      ],
+      "scope": "Retain existing OutputPass for release; dispose owned sky geometry/material, near sun shadow targets and output pass. Borrowed renderer survives; environment/scene definitions untouched.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 187,
+          "baseline_count": 10,
+          "current_start": 187,
+          "current_count": 11,
+          "context": "export class FestivalRenderer {"
+        },
+        {
+          "baseline_start": 348,
+          "baseline_count": 11,
+          "current_start": 349,
+          "current_count": 11,
+          "context": "export class FestivalRenderer {"
+        },
+        {
+          "baseline_start": 1160,
+          "baseline_count": 12,
+          "current_start": 1161,
+          "current_count": 16,
+          "context": "export class FestivalRenderer {"
+        },
+        {
+          "baseline_start": 1173,
+          "baseline_count": 10,
+          "current_start": 1178,
+          "current_count": 12,
+          "context": "export class FestivalRenderer {"
+        }
+      ],
+      "hashes": {
+        "path": "src/rendering/open-world/festival-renderer.ts",
+        "baseline_blob_oid": "ad136d06d11bc7e6f9c09f909c9777e72a413dc0",
+        "current_blob_oid": "185d235d7049043acde16f8bb2dcb5bd79ae3a7a",
+        "baseline_sha256": "c92154ff8d0e688b635dee66c643fc26c5b55362c647d40310b7b4b0ec783ccf",
+        "current_sha256": "909263fd52993e63891bc09cd957f1675f67f8e1f29515e971289785adeb0711",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/rendering/renderer.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "RacingRenderer.outputPass handle",
+        "RacingRenderer.constructor pass registration",
+        "RacingRenderer.releasePlanting",
+        "RacingRenderer.dispose"
+      ],
+      "scope": "Retain/release OutputPass and independently attempt existing planting-owner cleanup after unregister failure. Geometry/material/texture generation and rendering pipeline configuration untouched.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 413,
+          "baseline_count": 10,
+          "current_start": 413,
+          "current_count": 11,
+          "context": "export class RacingRenderer {"
+        },
+        {
+          "baseline_start": 698,
+          "baseline_count": 11,
+          "current_start": 699,
+          "current_count": 11,
+          "context": "export class RacingRenderer {"
+        },
+        {
+          "baseline_start": 1604,
+          "baseline_count": 12,
+          "current_start": 1605,
+          "current_count": 26,
+          "context": "export class RacingRenderer {"
+        },
+        {
+          "baseline_start": 3536,
+          "baseline_count": 10,
+          "current_start": 3551,
+          "current_count": 12,
+          "context": "export class RacingRenderer {"
+        }
+      ],
+      "hashes": {
+        "path": "src/rendering/renderer.ts",
+        "baseline_blob_oid": "ea3d3c42c3edcbd7b04de740fe13832a0a371b29",
+        "current_blob_oid": "727695972058b23c869ee9440a3dd25a922e1920",
+        "baseline_sha256": "8b4703695b1b0b4397961cbd433b4393a23f14818a3c882a17fbfff993fd89bc",
+        "current_sha256": "98a7b744489f5ad5d60e224b71d649e7aed825f9ea8a9333c53f00e72d896fbf",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/rendering/texture-budget.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "CanvasSource.groups ownership index",
+        "TextureBudget.register",
+        "TextureBudget.unregister",
+        "TextureBudget.refresh group iteration",
+        "TextureBudget.dispose"
+      ],
+      "scope": "Batch compatible wrappers by owned source and preserve restoration/reentrant release. Existing apply/applyDetail implementation and defaults unchanged.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 2,
+          "baseline_count": 11,
+          "current_start": 2,
+          "current_count": 11,
+          "context": "import * as T from 'three';"
+        },
+        {
+          "baseline_start": 25,
+          "baseline_count": 20,
+          "current_start": 25,
+          "current_count": 22,
+          "context": "export class TextureBudget {"
+        },
+        {
+          "baseline_start": 49,
+          "baseline_count": 41,
+          "current_start": 51,
+          "current_count": 45,
+          "context": "export class TextureBudget {"
+        },
+        {
+          "baseline_start": 102,
+          "baseline_count": 36,
+          "current_start": 108,
+          "current_count": 51,
+          "context": "export class TextureBudget {"
+        },
+        {
+          "baseline_start": 178,
+          "baseline_count": 17,
+          "current_start": 199,
+          "current_count": 36,
+          "context": "export class TextureBudget {"
+        }
+      ],
+      "hashes": {
+        "path": "src/rendering/texture-budget.ts",
+        "baseline_blob_oid": "a5a7c025830257253a45375008aa611ff6caee87",
+        "current_blob_oid": "3d9a0c072c7b473b3fc432416548dc96d04822e0",
+        "baseline_sha256": "b50da77a8ba36ea175c0612f3c6006cde11882aacafdce59a31d4c1f511c8167",
+        "current_sha256": "0608ec25f11f35f008c2f27429235f8031ae097b5a2b799db737c2ccf45a97c5",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/session/free-roam.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "FestivalSession.boot",
+        "FestivalSession.fail",
+        "FestivalSession.receive status branch",
+        "FestivalSession.frame"
+      ],
+      "scope": "Require renderer readiness also for default startup; fatal cleanup survives notification errors; sequence-bound status acknowledgement; return after HUD callback disposes session.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 392,
+          "baseline_count": 11,
+          "current_start": 392,
+          "current_count": 11,
+          "context": "export class FestivalSession {"
+        },
+        {
+          "baseline_start": 428,
+          "baseline_count": 14,
+          "current_start": 428,
+          "current_count": 17,
+          "context": "export class FestivalSession {"
+        },
+        {
+          "baseline_start": 457,
+          "baseline_count": 27,
+          "current_start": 460,
+          "current_count": 40,
+          "context": "export class FestivalSession {"
+        },
+        {
+          "baseline_start": 687,
+          "baseline_count": 10,
+          "current_start": 703,
+          "current_count": 13,
+          "context": "export class FestivalSession {"
+        }
+      ],
+      "hashes": {
+        "path": "src/session/free-roam.ts",
+        "baseline_blob_oid": "f5813f593c44097525c1f840c73f1a3577701945",
+        "current_blob_oid": "55952c9d5bf41dc3ced4b2ebf2c3be636b1e39ad",
+        "baseline_sha256": "e009b05748a4212bac375aec2a6f57e40aa4304f4e3f6ca444af9ec171a8cafc",
+        "current_sha256": "9962150621504f6a80e498802382f3f38f0814ce4215fbf957f5ccb54a3a1afe",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/session/session-lifetime.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "SessionLifetime.wait/finish/abort closures"
+      ],
+      "scope": "Settle promises despite cancellation callback errors, preserving original rejection/abort cause and reporting cleanup failure after otherwise successful work.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 22,
+          "baseline_count": 23,
+          "current_start": 22,
+          "current_count": 32,
+          "context": "export class SessionLifetime {"
+        }
+      ],
+      "hashes": {
+        "path": "src/session/session-lifetime.ts",
+        "baseline_blob_oid": "1b296b6cc82f85425604b10135c746eb9485f1e0",
+        "current_blob_oid": "73836f6c720f3a8b86be0b36d449cf6e6e00803d",
+        "baseline_sha256": "8b598714a807efa1e2582942d8818827045ae33702975e2d40334dd308f9ca80",
+        "current_sha256": "9227c037660b514bb607103bb4ecfe2d785ac4ad52a82d208152e68cd060457f",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/simulation/bvh.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "TriangleBVH.build"
+      ],
+      "scope": "Accumulate each component minimum/maximum in scalar locals and store once per node; same fold/order/signed-zero/partition/traversal behavior.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 135,
+          "baseline_count": 18,
+          "current_start": 135,
+          "current_count": 36,
+          "context": "export class TriangleBVH {"
+        }
+      ],
+      "hashes": {
+        "path": "src/simulation/bvh.ts",
+        "baseline_blob_oid": "c729f0c0f4e0feec90439f5c38489c1f22ee4dd5",
+        "current_blob_oid": "d9d3a403efc0bbcf6586e807b58de90d7ccb3f77",
+        "baseline_sha256": "a34dfd0196d5cba88127cea9603728a149ab612aa06016edc0a541514ef96e4d",
+        "current_sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/simulation/contact.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "TrackContactMesh.constructor row guard",
+        "TrackContactMesh.constructor normal/index typed-array writes"
+      ],
+      "scope": "Require positive-integer rows; replace temporary normal/index literals with same-order same-offset scalar typed-array writes. Authored height/bank/kerb/bands, resolution and winding unchanged.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 54,
+          "baseline_count": 10,
+          "current_start": 54,
+          "current_count": 13,
+          "context": "export class TrackContactMesh {"
+        },
+        {
+          "baseline_start": 109,
+          "baseline_count": 17,
+          "current_start": 112,
+          "current_count": 25,
+          "context": "export class TrackContactMesh {"
+        }
+      ],
+      "hashes": {
+        "path": "src/simulation/contact.ts",
+        "baseline_blob_oid": "b1c92ce6b4616781328cb2ccf50db99e72d6e465",
+        "current_blob_oid": "45fb3e38ac150e1870cb9d001fb0128bd82503fa",
+        "baseline_sha256": "54c9d2de9eb899bf1968ce9b26e285cf9a6101ee6f97cedc647cccae9f98674a",
+        "current_sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/simulation/open-world/session.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "FestivalCommandValidationError",
+        "OpenWorldSimulation.command start/vehicle/travel validation branches"
+      ],
+      "scope": "Identify pre-mutation command validation failures so worker can distinguish recoverable rejection from fatal execution failure; no world/event/vehicle definition edits.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 120,
+          "baseline_count": 10,
+          "current_start": 120,
+          "current_count": 15,
+          "context": "export type FestivalCommand ="
+        },
+        {
+          "baseline_start": 501,
+          "baseline_count": 11,
+          "current_start": 506,
+          "current_count": 11,
+          "context": "export class OpenWorldSimulation {"
+        },
+        {
+          "baseline_start": 532,
+          "baseline_count": 11,
+          "current_start": 537,
+          "current_count": 11,
+          "context": "export class OpenWorldSimulation {"
+        },
+        {
+          "baseline_start": 549,
+          "baseline_count": 11,
+          "current_start": 554,
+          "current_count": 11,
+          "context": "export class OpenWorldSimulation {"
+        }
+      ],
+      "hashes": {
+        "path": "src/simulation/open-world/session.ts",
+        "baseline_blob_oid": "95a25280f02d63d2cbe380a97a70c36b6f599e6a",
+        "current_blob_oid": "a4efde7e211dc2304333501fc3a056fe599cfb5c",
+        "baseline_sha256": "52fdb78595a7eaaf7e8ddb7938361ca284b5eb519ae2f46aeef0f9365fdbb68a",
+        "current_sha256": "69f782b828f1ef708eb06c7f2f3df6d9792191d22b2bec6f7b9a6e60c11d2c1d",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/simulation/road-contact.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "RoadContactFrame.set"
+      ],
+      "scope": "Reuse the already validated ordinary Vec3 normal length instead of recomputing it in normalize; mathematical expressions after that copy remain unchanged.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 16,
+          "baseline_count": 18,
+          "current_start": 16,
+          "current_count": 16,
+          "context": "export class RoadContactFrame {"
+        }
+      ],
+      "hashes": {
+        "path": "src/simulation/road-contact.ts",
+        "baseline_blob_oid": "d70577eb3eb68dadd247eca7de0b750abbc51979",
+        "current_blob_oid": "b7db24e57a68bd217e46d743d36aeb470fac1c98",
+        "baseline_sha256": "1d38e02c09ea1791b1d7ea69f715455f411fef38651236643f24f477aa25fe57",
+        "current_sha256": "1f4d573f9db4b0ad8b2b1a3dc365fac0f2792e3fe656cc66cff87bfd1309454b",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/simulation/vehicle.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "Vehicle.coupleClutch AWD slip maximum"
+      ],
+      "scope": "Use four explicit Math.abs terms in Math.max instead of array map/spread under the fixed-four tire invariant; no torque, gearing, grip, setup or catalogue tuning changes.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 329,
+          "baseline_count": 11,
+          "current_start": 329,
+          "current_count": 16,
+          "context": "export class Vehicle {"
+        }
+      ],
+      "hashes": {
+        "path": "src/simulation/vehicle.ts",
+        "baseline_blob_oid": "aecdfdff3000d46f68340b3357feaa84a2d1652e",
+        "current_blob_oid": "8d11b992b7f241adff5496e7f4db5b3ddc38f704",
+        "baseline_sha256": "9804d53931ff092b9b268f15f5b64de4b94494932cd37ee586f8fe9a19d92dfb",
+        "current_sha256": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/storage/recorders.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "telemetry channel-index constants",
+        "TelemetryRecorder.truncate",
+        "TelemetryRecorder.snapshot"
+      ],
+      "scope": "Use Float32 session-time cutoff and reset last-tick deduplication after rewind; copy chronological ring snapshot in at most two spans.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 173,
+          "baseline_count": 10,
+          "current_start": 173,
+          "current_count": 13,
+          "context": "export class ReplayRecorder {"
+        },
+        {
+          "baseline_start": 216,
+          "baseline_count": 28,
+          "current_start": 219,
+          "current_count": 32,
+          "context": "export class TelemetryRecorder {"
+        }
+      ],
+      "hashes": {
+        "path": "src/storage/recorders.ts",
+        "baseline_blob_oid": "23548b23fd0a6faa93dc8e0ca812f348db5e7524",
+        "current_blob_oid": "96d4accd8beb03b2722ebd081413b75109f8168b",
+        "baseline_sha256": "f6bdbf197f50dffc5cce07dacf7df1a6f73f63a1559fe3e354a552c6c50d196f",
+        "current_sha256": "38375defa0d9c3371f93801a6a4c0017dcb9f119376355e064af3f640662ca72",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/storage/replay-pages.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "SessionReplay.truncationPage",
+        "SessionReplay.truncate"
+      ],
+      "scope": "Compare double rewind receipts in the stored Float32 pose-time domain; unchanged replay fields and page shape.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 645,
+          "baseline_count": 14,
+          "current_start": 645,
+          "current_count": 18,
+          "context": "export class SessionReplay {"
+        },
+        {
+          "baseline_start": 670,
+          "baseline_count": 13,
+          "current_start": 674,
+          "current_count": 14,
+          "context": "export class SessionReplay {"
+        }
+      ],
+      "hashes": {
+        "path": "src/storage/replay-pages.ts",
+        "baseline_blob_oid": "1c87f43c67a0d55a12497b0542d21bdb5db2eda7",
+        "current_blob_oid": "f26de1d2ac5ad184d5134f55c64eb696013334a7",
+        "baseline_sha256": "66589d6ad66819074e126c2ebe04135e2ca976d0aadfeba3f9761e31a48c9a22",
+        "current_sha256": "5156b30bbe67795225989444e18590a58825fe3cc9750d1c4f22d6cf98a7dfce",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/storage/telemetry-schema.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "telemetryCsv"
+      ],
+      "scope": "Materialize completed 500-row CSV groups as Blob parts; channel list, formatting, finite validation and final MIME type unchanged.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 202,
+          "baseline_count": 11,
+          "current_start": 202,
+          "current_count": 11,
+          "context": "export function packTelemetry(frame: Float32Array, out: Float32Array, offset: nu"
+        },
+        {
+          "baseline_start": 215,
+          "baseline_count": 9,
+          "current_start": 215,
+          "current_count": 10,
+          "context": "export function telemetryCsv(values: Float32Array, count: number): Blob {"
+        }
+      ],
+      "hashes": {
+        "path": "src/storage/telemetry-schema.ts",
+        "baseline_blob_oid": "436ceef36e345d39981b9ba920abea441929e647",
+        "current_blob_oid": "3d3636a3d8e69c5dd9498300c519642e33598034",
+        "baseline_sha256": "3eaeeeaf3d870ced27977df037b848dc2ddee1f2bdd77cf6c80cc3fdc625223a",
+        "current_sha256": "ed5e98ae1cc8728ed8b5ad8209ab594351cc613c7b5708c35b0b9d86da342894",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/workers/diagnostics.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "EngineeringMessage",
+        "ClientMessage/WorkerMessage unions",
+        "EngineeringChannel.reset/enable/publish/acknowledge",
+        "isEngineeringSample surface predicate"
+      ],
+      "scope": "One in-flight optional diagnostics sample with epoch/sequence acknowledgement; validate existing material IDs through unchanged MATERIALS definitions.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 1,
+          "baseline_count": 7,
+          "current_start": 1,
+          "current_count": 8,
+          "context": ""
+        },
+        {
+          "baseline_start": 34,
+          "baseline_count": 20,
+          "current_start": 35,
+          "current_count": 75,
+          "context": "export type SurfaceMessage = Extract<FromWorker, { type: 'surface' }> & {"
+        },
+        {
+          "baseline_start": 163,
+          "baseline_count": 12,
+          "current_start": 219,
+          "current_count": 11,
+          "context": "export function isEngineeringSample(value: unknown): value is EngineeringSample"
+        }
+      ],
+      "hashes": {
+        "path": "src/workers/diagnostics.ts",
+        "baseline_blob_oid": "93c03d1a851155ee4205e8d40c2458537fdee7ec",
+        "current_blob_oid": "89751668241e7b82d954b073228cff0e76a07685",
+        "baseline_sha256": "65bc1d9af54026aa5f6eb5b47ad2974df3ef726cbd389c1f1d30f9da29cf29a8",
+        "current_sha256": "2a81de0ae8115e7983651f6e3da8737a23950610d3ecd0f9a1cb8b62173b41f4",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/workers/open-world-protocol.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "FESTIVAL_STATUS_CAPACITY",
+        "ToOpenWorld statusAck",
+        "FromOpenWorld status sequence"
+      ],
+      "scope": "Internal worker envelope gains sequence and acknowledgement; bounded 64-status credit, preserving every accepted status transition.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 4,
+          "baseline_count": 24,
+          "current_start": 4,
+          "current_count": 29,
+          "context": "import type {"
+        }
+      ],
+      "hashes": {
+        "path": "src/workers/open-world-protocol.ts",
+        "baseline_blob_oid": "37f683b8123c57b8600e4b547c740317e4eaf736",
+        "current_blob_oid": "8d9fd6b6e58f68b77f309bee0f96e72e61fc780f",
+        "baseline_sha256": "7090011cea083c44766f9e7f3a31c39e791746a69c81813c244f6c65b55e3974",
+        "current_sha256": "dbdcca4c6ff7a7098913893ce8de1bab14db7586d1b057d13908a3ffb4fbddbe",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/workers/open-world.worker.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "failed/status receipt state",
+        "statusAvailable",
+        "status",
+        "scope.onmessage init/pause/command/statusAck/fatal paths",
+        "setInterval gate and fatal path"
+      ],
+      "scope": "Bound status delivery, reject busy commands before mutation, suspend stepping/rebase under prolonged backpressure, and make execution errors terminal until init.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 1,
+          "baseline_count": 27,
+          "current_start": 1,
+          "current_count": 34,
+          "context": ""
+        },
+        {
+          "baseline_start": 45,
+          "baseline_count": 25,
+          "current_start": 52,
+          "current_count": 40,
+          "context": "function snapshot(required = false) {"
+        },
+        {
+          "baseline_start": 83,
+          "baseline_count": 22,
+          "current_start": 105,
+          "current_count": 34,
+          "context": "scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {"
+        },
+        {
+          "baseline_start": 110,
+          "baseline_count": 24,
+          "current_start": 144,
+          "current_count": 33,
+          "context": "scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {"
+        },
+        {
+          "baseline_start": 151,
+          "baseline_count": 10,
+          "current_start": 194,
+          "current_count": 11,
+          "context": "setInterval(() => {"
+        }
+      ],
+      "hashes": {
+        "path": "src/workers/open-world.worker.ts",
+        "baseline_blob_oid": "532d6ce651b28d429fd1643c03d234fd1e437812",
+        "current_blob_oid": "ce004e4bc198ba9eacc67877c438de72eb294617",
+        "baseline_sha256": "9e0ec2a623e7ba7214b1736d28ce82356d2bab91d3cee620679f1662839faf84",
+        "current_sha256": "a1a794976bbcd90830df70c9a520ae2d2c3e4df9c9d336372ca5bafedd013b1b",
+        "working_tree_matches_current": true
+      }
+    },
+    {
+      "path": "src/workers/physics.worker.ts",
+      "reviewed": true,
+      "allowed_changed_members": [
+        "EngineeringChannel instance",
+        "failed state",
+        "finishFlashback diagnostics reset",
+        "fail",
+        "engineering",
+        "scope.onmessage receipt/init/fatal paths",
+        "setInterval failure/rewind handling"
+      ],
+      "scope": "Diagnostics credit flow and terminal worker ownership; stale resume cannot revive partial failure, while delivered ownership ACKs still retire.",
+      "authored_definition_or_tuning_edit": false,
+      "hunks": [
+        {
+          "baseline_start": 6,
+          "baseline_count": 15,
+          "current_start": 6,
+          "current_count": 16,
+          "context": "import { ShiftInputQueue } from './input-queue.ts';"
+        },
+        {
+          "baseline_start": 41,
+          "baseline_count": 11,
+          "current_start": 42,
+          "current_count": 11,
+          "context": "function recorder(sim: Simulation) {"
+        },
+        {
+          "baseline_start": 57,
+          "baseline_count": 10,
+          "current_start": 58,
+          "current_count": 20,
+          "context": "function finishFlashback(job: Resimulation) {"
+        },
+        {
+          "baseline_start": 87,
+          "baseline_count": 13,
+          "current_start": 98,
+          "current_count": 11,
+          "context": "function publishSurface() {"
+        },
+        {
+          "baseline_start": 105,
+          "baseline_count": 18,
+          "current_start": 114,
+          "current_count": 28,
+          "context": "function snapshot(required = false) {"
+        },
+        {
+          "baseline_start": 129,
+          "baseline_count": 10,
+          "current_start": 148,
+          "current_count": 11,
+          "context": "scope.onmessage = (event: MessageEvent<ClientMessage>) => {"
+        },
+        {
+          "baseline_start": 200,
+          "baseline_count": 17,
+          "current_start": 220,
+          "current_count": 19,
+          "context": "scope.onmessage = (event: MessageEvent<ClientMessage>) => {"
+        },
+        {
+          "baseline_start": 218,
+          "baseline_count": 12,
+          "current_start": 240,
+          "current_count": 11,
+          "context": "setInterval(() => {"
+        },
+        {
+          "baseline_start": 267,
+          "baseline_count": 13,
+          "current_start": 288,
+          "current_count": 8,
+          "context": "setInterval(() => {"
+        }
+      ],
+      "hashes": {
+        "path": "src/workers/physics.worker.ts",
+        "baseline_blob_oid": "225a3c26071cf621b6f719ade48000d70e30c3e6",
+        "current_blob_oid": "0d43ff11f11c4cb8ef4e854ecdf849f39856f2ed",
+        "baseline_sha256": "e74905738cb3762c52f7dbccef2df388e409bc0842044bac68dff2cce936445a",
+        "current_sha256": "35938f79c8ee77b9da66c4b2aa0089d40b2be73ee084f1ea058b3e0b75d826af",
+        "working_tree_matches_current": true
+      }
+    }
+  ]
+}

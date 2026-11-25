@@ -1,0 +1,109 @@
+{
+  "worker": "worker49/w09a",
+  "status": "passed",
+  "final_unique_test_files": 128,
+  "final_unique_test_cases": 1852,
+  "failed": 0,
+  "skipped": 0,
+  "todo": 0,
+  "retries": 0,
+  "source_commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+  "source_tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+  "source_input_files": 3396,
+  "source_input_sha256": "ed8f00d74c656abd95f0e5d54fcdafe31a222baec37bc0846c3d123ee943006b",
+  "source_unchanged": true,
+  "production_files_compared_to_checkpoint7": 1116,
+  "production_changed_from_checkpoint7": [],
+  "selection": {
+    "engine_prefix_files": 38,
+    "other_changed_test_files": 14,
+    "mandatory_union_files": 52,
+    "additional_adjacent_files": 76,
+    "all_changed_test_files_since_task_baseline": 46
+  },
+  "maintained_ci_subset_observed_in_this_run": {
+    "physical_files": 42,
+    "cases": 506,
+    "remote_ci_status_not_claimed": true
+  },
+  "runs_separately_counted": [
+    {
+      "label": "initial full gate",
+      "commit": "6a6bf02eb2d89eeb6aeff32769ef3deb4a49f17c",
+      "physical_files": 127,
+      "total_cases": 1837,
+      "passed": 1803,
+      "failed": 34,
+      "evidence_directory": "/tmp/engine-c71f32882729/w09a-work"
+    },
+    {
+      "label": "exact baseline original renderer/worker cases",
+      "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+      "physical_files": 3,
+      "total_cases": 42,
+      "passed": 42,
+      "failed": 0,
+      "evidence": "baseline-results-summary.json"
+    },
+    {
+      "label": "corrected three-file gate",
+      "physical_files": 3,
+      "total_cases": 42,
+      "passed": 42,
+      "failed": 0,
+      "evidence": "correction-results-summary.json"
+    },
+    {
+      "label": "unchanged surface candidate",
+      "commit": "811ac2bc92f4494b1ec99d1fc4201101ccf34c66",
+      "physical_files": 1,
+      "total_cases": 14,
+      "passed": 13,
+      "failed": 1,
+      "evidence": "surface-comparison-summary.json"
+    },
+    {
+      "label": "exact baseline original surface cases",
+      "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+      "physical_files": 1,
+      "total_cases": 14,
+      "passed": 14,
+      "failed": 0,
+      "evidence": "surface-comparison-summary.json"
+    },
+    {
+      "label": "corrected surface gate",
+      "physical_files": 1,
+      "total_cases": 15,
+      "passed": 15,
+      "failed": 0,
+      "evidence": "surface-correction-summary.json"
+    },
+    {
+      "label": "final full unique gate",
+      "commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+      "physical_files": 128,
+      "total_cases": 1852,
+      "passed": 1852,
+      "failed": 0,
+      "evidence_directory": "/tmp/engine-c71f32882729/w09a-final"
+    }
+  ],
+  "original_distinct_failures": {
+    "total": 35,
+    "incomplete_renderer_fixture": 32,
+    "intentional_terminal_contract_update": 3,
+    "independently_proven_baseline_failures": 0,
+    "every_original_failure_passed_exact_task_baseline": true
+  },
+  "test_files_changed_by_worker": [
+    "tests/circuit-frame-transport.test.ts",
+    "tests/circuit-preparation-lifetime.test.ts",
+    "tests/festival-renderer-loader-lifecycle.test.ts",
+    "tests/surface-channel-backpressure.test.ts"
+  ],
+  "production_files_changed_by_worker": [],
+  "compute": "explicitly released to root after final gate",
+  "remaining_work": "No further tests or repository edits by worker49; coordinator owns publication of evidence and the subsequent static/build/native gates.",
+  "counting_rule": "Only the final single128-file invocation supplies the final1852 unique case count. Historical/baseline/targeted runs are evidence, not added to it."
+}

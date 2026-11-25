@@ -1,0 +1,2844 @@
+diff --git a/src/audio/engine.ts b/src/audio/engine.ts
+index 071ab97..876571c 100644
+--- a/src/audio/engine.ts
++++ b/src/audio/engine.ts
+@@ -71,17 +71,22 @@ export class RacingAudio {
+     this.cueSettings = validateDrivingAudio(settings);
+     this.cueDirector.reset();
+     this.cueSynth?.silence();
+   }
+   async previewDriving(settings: DrivingAudioSettings) {
++    if (this.muted) return;
+     const starting = this.start();
+     const ctx = this.context,
+       generation = this.generation;
+     await starting;
+     if (this.context !== ctx || this.generation !== generation) return;
+     if (!ctx || !this.previewSynth || this.muted || ctx.currentTime - this.lastPreview < 0.8)
+       return;
++    // Startup bounds autoplay waits and contains resume refusals. A preview
++    // that still cannot run must not arm tones for an unrelated later gesture.
++    // Offline graphs intentionally schedule before rendering starts.
++    if (isLive(ctx) && ctx.state !== 'running') return;
+     this.lastPreview = ctx.currentTime;
+     const p = validateDrivingAudio(settings),
+       invert = p.invertStereo ? -1 : 1;
+     for (const [offset, frequency, pan] of [
+       [0, 660, -0.85],
+@@ -120,11 +125,23 @@ export class RacingAudio {
+   private last = -Infinity;
+   private wasPlaying = false;
+   private contactAttenuation = 0;
+   /** The master volume setting (0..1). */
+   volume = 0.45;
+-  muted = false;
++  private isMuted = false;
++  get muted() {
++    return this.isMuted;
++  }
++  set muted(value: boolean) {
++    this.isMuted = value;
++    if (value) {
++      // Previews bypass the race master. Cancel both their scheduled tones and
++      // a pending activation, even if the player unmutes before it settles.
++      this.generation++;
++      this.previewSynth?.silence();
++    }
++  }
+   /** The player's bus sliders (mixer.ts); applied on every update. */
+   levels: AudioLevels = { ...DEFAULT_LEVELS };
+   setLevels(value: unknown) {
+     this.levels = validateLevels(value);
+   }
+diff --git a/src/core/ghost-lap.ts b/src/core/ghost-lap.ts
+index 6f8906c..adb6eb9 100644
+--- a/src/core/ghost-lap.ts
++++ b/src/core/ghost-lap.ts
+@@ -9,12 +9,25 @@ import {
+  * come from the worker snapshots the player actually drove; nothing is
+  * resimulated or smoothed. Each sample is [lapTime, s, x, y, z, qx, qy, qz, qw,
+  * steer, speed]. */
+ export const GHOST_VERSION = 1;
+ export const GHOST_FIELDS = 11;
+-/** At most one sample per 1/30 s keeps a 2-minute lap under 50 kB. */
++/** Sample at 30 Hz using the worker's Float32 lap clock. */
+ export const GHOST_SAMPLE_SECONDS = 1 / 30;
++const GHOST_SAMPLE_INTERVAL = GHOST_SAMPLE_SECONDS - 1e-6;
++export const GHOST_MIN_LAP_SECONDS = 10;
++export const GHOST_MAX_LAP_SECONDS = 600;
++export const GHOST_MIN_SAMPLES = 20;
++/** Enough for every accepted interval below the duration limit, including
++ * Float32 clock tolerance and the final sample at the crossing. */
++export const GHOST_MAX_SAMPLES = Math.ceil(GHOST_MAX_LAP_SECONDS / GHOST_SAMPLE_INTERVAL) + 1;
++const GHOST_POSE_FIELDS = [F.X, F.Y, F.Z, F.QX, F.QY, F.QZ, F.QW, F.STEER, F.SPEED];
++
++function validLapTime(time: number) {
++  return time > GHOST_MIN_LAP_SECONDS && time < GHOST_MAX_LAP_SECONDS;
++}
++
+ export interface GhostLap {
+   version: typeof GHOST_VERSION;
+   circuit: string;
+   trackLength: number;
+   lapTime: number;
+@@ -46,18 +59,21 @@ export function validateGhost(
+   if (recordIncompatibility(g, category)) return null;
+   if (
+     g.version !== GHOST_VERSION ||
+     g.circuit !== circuit ||
+     typeof g.trackLength !== 'number' ||
++    !Number.isFinite(g.trackLength) ||
++    !Number.isFinite(trackLength) ||
+     Math.abs(g.trackLength - trackLength) > 0.01 ||
+     typeof g.lapTime !== 'number' ||
+-    !(g.lapTime > 10 && g.lapTime < 600) ||
++    !validLapTime(g.lapTime) ||
+     !Array.isArray(g.sectors) ||
+     g.sectors.length !== 3 ||
+-    !g.sectors.every((t) => typeof t === 'number' && t > 0) ||
++    !g.sectors.every((t) => typeof t === 'number' && Number.isFinite(t) && t > 0) ||
+     !(g.samples instanceof Float32Array) ||
+-    g.samples.length < GHOST_FIELDS * 20 ||
++    g.samples.length < GHOST_FIELDS * GHOST_MIN_SAMPLES ||
++    g.samples.length > GHOST_FIELDS * GHOST_MAX_SAMPLES ||
+     g.samples.length % GHOST_FIELDS !== 0
+   )
+     return null;
+   let previous = -Infinity;
+   for (let i = 0; i < g.samples.length; i += GHOST_FIELDS) {
+@@ -106,28 +122,39 @@ export class GhostRecorder {
+     this.lastSample = -Infinity;
+     this.eligible = true;
+   }
+   /** `driverControlled` is false while automation drives the car. */
+   observe(frame: Float32Array, driverControlled: boolean): GhostLap | null {
+-    if (frame.length < HEADER + CAR_STRIDE) return null;
++    if (frame.length < HEADER + CAR_STRIDE) {
++      this.discardLap();
++      return null;
++    }
+     const o = carBase(0),
+       laps = Math.round(frame[o + F.LAPS]),
+       lapTime = frame[o + F.LAP_TIME];
++    if (!Number.isSafeInteger(laps) || laps < 0) {
++      this.discardLap();
++      return null;
++    }
+     let completed: GhostLap | null = null;
+     if (this.laps >= 0 && laps === this.laps + 1) {
+       const lapTimeTotal = frame[o + F.LAST_LAP];
+       if (
+         this.eligible &&
+         frame[o + F.LAST_LAP_VALID] === 1 &&
+         frame[o + F.LAST_LAP_ASSISTED] === 0 &&
+-        lapTimeTotal > 10 &&
+-        this.samples.length >= GHOST_FIELDS * 20 &&
+-        this.samples[0] < 0.5
+-      ) {
++        validLapTime(lapTimeTotal) &&
++        lapTimeTotal >= this.lastSample &&
++        Number.isFinite(frame[o + F.SECTOR_1]) &&
++        Number.isFinite(frame[o + F.SECTOR_2]) &&
++        Number.isFinite(frame[o + F.SECTOR_3]) &&
++        this.samples.length >= GHOST_FIELDS * GHOST_MIN_SAMPLES &&
++        this.samples[0] < 0.5 &&
+         // Close the lap exactly at the crossing, so playback spans the lap time.
+-        this.pushSample(frame, lapTimeTotal, this.context.trackLength);
+-        completed = {
++        this.pushSample(frame, lapTimeTotal, this.context.trackLength)
++      ) {
++        const candidate: GhostLap = {
+           version: GHOST_VERSION,
+           circuit: this.context.circuit,
+           trackLength: this.context.trackLength,
+           lapTime: lapTimeTotal,
+           sectors: [
+@@ -141,27 +168,62 @@ export class GhostRecorder {
+           recordedAt: new Date().toISOString(),
+           samples: Float32Array.from(this.samples),
+           vehicle: this.context.vehicle ?? 'apx01',
+           physics: SIMULATION_VERSION,
+         };
++        completed = validateGhost(candidate, this.context.circuit, this.context.trackLength, {
++          circuit: this.context.circuit,
++          vehicle: this.context.vehicle ?? 'apx01',
++          physics: SIMULATION_VERSION,
++        });
+       }
+     }
+     if (laps !== this.laps) {
+       this.laps = laps;
+       this.samples = [];
+       this.lastSample = -Infinity;
+       this.eligible = true;
+     }
+-    if (!driverControlled || frame[o + F.IN_PIT] > 0 || frame[o + F.PIT_PHASE] > 0)
+-      this.eligible = false;
+-    if (lapTime > 0 && lapTime - this.lastSample >= GHOST_SAMPLE_SECONDS - 1e-6)
++    if (!this.eligible) return completed;
++    if (
++      !Number.isFinite(lapTime) ||
++      !Number.isFinite(this.context.trackLength) ||
++      lapTime < 0 ||
++      lapTime >= GHOST_MAX_LAP_SECONDS ||
++      lapTime < this.lastSample ||
++      !driverControlled ||
++      frame[o + F.IN_PIT] !== 0 ||
++      frame[o + F.PIT_PHASE] !== 0 ||
++      (lapTime > 0 && frame[o + F.LAP_VALID] !== 1) ||
++      (lapTime > 0 && this.samples.length === 0 && lapTime >= 0.5)
++    ) {
++      this.discardLap();
++      return completed;
++    }
++    if (lapTime > 0 && lapTime - this.lastSample >= GHOST_SAMPLE_INTERVAL)
+       this.pushSample(frame, lapTime, frame[o + F.S]);
+     return completed;
+   }
++  /** Ineligibility lasts until the next lap or an explicit reset. Retain no
++   * unusable recording while waiting, including during a prolonged stop. */
++  private discardLap() {
++    if (this.samples.length) this.samples = [];
++    this.lastSample = -Infinity;
++    this.eligible = false;
++  }
+   private pushSample(frame: Float32Array, lapTime: number, s: number) {
+     const o = carBase(0);
+-    if (lapTime <= this.lastSample) return;
++    if (lapTime <= this.lastSample) return lapTime === this.lastSample;
++    if (
++      this.samples.length >= GHOST_FIELDS * GHOST_MAX_SAMPLES ||
++      !Number.isFinite(lapTime) ||
++      !Number.isFinite(s) ||
++      GHOST_POSE_FIELDS.some((field) => !Number.isFinite(frame[o + field]))
++    ) {
++      this.discardLap();
++      return false;
++    }
+     this.lastSample = lapTime;
+     this.samples.push(
+       lapTime,
+       s,
+       frame[o + F.X],
+@@ -172,10 +234,11 @@ export class GhostRecorder {
+       frame[o + F.QZ],
+       frame[o + F.QW],
+       frame[o + F.STEER],
+       frame[o + F.SPEED],
+     );
++    return true;
+   }
+ }
+ 
+ export interface GhostPose {
+   /** Recorded vehicle id (the ghost lap's record category); Formula when absent. */
+diff --git a/src/input/button-actions.ts b/src/input/button-actions.ts
+index 22d5794..ab21da0 100644
+--- a/src/input/button-actions.ts
++++ b/src/input/button-actions.ts
+@@ -131,21 +131,21 @@ export class ControllerActions {
+     this.mapping = mapping;
+     if (!pad) {
+       this.held.fill(0);
+       return;
+     }
+-    let dispatched = false;
++    let selected: ButtonAction | null = null;
+     for (let index = 0; index < this.held.length; index++) {
+       const value = pad.buttons[index];
+       const down = !!value && Number.isFinite(value.value) && value.pressed;
+       const edge = down && !this.held[index];
+       this.held[index] = Number(down);
+       if (
+         baseline ||
+         !edge ||
+         context === 'off' ||
+-        dispatched ||
++        selected ||
+         index === mapping.shiftUpButton ||
+         index === mapping.shiftDownButton ||
+         index === mapping.rearBrakeButton ||
+         (!mapping.axisPedals &&
+           (index === mapping.throttleButton || index === mapping.brakeButton)) ||
+@@ -159,10 +159,12 @@ export class ControllerActions {
+         (Array.isArray(context) && !context.includes(action)) ||
+         (context === 'paused' && action !== 'pause') ||
+         (context === 'replay' && !['pause', 'camera', 'replay', 'mute', 'debug'].includes(action))
+       )
+         continue;
+-      dispatched = true; // One UI transition per sample; other held presses are consumed.
+-      emit(action);
++      selected = action;
+     }
++    // Observe the complete sample before an action can reenter, change device
++    // ownership or throw. Other held presses must stay consumed in every case.
++    if (selected) emit(selected);
+   }
+ }
+diff --git a/src/input/controller.ts b/src/input/controller.ts
+index bccdbb2..0da8af6 100644
+--- a/src/input/controller.ts
++++ b/src/input/controller.ts
+@@ -13,10 +13,11 @@ import {
+ } from './calibration.ts';
+ import { boundAction, isHeld } from './bindings.ts';
+ import { approach, clamp } from '../core/math.ts';
+ import { controls, type Controls } from '../simulation/config.ts';
+ import type { Settings } from '../storage/data.ts';
++import { MAX_PENDING_SHIFTS, ShiftInputQueue } from '../workers/input-queue.ts';
+ export type TouchAction = 'left' | 'right' | 'throttle' | 'brake' | 'riderForward' | 'riderBack';
+ const releasedTouch = (): Record<TouchAction, boolean> => ({
+   left: false,
+   right: false,
+   throttle: false,
+@@ -28,10 +29,11 @@ const deviceIdentity = (pad: Gamepad) => `${pad.index}:${pad.id}:${pad.mapping}`
+ export class InputController {
+   readonly state: Controls = controls();
+   private keys = new Set<string>();
+   private steering = 0;
+   private previousButtons = new Set<number>();
++  private readonly pendingShifts = new ShiftInputQueue();
+   private enabled = false;
+   private disposed = false;
+   private generation = 0;
+   private buttons = new ControllerActions();
+   private touch = releasedTouch();
+@@ -87,12 +89,12 @@ export class InputController {
+       this.action('pause');
+       return;
+     }
+     const action = boundAction(this.settings.bindings, e.code);
+     if (action) e.preventDefault();
+-    if (action === 'shiftUp') this.state.shift = 1;
+-    else if (action === 'shiftDown') this.state.shift = -1;
++    if (action === 'shiftUp') this.queueShift(1);
++    else if (action === 'shiftDown') this.queueShift(-1);
+     else if (
+       action &&
+       ![
+         'throttle',
+         'brake',
+@@ -106,10 +108,22 @@ export class InputController {
+       ].includes(action)
+     )
+       this.action(action);
+   };
+   private keyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
++  private queueShift(direction: number) {
++    // The host acknowledges the exposed pulse by setting state.shift to zero.
++    // Include that staged pulse in the bound, and drop newest overflow while
++    // preserving the order of keyboard and gamepad edges already accepted.
++    if (this.pendingShifts.pending + Number(this.state.shift !== 0) < MAX_PENDING_SHIFTS)
++      this.pendingShifts.push(direction);
++    this.stageShift();
++  }
++  private stageShift() {
++    // Merely reading/updating controls must not consume an unacknowledged edge.
++    if (this.state.shift === 0) this.state.shift = this.pendingShifts.take();
++  }
+   private blur = () => {
+     // Inputs pressed while unfocused are a new baseline, not resume commands.
+     this.buttons.reset();
+     this.reset();
+     if (this.enabled) this.action('blur');
+@@ -157,10 +171,11 @@ export class InputController {
+   }
+   reset() {
+     this.generation++;
+     this.keys.clear();
+     this.steering = 0;
++    this.pendingShifts.clear();
+     Object.assign(this.state, controls());
+     this.previousButtons.clear();
+     this.lastDevice = '';
+     this.touch = releasedTouch();
+     const pointers = [...this.touchPointers];
+@@ -364,11 +379,11 @@ export class InputController {
+         [m.shiftDownButton, -1],
+         [m.shiftUpButton, 1],
+       ]) {
+         if (index < 0) continue;
+         const down = !!pad.buttons[index]?.pressed;
+-        if (down && !this.previousButtons.has(index)) this.state.shift = direction;
++        if (down && !this.previousButtons.has(index)) this.queueShift(direction);
+         if (down) this.previousButtons.add(index);
+         else this.previousButtons.delete(index);
+       }
+       this.deviceStatus = 'Controller ready';
+       this.lastFault = '';
+@@ -397,10 +412,11 @@ export class InputController {
+     this.state.manualClutch = m.manualClutch;
+     const reverse = m.buttonActions.reverse;
+     this.state.reverse =
+       isHeld(k, b, 'reverse') ||
+       !!(pad && reverse >= 0 && !driveButtonOwner(m, reverse) && pad.buttons[reverse]?.pressed);
++    this.stageShift();
+     return this.state;
+   }
+   dispose() {
+     if (this.disposed) return;
+     this.disposed = true;
+diff --git a/src/main.ts b/src/main.ts
+index 0f0ebc1..b28943f 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -554,10 +554,11 @@ export class GameApp {
+       else this.renderer?.resize();
+       this.viewportRedrawPending = true;
+       if (this.state === 'menu') this.menuPreviewReceipt.request('resize');
+       this.renderedState = null; // Restore a resized backdrop once, including behind an editor.
+     });
++    window.addEventListener('blur', this.suspendOnBlur);
+     document.addEventListener('visibilitychange', () => {
+       if (document.hidden) {
+         // A hidden tab may deliver no RAF at all. Break the active timing
+         // chain immediately while retaining the real pending GPU ownership.
+         this.menuFrames.suspend();
+@@ -1017,10 +1018,12 @@ export class GameApp {
+     // Each festival session has its own identity: results carry run ids
+     // under it, and the career pays each run once.
+     const session = crypto.randomUUID();
+     await this.festivalOwner.start({
+       load: () => {
++        // The Festival now owns startup; retire any circuit CSV still in flight.
++        this.exporter.cancel();
+         // The festival opens in the player's LIGHT choice (AUTO is daylight there).
+         this.applyLight(null, false);
+         this.career.beginFestival({
+           career: !!career,
+           loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null,
+@@ -1334,15 +1337,39 @@ export class GameApp {
+             this.fail(error);
+           }
+           return;
+         }
+         if (message.type === 'engineering') {
+-          if (!isEngineeringSample(message.sample)) {
+-            this.fail(new Error('Invalid engineering response'));
+-            return;
++          const engineeringWorker = this.worker;
++          const ownsEngineering = () => !cancelled() && this.worker === engineeringWorker;
++          try {
++            if (
++              !Number.isSafeInteger(message.epoch) ||
++              message.epoch < 1 ||
++              !Number.isSafeInteger(message.sequence) ||
++              message.sequence < 1 ||
++              !isEngineeringSample(message.sample)
++            )
++              throw new Error('Invalid engineering response');
++            if (this.renderer) this.renderer.engineering = message.sample;
++          } catch (error) {
++            if (ownsEngineering()) this.fail(error);
++          } finally {
++            // The consumer can synchronously dispose or replace this session.
++            // Return credit only to its original, still-active worker.
++            if (ownsEngineering()) {
++              try {
++                engineeringWorker?.postMessage({
++                  type: 'engineeringAck',
++                  epoch: message.epoch,
++                  sequence: message.sequence,
++                } satisfies ClientMessage);
++              } catch (error) {
++                if (ownsEngineering()) this.fail(error);
++              }
++            }
+           }
+-          if (this.renderer) this.renderer.engineering = message.sample;
+           return;
+         }
+         if (message.type === 'error') {
+           this.fail(new Error(message.message));
+           return;
+@@ -2025,20 +2052,24 @@ export class GameApp {
+         if (this.performanceCapture.state === 'complete')
+           this.ui.toast('Performance capture complete. Pause → Performance capture → Export JSON.');
+       }
+     }
+   };
++  private readonly suspendOnBlur = () => this.suspendPlayback();
+   private suspendPlayback() {
++    this.rumble.stop(null);
++    // Input is disabled in menus and paused screens, but their audio previews
++    // still own scheduled tones. A driving pause stops the same graph below.
++    if (this.state !== 'driving') this.audio.stop();
+     if (this.state === 'pregame') {
+       this.gridClock.pause();
+       this.gridPanel?.update(this.gridClock);
+     }
+     this.referenceSession.interrupt('Playback suspended.');
+     if (this.state === 'driving') this.pause();
+     else if (this.state === 'replay') {
+       this.replayClock.playing = false;
+-      this.audio.stop();
+       this.ui.setText('replayPlay', 'PLAY');
+     }
+   }
+   private seekReplay(value: number) {
+     if (this.state !== 'replay' || !this.replay || !Number.isFinite(value)) return;
+@@ -2261,10 +2292,11 @@ export class GameApp {
+     }
+     if (this.photoReturnHub) this.openTeam();
+   }
+   private pause() {
+     if (this.state !== 'driving') return;
++    this.rumble.stop(null);
+     this.dirtGateRelease = null;
+     this.referenceSession.interrupt('Session paused or focus lost.');
+     this.performanceCapture.interrupt('Session paused or focus lost');
+     this.interruptReview('Session paused or focus lost');
+     this.state = 'paused';
+@@ -3370,23 +3402,31 @@ export class GameApp {
+     } catch (error) {
+       this.ui.toast(error instanceof Error ? error.message : String(error));
+     }
+   }
+   private async exportTelemetry() {
+-    if (!this.telemetry || this.exporting) return;
+-    const generation = this.generation;
++    const telemetry = this.telemetry,
++      generation = this.generation;
++    const current = () =>
++      !this.disposed &&
++      !this.errorStopped &&
++      !this.festivalStarting &&
++      !this.festival &&
++      generation === this.generation &&
++      telemetry === this.telemetry;
++    if (!telemetry || this.exporting || !current()) return;
+     this.exporting = true;
+     const button = document.querySelector<HTMLButtonElement>('[data-action="csv"]');
+     if (button) {
+       button.disabled = true;
+       button.textContent = 'EXPORTING…';
+     }
+     try {
+-      const blob = await this.exporter.export(this.telemetry.snapshot(), this.telemetry.count);
+-      if (generation === this.generation) downloadBlob(blob, 'motobound-telemetry.csv');
++      const blob = await this.exporter.export(telemetry.snapshot(), telemetry.count);
++      if (current()) downloadBlob(blob, 'motobound-telemetry.csv');
+     } catch (error) {
+-      if (generation === this.generation) this.ui.toast(`Export failed: ${String(error)}`);
++      if (current()) this.ui.toast(`Export failed: ${String(error)}`);
+     } finally {
+       this.exporting = false;
+       if (button) {
+         button.disabled = false;
+         button.textContent = 'EXPORT CSV';
+@@ -3515,28 +3555,44 @@ export class GameApp {
+   private fail(error: unknown) {
+     if (this.errorStopped || this.disposed) return;
+     this.errorStopped = true;
+     const startup = this.circuitStartup;
+     this.circuitStartup = null;
+-    startup?.close(error instanceof Error ? error : new Error(String(error)));
+-    clearTimeout(this.initTimeout);
++    const worker = this.worker;
++    this.worker = null;
++    const initTimeout = this.initTimeout;
+     this.initTimeout = 0;
+-    this.referenceSession?.interrupt('Application error.');
+-    this.sessionReview.stop('Application error', true);
+-    this.tabEvidence.observe(
+-      'application-error',
+-      error instanceof Error ? error.message : String(error),
++    // Revoke owners before callbacks can reenter. Cleanup failures must neither
++    // strand unrelated resources nor replace the error that stopped the host.
++    const release = (cleanup: () => void) => {
++      try {
++        cleanup();
++      } catch {
++        // The originating error is reported after all releases are attempted.
++      }
++    };
++    release(() => startup?.close(error instanceof Error ? error : new Error(String(error))));
++    release(() => clearTimeout(initTimeout));
++    release(() => this.exporter.cancel());
++    release(() => this.referenceSession?.interrupt('Application error.'));
++    release(() => this.sessionReview.stop('Application error', true));
++    release(() =>
++      this.tabEvidence.observe(
++        'application-error',
++        error instanceof Error ? error.message : String(error),
++      ),
+     );
+-    this.performanceCapture.interrupt('Application error');
+-    this.interruptReview('Application error');
+-    this.festivalOwner.cancel();
+-    this.endDemoClock();
+-    this.worker?.terminate();
+-    this.input.setEnabled(false);
+-    this.audio.stop();
+-    console.error(error);
+-    this.ui.error(error instanceof Error ? error.message : String(error));
++    release(() => this.performanceCapture.interrupt('Application error'));
++    release(() => this.interruptReview('Application error'));
++    release(() => this.festivalOwner.cancel());
++    release(() => this.endDemoClock());
++    release(() => worker?.terminate());
++    release(() => this.input.setEnabled(false));
++    release(() => this.rumble.stop(null));
++    release(() => this.audio.stop());
++    release(() => console.error(error));
++    release(() => this.ui.error(error instanceof Error ? error.message : String(error)));
+   }
+   diagnostics(visual = false) {
+     const menuPreview = this.state === 'menu' ? this.menuPreviewReceipt.report() : null;
+     return {
+       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
+@@ -3665,10 +3721,11 @@ export class GameApp {
+       } catch (error) {
+         failures.push(error);
+       }
+     };
+     release(() => window.removeEventListener('keydown', this.reviewKeyboard));
++    release(() => window.removeEventListener('blur', this.suspendOnBlur));
+     release(() => this.sessionReview.stop('Application disposed', true));
+     release(() => this.tabEvidence.dispose());
+     release(() => this.performanceCapture.interrupt('Application disposed'));
+     release(() => this.interruptReview('Application disposed'));
+     release(() => this.reviewVideo.dispose());
+diff --git a/src/net/authority.ts b/src/net/authority.ts
+index 4775000..1612dbb 100644
+--- a/src/net/authority.ts
++++ b/src/net/authority.ts
+@@ -33,13 +33,13 @@ export const CHECKPOINT_TICKS = 1200;
+ export type DriverMode = 'human' | 'ai';
+ /** A pit request toggles at most once per this many ticks (0.5 s): faster
+  * toggling is ignored, so one client cannot inflate the journal with it. */
+ export const PIT_TOGGLE_MIN_TICKS = 60;
+ /** Most journal entries the live server can write for one car in one tick:
+- * one level-control change, one overtake edge, one pit toggle and up to
+- * three driver-mode changes (rejoin hold, first command, timeout). */
+-export const JOURNAL_ENTRIES_PER_CAR_TICK = 6;
++ * one level-control change, one shift edge, one overtake edge, one pit toggle
++ * and up to three driver-mode changes (rejoin hold, first command, timeout). */
++export const JOURNAL_ENTRIES_PER_CAR_TICK = 7;
+ /** Upper bound on the journal of a session of `endTick` ticks and `cars`
+  * cars; a verifier rejects anything longer before decoding it. */
+ export function journalEntryLimit(endTick: number, cars: number) {
+   return Math.max(0, endTick) * Math.max(1, cars) * JOURNAL_ENTRIES_PER_CAR_TICK;
+ }
+@@ -78,32 +78,41 @@ export function applyControls(car: Vehicle, input: Controls, phase: number, edge
+  * (disconnect takeover). Constructed with the same arguments as the world's
+  * own driver, so an all-AI NetDriver field is bit-identical to the plain
+  * Simulation (tests/net-authority.test.ts). */
+ export class NetDriver extends AIDriver {
+   mode: DriverMode = 'human';
++  /** Live levels have shift: 0. Archived control entries may retain the old
++   * persistent shift level so their original simulation still replays. */
+   controls: Controls = holdControls();
+   /** An overtake request applies on the next update only. */
+   edge = false;
++  /** A live command's shift applies on the next update only. */
++  shiftEdge: -1 | 0 | 1 = 0;
+   /** The server AI drove this car at some tick of the current lap. */
+   assisted = false;
+   /** Whether the next update follows the network controls. */
+   get followsControls() {
+     const c = this.car;
+     return this.mode === 'human' && !c.pitRequested && !c.inPit && !(c.finishTime > 0);
+   }
+   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
+-    const edge = this.edge;
++    const edge = this.edge,
++      shift = this.shiftEdge;
+     this.edge = false;
++    this.shiftEdge = 0;
+     if (!this.followsControls) {
+       this.assisted = true;
+       super.update(dt, track, cars, race);
+       return;
+     }
+-    // Level controls never carry the one-shot overtake; the edge does.
++    // Consume command edges once, even if AI ownership discarded this tick.
++    // A nonzero stored shift comes only from an archived level-control entry.
+     applyControls(
+       this.car,
+-      edge ? { ...this.controls, overtake: true } : this.controls,
++      edge || shift
++        ? { ...this.controls, overtake: edge, shift: shift || this.controls.shift }
++        : this.controls,
+       race.phase,
+       edge,
+     );
+   }
+ }
+@@ -119,11 +128,13 @@ function overtakeWouldStart(driver: NetDriver) {
+     c.battery >= c.spec.maxBatteryJ * OVERTAKE.minBattery
+   );
+ }
+ 
+ export type JournalEntry =
++  // Tags 0/4 retain the original persistent shift semantics for old records.
+   | { tick: number; car: number; kind: 'controls'; controls: Controls }
++  | { tick: number; car: number; kind: 'shift'; shift: -1 | 1 }
+   | { tick: number; car: number; kind: 'overtake' }
+   | { tick: number; car: number; kind: 'mode'; mode: DriverMode }
+   | { tick: number; car: number; kind: 'pit'; compound?: Compound };
+ 
+ const COMPOUND_IDS = Object.keys(COMPOUNDS) as Compound[];
+@@ -175,31 +186,42 @@ export class AuthoritativeWorld {
+   }
+   get cars() {
+     return this.sim.cars.length;
+   }
+   /** Level controls for `car` from this tick on; `first` applies the
+-   * command's one-shot controls (pit request, overtake) on this tick. A pit
++   * command's one-shot controls (shift, pit request, overtake) on this tick. A pit
+    * toggle within PIT_TOGGLE_MIN_TICKS of the last one is ignored, and an
+-   * overtake edge is journaled only when it will start the boost, so edges
+-   * add at most a few journal entries per lap whatever a client sends. */
++   * overtake edge is journaled only when it will start the boost. */
+   setControls(car: number, input: Controls, first: boolean) {
+     const driver = this.drivers[car],
+-      level = quantizeControls({ ...input, overtake: false, pit: false });
+-    if (!sameControls(level, driver.controls)) {
+-      driver.controls = level;
+-      this.journal.push({ tick: this.tick, car, kind: 'controls', controls: level });
+-    }
++      level = quantizeControls({ ...input, overtake: false, pit: false }),
++      shift = level.shift;
++    level.shift = 0;
++    this.setLevelControls(car, level);
+     if (first && input.pit && this.tick - this.lastPitToggle[car] >= PIT_TOGGLE_MIN_TICKS)
+       this.requestPit(car);
+     if (first && input.overtake && overtakeWouldStart(driver)) {
+       driver.edge = true;
+       this.journal.push({ tick: this.tick, car, kind: 'overtake' });
+     }
++    if (first && shift && driver.followsControls) {
++      const direction = shift > 0 ? 1 : -1;
++      driver.shiftEdge = direction;
++      this.journal.push({ tick: this.tick, car, kind: 'shift', shift: direction });
++    }
++  }
++  private setLevelControls(car: number, level: Controls) {
++    const driver = this.drivers[car];
++    if (sameControls(level, driver.controls)) return;
++    driver.controls = level;
++    // The driver's mutable levels and the journal's snapshot have separate owners.
++    this.journal.push({ tick: this.tick, car, kind: 'controls', controls: { ...level } });
+   }
+   setMode(car: number, mode: DriverMode) {
+     if (this.drivers[car].mode === mode) return;
+     this.drivers[car].mode = mode;
++    if (mode === 'ai') this.drivers[car].shiftEdge = 0;
+     this.journal.push({ tick: this.tick, car, kind: 'mode', mode });
+   }
+   /** Toggle a pit request, choosing the compound as `Simulation.requestPit`. */
+   requestPit(car: number, compound?: Compound) {
+     const c = this.sim.cars[car],
+@@ -223,12 +245,22 @@ export class AuthoritativeWorld {
+   }
+   apply(entry: JournalEntry) {
+     if (entry.tick !== this.tick) throw new Error('Journal entry applied at the wrong tick');
+     if (!Number.isInteger(entry.car) || entry.car < 0 || entry.car >= this.cars)
+       throw new Error('Journal entry names an unknown car');
+-    if (entry.kind === 'controls') this.setControls(entry.car, entry.controls, false);
+-    else if (entry.kind === 'overtake') {
++    if (entry.kind === 'controls') {
++      // Do not route archived levels through live command normalization: old
++      // tags 0/4 intentionally repeat their shift until another level arrives.
++      this.setLevelControls(
++        entry.car,
++        quantizeControls({ ...entry.controls, overtake: false, pit: false }),
++      );
++    } else if (entry.kind === 'shift') {
++      if (entry.shift !== -1 && entry.shift !== 1) throw new Error('Invalid shift edge');
++      this.drivers[entry.car].shiftEdge = entry.shift;
++      this.journal.push({ ...entry });
++    } else if (entry.kind === 'overtake') {
+       this.drivers[entry.car].edge = true;
+       this.journal.push({ ...entry });
+     } else if (entry.kind === 'mode') this.setMode(entry.car, entry.mode);
+     else this.requestPit(entry.car, entry.compound);
+   }
+@@ -378,12 +410,14 @@ export class AuthoritativeWorld {
+     if (i < journal.length) throw new Error('Journal has entries after its end tick');
+     return world;
+   }
+ }
+ 
+-const KIND = { controls: 0, overtake: 1, mode: 2, pit: 3 } as const;
+-/** Compact binary journal: tick deltas as varints, quantized controls. */
++const KIND = { controls: 0, overtake: 1, mode: 2, pit: 3, shift: 5 } as const;
++/** Compact binary journal: tick deltas as varints, quantized controls.
++ * Tag 5 explicitly introduces once-per-command shifts. Tags 0/4 preserve
++ * archived persistent shifts; older readers reject the new unknown tag. */
+ export function encodeJournal(entries: readonly JournalEntry[]) {
+   const w = new ByteWriter(entries.length * 10 + 16);
+   w.varint(entries.length);
+   let last = 0;
+   for (const e of entries) {
+@@ -394,11 +428,14 @@ export function encodeJournal(entries: readonly JournalEntry[]) {
+     w.varint(e.tick - last)
+       .u8(e.car)
+       .u8(rear ? 4 : KIND[e.kind]);
+     last = e.tick;
+     if (e.kind === 'controls') writeControls(w, e.controls, rear);
+-    else if (e.kind === 'mode') w.u8(e.mode === 'ai' ? 1 : 0);
++    else if (e.kind === 'shift') {
++      if (e.shift !== -1 && e.shift !== 1) throw new Error('Invalid shift edge');
++      w.i8(e.shift);
++    } else if (e.kind === 'mode') w.u8(e.mode === 'ai' ? 1 : 0);
+     else if (e.kind === 'pit') w.u8(e.compound ? COMPOUND_IDS.indexOf(e.compound) : 255);
+   }
+   return w.finish();
+ }
+ /** Decode a journal. `maxEntries` is the caller's bound (a verifier passes
+@@ -417,12 +454,16 @@ export function decodeJournal(
+   for (let i = 0; i < n; i++) {
+     tick += r.varint();
+     const car = r.u8(),
+       kind = r.u8();
+     if (kind === KIND.controls || kind === 4)
+-      out.push({ tick, car, kind: 'controls', controls: readControls(r,kind === 4) });
+-    else if (kind === KIND.overtake) out.push({ tick, car, kind: 'overtake' });
++      out.push({ tick, car, kind: 'controls', controls: readControls(r, kind === 4) });
++    else if (kind === KIND.shift) {
++      const shift = r.i8();
++      if (shift !== -1 && shift !== 1) throw new DecodeError('Invalid shift edge');
++      out.push({ tick, car, kind: 'shift', shift });
++    } else if (kind === KIND.overtake) out.push({ tick, car, kind: 'overtake' });
+     else if (kind === KIND.mode) {
+       const m = r.u8();
+       if (m > 1) throw new DecodeError('Invalid driver mode');
+       out.push({ tick, car, kind: 'mode', mode: m ? 'ai' : 'human' });
+     } else if (kind === KIND.pit) {
+diff --git a/src/net/client.ts b/src/net/client.ts
+index 61bfeef..a0830a0 100644
+--- a/src/net/client.ts
++++ b/src/net/client.ts
+@@ -414,11 +414,11 @@ export class RaceClient {
+     if (checked.ok) {
+       controls = checked.controls;
+       if (checked.clamped.length) this.stats.clampedSamples++;
+     } else {
+       this.stats.rejectedSamples++;
+-      controls = { ...this.lastControls, overtake: false, pit: false };
++      controls = { ...this.lastControls, shift: 0, overtake: false, pit: false };
+     }
+     this.lastControls = controls;
+     this.commands.issue(ticks, controls);
+     this.stats.commands++;
+     this.predictor.advance(this.commands.nextTick - 1, this.inputAt);
+diff --git a/src/net/input.ts b/src/net/input.ts
+index 031d159..b5dcfa8 100644
+--- a/src/net/input.ts
++++ b/src/net/input.ts
+@@ -120,13 +120,40 @@ export function readControls(r: ByteReader, withRearBrake = true): Controls {
+     pit: (bits & (1 << 8)) !== 0,
+   };
+ }
+ /** The exact value the server will apply for `c`. */
+ export function quantizeControls(c: Controls): Controls {
+-  const w = new ByteWriter(8);
+-  writeControls(w, c);
+-  return readControls(new ByteReader(w.finish()));
++  // Clamp/round exactly as the wire writer does. Integer coercion preserves
++  // DataView's NaN -> 0 and -0 -> +0 behavior without temporary byte storage.
++  const throttle = (Math.round(clamp(c.throttle, 0, 1) * 255) | 0) / 255,
++    brake = (Math.round(clamp(c.brake, 0, 1) * 255) | 0) / 255,
++    clutch = (Math.round(clamp(c.clutch, 0, 1) * 255) | 0) / 255,
++    steer = (Math.round(clamp(c.steer, -1, 1) * 32767) | 0) / 32767,
++    shiftCode = SHIFT_CODE(c.shift),
++    ers = c.ers === 0 ? 0 : c.ers === 2 ? 2 : 1,
++    manualClutch = !!c.manualClutch,
++    reverse = !!c.reverse,
++    drs = !!c.drs,
++    overtake = !!c.overtake,
++    pit = !!c.pit,
++    riderLean = (Math.round(clamp(c.riderLean ?? 0, -1, 1) * 63) | 0) / 63,
++    rearBrake = (Math.round(clamp(c.rearBrake ?? 0, 0, 1) * 255) | 0) / 255;
++  return {
++    throttle,
++    brake,
++    clutch,
++    rearBrake,
++    steer,
++    riderLean,
++    shift: shiftCode === 1 ? 1 : shiftCode === 2 ? -1 : 0,
++    ers,
++    manualClutch,
++    reverse,
++    drs,
++    overtake,
++    pit,
++  };
+ }
+ export const CONTROLS_WIRE_BYTES = 8;
+ 
+ export function sameControls(a: Controls, b: Controls) {
+   return (
+diff --git a/src/net/records.ts b/src/net/records.ts
+index 604d0f9..bfae1a0 100644
+--- a/src/net/records.ts
++++ b/src/net/records.ts
+@@ -78,20 +78,28 @@ function claimOf(world: AuthoritativeWorld): RecordClaim {
+     finalHash: world.stateHash(),
+   };
+ }
+ /** Archive a finished (or time-limited) authoritative session. */
+ export function createRecord(world: AuthoritativeWorld): SessionRecord {
++  // A final snapshot can disconnect a peer after the last completed step.
++  // Its takeover is stamped for the next step, outside this record's exclusive
++  // endTick. Retain the live journal for supervision; archive only consumed
++  // entries. Trimming only the current-boundary suffix leaves unrelated invalid
++  // entries subject to the existing encoder and verifier checks.
++  let count = world.journal.length;
++  while (count && world.journal[count - 1].tick === world.tick) count--;
++  const journal = count === world.journal.length ? world.journal : world.journal.slice(0, count);
+   const options = world.sim.options,
+     body: Omit<SessionRecord, 'digest'> = {
+       format: RECORD_FORMAT,
+       version: RECORD_VERSION,
+       identity: sessionIdentity(options),
+       category: recordCategory(options),
+       options,
+       endTick: world.tick,
+-      journalEntries: world.journal.length,
+-      journal: toBase64(encodeJournal(world.journal)),
++      journalEntries: journal.length,
++      journal: toBase64(encodeJournal(journal)),
+       claim: claimOf(world),
+     };
+   return { ...body, digest: recordDigest(body) };
+ }
+ 
+diff --git a/src/net/server.ts b/src/net/server.ts
+index 83a04e1..0032691 100644
+--- a/src/net/server.ts
++++ b/src/net/server.ts
+@@ -29,12 +29,12 @@ import type {
+   ResultEntry,
+   ServerControl,
+   SessionPhase,
+ } from './messages.ts';
+ import { createRecord, type SessionRecord } from './records.ts';
+-import { emptyCarState, type CarNetState } from './snapshot.ts';
+-import type { Transport } from './transport.ts';
++import { CAR_FLAG, emptyCarState, type CarNetState } from './snapshot.ts';
++import type { Channel, Transport } from './transport.ts';
+ 
+ /** What happens to a car whose driver's connection is lost (WP54).
+  * 'ai-takeover': the server AI drives it and it stays classified.
+  * 'ghost': the AI keeps it moving so the track stays safe, it is flagged
+  * GHOST for presentation and classified behind every running car. Contact
+@@ -104,10 +104,14 @@ interface Player {
+   starved: number;
+   starving: boolean;
+   /** Input statistics of earlier connections (before a rejoin). */
+   prior: QueueStats[];
+ }
++interface SnapshotBatch {
++  packets: { player: Player; connection: Connection; data: Uint8Array }[];
++  messages: ServerControl[];
++}
+ export interface ServerStats {
+   connections: number;
+   rejectedJoins: { reason: string; at: number }[];
+   invalidMessages: number;
+   rateLimited: number;
+@@ -119,10 +123,19 @@ export interface ServerStats {
+   /** Episodes where a connected driver's commands stopped arriving. */
+   starvations: number;
+   /** Outbound control messages over the peer's size limit (never sent).
+    * Variable-length payloads are chunked, so this stays 0. */
+   oversizeMessages: number;
++  /** Total active peer failures, including errors older than the retained tail. */
++  transportErrorCount: number;
++  /** The newest 64 original thrown values, including cleanup failures. */
++  transportErrors: {
++    connection: number;
++    operation: 'send' | 'close';
++    at: number;
++    error: unknown;
++  }[];
+ }
+ 
+ /** Anonymous players get ids outside the account namespace (an account id
+  * matches /^[A-Za-z0-9_-]{1,32}$/ and can never contain ':'), so a client
+  * cannot claim, collide with or inherit the bans of a server-assigned id. */
+@@ -167,10 +180,12 @@ export class RaceServer {
+     snapshotsSent: 0,
+     takeovers: [],
+     rejoins: [],
+     starvations: 0,
+     oversizeMessages: 0,
++    transportErrorCount: 0,
++    transportErrors: [],
+   };
+   private readonly connections = new Set<Connection>();
+   private readonly players = new Map<string, Player>();
+   private readonly byCar: (Player | null)[] = [];
+   private readonly events: RaceEvent[] = [];
+@@ -181,10 +196,13 @@ export class RaceServer {
+   private nextConnection = 1;
+   private nextPlayer = 1;
+   private stopTicks: (() => void) | null = null;
+   private entries: GridEntry[] = [];
+   private scratch: CarNetState[] = [];
++  private readonly snapshotBatches: SnapshotBatch[] = [];
++  private flushingSnapshots = false;
++  private snapshotReentered = false;
+   private grid: Extract<ServerControl, { kind: 'grid' }> | null = null;
+   readonly timeouts: Timeouts;
+   private readonly starveTicks: number;
+   constructor(readonly config: RaceServerConfig) {
+     this.timeouts = { ...TIMEOUTS, ...config.timeouts };
+@@ -214,10 +232,13 @@ export class RaceServer {
+     this.config.onPhase?.(phase);
+     // Observers may synchronously end the session. The old transition no
+     // longer owns the right to construct a world or schedule more work.
+     return this.phase === phase;
+   }
++  private ownsWorld(world: AuthoritativeWorld, phase: SessionPhase) {
++    return this.world === world && this.phase === phase;
++  }
+   /** Take ownership of a new connection. */
+   accept(transport: Transport) {
+     if (this.phase === 'teardown') {
+       // Preserve late-client feedback without installing a new owner or timer
+       // on a terminal server, including acceptance from a teardown observer.
+@@ -265,11 +286,24 @@ export class RaceServer {
+     const data = encodeControl(message);
+     if (data.length > sizeLimit('reliable', true)) {
+       this.stats.oversizeMessages++;
+       return;
+     }
+-    conn.transport.send(data, 'reliable');
++    this.sendData(conn, data, 'reliable');
++  }
++  /** Only transport calls are contained here: encoding, authoritative state
++   * changes and physics errors still propagate to the server's supervisor. */
++  private sendData(conn: Connection, data: Uint8Array, channel: Channel) {
++    if (conn.closed) return false;
++    try {
++      conn.transport.send(data, channel);
++      return true;
++    } catch (error) {
++      this.transportError(conn, 'send', error);
++    }
++    this.close(conn, 'transport send failed');
++    return false;
+   }
+   /** Race events in as many `events` messages as the size limit needs. */
+   private sendEvents(conn: Connection, events: readonly RaceEvent[]) {
+     for (const message of this.eventMessages(events)) this.send(conn, message);
+   }
+@@ -305,13 +339,27 @@ export class RaceServer {
+     });
+     return out;
+   }
+   private close(conn: Connection, reason: string) {
+     if (conn.closed) return;
++    if (conn.player?.connection === conn) return this.disconnect(conn.player, reason);
+     conn.closed = true;
+     this.connections.delete(conn);
+-    conn.transport.close(reason);
++    conn.player = null;
++    this.closeTransport(conn, reason);
++  }
++  private closeTransport(conn: Connection, reason: string) {
++    try {
++      conn.transport.close(reason);
++    } catch (error) {
++      this.transportError(conn, 'close', error);
++    }
++  }
++  private transportError(conn: Connection, operation: 'send' | 'close', error: unknown) {
++    this.stats.transportErrorCount++;
++    if (this.stats.transportErrors.length === 64) this.stats.transportErrors.shift();
++    this.stats.transportErrors.push({ connection: conn.id, operation, at: this.loop.now, error });
+   }
+   private strike(conn: Connection, reason: 'invalid' | 'rate') {
+     conn.strikes++;
+     if (reason === 'rate') this.stats.rateLimited++;
+     else this.stats.invalidMessages++;
+@@ -455,12 +503,19 @@ export class RaceServer {
+     const holder = player.connection;
+     if (holder && !holder.closed && now - holder.lastHeard <= this.timeouts.disconnectMs)
+       return this.reject(conn, 'this driver is still connected');
+     const mismatch = identityMismatch(this.expectedIdentity(player.vehicle), message.identity);
+     if (mismatch) return this.reject(conn, `content mismatch: ${mismatch}`);
+-    if (holder) this.close(holder, 'replaced by a new connection');
+-    const away = player.disconnectedAt === null ? 0 : this.loop.now - player.disconnectedAt;
++    const away = player.disconnectedAt === null ? 0 : this.loop.now - player.disconnectedAt,
++      closeHolder = holder && !holder.closed;
++    // Retire the previous owner and finish the replacement before its close
++    // callback can reenter the server with either connection.
++    if (holder) {
++      holder.closed = true;
++      holder.player = null;
++      this.connections.delete(holder);
++    }
+     player.connection = conn;
+     conn.player = player;
+     player.disconnectedAt = null;
+     player.prior.push(player.queue.stats);
+     player.queue = new ServerInputQueue();
+@@ -472,10 +527,12 @@ export class RaceServer {
+     // Never drive on the old connection's last controls: the AI holds the
+     // car until the new connection's first command arrives.
+     if (player.car !== null && this.world) this.world.setMode(player.car, 'ai');
+     if (player.car !== null)
+       this.stats.rejoins.push({ car: player.car, at: this.loop.now, afterMs: away });
++    if (closeHolder) this.closeTransport(holder, 'replaced by a new connection');
++    if (conn.closed || player.connection !== conn) return;
+     this.send(conn, {
+       kind: 'welcome',
+       player: player.id,
+       token: player.token,
+       lobby: this.lobby.view(this.phase),
+@@ -545,12 +602,15 @@ export class RaceServer {
+       car: -1,
+       startTick: 0,
+       serverTick: 0,
+       startInMs: this.timeouts.gridCountdownMs,
+     };
+-    for (const p of this.players.values())
++    // Transport callbacks can end this grid while its announcement is sent.
++    for (const p of this.players.values()) {
+       if (p.connection && p.car !== null) this.send(p.connection, { ...this.grid, car: p.car });
++      if (!this.ownsWorld(world, 'grid')) return;
++    }
+     this.raceStartsAt = this.loop.now + this.timeouts.gridCountdownMs;
+     this.loop.after(this.timeouts.gridCountdownMs, () => this.beginRace());
+   }
+   private beginRace() {
+     if (this.phase !== 'grid') return;
+@@ -602,13 +662,15 @@ export class RaceServer {
+           this.timeouts.disconnectMs
+         )
+           this.disconnect(player, 'connection timed out');
+       }
+     }
++    if (this.phase !== 'race' || this.world !== world) return;
+     world.step();
+     for (const event of world.events) this.emit(event);
+     if (world.tick % TICKS_PER_SNAPSHOT === 0) this.snapshot();
++    if (this.phase !== 'race' || this.world !== world) return;
+     this.budget.record(this.wall() - start);
+     this.config.onTick?.(world);
+     const race = world.sim.race,
+       limit = this.config.raceSeconds;
+     if (race.phase === PHASE.FINISHED) this.endRace('finished');
+@@ -619,54 +681,101 @@ export class RaceServer {
+   private emit(event: RaceEvent) {
+     this.events.push(event);
+     this.pendingEvents.push(event);
+   }
+   private snapshot() {
++    // One reentrant follow-up is enough to observe synchronous changes. More
++    // requests coalesce into the next scheduled snapshot without consuming
++    // contacts, events or input slack, bounding a dispatch to two batches.
++    if (this.flushingSnapshots) {
++      if (this.snapshotReentered) return;
++      this.snapshotReentered = true;
++    }
+     const world = this.world as AuthoritativeWorld,
+       now = this.loop.now,
+-      race = world.sim.race;
++      race = world.sim.race,
++      recipients: { player: Player; connection: Connection }[] = [],
++      packets: SnapshotBatch['packets'] = [];
+     for (const player of this.players.values()) {
+-      const conn = player.connection;
+-      if (!conn || conn.closed || player.car === null) continue;
+-      const cars = this.scratch.map((s, car) =>
+-        world.capture(car, car === player.car, s, this.byCar[car]?.ghost === true),
+-      );
+-      const slack = player.queue.takeSlack();
+-      conn.transport.send(
+-        encodeSnapshot({
++      const connection = player.connection;
++      if (connection && !connection.closed && player.car !== null)
++        recipients.push({ player, connection });
++    }
++    // No external callbacks run until every recipient owns its encoded
++    // packet. A nested snapshot may reuse scratch without changing this batch.
++    for (let car = 0; recipients.length && car < this.scratch.length; car++) {
++      const player = this.byCar[car],
++        full = !!player?.connection && !player.connection.closed,
++        state = world.capture(car, full, this.scratch[car], player?.ghost === true);
++      state.flags &= ~CAR_FLAG.FULL;
++    }
++    for (const { player, connection: conn } of recipients) {
++      const slack = player.queue.takeSlack(),
++        own = this.scratch[player.car as number];
++      own.flags |= CAR_FLAG.FULL;
++      let data: Uint8Array;
++      try {
++        data = encodeSnapshot({
+           tick: world.tick,
+           phase: race.phase,
+           raceTime: race.time,
+           ackSeq: player.queue.contiguousSeq,
+           slack: slack === Infinity ? 127 : slack,
+           missing: player.missingWindow,
+           echo: conn.echo,
+           hold: now - conn.echoAt,
+-          cars,
+-        }),
+-        'unreliable',
+-      );
++          cars: this.scratch,
++        });
++      } finally {
++        own.flags &= ~CAR_FLAG.FULL;
++      }
++      packets.push({ player, connection: conn, data });
+       player.missingWindow = 0;
+-      this.stats.snapshotsSent++;
+     }
++    const messages = this.eventMessages(this.pendingEvents);
++    this.pendingEvents = [];
++    // Consume this boundary's latches before a send can produce new contacts
++    // or events; those belong to the next snapshot, including reentrant ones.
+     world.clearContacts();
+-    if (this.pendingEvents.length) {
+-      const messages = this.eventMessages(this.pendingEvents);
+-      this.pendingEvents = [];
+-      for (const p of this.players.values())
+-        if (p.connection && p.car !== null)
+-          for (const message of messages) this.send(p.connection, message);
++    this.snapshotBatches.push({ packets, messages });
++    if (this.flushingSnapshots) return;
++    this.flushingSnapshots = true;
++    try {
++      // Preserve packet/event order when a transport synchronously asks for
++      // another snapshot. It captures immediately and sends after this batch.
++      while (this.snapshotBatches.length) {
++        const batch = this.snapshotBatches.shift()!;
++        for (const { player, connection, data } of batch.packets) {
++          if (player.connection !== connection) continue;
++          if (this.sendData(connection, data, 'unreliable')) this.stats.snapshotsSent++;
++        }
++        for (const { player, connection } of batch.packets) {
++          if (player.connection !== connection) continue;
++          for (const message of batch.messages) this.send(connection, message);
++        }
++      }
++    } finally {
++      this.flushingSnapshots = false;
++      this.snapshotReentered = false;
+     }
+   }
+   /** Connection lost (timeout, close, sever): AI takeover or ghost. */
+   private disconnect(player: Player, reason: string) {
+-    if (player.connection) this.close(player.connection, reason);
++    const conn = player.connection;
++    if (!conn) return;
++    const notifyClose = !conn.closed;
+     player.connection = null;
++    conn.player = null;
++    conn.closed = true;
++    this.connections.delete(conn);
+     if (player.car === null || !this.world || (this.phase !== 'race' && this.phase !== 'grid')) {
+       if (this.phase === 'lobby') {
+         this.lobby.leave(player.id);
+         this.players.delete(player.id);
++      }
++      if (notifyClose) this.closeTransport(conn, reason);
++      if (this.phase === 'lobby') {
+         this.broadcastLobby();
+         // The one member nobody was waiting for may just have gone.
+         this.maybeStart();
+       }
+       return;
+@@ -674,29 +783,22 @@ export class RaceServer {
+     player.disconnectedAt = this.loop.now;
+     player.ghost = this.config.disconnectPolicy === 'ghost';
+     this.world.setMode(player.car, 'ai');
+     this.stats.takeovers.push({ car: player.car, at: this.loop.now, reason });
+     this.emit({ type: 'driver', car: player.car, mode: 'ai', reason, tick: this.world.tick });
++    if (notifyClose) this.closeTransport(conn, reason);
+   }
+   private lost(conn: Connection, reason: string) {
+     if (conn.closed) return;
+     conn.closed = true;
+     this.connections.delete(conn);
+     if (conn.player && conn.player.connection === conn) this.disconnect(conn.player, reason);
++    conn.player = null;
+   }
+   private forfeit(player: Player, reason: string) {
+-    if (this.phase === 'lobby') {
+-      this.lobby.leave(player.id);
+-      this.players.delete(player.id);
+-      if (player.connection) this.close(player.connection, reason);
+-      player.connection = null;
+-      this.broadcastLobby();
+-      this.maybeStart();
+-      return;
+-    }
+     player.forfeited = true;
+-    if (player.connection && player.disconnectedAt === null) this.disconnect(player, reason);
++    if (player.connection) this.disconnect(player, reason);
+   }
+   /** Remove a player (rate abuse, host or platform moderation). */
+   kick(playerId: string, reason: string, ban = false) {
+     const player = this.players.get(playerId);
+     if (!player) return false;
+@@ -718,12 +820,13 @@ export class RaceServer {
+     // onTick may have ended the session at the same tick as a race limit.
+     if (this.phase !== 'race') return;
+     const world = this.world as AuthoritativeWorld;
+     this.stopTicks?.();
+     this.stopTicks = null;
+-    if (!this.setPhase('results')) return;
++    if (!this.setPhase('results') || this.world !== world) return;
+     if (this.pendingEvents.length) this.snapshot();
++    if (!this.ownsWorld(world, 'results')) return;
+     this.record = createRecord(world);
+     const running: ResultEntry[] = [],
+       ghosts: ResultEntry[] = [];
+     for (const row of world.classification()) {
+       const player = this.byCar[row.car],
+@@ -754,12 +857,21 @@ export class RaceServer {
+       classification,
+       recordDigest: this.record.digest,
+       progressDisputes: world.audit.disputes(),
+     };
+     const messages = this.resultMessages(this.results);
+-    for (const p of this.players.values())
+-      if (p.connection) for (const message of messages) this.send(p.connection, message);
++    for (const p of this.players.values()) {
++      const connection = p.connection;
++      if (!connection) continue;
++      for (const message of messages) {
++        this.send(connection, message);
++        // A failed send retires this recipient; a callback may retire the
++        // whole session. Neither owns the remaining chunks or a new timer.
++        if (!this.ownsWorld(world, 'results')) return;
++        if (p.connection !== connection) break;
++      }
++    }
+     this.loop.after(this.timeouts.resultsLingerMs, () => this.teardown());
+   }
+   /** Results → teardown: close every connection and stop all timers. */
+   teardown() {
+     if (this.phase === 'teardown') return;
+@@ -767,11 +879,15 @@ export class RaceServer {
+     this.phase = 'teardown';
+     const stopTicks = this.stopTicks,
+       connections = [...this.connections];
+     this.stopTicks = null;
+     this.connections.clear();
+-    for (const conn of connections) conn.closed = true;
++    for (const conn of connections) {
++      conn.closed = true;
++      conn.player = null;
++    }
++    this.snapshotBatches.length = 0;
+     for (const p of this.players.values()) p.connection = null;
+     let failed = false,
+       failure: unknown;
+     const finish = (release: () => void) => {
+       try {
+diff --git a/src/rendering/assets/texture-source-ownership.ts b/src/rendering/assets/texture-source-ownership.ts
+index db2b293..2a32338 100644
+--- a/src/rendering/assets/texture-source-ownership.ts
++++ b/src/rendering/assets/texture-source-ownership.ts
+@@ -21,17 +21,31 @@ export function markSharedTextureSource(texture: T.Texture) {
+  * its decoded bitmap. Multiple handles may alias one bitmap, which is closed
+  * at most once. Shared cache images survive for the next renderer's upload. */
+ export function disposeSceneTexture(texture: T.Texture) {
+   const source = texture.source,
+     image: unknown = texture.image;
+-  texture.dispose();
++  let failed = false;
++  let failure: unknown;
++  try {
++    texture.dispose();
++  } catch (error) {
++    failed = true;
++    failure = error;
++  }
++  // Decoded storage is a separate owned resource. A GPU-disposal listener
++  // failure must not strand it, or revoke a shared cache's borrowed pixels.
+   if (
+     typeof ImageBitmap !== 'undefined' &&
+     image instanceof ImageBitmap &&
+     !sharedSources.has(source) &&
+     !sharedImages.has(image) &&
+     !closedImages.has(image)
+   ) {
+     closedImages.add(image);
+-    image.close();
++    try {
++      image.close();
++    } catch (error) {
++      if (!failed) throw error;
++    }
+   }
++  if (failed) throw failure;
+ }
+diff --git a/src/rendering/imported-texture-budget.ts b/src/rendering/imported-texture-budget.ts
+index f15934f..e237ad8 100644
+--- a/src/rendering/imported-texture-budget.ts
++++ b/src/rendering/imported-texture-budget.ts
+@@ -23,46 +23,51 @@ export class ImportedTextureBudget {
+   private readonly assets = new Set<ImportedAsset>();
+   private readonly registered = new Set<T.Texture>();
+   private limit = 512;
+   private anisotropy = 8;
+ 
+-  register(texture: T.Texture) {
+-    if (
+-      this.registered.has(texture) ||
+-      (texture.userData.suppliedPlayerTexture !== true &&
+-        texture.userData.immutableAssetTexture !== true) ||
+-      texture.userData.dynamic ||
+-      texture.isRenderTargetTexture ||
+-      texture instanceof T.DataTexture ||
+-      texture instanceof T.CompressedTexture ||
+-      texture.flipY ||
+-      texture.premultiplyAlpha ||
+-      !isImage(texture.image) ||
+-      texture.image.width < 1 ||
+-      texture.image.height < 1
+-    )
+-      return;
+-    let asset = this.sources.get(texture.source);
+-    if (!asset) {
+-      const original = texture.source;
+-      asset = {
+-        original,
+-        owned: new T.Source(original.data),
+-        image: original.data as ImportedImage,
+-        textures: new Set(),
+-      };
+-      this.sources.set(original, asset);
+-      this.sources.set(asset.owned, asset);
+-      this.assets.add(asset);
++  /** Acquire a whole traversal before updating each shared image once. */
++  register(textures: T.Texture | Iterable<T.Texture>) {
++    const pending = new Set<ImportedAsset>();
++    for (const texture of textures instanceof T.Texture ? [textures] : textures) {
++      if (
++        this.registered.has(texture) ||
++        (texture.userData.suppliedPlayerTexture !== true &&
++          texture.userData.immutableAssetTexture !== true) ||
++        texture.userData.dynamic ||
++        texture.isRenderTargetTexture ||
++        texture instanceof T.DataTexture ||
++        texture instanceof T.CompressedTexture ||
++        texture.flipY ||
++        texture.premultiplyAlpha ||
++        !isImage(texture.image) ||
++        texture.image.width < 1 ||
++        texture.image.height < 1
++      )
++        continue;
++      let asset = this.sources.get(texture.source);
++      if (!asset) {
++        const original = texture.source;
++        asset = {
++          original,
++          owned: new T.Source(original.data),
++          image: original.data as ImportedImage,
++          textures: new Set(),
++        };
++        this.sources.set(original, asset);
++        this.sources.set(asset.owned, asset);
++        this.assets.add(asset);
++      }
++      this.registered.add(texture);
++      asset.textures.add(texture);
++      // Release the old upload before changing its source identity. The bitmap
++      // itself belongs to the loader/renderer and must not be closed here.
++      texture.dispose();
++      texture.source = asset.owned;
++      pending.add(asset);
+     }
+-    this.registered.add(texture);
+-    asset.textures.add(texture);
+-    // Release the old upload before changing its source identity. The bitmap
+-    // itself belongs to the loader/renderer and must not be closed here.
+-    texture.dispose();
+-    texture.source = asset.owned;
+-    this.apply(asset);
++    for (const asset of pending) this.apply(asset);
+   }
+ 
+   configure(limit: number, anisotropy: number) {
+     if (limit === this.limit && anisotropy === this.anisotropy) return;
+     this.limit = limit;
+@@ -74,23 +79,28 @@ export class ImportedTextureBudget {
+    * its immutable source and still belong to a live scene. */
+   unregister(texture: T.Texture) {
+     if (!this.registered.delete(texture)) return;
+     const asset = this.sources.get(texture.source);
+     if (!asset) return;
+-    texture.dispose();
+-    texture.source = asset.original;
+-    if (asset.coverage) {
+-      texture.mipmaps = [];
+-      texture.generateMipmaps = true;
+-    }
+-    texture.needsUpdate = true;
++    // A disposal listener may close the whole budget. Remove this wrapper from
++    // every ownership index before invoking it, while preserving its old source.
+     asset.textures.delete(texture);
+     if (!asset.textures.size) {
+       this.sources.delete(asset.original);
+       this.sources.delete(asset.owned);
+       this.assets.delete(asset);
+     }
++    try {
++      texture.dispose();
++    } finally {
++      texture.source = asset.original;
++      if (asset.coverage) {
++        texture.mipmaps = [];
++        texture.generateMipmaps = true;
++      }
++      texture.needsUpdate = true;
++    }
+   }
+ 
+   private apply(asset: ImportedAsset) {
+     const factor = Math.min(1, this.limit / Math.max(asset.image.width, asset.image.height));
+     const width = Math.max(1, Math.round(asset.image.width * factor));
+@@ -147,22 +157,37 @@ export class ImportedTextureBudget {
+       texture.needsUpdate = true;
+     }
+   }
+ 
+   dispose() {
+-    for (const asset of this.assets) {
+-      for (const texture of asset.textures) {
+-        texture.dispose();
+-        texture.source = asset.original;
+-        if (asset.coverage) {
+-          texture.mipmaps = [];
+-          texture.generateMipmaps = true;
+-        }
+-        texture.needsUpdate = true;
+-      }
+-      asset.textures.clear();
+-    }
++    const assets = [...this.assets];
++    // Retire this batch before user/Three disposal listeners can reenter it.
++    // A later registration still starts a fresh, reusable budget owner.
+     this.registered.clear();
+     this.sources.clear();
+     this.assets.clear();
++    let failed = false;
++    let failure: unknown;
++    for (const asset of assets) {
++      const textures = [...asset.textures];
++      asset.textures.clear();
++      for (const texture of textures) {
++        try {
++          texture.dispose();
++        } catch (error) {
++          if (!failed) {
++            failed = true;
++            failure = error;
++          }
++        } finally {
++          texture.source = asset.original;
++          if (asset.coverage) {
++            texture.mipmaps = [];
++            texture.generateMipmaps = true;
++          }
++          texture.needsUpdate = true;
++        }
++      }
++    }
++    if (failed) throw failure;
+   }
+ }
+diff --git a/src/rendering/open-world/festival-renderer.ts b/src/rendering/open-world/festival-renderer.ts
+index ad136d0..185d235 100644
+--- a/src/rendering/open-world/festival-renderer.ts
++++ b/src/rendering/open-world/festival-renderer.ts
+@@ -187,10 +187,11 @@ export class FestivalRenderer {
+   readonly photoSky = new PhotoSky(FESTIVAL_PALETTE, true);
+   private readonly composer: EffectComposer;
+   private readonly scenePass: SceneAmbientPass;
+   private readonly imagePipeline: FestivalFramePipeline;
+   private readonly bloom = new LensBloomPass();
++  private readonly outputPass = new OutputPass();
+   private readonly grade = new BroadcastGradePass();
+   private readonly fxaa = new ShaderPass(FXAAShader);
+   readonly ultra: UltraPipeline;
+   private readonly shadows: FestivalShadows;
+   private readonly wet = new WetRoadReflection();
+@@ -348,11 +349,11 @@ export class FestivalRenderer {
+       this.composer,
+       this.graphics,
+     );
+     this.scenePass = this.imagePipeline.scenePass;
+     this.composer.addPass(this.bloom);
+-    this.composer.addPass(new OutputPass());
++    this.composer.addPass(this.outputPass);
+     this.composer.addPass(this.fxaa);
+     this.composer.addPass(this.grade);
+     this.ultra = new UltraPipeline({
+       renderer,
+       scene,
+@@ -1160,12 +1161,16 @@ export class FestivalRenderer {
+     release(() => this.cars.dispose());
+     release(() => this.trails.dispose());
+     release(() => this.guidance.dispose());
+     release(() => this.orbit.dispose());
+     release(() => this.environment.dispose());
++    release(() => this.sky.geometry.dispose());
++    release(() => this.sky.material.dispose());
+     release(() => this.wet.dispose());
+     release(() => this.shadows.dispose());
++    // The borrowed renderer outlives this region and its near-shadow targets.
++    release(() => this.sun.shadow.dispose());
+     release(() => this.effectPlayback.reset());
+     release(() =>
+       this.effects.group.traverse((node) => {
+         if (node instanceof T.Mesh || node instanceof T.Points) {
+           release(() => node.geometry.dispose());
+@@ -1173,10 +1178,12 @@ export class FestivalRenderer {
+             release(() => material.dispose());
+         }
+       }),
+     );
+     release(() => this.bloom.dispose());
++    // EffectComposer releases its own buffers, but not the registered passes.
++    release(() => this.outputPass.dispose());
+     release(() => this.grade.dispose());
+     release(() => this.fxaa.dispose());
+     release(() => this.imagePipeline.dispose());
+     release(() => this.ultra.dispose());
+     release(() => this.photoSky.dispose());
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index ea3d3c4..7276959 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -413,10 +413,11 @@ export class RacingRenderer {
+   private exposure = new AdaptiveExposurePass();
+   private atmosphere: LocalAtmosphere;
+   private weatherPresentation = new WeatherPresentation();
+   private composition = new RaceComposition();
+   private bloom: LensBloomPass;
++  private readonly outputPass = new OutputPass();
+   private scenePass: SceneAmbientPass;
+   private grade = new BroadcastGradePass();
+   private photoFocus: DepthOfFieldPass | null = null;
+   /** Trackside broadcast telephoto: a thin-lens pass (studio/subject-focus.ts). */
+   private broadcastFocus: DepthOfFieldPass | null = null;
+@@ -698,11 +699,11 @@ export class RacingRenderer {
+     // Linear-HDR threshold above sunlit white paint and smoke: only speculars,
+     // lamps and the sun disc bloom, never road markings or diffuse volumes.
+     // Single-pixel fireflies are limited before the round-filtered pyramid.
+     this.bloom = new LensBloomPass();
+     this.composer.addPass(this.bloom);
+-    this.composer.addPass(new OutputPass());
++    this.composer.addPass(this.outputPass);
+     this.composer.addPass(this.fxaa);
+     this.composer.addPass(this.grade);
+     this.ultra = new UltraPipeline({
+       renderer: this.renderer,
+       scene: this.scene,
+@@ -1604,12 +1605,26 @@ export class RacingRenderer {
+     }
+     return this.circuit.buildPlanting(null, authored);
+   }
+   private releasePlanting(planting: CircuitPlanting) {
+     if (planting.disposed) return;
+-    this.textures.unregister(planting.root);
+-    disposeCircuitPlanting(planting);
++    let failed = false;
++    let failure: unknown;
++    try {
++      this.textures.unregister(planting.root);
++    } catch (error) {
++      failed = true;
++      failure = error;
++    }
++    // Unregister restores map sources before reporting listener failures.
++    // The detached tier still needs its own independent release attempt.
++    try {
++      disposeCircuitPlanting(planting);
++    } catch (error) {
++      if (!failed) throw error;
++    }
++    if (failed) throw failure;
+   }
+   private invalidatePlanting() {
+     this.farShadowBaked = null;
+     this.reflection.invalidate();
+     this.scenePass.temporal.reset();
+@@ -3536,10 +3551,12 @@ export class RacingRenderer {
+     release(() => this.weatherPresentation.dispose());
+     release(() => this.photoFocus?.dispose());
+     release(() => this.broadcastFocus?.dispose());
+     release(() => this.geometrySurvey?.dispose());
+     release(() => this.bloom.dispose());
++    // EffectComposer releases its own buffers, but not the registered passes.
++    release(() => this.outputPass.dispose());
+     release(() => this.fxaa.dispose());
+     release(() => this.scenePass.dispose());
+     release(() => this.grade.dispose());
+     release(() => this.ultra.dispose());
+     const geometries = new Set<T.BufferGeometry>(),
+diff --git a/src/rendering/texture-budget.ts b/src/rendering/texture-budget.ts
+index a5a7c02..3d9a0c0 100644
+--- a/src/rendering/texture-budget.ts
++++ b/src/rendering/texture-budget.ts
+@@ -2,11 +2,11 @@ import * as T from 'three';
+ import { ImportedTextureBudget } from './imported-texture-budget.ts';
+ 
+ interface CanvasSource {
+   original: T.Source;
+   image: HTMLCanvasElement;
+-  groups: Set<CanvasAsset>;
++  groups: Map<string, CanvasAsset>;
+ }
+ interface CanvasAsset {
+   source: CanvasSource;
+   owned: T.Source;
+   scale: number;
+@@ -25,20 +25,22 @@ export class TextureBudget {
+   private readonly groups = new Set<CanvasAsset>();
+   private detailData = new Set<T.DataTexture>();
+   private limit = 512;
+   private anisotropy = 8;
+   register(root: T.Object3D) {
++    const pending = new Set<CanvasAsset>();
++    const imported = new Set<T.Texture>();
+     root.traverse((object) => {
+       if (!(object instanceof T.Mesh)) return;
+       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+         for (const value of Object.values(material)) {
+           if (
+             value instanceof T.Texture &&
+             (value.userData.suppliedPlayerTexture === true ||
+               value.userData.immutableAssetTexture === true)
+           ) {
+-            this.imported.register(value);
++            imported.add(value);
+             continue;
+           }
+           // Tiny prefiltered fabric maps retain their fixed resolution but obey
+           // the same user-selected filtering budget. Simulation data is excluded.
+           if (value instanceof T.DataTexture && value.userData.surfaceDetail === true) {
+@@ -49,41 +51,45 @@ export class TextureBudget {
+           if (!(value instanceof T.CanvasTexture) || value.userData.dynamic) continue;
+           if (this.assets.has(value)) continue;
+           if (!(value.image instanceof HTMLCanvasElement)) continue;
+           let source = this.sources.get(value.source);
+           if (!source) {
+-            source = { original: value.source, image: value.image, groups: new Set() };
++            source = { original: value.source, image: value.image, groups: new Map() };
+             this.sources.set(source.original, source);
+           }
+           const claim = value.userData.textureBudgetScale,
+             scale = typeof claim === 'number' && claim > 1 ? Math.min(claim, 4) : 1,
+-            cpuReadback = value.userData.cpuReadback === true;
+-          let asset = [...source.groups].find(
+-            (candidate) => candidate.scale === scale && candidate.cpuReadback === cpuReadback,
+-          );
++            cpuReadback = value.userData.cpuReadback === true,
++            key = `${scale}:${cpuReadback}`;
++          let asset = source.groups.get(key);
+           if (!asset) {
+             asset = {
+               source,
+               owned: new T.Source(source.image),
+               scale,
+               cpuReadback,
+               textures: new Set(),
+             };
+-            source.groups.add(asset);
++            source.groups.set(key, asset);
+             this.sources.set(asset.owned, source);
+             this.groups.add(asset);
+           }
+           this.assets.set(value, asset);
+           asset.textures.add(value);
+           // Texture.clone() shares Source. Keep the authored canvas untouched
+           // and share budget storage only between compatible resolution claims.
+           value.dispose();
+           value.source = asset.owned;
+-          this.apply(asset);
++          pending.add(asset);
+         }
+       }
+     });
++    // A traversal can contain many wrappers of one authored image. Repaint and
++    // invalidate each group once, but do not reuse generated pixels across calls:
++    // the authored canvas may have been painted before a later clone arrives.
++    for (const asset of pending) this.apply(asset);
++    this.imported.register(imported);
+   }
+   configure(limit: number, anisotropy: number) {
+     if (limit === this.limit && anisotropy === this.anisotropy) return;
+     this.limit = limit;
+     this.anisotropy = anisotropy;
+@@ -102,36 +108,51 @@ export class TextureBudget {
+       if (!(object instanceof T.Mesh)) return;
+       for (const material of Array.isArray(object.material) ? object.material : [object.material])
+         for (const value of Object.values(material))
+           if (value instanceof T.Texture) textures.add(value);
+     });
++    let failed = false;
++    let failure: unknown;
+     for (const texture of textures) {
+-      this.imported.unregister(texture);
+-      if (texture instanceof T.DataTexture) this.detailData.delete(texture);
+-      if (texture instanceof T.CanvasTexture) {
+-        const asset = this.assets.get(texture);
+-        if (!asset) continue;
+-        texture.dispose();
+-        texture.source = asset.source.original;
+-        texture.needsUpdate = true;
+-        this.assets.delete(texture);
+-        asset.textures.delete(texture);
+-        if (!asset.textures.size) {
+-          this.groups.delete(asset);
+-          this.sources.delete(asset.owned);
+-          asset.source.groups.delete(asset);
+-          if (!asset.source.groups.size) this.sources.delete(asset.source.original);
++      try {
++        this.imported.unregister(texture);
++        if (texture instanceof T.DataTexture) this.detailData.delete(texture);
++        if (texture instanceof T.CanvasTexture) {
++          const asset = this.assets.get(texture);
++          if (!asset) continue;
++          // Retire this wrapper before a disposal listener can close the budget
++          // or resize its still-live siblings. Keep the old source for release.
++          this.assets.delete(texture);
++          asset.textures.delete(texture);
++          if (!asset.textures.size) {
++            this.groups.delete(asset);
++            this.sources.delete(asset.owned);
++            asset.source.groups.delete(`${asset.scale}:${asset.cpuReadback}`);
++            if (!asset.source.groups.size) this.sources.delete(asset.source.original);
++          }
++          try {
++            texture.dispose();
++          } finally {
++            texture.source = asset.source.original;
++            texture.needsUpdate = true;
++          }
++        }
++      } catch (error) {
++        if (!failed) {
++          failed = true;
++          failure = error;
+         }
+       }
+     }
++    if (failed) throw failure;
+   }
+   /** Repaint every budget copy of an authored canvas, preserving each claim. */
+   refresh(texture: T.Texture) {
+     if (!(texture instanceof T.CanvasTexture)) return;
+     const asset = this.assets.get(texture);
+     if (!asset) return;
+-    for (const group of asset.source.groups) this.apply(group);
++    for (const group of asset.source.groups.values()) this.apply(group);
+   }
+   private apply(asset: CanvasAsset) {
+     // A hero atlas spread over a whole vehicle (the GP-R3 livery) may claim a
+     // fixed multiple of the preset limit; every other canvas keeps the limit.
+     const source = asset.source.image,
+@@ -178,17 +199,36 @@ export class TextureBudget {
+       texture.minFilter = T.LinearMipmapLinearFilter;
+       texture.needsUpdate = true;
+     }
+   }
+   dispose() {
+-    this.imported.dispose();
+-    for (const [texture, asset] of this.assets) {
+-      texture.dispose();
+-      texture.source = asset.source.original;
+-      texture.needsUpdate = true;
+-    }
++    const assets = [...this.assets];
++    // Reentrant disposal must not revisit wrappers whose old owner is closing.
+     this.assets.clear();
+     this.sources.clear();
+     this.groups.clear();
+     this.detailData.clear();
++    let failed = false;
++    let failure: unknown;
++    const release = (dispose: () => void) => {
++      try {
++        dispose();
++      } catch (error) {
++        if (!failed) {
++          failed = true;
++          failure = error;
++        }
++      }
++    };
++    release(() => this.imported.dispose());
++    for (const [texture, asset] of assets)
++      release(() => {
++        try {
++          texture.dispose();
++        } finally {
++          texture.source = asset.source.original;
++          texture.needsUpdate = true;
++        }
++      });
++    if (failed) throw failure;
+   }
+ }
+diff --git a/src/session/free-roam.ts b/src/session/free-roam.ts
+index f5813f5..55952c9 100644
+--- a/src/session/free-roam.ts
++++ b/src/session/free-roam.ts
+@@ -392,11 +392,11 @@ export class FestivalSession {
+     this.lifetime.check();
+     await this.lifetime.wait(host.audio?.start().catch(() => undefined) ?? Promise.resolve());
+     this.lifetime.check();
+     host.loaded();
+     this.lifetime.check();
+-    if (destination && !renderer.ready(x, z)) {
++    if (!renderer.ready(x, z)) {
+       this.setPaused(true);
+       host.toast('The destination is still loading. Try again from the pause menu.');
+     } else this.post({ type: 'pause', value: false });
+   }
+   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
+@@ -428,14 +428,17 @@ export class FestivalSession {
+     if (this.disposed) return;
+     const leave = fatal && !this.booting;
+     this.settleReady(error);
+     this.rejectCommands(error);
+     if (this.booting || fatal) this.lifetime.close(error);
+-    this.host.toast(`Festival error: ${error.message}`);
+-    // A running host must release the closed session's canvas/input ownership.
+-    // Startup failures instead propagate through start() to the host owner.
+-    if (leave) this.host.exit();
++    try {
++      this.host.toast(`Festival error: ${error.message}`);
++    } finally {
++      // Reporting cannot retain the closed session's canvas/input ownership.
++      // Startup failures instead propagate through start() to the host owner.
++      if (leave) this.host.exit();
++    }
+   }
+   private receive(msg: FromOpenWorld) {
+     if (this.disposed) return;
+     switch (msg.type) {
+       case 'ready':
+@@ -457,27 +460,40 @@ export class FestivalSession {
+           msg.traffic ? new Float32Array(msg.traffic) : null,
+         );
+         this.settleReady();
+         break;
+       }
+-      case 'status':
+-        this.status = msg.status;
+-        this.achievements.observe(msg.status);
+-        if (this.renderer) {
+-          for (const id of msg.status.discovered) {
+-            if (!this.renderer.discovered.has(id)) {
+-              this.renderer.discovered.add(id);
+-              if (!this.save.discovered.includes(id)) {
+-                this.save.discovered.push(id);
+-                void this.persist();
++      case 'status': {
++        const worker = this.worker;
++        const ownsStatus = () => !this.disposed && this.worker === worker;
++        try {
++          if (!Number.isSafeInteger(msg.sequence) || msg.sequence < 1)
++            throw new Error('Invalid festival status receipt');
++          this.status = msg.status;
++          this.achievements.observe(msg.status);
++          if (this.renderer) {
++            for (const id of msg.status.discovered) {
++              if (!this.renderer.discovered.has(id)) {
++                this.renderer.discovered.add(id);
++                if (!this.save.discovered.includes(id)) {
++                  this.save.discovered.push(id);
++                  void this.persist();
++                }
+               }
+             }
++            this.renderer.activeEvent = msg.status.event?.id ?? null;
++            this.renderer.gate = msg.status.event?.gate ?? null;
+           }
+-          this.renderer.activeEvent = msg.status.event?.id ?? null;
+-          this.renderer.gate = msg.status.event?.gate ?? null;
++        } catch (error) {
++          if (ownsStatus()) this.fail(error instanceof Error ? error : new Error(String(error)), true);
++        } finally {
++          // A consumer can synchronously close or replace its session. Only
++          // the still-owning worker may receive this packet's credit back.
++          if (ownsStatus()) this.post({ type: 'statusAck', sequence: msg.sequence });
+         }
+         break;
++      }
+       case 'result':
+         this.recordResult(msg.result);
+         break;
+       case 'command-result': {
+         const request = this.commandRequests.get(msg.requestId);
+@@ -687,10 +703,13 @@ export class FestivalSession {
+         Math.round(presented[o + F.GEAR]),
+         (presented[o + F.RPM] - spec.idleRPM) / Math.max(1, spec.limiterRPM - spec.idleRPM),
+         renderer.guidance.cue,
+         renderer.driftCue,
+       );
++      // Gamepad polling can activate EXIT FESTIVAL during HUD update. Its
++      // callback has already released this session's renderer, status and HUD.
++      if (this.disposed) return;
+       const pane = renderer.mode === 'cockpit' && !renderer.photo
+         ? renderer.cars.bodies.cabinOf(0)?.navigationPane ?? null : null;
+       if (pane) {
+         const road = this.status.road;
+         const route = this.status.event?.id ?? this.status.card?.id ?? '';
+diff --git a/src/session/session-lifetime.ts b/src/session/session-lifetime.ts
+index 1b296b6..73836f6 100644
+--- a/src/session/session-lifetime.ts
++++ b/src/session/session-lifetime.ts
+@@ -22,23 +22,32 @@ export class SessionLifetime {
+   }
+ 
+   wait<T>(work: Promise<T>, cancel?: () => void): Promise<T> {
+     return new Promise<T>((resolve, reject) => {
+       let settled = false;
+-      const finish = (complete: () => void) => {
++      const finish = (complete: () => void, failed = false) => {
+         if (settled) return;
+         settled = true;
+         this.signal.removeEventListener('abort', abort);
+-        cancel?.();
++        try {
++          cancel?.();
++        } catch (error) {
++          // Cleanup must not strand the wait or replace its original failure.
++          // On success, report cleanup failure through the owned promise.
++          if (!failed) {
++            reject(error);
++            return;
++          }
++        }
+         complete();
+       };
+-      const abort = () => finish(() => reject(this.signal.reason));
++      const abort = () => finish(() => reject(this.signal.reason), true);
+       // Keep both handlers even after cancellation: shared loaders can fail
+       // later, but that failure no longer belongs to the departed session.
+       work.then(
+         (value) => finish(() => resolve(value)),
+-        (error: unknown) => finish(() => reject(error)),
++        (error: unknown) => finish(() => reject(error), true),
+       );
+       if (this.signal.aborted) abort();
+       else this.signal.addEventListener('abort', abort, { once: true });
+     });
+   }
+diff --git a/src/simulation/bvh.ts b/src/simulation/bvh.ts
+index c729f0c..d9d3a40 100644
+--- a/src/simulation/bvh.ts
++++ b/src/simulation/bvh.ts
+@@ -135,18 +135,36 @@ export class TriangleBVH {
+       right: -1,
+       start,
+       end,
+     };
+     const id = this.nodes.push(node) - 1;
++    let minX = Infinity,
++      minY = Infinity,
++      minZ = Infinity,
++      maxX = -Infinity,
++      maxY = -Infinity,
++      maxZ = -Infinity;
+     for (let j = start; j < end; j++)
+       for (let k = 0; k < 3; k++) {
+-        const p = this.indices[this.order[j] * 3 + k] * 3;
+-        for (let a = 0; a < 3; a++) {
+-          node.min[a] = Math.min(node.min[a], this.vertices[p + a]);
+-          node.max[a] = Math.max(node.max[a], this.vertices[p + a]);
+-        }
++        const p = this.indices[this.order[j] * 3 + k] * 3,
++          x = this.vertices[p],
++          y = this.vertices[p + 1],
++          z = this.vertices[p + 2];
++        minX = Math.min(minX, x);
++        maxX = Math.max(maxX, x);
++        minY = Math.min(minY, y);
++        maxY = Math.max(maxY, y);
++        minZ = Math.min(minZ, z);
++        maxZ = Math.max(maxZ, z);
+       }
++    // Write bounds once per node; retain Math.min/max's signed-zero rules.
++    node.min[0] = minX;
++    node.min[1] = minY;
++    node.min[2] = minZ;
++    node.max[0] = maxX;
++    node.max[1] = maxY;
++    node.max[2] = maxZ;
+     if (end - start > 8) {
+       let axis = 0;
+       for (let a = 1; a < 3; a++)
+         if (node.max[a] - node.min[a] > node.max[axis] - node.min[axis]) axis = a;
+       const middle = (start + end) >>> 1;
+diff --git a/src/simulation/contact.ts b/src/simulation/contact.ts
+index b1c92ce..45fb3e3 100644
+--- a/src/simulation/contact.ts
++++ b/src/simulation/contact.ts
+@@ -54,10 +54,13 @@ export class TrackContactMesh {
+   readonly tireFootprint: TireFootprint;
+   constructor(
+     readonly track: Track,
+     readonly rows = 8192,
+   ) {
++    // Scalar stores cannot detect a truncated allocation from fractional rows.
++    if (!Number.isInteger(rows) || rows < 1)
++      throw new RangeError('Contact mesh rows must be a positive integer');
+     const p = { ...track.points[0] };
+     this.ownershipPoint = { ...p };
+     const bands = BANDS,
+       columns = COLUMNS;
+     this.vertices = new Float64Array((rows + 1) * columns * 3);
+@@ -109,17 +112,25 @@ export class TrackContactMesh {
+         n.set(
+           -p.tx * (p.gradient + alongDerivative) - p.nx * (bank + sideDerivative),
+           1,
+           -p.tz * (p.gradient + alongDerivative) - p.nz * (bank + sideDerivative),
+         ).normalize();
+-        this.normals.set([n.x, n.y, n.z], i);
++        this.normals[i] = n.x;
++        this.normals[i + 1] = n.y;
++        this.normals[i + 2] = n.z;
+         if (row < rows && col < columns - 1) {
+           const a = row * columns + col,
+             b = a + 1,
+             c = a + columns,
+             d = c + 1;
+-          this.indices.set([a, c, b, b, c, d], (row * (columns - 1) + col) * 6);
++          const j = (row * (columns - 1) + col) * 6;
++          this.indices[j] = a;
++          this.indices[j + 1] = c;
++          this.indices[j + 2] = b;
++          this.indices[j + 3] = b;
++          this.indices[j + 4] = c;
++          this.indices[j + 5] = d;
+         }
+       }
+     }
+     this.bvh = new TriangleBVH(this.vertices, this.indices, this.normals, this.ownsContact);
+     this.tireFootprint = new TireFootprint(this.bvh);
+diff --git a/src/simulation/open-world/session.ts b/src/simulation/open-world/session.ts
+index 95a2528..a4efde7 100644
+--- a/src/simulation/open-world/session.ts
++++ b/src/simulation/open-world/session.ts
+@@ -120,10 +120,15 @@ export type FestivalCommand =
+   | { type: 'vehicle'; id: string }
+   /** `runUp`: a skill challenge is approached from the road ahead of its gate
+    * (TRY AGAIN), instead of standing on the gate. */
+   | { type: 'travel'; event: string; runUp?: boolean }
+   | { type: 'traffic'; value: boolean };
++/** A rejected request that has not changed any simulation state. Execution
++ * failures must remain ordinary errors so the worker closes the session. */
++export class FestivalCommandValidationError extends Error {
++  override name = 'FestivalCommandValidationError';
++}
+ export interface FestivalCard {
+   id: string;
+   name: string;
+   kind: string;
+   blurb: string;
+@@ -501,11 +506,11 @@ export class OpenWorldSimulation {
+       case 'reset':
+         this.resetToRoad(0);
+         break;
+       case 'start': {
+         const event = this.events.find((e) => e.spec.id === cmd.event);
+-        if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
++        if (!event) throw new FestivalCommandValidationError(`Unknown festival event ${cmd.event}`);
+         if (this.mode === 'countdown' || this.mode === 'running') this.abandon();
+         this.startEvent(event);
+         break;
+       }
+       case 'cancel':
+@@ -532,11 +537,11 @@ export class OpenWorldSimulation {
+         this.autopilotDriver = null;
+         if (!this.autopilot) Object.assign(this.player.input, controls());
+         break;
+       case 'vehicle': {
+         if (!Object.hasOwn(VEHICLES, cmd.id) || !festivalAdmits(VEHICLES[cmd.id]))
+-          throw new Error(`Vehicle ${cmd.id} cannot run in the festival`);
++          throw new FestivalCommandValidationError(`Vehicle ${cmd.id} cannot run in the festival`);
+         if (this.run) this.abandon();
+         this.skills.reset();
+         const old = this.player,
+           fresh = this.makeCar(0, cmd.id),
+           q = old.body.orientation;
+@@ -549,11 +554,11 @@ export class OpenWorldSimulation {
+         this.say(`${fresh.definition.name} ready`);
+         break;
+       }
+       case 'travel': {
+         const event = this.events.find((e) => e.spec.id === cmd.event);
+-        if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
++        if (!event) throw new FestivalCommandValidationError(`Unknown festival event ${cmd.event}`);
+         if (this.run) this.abandon();
+         // Travel leaves the old event immediately. An active race still
+         // emits its one abandonment; its pending result survives endRun.
+         this.endRun();
+         this.skills.reset();
+diff --git a/src/simulation/road-contact.ts b/src/simulation/road-contact.ts
+index d70577e..b7db24e 100644
+--- a/src/simulation/road-contact.ts
++++ b/src/simulation/road-contact.ts
+@@ -16,18 +16,16 @@ export class RoadContactFrame {
+   readonly axle = new Vec3();
+   /** Road-relative inclination (rad), positive toward road-lateral. */
+   inclination = 0;
+ 
+   set(orientation: Quat, steering: number, normal: Vec3, camber = 0): boolean {
+-    if (
+-      !normal.finite() ||
+-      !Number.isFinite(steering) ||
+-      !Number.isFinite(camber) ||
+-      normal.length() < 1e-8
+-    )
++    if (!normal.finite() || !Number.isFinite(steering) || !Number.isFinite(camber))
+       throw new Error('Invalid road-contact frame');
+-    this.normal.copy(normal).normalize();
++    const normalLength = normal.length();
++    if (normalLength < 1e-8) throw new Error('Invalid road-contact frame');
++    // Accepted normals cannot take Vec3.normalize's near-zero fallback.
++    this.normal.copy(normal).scale(1 / normalLength);
+     const c = Math.cos(camber);
+     orientation.rotate(
+       this.axle.set(c * Math.cos(steering), -Math.sin(camber), -c * Math.sin(steering)),
+       this.axle,
+     );
+diff --git a/src/simulation/vehicle.ts b/src/simulation/vehicle.ts
+index aecdfdf..8d11b99 100644
+--- a/src/simulation/vehicle.ts
++++ b/src/simulation/vehicle.ts
+@@ -329,11 +329,16 @@ export class Vehicle {
+           ? t[this.drivenLeft].load > 1 && t[this.drivenRight].load > 1
+           : t.every((wheel) => wheel.load > 1),
+       slip =
+         this.frontShare === null
+           ? Math.max(Math.abs(t[this.drivenLeft].slip), Math.abs(t[this.drivenRight].slip))
+-          : Math.max(...t.map((x) => Math.abs(x.slip))),
++          : Math.max(
++              Math.abs(t[0].slip),
++              Math.abs(t[1].slip),
++              Math.abs(t[2].slip),
++              Math.abs(t[3].slip),
++            ),
+       grip = supported ? clamp(1 - slip / 0.12, 0, 1) : 0,
+       wheels = this.frontShare === null ? 2 : 4,
+       vehicle = (this.body.mass * this.spec.wheelRadius ** 2) / wheels;
+     this.clutch.wheelInertia =
+       (this.spec.wheelInertia + share * grip * vehicle) * drivenInertiaFactor(this.frontShare);
+diff --git a/src/storage/recorders.ts b/src/storage/recorders.ts
+index 23548b2..96d4acc 100644
+--- a/src/storage/recorders.ts
++++ b/src/storage/recorders.ts
+@@ -173,10 +173,13 @@ export class ReplayRecorder {
+   }
+   get bytes() {
+     return this.data.byteLength;
+   }
+ }
++const TELEMETRY_SESSION_TIME = CHANNELS.indexOf('session_time_s');
++const TELEMETRY_TICK = CHANNELS.indexOf('tick');
++
+ export class TelemetryRecorder {
+   readonly stride = CHANNELS.length;
+   readonly capacity: number;
+   private data: Float32Array;
+   constructor(seconds = 900) {
+@@ -216,28 +219,32 @@ export class TelemetryRecorder {
+     this.data.set(batch.subarray(source, split), start * this.stride);
+     if (first < retained) this.data.set(batch.subarray(split, rows * this.stride), 0);
+     this.head = (this.head + rows) % this.capacity;
+     this.count = Math.min(this.count + rows, this.capacity);
+   }
+-  /** D31 flashback: drop the rows recorded after `time` (column 0, seconds). */
++  /** D31 flashback: drop rows after `time` in H.TIME session seconds. */
+   truncate(time: number) {
++    // The worker's cutoff is a double; H.TIME is packed at Float32 precision.
++    const cutoff = Math.fround(time);
+     let removed = 0;
+     // The newest row sits just before `head`; drop rows from that end.
+-    while (this.count > 0 && this.at(this.count - 1, 0) > time) {
++    while (this.count > 0 && this.at(this.count - 1, TELEMETRY_SESSION_TIME) > cutoff) {
+       this.head = (this.head - 1 + this.capacity) % this.capacity;
+       this.count--;
+       removed++;
+     }
++    // Reused ticks on the resumed timeline must not be suppressed as old frames.
++    if (removed) this.last = this.count ? this.at(this.count - 1, TELEMETRY_TICK) : -1;
+     return removed;
+   }
+   snapshot() {
+     const values = new Float32Array(this.count * this.stride);
+-    for (let row = 0; row < this.count; row++)
+-      values.set(
+-        this.data.subarray(this.offset(row), this.offset(row) + this.stride),
+-        row * this.stride,
+-      );
++    if (!this.count) return values;
++    const start = this.offset(0);
++    const first = Math.min(values.length, this.data.length - start);
++    values.set(this.data.subarray(start, start + first));
++    if (first < values.length) values.set(this.data.subarray(0, values.length - first), first);
+     return values;
+   }
+   csv() {
+     return telemetryCsv(this.snapshot(), this.count);
+   }
+diff --git a/src/storage/replay-pages.ts b/src/storage/replay-pages.ts
+index 1c87f43..f26de1d 100644
+--- a/src/storage/replay-pages.ts
++++ b/src/storage/replay-pages.ts
+@@ -645,14 +645,18 @@ export class SessionReplay {
+     return this.totalCount;
+   }
+   /** The page that would hold the end of the recording after `truncate(time)`:
+    * the open page, or a cached, fully written recent page; null otherwise. */
+   private truncationPage(time: number) {
+-    if (this.closed || this.failure || !Number.isFinite(time) || time < this.start) return null;
+-    if (this.current.count && this.current.frames[H.TIME] <= time) return this.current;
++    if (this.closed || this.failure || !Number.isFinite(time) || time < 0) return null;
++    // Flashback receipts use the simulation's double clock; stored poses use
++    // Float32. Compare in the pose domain so upward rounding keeps its target.
++    const poseTime = Math.fround(time);
++    if (poseTime < this.start) return null;
++    if (this.current.count && this.current.frames[H.TIME] <= poseTime) return this.current;
+     let id = this.metadata.length - 1;
+-    while (id >= 0 && this.metadata[id].start > time) id--;
++    while (id >= 0 && this.metadata[id].start > poseTime) id--;
+     const page = this.cache.get(id);
+     return page && !this.writing.has(page) ? page : null;
+   }
+   /** D31 flashback: can the recording be cut back to `time` synchronously? */
+   canTruncate(time: number) {
+@@ -670,13 +674,14 @@ export class SessionReplay {
+       this.metadata.length = page.id;
+       for (const id of [...this.cache.keys()]) if (id >= page.id) this.cache.delete(id);
+       for (const id of [...this.failedReads]) if (id >= page.id) this.failedReads.delete(id);
+       this.current = page;
+     }
+-    const stride = this.stride;
++    const stride = this.stride,
++      poseTime = Math.fround(time);
+     let count = 0;
+-    while (count < page.count && page.frames[count * stride + H.TIME] <= time) count++;
++    while (count < page.count && page.frames[count * stride + H.TIME] <= poseTime) count++;
+     page.count = count;
+     page.frames.fill(0, count * stride);
+     this.frameHash = HASH_SEED;
+     for (let i = 0; i < count; i++) {
+       const frame = page.frames.subarray(i * stride, (i + 1) * stride);
+diff --git a/src/storage/telemetry-schema.ts b/src/storage/telemetry-schema.ts
+index 436ceef..3d3636a 100644
+--- a/src/storage/telemetry-schema.ts
++++ b/src/storage/telemetry-schema.ts
+@@ -202,11 +202,11 @@ export function packTelemetry(frame: Float32Array, out: Float32Array, offset: nu
+ }
+ 
+ export function telemetryCsv(values: Float32Array, count: number): Blob {
+   if (!Number.isSafeInteger(count) || count < 0 || count * TELEMETRY_STRIDE !== values.length)
+     throw new Error('Invalid telemetry export shape');
+-  const chunks: string[] = [CHANNELS.join(',') + '\n'];
++  const chunks: BlobPart[] = [CHANNELS.join(',') + '\n'];
+   for (let start = 0; start < count; start += 500) {
+     const rows: string[] = [];
+     for (let row = start; row < Math.min(count, start + 500); row++) {
+       const columns: string[] = [];
+       for (let field = 0; field < TELEMETRY_STRIDE; field++) {
+@@ -215,9 +215,10 @@ export function telemetryCsv(values: Float32Array, count: number): Blob {
+           throw new Error(`Non-finite telemetry at row ${row}, channel ${CHANNELS[field]}`);
+         columns.push(String(value));
+       }
+       rows.push(columns.join(','));
+     }
+-    chunks.push(rows.join('\n') + '\n');
++    // Materialize completed groups so their CSV strings need not stay live.
++    chunks.push(new Blob([rows.join('\n') + '\n']));
+   }
+   return new Blob(chunks, { type: 'text/csv;charset=utf-8' });
+ }
+diff --git a/src/workers/diagnostics.ts b/src/workers/diagnostics.ts
+index 93c03d1..8975166 100644
+--- a/src/workers/diagnostics.ts
++++ b/src/workers/diagnostics.ts
+@@ -1,7 +1,8 @@
+ import type { Simulation } from '../simulation/world.ts';
+ import type { FromWorker, ToWorker } from '../simulation/protocol.ts';
++import { MATERIALS } from '../simulation/surface-material.ts';
+ 
+ export interface EngineeringWheel {
+   origin: [number, number, number];
+   contact: [number, number, number];
+   normal: [number, number, number];
+@@ -34,20 +35,75 @@ export type SurfaceMessage = Extract<FromWorker, { type: 'surface' }> & {
+   epoch: number;
+   sequence: number;
+   /** Coalescing omitted scheduled replay keyframes; this is not continuous capture. */
+   captureGap?: boolean;
+ };
++export interface EngineeringMessage {
++  type: 'engineering';
++  epoch: number;
++  sequence: number;
++  sample: EngineeringSample;
++}
+ export type ClientMessage =
+   | Exclude<ToWorker, { type: 'pause' }>
+   | { type: 'pause'; value: boolean; sequence?: number }
+   | { type: 'surfaceAck'; epoch: number; sequence: number }
++  | { type: 'engineeringAck'; epoch: number; sequence: number }
+   | { type: 'engineering'; enabled: boolean };
+ export type WorkerMessage =
+   | Exclude<FromWorker, { type: 'surface' }>
+   | SurfaceMessage
+   | PauseReceipt
+-  | { type: 'engineering'; sample: EngineeringSample };
++  | EngineeringMessage;
++
++/** Optional inspection keeps one copied sample in flight. An occupied credit
++ * survives timeline/toggle changes: resetting cannot bypass a stalled host. */
++export class EngineeringChannel {
++  private readonly probe = new EngineeringProbe();
++  private epoch = 0;
++  private sequence = 0;
++  private outstanding: Pick<EngineeringMessage, 'epoch' | 'sequence'> | null = null;
++
++  reset() {
++    this.epoch++;
++    this.probe.reset();
++  }
++
++  enable(value: boolean) {
++    this.probe.enable(value);
++    this.epoch++;
++  }
++
++  publish(simulation: Simulation, send: (message: EngineeringMessage) => void): boolean {
++    if (this.outstanding) return false;
++    const sample = this.probe.sample(simulation);
++    if (!sample) return false;
++    const ticket = { epoch: this.epoch, sequence: ++this.sequence };
++    this.outstanding = ticket;
++    try {
++      send({ type: 'engineering', ...ticket, sample });
++      return true;
++    } catch (error) {
++      // A synchronous consumer may already have acknowledged this packet and
++      // published its successor. A failed old send cannot revoke that owner.
++      if (this.outstanding === ticket) this.outstanding = null;
++      throw error;
++    }
++  }
++
++  acknowledge(receipt: Pick<EngineeringMessage, 'epoch' | 'sequence'>): boolean {
++    if (
++      !Number.isSafeInteger(receipt.epoch) ||
++      !Number.isSafeInteger(receipt.sequence) ||
++      receipt.epoch !== this.outstanding?.epoch ||
++      receipt.sequence !== this.outstanding.sequence
++    )
++      return false;
++    this.outstanding = null;
++    return true;
++  }
++}
+ 
+ /** The menu can open immediately, before the worker has processed pause.
+  * A receipt is a FIFO barrier after the final frame and recording flushes, not
+  * an estimate based on elapsed time or several coincidentally equal ticks. */
+ export class PauseHandshake {
+@@ -163,12 +219,11 @@ export function isEngineeringSample(value: unknown): value is EngineeringSample
+         vector(w.contact) &&
+         vector(w.normal) &&
+         Number.isFinite(w.loadN) &&
+         w.loadN >= 0 &&
+         Number.isInteger(w.surface) &&
+-        w.surface >= 0 &&
+-        w.surface <= 5 &&
++        MATERIALS[w.surface]?.id === w.surface &&
+         Number.isInteger(w.cell) &&
+         w.cell >= 0 &&
+         w.cell < 512 * 7 &&
+         Number.isFinite(w.rubber) &&
+         w.rubber >= 0 &&
+diff --git a/src/workers/open-world-protocol.ts b/src/workers/open-world-protocol.ts
+index 37f683b..8d9fd6b 100644
+--- a/src/workers/open-world-protocol.ts
++++ b/src/workers/open-world-protocol.ts
+@@ -4,24 +4,29 @@ import type {
+   FestivalCommand,
+   FestivalStatus,
+   FreeRoamOptions,
+ } from '../simulation/open-world/session.ts';
+ 
++/** Preserve every status transition, with at most 6.4 seconds of normal 10 Hz
++ * delivery queued. A stalled host pauses stepping instead of losing events. */
++export const FESTIVAL_STATUS_CAPACITY = 64;
++
+ /** Messages to the festival simulation worker. */
+ export type ToOpenWorld =
+   | { type: 'init'; options: Omit<FreeRoamOptions, 'region'> }
+   | { type: 'input'; input: Controls }
+   | { type: 'pause'; value: boolean }
++  | { type: 'statusAck'; sequence: number }
+   | { type: 'command'; command: FestivalCommand; requestId?: number }
+   | { type: 'recycle'; buffer: ArrayBuffer };
+ /** Messages from the festival simulation worker. */
+ export type FromOpenWorld =
+   | { type: 'ready'; buildMs: number; vehicle: string }
+   /** A snapshot in the circuit layout and, in free roam, the ambient
+    * traffic block (ambient-traffic.ts TRAFFIC_HEADER/TRAFFIC_STRIDE). */
+   | { type: 'frame'; buffer: ArrayBuffer; traffic?: ArrayBuffer }
+-  | { type: 'status'; status: FestivalStatus }
++  | { type: 'status'; sequence: number; status: FestivalStatus }
+   | { type: 'result'; result: FestivalResult }
+   | { type: 'command-result'; requestId: number; error?: string }
+   /** Fatal simulation/transport failures close the session. Omitted `fatal`
+    * preserves the recoverable meaning of older command-error messages. */
+   | { type: 'error'; message: string; fatal?: boolean };
+diff --git a/src/workers/open-world.worker.ts b/src/workers/open-world.worker.ts
+index 532d6ce..ce004e4 100644
+--- a/src/workers/open-world.worker.ts
++++ b/src/workers/open-world.worker.ts
+@@ -1,27 +1,34 @@
+ /// <reference lib="webworker" />
+ import { FixedStepClock } from './fixed-step-clock.ts';
+ import { FrameBufferPool } from './frame-buffer-pool.ts';
+ import { ShiftInputQueue } from './input-queue.ts';
+ import { controls, type Controls } from '../simulation/config.ts';
+-import { OpenWorldSimulation } from '../simulation/open-world/session.ts';
++import { FestivalCommandValidationError, OpenWorldSimulation } from '../simulation/open-world/session.ts';
+ import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
+-import type { FromOpenWorld, ToOpenWorld } from './open-world-protocol.ts';
++import { FESTIVAL_STATUS_CAPACITY, type FromOpenWorld, type ToOpenWorld } from './open-world-protocol.ts';
+ 
+ /** Festival free-roam simulation worker: the same fixed 120 Hz stepping and
+  * pooled transferable snapshots as the circuit worker, plus a 10 Hz status
+  * message for the festival HUD and one message per event result. Terrain
+  * tiles stream inside the session within its residency budget. */
+ const scope = self as unknown as DedicatedWorkerGlobalScope;
+ let simulation: OpenWorldSimulation | null = null,
+   paused = true,
++  failed = false,
+   lastInput = performance.now(),
+   stepMs = 0,
+   lastSent = -1,
+   lastStatus = -Infinity;
+ const clock = new FixedStepClock();
+ const shifts = new ShiftInputQueue();
++// Receipts and their sequence survive init. Resetting a session must not let a
++// stalled host accumulate another batch of copied status objects.
++const statusReceipts = new Set<number>();
++let statusSequence = 0;
++const statusAvailable = () => statusReceipts.size < FESTIVAL_STATUS_CAPACITY;
++const STATUS_BUSY = 'Festival status delivery is busy. Please try again.';
+ /** Transferable frame buffers of the current field size. The field grows
+  * when an event adds rivals and shrinks when it ends: the pool is refilled at
+  * the new size then, because buffers of the old size coming back from the
+  * main thread are dropped and would otherwise leave it empty for good. */
+ let pool: FrameBufferPool | null = null,
+@@ -45,25 +52,40 @@ function snapshot(required = false) {
+       send({ type: 'frame', buffer, traffic }, [buffer, traffic]);
+     } else send({ type: 'frame', buffer }, [buffer]);
+   }, required);
+ }
+ function status() {
+-  if (!simulation) return;
+-  send({ type: 'status', status: simulation.status() });
++  if (!simulation || !statusAvailable()) return;
++  const sample = simulation.status(), sequence = ++statusSequence;
++  statusReceipts.add(sequence);
++  try {
++    send({ type: 'status', sequence, status: sample });
++  } catch (error) {
++    statusReceipts.delete(sequence);
++    throw error;
++  }
+   lastStatus = performance.now();
+ }
+ function applyInput(input: Controls) {
+   simulation?.setInput(input);
+ }
+ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
+   const msg = event.data;
++  // A queued resume or command cannot revive a partially failed simulation
++  // while the host is still processing its terminal error notification.
++  if (failed && msg.type !== 'init' && msg.type !== 'statusAck') return;
+   try {
+     switch (msg.type) {
+       case 'init': {
++        if (!statusAvailable()) {
++          send({ type: 'error', message: STATUS_BUSY, fatal: false });
++          break;
++        }
+         shifts.clear();
+         const start = performance.now();
+         simulation = new OpenWorldSimulation(msg.options);
++        failed = false;
+         paused = true;
+         lastInput = performance.now();
+         clock.reset(lastInput);
+         stepMs = 0;
+         fillPool(frameBytes());
+@@ -83,22 +105,34 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
+         lastInput = performance.now();
+         clock.rebase(lastInput);
+         if (paused) {
+           shifts.clear();
+           applyInput(controls());
+-          snapshot(true);
+-          status();
++          // At capacity no step or command can change the sampled state.
++          // Repeated pauses need no duplicate status or required frame, whose
++          // one-off allocation would otherwise bypass normal frame credits.
++          if (statusAvailable()) {
++            snapshot(true);
++            status();
++          }
+         }
+         break;
+       case 'command': {
++        if (!statusAvailable()) {
++          if (msg.requestId !== undefined)
++            send({ type: 'command-result', requestId: msg.requestId, error: STATUS_BUSY });
++          else send({ type: 'error', message: STATUS_BUSY, fatal: false });
++          break;
++        }
+         const before = simulation?.cars.length;
+         try {
+           simulation?.command(msg.command);
+         } catch (error) {
+-          // Command validation can fail without invalidating the simulation.
+-          // Publication/transport errors below still belong to the fatal path.
+-          const message = error instanceof Error ? error.message : String(error);
++          // Only pre-mutation validation is recoverable. An execution error
++          // may have changed the car field, event or terrain ownership.
++          if (!(error instanceof FestivalCommandValidationError)) throw error;
++          const message = error.message;
+           if (msg.requestId !== undefined)
+             send({ type: 'command-result', requestId: msg.requestId, error: message });
+           else send({ type: 'error', message, fatal: false });
+           break;
+         }
+@@ -110,24 +144,33 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
+         status();
+         // The caller must receive the updated state before continuing travel.
+         if (msg.requestId !== undefined) send({ type: 'command-result', requestId: msg.requestId });
+         break;
+       }
++      case 'statusAck': {
++        const stalled = !statusAvailable();
++        if (Number.isSafeInteger(msg.sequence) && statusReceipts.delete(msg.sequence) && stalled)
++          // ACK delivery can precede the next timer after a long host stall.
++          // Exclude that time even when no stalled timer callback ran.
++          clock.rebase(performance.now());
++        break;
++      }
+       case 'recycle':
+         // A buffer of a previous field size is dropped (the pool was refilled).
+         if (simulation && msg.buffer.byteLength === poolBytes) pool?.recycle(msg.buffer);
+         break;
+     }
+   } catch (error) {
++    failed = true;
+     paused = true;
+     shifts.clear();
+     send({ type: 'error', message: error instanceof Error ? error.message : String(error), fatal: true });
+   }
+ };
+ setInterval(() => {
+   const now = performance.now();
+-  if (paused || !simulation) {
++  if (failed || paused || !simulation || !statusAvailable()) {
+     clock.rebase(now);
+     return;
+   }
+   try {
+     if (now - lastInput > 750) {
+@@ -151,10 +194,11 @@ setInterval(() => {
+       snapshot();
+       lastSent = simulation.tick;
+     }
+     if (performance.now() - lastStatus >= 100) status();
+   } catch (error) {
++    failed = true;
+     paused = true;
+     shifts.clear();
+     send({
+       type: 'error',
+       message: error instanceof Error ? (error.stack ?? error.message) : String(error),
+diff --git a/src/workers/physics.worker.ts b/src/workers/physics.worker.ts
+index 225a3c2..0d43ff1 100644
+--- a/src/workers/physics.worker.ts
++++ b/src/workers/physics.worker.ts
+@@ -6,15 +6,16 @@ import { ShiftInputQueue } from './input-queue.ts';
+ import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
+ import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
+ import { Simulation } from '../simulation/world.ts';
+ import { controls, type Controls, type SessionOptions } from '../simulation/config.ts';
+ import { InputLog, Resimulation, applyLoggedInput, flashbackFloor } from '../core/flashback.ts';
+-import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
+-const probe = new EngineeringProbe();
++import { EngineeringChannel, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
++const engineeringChannel = new EngineeringChannel();
+ const scope = self as unknown as DedicatedWorkerGlobalScope;
+ let simulation: Simulation | null = null,
+   paused = true,
++  failed = false,
+   lastInput = performance.now(),
+   stepMs = 0;
+ const clock = new FixedStepClock();
+ const shifts = new ShiftInputQueue();
+ const surfaces = new SurfaceChannel();
+@@ -41,11 +42,11 @@ function recorder(sim: Simulation) {
+ function finishFlashback(job: Resimulation) {
+   shifts.clear();
+   simulation = job.simulation;
+   log.truncate(job.target);
+   telemetry = recorder(simulation);
+-  probe.reset();
++  engineeringChannel.reset();
+   lastInput = performance.now();
+   clock.reset(lastInput);
+   lastSent = simulation.tick;
+   lastSurface = simulation.tick;
+   lastPitPhase = simulation.cars[0].pitPhase;
+@@ -57,10 +58,20 @@ function finishFlashback(job: Resimulation) {
+ let lastSent = -1,
+   lastSurface = -1,
+   lastPitPhase = 0;
+ const send = (msg: WorkerMessage, transfer: Transferable[] = []) =>
+   scope.postMessage(msg, transfer);
++function fail(message: string) {
++  // The host treats every worker error as terminal. Queued resumes must not
++  // revive partially changed state before it has processed that notification.
++  failed = true;
++  paused = true;
++  rewind = null;
++  pendingFlashback = false;
++  shifts.clear();
++  send({ type: 'error', message });
++}
+ function publishSurface() {
+   if (!simulation || rewind) return;
+   const current = simulation,
+     flashback = pendingFlashback;
+   const sent = surfaces.publish(
+@@ -87,13 +98,11 @@ function publishSurface() {
+     pendingFlashback = false;
+     snapshot(true);
+   }
+ }
+ function engineering() {
+-  if (!simulation) return;
+-  const sample = probe.sample(simulation);
+-  if (sample) send({ type: 'engineering', sample });
++  if (simulation) engineeringChannel.publish(simulation, send);
+ }
+ function snapshot(required = false) {
+   if (!simulation || !pool) return;
+   // A paused consumer may still hold every transferable frame. Only an explicit
+   // pause barrier, flashback completion or player pit-service transition may
+@@ -105,18 +114,28 @@ function snapshot(required = false) {
+   }, required);
+ }
+ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
+   try {
+     const msg = event.data;
++    if (failed && msg.type !== 'init') {
++      // Retire already delivered ownership without capturing or publishing
++      // more state. Credits survive init, so dropping an ACK would strand it.
++      if (msg.type === 'surfaceAck') surfaces.acknowledge(msg);
++      else if (msg.type === 'engineeringAck') engineeringChannel.acknowledge(msg);
++      return;
++    }
+     switch (msg.type) {
+       case 'engineering':
+-        probe.enable(msg.enabled);
++        engineeringChannel.enable(msg.enabled);
+         engineering();
+         break;
++      case 'engineeringAck':
++        if (engineeringChannel.acknowledge(msg)) engineering();
++        break;
+       case 'init':
+         shifts.clear();
+-        probe.reset();
++        engineeringChannel.reset();
+         simulation = new Simulation(msg.options);
+         sessionOptions = msg.options;
+         log = new InputLog();
+         rewind = null;
+         pendingFlashback = false;
+@@ -129,10 +148,11 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
+         pool = new FrameBufferPool((HEADER + simulation.cars.length * CAR_STRIDE) * 4, 5, 6);
+         lastSent = -1;
+         lastSurface = -1;
+         lastPitPhase = simulation.cars[0].pitPhase;
+         snapshot();
++        failed = false;
+         break;
+       case 'input':
+         if (simulation && !paused && !rewind && !pendingFlashback) shifts.push(msg.input.shift);
+         // Analog levels and DRS/overtake retain their immediate semantics.
+         // A neutral sample must not erase a shift awaiting its physics tick.
+@@ -200,17 +220,19 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
+       case 'recycle':
+         pool?.recycle(msg.buffer);
+         break;
+     }
+   } catch (error) {
+-    paused = true;
+-    shifts.clear();
+-    send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
++    fail(error instanceof Error ? error.message : String(error));
+   }
+ };
+ setInterval(() => {
+   const now = performance.now();
++  if (failed) {
++    clock.rebase(now);
++    return;
++  }
+   if (rewind) {
+     clock.rebase(now);
+     // Yield between complete ticks at the work budget or 2000-step cap so
+     // cancellation and progress messages keep flowing during long rewinds.
+     try {
+@@ -218,12 +240,11 @@ setInterval(() => {
+       if (job.run()) {
+         rewind = null;
+         finishFlashback(job);
+       }
+     } catch (error) {
+-      rewind = null;
+-      send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
++      fail(error instanceof Error ? error.message : String(error));
+     }
+     return;
+   }
+   if (paused || pendingFlashback || !simulation) {
+     clock.rebase(now);
+@@ -267,13 +288,8 @@ setInterval(() => {
+       lastSurface = simulation.tick;
+       surfaces.request(simulation.tick);
+       publishSurface();
+     }
+   } catch (error) {
+-    paused = true;
+-    shifts.clear();
+-    send({
+-      type: 'error',
+-      message: error instanceof Error ? (error.stack ?? error.message) : String(error),
+-    });
++    fail(error instanceof Error ? (error.stack ?? error.message) : String(error));
+   }
+ }, 4);

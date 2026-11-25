@@ -1,0 +1,503 @@
+{
+  "baseline_commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+  "initial_candidate_commit": "6a6bf02eb2d89eeb6aeff32769ef3deb4a49f17c",
+  "unique_failed_assertions": 34,
+  "baseline_failure_count": 0,
+  "all_original_failed_assertions_executed_and_passed_on_baseline": true,
+  "per_file": {
+    "tests/circuit-frame-transport.test.ts": {
+      "baseline": {
+        "passed": 5,
+        "failed": 0,
+        "total": 5
+      },
+      "initial_candidate": {
+        "passed": 3,
+        "failed": 2,
+        "total": 5
+      },
+      "corrected_targeted": {
+        "passed": 5,
+        "failed": 0,
+        "total": 5
+      }
+    },
+    "tests/circuit-preparation-lifetime.test.ts": {
+      "baseline": {
+        "passed": 19,
+        "failed": 0,
+        "total": 19
+      },
+      "initial_candidate": {
+        "passed": 5,
+        "failed": 14,
+        "total": 19
+      },
+      "corrected_targeted": {
+        "passed": 19,
+        "failed": 0,
+        "total": 19
+      }
+    },
+    "tests/festival-renderer-loader-lifecycle.test.ts": {
+      "baseline": {
+        "passed": 18,
+        "failed": 0,
+        "total": 18
+      },
+      "initial_candidate": {
+        "passed": 0,
+        "failed": 18,
+        "total": 18
+      },
+      "corrected_targeted": {
+        "passed": 18,
+        "failed": 0,
+        "total": 18
+      }
+    }
+  },
+  "failure_classifications": {
+    "tests/circuit-frame-transport.test.ts": {
+      "classification": "intentional_worker_terminal_contract_update",
+      "cause": "Existing cases expected repeated errors and pause-driven revival after a fatal write/post error; the authorized terminal worker contract requires successful init before new execution.",
+      "correction": "Retain real serializer, transfer and simulation coverage; assert one error, no post-failure messages/acks/steps, ignored retired return while failed, successful init with five distinct full-size frames, and bounded valid/duplicate recycling."
+    },
+    "tests/circuit-preparation-lifetime.test.ts": {
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    "tests/festival-renderer-loader-lifecycle.test.ts": {
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    }
+  },
+  "failed_assertions": [
+    {
+      "file": "tests/circuit-frame-transport.test.ts",
+      "original_full_name": "circuit snapshot transport recovers attached buffers after repeated write failures without acknowledging an incomplete pause",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "AssertionError: expected [ { type: 'error', \u2026(1) } ] to have a length of 8 but got 1\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1257:20)\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1029:14)\n    at Proxy.methodWrapper (file:///tmp/engine-c71f32882729/repo/node_modules/chai/index.js:1686:25)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-frame-transport.test.ts:84:72\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "intentional_worker_terminal_contract_update",
+      "cause": "Existing cases expected repeated errors and pause-driven revival after a fatal write/post error; the authorized terminal worker contract requires successful init before new execution.",
+      "correction": "Retain real serializer, transfer and simulation coverage; assert one error, no post-failure messages/acks/steps, ignored retired return while failed, successful init with five distinct full-size frames, and bounded valid/duplicate recycling."
+    },
+    {
+      "file": "tests/circuit-frame-transport.test.ts",
+      "original_full_name": "circuit snapshot transport recovers attached buffers after repeated post failures without acknowledging an incomplete pause",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "AssertionError: expected [ { type: 'error', \u2026(1) } ] to have a length of 8 but got 1\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1257:20)\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1029:14)\n    at Proxy.methodWrapper (file:///tmp/engine-c71f32882729/repo/node_modules/chai/index.js:1686:25)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-frame-transport.test.ts:84:72\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "intentional_worker_terminal_contract_update",
+      "cause": "Existing cases expected repeated errors and pause-driven revival after a fatal write/post error; the authorized terminal worker contract requires successful init before new execution.",
+      "correction": "Retain real serializer, transfer and simulation coverage; assert one error, no post-failure messages/acks/steps, ignored retired return while failed, successful init with five distinct full-size frames, and bounded valid/duplicate recycling."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does no work when preparation is requested after terminal disposal",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:159:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during construction",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during rider preparation",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during sky",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during ground",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during compile",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during shadow yield",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during pit",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not resume preparation after disposal during last compile",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:221:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership retains successful warmup order and leaves the authoritative frame unchanged",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:254:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership stops GPU-fence polling immediately when disposal occurs during a yield",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "Error: promise rejected \"TypeError: Cannot read properties of unde\u2026\" instead of resolving\n    at _Assertion.__VITEST_RESOLVES__ (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1577:17)\n    at _Assertion.propertyGetter (file:///tmp/engine-c71f32882729/repo/node_modules/chai/index.js:1557:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///tmp/engine-c71f32882729/repo/node_modules/chai/index.js:1645:22)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:270:5\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit preparation ownership does not query a fence or warm crew resources after terminal disposal",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'dispose')\n    at /tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:35\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3485:9)\n    at RacingRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/renderer.ts:3557:5)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:276:16\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit teardown failure isolation reports asynchronous decoder cleanup failure without delaying independent disposal",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "AssertionError: expected [Function] to not throw an error but 'TypeError: Cannot read properties of \u2026' was thrown\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1420:16)\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1029:14)\n    at Proxy.methodWrapper (file:///tmp/engine-c71f32882729/repo/node_modules/chai/index.js:1686:25)\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:300:44\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_full_name": "circuit teardown failure isolation releases remaining independent owners when environment fails",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "AssertionError: expected a thrown error to be Error: environment disposal failed\n    at /tmp/engine-c71f32882729/repo/tests/circuit-preparation-lifetime.test.ts:320:42\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:863:59\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at runSuite (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted the newly owned OutputPass, so disposal called undefined.dispose.",
+      "correction": "Provide a real OutputPass and include its real material in the existing one-time independent resource disposal assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival photographic loader lifetime does not start work after renderer disposal",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:146:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival photographic loader lifetime releases a result resolved just before disposal without installing it",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:161:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival photographic loader lifetime settles a pending rejection quietly after disposal and stays closed",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:176:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival photographic loader lifetime shares concurrent work, preserves installation, and disposes its owner once",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:223:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival photographic loader lifetime allows a live renderer to retry a failed load",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:11:56\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1436:51)\n    at callSuiteHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1442:25)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival authored loader lifetime does not start work after renderer disposal",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:146:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival authored loader lifetime releases a result resolved just before disposal without installing it",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:161:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival authored loader lifetime settles a pending rejection quietly after disposal and stays closed",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:176:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival authored loader lifetime shares concurrent work, preserves installation, and disposes its owner once",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:223:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival authored loader lifetime allows a live renderer to retry a failed load",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:11:56\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1436:51)\n    at callSuiteHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1442:25)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival street loader lifetime does not start work after renderer disposal",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:146:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival street loader lifetime releases a result resolved just before disposal without installing it",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:161:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival street loader lifetime settles a pending rejection quietly after disposal and stays closed",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:176:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival street loader lifetime shares concurrent work, preserves installation, and disposes its owner once",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:223:14\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "Festival street loader lifetime allows a live renderer to retry a failed load",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:11:56\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1436:51)\n    at callSuiteHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1442:25)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "releases an empty photographic library and allows another attempt",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:262:12\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "keeps photographic loading disabled on low",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:11:56\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1436:51)\n    at callSuiteHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1442:25)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    },
+    {
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_full_name": "keeps photographic loading disabled on medium",
+      "baseline_status": "passed",
+      "initial_candidate_status": "failed",
+      "failure_messages": [
+        "TypeError: Cannot read properties of undefined (reading 'geometry')\n    at /tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:28\n    at release (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1139:9)\n    at FestivalRenderer.dispose (/tmp/engine-c71f32882729/repo/src/rendering/open-world/festival-renderer.ts:1166:5)\n    at /tmp/engine-c71f32882729/repo/tests/festival-renderer-loader-lifecycle.test.ts:11:56\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1436:51)\n    at callSuiteHook (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1442:25)"
+      ],
+      "classification": "incomplete_renderer_fixture",
+      "cause": "Object.create fixture omitted sky.geometry, sky.material, sun.shadow and outputPass; every loader case failed at terminal cleanup.",
+      "correction": "Provide all four owners and assert each is disposed once in per-case cleanup, preserving all loader installation, cancellation, retry and idempotence assertions."
+    }
+  ],
+  "changed_tests": [
+    {
+      "path": "tests/circuit-frame-transport.test.ts",
+      "sha256": "208dcae24fc75e2db3860c4b419f0511cb2ca6cdb65cf394004124f5f031e7b7"
+    },
+    {
+      "path": "tests/circuit-preparation-lifetime.test.ts",
+      "sha256": "dc833d06b052f9343653590db7396f58717e87722a288482575fa46d00519e4e"
+    },
+    {
+      "path": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "sha256": "f0c69bea7904f5f1e11355b90e1c5911754db774f634552b3b55b6677fbf9c71"
+    }
+  ],
+  "test_patch_sha256": "e246945979371c2aeb6f93437e105a79f1be282c6fd18f0cf19062ab38de6c01",
+  "production_changes": []
+}

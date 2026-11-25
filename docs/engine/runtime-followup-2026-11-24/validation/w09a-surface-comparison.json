@@ -1,0 +1,84 @@
+{
+  "candidate_commit": "811ac2bc92f4494b1ec99d1fc4201101ccf34c66",
+  "candidate_tree": "bcb8ac50d931448e1d321f76d5fbb092c89d1cf1",
+  "baseline_commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+  "baseline_verified_files": 1125,
+  "source_changes_current": [],
+  "source_changes_baseline": [],
+  "runs": [
+    {
+      "label": "surface-unchanged-current",
+      "cwd": "/tmp/engine-c71f32882729/repo",
+      "argv": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/surface-channel-backpressure.test.ts",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--allowOnly=false",
+        "--retry=0",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile.json=/tmp/engine-c71f32882729/w09a-work/surface-unchanged-current.json"
+      ],
+      "started_utc": "2026-11-25T04:31:13.573754+00:00",
+      "wall_seconds_including_guard": 10.577316618000623,
+      "exit_code": 1,
+      "totals": {
+        "numTotalTestSuites": 4,
+        "numPassedTestSuites": 2,
+        "numFailedTestSuites": 2,
+        "numPendingTestSuites": 0,
+        "numTotalTests": 14,
+        "numPassedTests": 13,
+        "numFailedTests": 1,
+        "numPendingTests": 0,
+        "numTodoTests": 0,
+        "success": false
+      }
+    },
+    {
+      "label": "surface-baseline",
+      "cwd": "/tmp/engine-c71f32882729/w09a-work/baseline-checkout",
+      "argv": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/surface-channel-backpressure.test.ts",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--allowOnly=false",
+        "--retry=0",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile.json=/tmp/engine-c71f32882729/w09a-work/surface-baseline.json"
+      ],
+      "started_utc": "2026-11-25T04:31:24.151698+00:00",
+      "wall_seconds_including_guard": 8.427733060991159,
+      "exit_code": 0,
+      "totals": {
+        "numTotalTestSuites": 4,
+        "numPassedTestSuites": 4,
+        "numFailedTestSuites": 0,
+        "numPendingTestSuites": 0,
+        "numTotalTests": 14,
+        "numPassedTests": 14,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "numTodoTests": 0,
+        "success": true
+      }
+    }
+  ]
+}

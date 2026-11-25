@@ -1,6 +1,6 @@
 # Wave 7: texture registration measurement
 
-Worker42 measured the actual committed baseline and current texture-budget modules. The operation checks and source-lifecycle checks passed. Registration CPU time improved in all 36 measured pairs on this controlled Node fixture. No production source, authored content, assets, material definitions or tuning changed in this assignment.
+Worker42 measured the actual committed baseline and current texture-budget modules. The operation checks and source-lifecycle checks passed. Elapsed registration time improved in all 36 measured pairs on this controlled Node fixture. No production source, authored content, assets, material definitions or tuning changed in this assignment.
 
 Full counters, every warmup and measured duration, source hashes, dependency hashes and reused native observations are in [w07f-texture.json](w07f-texture.json).
 
@@ -30,7 +30,7 @@ Both implementations already share source storage. The number of budget copies i
 
 These are observed `Texture.dispose()` event dispatches during the initially resized registration. Baseline emits `N + groupCount`: each wrapper changes source, and the first wrapper in each group also receives the initial resize release. Current batching acquires all wrappers before resizing and emits `2N`. Logical disposal events do not count GPU objects allocated or deleted. Both versions emit zero draws, updates or disposal events when the same root is registered again. Final budget disposal restores every source and emits one event per wrapper; repeated disposal is idle.
 
-## Paired CPU timing
+## Paired elapsed registration timing
 
 Only `TextureBudget.register(root)` is timed. The canvas double propagates a scalar paint marker and performs no rasterization, pixel copying or GPU work. Instrumented counting runs in separate proof processes. Timed processes use an uninstrumented double and the real Three.js classes and engine traversal.
 

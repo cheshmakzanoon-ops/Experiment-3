@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "worker": 50,
+  "startedAt": "2026-11-25T04:47:36.811Z",
+  "cwd": "/tmp/engine-c71f32882729/repo",
+  "expectedHead": "9119c7683d821d145f15ed64a03ee3406595b58d",
+  "expectedTree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+  "before": {
+    "head": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+    "gitStatus": "?? browser-progress.json",
+    "guardedInputCount": 3396,
+    "guardedInputSha256": "d3bb494f817402f0723bb35fcc9dadec875669032f8803e0f6eebc9ae7d2584a",
+    "lockfileSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "generatedPlayerLodsSha256": null
+  },
+  "snapshotDigestFormat": "In snapshotSource insertion order, concatenate UTF-8 path + NUL + snapshot value + LF, then SHA-256.",
+  "sourceGuardExcludedPaths": [
+    "public/models/supplied-player-lods.bin.gz",
+    "browser-backend.json",
+    "browser-progress.json"
+  ],
+  "runtime": {
+    "node": "v24.22.3",
+    "v8": "13.6.233.17-node.63",
+    "platform": "linux",
+    "release": "6.18.57",
+    "arch": "x64",
+    "nodeOptions": "--max-old-space-size=4096"
+  },
+  "versions": {
+    "eslint": "9.36.0",
+    "typescript": "5.9.3",
+    "vite": "7.1.7",
+    "vitest": "3.2.4",
+    "three": "0.180.0",
+    "@playwright/test": "1.55.1"
+  },
+  "evidenceRunnerSha256": "fdcef0208e718073ef242cbe513682ec7ee2feb0a95a87b2a6dbd49c34e27950",
+  "sourceGuardSha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34",
+  "compilerConfigSha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9",
+  "buildEnvironment": {
+    "MOTOBOUND_SUPPLIED_PLAYER": null,
+    "MOTOBOUND_REVIEW_TOOLS": null,
+    "MOTOBOUND_QA_BUILD": null,
+    "MOTOBOUND_DEMO": null,
+    "APEX_SOURCEMAP": null
+  },
+  "gitRestrictions": {
+    "noLazyFetch": "1",
+    "protocolAllow": "never"
+  },
+  "checks": [
+    {
+      "name": "lint",
+      "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "args": [
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "src",
+        "tests",
+        "e2e",
+        "scripts"
+      ],
+      "nodeOptions": "--max-old-space-size=4096",
+      "startedAt": "2026-11-25T04:47:36.843Z",
+      "finishedAt": "2026-11-25T04:48:13.671Z",
+      "elapsedSeconds": 36.827749000000004,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "log": "/tmp/engine-c71f32882729/w09b-work/w09b-lint.log",
+      "logSha256": "e6003a8ec8a98b8b1c870308e5333dbe5b592b380fb492ce30b6e1eaa22ae9df"
+    },
+    {
+      "name": "typescript",
+      "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "args": [
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "nodeOptions": "--max-old-space-size=4096",
+      "startedAt": "2026-11-25T04:48:13.671Z",
+      "finishedAt": "2026-11-25T04:48:44.576Z",
+      "elapsedSeconds": 30.905234,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "log": "/tmp/engine-c71f32882729/w09b-work/w09b-typescript.log",
+      "logSha256": "70fdd0e32a6423da5e41bd19b1714752656835bd03685a7923c5d9653dcd5816"
+    },
+    {
+      "name": "build",
+      "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "args": [
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "nodeOptions": "--max-old-space-size=4096",
+      "startedAt": "2026-11-25T04:48:44.577Z",
+      "finishedAt": "2026-11-25T04:49:02.827Z",
+      "elapsedSeconds": 18.249693,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "log": "/tmp/engine-c71f32882729/w09b-work/w09b-build.log",
+      "logSha256": "d429187fa215c1711a7c78c7e7d9c022bea6c9686fc444c962128e95b33fdf7a"
+    },
+    {
+      "name": "bundle",
+      "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "args": [
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "scripts/bundle-budget.mjs",
+        "--dist",
+        "dist",
+        "--json"
+      ],
+      "nodeOptions": "--max-old-space-size=4096",
+      "startedAt": "2026-11-25T04:49:02.827Z",
+      "finishedAt": "2026-11-25T04:49:04.783Z",
+      "elapsedSeconds": 1.956335,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "log": "/tmp/engine-c71f32882729/w09b-work/w09b-bundle.log",
+      "logSha256": "77cfb4d30bd13a89dc48fef9060a16e753f02fca838bc8833e85b2f15abe6758"
+    },
+    {
+      "name": "ip",
+      "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "args": [
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "scripts/ip-guard.mjs",
+        "--dist",
+        "dist",
+        "--json"
+      ],
+      "nodeOptions": "--max-old-space-size=4096",
+      "startedAt": "2026-11-25T04:49:04.784Z",
+      "finishedAt": "2026-11-25T04:49:08.813Z",
+      "elapsedSeconds": 4.029329000000001,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "log": "/tmp/engine-c71f32882729/w09b-work/w09b-ip.log",
+      "logSha256": "60ef79feedcf2b075d986d1e5066a6071f9281ec536e342eb95e5900c22f0c6d"
+    }
+  ],
+  "finishedAt": "2026-11-25T04:49:09.083Z",
+  "after": {
+    "head": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+    "gitStatus": "?? browser-progress.json",
+    "guardedInputCount": 3396,
+    "guardedInputSha256": "d3bb494f817402f0723bb35fcc9dadec875669032f8803e0f6eebc9ae7d2584a",
+    "lockfileSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "generatedPlayerLodsSha256": null
+  },
+  "changedSourcePaths": [],
+  "buildIdentity": {
+    "version": 1,
+    "commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "fingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+    "variant": "product",
+    "edition": "full"
+  },
+  "distReceipt": {
+    "path": "/tmp/engine-c71f32882729/w09b-work/w09b-dist-manifest.json",
+    "sha256": "78d3adc808eda6f274157a8d7a51146e02cdf508d5454217b2c3a5684b9cea65",
+    "files": 266,
+    "bytes": 135848008
+  },
+  "passed": true
+}

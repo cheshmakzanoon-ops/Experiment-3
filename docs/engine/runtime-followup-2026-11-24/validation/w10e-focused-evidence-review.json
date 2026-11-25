@@ -1,0 +1,667 @@
+{
+  "artifact_id": 14993021540,
+  "artifact_bytes": 1178621,
+  "artifact_sha256": "8653a669dac50a9d0d8ffce104b1b703b0083e227960f0f922bbbbb6aeb5297f",
+  "api_digest_matches_download": true,
+  "archive_member_crc_checks_pass": true,
+  "embedded_commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+  "embedded_tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+  "package_lock_sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+  "package_lock_matches_commit_blob": true,
+  "build_identity": {
+    "version": 1,
+    "commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "fingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+    "variant": "product",
+    "edition": "full"
+  },
+  "browser_backend": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "playwright_stats": {
+    "total": 37,
+    "expected": 37,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "playwright_duration_ms": 149156.15300000002,
+  "files": [
+    {
+      "fileName": "engine-native-audio.spec.ts",
+      "stats": {
+        "total": 3,
+        "expected": 3,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-channels.spec.ts",
+      "stats": {
+        "total": 5,
+        "expected": 5,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-input.spec.ts",
+      "stats": {
+        "total": 3,
+        "expected": 3,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-lifecycle.spec.ts",
+      "stats": {
+        "total": 7,
+        "expected": 7,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-preview.spec.ts",
+      "stats": {
+        "total": 7,
+        "expected": 7,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-recording.spec.ts",
+      "stats": {
+        "total": 5,
+        "expected": 5,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-resources.spec.ts",
+      "stats": {
+        "total": 4,
+        "expected": 4,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "engine-native-workers.spec.ts",
+      "stats": {
+        "total": 2,
+        "expected": 2,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileName": "replay-state.spec.ts",
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    }
+  ],
+  "tests": [
+    {
+      "file": "engine-native-audio.spec.ts",
+      "title": "native offline audio renders the complete low-rate schedule and releases ended voices",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 644
+        }
+      ]
+    },
+    {
+      "file": "engine-native-audio.spec.ts",
+      "title": "native audio reset cancels old future sound and filter automation before a new timeline",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 270
+        }
+      ]
+    },
+    {
+      "file": "engine-native-audio.spec.ts",
+      "title": "native audio disposal silences scheduled voices and permanently closes the graph",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 212
+        }
+      ]
+    },
+    {
+      "file": "engine-native-channels.spec.ts",
+      "title": "native engineering credit bounds copied samples while real circuit physics advances",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1539
+        }
+      ]
+    },
+    {
+      "file": "engine-native-channels.spec.ts",
+      "title": "native motocross diagnostics accepts the real declared dirt contacts",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1089
+        }
+      ]
+    },
+    {
+      "file": "engine-native-channels.spec.ts",
+      "title": "native Festival status credit preserves ordered delivery and bounds prolonged host stalls",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1776
+        }
+      ]
+    },
+    {
+      "file": "engine-native-channels.spec.ts",
+      "title": "native circuit failure ignores queued revival and retires old diagnostic credit before fresh init",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1426
+        }
+      ]
+    },
+    {
+      "file": "engine-native-channels.spec.ts",
+      "title": "native Festival separates recoverable validation from terminal post-mutation failure",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1593
+        }
+      ]
+    },
+    {
+      "file": "engine-native-input.spec.ts",
+      "title": "trusted keyboard edges retain order through the production pump and actual circuit worker",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1471
+        }
+      ]
+    },
+    {
+      "file": "engine-native-input.spec.ts",
+      "title": "native focus loss clears both queued owners and a held repeat cannot create a resumed shift",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1643
+        }
+      ]
+    },
+    {
+      "file": "engine-native-input.spec.ts",
+      "title": "native widget ownership and repeated keydowns do not manufacture shift intent",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1630
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native replay range round trips retain exact endpoints and pause/restart ownership",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 704
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native replay caches isolate sessions and release only their owned pages",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 740
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native replay disposal rejects pending work and closes a late database open",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 658
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native save clone failure rolls back both primary and backup before recovery",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 671
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native save connection retries after a database versionchange",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 642
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native mirror adapter publishes only committed reads and atomic batches",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 608
+        }
+      ]
+    },
+    {
+      "file": "engine-native-lifecycle.spec.ts",
+      "title": "native worker transfers preserve bounded frame capacity across repeated reuse",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 628
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native preview remains audible through the stopped race master",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 699
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native mute cancels future menu preview tones and permits a fresh preview",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 775
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native stop cancels future menu preview tones and permits a fresh preview",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 739
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native blur cancels future menu preview tones and permits a fresh preview",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 652
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native blur cancels future paused preview tones and permits a fresh preview",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 644
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native pending preview cancellation renders silence and fresh replacement is byte-identical",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 994
+        }
+      ]
+    },
+    {
+      "file": "engine-native-preview.spec.ts",
+      "title": "native suspended-context resume cannot revive a muted then unmuted old request",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 624
+        }
+      ]
+    },
+    {
+      "file": "engine-native-recording.spec.ts",
+      "title": "native IndexedDB branch retains the selected Float32 pose at tick 40",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1469
+        }
+      ]
+    },
+    {
+      "file": "engine-native-recording.spec.ts",
+      "title": "native IndexedDB branch retains the selected Float32 pose at tick 136",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1291
+        }
+      ]
+    },
+    {
+      "file": "engine-native-recording.spec.ts",
+      "title": "native IndexedDB branch retains the selected Float32 pose at tick 160",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1290
+        }
+      ]
+    },
+    {
+      "file": "engine-native-recording.spec.ts",
+      "title": "native CSV worker transfers a wrapped snapshot while its recorder keeps writing",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 657
+        }
+      ]
+    },
+    {
+      "file": "engine-native-recording.spec.ts",
+      "title": "native CSV cancellation, replacement and validation failure retain one result owner",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 710
+        }
+      ]
+    },
+    {
+      "file": "engine-native-resources.spec.ts",
+      "title": "native texture registration batches shared groups without changing pixels or ownership",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 682
+        }
+      ]
+    },
+    {
+      "file": "engine-native-resources.spec.ts",
+      "title": "native Festival resource cycles release GPU allocations and preserve the borrowed backend",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 755
+        }
+      ]
+    },
+    {
+      "file": "engine-native-resources.spec.ts",
+      "title": "native circuit teardown restores mixed sources after imported listener failure",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 409
+        }
+      ]
+    },
+    {
+      "file": "engine-native-resources.spec.ts",
+      "title": "native circuit teardown restores mixed sources after generated listener failure",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 373
+        }
+      ]
+    },
+    {
+      "file": "engine-native-workers.spec.ts",
+      "title": "actual circuit worker bounds native stalled transfers and orders rewind after its surface ACK",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 2769
+        }
+      ]
+    },
+    {
+      "file": "engine-native-workers.spec.ts",
+      "title": "actual Festival worker retains native frame capacity across event field growth and shrink",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 1693
+        }
+      ]
+    },
+    {
+      "file": "replay-state.spec.ts",
+      "title": "recorded playback has exclusive modal, seek, audio and focus ownership",
+      "outcome": "expected",
+      "ok": true,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": [],
+          "duration": 106465
+        }
+      ]
+    }
+  ],
+  "all_results_once_passed_without_retry_error": true,
+  "independently_fetched_job_log_bytes": 121523,
+  "independently_fetched_job_log_sha256": "523858335536e8fee012c328d58ddaaa1e8c1d074c9f7ec633a87ba9a854ae9e",
+  "coordinator_job_log_byte_identical": true
+}

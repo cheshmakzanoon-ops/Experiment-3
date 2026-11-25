@@ -11,7 +11,7 @@ For the two actual collision meshes below, the current scalar-bound constructor 
 | poggio-alto, 1,024 rows | 28,672 | 8,191 | 32.896 [23.977, 38.574] | 14.027 [13.838, 15.329] | 57.36% | 53.90% [42.28%, 63.57%] |
 | aurel, 8,192 rows | 229,376 | 65,535 | 216.644 [175.777, 264.817] | 136.239 [132.576, 152.801] | 37.11% | 33.11% [22.99%, 48.33%] |
 
-The baseline has a visible execution-order effect. The balanced overall medians average across both positions; they must not be promoted as universal percentage improvements. The cause of the order effect was not isolated in this run. The current implementation remained faster in both order groups and every individual measured pair.
+The baseline has a visible execution-order effect. The overall medians summarize the pooled samples from both balanced execution positions; they must not be promoted as universal percentage improvements. The cause of the order effect was not isolated in this run. The current implementation remained faster in both order groups and every individual measured pair.
 
 | Mesh | Pair order | Number of pairs | Baseline median, ms | Current median, ms | Median of the paired reductions |
 |---|---|---:|---:|---:|---:|

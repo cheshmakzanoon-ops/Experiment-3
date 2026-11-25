@@ -1,0 +1,64 @@
+{
+  "commands": [
+    {
+      "name": "correction-three-file",
+      "argv": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/circuit-frame-transport.test.ts",
+        "tests/circuit-preparation-lifetime.test.ts",
+        "tests/festival-renderer-loader-lifecycle.test.ts",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--allowOnly=false",
+        "--retry=0",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile.json=/tmp/engine-c71f32882729/w09a-work/correction-three-file-results.json"
+      ],
+      "started_utc": "2026-11-25T04:24:36.155782+00:00",
+      "exit_code": 0,
+      "wall_seconds_including_guard": 14.88044540300325
+    },
+    {
+      "name": "correction-eslint",
+      "argv": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "tests/circuit-frame-transport.test.ts",
+        "tests/circuit-preparation-lifetime.test.ts",
+        "tests/festival-renderer-loader-lifecycle.test.ts"
+      ],
+      "started_utc": "2026-11-25T04:24:51.036459+00:00",
+      "exit_code": 0,
+      "wall_seconds_including_guard": 1.3953938569902675
+    }
+  ],
+  "source_changed_during_checks": [],
+  "production_changes_since_full_gate": [],
+  "source_before": "09046400e27f9d80501716c983dd221920ec2bdfd2b2e6b227305c184fdb8621",
+  "source_after": "09046400e27f9d80501716c983dd221920ec2bdfd2b2e6b227305c184fdb8621",
+  "totals": {
+    "numTotalTestSuites": 9,
+    "numPassedTestSuites": 9,
+    "numFailedTestSuites": 0,
+    "numPendingTestSuites": 0,
+    "numTotalTests": 42,
+    "numPassedTests": 42,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0,
+    "success": true
+  },
+  "physical_result_files": 3
+}

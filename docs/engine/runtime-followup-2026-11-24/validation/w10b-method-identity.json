@@ -1,0 +1,468 @@
+{
+  "purpose": "Read-only declaration parsing and exact UTF-8 byte hashing; no compiler, emitted code, engine execution or benchmark.",
+  "commits": {
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "measuredW07": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+    "final9": "9119c7683d821d145f15ed64a03ee3406595b58d"
+  },
+  "parser": "TypeScript 5.9.3 createSourceFile; getText excludes leading comment trivia; method body bytes are not normalized.",
+  "methods": [
+    {
+      "path": "src/simulation/bvh.ts",
+      "declaration": "TriangleBVH.constructor",
+      "hashes": {
+        "baseline": "6d09fa2005787c8c3d4cef7e8965bc4a31466270999c484f152893d5ba4630dc",
+        "measuredW07": "6d09fa2005787c8c3d4cef7e8965bc4a31466270999c484f152893d5ba4630dc",
+        "final9": "6d09fa2005787c8c3d4cef7e8965bc4a31466270999c484f152893d5ba4630dc"
+      },
+      "bytes": {
+        "baseline": 1187,
+        "measuredW07": 1187,
+        "final9": 1187
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/simulation/bvh.ts",
+      "declaration": "TriangleBVH.build",
+      "hashes": {
+        "baseline": "5bed84192ec7898be92d30480ed2909eb9eb31b1ae0e7b7342c1ba5974bc1150",
+        "measuredW07": "1d0db81c91e4374114547d26f2e80110bee4f07cd583ef900fe4930ab7dc6582",
+        "final9": "1d0db81c91e4374114547d26f2e80110bee4f07cd583ef900fe4930ab7dc6582"
+      },
+      "bytes": {
+        "baseline": 1573,
+        "measuredW07": 2058,
+        "final9": 2058
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/simulation/contact.ts",
+      "declaration": "TrackContactMesh.constructor",
+      "hashes": {
+        "baseline": "15fae6337a7caeac3c064678f802acfa39f1d61573da4d23c7c617ca8f6cf92c",
+        "measuredW07": "b71c18405319849602b09726b21ed4e8d0181e9b7a9026609266e85f50b3e96b",
+        "final9": "3bf1fc85e109adb352f4a5ca9ae439e9f1895e3d7c36061511a50c68c98f1afa"
+      },
+      "bytes": {
+        "baseline": 3201,
+        "measuredW07": 3434,
+        "final9": 3635
+      },
+      "measuredW07EqualsFinal9": false
+    },
+    {
+      "path": "src/simulation/road-contact.ts",
+      "declaration": "RoadContactFrame.set",
+      "hashes": {
+        "baseline": "9f53b5938b3c9f84e00a9086a0eab2137aeb70750ec189e70f5223b22d6c181b",
+        "measuredW07": "b1913f22e3190fef25ecd0ffb48c6d69066013571e6fe55c9e5510b7c4cc7511",
+        "final9": "b1913f22e3190fef25ecd0ffb48c6d69066013571e6fe55c9e5510b7c4cc7511"
+      },
+      "bytes": {
+        "baseline": 1468,
+        "measuredW07": 1615,
+        "final9": 1615
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/simulation/vehicle.ts",
+      "declaration": "Vehicle.coupleClutch",
+      "hashes": {
+        "baseline": "b3573968336c6bb1112d39cdd956f2d1e1f4e072ad72ff2a6b80224e03412297",
+        "measuredW07": "53dfc9b43aff0cd10c5d685087cb944132166be1ab73d469f02360972a6dfb0f",
+        "final9": "53dfc9b43aff0cd10c5d685087cb944132166be1ab73d469f02360972a6dfb0f"
+      },
+      "bytes": {
+        "baseline": 740,
+        "measuredW07": 860,
+        "final9": 860
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.snapshot",
+      "hashes": {
+        "baseline": "efa5de27f8c3f7343086c5bea6cc879aa9749eda09b7e20c1ff4896597ed71bb",
+        "measuredW07": "cb33fbc29b4dcda1516e904b1f7b703c724567f7b93b30b83a19f558f16e6a30",
+        "final9": "cb33fbc29b4dcda1516e904b1f7b703c724567f7b93b30b83a19f558f16e6a30"
+      },
+      "bytes": {
+        "baseline": 1272,
+        "measuredW07": 3232,
+        "final9": 3232
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.sendData",
+      "hashes": {
+        "baseline": null,
+        "measuredW07": "a226aa07af4805ea2da48a40e694e2a9cdc9f4242d709823cc0d4fb14be222a9",
+        "final9": "a226aa07af4805ea2da48a40e694e2a9cdc9f4242d709823cc0d4fb14be222a9"
+      },
+      "bytes": {
+        "baseline": null,
+        "measuredW07": 323,
+        "final9": 323
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.send",
+      "hashes": {
+        "baseline": "f2bda06cd2f267d43fe5115a895c02e59f252c162b008046ac9637668a910e33",
+        "measuredW07": "d2d7049054fc7840964d2f4b4473eecc3cd8229ea944a7ab0d7d4a31e0d06ec4",
+        "final9": "d2d7049054fc7840964d2f4b4473eecc3cd8229ea944a7ab0d7d4a31e0d06ec4"
+      },
+      "bytes": {
+        "baseline": 283,
+        "measuredW07": 283,
+        "final9": 283
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.transportError",
+      "hashes": {
+        "baseline": null,
+        "measuredW07": "49057d78a2712e8d5a49d61cbc8351aab430fa4e7c8e8f9d361131d6c844cb16",
+        "final9": "49057d78a2712e8d5a49d61cbc8351aab430fa4e7c8e8f9d361131d6c844cb16"
+      },
+      "bytes": {
+        "baseline": null,
+        "measuredW07": 314,
+        "final9": 314
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.closeTransport",
+      "hashes": {
+        "baseline": null,
+        "measuredW07": "e34be9695cb6d406c5c70bb6847ec39032fd452d8793ab214b6cc16885019d16",
+        "final9": "e34be9695cb6d406c5c70bb6847ec39032fd452d8793ab214b6cc16885019d16"
+      },
+      "bytes": {
+        "baseline": null,
+        "measuredW07": 185,
+        "final9": 185
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.startGrid",
+      "hashes": {
+        "baseline": "be085e54c36722acb3c7efacdb1edcc2555dc7919a5042ca0bc73b3eb340fc58",
+        "measuredW07": "be085e54c36722acb3c7efacdb1edcc2555dc7919a5042ca0bc73b3eb340fc58",
+        "final9": "b365978be370808d052494b62f34427684056188acc3108009ec76f3da5dec33"
+      },
+      "bytes": {
+        "baseline": 1536,
+        "measuredW07": 1536,
+        "final9": 1671
+      },
+      "measuredW07EqualsFinal9": false
+    },
+    {
+      "path": "src/net/server.ts",
+      "declaration": "RaceServer.endRace",
+      "hashes": {
+        "baseline": "6376bd8e3a39248d5b4c983c5e12c74d8795cd61d95088b8e3e2141cb7bbf77d",
+        "measuredW07": "6376bd8e3a39248d5b4c983c5e12c74d8795cd61d95088b8e3e2141cb7bbf77d",
+        "final9": "2f2958f8f96ff916b09f9a9c0ee0c01e8ed7c0c94f5ba22b5bee444e9381c17a"
+      },
+      "bytes": {
+        "baseline": 1763,
+        "measuredW07": 1763,
+        "final9": 2170
+      },
+      "measuredW07EqualsFinal9": false
+    },
+    {
+      "path": "src/net/authority.ts",
+      "declaration": "AuthoritativeWorld.capture",
+      "hashes": {
+        "baseline": "a65de7a1fac7eb66026f7f9eabe10481e211aaeae2f0b47649147a997b560f7b",
+        "measuredW07": "a65de7a1fac7eb66026f7f9eabe10481e211aaeae2f0b47649147a997b560f7b",
+        "final9": "a65de7a1fac7eb66026f7f9eabe10481e211aaeae2f0b47649147a997b560f7b"
+      },
+      "bytes": {
+        "baseline": 1427,
+        "measuredW07": 1427,
+        "final9": 1427
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/authority.ts",
+      "declaration": "AuthoritativeWorld.acceleration",
+      "hashes": {
+        "baseline": "cbe375169d202237e78a32e848bd0a91bad0cb5987e59ade45735ddbe2733f91",
+        "measuredW07": "cbe375169d202237e78a32e848bd0a91bad0cb5987e59ade45735ddbe2733f91",
+        "final9": "cbe375169d202237e78a32e848bd0a91bad0cb5987e59ade45735ddbe2733f91"
+      },
+      "bytes": {
+        "baseline": 315,
+        "measuredW07": 315,
+        "final9": 315
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/authority.ts",
+      "declaration": "AuthoritativeWorld.clearContacts",
+      "hashes": {
+        "baseline": "b5f693f3ad22f589f6ff9953e63778d03a92583a0d4475155ceca8767b7a37ef",
+        "measuredW07": "b5f693f3ad22f589f6ff9953e63778d03a92583a0d4475155ceca8767b7a37ef",
+        "final9": "b5f693f3ad22f589f6ff9953e63778d03a92583a0d4475155ceca8767b7a37ef"
+      },
+      "bytes": {
+        "baseline": 47,
+        "measuredW07": 47,
+        "final9": 47
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/authority.ts",
+      "declaration": "AuthoritativeWorld.tick",
+      "hashes": {
+        "baseline": "dc6571e23a81870c0b287cec7254c41489c72cc1f89263562eb628a367343310",
+        "measuredW07": "dc6571e23a81870c0b287cec7254c41489c72cc1f89263562eb628a367343310",
+        "final9": "dc6571e23a81870c0b287cec7254c41489c72cc1f89263562eb628a367343310"
+      },
+      "bytes": {
+        "baseline": 42,
+        "measuredW07": 42,
+        "final9": 42
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/input.ts",
+      "declaration": "ServerInputQueue.takeSlack",
+      "hashes": {
+        "baseline": "d85e3c1063f92b0000cd43b61afeb33cd0c0474022cc653056242e435b80d2b1",
+        "measuredW07": "d85e3c1063f92b0000cd43b61afeb33cd0c0474022cc653056242e435b80d2b1",
+        "final9": "d85e3c1063f92b0000cd43b61afeb33cd0c0474022cc653056242e435b80d2b1"
+      },
+      "bytes": {
+        "baseline": 84,
+        "measuredW07": 84,
+        "final9": 84
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/input.ts",
+      "declaration": "quantizeControls",
+      "hashes": {
+        "baseline": "a4dbd369472396d692121dc6e752772b7631032af2b809639cf41c29f151f826",
+        "measuredW07": "aff65062ef190faa5298b22ed01be0f17cea2f0225daaf1d9654602dce33585d",
+        "final9": "aff65062ef190faa5298b22ed01be0f17cea2f0225daaf1d9654602dce33585d"
+      },
+      "bytes": {
+        "baseline": 164,
+        "measuredW07": 1083,
+        "final9": 1083
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/input.ts",
+      "declaration": "writeControls",
+      "hashes": {
+        "baseline": "69ce359c64cdc94504fad4a9d6f0416f435310592ee2bb1515253be9fc4ad02e",
+        "measuredW07": "69ce359c64cdc94504fad4a9d6f0416f435310592ee2bb1515253be9fc4ad02e",
+        "final9": "69ce359c64cdc94504fad4a9d6f0416f435310592ee2bb1515253be9fc4ad02e"
+      },
+      "bytes": {
+        "baseline": 689,
+        "measuredW07": 689,
+        "final9": 689
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/net/input.ts",
+      "declaration": "readControls",
+      "hashes": {
+        "baseline": "fbab4f21ce47f2d7947de08e45217e0fa840aedd800122d9b1a7c3d4ff6e7ccd",
+        "measuredW07": "fbab4f21ce47f2d7947de08e45217e0fa840aedd800122d9b1a7c3d4ff6e7ccd",
+        "final9": "fbab4f21ce47f2d7947de08e45217e0fa840aedd800122d9b1a7c3d4ff6e7ccd"
+      },
+      "bytes": {
+        "baseline": 994,
+        "measuredW07": 994,
+        "final9": 994
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/storage/recorders.ts",
+      "declaration": "TelemetryRecorder.snapshot",
+      "hashes": {
+        "baseline": "de0b94ee29afd38c9c4e12cf5abc50d69e19730bea91c0b6ae6deb0f14130e7b",
+        "measuredW07": "6e69e145558c53ff73dbf0fdd3ebd7a0c601b0b5ad6e169594ae98c719d650fd",
+        "final9": "6e69e145558c53ff73dbf0fdd3ebd7a0c601b0b5ad6e169594ae98c719d650fd"
+      },
+      "bytes": {
+        "baseline": 277,
+        "measuredW07": 391,
+        "final9": 391
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/storage/telemetry-schema.ts",
+      "declaration": "packTelemetry",
+      "hashes": {
+        "baseline": "0ad2ba78f21d34d465f3853561b5462610166af073eb9bdb06d99a3bfc0ab35b",
+        "measuredW07": "0ad2ba78f21d34d465f3853561b5462610166af073eb9bdb06d99a3bfc0ab35b",
+        "final9": "0ad2ba78f21d34d465f3853561b5462610166af073eb9bdb06d99a3bfc0ab35b"
+      },
+      "bytes": {
+        "baseline": 891,
+        "measuredW07": 891,
+        "final9": 891
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/storage/telemetry-schema.ts",
+      "declaration": "telemetryCsv",
+      "hashes": {
+        "baseline": "9144cba271001c52f4a1c46ff50255f16c7a39d9eb2e0a378767d928ebd19a79",
+        "measuredW07": "9144cba271001c52f4a1c46ff50255f16c7a39d9eb2e0a378767d928ebd19a79",
+        "final9": "fccdbd7dfaace9abd102e94a752b724a46f3b3b4cc10ac3de0990556ae29af88"
+      },
+      "bytes": {
+        "baseline": 922,
+        "measuredW07": 922,
+        "final9": 1013
+      },
+      "measuredW07EqualsFinal9": false
+    },
+    {
+      "path": "src/rendering/texture-budget.ts",
+      "declaration": "TextureBudget.register",
+      "hashes": {
+        "baseline": "a0680f89d28c7c14d11445e53e99717dfd3ab61cbc03399e886e31bec62908ca",
+        "measuredW07": "3c75baca927c2a73122757a32b7256ad94cff37922788f5a1fcae3dc0f5afe60",
+        "final9": "3c75baca927c2a73122757a32b7256ad94cff37922788f5a1fcae3dc0f5afe60"
+      },
+      "bytes": {
+        "baseline": 2424,
+        "measuredW07": 2775,
+        "final9": 2775
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/rendering/texture-budget.ts",
+      "declaration": "TextureBudget.apply",
+      "hashes": {
+        "baseline": "85e6b479264bc5750c50cfbac9ffa2425dc7f13e699528e87ba86cb82222d88d",
+        "measuredW07": "85e6b479264bc5750c50cfbac9ffa2425dc7f13e699528e87ba86cb82222d88d",
+        "final9": "85e6b479264bc5750c50cfbac9ffa2425dc7f13e699528e87ba86cb82222d88d"
+      },
+      "bytes": {
+        "baseline": 2233,
+        "measuredW07": 2233,
+        "final9": 2233
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/rendering/texture-budget.ts",
+      "declaration": "TextureBudget.refresh",
+      "hashes": {
+        "baseline": "50808b8dee5d633b564c3dcf3618f89557bd41303109a61b67a8abe10b1159ff",
+        "measuredW07": "8df2fede65b9005b5482f9155aeb543464e01285a43ef5ccf4446aa444f59bbd",
+        "final9": "8df2fede65b9005b5482f9155aeb543464e01285a43ef5ccf4446aa444f59bbd"
+      },
+      "bytes": {
+        "baseline": 220,
+        "measuredW07": 229,
+        "final9": 229
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/rendering/texture-budget.ts",
+      "declaration": "TextureBudget.unregister",
+      "hashes": {
+        "baseline": "e6f202e1b7575e377a669995a508a1e788bef43ef1a7b4db512ae16368bc405d",
+        "measuredW07": "54f0a45f568f54c43e54cd94ee2082b6069a4b8f5bc41160a61c48affcf34cb2",
+        "final9": "3f91a4581acab30adfe07f75c992881398a17ea5436ced5603ec0e796b00ffdc"
+      },
+      "bytes": {
+        "baseline": 1120,
+        "measuredW07": 1152,
+        "final9": 1614
+      },
+      "measuredW07EqualsFinal9": false
+    },
+    {
+      "path": "src/rendering/imported-texture-budget.ts",
+      "declaration": "ImportedTextureBudget.register",
+      "hashes": {
+        "baseline": "7417d58f0ee76833b8bc9fc18e3c453477f15023cd82ade1ecfcbb92ca4f18b4",
+        "measuredW07": "14d968b6deaf74ae4386a98fe680c079755c6d664a7536deb7d6482485208296",
+        "final9": "14d968b6deaf74ae4386a98fe680c079755c6d664a7536deb7d6482485208296"
+      },
+      "bytes": {
+        "baseline": 1226,
+        "measuredW07": 1509,
+        "final9": 1509
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/rendering/imported-texture-budget.ts",
+      "declaration": "ImportedTextureBudget.apply",
+      "hashes": {
+        "baseline": "4b27f7c0c458250435dc72a9618270fa141a9459af370f2553aad0f84781653c",
+        "measuredW07": "4b27f7c0c458250435dc72a9618270fa141a9459af370f2553aad0f84781653c",
+        "final9": "4b27f7c0c458250435dc72a9618270fa141a9459af370f2553aad0f84781653c"
+      },
+      "bytes": {
+        "baseline": 2286,
+        "measuredW07": 2286,
+        "final9": 2286
+      },
+      "measuredW07EqualsFinal9": true
+    },
+    {
+      "path": "src/rendering/imported-texture-budget.ts",
+      "declaration": "ImportedTextureBudget.unregister",
+      "hashes": {
+        "baseline": "3f0fd1059648f6f47937d7ec0556cb2454a9484ceb05d38d58fd6a4b9e5e89ba",
+        "measuredW07": "3f0fd1059648f6f47937d7ec0556cb2454a9484ceb05d38d58fd6a4b9e5e89ba",
+        "final9": "9462dc39fc2acd73aa6e98536696e22f88b4b8e074462fba1a483c4f65a56f51"
+      },
+      "bytes": {
+        "baseline": 542,
+        "measuredW07": 542,
+        "final9": 750
+      },
+      "measuredW07EqualsFinal9": false
+    }
+  ],
+  "contactGuardOnly": {
+    "removedTextForComparisonOnly": "    // Scalar stores cannot detect a truncated allocation from fractional rows.\n    if (!Number.isInteger(rows) || rows < 1)\n      throw new RangeError('Contact mesh rows must be a positive integer');\n",
+    "exactlyOneOccurrence": true,
+    "finalWithoutAddedGuardEqualsEntireMeasuredFile": true,
+    "measuredFileSha256": "0905f07c4be45f9eb2739fc0906b88fbe54a3d74ba0f3cd222621236141d02df",
+    "finalFileSha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+  }
+}

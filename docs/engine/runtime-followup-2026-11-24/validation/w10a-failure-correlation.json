@@ -1,0 +1,436 @@
+{
+  "partitions": [
+    {
+      "job": "138970922124",
+      "failure_count": 2,
+      "summaries": [
+        "Test Files  2 failed | 224 passed (226)",
+        "Tests  2 failed | 2431 passed (2433)"
+      ]
+    },
+    {
+      "job": "138970922114",
+      "failure_count": 0,
+      "summaries": [
+        "Test Files  226 passed (226)",
+        "Tests  2418 passed (2418)"
+      ]
+    },
+    {
+      "job": "138970922195",
+      "failure_count": 16,
+      "summaries": [
+        "Test Files  3 failed | 223 passed (226)",
+        "Tests  16 failed | 2480 passed (2496)"
+      ]
+    },
+    {
+      "job": "138970922130",
+      "failure_count": 21,
+      "summaries": [
+        "Test Files  3 failed | 220 passed (223)",
+        "Tests  21 failed | 2229 passed (2250)"
+      ]
+    }
+  ],
+  "failure_count": 39,
+  "counts": {
+    "baseline_confirmed_content_i18n": 4,
+    "renderer_fixture_omission": 32,
+    "terminal_frame_contract": 2,
+    "terminal_surface_contract": 1
+  },
+  "failures": [
+    {
+      "current_job": "138970922124",
+      "file": "tests/apx01-livery.test.ts",
+      "original_title": "APX-01 hero livery layer > is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon",
+      "category": "baseline_confirmed_content_i18n",
+      "exact_baseline_case_status": null,
+      "baseline_failure_log": "triage-job-138728088710.log",
+      "corrected_title": null,
+      "corrected_status": null
+    },
+    {
+      "current_job": "138970922124",
+      "file": "tests/vehicle-catalogue.test.ts",
+      "original_title": "WP30 destination catalogue > records every machine inside its design bands at both timesteps",
+      "category": "baseline_confirmed_content_i18n",
+      "exact_baseline_case_status": null,
+      "baseline_failure_log": "triage-job-138728088710.log",
+      "corrected_title": null,
+      "corrected_status": null
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does no work when preparation is requested after terminal disposal",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does no work when preparation is requested after terminal disposal",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during construction",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during construction",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during rider preparation",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during rider preparation",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during sky",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during sky",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during ground",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during ground",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during compile",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during compile",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during shadow yield",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during shadow yield",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during pit",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during pit",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not resume preparation after disposal during last compile",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not resume preparation after disposal during last compile",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > retains successful warmup order and leaves the authoritative frame unchanged",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > retains successful warmup order and leaves the authoritative frame unchanged",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > stops GPU-fence polling immediately when disposal occurs during a yield",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > stops GPU-fence polling immediately when disposal occurs during a yield",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit preparation ownership > does not query a fence or warm crew resources after terminal disposal",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit preparation ownership > does not query a fence or warm crew resources after terminal disposal",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit teardown failure isolation > reports asynchronous decoder cleanup failure without delaying independent disposal",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit teardown failure isolation > reports asynchronous decoder cleanup failure without delaying independent disposal",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/circuit-preparation-lifetime.test.ts",
+      "original_title": "circuit teardown failure isolation > releases remaining independent owners when environment fails",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit teardown failure isolation > releases remaining independent owners when environment fails",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/i18n.test.ts",
+      "original_title": "the catalogue and the dictionary gate > passes for all seven dictionaries",
+      "category": "baseline_confirmed_content_i18n",
+      "exact_baseline_case_status": null,
+      "baseline_failure_log": "triage-job-138728088792.log",
+      "corrected_title": null,
+      "corrected_status": null
+    },
+    {
+      "current_job": "138970922195",
+      "file": "tests/vehicle-catalogue-growth.test.ts",
+      "original_title": "catalogue growth (cars and road bikes) > keeps every machine that existed before the growth bit-identical",
+      "category": "baseline_confirmed_content_i18n",
+      "exact_baseline_case_status": null,
+      "baseline_failure_log": "triage-job-138728088792.log",
+      "corrected_title": null,
+      "corrected_status": null
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/circuit-frame-transport.test.ts",
+      "original_title": "circuit snapshot transport > recovers attached buffers after repeated write failures without acknowledging an incomplete pause",
+      "category": "terminal_frame_contract",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit snapshot transport > keeps write failures terminal until reinitialization restores the complete frame pool",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/circuit-frame-transport.test.ts",
+      "original_title": "circuit snapshot transport > recovers attached buffers after repeated post failures without acknowledging an incomplete pause",
+      "category": "terminal_frame_contract",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "circuit snapshot transport > keeps post failures terminal until reinitialization restores the complete frame pool",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival photographic loader lifetime > does not start work after renderer disposal",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival photographic loader lifetime > does not start work after renderer disposal",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival authored loader lifetime > does not start work after renderer disposal",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival authored loader lifetime > does not start work after renderer disposal",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival street loader lifetime > does not start work after renderer disposal",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival street loader lifetime > does not start work after renderer disposal",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival photographic loader lifetime > releases a result resolved just before disposal without installing it",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival photographic loader lifetime > releases a result resolved just before disposal without installing it",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival authored loader lifetime > releases a result resolved just before disposal without installing it",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival authored loader lifetime > releases a result resolved just before disposal without installing it",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival street loader lifetime > releases a result resolved just before disposal without installing it",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival street loader lifetime > releases a result resolved just before disposal without installing it",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival photographic loader lifetime > settles a pending rejection quietly after disposal and stays closed",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival photographic loader lifetime > settles a pending rejection quietly after disposal and stays closed",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival authored loader lifetime > settles a pending rejection quietly after disposal and stays closed",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival authored loader lifetime > settles a pending rejection quietly after disposal and stays closed",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival street loader lifetime > settles a pending rejection quietly after disposal and stays closed",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival street loader lifetime > settles a pending rejection quietly after disposal and stays closed",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival photographic loader lifetime > shares concurrent work, preserves installation, and disposes its owner once",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival photographic loader lifetime > shares concurrent work, preserves installation, and disposes its owner once",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival authored loader lifetime > shares concurrent work, preserves installation, and disposes its owner once",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival authored loader lifetime > shares concurrent work, preserves installation, and disposes its owner once",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival street loader lifetime > shares concurrent work, preserves installation, and disposes its owner once",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival street loader lifetime > shares concurrent work, preserves installation, and disposes its owner once",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival photographic loader lifetime > allows a live renderer to retry a failed load",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival photographic loader lifetime > allows a live renderer to retry a failed load",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival authored loader lifetime > allows a live renderer to retry a failed load",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival authored loader lifetime > allows a live renderer to retry a failed load",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "Festival street loader lifetime > allows a live renderer to retry a failed load",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "Festival street loader lifetime > allows a live renderer to retry a failed load",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "keeps photographic loading disabled on low",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "keeps photographic loading disabled on low",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "keeps photographic loading disabled on medium",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "keeps photographic loading disabled on medium",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "original_title": "releases an empty photographic library and allows another attempt",
+      "category": "renderer_fixture_omission",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "releases an empty photographic library and allows another attempt",
+      "corrected_status": "passed"
+    },
+    {
+      "current_job": "138970922130",
+      "file": "tests/surface-channel-backpressure.test.ts",
+      "original_title": "real circuit worker surface backpressure > rebases real terrain after a failed post consumed its incremental change set",
+      "category": "terminal_surface_contract",
+      "exact_baseline_case_status": "passed",
+      "baseline_failure_log": null,
+      "corrected_title": "real circuit worker surface backpressure > keeps a failed surface post terminal and rebases real terrain after fresh initialization",
+      "corrected_status": "passed"
+    }
+  ],
+  "uncorrelated": []
+}

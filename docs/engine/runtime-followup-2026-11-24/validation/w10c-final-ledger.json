@@ -1,0 +1,1638 @@
+{
+  "schema": 1,
+  "worker": 57,
+  "captured_utc": "2026-11-25T05:24:49.934486+00:00",
+  "mode": "offline audit of coordinator records and existing evidence; no workload reruns",
+  "verdict": "consistent_final_record",
+  "require_final": true,
+  "errors": [],
+  "pending": [],
+  "warnings": [
+    "Workers 1\u201312 original individual reports were lost; no reconstructed worker quotations, historical timing or original test totals are certified.",
+    "publication.json.head is a local integration identity, not one of the nine published checkpoint SHAs: 5f1ab00233bb28f814d3f71962707f95fe37eee1"
+  ],
+  "execution_record": {
+    "started": 60,
+    "completed": 60,
+    "running": [],
+    "not_started": [],
+    "waves": [
+      {
+        "wave": 1,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 2,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 3,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 4,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 5,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 6,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 7,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 8,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 9,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      },
+      {
+        "wave": 10,
+        "started": 6,
+        "completed": 6,
+        "required": 6
+      }
+    ],
+    "authority": "Coordinator actual spawn/completion history persisted in state.json. Filenames, planned tasks, resumptions, followups, the coordinator and prior-task agents are not independent starts.",
+    "independent_start_proof_limit": "This offline validator does not have the historical orchestration log. It independently checks record uniqueness, identity, wave allocation and evidence consistency, not process creation."
+  },
+  "working_ledger": {
+    "started": 60,
+    "completed": 60,
+    "matches_execution_state": true,
+    "TASKS_matches_AGENTS": true
+  },
+  "historical_checkpoint9_ledger": {
+    "started": 51,
+    "completed": 48,
+    "intentional_source_freeze_snapshot": true
+  },
+  "reports": [
+    {
+      "id": 1,
+      "wave": 1,
+      "task": "w01a_runtime_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 2,
+      "wave": 1,
+      "task": "w01b_replay_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 3,
+      "wave": 1,
+      "task": "w01c_network_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 4,
+      "wave": 1,
+      "task": "w01d_physics_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 5,
+      "wave": 1,
+      "task": "w01e_devices_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 6,
+      "wave": 1,
+      "task": "w01f_resources_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 7,
+      "wave": 2,
+      "task": "w02a_telemetry",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 8,
+      "wave": 2,
+      "task": "w02b_ghost_bounds",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 9,
+      "wave": 2,
+      "task": "w02c_network_shift",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 10,
+      "wave": 2,
+      "task": "w02d_host_cleanup",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 11,
+      "wave": 2,
+      "task": "w02e_server_snapshot",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 12,
+      "wave": 2,
+      "task": "w02f_controller_edges",
+      "status_in_execution_record": "complete",
+      "individual_handoff": null,
+      "provenance": "original scratch handoff lost; committed plan/code/test reconstruction only"
+    },
+    {
+      "id": 13,
+      "wave": 3,
+      "task": "w03a_bvh_bounds",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w03a.md",
+        "bytes": 5789,
+        "sha256": "11b059d0fed6ae5ee3e280ccb326809fe6823ffcfbe7de04ea09c270d6528015"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 14,
+      "wave": 3,
+      "task": "w03b_contact_allocations",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w03b.md",
+        "bytes": 8685,
+        "sha256": "93f27e9378fff0cd96e2b9fd16bcfdb52968b4ff97043bcce72cbcae3f06a584"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 15,
+      "wave": 3,
+      "task": "w03c_contact_math",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w03c.md",
+        "bytes": 4154,
+        "sha256": "52269f3589c368131ea59cadc3abed5fcf73208e22cbdcf5c4678c302c025655"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 16,
+      "wave": 3,
+      "task": "w03d_texture_budget",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w03d.md",
+        "bytes": 3289,
+        "sha256": "b4d9155b4d7dc16979842fd205560713c4588338656c746506e4c48e086c2e22"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 17,
+      "wave": 3,
+      "task": "w03e_renderer_release",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w03e.md",
+        "bytes": 4772,
+        "sha256": "967159bb781a5686a762e232c4c248dec2a1ad2dbe89fc0531ff02712b8dfaf4"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 18,
+      "wave": 3,
+      "task": "w03f_audio_preview",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w03f.md",
+        "bytes": 2812,
+        "sha256": "224e3433b5305da27694f4cbfd646def3ea7f52e6d856a901ede7a4e462f875c"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 19,
+      "wave": 4,
+      "task": "w04a_session_settlement",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w04a.md",
+        "bytes": 2620,
+        "sha256": "cac19c3e2c64b3eaf43b5e619804c6fd56ea234ec7266e9dea68f6b1fe7e35ba"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 20,
+      "wave": 4,
+      "task": "w04b_diagnostics_backpressure",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w04b.md",
+        "bytes": 4388,
+        "sha256": "a1098d30f7f05b032b21d96ca181eb04e9ce8491117e7e0266542ac761112e3b"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 21,
+      "wave": 4,
+      "task": "w04c_command_atomicity",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w04c.md",
+        "bytes": 3989,
+        "sha256": "b0eb5514a6bfed675a9002f5e32a7f8805c499a0835d1b41a34d93079bc35d14"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 22,
+      "wave": 4,
+      "task": "w04d_control_quantization",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w04d.md",
+        "bytes": 2885,
+        "sha256": "849b40ef33f41043a86ace88cd5dc656025fbdf1e27a70f9386317b3706d54ab"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 23,
+      "wave": 4,
+      "task": "w04e_status_backpressure",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w04e.md",
+        "bytes": 4976,
+        "sha256": "5e13131eb93ade8f7897869f03eb15dafde530ff92a401b88dcac937a385eda4"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 24,
+      "wave": 4,
+      "task": "w04f_export_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w04f.md",
+        "bytes": 4315,
+        "sha256": "8b682995a6f8b7d825fea951fe7f7f7235684742343549b2151137fce86f5b6f"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 25,
+      "wave": 5,
+      "task": "w05a_worker_input_lifetime",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w05a.md",
+        "bytes": 3778,
+        "sha256": "37d4d0f1067669fb6e228970d99826d92e8546d8e064456d6a5966ac3006f4cb"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 26,
+      "wave": 5,
+      "task": "w05b_network_integration",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w05b.md",
+        "bytes": 4156,
+        "sha256": "66714871a94fa5b116327ca366568af47e67b83a1068fb11c7c2decf302efa5f"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 27,
+      "wave": 5,
+      "task": "w05c_recording_integration",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w05c.md",
+        "bytes": 5246,
+        "sha256": "95dbc92d7c0bb97c7d562ca5912741b92918bcfc9e400703612b7461f9417b99"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 28,
+      "wave": 5,
+      "task": "w05d_festival_integration",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w05d.md",
+        "bytes": 3917,
+        "sha256": "0649643835e2841cca697c9d16ee3768b501d463970757cc1a448311ecac7848"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 29,
+      "wave": 5,
+      "task": "w05e_audio_input_integration",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w05e.md",
+        "bytes": 3444,
+        "sha256": "e235f376e48d353461b0c9f4a747deaf52c03dd73a01eafdd9ead1cfe2e4a137"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 30,
+      "wave": 5,
+      "task": "w05f_texture_renderer_integration",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w05f.md",
+        "bytes": 4421,
+        "sha256": "54f5f281df268ae46528b64d8d7d40472b6244430efa2ff22326fd06e8fb0f92"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 31,
+      "wave": 6,
+      "task": "w06a_native_audio",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w06a.md",
+        "bytes": 4832,
+        "sha256": "bcd6afe389a87f8d522d769d601bcd785cb461961585ed5c1b17ef6a8bdc3b18"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 32,
+      "wave": 6,
+      "task": "w06b_native_input",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w06b.md",
+        "bytes": 4599,
+        "sha256": "6edcfb650902e8ff94da5842002468e3090e0115c9c4e49457038e45dec5597f"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 33,
+      "wave": 6,
+      "task": "w06c_native_worker_channels",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w06c.md",
+        "bytes": 5619,
+        "sha256": "1634d7563dec56d24edfe26a66782891edd7b6133ba7afc745577546a9581134"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 34,
+      "wave": 6,
+      "task": "w06d_native_gpu_resources",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w06d.md",
+        "bytes": 6581,
+        "sha256": "09dd8c9984ca6e8c85c4a9aab2b96f21d397dc95f0d0eea840044062e0929b00"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 35,
+      "wave": 6,
+      "task": "w06e_native_storage_export",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w06e.md",
+        "bytes": 5606,
+        "sha256": "d1b79e8016d627a783f3cd24638df18df0264c5e0f1df8b77306a1173c8e6a9f"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 36,
+      "wave": 6,
+      "task": "w06f_ci_replay_gate",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w06f.md",
+        "bytes": 9516,
+        "sha256": "cdd022bf243e7c84795848d1c426633d8e83dad19e8e7ba2a71ee4f7510cbc55"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 37,
+      "wave": 7,
+      "task": "w07a_bvh_measurement",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w07a.md",
+        "bytes": 15792,
+        "sha256": "5e6e2f29daa1e184684be3ed1dbc855e1398d6d461f1f6090d034e3c4b8d6595"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 38,
+      "wave": 7,
+      "task": "w07b_contact_measurement",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w07b.md",
+        "bytes": 12738,
+        "sha256": "cde4840268b04e71ce427ea6aafbd9e52fb8f353102ed27d5241ee002648c03a"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 39,
+      "wave": 7,
+      "task": "w07c_network_measurement",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w07c.md",
+        "bytes": 5656,
+        "sha256": "e911b9fbe6f01f6c297aa599cc932b140902a548ddc38bf3f70374bcf32c39c7"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 40,
+      "wave": 7,
+      "task": "w07d_telemetry_measurement",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w07d.md",
+        "bytes": 18471,
+        "sha256": "9378c808c49d724827d33e9701d6c04f05cc2b28a5c9040fed51c90d11a9fd96"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 41,
+      "wave": 7,
+      "task": "w07e_simulation_evidence",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w07e.md",
+        "bytes": 13168,
+        "sha256": "27500c9faa71a9e60c89a49cc20bc5baf50188f8e7f9a7f45ea6cc24f0c89a9e"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 42,
+      "wave": 7,
+      "task": "w07f_texture_measurement",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w07f.md",
+        "bytes": 4094,
+        "sha256": "a5155e86f8346fa3aad43d40c1937202c05c12af655f1df76695c1cd7c3b0d71"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 43,
+      "wave": 8,
+      "task": "w08a_network_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w08a.md",
+        "bytes": 9816,
+        "sha256": "9ec97433f57faa7849b72801a3e9cd75eff13d62660607cdf3da6dcd4010de1d"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 44,
+      "wave": 8,
+      "task": "w08b_worker_session_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w08b.md",
+        "bytes": 9842,
+        "sha256": "777fb339c8451ec997dedaa8d55e70f6f4437d8f162c1c8bbb91b740ffb78a12"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 45,
+      "wave": 8,
+      "task": "w08c_storage_memory_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w08c.md",
+        "bytes": 8749,
+        "sha256": "2fa8e39f77a1568a7d934c1bc0dd8d87eeaf4c26cf2847d3d6cc98188bb7d4a7"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 46,
+      "wave": 8,
+      "task": "w08d_input_audio_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w08d.md",
+        "bytes": 7813,
+        "sha256": "68e1f5687acaf5a44ebf8567eedb6c99f70402234e75c867d79dbf229f53c10b"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 47,
+      "wave": 8,
+      "task": "w08e_resource_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w08e.md",
+        "bytes": 13758,
+        "sha256": "f7f3c372a132d0b9052507a22b7d4a1538fea2f6d11d01812d41e0dcad0b5943"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 48,
+      "wave": 8,
+      "task": "w08f_physics_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w08f.md",
+        "bytes": 18254,
+        "sha256": "812023df0d1867f296380c333f3639a0b9c4b58a667ca1b46a7a1cf9a31476f9"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 49,
+      "wave": 9,
+      "task": "w09a_consolidated_units",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w09a.md",
+        "bytes": 12037,
+        "sha256": "256dfd3083b98e2b55a245c2b670985087b39e8d985f5a585ff46363371c3bc9"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 50,
+      "wave": 9,
+      "task": "w09b_static_build_gate",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w09b.md",
+        "bytes": 7208,
+        "sha256": "515c8fb13166c0f938bc8e81d531fd7ad7e97155f385cab3993238690c411796"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 51,
+      "wave": 9,
+      "task": "w09c_native_final_gate",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w09c.md",
+        "bytes": 9620,
+        "sha256": "eec2806c783af8319c98154caa8267e06e9e779d4fdd58b5ecd12c143390b3c6"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 52,
+      "wave": 9,
+      "task": "w09d_published_ci_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w09d.md",
+        "bytes": 24722,
+        "sha256": "a6ca4ef2494e94de9001d0462b07105a36f436a0ce2a02a19446f263f580e1b5"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 53,
+      "wave": 9,
+      "task": "w09e_protected_scope_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w09e.md",
+        "bytes": 28339,
+        "sha256": "7c2ec6a0dcef7675360237e410f6b6bf3538fe8e0bd5480418bd6099bcc7b78d"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 54,
+      "wave": 9,
+      "task": "w09f_evidence_report",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w09f.md",
+        "bytes": 5392,
+        "sha256": "eb97c3a9011ee662513cf510cf50a66bc9e21a77257728c180509a5a82a2c658"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 55,
+      "wave": 10,
+      "task": "w10a_regression_triage",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w10a.md",
+        "bytes": 19220,
+        "sha256": "669ea529ad34733678e041630674912b2a6ddcca1a647b8cc7ca157857f4cdb7"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 56,
+      "wave": 10,
+      "task": "w10b_performance_claim_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w10b.md",
+        "bytes": 17765,
+        "sha256": "688c03f8d67dcd348263eea5c62f58f9a36c054da1ca4231d8656b8e75474581"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 57,
+      "wave": 10,
+      "task": "w10c_ledger_audit",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w10c.md",
+        "bytes": 15510,
+        "sha256": "e74f75e57cdf3d876d9bcae4a8a1d534ed5364947b19e61042b5b5031ae4815f"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 58,
+      "wave": 10,
+      "task": "w10d_final_engine_review",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w10d.md",
+        "bytes": 15382,
+        "sha256": "f0179894d7d5569226515a0dd1da27ecb9f255cbc0dac0205ff88dd27b042dee"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 59,
+      "wave": 10,
+      "task": "w10e_publication_verification",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w10e.md",
+        "bytes": 18569,
+        "sha256": "be819da92dd9fc772afb0b33f42e590fd6be382ee152f4a5911dce9c979ec483"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    },
+    {
+      "id": 60,
+      "wave": 10,
+      "task": "w10f_final_acceptance",
+      "status_in_execution_record": "complete",
+      "individual_handoff": {
+        "path": "/tmp/engine-c71f32882729/w10f.md",
+        "bytes": 18024,
+        "sha256": "568454389f7c470213cdee34e6242ae323f1f8c5c5984e3f7a36d2582ab2c34d"
+      },
+      "provenance": "worker handoff corroborates work; distinct start/completion authority is coordinator history"
+    }
+  ],
+  "source": {
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "tested_commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "tested_tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+    "current_head": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "production_src_tree": "ad28ec3acb55feb301e13232614a14c4230abcae",
+    "production_leaves": 1116,
+    "production_changed_since_baseline": [
+      "src/audio/engine.ts",
+      "src/core/ghost-lap.ts",
+      "src/input/button-actions.ts",
+      "src/input/controller.ts",
+      "src/main.ts",
+      "src/net/authority.ts",
+      "src/net/client.ts",
+      "src/net/input.ts",
+      "src/net/records.ts",
+      "src/net/server.ts",
+      "src/rendering/assets/texture-source-ownership.ts",
+      "src/rendering/imported-texture-budget.ts",
+      "src/rendering/open-world/festival-renderer.ts",
+      "src/rendering/renderer.ts",
+      "src/rendering/texture-budget.ts",
+      "src/session/free-roam.ts",
+      "src/session/session-lifetime.ts",
+      "src/simulation/bvh.ts",
+      "src/simulation/contact.ts",
+      "src/simulation/open-world/session.ts",
+      "src/simulation/road-contact.ts",
+      "src/simulation/vehicle.ts",
+      "src/storage/recorders.ts",
+      "src/storage/replay-pages.ts",
+      "src/storage/telemetry-schema.ts",
+      "src/workers/diagnostics.ts",
+      "src/workers/open-world-protocol.ts",
+      "src/workers/open-world.worker.ts",
+      "src/workers/physics.worker.ts"
+    ],
+    "protected_leaves": 3883,
+    "protected_changed": [],
+    "checkpoints": [
+      {
+        "checkpoint": 1,
+        "sha": "85ae215329ee1bd1ccc66540cece0cda72d197f7",
+        "tree": "f0bfcb614006d98d6c8241c8578decf3b323c5fd",
+        "parents": [
+          "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb"
+        ],
+        "utc": "2026-11-25T01:01:04+00:00",
+        "subject": "Fix engine rewind clocks, bounded ghosts and discrete network input",
+        "src_tree": "9c06b18952b189f66195198ac05751b2a637efc9",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 2,
+        "sha": "5185010e6538d8a9095aca9c4e7964817147e1a1",
+        "tree": "a0b7a4446dc9f8b477f9d7a34443d044ca560df7",
+        "parents": [
+          "74175b6a3ae7f87a4161c6e9774b9326cca4a08d"
+        ],
+        "utc": "2026-11-25T01:17:35+00:00",
+        "subject": "Share network snapshots and preserve controller edge ordering",
+        "src_tree": "0bb5f5010cead843439bd3d25b74b9a58b7d3164",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 3,
+        "sha": "25a837597de0159a32e2e5d8bad2e9ac74977c22",
+        "tree": "40dc98ab64f8b348992e285cd5ec060f0a78596b",
+        "parents": [
+          "1bc5a51ecf83b34e35e17a6f4e7a0f52f01a06d1"
+        ],
+        "utc": "2026-11-25T01:54:49+00:00",
+        "subject": "Reduce engine allocations and close texture, GPU and audio lifetimes",
+        "src_tree": "dd142796da01a0e65733f7d053992566ea1c37dc",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 4,
+        "sha": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "tree": "98ae35c4ec253987e6897ebc13a55dee2c1afb21",
+        "parents": [
+          "0d6032c0ff2798fe667ec26853806e4b4c9cb0ba"
+        ],
+        "utc": "2026-11-25T02:35:16+00:00",
+        "subject": "Bound worker channels and harden engine session and replay ownership",
+        "src_tree": "e5a401709d914dc0b8d61fb6838cc26e20433cd4",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 5,
+        "sha": "0f7fecfda61ea7e669f04eebd138c52543144421",
+        "tree": "831bde9df0759e078ae26c8ca289b1da116bb0ad",
+        "parents": [
+          "37d6f5bd52d1444958528ea058383d2dfe5ef09b"
+        ],
+        "utc": "2026-11-25T03:05:46+00:00",
+        "subject": "Verify native engine ownership and retain focused runtime gates",
+        "src_tree": "e5a401709d914dc0b8d61fb6838cc26e20433cd4",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 6,
+        "sha": "6314ba3ec7d54a0ba1e79a59b8db8f03117e4520",
+        "tree": "18766f8bf4dbfed1bcec2d2917d760df535f94c8",
+        "parents": [
+          "bd1d6e9457556048a7651f468e9eb04a2ab27055"
+        ],
+        "utc": "2026-11-25T03:36:30+00:00",
+        "subject": "Measure engine kernels and retain exact-output performance evidence",
+        "src_tree": "e5a401709d914dc0b8d61fb6838cc26e20433cd4",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 7,
+        "sha": "6a6bf02eb2d89eeb6aeff32769ef3deb4a49f17c",
+        "tree": "e6d37727eb695278c4934fa11365d6d014c40db6",
+        "parents": [
+          "7f4b55d88b5ef22f457e94016537be462dd25f7b"
+        ],
+        "utc": "2026-11-25T04:06:33+00:00",
+        "subject": "Harden engine callback ownership and reduce CSV export memory",
+        "src_tree": "ad28ec3acb55feb301e13232614a14c4230abcae",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 8,
+        "sha": "811ac2bc92f4494b1ec99d1fc4201101ccf34c66",
+        "tree": "bcb8ac50d931448e1d321f76d5fbb092c89d1cf1",
+        "parents": [
+          "011b3db0f7204ea59c4efb3aac0e4f1e77ed3c4e"
+        ],
+        "utc": "2026-11-25T04:26:28+00:00",
+        "subject": "Verify renderer ownership fixtures and terminal worker recovery",
+        "src_tree": "ad28ec3acb55feb301e13232614a14c4230abcae",
+        "ci_report_tree_preserved_from_actual_parent": true
+      },
+      {
+        "checkpoint": 9,
+        "sha": "9119c7683d821d145f15ed64a03ee3406595b58d",
+        "tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+        "parents": [
+          "ec7f7ce0dc4361d27aa0ae141f7ca216d4c261e6"
+        ],
+        "utc": "2026-11-25T04:35:34+00:00",
+        "subject": "Retain surface rebase coverage across terminal worker failure",
+        "src_tree": "ad28ec3acb55feb301e13232614a14c4230abcae",
+        "ci_report_tree_preserved_from_actual_parent": true
+      }
+    ],
+    "retained_first_parent_chain": [
+      {
+        "sha": "9119c7683d821d145f15ed64a03ee3406595b58d",
+        "parents_visible_to_walk": [
+          "ec7f7ce0dc4361d27aa0ae141f7ca216d4c261e6"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Retain surface rebase coverage across terminal worker failure"
+      },
+      {
+        "sha": "ec7f7ce0dc4361d27aa0ae141f7ca216d4c261e6",
+        "parents_visible_to_walk": [
+          "36a73d45683e36c08dc91cbdd49f93528cb810dc"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/settings-interaction-validation.md [skip ci]"
+      },
+      {
+        "sha": "36a73d45683e36c08dc91cbdd49f93528cb810dc",
+        "parents_visible_to_walk": [
+          "811ac2bc92f4494b1ec99d1fc4201101ccf34c66"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "811ac2bc92f4494b1ec99d1fc4201101ccf34c66",
+        "parents_visible_to_walk": [
+          "011b3db0f7204ea59c4efb3aac0e4f1e77ed3c4e"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Verify renderer ownership fixtures and terminal worker recovery"
+      },
+      {
+        "sha": "011b3db0f7204ea59c4efb3aac0e4f1e77ed3c4e",
+        "parents_visible_to_walk": [
+          "8ee04e1512a43f6697e311f0b6105dcab3706dee"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/scenery-shadow-budget.md [skip ci]"
+      },
+      {
+        "sha": "8ee04e1512a43f6697e311f0b6105dcab3706dee",
+        "parents_visible_to_walk": [
+          "38f14443667644af91ed5cba716e5b6e7b0bf958"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/benchmark-smoke.md [skip ci]"
+      },
+      {
+        "sha": "38f14443667644af91ed5cba716e5b6e7b0bf958",
+        "parents_visible_to_walk": [
+          "6a6bf02eb2d89eeb6aeff32769ef3deb4a49f17c"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "6a6bf02eb2d89eeb6aeff32769ef3deb4a49f17c",
+        "parents_visible_to_walk": [
+          "7f4b55d88b5ef22f457e94016537be462dd25f7b"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Harden engine callback ownership and reduce CSV export memory"
+      },
+      {
+        "sha": "7f4b55d88b5ef22f457e94016537be462dd25f7b",
+        "parents_visible_to_walk": [
+          "ab11f0c2bd4c5bb32fa61abf2aecbbb69ee19844"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/benchmark-smoke.md [skip ci]"
+      },
+      {
+        "sha": "ab11f0c2bd4c5bb32fa61abf2aecbbb69ee19844",
+        "parents_visible_to_walk": [
+          "6314ba3ec7d54a0ba1e79a59b8db8f03117e4520"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "6314ba3ec7d54a0ba1e79a59b8db8f03117e4520",
+        "parents_visible_to_walk": [
+          "bd1d6e9457556048a7651f468e9eb04a2ab27055"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Measure engine kernels and retain exact-output performance evidence"
+      },
+      {
+        "sha": "bd1d6e9457556048a7651f468e9eb04a2ab27055",
+        "parents_visible_to_walk": [
+          "c5ed43d08100f122dade3bc3c00ab70e02bf1e07"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "c5ed43d08100f122dade3bc3c00ab70e02bf1e07",
+        "parents_visible_to_walk": [
+          "0f7fecfda61ea7e669f04eebd138c52543144421"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/settings-interaction-validation.md [skip ci]"
+      },
+      {
+        "sha": "0f7fecfda61ea7e669f04eebd138c52543144421",
+        "parents_visible_to_walk": [
+          "37d6f5bd52d1444958528ea058383d2dfe5ef09b"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Verify native engine ownership and retain focused runtime gates"
+      },
+      {
+        "sha": "37d6f5bd52d1444958528ea058383d2dfe5ef09b",
+        "parents_visible_to_walk": [
+          "ee9efeb58cb4c3829c4567cc693be33b38f33ef2"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/scenery-shadow-budget.md [skip ci]"
+      },
+      {
+        "sha": "ee9efeb58cb4c3829c4567cc693be33b38f33ef2",
+        "parents_visible_to_walk": [
+          "8bdf66b4fc9381025c71a5b410abdee5cf5c64ce"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "8bdf66b4fc9381025c71a5b410abdee5cf5c64ce",
+        "parents_visible_to_walk": [
+          "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/settings-interaction-validation.md [skip ci]"
+      },
+      {
+        "sha": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "parents_visible_to_walk": [
+          "0d6032c0ff2798fe667ec26853806e4b4c9cb0ba"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Bound worker channels and harden engine session and replay ownership"
+      },
+      {
+        "sha": "0d6032c0ff2798fe667ec26853806e4b4c9cb0ba",
+        "parents_visible_to_walk": [
+          "0265566e6ace7ace194d8f6f3e4e8fc779b13d56"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/scenery-shadow-budget.md [skip ci]"
+      },
+      {
+        "sha": "0265566e6ace7ace194d8f6f3e4e8fc779b13d56",
+        "parents_visible_to_walk": [
+          "25a837597de0159a32e2e5d8bad2e9ac74977c22"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "25a837597de0159a32e2e5d8bad2e9ac74977c22",
+        "parents_visible_to_walk": [
+          "1bc5a51ecf83b34e35e17a6f4e7a0f52f01a06d1"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Reduce engine allocations and close texture, GPU and audio lifetimes"
+      },
+      {
+        "sha": "1bc5a51ecf83b34e35e17a6f4e7a0f52f01a06d1",
+        "parents_visible_to_walk": [
+          "5185010e6538d8a9095aca9c4e7964817147e1a1"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/build-and-validation.md [skip ci]"
+      },
+      {
+        "sha": "5185010e6538d8a9095aca9c4e7964817147e1a1",
+        "parents_visible_to_walk": [
+          "74175b6a3ae7f87a4161c6e9774b9326cca4a08d"
+        ],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Share network snapshots and preserve controller edge ordering"
+      },
+      {
+        "sha": "74175b6a3ae7f87a4161c6e9774b9326cca4a08d",
+        "parents_visible_to_walk": [
+          "85ae215329ee1bd1ccc66540cece0cda72d197f7"
+        ],
+        "author": "ci-report[bot]",
+        "subject": "CI report: ci-reports/settings-interaction-validation.md [skip ci]"
+      },
+      {
+        "sha": "85ae215329ee1bd1ccc66540cece0cda72d197f7",
+        "parents_visible_to_walk": [],
+        "author": "cheshmakzanoon-ops",
+        "subject": "Fix engine rewind clocks, bounded ghosts and discrete network input"
+      }
+    ],
+    "report_bot_commits": 16,
+    "shallow_history": true,
+    "local_integration_identity_not_published_checkpoint": "5f1ab00233bb28f814d3f71962707f95fe37eee1",
+    "specified_final_publication": null
+  },
+  "validation": {
+    "local_units": {
+      "files": 128,
+      "unique_cases": 1852,
+      "passed": 1852
+    },
+    "focused_ci_units": {
+      "files": 42,
+      "cases": 506,
+      "entirely_subset_of_local_gate": true
+    },
+    "focused_ci_browser": {
+      "files": 9,
+      "cases": 37,
+      "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)"
+    },
+    "broad_ci_units": {
+      "files": 901,
+      "cases": 9598,
+      "passed": 9594,
+      "failed": 4,
+      "failed_cases": [
+        "tests/apx01-livery.test.ts > APX-01 hero livery layer > is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon",
+        "tests/vehicle-catalogue.test.ts > WP30 destination catalogue > records every machine inside its design bands at both timesteps",
+        "tests/i18n.test.ts > the catalogue and the dictionary gate > passes for all seven dictionaries",
+        "tests/vehicle-catalogue-growth.test.ts > catalogue growth (cars and road bikes) > keeps every machine that existed before the growth bit-identical"
+      ],
+      "partitions": [
+        {
+          "shard": 1,
+          "physical_files": 226,
+          "tests": 2433,
+          "failed_cases": [
+            "tests/apx01-livery.test.ts > APX-01 hero livery layer > is the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon",
+            "tests/vehicle-catalogue.test.ts > WP30 destination catalogue > records every machine inside its design bands at both timesteps"
+          ]
+        },
+        {
+          "shard": 2,
+          "physical_files": 226,
+          "tests": 2418,
+          "failed_cases": []
+        },
+        {
+          "shard": 3,
+          "physical_files": 226,
+          "tests": 2496,
+          "failed_cases": [
+            "tests/i18n.test.ts > the catalogue and the dictionary gate > passes for all seven dictionaries",
+            "tests/vehicle-catalogue-growth.test.ts > catalogue growth (cars and road bikes) > keeps every machine that existed before the growth bit-identical"
+          ]
+        },
+        {
+          "shard": 4,
+          "physical_files": 223,
+          "tests": 2251,
+          "failed_cases": []
+        }
+      ],
+      "local_file_inventory_is_subset": true
+    },
+    "local_static_build": {
+      "checks": 5,
+      "passed": true,
+      "build_identity": {
+        "version": 1,
+        "commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+        "fingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+        "variant": "product",
+        "edition": "full"
+      }
+    },
+    "local_native": {
+      "status": "passed",
+      "cases": 37,
+      "files": 9,
+      "backend": {
+        "requested": "swiftshader",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "pixel": [
+          64,
+          128,
+          191,
+          255
+        ],
+        "error": 0,
+        "softwareRendererDetected": true,
+        "physicalHardwareValidated": false
+      },
+      "finished_at": "2026-11-25T04:58:08.510Z",
+      "same_selection_as_ci": true,
+      "not_added_to_ci_browser_count": true
+    },
+    "counting_rule": "All these are separately attributed executions. No sum of overlapping unit runs, repeated browser selections, audit checks or historical measurements is reported."
+  },
+  "documentation": {
+    "overlay_used": false,
+    "copied_evidence_hashes_checked": 27,
+    "local_link_targets_checked": 489,
+    "broken_targets": [],
+    "anchor_fragments_checked": false
+  },
+  "input_receipts": {
+    "/tmp/engine-c71f32882729/state.json": {
+      "bytes": 35605,
+      "sha256": "b75cf180fc7222a61abc2ebda84cfedc59ba43932cd8660accb8a0340baab924"
+    },
+    "/tmp/engine-c71f32882729/w10c-work/registration-anchor.json": {
+      "bytes": 7040,
+      "sha256": "42e56dc5de70d836691bc33e523c0528d61f231950225fb67da6acc6574bfb02"
+    },
+    "/tmp/engine-c71f32882729/repo/docs/engine/runtime-followup-2026-11-24/AGENTS.json": {
+      "bytes": 7254,
+      "sha256": "5e98b2676c94368bab0249327128414caeee25580c03ef585fe15ada6aa7d807"
+    },
+    "/tmp/engine-c71f32882729/repo/docs/engine/runtime-followup-2026-11-24/TASKS.md": {
+      "bytes": 5402,
+      "sha256": "d4cf4fb10b713e211fcc9860a67eb5ecfcc94530a3a59fddd122aa378f32f752"
+    },
+    "/tmp/engine-c71f32882729/w03a.md": {
+      "bytes": 5789,
+      "sha256": "11b059d0fed6ae5ee3e280ccb326809fe6823ffcfbe7de04ea09c270d6528015"
+    },
+    "/tmp/engine-c71f32882729/w03b.md": {
+      "bytes": 8685,
+      "sha256": "93f27e9378fff0cd96e2b9fd16bcfdb52968b4ff97043bcce72cbcae3f06a584"
+    },
+    "/tmp/engine-c71f32882729/w03c.md": {
+      "bytes": 4154,
+      "sha256": "52269f3589c368131ea59cadc3abed5fcf73208e22cbdcf5c4678c302c025655"
+    },
+    "/tmp/engine-c71f32882729/w03d.md": {
+      "bytes": 3289,
+      "sha256": "b4d9155b4d7dc16979842fd205560713c4588338656c746506e4c48e086c2e22"
+    },
+    "/tmp/engine-c71f32882729/w03e.md": {
+      "bytes": 4772,
+      "sha256": "967159bb781a5686a762e232c4c248dec2a1ad2dbe89fc0531ff02712b8dfaf4"
+    },
+    "/tmp/engine-c71f32882729/w03f.md": {
+      "bytes": 2812,
+      "sha256": "224e3433b5305da27694f4cbfd646def3ea7f52e6d856a901ede7a4e462f875c"
+    },
+    "/tmp/engine-c71f32882729/w04a.md": {
+      "bytes": 2620,
+      "sha256": "cac19c3e2c64b3eaf43b5e619804c6fd56ea234ec7266e9dea68f6b1fe7e35ba"
+    },
+    "/tmp/engine-c71f32882729/w04b.md": {
+      "bytes": 4388,
+      "sha256": "a1098d30f7f05b032b21d96ca181eb04e9ce8491117e7e0266542ac761112e3b"
+    },
+    "/tmp/engine-c71f32882729/w04c.md": {
+      "bytes": 3989,
+      "sha256": "b0eb5514a6bfed675a9002f5e32a7f8805c499a0835d1b41a34d93079bc35d14"
+    },
+    "/tmp/engine-c71f32882729/w04d.md": {
+      "bytes": 2885,
+      "sha256": "849b40ef33f41043a86ace88cd5dc656025fbdf1e27a70f9386317b3706d54ab"
+    },
+    "/tmp/engine-c71f32882729/w04e.md": {
+      "bytes": 4976,
+      "sha256": "5e13131eb93ade8f7897869f03eb15dafde530ff92a401b88dcac937a385eda4"
+    },
+    "/tmp/engine-c71f32882729/w04f.md": {
+      "bytes": 4315,
+      "sha256": "8b682995a6f8b7d825fea951fe7f7f7235684742343549b2151137fce86f5b6f"
+    },
+    "/tmp/engine-c71f32882729/w05a.md": {
+      "bytes": 3778,
+      "sha256": "37d4d0f1067669fb6e228970d99826d92e8546d8e064456d6a5966ac3006f4cb"
+    },
+    "/tmp/engine-c71f32882729/w05b.md": {
+      "bytes": 4156,
+      "sha256": "66714871a94fa5b116327ca366568af47e67b83a1068fb11c7c2decf302efa5f"
+    },
+    "/tmp/engine-c71f32882729/w05c.md": {
+      "bytes": 5246,
+      "sha256": "95dbc92d7c0bb97c7d562ca5912741b92918bcfc9e400703612b7461f9417b99"
+    },
+    "/tmp/engine-c71f32882729/w05d.md": {
+      "bytes": 3917,
+      "sha256": "0649643835e2841cca697c9d16ee3768b501d463970757cc1a448311ecac7848"
+    },
+    "/tmp/engine-c71f32882729/w05e.md": {
+      "bytes": 3444,
+      "sha256": "e235f376e48d353461b0c9f4a747deaf52c03dd73a01eafdd9ead1cfe2e4a137"
+    },
+    "/tmp/engine-c71f32882729/w05f.md": {
+      "bytes": 4421,
+      "sha256": "54f5f281df268ae46528b64d8d7d40472b6244430efa2ff22326fd06e8fb0f92"
+    },
+    "/tmp/engine-c71f32882729/w06a.md": {
+      "bytes": 4832,
+      "sha256": "bcd6afe389a87f8d522d769d601bcd785cb461961585ed5c1b17ef6a8bdc3b18"
+    },
+    "/tmp/engine-c71f32882729/w06b.md": {
+      "bytes": 4599,
+      "sha256": "6edcfb650902e8ff94da5842002468e3090e0115c9c4e49457038e45dec5597f"
+    },
+    "/tmp/engine-c71f32882729/w06c.md": {
+      "bytes": 5619,
+      "sha256": "1634d7563dec56d24edfe26a66782891edd7b6133ba7afc745577546a9581134"
+    },
+    "/tmp/engine-c71f32882729/w06d.md": {
+      "bytes": 6581,
+      "sha256": "09dd8c9984ca6e8c85c4a9aab2b96f21d397dc95f0d0eea840044062e0929b00"
+    },
+    "/tmp/engine-c71f32882729/w06e.md": {
+      "bytes": 5606,
+      "sha256": "d1b79e8016d627a783f3cd24638df18df0264c5e0f1df8b77306a1173c8e6a9f"
+    },
+    "/tmp/engine-c71f32882729/w06f.md": {
+      "bytes": 9516,
+      "sha256": "cdd022bf243e7c84795848d1c426633d8e83dad19e8e7ba2a71ee4f7510cbc55"
+    },
+    "/tmp/engine-c71f32882729/w07a.md": {
+      "bytes": 15792,
+      "sha256": "5e6e2f29daa1e184684be3ed1dbc855e1398d6d461f1f6090d034e3c4b8d6595"
+    },
+    "/tmp/engine-c71f32882729/w07b.md": {
+      "bytes": 12738,
+      "sha256": "cde4840268b04e71ce427ea6aafbd9e52fb8f353102ed27d5241ee002648c03a"
+    },
+    "/tmp/engine-c71f32882729/w07c.md": {
+      "bytes": 5656,
+      "sha256": "e911b9fbe6f01f6c297aa599cc932b140902a548ddc38bf3f70374bcf32c39c7"
+    },
+    "/tmp/engine-c71f32882729/w07d.md": {
+      "bytes": 18471,
+      "sha256": "9378c808c49d724827d33e9701d6c04f05cc2b28a5c9040fed51c90d11a9fd96"
+    },
+    "/tmp/engine-c71f32882729/w07e.md": {
+      "bytes": 13168,
+      "sha256": "27500c9faa71a9e60c89a49cc20bc5baf50188f8e7f9a7f45ea6cc24f0c89a9e"
+    },
+    "/tmp/engine-c71f32882729/w07f.md": {
+      "bytes": 4094,
+      "sha256": "a5155e86f8346fa3aad43d40c1937202c05c12af655f1df76695c1cd7c3b0d71"
+    },
+    "/tmp/engine-c71f32882729/w08a.md": {
+      "bytes": 9816,
+      "sha256": "9ec97433f57faa7849b72801a3e9cd75eff13d62660607cdf3da6dcd4010de1d"
+    },
+    "/tmp/engine-c71f32882729/w08b.md": {
+      "bytes": 9842,
+      "sha256": "777fb339c8451ec997dedaa8d55e70f6f4437d8f162c1c8bbb91b740ffb78a12"
+    },
+    "/tmp/engine-c71f32882729/w08c.md": {
+      "bytes": 8749,
+      "sha256": "2fa8e39f77a1568a7d934c1bc0dd8d87eeaf4c26cf2847d3d6cc98188bb7d4a7"
+    },
+    "/tmp/engine-c71f32882729/w08d.md": {
+      "bytes": 7813,
+      "sha256": "68e1f5687acaf5a44ebf8567eedb6c99f70402234e75c867d79dbf229f53c10b"
+    },
+    "/tmp/engine-c71f32882729/w08e.md": {
+      "bytes": 13758,
+      "sha256": "f7f3c372a132d0b9052507a22b7d4a1538fea2f6d11d01812d41e0dcad0b5943"
+    },
+    "/tmp/engine-c71f32882729/w08f.md": {
+      "bytes": 18254,
+      "sha256": "812023df0d1867f296380c333f3639a0b9c4b58a667ca1b46a7a1cf9a31476f9"
+    },
+    "/tmp/engine-c71f32882729/w09a.md": {
+      "bytes": 12037,
+      "sha256": "256dfd3083b98e2b55a245c2b670985087b39e8d985f5a585ff46363371c3bc9"
+    },
+    "/tmp/engine-c71f32882729/w09b.md": {
+      "bytes": 7208,
+      "sha256": "515c8fb13166c0f938bc8e81d531fd7ad7e97155f385cab3993238690c411796"
+    },
+    "/tmp/engine-c71f32882729/w09c.md": {
+      "bytes": 9620,
+      "sha256": "eec2806c783af8319c98154caa8267e06e9e779d4fdd58b5ecd12c143390b3c6"
+    },
+    "/tmp/engine-c71f32882729/w09d.md": {
+      "bytes": 24722,
+      "sha256": "a6ca4ef2494e94de9001d0462b07105a36f436a0ce2a02a19446f263f580e1b5"
+    },
+    "/tmp/engine-c71f32882729/w09e.md": {
+      "bytes": 28339,
+      "sha256": "7c2ec6a0dcef7675360237e410f6b6bf3538fe8e0bd5480418bd6099bcc7b78d"
+    },
+    "/tmp/engine-c71f32882729/w09f.md": {
+      "bytes": 5392,
+      "sha256": "eb97c3a9011ee662513cf510cf50a66bc9e21a77257728c180509a5a82a2c658"
+    },
+    "/tmp/engine-c71f32882729/w10a.md": {
+      "bytes": 19220,
+      "sha256": "669ea529ad34733678e041630674912b2a6ddcca1a647b8cc7ca157857f4cdb7"
+    },
+    "/tmp/engine-c71f32882729/w10b.md": {
+      "bytes": 17765,
+      "sha256": "688c03f8d67dcd348263eea5c62f58f9a36c054da1ca4231d8656b8e75474581"
+    },
+    "/tmp/engine-c71f32882729/w10c.md": {
+      "bytes": 15510,
+      "sha256": "e74f75e57cdf3d876d9bcae4a8a1d534ed5364947b19e61042b5b5031ae4815f"
+    },
+    "/tmp/engine-c71f32882729/w10d.md": {
+      "bytes": 15382,
+      "sha256": "f0179894d7d5569226515a0dd1da27ecb9f255cbc0dac0205ff88dd27b042dee"
+    },
+    "/tmp/engine-c71f32882729/w10e.md": {
+      "bytes": 18569,
+      "sha256": "be819da92dd9fc772afb0b33f42e590fd6be382ee152f4a5911dce9c979ec483"
+    },
+    "/tmp/engine-c71f32882729/w10f.md": {
+      "bytes": 18024,
+      "sha256": "568454389f7c470213cdee34e6242ae323f1f8c5c5984e3f7a36d2582ab2c34d"
+    },
+    "/tmp/engine-c71f32882729/w09e-work/protected-coverage.json": {
+      "bytes": 1728064,
+      "sha256": "306a4f17dd74cb027ae2fca741a5d7951efde2968b167075c9253bdab88fe6d9"
+    },
+    "/tmp/engine-c71f32882729/publication.json": {
+      "bytes": 33252,
+      "sha256": "82bf4f98ae2a5c83a6b77d7c99697b92ffd6845a6ad5b6f5cd70f4a2d2bee7e8"
+    },
+    "/tmp/engine-c71f32882729/w09a-final/selection-final.json": {
+      "bytes": 63868,
+      "sha256": "d8bd06a3ccfc4c14e20b1a734cf320f4eab84a95678d3ce97266ef7c67f1b655"
+    },
+    "/tmp/engine-c71f32882729/w09a-final/assertion-results-unique.json": {
+      "bytes": 566133,
+      "sha256": "de7dd5eb06b03fd26c66bfc78cfb5562460e6c8b9b31681b7938143fd3cf5538"
+    },
+    "/tmp/engine-c71f32882729/w09a-final/results-summary.json": {
+      "bytes": 27725,
+      "sha256": "d9bdedd8e75c3a59f07af472a03072f1858811385974268f7bde5b8812492b8f"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-ci.json": {
+      "bytes": 1398,
+      "sha256": "b380ae92fc37c5babc028cc06e79eebca73fb998acc8c9b5f57bc22fddec0182"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-ci.log": {
+      "bytes": 121523,
+      "sha256": "523858335536e8fee012c328d58ddaaa1e8c1d074c9f7ec633a87ba9a854ae9e"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-artifacts.json": {
+      "bytes": 893,
+      "sha256": "cce3592a893f9737b4a5a5dd881bc1ee731c155ef2f0808ad926d97f4fab82dc"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-broad/unit-summary.json": {
+      "bytes": 2047,
+      "sha256": "4a54ff25b8c6dcae4266af27da12d72190264fd3c681e6a564386ea84ad84a55"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-broad/unit-1.log": {
+      "bytes": 115320,
+      "sha256": "e36e1a4d4e3a12c2187c762fa39bc644a3e6b47f7f427e9a187f27df4c2a5577"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-broad/unit-2.log": {
+      "bytes": 128022,
+      "sha256": "c387d1e30f58be3541ca30a7c481dd55bfcf80fea570bf430c647473c6cd88fb"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-broad/unit-3.log": {
+      "bytes": 116990,
+      "sha256": "b6ecff380377f26d4167714fc2ba859ed33a86adae89b985ae8e9acd9d27c0bc"
+    },
+    "/tmp/engine-c71f32882729/checkpoint9-broad/unit-4.log": {
+      "bytes": 109252,
+      "sha256": "0b3cd98827336c94034e2255ffad06c6c0ca84bcb0585d46207d599200941197"
+    },
+    "/tmp/engine-c71f32882729/w10a-work/unit-failure-correlation.json": {
+      "bytes": 21086,
+      "sha256": "958e9d2db0f0c43c19924a5c9c1c158ace17040390245ed3af9c4e4331441dfd"
+    },
+    "/tmp/engine-c71f32882729/w09b-work/w09b-static-build-manifest.json": {
+      "bytes": 6896,
+      "sha256": "033ac6920689b829d617c52e9eba5494fed82e80d1c097574b65bf3f0c1ae3e2"
+    },
+    "/tmp/engine-c71f32882729/w09b-work/w09b-lint.log": {
+      "bytes": 175,
+      "sha256": "e6003a8ec8a98b8b1c870308e5333dbe5b592b380fb492ce30b6e1eaa22ae9df"
+    },
+    "/tmp/engine-c71f32882729/w09b-work/w09b-typescript.log": {
+      "bytes": 175,
+      "sha256": "70fdd0e32a6423da5e41bd19b1714752656835bd03685a7923c5d9653dcd5816"
+    },
+    "/tmp/engine-c71f32882729/w09b-work/w09b-build.log": {
+      "bytes": 4051,
+      "sha256": "d429187fa215c1711a7c78c7e7d9c022bea6c9686fc444c962128e95b33fdf7a"
+    },
+    "/tmp/engine-c71f32882729/w09b-work/w09b-bundle.log": {
+      "bytes": 2438,
+      "sha256": "77cfb4d30bd13a89dc48fef9060a16e753f02fca838bc8833e85b2f15abe6758"
+    },
+    "/tmp/engine-c71f32882729/w09b-work/w09b-ip.log": {
+      "bytes": 306,
+      "sha256": "60ef79feedcf2b075d986d1e5066a6071f9281ec536e342eb95e5900c22f0c6d"
+    },
+    "/tmp/engine-c71f32882729/w09c-native-gate-manifest.json": {
+      "bytes": 10347,
+      "sha256": "5e7a7aaa687d8b618161b5ee17f469b6a757ce9cdc2ff110f494c798239c0a57"
+    },
+    "/tmp/engine-c71f32882729/w09c-case-results.json": {
+      "bytes": 977658,
+      "sha256": "f3d5d555807b78ba34043459b0461329cb518b853d34a120c8f71b645eaa048d"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09f-draft-source-manifest.json": {
+      "bytes": 16501,
+      "sha256": "c48a7f89c87184b9172dcfb1374d08675f89b7b1a21858c4481a8c1b69af7d7a"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/reviews/w09d-published-ci.md": {
+      "bytes": 24722,
+      "sha256": "a6ca4ef2494e94de9001d0462b07105a36f436a0ce2a02a19446f263f580e1b5"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/reviews/w09e-protected-scope.md": {
+      "bytes": 28339,
+      "sha256": "7c2ec6a0dcef7675360237e410f6b6bf3538fe8e0bd5480418bd6099bcc7b78d"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-initial-results.json": {
+      "bytes": 66586,
+      "sha256": "a8a5e3c8b5ae174ee7d8c97487fa82984074a73574abf295597701aa2ed93ca1"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-baseline-results.json": {
+      "bytes": 1493,
+      "sha256": "e87f3944f7a64be42f727c71aabad25e638c14188864f3651de246e89de4a6a7"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-corrected-fixtures.json": {
+      "bytes": 1977,
+      "sha256": "d5c2a6ba76057a65a3f6d4cc0649f32fd20b42a1ee735a61008d816d74ebfa1c"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-failure-classification.json": {
+      "bytes": 54742,
+      "sha256": "e7090498a8c3b7c79645924f085f38800a2381d532166830b0f5b1148ca6f7b6"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-surface-comparison.json": {
+      "bytes": 2545,
+      "sha256": "2a90e68bd1a9e9716a7a9513bcc23912b31cdbe7b328dab6988dbc62bfb4480b"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09d-baseline-source-equivalence.json": {
+      "bytes": 358,
+      "sha256": "cd1acf7e7f71a21c6e9025266cefcf8b3bb95f3ae8a78a89ac76c4b0ebf37d47"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09d-broad-unit-summary.json": {
+      "bytes": 859,
+      "sha256": "96b9000847813ff91c3f3df8b475d02208d3fa8d6511f12f3e0fc52a49bc05b7"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09e-checkpoint-protection.json": {
+      "bytes": 6875,
+      "sha256": "f66d8eb2173578d34cccc56e23a5c4e8c3b8ea432471f0993112b699d5293971"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09e-reachable-history.json": {
+      "bytes": 2863,
+      "sha256": "6e6950c2a0b902fd2573d8ab4c945f5295d186183c55ba4ad21347ce00714845"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09e-production-method-audit.json": {
+      "bytes": 50306,
+      "sha256": "d9f51eaef34d5a4d64df167470593529c10e07e8779db5a52afef3e41fbe6b22"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-surface-correction.json": {
+      "bytes": 1745,
+      "sha256": "20059f9963702846184befb08929cb0af120cb66c0d7f1d823192418a63d9103"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-surface-failure-classification.json": {
+      "bytes": 2770,
+      "sha256": "fb2ee9e4ed15e783d60750e803ba5c178c4bf0f0df37deca04c760ce80ffdba9"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/reviews/w09a-surface-correction.md": {
+      "bytes": 3021,
+      "sha256": "839f2af308c1ced3d5d031a7f8f5ad1172a1a47e923fe84c67f6daf3ae9f80af"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-final-results.json": {
+      "bytes": 27725,
+      "sha256": "d9bdedd8e75c3a59f07af472a03072f1858811385974268f7bde5b8812492b8f"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/checkpoint9-ci.json": {
+      "bytes": 1398,
+      "sha256": "b380ae92fc37c5babc028cc06e79eebca73fb998acc8c9b5f57bc22fddec0182"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/reviews/w10a-regression-triage.md": {
+      "bytes": 19220,
+      "sha256": "669ea529ad34733678e041630674912b2a6ddcca1a647b8cc7ca157857f4cdb7"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w10a-failure-correlation.json": {
+      "bytes": 21086,
+      "sha256": "958e9d2db0f0c43c19924a5c9c1c158ace17040390245ed3af9c4e4331441dfd"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/reviews/w09a-consolidated-gate.md": {
+      "bytes": 12037,
+      "sha256": "256dfd3083b98e2b55a245c2b670985087b39e8d985f5a585ff46363371c3bc9"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-consolidated-validation.json": {
+      "bytes": 3628,
+      "sha256": "2f4af795a30823a0be6a36c6734ec46fb18af1be8056eed5886e641f96ab023c"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09a-evidence-index.json": {
+      "bytes": 5849,
+      "sha256": "44ec43e873cf7ce341243a19bd7d49e6444a1edf0bd1b8571cbf573663f60803"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09b-static-build-manifest.json": {
+      "bytes": 6896,
+      "sha256": "033ac6920689b829d617c52e9eba5494fed82e80d1c097574b65bf3f0c1ae3e2"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09b-bundle.log": {
+      "bytes": 2438,
+      "sha256": "77cfb4d30bd13a89dc48fef9060a16e753f02fca838bc8833e85b2f15abe6758"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09b-ip.log": {
+      "bytes": 306,
+      "sha256": "60ef79feedcf2b075d986d1e5066a6071f9281ec536e342eb95e5900c22f0c6d"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/w09b-build.log": {
+      "bytes": 4051,
+      "sha256": "d429187fa215c1711a7c78c7e7d9c022bea6c9686fc444c962128e95b33fdf7a"
+    },
+    "/tmp/engine-c71f32882729/w09f-draft/validation/checkpoint9-broad-unit-summary.json": {
+      "bytes": 2047,
+      "sha256": "4a54ff25b8c6dcae4266af27da12d72190264fd3c681e6a564386ea84ad84a55"
+    }
+  }
+}

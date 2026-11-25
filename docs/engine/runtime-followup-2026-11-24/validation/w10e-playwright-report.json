@@ -1,0 +1,1125 @@
+{
+  "metadata": {
+    "ci": {
+      "commitHref": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/9119c7683d821d145f15ed64a03ee3406595b58d",
+      "commitHash": "9119c7683d821d145f15ed64a03ee3406595b58d",
+      "buildHref": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45547850414"
+    },
+    "gitCommit": {
+      "shortHash": "9119c76",
+      "hash": "9119c7683d821d145f15ed64a03ee3406595b58d",
+      "subject": "Retain surface rebase coverage across terminal worker failure",
+      "body": "Retain surface rebase coverage across terminal worker failure\n\nAssert that failed worker surface publication remains terminal until fresh initialization. Preserve lower-level lossless recovery with a real deformed Simulation and SurfaceChannel, including exact terrain reconstruction after incremental changes are consumed. Maintain this adjacent contract in the focused engine workflow.",
+      "author": {
+        "name": "cheshmakzanoon-ops",
+        "email": "cheshmakzanoon@gmail.com",
+        "time": 1795581334000
+      },
+      "committer": {
+        "name": "cheshmakzanoon-ops",
+        "email": "cheshmakzanoon@gmail.com",
+        "time": 1795581334000
+      },
+      "branch": "main"
+    },
+    "actualWorkers": 1
+  },
+  "startTime": 1795581551294,
+  "duration": 149156.15300000002,
+  "files": [
+    {
+      "fileId": "e800f5b56946679b44d3",
+      "fileName": "engine-native-audio.spec.ts",
+      "tests": [
+        {
+          "testId": "e800f5b56946679b44d3-d804ed400923ad86e767",
+          "title": "native offline audio renders the complete low-rate schedule and releases ended voices",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-audio.spec.ts",
+            "line": 38,
+            "column": 1
+          },
+          "duration": 644,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-audio-complete-cadence.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "e800f5b56946679b44d3-d84a83ba0aaece8eb22f",
+          "title": "native audio reset cancels old future sound and filter automation before a new timeline",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-audio.spec.ts",
+            "line": 72,
+            "column": 1
+          },
+          "duration": 270,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-audio-reset-replacement.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "e800f5b56946679b44d3-322c45b92606fcd0b3da",
+          "title": "native audio disposal silences scheduled voices and permanently closes the graph",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-audio.spec.ts",
+            "line": 105,
+            "column": 1
+          },
+          "duration": 212,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-audio-disposal.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 3,
+        "expected": 3,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "29f434333675e4f3c1e6",
+      "fileName": "engine-native-channels.spec.ts",
+      "tests": [
+        {
+          "testId": "29f434333675e4f3c1e6-7c3c0c53a96dfafc4bbf",
+          "title": "native engineering credit bounds copied samples while real circuit physics advances",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-channels.spec.ts",
+            "line": 49,
+            "column": 1
+          },
+          "duration": 1539,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-engineering-credits.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "29f434333675e4f3c1e6-abfd10bcf9615b8bd600",
+          "title": "native motocross diagnostics accepts the real declared dirt contacts",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-channels.spec.ts",
+            "line": 79,
+            "column": 1
+          },
+          "duration": 1089,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-motocross-diagnostics.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "29f434333675e4f3c1e6-0487132f341f73519f07",
+          "title": "native Festival status credit preserves ordered delivery and bounds prolonged host stalls",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-channels.spec.ts",
+            "line": 104,
+            "column": 1
+          },
+          "duration": 1776,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-festival-credits.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "29f434333675e4f3c1e6-7588372c092c0d0501bd",
+          "title": "native circuit failure ignores queued revival and retires old diagnostic credit before fresh init",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-channels.spec.ts",
+            "line": 165,
+            "column": 1
+          },
+          "duration": 1426,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-circuit-terminal.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "29f434333675e4f3c1e6-919f3ae25c2981edc502",
+          "title": "native Festival separates recoverable validation from terminal post-mutation failure",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-channels.spec.ts",
+            "line": 189,
+            "column": 1
+          },
+          "duration": 1593,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-festival-terminal.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 5,
+        "expected": 5,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "14fd689fa7a97016753d",
+      "fileName": "engine-native-input.spec.ts",
+      "tests": [
+        {
+          "testId": "14fd689fa7a97016753d-ee4a886aa4282ac219a2",
+          "title": "trusted keyboard edges retain order through the production pump and actual circuit worker",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-input.spec.ts",
+            "line": 105,
+            "column": 1
+          },
+          "duration": 1471,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-input-order.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "14fd689fa7a97016753d-f8eabe814526d6346dbe",
+          "title": "native focus loss clears both queued owners and a held repeat cannot create a resumed shift",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-input.spec.ts",
+            "line": 150,
+            "column": 1
+          },
+          "duration": 1643,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-input-focus.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "14fd689fa7a97016753d-b62591533f6864f86745",
+          "title": "native widget ownership and repeated keydowns do not manufacture shift intent",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-input.spec.ts",
+            "line": 194,
+            "column": 1
+          },
+          "duration": 1630,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-input-widget-repeat.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 3,
+        "expected": 3,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "366d7695d898a7d257f4",
+      "fileName": "engine-native-lifecycle.spec.ts",
+      "tests": [
+        {
+          "testId": "366d7695d898a7d257f4-9a0e839114c35ae5228c",
+          "title": "native replay range round trips retain exact endpoints and pause/restart ownership",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 39,
+            "column": 1
+          },
+          "duration": 704,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-replay-range-endpoints.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "366d7695d898a7d257f4-6c57a0207738145e740e",
+          "title": "native replay caches isolate sessions and release only their owned pages",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 69,
+            "column": 1
+          },
+          "duration": 740,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-replay-session-ownership.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "366d7695d898a7d257f4-e08ccd4ebfe6a95df817",
+          "title": "native replay disposal rejects pending work and closes a late database open",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 93,
+            "column": 1
+          },
+          "duration": 658,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": []
+            }
+          ]
+        },
+        {
+          "testId": "366d7695d898a7d257f4-735a38e564b2e2524a24",
+          "title": "native save clone failure rolls back both primary and backup before recovery",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 107,
+            "column": 1
+          },
+          "duration": 671,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-save-rollback.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "366d7695d898a7d257f4-4a6b6a2dbbb0e834f34e",
+          "title": "native save connection retries after a database versionchange",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 124,
+            "column": 1
+          },
+          "duration": 642,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": []
+            }
+          ]
+        },
+        {
+          "testId": "366d7695d898a7d257f4-56a3668df4c1b1f95fd1",
+          "title": "native mirror adapter publishes only committed reads and atomic batches",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 133,
+            "column": 1
+          },
+          "duration": 608,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-mirror-transaction-boundary.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "366d7695d898a7d257f4-8055cd7bfb9cead3f2d6",
+          "title": "native worker transfers preserve bounded frame capacity across repeated reuse",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-lifecycle.spec.ts",
+            "line": 155,
+            "column": 1
+          },
+          "duration": 628,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-worker-transfer-reuse.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 7,
+        "expected": 7,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "903a1bc9f77c678459f2",
+      "fileName": "engine-native-preview.spec.ts",
+      "tests": [
+        {
+          "testId": "903a1bc9f77c678459f2-feb194bd9854c1d3ba46",
+          "title": "native preview remains audible through the stopped race master",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 89,
+            "column": 1
+          },
+          "duration": 699,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-fresh.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "903a1bc9f77c678459f2-a681867ee52b48c1cc6f",
+          "title": "native mute cancels future menu preview tones and permits a fresh preview",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 116,
+            "column": 3
+          },
+          "duration": 775,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-mute-menu.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "903a1bc9f77c678459f2-7e286b48ec8abe8c5640",
+          "title": "native stop cancels future menu preview tones and permits a fresh preview",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 116,
+            "column": 3
+          },
+          "duration": 739,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-stop-menu.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "903a1bc9f77c678459f2-c4051f24776d9c04de78",
+          "title": "native blur cancels future menu preview tones and permits a fresh preview",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 116,
+            "column": 3
+          },
+          "duration": 652,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-blur-menu.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "903a1bc9f77c678459f2-8f61cc48b07ffcd8f128",
+          "title": "native blur cancels future paused preview tones and permits a fresh preview",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 116,
+            "column": 3
+          },
+          "duration": 644,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-blur-paused.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "903a1bc9f77c678459f2-6e1c982772a333a58d0d",
+          "title": "native pending preview cancellation renders silence and fresh replacement is byte-identical",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 153,
+            "column": 1
+          },
+          "duration": 994,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-pending-replacement.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "903a1bc9f77c678459f2-91f354be2f9a62c67cc2",
+          "title": "native suspended-context resume cannot revive a muted then unmuted old request",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-preview.spec.ts",
+            "line": 180,
+            "column": 1
+          },
+          "duration": 624,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-preview-live-resume.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 7,
+        "expected": 7,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "4e2b7ae723eadae56fb7",
+      "fileName": "engine-native-recording.spec.ts",
+      "tests": [
+        {
+          "testId": "4e2b7ae723eadae56fb7-44ff974d46d702f9738e",
+          "title": "native IndexedDB branch retains the selected Float32 pose at tick 40",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-recording.spec.ts",
+            "line": 69,
+            "column": 3
+          },
+          "duration": 1469,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-replay-branch-40.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "4e2b7ae723eadae56fb7-39d4ed330225aae62d52",
+          "title": "native IndexedDB branch retains the selected Float32 pose at tick 136",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-recording.spec.ts",
+            "line": 69,
+            "column": 3
+          },
+          "duration": 1291,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-replay-branch-136.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "4e2b7ae723eadae56fb7-377b064e715608097e5e",
+          "title": "native IndexedDB branch retains the selected Float32 pose at tick 160",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-recording.spec.ts",
+            "line": 69,
+            "column": 3
+          },
+          "duration": 1290,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-replay-branch-160.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "4e2b7ae723eadae56fb7-cae3af48c0ef7cbb7e3e",
+          "title": "native CSV worker transfers a wrapped snapshot while its recorder keeps writing",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-recording.spec.ts",
+            "line": 116,
+            "column": 1
+          },
+          "duration": 657,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-telemetry-snapshot-transfer.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "4e2b7ae723eadae56fb7-e43887a36bb875c15f39",
+          "title": "native CSV cancellation, replacement and validation failure retain one result owner",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-recording.spec.ts",
+            "line": 146,
+            "column": 1
+          },
+          "duration": 710,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-telemetry-worker-ownership.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 5,
+        "expected": 5,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "6c73c6104d9cf2a2128c",
+      "fileName": "engine-native-resources.spec.ts",
+      "tests": [
+        {
+          "testId": "6c73c6104d9cf2a2128c-9a0854d14e1d4de5656d",
+          "title": "native texture registration batches shared groups without changing pixels or ownership",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-resources.spec.ts",
+            "line": 68,
+            "column": 1
+          },
+          "duration": 682,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-texture-registration.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "6c73c6104d9cf2a2128c-8418d4a9cf5939a0ea6d",
+          "title": "native Festival resource cycles release GPU allocations and preserve the borrowed backend",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-resources.spec.ts",
+            "line": 112,
+            "column": 1
+          },
+          "duration": 755,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-festival-resource-cycles.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "6c73c6104d9cf2a2128c-1678ca0c85ad9c80421f",
+          "title": "native circuit teardown restores mixed sources after imported listener failure",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-resources.spec.ts",
+            "line": 143,
+            "column": 3
+          },
+          "duration": 409,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-circuit-imported-failure.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "6c73c6104d9cf2a2128c-60e4ad07144f7db3b539",
+          "title": "native circuit teardown restores mixed sources after generated listener failure",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-resources.spec.ts",
+            "line": 143,
+            "column": 3
+          },
+          "duration": 373,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-circuit-generated-failure.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 4,
+        "expected": 4,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "bd27a29416812e198f96",
+      "fileName": "engine-native-workers.spec.ts",
+      "tests": [
+        {
+          "testId": "bd27a29416812e198f96-acc56707d0e3b79c02be",
+          "title": "actual circuit worker bounds native stalled transfers and orders rewind after its surface ACK",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-workers.spec.ts",
+            "line": 53,
+            "column": 1
+          },
+          "duration": 2769,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-circuit-transfer-recovery.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "testId": "bd27a29416812e198f96-ce02a8af366cc5d40c98",
+          "title": "actual Festival worker retains native frame capacity across event field growth and shrink",
+          "projectName": "",
+          "location": {
+            "file": "engine-native-workers.spec.ts",
+            "line": 131,
+            "column": 1
+          },
+          "duration": 1693,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "native-festival-transfer-recovery.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 2,
+        "expected": 2,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "9c7b71bbaea64c6c145c",
+      "fileName": "replay-state.spec.ts",
+      "tests": [
+        {
+          "testId": "9c7b71bbaea64c6c145c-88fa751fe411338102f8",
+          "title": "recorded playback has exclusive modal, seek, audio and focus ownership",
+          "projectName": "",
+          "location": {
+            "file": "replay-state.spec.ts",
+            "line": 5,
+            "column": 1
+          },
+          "duration": 106465,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "recording-stall-continuity.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "replay-ownership.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    }
+  ],
+  "projectNames": [
+    ""
+  ],
+  "stats": {
+    "total": 37,
+    "expected": 37,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "errors": []
+}

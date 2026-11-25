@@ -1,0 +1,60 @@
+{
+  "commands": [
+    {
+      "label": "surface-corrected",
+      "argv": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/surface-channel-backpressure.test.ts",
+        "--pool=threads",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--allowOnly=false",
+        "--retry=0",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile.json=/tmp/engine-c71f32882729/w09a-work/surface-corrected.json"
+      ],
+      "started_utc": "2026-11-25T04:33:59.186255+00:00",
+      "exit_code": 0,
+      "wall_seconds_including_guard": 9.788241461996222
+    },
+    {
+      "label": "surface-eslint",
+      "argv": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "tests/surface-channel-backpressure.test.ts"
+      ],
+      "started_utc": "2026-11-25T04:34:08.974601+00:00",
+      "exit_code": 0,
+      "wall_seconds_including_guard": 1.4482548390078591
+    }
+  ],
+  "source_changed_during_checks": [],
+  "production_changes_since_initial_gate": [],
+  "source_before": "ed8f00d74c656abd95f0e5d54fcdafe31a222baec37bc0846c3d123ee943006b",
+  "source_after": "ed8f00d74c656abd95f0e5d54fcdafe31a222baec37bc0846c3d123ee943006b",
+  "totals": {
+    "numTotalTestSuites": 4,
+    "numPassedTestSuites": 4,
+    "numFailedTestSuites": 0,
+    "numPendingTestSuites": 0,
+    "numTotalTests": 15,
+    "numPassedTests": 15,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0,
+    "success": true
+  },
+  "physical_result_files": 1
+}

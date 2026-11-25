@@ -1,0 +1,25 @@
+diff --git a/.github/workflows/engine-runtime-validation.yml b/.github/workflows/engine-runtime-validation.yml
+index a98c933..b9f2f10 100644
+--- a/.github/workflows/engine-runtime-validation.yml
++++ b/.github/workflows/engine-runtime-validation.yml
+@@ -14,6 +14,10 @@ on:
+       - 'src/rendering/**'
+       - 'src/main.ts'
+       - 'tests/engine-*.test.ts'
++      - 'tests/circuit-frame-transport.test.ts'
++      - 'tests/circuit-preparation-lifetime.test.ts'
++      - 'tests/festival-renderer-loader-lifecycle.test.ts'
++      - 'tests/surface-channel-backpressure.test.ts'
+       - 'tests/fake-audio.ts'
+       - 'tests/net-helpers.ts'
+       - 'e2e/engine-native-*.spec.ts'
+@@ -71,6 +75,9 @@ jobs:
+           set -euo pipefail
+           node --experimental-transform-types scripts/source-stability.ts -- \
+             node node_modules/vitest/vitest.mjs run tests/engine-*.test.ts \
++            tests/circuit-frame-transport.test.ts tests/circuit-preparation-lifetime.test.ts \
++            tests/festival-renderer-loader-lifecycle.test.ts \
++            tests/surface-channel-backpressure.test.ts \
+             --pool=threads --maxWorkers=1 --minWorkers=1 --allowOnly=false --retry=0 \
+             2>&1 | tee "$RUNNER_TEMP/engine-runtime-unit.log"
+       - name: Typecheck and build exact source without asset-generation hooks

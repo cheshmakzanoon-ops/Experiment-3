@@ -15,7 +15,7 @@ All exact-output checks passed. 8 real-track meshes matched byte for byte; 2070 
 | Catalogue substeps: sk125 | 1,200 | 62.214 | 64.288 | 0.79% | -15.59% to 84.14% |
 | Catalogue substeps: rl2 | 1,200 | 71.796 | 78.086 | 9.96% | -17.04% to 25.78% |
 
-Negative change means the candidate was faster for that paired sample. A mixed-sign paired range is evidence of timing noise. Raw samples and warmups are retained in the adjacent JSON.
+Negative change means the candidate was faster for that paired sample. A mixed-sign paired range shows observed variability; it does not establish its cause. Raw samples and warmups are retained in the adjacent JSON.
 
 ## Interpretation of this run
 

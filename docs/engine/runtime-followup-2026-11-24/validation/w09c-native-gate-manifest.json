@@ -1,0 +1,277 @@
+{
+  "schema": 1,
+  "worker": 51,
+  "startedAt": "2026-11-25T04:55:09.012Z",
+  "expectedHead": "9119c7683d821d145f15ed64a03ee3406595b58d",
+  "expectedTree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+  "before": {
+    "head": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+    "gitStatus": "?? browser-progress.json",
+    "guardedInputCount": 3396,
+    "guardedInputSha256": "d3bb494f817402f0723bb35fcc9dadec875669032f8803e0f6eebc9ae7d2584a",
+    "sourceFingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+    "lockfileSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "generatedPlayerLodsSha256": null
+  },
+  "buildManifest": {
+    "path": "/tmp/engine-c71f32882729/w09b-work/w09b-static-build-manifest.json",
+    "sha256": "033ac6920689b829d617c52e9eba5494fed82e80d1c097574b65bf3f0c1ae3e2"
+  },
+  "distManifestFromWorker50": {
+    "path": "/tmp/engine-c71f32882729/w09b-work/w09b-dist-manifest.json",
+    "sha256": "78d3adc808eda6f274157a8d7a51146e02cdf508d5454217b2c3a5684b9cea65",
+    "files": 266,
+    "bytes": 135848008
+  },
+  "buildIdentity": {
+    "version": 1,
+    "commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "fingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+    "variant": "product",
+    "edition": "full"
+  },
+  "gitRestrictions": {
+    "noLazyFetch": "1",
+    "protocolAllow": "never"
+  },
+  "evidenceRunnerSha256": "3c445a3740a65df6c7550b66ef41f2bec92d41b3294e7ecbd8abff4be9643c55",
+  "standardConfigSha256": "052691e0974ab8073a021fa80fe1cda54bdff3863c6fd9ffebeba6462b2852fd",
+  "sourceGuardSha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34",
+  "guardedCommand": {
+    "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "args": [
+      "--experimental-transform-types",
+      "scripts/source-stability.ts",
+      "--",
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/engine-native-audio.spec.ts",
+      "e2e/engine-native-channels.spec.ts",
+      "e2e/engine-native-input.spec.ts",
+      "e2e/engine-native-lifecycle.spec.ts",
+      "e2e/engine-native-preview.spec.ts",
+      "e2e/engine-native-recording.spec.ts",
+      "e2e/engine-native-resources.spec.ts",
+      "e2e/engine-native-workers.spec.ts",
+      "e2e/replay-state.spec.ts",
+      "--config=playwright.config.ts",
+      "--workers=1",
+      "--retries=0",
+      "--forbid-only",
+      "--reporter=list,json,html,./scripts/browser-progress-reporter.mjs",
+      "--output=/tmp/engine-c71f32882729/w09c-results"
+    ],
+    "cwd": "/tmp/engine-c71f32882729/repo"
+  },
+  "environment": {
+    "NODE_OPTIONS": "--max-old-space-size=1024",
+    "APEX_BROWSER_BACKEND": "swiftshader",
+    "PLAYWRIGHT_BROWSERS_PATH": "/tmp/engine-c71f32882729/browsers",
+    "CHROMIUM_PATH": "/tmp/engine-c71f32882729/browsers/chromium_headless_shell-1193/chrome-linux/headless_shell",
+    "CI": null,
+    "PLAYWRIGHT_JSON_OUTPUT_FILE": "/tmp/engine-c71f32882729/w09c-browser-report.json",
+    "PLAYWRIGHT_HTML_OUTPUT_DIR": "/tmp/engine-c71f32882729/w09c-html-report",
+    "PLAYWRIGHT_HTML_OPEN": "never"
+  },
+  "runtime": {
+    "node": "v24.22.3",
+    "v8": "13.6.233.17-node.63",
+    "platform": "linux",
+    "release": "6.18.57",
+    "arch": "x64",
+    "browserVersion": "Chromium 140.0.7339.186",
+    "browserExecutableSha256": "003728e0b77eb9d52e4d258594bd55ce22ecd245eb6d3b6858fbd844c901ad7d",
+    "playwright": "1.55.1"
+  },
+  "unchangedTestContracts": {
+    "selectedCases": 37,
+    "selectedFiles": 9,
+    "workers": 1,
+    "retries": 0,
+    "forbidOnly": true,
+    "standardConfig": "playwright.config.ts",
+    "replayDeadlineMs": 300000,
+    "expectTimeoutMs": 60000,
+    "replayStallMs": 8500,
+    "replayQuality": "low (existing authored test setting)",
+    "replayMode": "practice",
+    "replayOpponents": "0",
+    "replayWeather": "rain",
+    "replayCompound": "wet"
+  },
+  "sourceGuardExcludedPaths": [
+    "public/models/supplied-player-lods.bin.gz",
+    "browser-backend.json",
+    "browser-progress.json"
+  ],
+  "sourceDigestFormat": "In snapshotSource insertion order, concatenate UTF-8 path + NUL + snapshot value + LF, then SHA-256.",
+  "passed": true,
+  "preview": {
+    "executable": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "args": [
+      "node_modules/vite/bin/vite.js",
+      "preview",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "4173",
+      "--strictPort"
+    ],
+    "pid": 37,
+    "owned": true,
+    "servedBuildIdentity": {
+      "version": 1,
+      "commit": "9119c7683d821d145f15ed64a03ee3406595b58d",
+      "fingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+      "variant": "product",
+      "edition": "full"
+    },
+    "verifiedAt": "2026-11-25T04:55:10.493Z",
+    "stoppedAt": "2026-11-25T04:58:08.042Z",
+    "exitCode": 143,
+    "signalCode": null
+  },
+  "browser": {
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 177541.43,
+    "finishedAt": "2026-11-25T04:58:08.035Z"
+  },
+  "after": {
+    "head": "9119c7683d821d145f15ed64a03ee3406595b58d",
+    "tree": "3b704f846c3283c21e73f8f5c3febf670a773c63",
+    "gitStatus": "?? browser-progress.json",
+    "guardedInputCount": 3396,
+    "guardedInputSha256": "d3bb494f817402f0723bb35fcc9dadec875669032f8803e0f6eebc9ae7d2584a",
+    "sourceFingerprint": "c504fad0736d361bbeb79bf6ef4d64bafe2200329c064525c5dc60066729d7fe",
+    "lockfileSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "generatedPlayerLodsSha256": null
+  },
+  "changedSourcePaths": [],
+  "changedDistPaths": [],
+  "changedDistFromBuildPaths": [],
+  "stats": {
+    "startTime": "2026-11-25T04:55:11.871Z",
+    "duration": 175752.511,
+    "expected": 37,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "reportErrors": [],
+  "caseCount": 37,
+  "suiteCounts": {
+    "engine-native-audio.spec.ts": 3,
+    "engine-native-channels.spec.ts": 5,
+    "engine-native-input.spec.ts": 3,
+    "engine-native-lifecycle.spec.ts": 7,
+    "engine-native-preview.spec.ts": 7,
+    "engine-native-recording.spec.ts": 5,
+    "engine-native-resources.spec.ts": 4,
+    "engine-native-workers.spec.ts": 2,
+    "replay-state.spec.ts": 1
+  },
+  "allCasesPassedOnce": true,
+  "keyEvidence": {
+    "replayStall": {
+      "stallMs": 8500,
+      "replayBefore": 6.933333396911621,
+      "replayAfter": 15.933334350585938,
+      "telemetryBefore": 420,
+      "telemetryAfter": 960,
+      "warnings": [],
+      "replayGainSeconds": 9.000000953674316,
+      "telemetryGainSamples": 540
+    },
+    "replaySeek": {
+      "callbacks": 2,
+      "framesBefore": 9,
+      "framesAfter": 10,
+      "observedPosition": 0.75,
+      "presentationTime": 6.72410774230957,
+      "replayStart": 5.97410774230957,
+      "presentationTimeErrorSeconds": 0,
+      "seekPending": false,
+      "replayPlaying": true,
+      "endPausePosition": 16.133333206176758,
+      "settledEndPosition": 16.133333206176758,
+      "restartFloor": 0,
+      "restartedPosition": 0,
+      "finalPosition": 0,
+      "finalSurfaceTime": 0,
+      "finalRecordingWarnings": []
+    },
+    "liveAudioResume": {
+      "before": "suspended",
+      "after": "running",
+      "staleScheduled": false,
+      "freshScheduled": true,
+      "sampleRate": 48000
+    },
+    "csvTransfer": {
+      "rows": 600,
+      "columns": 228,
+      "byteLength": 547200,
+      "detached": true,
+      "snapshotDifferences": 0,
+      "continuingDifferences": 0,
+      "continuingBytes": 547200,
+      "exactCsv": true,
+      "csvBytes": 1268138,
+      "csvSha256": "120e22a8e14c8efe4f2ff77b7e952f33abb8c8f33e209c09b0fcb3493bbe5298",
+      "rowCount": 600,
+      "headerMatches": true,
+      "lastRowMatches": true,
+      "mime": "text/csv;charset=utf-8",
+      "terminations": 1,
+      "uniqueTerminations": 1
+    },
+    "csvOwnership": {
+      "firstDetached": true,
+      "secondDetached": true,
+      "cancelledDetached": true,
+      "invalidDetached": true,
+      "recoveredDetached": true,
+      "retiredMessage": "Telemetry export cancelled",
+      "cancelledMessage": "Telemetry export cancelled",
+      "invalidMessage": "Invalid telemetry export shape",
+      "staleSuccess": false,
+      "replacementExact": true,
+      "replacementRows": 600,
+      "recoveredExact": true,
+      "terminations": 5,
+      "uniqueTerminations": 5
+    }
+  },
+  "backend": {
+    "requested": "swiftshader",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "finishedAt": "2026-11-25T04:58:08.510Z",
+  "receiptHashes": {
+    "/tmp/engine-c71f32882729/w09c-browser.log": "85af7a9ca918f851fe820b553f3c358cab38efe4ac661eaa1df616d75a6432fe",
+    "/tmp/engine-c71f32882729/w09c-browser-report.json": "e8f741b117b26a5438cc67b077426a4a13e81f84e13186f4a8ad76fa7f2dd37a",
+    "/tmp/engine-c71f32882729/w09c-browser-backend.json": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf",
+    "/tmp/engine-c71f32882729/w09c-browser-progress.json": "b0917fd076168bac7f128032bfe81bc1dc815b9deaccd1208d2fd77d84e88c90",
+    "/tmp/engine-c71f32882729/w09c-case-results.json": "f3d5d555807b78ba34043459b0461329cb518b853d34a120c8f71b645eaa048d",
+    "/tmp/engine-c71f32882729/w09c-attachment-manifest.json": "e3e6b61f0a9481fddcd584747d801dda9cae23090ca2481060847bc591a86352",
+    "/tmp/engine-c71f32882729/w09c-source-before.json": "b3cf826d4823c70fff6d3e9c111aa51afe1b3eb351b3feeae96b453f2c59b9e6",
+    "/tmp/engine-c71f32882729/w09c-source-after.json": "b3cf826d4823c70fff6d3e9c111aa51afe1b3eb351b3feeae96b453f2c59b9e6",
+    "/tmp/engine-c71f32882729/w09c-dist-before.json": "78d3adc808eda6f274157a8d7a51146e02cdf508d5454217b2c3a5684b9cea65",
+    "/tmp/engine-c71f32882729/w09c-dist-after.json": "78d3adc808eda6f274157a8d7a51146e02cdf508d5454217b2c3a5684b9cea65",
+    "/tmp/engine-c71f32882729/w09c-preview.log": "ecbd7eb35ac4acd913ff89a5390ee30069b6e910709e5626dc3f8fc34eadb53f"
+  }
+}

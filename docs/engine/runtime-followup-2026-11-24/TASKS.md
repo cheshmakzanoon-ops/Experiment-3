@@ -1,6 +1,8 @@
 # Agent execution ledger
 
-Distinct worker assignments actually started are listed below. Planned assignments are not counted as completed. Each wave contains six assignments and uses up to three worker slots at a time. Independent preparation may overlap a preceding wave; timings retain exclusive compute ownership. The coordinator is excluded.
+All **60 distinct worker assignments** are complete, organized into **ten waves of six**. The coordinator is excluded. Followups and resumed turns keep the same worker identity and are not additional agents. Earlier-session work before the task baseline is excluded.
+
+The workspace allowed up to three active workers alongside the coordinator. Independent preparation and reviews could overlap logical waves; measured workloads and the final runtime gates retained exclusive compute ownership.
 
 | Agent | Wave | Assignment | Status |
 | --- | --- | --- | --- |
@@ -52,19 +54,33 @@ Distinct worker assignments actually started are listed below. Planned assignmen
 | 46 | 8 | `w08d_input_audio_review` | complete |
 | 47 | 8 | `w08e_resource_review` | complete |
 | 48 | 8 | `w08f_physics_review` | complete |
-| 49 | 9 | `w09a_consolidated_units` | running |
-| 50 | 9 | `w09b_static_build_gate` | running |
-| 51 | 9 | `w09c_native_final_gate` | running |
+| 49 | 9 | `w09a_consolidated_units` | complete |
+| 50 | 9 | `w09b_static_build_gate` | complete |
+| 51 | 9 | `w09c_native_final_gate` | complete |
+| 52 | 9 | `w09d_published_ci_review` | complete |
+| 53 | 9 | `w09e_protected_scope_audit` | complete |
+| 54 | 9 | `w09f_evidence_report` | complete |
+| 55 | 10 | `w10a_regression_triage` | complete |
+| 56 | 10 | `w10b_performance_claim_audit` | complete |
+| 57 | 10 | `w10c_ledger_audit` | complete |
+| 58 | 10 | `w10d_final_engine_review` | complete |
+| 59 | 10 | `w10e_publication_verification` | complete |
+| 60 | 10 | `w10f_final_acceptance` | complete |
 
-## Programme
+## Evidence and provenance
 
-- Wave 1: Fresh audit across runtime, storage, network, physics, devices and resources.
-- Wave 2: Repair recording, network input, controller and host lifetime defects.
-- Wave 3: Reduce physics/query/texture work and close audio/GPU lifetime gaps.
-- Wave 4: Improve remaining transport, command, session and input algorithms.
-- Wave 5: Integrate and repair composed mode transitions and persistence.
-- Wave 6: Validate real worker, network, audio and storage contracts.
-- Wave 7: Profile engine kernels and complete resulting safe optimizations.
-- Wave 8: Independent adversarial review across engine subsystems.
-- Wave 9: Complete native/runtime and build validation.
-- Wave 10: Final review, protected-content audit, evidence and publication.
+The execution record is maintained from the coordinator's actual spawn and completion history. Retained reports corroborate the work; filenames and a reset live registry alone do not prove historical process creation. [Independent ledger audit](reviews/w10c-ledger-audit.md) records that distinction.
+
+| Wave | Work and retained evidence |
+| --- | --- |
+| 1–2 | [Audit and implementation reconstruction](WAVE01-02.md). Original individual scratch handoffs for workers 1–12 were lost during an earlier runtime reset; no replacement quotations or original-run totals are invented. |
+| 3 | [Wave 3](WAVE-03.md), original individual worker handoffs and committed regression/measurement evidence. |
+| 4 | [Wave 4](WAVE-04.md), original individual worker handoffs and committed regression/measurement evidence. |
+| 5 | [Wave 5](WAVE-05.md), original individual worker handoffs and committed regression/measurement evidence. |
+| 6 | [Wave 6](WAVE-06.md), original individual worker handoffs and committed regression/measurement evidence. |
+| 7 | [Wave 7](WAVE-07.md), original individual worker handoffs and committed regression/measurement evidence. |
+| 8 | [Wave 8](WAVE-08.md), original individual worker handoffs and committed regression/measurement evidence. |
+| 9 | [Complete final gates](WAVE09.md): consolidated units, full static/build, native/replay, published CI, protected scope and evidence integration. |
+| 10 | [Final review and acceptance](WAVE10.md): regression accounting, performance claims, ledger, engine integration, remote publication and acceptance. |
+
+[Evidence index](EVIDENCE.md) maps the retained reports, readable receipts and compressed original evidence. The final documentation-only publication and its remote verification follow the immutable code/test gates; their identities are established through Git metadata.

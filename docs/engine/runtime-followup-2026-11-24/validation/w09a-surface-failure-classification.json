@@ -1,0 +1,37 @@
+{
+  "file": "tests/surface-channel-backpressure.test.ts",
+  "baseline_commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+  "candidate_commit": "811ac2bc92f4494b1ec99d1fc4201101ccf34c66",
+  "classification": "intentional_worker_terminal_contract_update",
+  "baseline_original_cases": {
+    "passed": 14,
+    "failed": 0
+  },
+  "candidate_original_cases": {
+    "passed": 13,
+    "failed": 1
+  },
+  "corrected_cases": {
+    "passed": 15,
+    "failed": 0
+  },
+  "baseline_matching_status": "passed",
+  "original_failure": {
+    "ancestorTitles": [
+      "real circuit worker surface backpressure"
+    ],
+    "fullName": "real circuit worker surface backpressure rebases real terrain after a failed post consumed its incremental change set",
+    "status": "failed",
+    "title": "rebases real terrain after a failed post consumed its incremental change set",
+    "duration": 111.16996199999994,
+    "failureMessages": [
+      "AssertionError: expected [ { type: 'surface', \u2026(8) } ] to have a length of 2 but got 1\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1257:20)\n    at Proxy.<anonymous> (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/expect/dist/index.js:1029:14)\n    at Proxy.methodWrapper (file:///tmp/engine-c71f32882729/repo/node_modules/chai/index.js:1686:25)\n    at /tmp/engine-c71f32882729/repo/tests/surface-channel-backpressure.test.ts:569:23\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///tmp/engine-c71f32882729/repo/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)"
+    ],
+    "meta": {}
+  },
+  "production_changes": [],
+  "preserved_same_terrain_proof": "Separate direct SurfaceChannel test uses actual Simulation terrain; requires nonempty deformation/change set, attached failed-post delta consumption, exact full rebase of the same terrain, unchanged physical-state hash, native accepted transfers, and no invented rejected-message credit.",
+  "worker_contract": "Failed worker retires delivered ACK ownership without capture, publication, stepping or pause acknowledgement; successful init creates a new simulation and full new-epoch terrain publication.",
+  "test_sha256": "a39de39d1171dd25a7406cfbac26bbcdb0a168f532bd5f2715f4e024cc9fece9",
+  "patch_sha256": "f7a7cac2cde7082b5d82fd4f49f19a9af9ce351e98b8733b5d1ea7b8f62bc7d6"
+}
