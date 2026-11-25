@@ -1,1 +1,271 @@
-logs unavailable (expired or not accessible)
+### browser (16) (job 139510848561)
+--- error digest (first 120 matching lines) ---
+829:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:21:27.0738060Z   ✘  10 e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry (4.3m)
+831:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:21:27.0740039Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+837:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:21:27.0741702Z - Timeout 240000ms exceeded while waiting on the predicate
+890:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:36:34.9965487Z   ✘  19 e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night (12.3m)
+894:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:36:34.9968634Z Error: page.evaluate: Test timeout of 720000ms exceeded.
+914:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:45:13.3034862Z   ✘  20 e2e/a32-pit-jacks.spec.ts:12:1 › A32 loads the retained GLB before ordinary practice entry (8.6m)
+975:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2328812Z   ✘  30 e2e/27-visual-coherence.spec.ts:92:5 › 27H.5 ordinary application full-lap evidence › wet-day: full chase lap, held views and replay weather (13.3m)
+977:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2332815Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+987:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2664012Z   1) e2e/27-visual-coherence.spec.ts:92:5 › 27H.5 ordinary application full-lap evidence › wet-day: full chase lap, held views and replay weather › Expect "poll toBe" 
+989:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2664822Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+1020:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2675272Z   2) e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry › Expect "poll toMatch" 
+1022:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2675931Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+1028:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677254Z     - Timeout 240000ms exceeded while waiting on the predicate
+1056:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685072Z   3) e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night 
+1060:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685831Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+1079:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2691355Z   4) e2e/a32-pit-jacks.spec.ts:12:1 › A32 loads the retained GLB before ordinary practice entry ────
+1104:browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.6810926Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:53:31.8308460Z [browser-progress] 144s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toMatch"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:54:01.8298537Z [browser-progress] 174s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toMatch"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:54:31.8318354Z [browser-progress] 204s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toMatch"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:55:01.8499008Z [browser-progress] 234s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click locator('#modal [data-action="visualReview"]')
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:55:31.8798679Z [browser-progress] 264s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click locator('#modal [data-action="visualReview"]')
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:56:01.9094377Z [browser-progress] 294s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click locator('#modal [data-action="visualReview"]')
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:56:31.9315983Z [browser-progress] 324s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true })
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:57:01.9618646Z [browser-progress] 354s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true })
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:57:31.9918779Z [browser-progress] 384s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true })
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:58:02.0200593Z [browser-progress] 414s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true })
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:58:32.0505425Z [browser-progress] 444s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true })
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:59:02.0828471Z [browser-progress] 474s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Click getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true })
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T21:59:32.0838267Z [browser-progress] 504s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:00:02.0858335Z [browser-progress] 534s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:00:32.0853677Z [browser-progress] 564s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:01:02.0862607Z [browser-progress] 594s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:01:32.0878816Z [browser-progress] 624s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:02:02.0888314Z [browser-progress] 654s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:02:32.0918328Z [browser-progress] 684s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:03:02.0938405Z [browser-progress] 714s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:03:32.0917717Z [browser-progress] 744s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:02.0938303Z [browser-progress] 774s  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather / Expect "toBe"
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2328812Z   ✘  30 e2e/27-visual-coherence.spec.ts:92:5 › 27H.5 ordinary application full-lap evidence › wet-day: full chase lap, held views and replay weather (13.3m)
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2332020Z [browser-failure]  >  > 27-visual-coherence.spec.ts > 27H.5 ordinary application full-lap evidence > wet-day: full chase lap, held views and replay weather
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2332815Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2333140Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2333280Z Expected: ^[[32m"complete"^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2333527Z Received: ^[[31m"recording"^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2333660Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2333729Z Call Log:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2333908Z - Test timeout of 780000ms exceeded
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2334273Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/27-visual-coherence.spec.ts:177:7
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2651923Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2655424Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2664012Z   1) e2e/27-visual-coherence.spec.ts:92:5 › 27H.5 ordinary application full-lap evidence › wet-day: full chase lap, held views and replay weather › Expect "poll toBe" 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2664476Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2664822Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2665111Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2665274Z     Expected: ^[[32m"complete"^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2665628Z     Received: ^[[31m"recording"^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2665786Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2665856Z     Call Log:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2666103Z     - Test timeout of 780000ms exceeded
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2666247Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2666851Z       175 |       await page.getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true }).click();
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2667443Z       176 |       await expect.poll(async () => (await read()).presentationReview.state).toBe('recording');
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2667872Z     > 177 |       await expect
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2668088Z           |       ^
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2668288Z       178 |         .poll(
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2668519Z       179 |           async () => {
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2668822Z       180 |             const d = await read();
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2669304Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/27-visual-coherence.spec.ts:177:7
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2669624Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2669995Z     attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2670475Z     test-results/27-visual-coherence-27H-5--bc41a-ld-views-and-replay-weather/video.webm
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2670999Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2671288Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2671596Z     Error Context: test-results/27-visual-coherence-27H-5--bc41a-ld-views-and-replay-weather/error-context.md
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2672149Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2672483Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2673093Z     test-results/27-visual-coherence-27H-5--bc41a-ld-views-and-replay-weather/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2673438Z     Usage:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2673519Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2673820Z         npx playwright show-trace test-results/27-visual-coherence-27H-5--bc41a-ld-views-and-replay-weather/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2674179Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2674547Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2674758Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2675272Z   2) e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry › Expect "poll toMatch" 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2675665Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2675931Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2676185Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2676351Z     Expected pattern: ^[[32m/^(driving|briefing)$/^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2676802Z     Received string:  ^[[31m"loading"^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2676949Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677020Z     Call Log:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677254Z     - Timeout 240000ms exceeded while waiting on the predicate
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677437Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677519Z        at race-entry.ts:6
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677636Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2677830Z       4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2678219Z       5 | export async function finishRaceEntry(page: Page) {
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2678459Z     > 6 |   await expect
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2678636Z         |   ^
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2678788Z       7 |     .poll(
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2678956Z       8 |       async () => {
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2679231Z       9 |         const d = await page.evaluate(() => window.apexDiagnostics());
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2679650Z         at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2680124Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/45-a21-pit-building-frontage.spec.ts:30:3
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2680388Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2680669Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2681150Z     test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/test-failed-1.png
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2681683Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2681878Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2682160Z     Error Context: test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/error-context.md
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2682475Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2682744Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2683237Z     test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2683634Z     Usage:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2683723Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2684007Z         npx playwright show-trace test-results/45-a21-pit-building-fronta-b5878--A24-through-practice-entry/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2684328Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2684576Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2684778Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685072Z   3) e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685394Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685538Z     ^[[31mTest timeout of 720000ms exceeded.^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685691Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685831Z     Error: page.evaluate: Test timeout of 720000ms exceeded.
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2685996Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2686110Z       119 |     await page.goto('/a31-survey');
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2686402Z       120 |     await page.addScriptTag({ content: chunk.code });
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2686984Z     > 121 |     const report = await page.evaluate(
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2687224Z           |                               ^
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2687465Z       122 |       async ({ samples, lighting }) =>
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2687906Z       123 |         (window as unknown as { A31Survey: { surveyA31: typeof surveyA31 } }).A31Survey.surveyA31(
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2688264Z       124 |           samples,
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2688592Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a31-wheel-gun.spec.ts:121:31
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2688828Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2689116Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2689584Z     test-results/a31-wheel-gun-A31-real-whe-edebe-rktop-tools-render-in-night/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2689910Z     Usage:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2690000Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2690306Z         npx playwright show-trace test-results/a31-wheel-gun-A31-real-whe-edebe-rktop-tools-render-in-night/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2690640Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2690879Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2691081Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2691355Z   4) e2e/a32-pit-jacks.spec.ts:12:1 › A32 loads the retained GLB before ordinary practice entry ────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2691602Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2691733Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2691881Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2692169Z     Error Context: test-results/a32-pit-jacks-A32-loads-th-3b90c-ore-ordinary-practice-entry/error-context.md
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2692492Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2692763Z     attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2694473Z     test-results/a32-pit-jacks-A32-loads-th-3b90c-ore-ordinary-practice-entry/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2694845Z     Usage:
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2694934Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2695279Z         npx playwright show-trace test-results/a32-pit-jacks-A32-loads-th-3b90c-ore-ordinary-practice-entry/trace.zip
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2695693Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2696006Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2696244Z 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2696408Z   Slow test file: e2e/27-visual-coherence.spec.ts (13.3m)
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2696976Z   Slow test file: e2e/a31-wheel-gun.spec.ts (12.3m)
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2697325Z   Slow test file: e2e/a32-pit-jacks.spec.ts (8.6m)
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2697982Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2698353Z   4 failed
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2698960Z     e2e/27-visual-coherence.spec.ts:92:5 › 27H.5 ordinary application full-lap evidence › wet-day: full chase lap, held views and replay weather 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2699718Z     e2e/45-a21-pit-building-frontage.spec.ts:11:1 › A21 normal startup retains four frontage chunks and A22/A24 through practice entry 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2700428Z     e2e/a31-wheel-gun.spec.ts:57:3 › A31 real wheel-gun contact, replay and worktop tools render in night 
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2700953Z     e2e/a32-pit-jacks.spec.ts:12:1 › A32 loads the retained GLB before ordinary practice entry ─────
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2701270Z   2 skipped
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.2701423Z   24 passed (51.6m)
+browser (16)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16	2026-11-25T22:04:27.6810926Z ##[error]Process completed with exit code 1.
+browser (16)	Browser screenshots and diagnostics	﻿2026-11-25T22:04:27.6860710Z ##[group]Run actions/upload-artifact@v4
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6860964Z with:
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6861137Z   name: browser-validation-16-of-16
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6861529Z   path: test-results/
+browser (16)	Browser screenshots and diagnostics	playwright-report/
+browser (16)	Browser screenshots and diagnostics	browser-shard-plan.json
+browser (16)	Browser screenshots and diagnostics	browser-backend.json
+browser (16)	Browser screenshots and diagnostics	browser-progress.json
+browser (16)	Browser screenshots and diagnostics	
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6861906Z   retention-days: 7
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6862081Z   if-no-files-found: warn
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6862279Z   compression-level: 6
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6862451Z   overwrite: false
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6862634Z   include-hidden-files: false
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6862819Z env:
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6862977Z   APEX_BROWSER_BACKEND: mesa
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6863183Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6863385Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6863574Z   GALLIUM_DRIVER: llvmpipe
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.6863760Z ##[endgroup]
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8071622Z (node:5908) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8072668Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8263568Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8265324Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8265968Z With the provided path, there will be 116 files uploaded
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8277115Z Artifact name is valid!
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:27.8277651Z Root directory input is valid!
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:28.1750529Z Beginning upload of artifact content to blob storage
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:28.4032999Z (node:5908) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:28.7617159Z Uploaded bytes 8388608
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:28.9181699Z Uploaded bytes 16777216
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:29.0544199Z Uploaded bytes 25165824
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:29.3426379Z Uploaded bytes 33554432
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:29.5464627Z Uploaded bytes 41943040
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:29.6984078Z Uploaded bytes 50331648
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:29.9364091Z Uploaded bytes 58720256
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:30.1838913Z Uploaded bytes 67108864
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:30.4008851Z Uploaded bytes 75497472
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:30.5893072Z Uploaded bytes 83886080
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:30.8447180Z Uploaded bytes 92274688
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:31.0445569Z Uploaded bytes 100663296
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:31.3427408Z Uploaded bytes 109051904
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:31.5504376Z Uploaded bytes 117440512
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:31.8326401Z Uploaded bytes 125829120
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:31.9689666Z Uploaded bytes 134217728
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:32.2354641Z Uploaded bytes 142606336
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:32.4246964Z Uploaded bytes 150994944
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:32.6218296Z Uploaded bytes 159383552
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:32.9064650Z Uploaded bytes 167772160
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:33.1228365Z Uploaded bytes 176160768
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:33.2984707Z Uploaded bytes 184549376
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:33.5027650Z Uploaded bytes 192937984
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:33.7122351Z Uploaded bytes 201326592
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:33.9599318Z Uploaded bytes 209715200
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:34.2432554Z Uploaded bytes 218103808
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:34.4097554Z Uploaded bytes 226492416
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:34.6366457Z Uploaded bytes 234881024
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:34.9394023Z Uploaded bytes 243269632
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:35.1857559Z Uploaded bytes 251658240
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:35.3572655Z Uploaded bytes 260046848
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:35.6499009Z Uploaded bytes 268435456
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:35.8897592Z Uploaded bytes 276824064
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:36.1298060Z Uploaded bytes 285212672
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:36.2968224Z Uploaded bytes 293601280
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:36.6649483Z Uploaded bytes 301989888
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:36.7835370Z Uploaded bytes 310378496
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:37.0372149Z Uploaded bytes 318767104
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:37.2213564Z Uploaded bytes 327155712
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:37.3922888Z Uploaded bytes 335544320
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:37.7475611Z Uploaded bytes 343932928
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:37.9404193Z Uploaded bytes 352321536
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:38.1448900Z Uploaded bytes 360710144
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:38.4201164Z Uploaded bytes 369098752
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:38.5442425Z Uploaded bytes 377487360
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:38.9148274Z Uploaded bytes 385875968
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.0627666Z Uploaded bytes 391074369
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.0833781Z Finished uploading artifact content to blob storage!
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.0836391Z SHA256 digest of uploaded artifact zip is f94c8bfc198e55724992967afedf264e7be9210f53fb38436c42a2527c97d6c0
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.0837235Z Finalizing artifact upload
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.4558683Z Artifact browser-validation-16-of-16.zip successfully finalized. Artifact ID 15067261536
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.4559390Z Artifact browser-validation-16-of-16 has been successfully uploaded! Final size is 391074369 bytes. Artifact ID is 15067261536
+browser (16)	Browser screenshots and diagnostics	2026-11-25T22:04:39.4562436Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/artifacts/15067261536
+browser (16)	Post Run actions/checkout@v4	﻿2026-11-25T22:04:39.4749842Z Post job cleanup.
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5394823Z [command]/usr/bin/git version
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5432905Z git version 2.56.1
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5450131Z Temporarily overriding HOME='/home/runner/work/_temp/1f2a0026-dda8-4d5e-bbee-ce89ec013128' before making global git config changes
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5450743Z Adding repository directory to the temporary git global config as a safe directory
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5451275Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5476757Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5506037Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5679241Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5698275Z http.https://github.com/.extraheader
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5706217Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5730127Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5888841Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (16)	Post Run actions/checkout@v4	2026-11-25T22:04:39.5914776Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (16)	Complete job	﻿2026-11-25T22:04:39.6214820Z Cleaning up orphan processes
+browser (16)	Complete job	2026-11-25T22:04:39.6410638Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
