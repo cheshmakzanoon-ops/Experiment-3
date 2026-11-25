@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45637677739
-- commit: `92e2dc2ed2` · perf(engine): park idle physics worker intervals with explicit wake ownership
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T14:46:14Z · updated: 2026-11-25T15:00:45Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45641670538
+- commit: `e2d1fec2ff` · fix(engine): preserve desktop recovery completeness and retire canceled events
+- event: push · status: completed · conclusion: **cancelled**
+- started: 2026-11-25T15:07:54Z · updated: 2026-11-25T15:24:55Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| unit-tests (3) | failure | 9 | Complete unit-suite partition without source changes |
-| unit-tests (1) | failure | 10 | Complete unit-suite partition without source changes |
-| unit-tests (4) | success | 14 |  |
-| offroad-scenarios | success | 9 |  |
 | validate | failure | 1 | Lint, validate content, typecheck and build without source changes |
-| unit-tests (2) | success | 12 |  |
+| offroad-scenarios | success | 8 |  |
+| unit-tests (4) | success | 12 |  |
+| unit-tests (1) | failure | 15 | Complete unit-suite partition without source changes |
 | scenarios | success | 10 |  |
-| owner-qa | skipped | -1 |  |
-| browser | skipped | -1 |  |
-| wet-presentation | skipped | -1 |  |
-| publish | skipped | 0 |  |
+| unit-tests (2) | cancelled | 16 | Complete unit-suite partition without source changes |
+| unit-tests (3) | failure | 8 | Complete unit-suite partition without source changes |
+| owner-qa | skipped | 0 |  |
+| browser | skipped | 0 |  |
+| wet-presentation | skipped | 0 |  |
+| publish | cancelled | 0 |  |
