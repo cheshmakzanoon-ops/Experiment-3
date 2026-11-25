@@ -2028,6 +2028,7 @@ export class GameApp {
     }
   };
   private suspendPlayback() {
+    this.rumble.stop(null);
     if (this.state === 'pregame') {
       this.gridClock.pause();
       this.gridPanel?.update(this.gridClock);
@@ -2263,6 +2264,7 @@ export class GameApp {
   }
   private pause() {
     if (this.state !== 'driving') return;
+    this.rumble.stop(null);
     this.dirtGateRelease = null;
     this.referenceSession.interrupt('Session paused or focus lost.');
     this.performanceCapture.interrupt('Session paused or focus lost');
@@ -3517,24 +3519,39 @@ export class GameApp {
     this.errorStopped = true;
     const startup = this.circuitStartup;
     this.circuitStartup = null;
-    startup?.close(error instanceof Error ? error : new Error(String(error)));
-    clearTimeout(this.initTimeout);
+    const worker = this.worker;
+    this.worker = null;
+    const initTimeout = this.initTimeout;
     this.initTimeout = 0;
-    this.referenceSession?.interrupt('Application error.');
-    this.sessionReview.stop('Application error', true);
-    this.tabEvidence.observe(
-      'application-error',
-      error instanceof Error ? error.message : String(error),
+    // Revoke owners before callbacks can reenter. Cleanup failures must neither
+    // strand unrelated resources nor replace the error that stopped the host.
+    const release = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch {
+        // The originating error is reported after all releases are attempted.
+      }
+    };
+    release(() => startup?.close(error instanceof Error ? error : new Error(String(error))));
+    release(() => clearTimeout(initTimeout));
+    release(() => this.referenceSession?.interrupt('Application error.'));
+    release(() => this.sessionReview.stop('Application error', true));
+    release(() =>
+      this.tabEvidence.observe(
+        'application-error',
+        error instanceof Error ? error.message : String(error),
+      ),
     );
-    this.performanceCapture.interrupt('Application error');
-    this.interruptReview('Application error');
-    this.festivalOwner.cancel();
-    this.endDemoClock();
-    this.worker?.terminate();
-    this.input.setEnabled(false);
-    this.audio.stop();
-    console.error(error);
-    this.ui.error(error instanceof Error ? error.message : String(error));
+    release(() => this.performanceCapture.interrupt('Application error'));
+    release(() => this.interruptReview('Application error'));
+    release(() => this.festivalOwner.cancel());
+    release(() => this.endDemoClock());
+    release(() => worker?.terminate());
+    release(() => this.input.setEnabled(false));
+    release(() => this.rumble.stop(null));
+    release(() => this.audio.stop());
+    release(() => console.error(error));
+    release(() => this.ui.error(error instanceof Error ? error.message : String(error)));
   }
   diagnostics(visual = false) {
     const menuPreview = this.state === 'menu' ? this.menuPreviewReceipt.report() : null;

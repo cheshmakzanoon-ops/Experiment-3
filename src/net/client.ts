@@ -416,7 +416,7 @@ export class RaceClient {
       if (checked.clamped.length) this.stats.clampedSamples++;
     } else {
       this.stats.rejectedSamples++;
-      controls = { ...this.lastControls, overtake: false, pit: false };
+      controls = { ...this.lastControls, shift: 0, overtake: false, pit: false };
     }
     this.lastControls = controls;
     this.commands.issue(ticks, controls);

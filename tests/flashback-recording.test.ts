@@ -83,14 +83,18 @@ describe('flashback recordings', () => {
   it('drops telemetry rows newer than the flashback time', () => {
     const t = new TelemetryRecorder(1);
     const row = new Float32Array(CHANNELS.length);
+    const sessionTime = CHANNELS.indexOf('session_time_s');
     for (let i = 0; i < 90; i++) {
       row[0] = i / 60;
+      row[sessionTime] = 6 + i / 60;
       t.appendBatch(row, 1);
     }
     expect(t.count).toBe(60);
-    expect(t.truncate(0.805)).toBe(89 - 48);
+    expect(t.truncate(6.805)).toBe(89 - 48);
     expect(t.at(t.count - 1, 0)).toBeCloseTo(0.8, 5);
+    expect(t.at(t.count - 1, sessionTime)).toBeCloseTo(6.8, 5);
     row[0] = 0.9;
+    row[sessionTime] = 6.9;
     t.appendBatch(row, 1);
     expect(t.at(t.count - 1, 0)).toBeCloseTo(0.9, 5);
   });

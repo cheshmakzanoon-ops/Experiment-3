@@ -175,6 +175,9 @@ export class ReplayRecorder {
     return this.data.byteLength;
   }
 }
+const TELEMETRY_SESSION_TIME = CHANNELS.indexOf('session_time_s');
+const TELEMETRY_TICK = CHANNELS.indexOf('tick');
+
 export class TelemetryRecorder {
   readonly stride = CHANNELS.length;
   readonly capacity: number;
@@ -218,24 +221,28 @@ export class TelemetryRecorder {
     this.head = (this.head + rows) % this.capacity;
     this.count = Math.min(this.count + rows, this.capacity);
   }
-  /** D31 flashback: drop the rows recorded after `time` (column 0, seconds). */
+  /** D31 flashback: drop rows after `time` in H.TIME session seconds. */
   truncate(time: number) {
+    // The worker's cutoff is a double; H.TIME is packed at Float32 precision.
+    const cutoff = Math.fround(time);
     let removed = 0;
     // The newest row sits just before `head`; drop rows from that end.
-    while (this.count > 0 && this.at(this.count - 1, 0) > time) {
+    while (this.count > 0 && this.at(this.count - 1, TELEMETRY_SESSION_TIME) > cutoff) {
       this.head = (this.head - 1 + this.capacity) % this.capacity;
       this.count--;
       removed++;
     }
+    // Reused ticks on the resumed timeline must not be suppressed as old frames.
+    if (removed) this.last = this.count ? this.at(this.count - 1, TELEMETRY_TICK) : -1;
     return removed;
   }
   snapshot() {
     const values = new Float32Array(this.count * this.stride);
-    for (let row = 0; row < this.count; row++)
-      values.set(
-        this.data.subarray(this.offset(row), this.offset(row) + this.stride),
-        row * this.stride,
-      );
+    if (!this.count) return values;
+    const start = this.offset(0);
+    const first = Math.min(values.length, this.data.length - start);
+    values.set(this.data.subarray(start, start + first));
+    if (first < values.length) values.set(this.data.subarray(0, values.length - first), first);
     return values;
   }
   csv() {

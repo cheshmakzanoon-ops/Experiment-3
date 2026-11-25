@@ -11,8 +11,21 @@ import {
  * steer, speed]. */
 export const GHOST_VERSION = 1;
 export const GHOST_FIELDS = 11;
-/** At most one sample per 1/30 s keeps a 2-minute lap under 50 kB. */
+/** Sample at 30 Hz using the worker's Float32 lap clock. */
 export const GHOST_SAMPLE_SECONDS = 1 / 30;
+const GHOST_SAMPLE_INTERVAL = GHOST_SAMPLE_SECONDS - 1e-6;
+export const GHOST_MIN_LAP_SECONDS = 10;
+export const GHOST_MAX_LAP_SECONDS = 600;
+export const GHOST_MIN_SAMPLES = 20;
+/** Enough for every accepted interval below the duration limit, including
+ * Float32 clock tolerance and the final sample at the crossing. */
+export const GHOST_MAX_SAMPLES = Math.ceil(GHOST_MAX_LAP_SECONDS / GHOST_SAMPLE_INTERVAL) + 1;
+const GHOST_POSE_FIELDS = [F.X, F.Y, F.Z, F.QX, F.QY, F.QZ, F.QW, F.STEER, F.SPEED];
+
+function validLapTime(time: number) {
+  return time > GHOST_MIN_LAP_SECONDS && time < GHOST_MAX_LAP_SECONDS;
+}
+
 export interface GhostLap {
   version: typeof GHOST_VERSION;
   circuit: string;
@@ -48,14 +61,17 @@ export function validateGhost(
     g.version !== GHOST_VERSION ||
     g.circuit !== circuit ||
     typeof g.trackLength !== 'number' ||
+    !Number.isFinite(g.trackLength) ||
+    !Number.isFinite(trackLength) ||
     Math.abs(g.trackLength - trackLength) > 0.01 ||
     typeof g.lapTime !== 'number' ||
-    !(g.lapTime > 10 && g.lapTime < 600) ||
+    !validLapTime(g.lapTime) ||
     !Array.isArray(g.sectors) ||
     g.sectors.length !== 3 ||
-    !g.sectors.every((t) => typeof t === 'number' && t > 0) ||
+    !g.sectors.every((t) => typeof t === 'number' && Number.isFinite(t) && t > 0) ||
     !(g.samples instanceof Float32Array) ||
-    g.samples.length < GHOST_FIELDS * 20 ||
+    g.samples.length < GHOST_FIELDS * GHOST_MIN_SAMPLES ||
+    g.samples.length > GHOST_FIELDS * GHOST_MAX_SAMPLES ||
     g.samples.length % GHOST_FIELDS !== 0
   )
     return null;
@@ -108,10 +124,17 @@ export class GhostRecorder {
   }
   /** `driverControlled` is false while automation drives the car. */
   observe(frame: Float32Array, driverControlled: boolean): GhostLap | null {
-    if (frame.length < HEADER + CAR_STRIDE) return null;
+    if (frame.length < HEADER + CAR_STRIDE) {
+      this.discardLap();
+      return null;
+    }
     const o = carBase(0),
       laps = Math.round(frame[o + F.LAPS]),
       lapTime = frame[o + F.LAP_TIME];
+    if (!Number.isSafeInteger(laps) || laps < 0) {
+      this.discardLap();
+      return null;
+    }
     let completed: GhostLap | null = null;
     if (this.laps >= 0 && laps === this.laps + 1) {
       const lapTimeTotal = frame[o + F.LAST_LAP];
@@ -119,13 +142,17 @@ export class GhostRecorder {
         this.eligible &&
         frame[o + F.LAST_LAP_VALID] === 1 &&
         frame[o + F.LAST_LAP_ASSISTED] === 0 &&
-        lapTimeTotal > 10 &&
-        this.samples.length >= GHOST_FIELDS * 20 &&
-        this.samples[0] < 0.5
-      ) {
+        validLapTime(lapTimeTotal) &&
+        lapTimeTotal >= this.lastSample &&
+        Number.isFinite(frame[o + F.SECTOR_1]) &&
+        Number.isFinite(frame[o + F.SECTOR_2]) &&
+        Number.isFinite(frame[o + F.SECTOR_3]) &&
+        this.samples.length >= GHOST_FIELDS * GHOST_MIN_SAMPLES &&
+        this.samples[0] < 0.5 &&
         // Close the lap exactly at the crossing, so playback spans the lap time.
-        this.pushSample(frame, lapTimeTotal, this.context.trackLength);
-        completed = {
+        this.pushSample(frame, lapTimeTotal, this.context.trackLength)
+      ) {
+        const candidate: GhostLap = {
           version: GHOST_VERSION,
           circuit: this.context.circuit,
           trackLength: this.context.trackLength,
@@ -143,6 +170,11 @@ export class GhostRecorder {
           vehicle: this.context.vehicle ?? 'apx01',
           physics: SIMULATION_VERSION,
         };
+        completed = validateGhost(candidate, this.context.circuit, this.context.trackLength, {
+          circuit: this.context.circuit,
+          vehicle: this.context.vehicle ?? 'apx01',
+          physics: SIMULATION_VERSION,
+        });
       }
     }
     if (laps !== this.laps) {
@@ -151,15 +183,45 @@ export class GhostRecorder {
       this.lastSample = -Infinity;
       this.eligible = true;
     }
-    if (!driverControlled || frame[o + F.IN_PIT] > 0 || frame[o + F.PIT_PHASE] > 0)
-      this.eligible = false;
-    if (lapTime > 0 && lapTime - this.lastSample >= GHOST_SAMPLE_SECONDS - 1e-6)
+    if (!this.eligible) return completed;
+    if (
+      !Number.isFinite(lapTime) ||
+      !Number.isFinite(this.context.trackLength) ||
+      lapTime < 0 ||
+      lapTime >= GHOST_MAX_LAP_SECONDS ||
+      lapTime < this.lastSample ||
+      !driverControlled ||
+      frame[o + F.IN_PIT] !== 0 ||
+      frame[o + F.PIT_PHASE] !== 0 ||
+      (lapTime > 0 && frame[o + F.LAP_VALID] !== 1) ||
+      (lapTime > 0 && this.samples.length === 0 && lapTime >= 0.5)
+    ) {
+      this.discardLap();
+      return completed;
+    }
+    if (lapTime > 0 && lapTime - this.lastSample >= GHOST_SAMPLE_INTERVAL)
       this.pushSample(frame, lapTime, frame[o + F.S]);
     return completed;
   }
+  /** Ineligibility lasts until the next lap or an explicit reset. Retain no
+   * unusable recording while waiting, including during a prolonged stop. */
+  private discardLap() {
+    if (this.samples.length) this.samples = [];
+    this.lastSample = -Infinity;
+    this.eligible = false;
+  }
   private pushSample(frame: Float32Array, lapTime: number, s: number) {
     const o = carBase(0);
-    if (lapTime <= this.lastSample) return;
+    if (lapTime <= this.lastSample) return lapTime === this.lastSample;
+    if (
+      this.samples.length >= GHOST_FIELDS * GHOST_MAX_SAMPLES ||
+      !Number.isFinite(lapTime) ||
+      !Number.isFinite(s) ||
+      GHOST_POSE_FIELDS.some((field) => !Number.isFinite(frame[o + field]))
+    ) {
+      this.discardLap();
+      return false;
+    }
     this.lastSample = lapTime;
     this.samples.push(
       lapTime,
@@ -174,6 +236,7 @@ export class GhostRecorder {
       frame[o + F.STEER],
       frame[o + F.SPEED],
     );
+    return true;
   }
 }
 

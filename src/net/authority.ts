@@ -35,9 +35,9 @@ export type DriverMode = 'human' | 'ai';
  * toggling is ignored, so one client cannot inflate the journal with it. */
 export const PIT_TOGGLE_MIN_TICKS = 60;
 /** Most journal entries the live server can write for one car in one tick:
- * one level-control change, one overtake edge, one pit toggle and up to
- * three driver-mode changes (rejoin hold, first command, timeout). */
-export const JOURNAL_ENTRIES_PER_CAR_TICK = 6;
+ * one level-control change, one shift edge, one overtake edge, one pit toggle
+ * and up to three driver-mode changes (rejoin hold, first command, timeout). */
+export const JOURNAL_ENTRIES_PER_CAR_TICK = 7;
 /** Upper bound on the journal of a session of `endTick` ticks and `cars`
  * cars; a verifier rejects anything longer before decoding it. */
 export function journalEntryLimit(endTick: number, cars: number) {
@@ -80,9 +80,13 @@ export function applyControls(car: Vehicle, input: Controls, phase: number, edge
  * Simulation (tests/net-authority.test.ts). */
 export class NetDriver extends AIDriver {
   mode: DriverMode = 'human';
+  /** Live levels have shift: 0. Archived control entries may retain the old
+   * persistent shift level so their original simulation still replays. */
   controls: Controls = holdControls();
   /** An overtake request applies on the next update only. */
   edge = false;
+  /** A live command's shift applies on the next update only. */
+  shiftEdge: -1 | 0 | 1 = 0;
   /** The server AI drove this car at some tick of the current lap. */
   assisted = false;
   /** Whether the next update follows the network controls. */
@@ -91,17 +95,22 @@ export class NetDriver extends AIDriver {
     return this.mode === 'human' && !c.pitRequested && !c.inPit && !(c.finishTime > 0);
   }
   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
-    const edge = this.edge;
+    const edge = this.edge,
+      shift = this.shiftEdge;
     this.edge = false;
+    this.shiftEdge = 0;
     if (!this.followsControls) {
       this.assisted = true;
       super.update(dt, track, cars, race);
       return;
     }
-    // Level controls never carry the one-shot overtake; the edge does.
+    // Consume command edges once, even if AI ownership discarded this tick.
+    // A nonzero stored shift comes only from an archived level-control entry.
     applyControls(
       this.car,
-      edge ? { ...this.controls, overtake: true } : this.controls,
+      edge || shift
+        ? { ...this.controls, overtake: edge, shift: shift || this.controls.shift }
+        : this.controls,
       race.phase,
       edge,
     );
@@ -121,7 +130,9 @@ function overtakeWouldStart(driver: NetDriver) {
 }
 
 export type JournalEntry =
+  // Tags 0/4 retain the original persistent shift semantics for old records.
   | { tick: number; car: number; kind: 'controls'; controls: Controls }
+  | { tick: number; car: number; kind: 'shift'; shift: -1 | 1 }
   | { tick: number; car: number; kind: 'overtake' }
   | { tick: number; car: number; kind: 'mode'; mode: DriverMode }
   | { tick: number; car: number; kind: 'pit'; compound?: Compound };
@@ -177,27 +188,38 @@ export class AuthoritativeWorld {
     return this.sim.cars.length;
   }
   /** Level controls for `car` from this tick on; `first` applies the
-   * command's one-shot controls (pit request, overtake) on this tick. A pit
+   * command's one-shot controls (shift, pit request, overtake) on this tick. A pit
    * toggle within PIT_TOGGLE_MIN_TICKS of the last one is ignored, and an
-   * overtake edge is journaled only when it will start the boost, so edges
-   * add at most a few journal entries per lap whatever a client sends. */
+   * overtake edge is journaled only when it will start the boost. */
   setControls(car: number, input: Controls, first: boolean) {
     const driver = this.drivers[car],
-      level = quantizeControls({ ...input, overtake: false, pit: false });
-    if (!sameControls(level, driver.controls)) {
-      driver.controls = level;
-      this.journal.push({ tick: this.tick, car, kind: 'controls', controls: level });
-    }
+      level = quantizeControls({ ...input, overtake: false, pit: false }),
+      shift = level.shift;
+    level.shift = 0;
+    this.setLevelControls(car, level);
     if (first && input.pit && this.tick - this.lastPitToggle[car] >= PIT_TOGGLE_MIN_TICKS)
       this.requestPit(car);
     if (first && input.overtake && overtakeWouldStart(driver)) {
       driver.edge = true;
       this.journal.push({ tick: this.tick, car, kind: 'overtake' });
     }
+    if (first && shift && driver.followsControls) {
+      const direction = shift > 0 ? 1 : -1;
+      driver.shiftEdge = direction;
+      this.journal.push({ tick: this.tick, car, kind: 'shift', shift: direction });
+    }
+  }
+  private setLevelControls(car: number, level: Controls) {
+    const driver = this.drivers[car];
+    if (sameControls(level, driver.controls)) return;
+    driver.controls = level;
+    // The driver's mutable levels and the journal's snapshot have separate owners.
+    this.journal.push({ tick: this.tick, car, kind: 'controls', controls: { ...level } });
   }
   setMode(car: number, mode: DriverMode) {
     if (this.drivers[car].mode === mode) return;
     this.drivers[car].mode = mode;
+    if (mode === 'ai') this.drivers[car].shiftEdge = 0;
     this.journal.push({ tick: this.tick, car, kind: 'mode', mode });
   }
   /** Toggle a pit request, choosing the compound as `Simulation.requestPit`. */
@@ -225,8 +247,18 @@ export class AuthoritativeWorld {
     if (entry.tick !== this.tick) throw new Error('Journal entry applied at the wrong tick');
     if (!Number.isInteger(entry.car) || entry.car < 0 || entry.car >= this.cars)
       throw new Error('Journal entry names an unknown car');
-    if (entry.kind === 'controls') this.setControls(entry.car, entry.controls, false);
-    else if (entry.kind === 'overtake') {
+    if (entry.kind === 'controls') {
+      // Do not route archived levels through live command normalization: old
+      // tags 0/4 intentionally repeat their shift until another level arrives.
+      this.setLevelControls(
+        entry.car,
+        quantizeControls({ ...entry.controls, overtake: false, pit: false }),
+      );
+    } else if (entry.kind === 'shift') {
+      if (entry.shift !== -1 && entry.shift !== 1) throw new Error('Invalid shift edge');
+      this.drivers[entry.car].shiftEdge = entry.shift;
+      this.journal.push({ ...entry });
+    } else if (entry.kind === 'overtake') {
       this.drivers[entry.car].edge = true;
       this.journal.push({ ...entry });
     } else if (entry.kind === 'mode') this.setMode(entry.car, entry.mode);
@@ -380,8 +412,10 @@ export class AuthoritativeWorld {
   }
 }
 
-const KIND = { controls: 0, overtake: 1, mode: 2, pit: 3 } as const;
-/** Compact binary journal: tick deltas as varints, quantized controls. */
+const KIND = { controls: 0, overtake: 1, mode: 2, pit: 3, shift: 5 } as const;
+/** Compact binary journal: tick deltas as varints, quantized controls.
+ * Tag 5 explicitly introduces once-per-command shifts. Tags 0/4 preserve
+ * archived persistent shifts; older readers reject the new unknown tag. */
 export function encodeJournal(entries: readonly JournalEntry[]) {
   const w = new ByteWriter(entries.length * 10 + 16);
   w.varint(entries.length);
@@ -396,7 +430,10 @@ export function encodeJournal(entries: readonly JournalEntry[]) {
       .u8(rear ? 4 : KIND[e.kind]);
     last = e.tick;
     if (e.kind === 'controls') writeControls(w, e.controls, rear);
-    else if (e.kind === 'mode') w.u8(e.mode === 'ai' ? 1 : 0);
+    else if (e.kind === 'shift') {
+      if (e.shift !== -1 && e.shift !== 1) throw new Error('Invalid shift edge');
+      w.i8(e.shift);
+    } else if (e.kind === 'mode') w.u8(e.mode === 'ai' ? 1 : 0);
     else if (e.kind === 'pit') w.u8(e.compound ? COMPOUND_IDS.indexOf(e.compound) : 255);
   }
   return w.finish();
@@ -419,8 +456,12 @@ export function decodeJournal(
     const car = r.u8(),
       kind = r.u8();
     if (kind === KIND.controls || kind === 4)
-      out.push({ tick, car, kind: 'controls', controls: readControls(r,kind === 4) });
-    else if (kind === KIND.overtake) out.push({ tick, car, kind: 'overtake' });
+      out.push({ tick, car, kind: 'controls', controls: readControls(r, kind === 4) });
+    else if (kind === KIND.shift) {
+      const shift = r.i8();
+      if (shift !== -1 && shift !== 1) throw new DecodeError('Invalid shift edge');
+      out.push({ tick, car, kind: 'shift', shift });
+    } else if (kind === KIND.overtake) out.push({ tick, car, kind: 'overtake' });
     else if (kind === KIND.mode) {
       const m = r.u8();
       if (m > 1) throw new DecodeError('Invalid driver mode');

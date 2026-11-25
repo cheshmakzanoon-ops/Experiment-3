@@ -3,6 +3,8 @@ import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts
 import { ReplayRecorder, TelemetryRecorder } from '../src/storage/recorders.ts';
 import { CHANNELS, packTelemetry } from '../src/storage/telemetry-schema.ts';
 
+const SESSION_TIME = CHANNELS.indexOf('session_time_s');
+
 function telemetryData(recorder: TelemetryRecorder) {
   return (recorder as unknown as { data: Float32Array }).data;
 }
@@ -29,10 +31,11 @@ class RowWiseTelemetry {
     }
   }
   truncate(time: number) {
+    const cutoff = Math.fround(time);
     let removed = 0;
     while (this.count) {
       const newest = (this.head - 1 + this.capacity) % this.capacity;
-      if (this.data[newest * this.stride] <= time) break;
+      if (this.data[newest * this.stride + SESSION_TIME] <= cutoff) break;
       this.head = newest;
       this.count--;
       removed++;
@@ -65,6 +68,7 @@ function telemetryBatch(start: number, rows: number, stride: number) {
     for (let column = 1; column < stride; column++)
       batch[row * stride + column] =
         ((start + row) * stride + column) * (column % 2 ? 0.125 : -0.25);
+    batch[row * stride + SESSION_TIME] = 6 + (start + row) / 60;
   }
   return batch;
 }
@@ -183,7 +187,7 @@ describe('telemetry batch ring', () => {
       }
       expect(new Uint8Array(await recorder.csv().arrayBuffer())).toEqual(reference.csvBytes());
 
-      const cutoff = (next - 19) / 60;
+      const cutoff = 6 + (next - 19) / 60;
       expect(recorder.truncate(cutoff)).toBe(reference.truncate(cutoff));
       expectSameRing(recorder, reference);
       const resumed = telemetryBatch(next - 18, recorder.capacity + 5, recorder.stride);
