@@ -1,210 +1,207 @@
-### scenarios (job 139313109017)
+### scenarios (job 139315971772)
 --- error digest (first 120 matching lines) ---
-285:scenarios	Run npm run test:physics	2026-11-25T15:29:02.6426472Z ##[error]The operation was canceled.
+771:scenarios	Run npm run test:vehicles	2026-11-25T15:38:10.2713730Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:05.3484989Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:05.3509541Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:05.3662544Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:05.3689292Z ##[endgroup]
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:05.3689769Z ##[group]Fetching the repository
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:05.3702876Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +748814f648badd2e355c47c2f6ddc7321a0ed494:refs/remotes/origin/main
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6116382Z From https://github.com/cheshmakzanoon-ops/Experiment-3
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6116903Z  * [new ref]         748814f648badd2e355c47c2f6ddc7321a0ed494 -> origin/main
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6120302Z ##[endgroup]
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6120871Z ##[group]Determining the checkout info
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6122199Z ##[endgroup]
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6126848Z [command]/usr/bin/git sparse-checkout disable
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6192915Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6216859Z ##[group]Checking out the ref
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:16.6229466Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.6472315Z Updating files:  44% (4636/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.6549462Z Updating files:  45% (4676/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.6593921Z Updating files:  46% (4779/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.7232178Z Updating files:  47% (4883/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.7294868Z Updating files:  48% (4987/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.7711628Z Updating files:  49% (5091/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.7837032Z Updating files:  50% (5195/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.7879793Z Updating files:  51% (5299/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8048331Z Updating files:  52% (5403/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8177105Z Updating files:  53% (5507/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8258325Z Updating files:  54% (5611/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8333758Z Updating files:  55% (5714/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8383611Z Updating files:  56% (5818/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8447701Z Updating files:  57% (5922/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8499664Z Updating files:  58% (6026/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8571078Z Updating files:  59% (6130/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8695903Z Updating files:  60% (6234/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8795636Z Updating files:  61% (6338/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.8859805Z Updating files:  62% (6442/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.9055799Z Updating files:  63% (6546/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.9252145Z Updating files:  64% (6649/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.9512985Z Updating files:  65% (6753/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:17.9891333Z Updating files:  66% (6857/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.0111222Z Updating files:  67% (6961/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.0295957Z Updating files:  68% (7065/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.0695528Z Updating files:  69% (7169/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.0835237Z Updating files:  70% (7273/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.0888536Z Updating files:  71% (7377/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.0935804Z Updating files:  72% (7481/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.1196131Z Updating files:  73% (7584/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.1777890Z Updating files:  74% (7688/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.3540348Z Updating files:  75% (7792/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6291839Z Updating files:  76% (7896/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6346059Z Updating files:  77% (8000/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6388944Z Updating files:  77% (8054/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6468413Z Updating files:  78% (8104/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6516592Z Updating files:  79% (8208/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6839110Z Updating files:  80% (8312/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.6989806Z Updating files:  81% (8416/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7159645Z Updating files:  82% (8519/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7207431Z Updating files:  83% (8623/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7259960Z Updating files:  84% (8727/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7406511Z Updating files:  85% (8831/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7464685Z Updating files:  86% (8935/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7514874Z Updating files:  87% (9039/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7570860Z Updating files:  88% (9143/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7624600Z Updating files:  89% (9247/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7673460Z Updating files:  90% (9351/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7726682Z Updating files:  91% (9454/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7779139Z Updating files:  92% (9558/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7821405Z Updating files:  93% (9662/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7864067Z Updating files:  94% (9766/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7912281Z Updating files:  95% (9870/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.7962250Z Updating files:  96% (9974/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8009410Z Updating files:  97% (10078/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8053882Z Updating files:  98% (10182/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8101238Z Updating files:  99% (10286/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8101654Z Updating files: 100% (10389/10389)
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8102059Z Updating files: 100% (10389/10389), done.
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8193355Z Switched to a new branch 'main'
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8201544Z branch 'main' set up to track 'origin/main'.
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8271144Z ##[endgroup]
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8320823Z [command]/usr/bin/git log -1 --format=%H
-scenarios	Run actions/checkout@v4	2026-11-25T15:25:18.8343085Z 748814f648badd2e355c47c2f6ddc7321a0ed494
-scenarios	Run actions/setup-node@v4	﻿2026-11-25T15:25:18.8557610Z ##[group]Run actions/setup-node@v4
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8557869Z with:
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8558108Z   node-version: 22
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8558322Z   cache: npm
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8558531Z   always-auth: false
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8558775Z   check-latest: false
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8560637Z   token: ***
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:18.8560869Z ##[endgroup]
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:19.1227086Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:19.1231995Z (node:2151) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:19.1232926Z (Use `node --trace-deprecation ...` to show where the warning was created)
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:19.1234941Z ##[group]Environment details
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.1415592Z node: v22.23.5
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.1416081Z npm: 10.9.9
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.1416395Z yarn: 1.22.22
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.1417756Z ##[endgroup]
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.1431137Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.5276367Z /home/runner/.npm
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.6622208Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:22.6704143Z (node:2151) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:23.0406796Z Received 34424064 of 34424064 (100.0%), 98.0 MBs/sec
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:23.0407357Z Cache Size: ~33 MB (34424064 B)
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:23.0430471Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8df6dbeb-4f2b-438a-941f-c8c42663c130/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:23.0822863Z Cache restored successfully
-scenarios	Run actions/setup-node@v4	2026-11-25T15:25:23.0838284Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-25T15:25:23.1339473Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:23.1340253Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:23.4658453Z shell: /usr/bin/bash -e {0}
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:23.4658995Z ##[endgroup]
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:26.5455951Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:26.8435814Z 
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:26.8436447Z added 194 packages in 2s
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:27.5500035Z (node:2199) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-25T15:25:27.5501418Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	﻿2026-11-25T15:25:27.5603667Z ##[group]Run npm run test:physics
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.5604028Z ^[[36;1mnpm run test:physics^[[0m
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.5631152Z shell: /usr/bin/bash -e {0}
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.5631431Z ##[endgroup]
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.6353002Z 
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.6354113Z > apex-formula-laboratory@0.1.0 test:physics
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.6355597Z > node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits && npm run test:journey
-scenarios	Run npm run test:physics	2026-11-25T15:25:27.6356397Z 
-scenarios	Run npm run test:physics	2026-11-25T15:25:50.1796879Z {"passed":true,"failures":[],"weather":"clear","simulatedSeconds":320,"cars":4,"elapsedSeconds":21.694620487,"maxSpeedKmh":304.24450153936766,"maxLateral":7.5854745015321265,"laps":[4,6,6,6],"bestLaps":[51.30666755043737,49.76911316562431,50.47461877538254,49.51513182430051],"pitStops":[1,0,0,0],"frontHealth":[1,1,1,1],"compounds":["medium","medium","medium","medium"],"waterMm":0}
-scenarios	Run npm run test:physics	2026-11-25T15:26:11.4190035Z {"passed":true,"failures":[],"weather":"changeable","simulatedSeconds":320,"cars":4,"elapsedSeconds":21.227695324,"maxSpeedKmh":302.4640769305369,"maxLateral":7.19353190007393,"laps":[4,4,3,3],"bestLaps":[53.52124090404933,51.399217605620194,55.53604178430744,54.225080804044985],"pitStops":[1,1,1,1],"frontHealth":[1,1,1,1],"compounds":["intermediate","intermediate","intermediate","intermediate"],"waterMm":1.2265416057946692}
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.7513512Z {"passed":true,"failures":[],"weather":"rain","simulatedSeconds":320,"cars":4,"elapsedSeconds":20.32164394,"maxSpeedKmh":280.50937041956655,"maxLateral":6.466945816011296,"laps":[4,4,4,4],"bestLaps":[68.42429880725746,66.81378581339263,69.69326216395632,69.26938004147547],"pitStops":[0,0,0,0],"frontHealth":[1,1,1,1],"compounds":["wet","wet","wet","wet"],"waterMm":1.276467023034846}
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.7515924Z (node:2246) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.7516884Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.8343835Z 
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.8345435Z > apex-formula-laboratory@0.1.0 test:dynamics
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.8346460Z > node --experimental-transform-types scripts/dynamics-benchmark.ts
-scenarios	Run npm run test:physics	2026-11-25T15:26:31.8346805Z 
-scenarios	Run npm run test:physics	2026-11-25T15:26:32.7448102Z {"name":"braking-100kmh","passed":true,"measurements":{"distanceM":19.378181169688617,"stopSeconds":1.4625,"lateralDriftM":5.3217786188577056e-17,"minimumSlip":-1,"peakLoadN":5403.325903938646,"discTemperaturesC":[317.71387839518815,317.71387839518815,317.35913432373997,317.35913432373997]}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:32.8041667Z {"name":"braking-200kmh","passed":true,"measurements":{"distanceM":55.895820300688676,"stopSeconds":2.3666666666666667,"lateralDriftM":-8.8957451530685e-16,"minimumSlip":-1,"peakLoadN":7380.653897691394,"discTemperaturesC":[320.3568266634172,320.3568266634172,322.58481584103345,322.58481584103345]}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:32.8627334Z {"name":"braking-300kmh","passed":true,"measurements":{"distanceM":97.5562990303509,"stopSeconds":2.9583333333333335,"lateralDriftM":3.0604577893227113e-15,"minimumSlip":-1,"peakLoadN":13148.68644320837,"discTemperaturesC":[340.57462584127353,340.57462584127353,334.5166678039517,334.5166678039517]}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:32.8656256Z {"name":"braking-speed-order","passed":true,"measurements":[19.378181169688617,55.895820300688676,97.5562990303509]}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.0880117Z {"name":"skidpad-15mps","passed":true,"measurements":{"commandedSpeedMps":15,"meanSpeedMps":15.031884378793109,"radialRmsErrorM":0.04662238781076977,"measuredLateralG":0.2881808693407818,"kinematicLateralG":0.28818366645976035}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.2658430Z {"name":"skidpad-25mps","passed":true,"measurements":{"commandedSpeedMps":25,"meanSpeedMps":24.94523561152051,"radialRmsErrorM":0.3261519777364701,"measuredLateralG":0.789797241456001,"kinematicLateralG":0.78994632430895}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.4279322Z {"name":"skidpad-35mps","passed":true,"measurements":{"commandedSpeedMps":35,"meanSpeedMps":34.72674147459105,"radialRmsErrorM":1.1318979166029217,"measuredLateralG":1.5138887161379313,"kinematicLateralG":1.5157087476402806}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.5874977Z {"name":"slalom-repeated-steering","passed":true,"measurements":{"cyclePeakYawRadps":[0.2019769135333852,0.20196286233582206,0.20195936936660466,0.2019557895200942,0.20195214408394907,0.20194845110679566],"recoveredYawRadps":5.815992381026912e-9}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.6789104Z {"name":"low-kerb","passed":true,"measurements":{"peakCompressionM":0.02928447618920116,"peakLoadN":4188.828144658294,"peakVerticalG":0.37153343684255685,"skidWorkJ":0,"finalHeightM":0.5174569384794776}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.7380037Z {"name":"high-kerb","passed":true,"measurements":{"peakCompressionM":0.03867980862646592,"peakLoadN":5860.742942811073,"peakVerticalG":0.6669145281963184,"skidWorkJ":0,"finalHeightM":0.5174569573386093}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.7788923Z {"name":"sausage-kerb","passed":true,"measurements":{"peakCompressionM":0.04941430043504552,"peakLoadN":7683.125951123465,"peakVerticalG":1.5485961775715766,"skidWorkJ":0,"finalHeightM":0.5174569965308258}}
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.7793813Z (node:2282) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.7795382Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.8627481Z 
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.8628551Z > apex-formula-laboratory@0.1.0 test:race-control
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.8629087Z > node --experimental-transform-types scripts/marshal-integration.ts
-scenarios	Run npm run test:physics	2026-11-25T15:26:33.8629363Z 
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.1326525Z {"sourceSHA256":"3337ac893d6aad34b086218696b0b9eb9fa5a395d2085c73b9767bd95b70cd69","passed":true,"failures":[],"seconds":15.266666666666667,"sawDouble":true,"sawClear":true,"distantInitiallyGreen":true,"driverStationM":1100.1958194541257,"driverSpeedMps":35.97196890038607,"maximumImpact":[0,0,0],"events":[{"sequence":1,"time":10.008333333333333,"kind":"incident","car":1,"code":"OBSTRUCTION","seconds":0},{"sequence":2,"time":10.008333333333333,"kind":"flag","car":0,"code":"DOUBLE YELLOW","seconds":0},{"sequence":3,"time":22.891666666665934,"kind":"flag","car":0,"code":"GREEN FLAG","seconds":0}]}
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.1329542Z (node:2302) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.1330325Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.2163371Z 
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.2164122Z > apex-formula-laboratory@0.1.0 test:wet-pits
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.2164973Z > node --experimental-transform-types scripts/wet-pit-integration.ts
-scenarios	Run npm run test:physics	2026-11-25T15:26:36.2165245Z 
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.7789347Z (node:2321) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.7796043Z {"sourceSHA256":"ef580f13502ff69cc9ba0150e7d0c8addc04076327e892b103f364f8555b5971","scenario":{"seed":4417,"cars":10,"rainMmHr":24,"maximumSeconds":420},"reports":[{"compound":"wet","passed":true,"failures":[],"simulatedSeconds":187.41666666666666,"zeroImpact":true,"cars":[{"id":0,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":1,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":2,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":3,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":4,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":5,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":6,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":7,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":8,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":9,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1}]},{"compound":"medium","passed":true,"failures":[],"simulatedSeconds":238.18333333333334,"zeroImpact":true,"cars":[{"id":0,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":1,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":2,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":3,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":4,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":5,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":6,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":7,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":8,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1},{"id":9,"entered":true,"exited":true,"stops":1,"maximumImpact":0,"minimumHealth":1}]}]}
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.7801209Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.8653044Z 
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.8654113Z > apex-formula-laboratory@0.1.0 test:journey
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.8655201Z > node --experimental-transform-types scripts/integrated-driving.ts
-scenarios	Run npm run test:physics	2026-11-25T15:27:53.8655673Z 
-scenarios	Run npm run test:physics	2026-11-25T15:27:55.0526603Z PROGRESS {"t":0,"phase":"start","s":2940.7303123150195,"speed":0.06886030191140975,"lateral":-2.199995018975013,"pit":0,"laps":0,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:27:56.6008710Z EVENT {"time":5.058089081764553,"event":"follow","s":2969.3607784323867,"speed":22.031871463782466,"lateral":-1.5423970650945702}
-scenarios	Run npm run test:physics	2026-11-25T15:27:59.2215019Z PROGRESS {"t":30.00808908176314,"phase":"follow","s":1396.2738702275465,"speed":29.873749974550062,"lateral":4.584918329926933,"pit":0,"laps":0,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:00.2956322Z EVENT {"time":40.09975574842923,"event":"brake","s":1774.0633520407537,"speed":50.03539820355587,"lateral":2.561579055620474}
-scenarios	Run npm run test:physics	2026-11-25T15:28:00.3706835Z EVENT {"time":40.55808908176254,"event":"release","s":1794.43331209584,"speed":38.38373197107545,"lateral":2.8685164644766514}
-scenarios	Run npm run test:physics	2026-11-25T15:28:00.5266709Z EVENT {"time":41.566422415095815,"event":"prepare-excursion","s":1831.3403095353015,"speed":36.968276181975355,"lateral":-0.18291294346006198}
-scenarios	Run npm run test:physics	2026-11-25T15:28:02.5668134Z PROGRESS {"t":60.00808908176301,"phase":"prepare-excursion","s":2967.6657717386224,"speed":80.11379472386974,"lateral":3.5348868542995033,"pit":0,"laps":0,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:02.5745643Z EVENT {"time":60.08308908176307,"event":"decelerate","s":0.34325799603766427,"speed":80.16201726747619,"lateral":3.5896689853815937}
-scenarios	Run npm run test:physics	2026-11-25T15:28:02.8334553Z EVENT {"time":62.48308908176498,"event":"grass","s":104.95099858557705,"speed":13.934244062387467,"lateral":-3.0533378583112354}
-scenarios	Run npm run test:physics	2026-11-25T15:28:04.5746178Z EVENT {"time":76.48308908177613,"event":"return","s":233.8741555039046,"speed":9.13224879325132,"lateral":-14.653877729004073}
-scenarios	Run npm run test:physics	2026-11-25T15:28:05.6409391Z EVENT {"time":86.48308908178409,"event":"weather","s":349.97422000433653,"speed":11.83168111211659,"lateral":-0.03570241707290825}
-scenarios	Run npm run test:physics	2026-11-25T15:28:06.0213134Z PROGRESS {"t":90.00808908178689,"phase":"weather","s":431.3693681607565,"speed":35.27612416710713,"lateral":1.9227699175540336,"pit":0,"laps":1,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:09.3843879Z PROGRESS {"t":120.00808908181077,"phase":"weather","s":1627.8057066581378,"speed":27.520816381411084,"lateral":-2.9263638552296776,"pit":0,"laps":1,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:12.7894227Z PROGRESS {"t":150.00808908178712,"phase":"weather","s":2619.706192410761,"speed":31.463774259444932,"lateral":5.741999111227465,"pit":0,"laps":1,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:16.4316216Z PROGRESS {"t":180.00808908175983,"phase":"weather","s":77.51922057195588,"speed":8.442654475129174,"lateral":22.93371657199971,"pit":1,"laps":2,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:19.2796136Z EVENT {"time":206.64975574840227,"event":"rejoined","s":330.1043640865605,"speed":12.707799725685065,"lateral":-0.0010211113178826441}
-scenarios	Run npm run test:physics	2026-11-25T15:28:19.6322803Z PROGRESS {"t":210.00808908173255,"phase":"rejoined","s":411.1214851512209,"speed":36.23535184232911,"lateral":0.8387407492470657,"pit":0,"laps":2,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:22.7105437Z PROGRESS {"t":240.00808908170526,"phase":"rejoined","s":1577.6328266412702,"speed":26.318641284567892,"lateral":-2.1183774019701866,"pit":0,"laps":2,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:25.7943854Z PROGRESS {"t":270.00808908167795,"phase":"rejoined","s":2856.010429740534,"speed":64.92461285363771,"lateral":1.1373011530545991,"pit":0,"laps":2,"health":1}
-scenarios	Run npm run test:physics	2026-11-25T15:28:25.9821124Z EVENT {"time":271.774755748343,"event":"contact","s":0.22374845140484467,"speed":67.78965658372906,"lateral":1.107029532814619}
-scenarios	Run npm run test:physics	2026-11-25T15:28:28.4753771Z EVENT {"time":293.7830890816563,"event":"recover-contact","s":420.23855484319665,"speed":14.257755080162832,"lateral":-18.41222226022381}
-scenarios	Run npm run test:physics	2026-11-25T15:28:29.1656911Z PROGRESS {"t":300.00808908165067,"phase":"recover-contact","s":489.69469977136987,"speed":10.96059312238226,"lateral":-14.233655110920768,"pit":0,"laps":3,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:29.9979891Z EVENT {"time":307.7914224149769,"event":"finish","s":578.0064484346303,"speed":11.817134610434886,"lateral":0.060310390142497824}
-scenarios	Run npm run test:physics	2026-11-25T15:28:32.3854632Z PROGRESS {"t":330.0080890816234,"phase":"finish","s":1363.6253956466626,"speed":22.823456194756723,"lateral":2.3335081975011507,"pit":0,"laps":3,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:35.5405531Z PROGRESS {"t":360.0080890815961,"phase":"finish","s":1953.3261896799922,"speed":32.01156368651642,"lateral":-0.5345941238456612,"pit":0,"laps":3,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:38.7493244Z PROGRESS {"t":390.0080890815688,"phase":"finish","s":268.2234019989919,"speed":65.23398137486753,"lateral":-2.4162529614282584,"pit":0,"laps":4,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:41.8311930Z PROGRESS {"t":420.0080890815415,"phase":"finish","s":1434.827294543371,"speed":29.5811764988889,"lateral":0.7336742640475487,"pit":0,"laps":4,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:45.0595857Z PROGRESS {"t":450.00808908151424,"phase":"finish","s":2360.0072714543458,"speed":54.650563793701934,"lateral":-4.243761933549733,"pit":0,"laps":4,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:48.2001402Z PROGRESS {"t":480.00808908148696,"phase":"finish","s":1089.3459526896886,"speed":39.30755645703801,"lateral":-3.695024798034412,"pit":0,"laps":5,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:51.3842779Z PROGRESS {"t":510.00808908145973,"phase":"finish","s":1927.3958456789896,"speed":36.31508659352859,"lateral":-1.6210322565469375,"pit":0,"laps":5,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:54.5562597Z PROGRESS {"t":540.0080890814324,"phase":"finish","s":431.4251954409601,"speed":59.035044450416336,"lateral":-0.07247088744065956,"pit":0,"laps":6,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:28:57.6633424Z PROGRESS {"t":570.0080890814052,"phase":"finish","s":1541.2035030067236,"speed":17.606349935269,"lateral":-3.1000460882009886,"pit":0,"laps":6,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:29:01.1021222Z PROGRESS {"t":600.0080890813779,"phase":"finish","s":2620.760571200193,"speed":68.01821245766394,"lateral":-4.139284764693868,"pit":0,"laps":6,"health":0.9766199824806922}
-scenarios	Run npm run test:physics	2026-11-25T15:29:02.5726643Z (node:2351) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-scenarios	Run npm run test:physics	2026-11-25T15:29:02.5775556Z (Use `node --trace-warnings ...` to show where the warning was created)
-scenarios	Run npm run test:physics	2026-11-25T15:29:02.6079085Z {"sourceSHA256":"a8df9182963626fa1e8ac2d9b3691ff4d22106ccd7b935969b7794538bb8b113","simulationSHA256":"e16fadfb452e5480ec0aed15ceeb4f782edd39020aba00828c2ef5037762a1f6","fingerprintVersion":2,"scriptSHA256":"065847a7c74f810bd0a40e8f6a2f1736e5c5301899b90f1552846a30ee676721","scope":"Continuous production-physics/input, numeric replay and CSV fixture. NOT the complete manual audiovisual section-146 acceptance.","fixture":{"seed":4417,"laps":8,"cars":6,"weather":"changeable","assist":"raw","brakeBias":0.66,"dt":0.008333333333333333,"mutations":"Player control requests only; no poses, forces, health, fuel, lap counters or tire resets.","replayStore":"in-memory page adapter; IndexedDB and GPU require browser tests"},"passed":true,"failures":[],"checks":{"completeInputSequence":true,"allCarsClassified":true,"launchWheelspin":true,"highSpeedGears":true,"genuineWake":true,"lockAndRecovery":true,"kerbGrassSuspension":true,"retainedDirtThenCleaning":true,"thermalWearAndERS":true,"wetCompoundTransition":true,"physicalFrontDamageAndAeroLoss":true,"telemetryClock":true,"replayActualHistory":true,"csvActualState":true},"seen":{"spin":5.994061231268701,"wake":0.42140724926164486,"speed":80.1682437430266,"gear":8,"lock":1,"kerb":5.641666666666737,"grass":36.52499999999857,"dirt":0.9998993361787571,"cleanedDirt":0.0013622684013101358,"compression":0.07819037115442407,"wear":0.08042710621332703,"temp":109.55320906483244,"ers":100000,"wet":1.6271734136389568,"changedGrip":1.957809129862401,"frontDamage":0.02338001751930785,"dirtyAirAfterPit":0.42140724926164486,"maximumImpact":0.06967049638057618},"events":[{"time":5.058089081764553,"event":"follow","s":2969.3607784323867,"speed":22.031871463782466,"lateral":-1.5423970650945702},{"time":40.09975574842923,"event":"brake","s":1774.0633520407537,"speed":50.03539820355587,"lateral":2.561579055620474},{"time":40.55808908176254,"event":"release","s":1794.43331209584,"speed":38.38373197107545,"lateral":2.8685164644766514},{"time":41.566422415095815,"event":"prepare-excursion","s":1831.3403095353015,"speed":36.968276181975355,"lateral":-0.18291294346006198},{"time":60.08308908176307,"event":"decelerate","s":0.34325799603766427,"speed":80.16201726747619,"lateral":3.5896689853815937},{"time":62.48308908176498,"event":"grass","s":104.95099858557705,"speed":13.934244062387467,"lateral":-3.0533378583112354},{"time":76.48308908177613,"event":"return","s":233.8741555039046,"speed":9.13224879325132,"lateral":-14.653877729004073},{"time":86.48308908178409,"event":"weather","s":349.97422000433653,"speed":11.83168111211659,"lateral":-0.03570241707290825},{"time":206.64975574840227,"event":"rejoined","s":330.1043640865605,"speed":12.707799725685065,"lateral":-0.0010211113178826441},{"time":271.774755748343,"event":"contact","s":0.22374845140484467,"speed":67.78965658372906,"lateral":1.107029532814619},{"time":293.7830890816563,"event":"recover-contact","s":420.23855484319665,"speed":14.257755080162832,"lateral":-18.41222226022381},{"time":307.7914224149769,"event":"finish","s":578.0064484346303,"speed":11.817134610434886,"lateral":0.060310390142497824}],"unlockedSeconds":18.516666666666257,"damageFrontLoss":0.023380017519308294,"damageBalanceLoss":0.004447780784724603,"telemetry":{"rows":37192,"channels":228,"verifiedCsvRows":41,"intervalTicks":2},"replay":{"frames":9298,"durationSeconds":619.7999715134501,"maximumResidentBytes":17937760,"seeks":[{"index":40,"time":615,"tick":73800,"passed":true},{"index":12,"time":195,"tick":23400,"passed":true},{"index":0,"time":15,"tick":1800,"passed":true},{"index":24,"time":375,"tick":45000,"passed":true}]},"raceTime":614.0164224146985,"cars":[{"id":0,"finishTime":605.9492093337238,"retired":false,"laps":7,"pitStops":1,"frontHealth":0.9766199824806922},{"id":1,"finishTime":588.1400341998318,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":2,"finishTime":614.0098354563885,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":3,"finishTime":599.1236278199743,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":4,"finishTime":595.1060936109392,"retired":false,"laps":8,"pitStops":1,"frontHealth":1},{"id":5,"finishTime":609.9541602996052,"retired":false,"laps":8,"pitStops":1,"frontHealth":1}]}
-scenarios	Run npm run test:physics	2026-11-25T15:29:02.6426472Z ##[error]The operation was canceled.
-scenarios	Scenario evidence, including failures	﻿2026-11-25T15:29:02.6507488Z ##[group]Run actions/upload-artifact@v4
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6507798Z with:
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6508050Z   name: physics-scenarios
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6508925Z   path: docs/scenario-results.json
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3415800Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3416002Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3416277Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3416490Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3416713Z     74.70319409757738,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3416979Z     25.693131820668555,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3417198Z     32.350597908447014
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3417418Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3417620Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3417852Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3418043Z    "id": 7,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3418278Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3418487Z    "best": 82.63021876205772,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3418833Z    "finishTime": 356.1292323601723,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3419109Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3419496Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3419890Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3420120Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3420357Z     81.87610463584645,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3420642Z     25.6143917267255,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3420847Z     31.96042600620609
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3421094Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3421341Z   },
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3421599Z   {
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3421794Z    "id": 8,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3421989Z    "laps": 3,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3422276Z    "best": 83.71601096965534,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3422529Z    "finishTime": 367.7204097726546,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3422804Z    "penalty": 0,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3423047Z    "retired": false,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3423269Z    "pitStops": 1,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3423500Z    "sectors": [
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3423724Z     89.21726530326512,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3423999Z     26.0835398447648,
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3424224Z     32.40666512173442
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3424473Z    ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3424668Z   }
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3424850Z  ]
+scenarios	Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable	2026-11-25T15:37:22.3425092Z }
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	﻿2026-11-25T15:37:22.3608636Z ##[group]Run node --experimental-transform-types scripts/reference-targets.ts
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:22.3609482Z ^[[36;1mnode --experimental-transform-types scripts/reference-targets.ts^[[0m
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:22.3637420Z shell: /usr/bin/bash -e {0}
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:22.3637725Z ##[endgroup]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6053603Z OK   accel0to100          2.54 s  [2.3, 3.2]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6054509Z OK   accel0to200          5.09 s  [4.3, 5.8]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6055386Z OK   topSpeed             320.71 km/h  [320, 360]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6055970Z OK   braking200Distance   55.90 m  [50, 70]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6057151Z OUT  braking200Time       2.37 s  [2.4, 3.3]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6057916Z OUT  peakBrakingG         6.30 g  [4, 6]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6058353Z OK   lateralFastG         4.31 g  [4, 6.5]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6058816Z OK   lateralSlowG         1.95 g  [1.8, 3.2]
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6060134Z (node:2480) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6061090Z (Use `node --trace-warnings ...` to show where the warning was created)
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6061672Z wet 200 km/h stop (m): slick 125.8 inter 71.4 wet 71.6 dry 55.9
+scenarios	Run node --experimental-transform-types scripts/reference-targets.ts	2026-11-25T15:37:24.6064135Z lateral {"slow":{"targetKmh":80,"lateralG":1.9471871123992108,"speedAtPeakKmh":79.27271813334124,"steerInput":0.537449999999949},"medium":{"targetKmh":160,"lateralG":2.8323008165686985,"speedAtPeakKmh":157.20152913651788,"steerInput":0.32339999999997254},"fast":{"targetKmh":240,"lateralG":4.003197290539281,"speedAtPeakKmh":234.6593913951823,"steerInput":0.21904999999998404},"veryFast":{"targetKmh":290,"lateralG":4.314720119881521,"speedAtPeakKmh":262.31728507881576,"steerInput":0.13804999999999296}}
+scenarios	Run npm run test:vehicles	﻿2026-11-25T15:37:24.6210791Z ##[group]Run npm run test:vehicles
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6211233Z ^[[36;1mnpm run test:vehicles^[[0m
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6242470Z shell: /usr/bin/bash -e {0}
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6242999Z ##[endgroup]
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6937744Z 
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6938765Z > apex-formula-laboratory@0.1.0 test:vehicles
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6939969Z > node --experimental-transform-types scripts/vehicle-calibration.ts
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:24.6940416Z 
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0852920Z APX-01 FORMULA (apx01 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0853757Z   OK  accel0to100          2.54 / 2.53 [2.3, 3.2] dt-drift 0.2%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0854349Z   OK  topSpeed             320.71 / 320.70 [320, 360] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0854922Z   OK  braking100Distance   19.43 / 19.43 [15, 32] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0855434Z   OK  lateral80G           1.95 / 1.95 [1.8, 3.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0856712Z   lateral fit: base 15.54 m/s², aero 6.35e-3 · braking fit: base 16.69, aero 8.78e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:28.0857381Z   aero @199 km/h: ClA 6.63 m², CdA 1.26 m², front 45.3%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9300043Z TC-1 TOURING (tc1 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9300706Z   OK  accel0to100          4.94 / 4.93 [4.8, 7.5] dt-drift 0.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9301479Z   OK  topSpeed             232.40 / 232.40 [205, 255] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9302031Z   OK  braking100Distance   28.55 / 28.55 [26, 42] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9302469Z   OK  lateral80G           1.33 / 1.33 [1, 1.45] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9303548Z   lateral fit: base 13.02 m/s², aero 1.23e-4 · braking fit: base 13.18, aero 7.39e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:30.9304150Z   aero @199 km/h: ClA 0.51 m², CdA 0.79 m², front 51.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.2826811Z GP-R1 PROTOTYPE (gpr1 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.2827593Z   OK  accel0to100          3.03 / 3.02 [2.4, 3.4] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.2828292Z   OK  topSpeed             346.14 / 346.17 [335, 365] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.2828848Z   OK  braking100Distance   38.60 / 38.74 [30, 42] dt-drift 0.4%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.2829637Z   OK  lateral80G           1.44 / 1.44 [1.15, 1.5] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.2830578Z   lateral fit: base 14.10 m/s², aero 0.00e+0
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.4814261Z SBK-1000 SUPERBIKE (sbk1000 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.4814999Z   OK  accel0to100          3.16 / 3.16 [2.7, 3.8] dt-drift 0.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.4815690Z   OK  topSpeed             307.63 / 307.61 [285, 320] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.4816251Z   OK  braking100Distance   41.12 / 41.10 [32, 45] dt-drift 0.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.4816824Z   OK  lateral80G           1.20 / 1.20 [1.1, 1.45] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:31.4817715Z   lateral fit: base 11.75 m/s², aero 0.00e+0
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4858296Z JF-2 JUNIOR FORMULA (jf2 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4860297Z   OK  accel0to100          2.66 / 2.66 [2.6, 3.5] dt-drift 0.2%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4860807Z   OK  topSpeed             308.58 / 308.58 [295, 340] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4861447Z   OK  braking100Distance   21.04 / 21.04 [18, 34] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4862008Z   OK  lateral80G           1.73 / 1.73 [1.6, 2.4] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4863041Z   lateral fit: base 14.61 m/s², aero 4.05e-3 · braking fit: base 16.53, aero 5.05e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:34.4863717Z   aero @199 km/h: ClA 3.76 m², CdA 1.05 m², front 41.6%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0902257Z HF-67 HISTORIC FORMULA (hf67 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0902969Z   OK  accel0to100          4.37 / 4.37 [3.4, 5.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0903665Z   OK  topSpeed             276.31 / 276.30 [265, 315] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0904047Z   OK  braking100Distance   34.83 / 34.83 [32, 52] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0904453Z   OK  lateral80G           1.01 / 1.01 [0.95, 1.35] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0905273Z   lateral fit: base 9.37 m/s², aero 8.66e-4 · braking fit: base 10.88, aero 7.09e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:37.0905693Z   aero @199 km/h: ClA 0.00 m², CdA 0.70 m², front —
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9254682Z HY-9 HYPERCAR (hy9 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9255697Z   OK  accel0to100          2.96 / 2.96 [2.6, 3.8] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9256862Z   OK  topSpeed             334.56 / 334.57 [315, 355] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9257503Z   OK  braking100Distance   23.11 / 23.11 [20, 36] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9258059Z   OK  lateral80G           1.54 / 1.54 [1.45, 2.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9259092Z   lateral fit: base 13.29 m/s², aero 2.99e-3 · braking fit: base 15.58, aero 3.28e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:39.9260158Z   aero @200 km/h: ClA 3.50 m², CdA 0.92 m², front 44.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9621961Z PR-2 PROTOTYPE (pr2 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9622979Z   OK  accel0to100          2.96 / 2.96 [2.7, 3.9] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9623560Z   OK  topSpeed             311.75 / 311.76 [300, 345] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9624225Z   OK  braking100Distance   23.05 / 23.05 [20, 36] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9624810Z   OK  lateral80G           1.55 / 1.55 [1.45, 2.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9626508Z   lateral fit: base 13.17 m/s², aero 3.42e-3 · braking fit: base 15.45, aero 3.77e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:42.9627230Z   aero @199 km/h: ClA 3.76 m², CdA 0.98 m², front 43.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.7994975Z GT-8F FRONT-ENGINE GT (gt8f v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.7995551Z   OK  accel0to100          3.43 / 3.42 [3, 4.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.7996212Z   OK  topSpeed             279.09 / 279.09 [265, 300] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.7996676Z   OK  braking100Distance   26.02 / 26.02 [24, 36] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.7997048Z   OK  lateral80G           1.34 / 1.34 [1.3, 1.75] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.7997803Z   lateral fit: base 12.27 m/s², aero 1.50e-3 · braking fit: base 14.00, aero 2.05e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:45.8000519Z   aero @200 km/h: ClA 2.30 m², CdA 0.88 m², front 42.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5801886Z GT-10M MID-ENGINE GT (gt10m v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5802770Z   OK  accel0to100          3.31 / 3.31 [3, 4.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5803179Z   OK  topSpeed             279.65 / 279.65 [265, 300] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5803543Z   OK  braking100Distance   25.27 / 25.27 [24, 36] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5804011Z   OK  lateral80G           1.33 / 1.33 [1.3, 1.75] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5804768Z   lateral fit: base 11.96 m/s², aero 1.89e-3 · braking fit: base 14.53, aero 1.86e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:48.5805246Z   aero @200 km/h: ClA 2.40 m², CdA 0.90 m², front 40.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3774242Z GS-4 GT SPORT (gs4 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3775250Z   OK  accel0to100          3.85 / 3.85 [3.6, 5] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3775901Z   OK  topSpeed             259.18 / 259.18 [245, 280] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3776468Z   OK  braking100Distance   29.40 / 29.40 [28, 40] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3777588Z   OK  lateral80G           1.21 / 1.21 [1.15, 1.5] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3778577Z   lateral fit: base 11.30 m/s², aero 8.70e-4 · braking fit: base 12.51, aero 1.09e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:51.3779506Z   aero @200 km/h: ClA 0.91 m², CdA 0.82 m², front 45.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2375617Z TC-2 TOURING (tc2 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2376755Z   OK  accel0to100          4.11 / 4.11 [4, 5.6] dt-drift 0.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2377439Z   OK  topSpeed             240.04 / 240.04 [225, 265] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2378172Z   OK  braking100Distance   28.43 / 28.43 [26, 40] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2378797Z   OK  lateral80G           1.33 / 1.33 [1.15, 1.5] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2380544Z   lateral fit: base 12.54 m/s², aero 7.24e-4 · braking fit: base 13.26, aero 7.45e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:53.2381418Z   aero @200 km/h: ClA 0.55 m², CdA 0.78 m², front 42.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5782632Z CR-1 CLUB ROADSTER (cr1 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5783181Z   OK  accel0to100          4.51 / 4.51 [3.5, 5] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5783933Z   OK  topSpeed             199.62 / 199.58 [190, 220] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5784312Z   OK  braking100Distance   29.73 / 29.73 [28, 42] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5784759Z   OK  lateral80G           1.27 / 1.27 [1.1, 1.45] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5785926Z   lateral fit: base 12.38 m/s², aero 1.39e-4 · braking fit: base 12.71, aero 7.54e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:54.5786347Z   aero @178 km/h: ClA 0.00 m², CdA 0.75 m², front —
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3756372Z RL-2 RALLY (rl2 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3757420Z   OK  accel0to100          4.24 / 4.24 [3.5, 5] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3757903Z   OK  topSpeed             192.41 / 192.44 [180, 210] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3758312Z   OK  braking100Distance   34.24 / 34.24 [30, 46] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3758708Z   OK  lateral80G           1.06 / 1.06 [0.95, 1.35] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3759762Z   lateral fit: base 10.10 m/s², aero 6.15e-4 · braking fit: base 11.04, aero 6.25e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:37:57.3760322Z   aero @173 km/h: ClA 0.45 m², CdA 0.88 m², front 45.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1816484Z RCX-6 RALLYCROSS (rcx6 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1817289Z   OK  accel0to100          2.57 / 2.57 [2, 3] dt-drift 0.2%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1817717Z   OK  topSpeed             237.17 / 237.16 [220, 255] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1818168Z   OK  braking100Distance   32.94 / 32.94 [28, 44] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1818537Z   OK  lateral80G           1.10 / 1.10 [1, 1.4] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1819532Z   lateral fit: base 10.36 m/s², aero 7.87e-4 · braking fit: base 11.34, aero 8.72e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:00.1820194Z   aero @200 km/h: ClA 0.81 m², CdA 0.95 m², front 42.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5248482Z DX-8 TROPHY TRUCK (dx8 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5249539Z   OK  accel0to100          5.48 / 5.48 [4.2, 6.5] dt-drift 0.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5249976Z   OK  topSpeed             210.75 / 210.77 [195, 230] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5250446Z   OK  braking100Distance   40.22 / 40.22 [38, 62] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5250857Z   OK  lateral80G           0.93 / 0.93 [0.7, 1.05] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5251577Z   lateral fit: base 9.06 m/s², aero 1.09e-4 · braking fit: base 9.20, aero 5.85e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:01.5252065Z   aero @189 km/h: ClA 0.00 m², CdA 1.80 m², front —
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1983654Z SK-125 SHIFTER KART (sk125 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1984229Z   OK  accel0to100          3.87 / 3.87 [2.6, 4.2] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1984870Z   OK  topSpeed             136.83 / 136.81 [125, 150] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1985253Z   OK  braking100Distance   19.16 / 19.16 [18, 34] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1985677Z   OK  lateral80G           1.94 / 1.94 [1.8, 2.8] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1986450Z   lateral fit: base 18.32 m/s², aero 9.41e-4 · braking fit: base 19.43, aero 2.67e-3
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:03.1986880Z   aero @122 km/h: ClA 0.00 m², CdA 0.60 m², front —
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9199250Z EH-3 ELECTRIC HYPERCAR (eh3 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9200572Z   OK  accel0to100          2.44 / 2.44 [1.9, 2.8] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9201253Z   OK  topSpeed             348.94 / 348.96 [320, 365] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9201666Z   OK  braking100Distance   29.45 / 29.45 [28, 40] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9202045Z   OK  lateral80G           1.16 / 1.16 [1.1, 1.45] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9202853Z   lateral fit: base 10.95 m/s², aero 8.49e-4 · braking fit: base 12.50, aero 6.75e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:05.9203310Z   aero @201 km/h: ClA 0.81 m², CdA 0.68 m², front 45.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7990416Z SC-7 SUPERCAR (sc7 v1)
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7991087Z   OK  accel0to100          3.23 / 3.22 [2.6, 3.8] dt-drift 0.1%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7992014Z   OK  topSpeed             331.62 / 331.65 [315, 350] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7992575Z   OK  braking100Distance   29.49 / 29.49 [28, 40] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7993122Z   OK  lateral80G           1.15 / 1.15 [1.05, 1.4] dt-drift 0.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7994247Z   lateral fit: base 10.75 m/s², aero 8.40e-4 · braking fit: base 12.73, aero 6.34e-4
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:08.7994900Z   aero @200 km/h: ClA 0.55 m², CdA 0.72 m², front 42.0%
+scenarios	Run npm run test:vehicles	2026-11-25T15:38:10.2713730Z ##[error]The operation was canceled.
+scenarios	Scenario evidence, including failures	﻿2026-11-25T15:38:10.2775194Z ##[group]Run actions/upload-artifact@v4
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2775510Z with:
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2775785Z   name: physics-scenarios
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2776658Z   path: docs/scenario-results.json
 scenarios	Scenario evidence, including failures	docs/dynamics-benchmark.json
 scenarios	Scenario evidence, including failures	docs/marshal-integration.json
 scenarios	Scenario evidence, including failures	docs/pit-integration.json
@@ -215,41 +212,44 @@ scenarios	Scenario evidence, including failures	docs/race-classification.json
 scenarios	Scenario evidence, including failures	docs/vellamar-race.json
 scenarios	Scenario evidence, including failures	docs/reference-targets.json
 scenarios	Scenario evidence, including failures	
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6509870Z   retention-days: 7
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6510120Z   if-no-files-found: warn
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6510386Z   compression-level: 6
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6510615Z   overwrite: false
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6510846Z   include-hidden-files: false
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.6511117Z ##[endgroup]
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7832412Z (node:2371) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7833270Z (Use `node --trace-deprecation ...` to show where the warning was created)
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7906830Z Multiple search paths detected. Calculating the least common ancestor of all paths
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7910662Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3/docs. This will be the root directory of the artifact
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7912054Z With the provided path, there will be 10 files uploaded
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7912926Z Artifact name is valid!
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:02.7913416Z Root directory input is valid!
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.1592196Z Beginning upload of artifact content to blob storage
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.1816184Z (node:2371) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.2253031Z Uploaded bytes 10402
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.2422834Z Finished uploading artifact content to blob storage!
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.2424056Z SHA256 digest of uploaded artifact zip is 7e23778185173b40257d4b03bbd34a0e77d05fda528ca0e43051b40310c6516a
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.2425402Z Finalizing artifact upload
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.5860757Z Artifact physics-scenarios.zip successfully finalized. Artifact ID 15035979639
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.5861868Z Artifact physics-scenarios has been successfully uploaded! Final size is 10402 bytes. Artifact ID is 15035979639
-scenarios	Scenario evidence, including failures	2026-11-25T15:29:03.5865634Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45644838316/artifacts/15035979639
-scenarios	Post Run actions/checkout@v4	﻿2026-11-25T15:29:03.6037021Z Post job cleanup.
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6697138Z [command]/usr/bin/git version
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6724242Z git version 2.56.1
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6751303Z Temporarily overriding HOME='/home/runner/work/_temp/6560ceb9-22b4-45b5-b868-5fd360f62a51' before making global git config changes
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6752476Z Adding repository directory to the temporary git global config as a safe directory
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6754724Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6786932Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6811410Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.6996930Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.7021827Z http.https://github.com/.extraheader
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.7031516Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.7060107Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.7237852Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-scenarios	Post Run actions/checkout@v4	2026-11-25T15:29:03.7267568Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-scenarios	Complete job	﻿2026-11-25T15:29:03.7563861Z Cleaning up orphan processes
-scenarios	Complete job	2026-11-25T15:29:03.7770845Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2777548Z   retention-days: 7
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2777795Z   if-no-files-found: warn
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2778058Z   compression-level: 6
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2778289Z   overwrite: false
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2778523Z   include-hidden-files: false
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.2778796Z ##[endgroup]
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4084716Z (node:2514) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4085907Z (Use `node --trace-deprecation ...` to show where the warning was created)
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4162013Z Multiple search paths detected. Calculating the least common ancestor of all paths
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4164236Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3/docs. This will be the root directory of the artifact
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4164806Z With the provided path, there will be 10 files uploaded
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4165294Z Artifact name is valid!
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.4165556Z Root directory input is valid!
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.9671286Z Beginning upload of artifact content to blob storage
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:10.9981578Z (node:2514) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.3171918Z Uploaded bytes 11021
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.4061178Z Finished uploading artifact content to blob storage!
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.4061990Z SHA256 digest of uploaded artifact zip is ba9bfbecdc1537c2823e53c63823265f13d47ebff27c239bc074046dd97fb583
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.4062642Z Finalizing artifact upload
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.8347982Z Artifact physics-scenarios.zip successfully finalized. Artifact ID 15037489556
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.8348952Z Artifact physics-scenarios has been successfully uploaded! Final size is 11021 bytes. Artifact ID is 15037489556
+scenarios	Scenario evidence, including failures	2026-11-25T15:38:11.8353555Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45645636195/artifacts/15037489556
+scenarios	Post Run actions/checkout@v4	﻿2026-11-25T15:38:11.8645810Z Post job cleanup.
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9362341Z [command]/usr/bin/git version
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9420960Z git version 2.56.1
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9451935Z Temporarily overriding HOME='/home/runner/work/_temp/275a0b44-973b-4c91-a562-ebe3992bb87f' before making global git config changes
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9453394Z Adding repository directory to the temporary git global config as a safe directory
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9460733Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9501750Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9535442Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9777225Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9802146Z http.https://github.com/.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9827829Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:11.9855183Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:12.0122935Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+scenarios	Post Run actions/checkout@v4	2026-11-25T15:38:12.0128531Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+scenarios	Complete job	﻿2026-11-25T15:38:12.0402277Z Cleaning up orphan processes
+scenarios	Complete job	2026-11-25T15:38:12.0557014Z Terminate orphan process: pid (2488) (npm run test:vehicles)
+scenarios	Complete job	2026-11-25T15:38:12.0577558Z Terminate orphan process: pid (2499) (sh)
+scenarios	Complete job	2026-11-25T15:38:12.0596396Z Terminate orphan process: pid (2500) (node)
+scenarios	Complete job	2026-11-25T15:38:12.0628515Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
