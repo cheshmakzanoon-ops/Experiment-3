@@ -1,38 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45625750604
-- commit: `acd525fc14` · Release server resources and reduce dormant audio and physics cache work
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45627137460
+- commit: `04b7a6e251` · Transfer exact packet buffers and verify native save and startup ownership
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-25T13:39:02Z · updated: 2026-11-25T13:47:35Z
+- started: 2026-11-25T13:47:16Z · updated: 2026-11-25T13:55:53Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| scenarios | cancelled | 8 | Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable |
-| offroad-scenarios | success | 6 |  |
-| unit-tests (1) | cancelled | 8 | Complete unit-suite partition without source changes |
-| validate | success | 4 |  |
-| unit-tests (3) | cancelled | 8 | Complete unit-suite partition without source changes |
-| unit-tests (2) | cancelled | 8 | Complete unit-suite partition without source changes |
-| unit-tests (4) | cancelled | 8 | Complete unit-suite partition without source changes |
-| wet-presentation | cancelled | 1 | Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts |
-| owner-qa (1) | cancelled | 2 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| owner-qa (3) | cancelled | 3 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| owner-qa (4) | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| owner-qa (2) | cancelled | 3 |  |
-| browser (3) | cancelled | 3 |  |
-| browser (4) | cancelled | 3 |  |
-| browser (7) | cancelled | 3 |  |
-| browser (5) | cancelled | 3 |  |
-| browser (10) | cancelled | 3 |  |
-| browser (8) | cancelled | 3 |  |
-| browser (6) | cancelled | 3 |  |
-| browser (1) | cancelled | 3 |  |
-| browser (14) | cancelled | 3 |  |
-| browser (16) | cancelled | 3 |  |
-| browser (11) | cancelled | 3 |  |
-| browser (12) | cancelled | 3 |  |
-| browser (9) | cancelled | 3 |  |
-| browser (15) | cancelled | 3 |  |
-| browser (2) | cancelled | 3 |  |
-| browser (13) | cancelled | 3 |  |
-| publish | cancelled | 0 |  |
+| validate | failure | 1 | Lint, validate content, typecheck and build without source changes |
+| unit-tests (2) | cancelled | 7 | Complete unit-suite partition without source changes |
+| offroad-scenarios | cancelled | 5 | Full offroad calibrations and races without source changes |
+| scenarios | cancelled | 6 | Run node --experimental-transform-types scripts/race-classification.ts |
+| unit-tests (3) | cancelled | 6 | Complete unit-suite partition without source changes |
+| unit-tests (1) | cancelled | 5 | Complete unit-suite partition without source changes |
+| unit-tests (4) | cancelled | 4 | Complete unit-suite partition without source changes |
+| wet-presentation | skipped | 0 |  |
+| owner-qa | skipped | 0 |  |
+| browser | skipped | 0 |  |
+| publish | cancelled | -1 |  |
