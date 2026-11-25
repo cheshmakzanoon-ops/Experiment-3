@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "status": "failure",
+  "sourceCommit": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+  "sourceTree": "81c96acd7dd712b4865c04939ddf0b82773aede9",
+  "baseline": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+  "workflowRun": 45645636058,
+  "job": 139315775862,
+  "lint": "passed",
+  "units": {
+    "passed": 1351,
+    "failed": 0,
+    "total": 1351,
+    "files": 95
+  },
+  "baselineProbes": [
+    {
+      "probe": "codec",
+      "status": "passed"
+    },
+    {
+      "probe": "lane-cache-actual-git-baseline",
+      "status": "passed"
+    },
+    {
+      "probe": "server-input-queue",
+      "status": "passed"
+    },
+    {
+      "probe": "radio",
+      "status": "passed"
+    },
+    {
+      "probe": "whole-simulation-composition",
+      "status": "pass"
+    },
+    {
+      "probe": "surface-thermal",
+      "status": "passed"
+    }
+  ],
+  "failedStage": "Typecheck and build exact source without asset-generation hooks",
+  "failure": {
+    "path": "e2e/fixtures/engine-native-desktop-recovery.ts",
+    "line": 101,
+    "diagnostic": "TS2352",
+    "boundary": "Intentional Playwright window binding cast needs explicit unknown intermediate"
+  },
+  "build": "not run after TypeScript failure",
+  "native": "skipped",
+  "artifact": {
+    "id": 15039040099,
+    "bytes": 26867,
+    "sha256": "b83d63a4ff3c5a3dbfae341169a748e780f15dbc24edb5fb1ae664cdb6fdaaa8"
+  },
+  "log": "Decoded job log normalized by removing ANSI escapes and line-leading timestamps. ZIP not downloaded or inspected."
+}

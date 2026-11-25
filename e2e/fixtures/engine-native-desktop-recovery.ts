@@ -98,7 +98,7 @@ IDBObjectStore.prototype.put = function (...args) {
 };
 
 function invoke<T>(method: BridgeMethod, args: unknown[] = []): Promise<T> {
-  const operation = (window as BindingWindow).__engineNativeDesktopCall({
+  const operation = (window as unknown as BindingWindow).__engineNativeDesktopCall({
     method,
     args,
   }) as Promise<T>;

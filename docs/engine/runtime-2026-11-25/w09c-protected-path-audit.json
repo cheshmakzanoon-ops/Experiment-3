@@ -1,0 +1,2793 @@
+{
+  "schemaVersion": 1,
+  "assignment": 51,
+  "wave": 9,
+  "reviewDate": "2026-11-25",
+  "repository": "cheshmakzanoon-ops/Experiment-3",
+  "baseline": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+  "auditedTip": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+  "auditedTree": "81c96acd7dd712b4865c04939ddf0b82773aede9",
+  "mainObservedAtReview": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+  "conclusion": "No protected-source change was introduced by the ten enumerated engine commits; both named concurrent animation changes remain ancestors with all 19 changed file blobs preserved exactly at the audited tip.",
+  "method": {
+    "commitInventory": "GitHub commit API fetched independently for each SHA with per_page=100; largest result31 files, no inventory reaches page capacity",
+    "treeIdentity": "Nonrecursive commit/parent root trees, their src trees and simulation trees compared by sha/mode/type; a subtree identity covers its full descendants",
+    "ancestry": "Complete baseline-to-tip compare with27 returned commits and27 total commits; every commit has one parent and forms the listed continuous chain",
+    "animation": "Untruncated recursive audited-tip tree compared with the recorded changed-file blobs of both animation commits",
+    "diagnostics": "Fetched complete parent and child contents; reversing exactly the named case title and acknowledgement assertion edits reproduces all15095 parent characters"
+  },
+  "statistics": {
+    "commitCount": 10,
+    "fileOccurrences": 156,
+    "uniqueFiles": 128,
+    "productionFiles": [
+      "src/audio/driving-cues.ts",
+      "src/audio/engine.ts",
+      "src/core/radio.ts",
+      "src/input/controller.ts",
+      "src/net/bytes.ts",
+      "src/net/codec.ts",
+      "src/net/event-loop.ts",
+      "src/net/input.ts",
+      "src/net/server.ts",
+      "src/session/session-start-owner.ts",
+      "src/session/time-trial-records.ts",
+      "src/simulation/surface-thermal.ts",
+      "src/simulation/track-lane-index.ts",
+      "src/storage/data.ts",
+      "src/storage/desktop-mirror.ts",
+      "src/storage/leaderboard.ts",
+      "src/workers/diagnostics.ts",
+      "src/workers/physics.worker.ts"
+    ],
+    "classes": {
+      "workflow": 1,
+      "docs/evidence": 60,
+      "browser-tests": 17,
+      "probes": 7,
+      "production": 18,
+      "unit-tests": 25
+    },
+    "statuses": {
+      "added": 100,
+      "modified": 56
+    },
+    "protectedEqualities": 970
+  },
+  "commits": [
+    {
+      "commit": "40bf6c7ef42335b9ea20e5a99f2943f3873836c4",
+      "parent": "643f4ab2040010b6b815a2f845b79c978405d5a1",
+      "sourceTree": "1e03f97ef278e78e89c884a193131ce41c0aca00",
+      "protectedSet": "protected-set-1",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/w01f-audio-reference.md",
+          "status": "added",
+          "blob": "d74046f47e458253fee95b72f3b7b85d9b255953",
+          "additions": 56,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-audio-advancement.spec.ts",
+          "status": "modified",
+          "blob": "22f4a28aa434e303509dc25235cb3e4aff1b8588",
+          "additions": 46,
+          "deletions": 19
+        },
+        {
+          "path": "e2e/fixtures/engine-native-audio-reference-inputs.json",
+          "status": "added",
+          "blob": "ef027b5539b96c576653fea216c5fb6b5edf9934",
+          "additions": 36,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "c5016905c52da6b87aa400f00b841af7d948ab57",
+      "parent": "6484ff3497a29bb11dd4a626004b2cad74340846",
+      "sourceTree": "69f2fa199e8e99a15baedb82a73dab60dcb5b905",
+      "protectedSet": "protected-set-1",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "added",
+          "blob": "e6e6b0ebc40e70a44a9632aeda3f399944dd08ce",
+          "additions": 106,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "added",
+          "blob": "fcf6ce1660bff626f76e5d03b2574675f09cf226",
+          "additions": 13,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/PLAN.md",
+          "status": "added",
+          "blob": "4aa5a9e8a8d59248c89919b3c9b283aa15d976fb",
+          "additions": 24,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w01a-runtime-audit.md",
+          "status": "added",
+          "blob": "42a51d59ddac577d4c98547d4022d840e43f9045",
+          "additions": 54,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w01b-network-audit.md",
+          "status": "added",
+          "blob": "d116866277f8abb6fbbc38419963c1b980fbde56",
+          "additions": 31,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w01c-records-audit.md",
+          "status": "added",
+          "blob": "f2a534516ecd4bbccabfbe52e74faa155e3313a2",
+          "additions": 54,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w01d-devices-audit.md",
+          "status": "added",
+          "blob": "6ea71ebc12b33ac23bfbe27f69c5c4f79341672b",
+          "additions": 98,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w01e-physics-audit.md",
+          "status": "added",
+          "blob": "0effe451930253378f27ef5b30215fa418bc0bce",
+          "additions": 111,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w02a-radio-state.md",
+          "status": "added",
+          "blob": "9a5ce414eb11af68d290f675d6e100ca5925575b",
+          "additions": 71,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w02b-records-updates.md",
+          "status": "added",
+          "blob": "a948a8d6b24fca099266b712d0236af53ea19b2a",
+          "additions": 55,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w02c-startup-failure.md",
+          "status": "added",
+          "blob": "c3dbeecd4b5d84d01369b5210b4b86686d4ed33e",
+          "additions": 76,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w02d-atomic-storage.md",
+          "status": "added",
+          "blob": "8bcc60c67a624abbc161ca653e78e53889f49b05",
+          "additions": 52,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w02e-network-queue.md",
+          "status": "added",
+          "blob": "ce86686bb8813049da34b2eb31e8911af7e52df3",
+          "additions": 69,
+          "deletions": 0
+        },
+        {
+          "path": "src/core/radio.ts",
+          "status": "modified",
+          "blob": "17d04fbb938e4cc459e738c5fb672a2f08bde9b6",
+          "additions": 42,
+          "deletions": 12
+        },
+        {
+          "path": "src/net/input.ts",
+          "status": "modified",
+          "blob": "c394f4b7e358f64f7a42d8d44215218560a49fb0",
+          "additions": 16,
+          "deletions": 2
+        },
+        {
+          "path": "src/session/session-start-owner.ts",
+          "status": "modified",
+          "blob": "597ae9c65648cc3a8f551336d8d8b205818244a6",
+          "additions": 54,
+          "deletions": 20
+        },
+        {
+          "path": "src/session/time-trial-records.ts",
+          "status": "modified",
+          "blob": "afe6bbd7fad29c5e1e39e1bd01b01c6f4186f858",
+          "additions": 117,
+          "deletions": 28
+        },
+        {
+          "path": "src/storage/data.ts",
+          "status": "modified",
+          "blob": "506b21263fda645f23b7642e803b30579b225a46",
+          "additions": 68,
+          "deletions": 0
+        },
+        {
+          "path": "src/storage/leaderboard.ts",
+          "status": "modified",
+          "blob": "03bc2d079301e23bc2e6a724fbf3b11974208af3",
+          "additions": 9,
+          "deletions": 7
+        },
+        {
+          "path": "tests/engine-advancement-records.test.ts",
+          "status": "modified",
+          "blob": "c197693d937942f687450d5e17a815ff2afd6382",
+          "additions": 14,
+          "deletions": 1
+        },
+        {
+          "path": "tests/engine-input-queue-expiry.test.ts",
+          "status": "added",
+          "blob": "5f898dbaa52c9cc27d39780aff3a917728c201b2",
+          "additions": 383,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-radio-compact-state.test.ts",
+          "status": "added",
+          "blob": "71b8cbb5b96ed0d1a3072d6599342e6b0d0d3336",
+          "additions": 346,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-records-transaction-order.test.ts",
+          "status": "added",
+          "blob": "85eae3d39bf2b6a4e09f8a4096dfc6811d6bd7e7",
+          "additions": 393,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-save-atomic-update.test.ts",
+          "status": "added",
+          "blob": "332c9f2bdbeb5d7219245b2635ccfdbee7914da1",
+          "additions": 410,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-startup-error-recovery.test.ts",
+          "status": "added",
+          "blob": "66015db424fbd8badb285263723d81236dba93fc",
+          "additions": 321,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "acd525fc148c1378c90cfb23dddee9dd53e4d52c",
+      "parent": "7045264ce6d5b4a33b287bc7795e710bb0c3b4fc",
+      "sourceTree": "06c548303702cea25fccc569c2f402e06c91c72b",
+      "protectedSet": "protected-set-1",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "ec5ca9c993375b9410b30f5d517e3c3cd9edb497",
+          "additions": 44,
+          "deletions": 2
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "14e4a577c26e85cb2bc7aff8e9fb2d52774ee4ff",
+          "additions": 12,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w02f-server-ownership.md",
+          "status": "added",
+          "blob": "95aecab9286ab9ba07078b4ffefc9facc1359bc8",
+          "additions": 53,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w03a-input-retry.md",
+          "status": "added",
+          "blob": "b0ac828dc6f50d347a09aff438e1e4ab9cdf0432",
+          "additions": 43,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w03b-vehicle-cues.md",
+          "status": "added",
+          "blob": "d15312baace64090a45712e52c9a7b012eed1bc4",
+          "additions": 48,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w03c-lazy-guidance.md",
+          "status": "added",
+          "blob": "cb340d50ed5fffe76bb48f82abc068663dd18e30",
+          "additions": 63,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w03d-lane-fifo.md",
+          "status": "added",
+          "blob": "22a5172a5d4f9063b87acb38bd4fd5efc13b4365",
+          "additions": 78,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w03e-thermal-signature.md",
+          "status": "added",
+          "blob": "63118a8aa4e0a897bc77dfbea7e01fbad6d46de6",
+          "additions": 73,
+          "deletions": 0
+        },
+        {
+          "path": "src/audio/driving-cues.ts",
+          "status": "modified",
+          "blob": "899e8458a67d1c65eaaef1f45e097ee86bcd4403",
+          "additions": 31,
+          "deletions": 6
+        },
+        {
+          "path": "src/audio/engine.ts",
+          "status": "modified",
+          "blob": "48cc574b1062ac201a2b7883312519c8bd59bb7b",
+          "additions": 24,
+          "deletions": 8
+        },
+        {
+          "path": "src/input/controller.ts",
+          "status": "modified",
+          "blob": "6964df929db701b00e2d9f993ecf802801c12d0a",
+          "additions": 4,
+          "deletions": 0
+        },
+        {
+          "path": "src/net/server.ts",
+          "status": "modified",
+          "blob": "328d4c796311fb550559be086d4b44fa6867a893",
+          "additions": 60,
+          "deletions": 7
+        },
+        {
+          "path": "src/simulation/surface-thermal.ts",
+          "status": "modified",
+          "blob": "b6865d19b4b8d8ebbe759426508549efe9b100a8",
+          "additions": 3,
+          "deletions": 2
+        },
+        {
+          "path": "src/simulation/track-lane-index.ts",
+          "status": "modified",
+          "blob": "3a8d7add3aa19cd77deed35fb033699f6d0eee63",
+          "additions": 18,
+          "deletions": 2
+        },
+        {
+          "path": "tests/engine-controller-fault-retry.test.ts",
+          "status": "added",
+          "blob": "236e86773916108ccbd65c9904d5ddf59901a466",
+          "additions": 223,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-driving-audio-lazy-route.test.ts",
+          "status": "added",
+          "blob": "3bfa9fc46d392be3757a6e25921d5a35c24c6d43",
+          "additions": 262,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-driving-cue-vehicles.test.ts",
+          "status": "added",
+          "blob": "7d4c3db01a070f02863b0f7147aa64207a8b352f",
+          "additions": 208,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-frozen-thermal-signature.test.ts",
+          "status": "added",
+          "blob": "7a727046713160b56351923cee94254cf89e77c0",
+          "additions": 110,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-lane-fifo-eviction.test.ts",
+          "status": "added",
+          "blob": "d67ffd015ba708e2396154a92016b386f81555e3",
+          "additions": 212,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-server-owned-deadlines.test.ts",
+          "status": "added",
+          "blob": "c042fc110d677e1105a5655f39368983ff2ea6e9",
+          "additions": 386,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "04b7a6e2516020fb971d5e42a2e33973033361b4",
+      "parent": "f8692b10d121e2a771545c00625e51940748ab9c",
+      "sourceTree": "4ec25e19952a361a009b51a57e9c0720bdb89fd5",
+      "protectedSet": "protected-set-1",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "8a23237cff3c64aa6f2efae1d45b64a6a90b034e",
+          "additions": 23,
+          "deletions": 2
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/PLAN.md",
+          "status": "modified",
+          "blob": "14e44c865984932235c822fc69f2ebcbed3ea281",
+          "additions": 5,
+          "deletions": 5
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w03f-codec-buffers.md",
+          "status": "added",
+          "blob": "0613dfd8ce928b5a4b1c6ca377c619e1fdca0917",
+          "additions": 99,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04a-native-atomic.md",
+          "status": "added",
+          "blob": "2421817754c5dbb8ac4868451e878802807f12e8",
+          "additions": 87,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04b-native-startup.md",
+          "status": "added",
+          "blob": "7f1fdd6914599b7bdbd376e8eefe27edf5842537",
+          "additions": 59,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-atomic-storage.spec.ts",
+          "status": "added",
+          "blob": "b9d96853c76bc7af6aab5b53d8c7a21659b100e4",
+          "additions": 219,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-startup-cancellation.spec.ts",
+          "status": "added",
+          "blob": "d2ae61ac3c7a65534e5c20e68b6b1cf3fbd63f61",
+          "additions": 196,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-atomic-storage.ts",
+          "status": "added",
+          "blob": "c874462cecdd1999e66dfa71c67b6e62c26cdcb2",
+          "additions": 320,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-startup-cancellation.ts",
+          "status": "added",
+          "blob": "5d5957b18685b63f81a1ea1416846cb5a95e7d5f",
+          "additions": 443,
+          "deletions": 0
+        },
+        {
+          "path": "src/net/bytes.ts",
+          "status": "modified",
+          "blob": "4d119f256f99666bc3a6747a826719391f169c36",
+          "additions": 18,
+          "deletions": 1
+        },
+        {
+          "path": "src/net/codec.ts",
+          "status": "modified",
+          "blob": "54fd12fe5e277f2eb485993849ea5a51c539c71b",
+          "additions": 9,
+          "deletions": 5
+        },
+        {
+          "path": "tests/engine-codec-buffer-ownership.test.ts",
+          "status": "added",
+          "blob": "aea0cd50630729437dc9f40f103099084f9c47e4",
+          "additions": 302,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-input-encoder-capacity.test.ts",
+          "status": "modified",
+          "blob": "7dd9c247121f6cd2e343d80418efcd62d2a81d47",
+          "additions": 16,
+          "deletions": 3
+        },
+        {
+          "path": "tests/engine-snapshot-batch-encoding.test.ts",
+          "status": "modified",
+          "blob": "be73ff846ca04105629b111fde180af9245096b7",
+          "additions": 8,
+          "deletions": 7
+        }
+      ]
+    },
+    {
+      "commit": "b3b8ec09183734287b71406f8894d07c91eb48c9",
+      "parent": "eb6da21e48c76bff15c3d46332372cfda1ccadcc",
+      "sourceTree": "dec59b6646011b154c906449f1b5624e75dfee00",
+      "protectedSet": "protected-set-1",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "d6e7f388f8350ed058f2ced246902eb439823159",
+          "additions": 15,
+          "deletions": 1
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "121737517c3f34aeecbf8f2aee057d1ccb05bd48",
+          "additions": 10,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04c-native-audio.md",
+          "status": "added",
+          "blob": "8980625d8fdf33af5c4173ab4fccd5eb210a048f",
+          "additions": 73,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04e-replay-audit.md",
+          "status": "added",
+          "blob": "4a9ba300f8f93ae9b96e1c78ac500cdced95ed00",
+          "additions": 23,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-driving-audio.spec.ts",
+          "status": "added",
+          "blob": "2c8487a3afe49734fa7ffbc6bd31a458db1fbafa",
+          "additions": 194,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-atomic-storage.ts",
+          "status": "modified",
+          "blob": "2a84d8f2e3751c294b0990f7df0ef57a59905c93",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "e2e/fixtures/engine-native-driving-audio.ts",
+          "status": "added",
+          "blob": "2d1867b9ca0eb1f9d452117f626e6d194e436cf1",
+          "additions": 464,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "c482ad9ce9fdef02660e4880a027d83326c840c4",
+      "parent": "ebd1e3fba64f80c5f08afb8523014961d4c5e184",
+      "sourceTree": "ae2fd096fd3c77e3c18b6b22a8969b0207dea606",
+      "protectedSet": "protected-set-2",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": ".github/workflows/engine-runtime-validation.yml",
+          "status": "modified",
+          "blob": "64cc4b3022118910a53115f818602f0311cc6ef7",
+          "additions": 12,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "b1af61b54b8fabe6d61c1c0318d3852066da95d4",
+          "additions": 79,
+          "deletions": 2
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "e08229e45b04da02c2ede701f7703dd4378bcfce",
+          "additions": 18,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04d-network-composition.md",
+          "status": "added",
+          "blob": "b86d401a83d6e6193f086658418c6f73f4b82822",
+          "additions": 74,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04f-worker-audit.md",
+          "status": "added",
+          "blob": "68d7bf3b6e9ba3dc15c835de87ea8ad5f59b7a92",
+          "additions": 63,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w05a-radio-probe.md",
+          "status": "added",
+          "blob": "191ae905a53128c5bb72d22785d73406211887fb",
+          "additions": 147,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w05b-queue-probe.md",
+          "status": "added",
+          "blob": "93b865ec22dc23a26d2cd416c529c9f10f67bf7a",
+          "additions": 169,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w05c-lane-probe.md",
+          "status": "added",
+          "blob": "082ef8eb7c44582e73e4e24827c9aa2ac7b8b9ee",
+          "additions": 164,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w05d-thermal-probe.md",
+          "status": "added",
+          "blob": "b50865d3602f9dcb2a36b4931ba91d218289aa82",
+          "additions": 124,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w05e-codec-probe.md",
+          "status": "added",
+          "blob": "b6bd3fbe642a764101279a06c7d451f5b108afe3",
+          "additions": 152,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w05f-simulation-probe.md",
+          "status": "added",
+          "blob": "cdadbf7c8c3146142742bc1a842959cd80ebf965",
+          "additions": 83,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w06a-native-audio-repair.md",
+          "status": "added",
+          "blob": "d6397c2f55639b307d45f35946aa54c1706db401",
+          "additions": 107,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w06b-flashback-diagnostics.md",
+          "status": "added",
+          "blob": "a13eb8ec41871923a6aa04c0ce86735625600497",
+          "additions": 104,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w06c-raf-witness.md",
+          "status": "added",
+          "blob": "ddaec5f71707af8b5b82544445b0202a440b45d9",
+          "additions": 95,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-device-ownership.spec.ts",
+          "status": "modified",
+          "blob": "72e9b54bce40a18120f5f5e8b338b204d75ff955",
+          "additions": 33,
+          "deletions": 4
+        },
+        {
+          "path": "e2e/engine-native-driving-audio.spec.ts",
+          "status": "modified",
+          "blob": "c81d9a1c04fe502706f07e968a32d80718255c2c",
+          "additions": 38,
+          "deletions": 10
+        },
+        {
+          "path": "e2e/fixtures/engine-native-device-ownership.ts",
+          "status": "modified",
+          "blob": "de2a0f825cae1037a8f68e819082f52cc7ae1f10",
+          "additions": 129,
+          "deletions": 19
+        },
+        {
+          "path": "e2e/fixtures/engine-native-driving-audio.ts",
+          "status": "modified",
+          "blob": "06e1b0b4222b8d4a7f30bc99400bfca376b3766f",
+          "additions": 183,
+          "deletions": 152
+        },
+        {
+          "path": "scripts/engine-runtime-probes/codec-probe.mjs",
+          "status": "added",
+          "blob": "181ed9548158c549469e1147be2b450c1394dbcc",
+          "additions": 465,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/engine-runtime-probes/lane-probe.mjs",
+          "status": "added",
+          "blob": "5d71b556924136f7cc631e68293a913fadb091e7",
+          "additions": 407,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/engine-runtime-probes/queue-probe.mjs",
+          "status": "added",
+          "blob": "f87a6ab6fc13d0d9766bf9059d7164ace6308f01",
+          "additions": 550,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/engine-runtime-probes/radio-probe.mjs",
+          "status": "added",
+          "blob": "0e8b0057dec5383ad7ac2fdf7e8d590a4fa24e85",
+          "additions": 472,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/engine-runtime-probes/simulation-probe.mjs",
+          "status": "added",
+          "blob": "7861f6ac36a54c5c94e208287f8648b53466b5f0",
+          "additions": 446,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/engine-runtime-probes/support.mjs",
+          "status": "added",
+          "blob": "8dd04ce6ebc7a714e02cc56cdd050543af98abc5",
+          "additions": 193,
+          "deletions": 0
+        },
+        {
+          "path": "scripts/engine-runtime-probes/thermal-probe.mjs",
+          "status": "added",
+          "blob": "8b6a2810404216ae468cc50a49ef570b0672347b",
+          "additions": 329,
+          "deletions": 0
+        },
+        {
+          "path": "src/workers/diagnostics.ts",
+          "status": "modified",
+          "blob": "ff6d6ee9de0d9a1b1c86415bcb6c9adc57165ae1",
+          "additions": 11,
+          "deletions": 1
+        },
+        {
+          "path": "src/workers/physics.worker.ts",
+          "status": "modified",
+          "blob": "93bbd5b7494e9764c48741535762e306695b5678",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "tests/engine-diagnostics-backpressure.test.ts",
+          "status": "modified",
+          "blob": "aff9f2b439f244fc4800f34d50aa58528c81b9a0",
+          "additions": 3,
+          "deletions": 3
+        },
+        {
+          "path": "tests/engine-flashback-diagnostics-state.test.ts",
+          "status": "added",
+          "blob": "bb74355b584836ee0066c3b2202a923462eb73c8",
+          "additions": 248,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-network-runtime-composition.test.ts",
+          "status": "added",
+          "blob": "86161d60a46eedb80831aff34cbed3427869943f",
+          "additions": 396,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-raf-witness.test.ts",
+          "status": "added",
+          "blob": "4cfc92d9cdbb1abe5062607242cb019e910214b1",
+          "additions": 131,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "92e2dc2ed2f4959011bb84816e90506cefed774d",
+      "parent": "5bed115a9a7e4a9a027a1c6da4ea427511102857",
+      "sourceTree": "53db549abaa5ce3a38421e7c103e3e052a7956d8",
+      "protectedSet": "protected-set-2",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "12a4f1f5bbc9b35e154816e5a3f545ac35d1f24b",
+          "additions": 23,
+          "deletions": 2
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "41314f23ec0a4be616e29c10ce7c5645a1e71f47",
+          "additions": 8,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w04d-network-composition.md",
+          "status": "modified",
+          "blob": "b000fc46513ee11eef6fd9d4de358a2a33451846",
+          "additions": 5,
+          "deletions": 1
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w06d-native-diagnostics.md",
+          "status": "added",
+          "blob": "8370a483ffa3b34fd6dbeec6c6915f0d1b46aa58",
+          "additions": 85,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w06e-worker-idle.md",
+          "status": "added",
+          "blob": "cde3046a147beb32b322e2dff1aa25c706d333bd",
+          "additions": 79,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w06f-probe-review.md",
+          "status": "added",
+          "blob": "6d84646464d3d1fff9ae401af6f7dfa36e6e1bd9",
+          "additions": 222,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-flashback-diagnostics.spec.ts",
+          "status": "added",
+          "blob": "3af3769c9b1c01b8a3439237901da2ede4106123",
+          "additions": 125,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-flashback-diagnostics.ts",
+          "status": "added",
+          "blob": "e283edb0d39433ef8294519cf5bd6adbb87880b8",
+          "additions": 340,
+          "deletions": 0
+        },
+        {
+          "path": "src/workers/physics.worker.ts",
+          "status": "modified",
+          "blob": "4911703dd582912f256df2e017b4f43bca6c9d21",
+          "additions": 44,
+          "deletions": 2
+        },
+        {
+          "path": "tests/engine-network-runtime-composition.test.ts",
+          "status": "modified",
+          "blob": "d8855887651beda260af95e37098111beafa28f6",
+          "additions": 3,
+          "deletions": 1
+        },
+        {
+          "path": "tests/engine-worker-idle-scheduling.test.ts",
+          "status": "added",
+          "blob": "ffd669d5d11a583c0c1703d21536959025a40c9d",
+          "additions": 351,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "e2d1fec2ff3b38a2cf962e9974cfe0622259823b",
+      "parent": "acafc35a3d6c81f30ce295e8df4e73d4852bda7f",
+      "sourceTree": "d334ddb2a589593c9545c67914eec83c612df790",
+      "protectedSet": "protected-set-2",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": ".github/workflows/engine-runtime-validation.yml",
+          "status": "modified",
+          "blob": "0b05291fc32eb48ff6b7875cf4a18d4a991fe7bf",
+          "additions": 12,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "da7ee27906aba4b68a3bfa392a81799047bd83a6",
+          "additions": 44,
+          "deletions": 2
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "8d564f5b0653f1111687fd9978f379ab1d15c544",
+          "additions": 18,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/92e2dc2/hosted-job.log",
+          "status": "added",
+          "blob": "af028f27d171792ab7efe0d258a8cf65f7bbef84",
+          "additions": 3616,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/92e2dc2/probes.json",
+          "status": "added",
+          "blob": "5489cbdaad955d82422d9088e5e569863f888f10",
+          "additions": 3861,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/92e2dc2/result.json",
+          "status": "added",
+          "blob": "95f8f77186036054a3a6800edcf53c2bdfa1c644",
+          "additions": 65,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w07a-save-recovery.md",
+          "status": "added",
+          "blob": "dcb4ef611c901280d5362f2e9f5a59e551339b01",
+          "additions": 117,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w07b-network-recovery.md",
+          "status": "added",
+          "blob": "01d37c816fe04f9b87afe4e011559ccbad950233",
+          "additions": 161,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w07c-event-retirement.md",
+          "status": "added",
+          "blob": "ec3355bddfe144f600d72d3d77146170b0608f45",
+          "additions": 125,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w07d-native-idle.md",
+          "status": "added",
+          "blob": "c45789ce12fe22e4fb90b9502e546529807c6b44",
+          "additions": 151,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w07e-startup-recovery.md",
+          "status": "added",
+          "blob": "2e7929cff9a95dad887ef6ed89f1231c349f2820",
+          "additions": 218,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w08a-storage-review.md",
+          "status": "added",
+          "blob": "068351873260f1d0ef6e8c40eccb99fecd71ab59",
+          "additions": 93,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-worker-idle.spec.ts",
+          "status": "added",
+          "blob": "21928a28d757dec1afd70a097c30dcb4c4fcac4f",
+          "additions": 229,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-worker-idle-observer.ts",
+          "status": "added",
+          "blob": "eb9cc41e6312b47216420600d24b3d6d5afca65f",
+          "additions": 136,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-worker-idle.ts",
+          "status": "added",
+          "blob": "077d5575cc36cacfcd383a97d660ba824547f6ba",
+          "additions": 352,
+          "deletions": 0
+        },
+        {
+          "path": "src/net/event-loop.ts",
+          "status": "modified",
+          "blob": "429f76ea53c118ce46bd077086629399b52f7be4",
+          "additions": 6,
+          "deletions": 2
+        },
+        {
+          "path": "src/storage/data.ts",
+          "status": "modified",
+          "blob": "c0199dcabd76d50b0e417695f4d77f77c1c6bf3d",
+          "additions": 34,
+          "deletions": 10
+        },
+        {
+          "path": "src/storage/desktop-mirror.ts",
+          "status": "modified",
+          "blob": "f19a3e7d066b7b768184e23f918dcfbc760fe461",
+          "additions": 31,
+          "deletions": 5
+        },
+        {
+          "path": "tests/engine-desktop-revision-ownership.test.ts",
+          "status": "added",
+          "blob": "ca565bbb60476c71e346c02b8005af028ebff765",
+          "additions": 470,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-event-retirement.test.ts",
+          "status": "added",
+          "blob": "fe6c3f43a6411c23d05d16b5ac9214a3deee6a92",
+          "additions": 234,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-network-recovery-boundaries.test.ts",
+          "status": "added",
+          "blob": "7a640c2112f7f70e9e09ea9d32c35c2b76a87632",
+          "additions": 93,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-save-atomic-update.test.ts",
+          "status": "modified",
+          "blob": "16b92eaa9021b1075e09440e82274ab0d5e08294",
+          "additions": 19,
+          "deletions": 8
+        },
+        {
+          "path": "tests/save-store-lifecycle.test.ts",
+          "status": "modified",
+          "blob": "be2e1d20c8c0e39165dea3681412c54d539ab33d",
+          "additions": 3,
+          "deletions": 0
+        }
+      ]
+    },
+    {
+      "commit": "748814f648badd2e355c47c2f6ddc7321a0ed494",
+      "parent": "e2d1fec2ff3b38a2cf962e9974cfe0622259823b",
+      "sourceTree": "62320b53ed0c9cfda4aafbe31eedab0fe3d8d678",
+      "protectedSet": "protected-set-2",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": ".github/workflows/engine-runtime-validation.yml",
+          "status": "modified",
+          "blob": "9ddcd685aa39adef31a6f29127f36685a35a07d3",
+          "additions": 15,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "a807be0810909cfea071c1532049cd96781bb2e9",
+          "additions": 51,
+          "deletions": 2
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "dcbbcea2f5adcffe28b2220caff7e242fd642f4f",
+          "additions": 10,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/e2d1fec/hosted-job.log",
+          "status": "added",
+          "blob": "d01cd0a81c7c8e6bcf249067704638ba9b7379d7",
+          "additions": 696,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/e2d1fec/result.json",
+          "status": "added",
+          "blob": "e51bbd133ff35f7d7a81ccb0adf917bcfaabda41",
+          "additions": 38,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w07f-native-save-recovery.md",
+          "status": "added",
+          "blob": "dae86a550741da70fd3a26477198b77125deb9a0",
+          "additions": 163,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w08b-network-review.md",
+          "status": "added",
+          "blob": "a3c45e57735edfde28ceddccc68f2298cf4a3edb",
+          "additions": 108,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w08c-audio-input-review.md",
+          "status": "added",
+          "blob": "18913e0ee4a06d81fcc375ceb8ed7fa4a27b55f4",
+          "additions": 223,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w08d-physics-review.md",
+          "status": "added",
+          "blob": "f48ac9e8009bda2a7bda22e64239f524e92081bd",
+          "additions": 124,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w08e-worker-review.md",
+          "status": "added",
+          "blob": "c250c3a994985f24a848f0c0d25a11fff4ac40d8",
+          "additions": 116,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w08f-validation-review.md",
+          "status": "added",
+          "blob": "7e8ed20bef3543af9081be88c6e798b36e7e7783",
+          "additions": 125,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w09a-integration-recovery.md",
+          "status": "added",
+          "blob": "7c4c8722586b837b2c14d5669bffc97ef5c682d9",
+          "additions": 141,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/engine-native-desktop-recovery.spec.ts",
+          "status": "added",
+          "blob": "dc8adb97d1b6414c79d1e9230ba3c942c7fcc49a",
+          "additions": 411,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-desktop-recovery.ts",
+          "status": "added",
+          "blob": "20320615b9f268a1614f215cb6d621daa4d37817",
+          "additions": 217,
+          "deletions": 0
+        },
+        {
+          "path": "tests/engine-persistence-integration.test.ts",
+          "status": "modified",
+          "blob": "92e793251c35b777e9e95653228519ec88f74e1f",
+          "additions": 95,
+          "deletions": 15
+        },
+        {
+          "path": "tests/engine-worker-idle-scheduling.test.ts",
+          "status": "modified",
+          "blob": "1311d6281c9b524989699cdbe98b91a69a516333",
+          "additions": 35,
+          "deletions": 31
+        }
+      ]
+    },
+    {
+      "commit": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+      "parent": "7bf60e87079662a6d568452949ddc9a883f05e93",
+      "sourceTree": "81c96acd7dd712b4865c04939ddf0b82773aede9",
+      "protectedSet": "protected-set-2",
+      "protectedIdentitiesEqual": 97,
+      "changedFiles": [
+        {
+          "path": "docs/engine/runtime-2026-11-25/AGENTS.json",
+          "status": "modified",
+          "blob": "53392214d61220bb406dd0114f91508d5b5a08eb",
+          "additions": 8,
+          "deletions": 1
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/CHECKPOINTS.md",
+          "status": "modified",
+          "blob": "53578c55e1dab658dcd57b7cb9cbd10427db0fc9",
+          "additions": 6,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/748814f/hosted-job.log",
+          "status": "added",
+          "blob": "ea6f3d4bb62940db9bae7e10a6fb956d5a0ccde8",
+          "additions": 326,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/evidence/748814f/result.json",
+          "status": "added",
+          "blob": "6e6a01bd2116596f6e129bc2cbf61dee49fda7fe",
+          "additions": 22,
+          "deletions": 0
+        },
+        {
+          "path": "docs/engine/runtime-2026-11-25/w09b-measurements.md",
+          "status": "added",
+          "blob": "f6c4715a9dcb30113215d7e9aaa306dad853def9",
+          "additions": 161,
+          "deletions": 0
+        },
+        {
+          "path": "e2e/fixtures/engine-native-worker-idle-observer.ts",
+          "status": "modified",
+          "blob": "6e4aebe1eba2a9339bb8d5980f48efc96ec656b5",
+          "additions": 1,
+          "deletions": 2
+        }
+      ]
+    }
+  ],
+  "protectedIdentitySets": [
+    {
+      "id": "protected-set-1",
+      "identities": [
+        {
+          "path": "assets",
+          "sha": "a17835cbd39364c5baec560e73badf748a450a15",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "authoring",
+          "sha": "9232f7c8f4254fbe8d462f7a94fb1b212e8c15d7",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "public",
+          "sha": "2cac282975906f4e5403dd51c05df626cdbe1597",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "3dmodels.md",
+          "sha": "07261fb0d19428ff9b0c5ebf2b754cf054b56639",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "playable",
+          "sha": "b7f7b682ae52ebb54a674658c52acb0b70672eb4",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "reference",
+          "sha": "bd0b27bf01252f4ec5e882b34caaca8c9994d839",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "screenshots",
+          "sha": "c7822d73cbc3105ea4ffbf01d2eee43300157b12",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "tools",
+          "sha": "3a83898184a1dd677cc936571357edae2ccec984",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "desktop",
+          "sha": "2f63c9689875aac21f78088b719244b6ecd7dc1d",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "lookdev-tmp",
+          "sha": "6b9f345fdc65841370769013ae9e80baba806373",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "scratch-tmp",
+          "sha": "2ba00d354bb63b9c8e778c41f3b803e0b0e3ab95",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/rendering",
+          "sha": "b573bfedfa0567144cbe21ffc7ba6e79cf7dc55a",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/shaders",
+          "sha": "82b133b562ff1304bbff846861032a36252f76ef",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/main.ts",
+          "sha": "76825801ae05ea6b36ee355969affa89add85222",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/aero-map.ts",
+          "sha": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/aero.ts",
+          "sha": "e070d6c147501821d98b8606d4c03dad3645c108",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/ai.ts",
+          "sha": "25f018260cf209257c5b57c0d46a9c34460dd022",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-ai.ts",
+          "sha": "707955c4807bda586a17fc5cc9337b419166bcc9",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-definitions.ts",
+          "sha": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-slipstream.ts",
+          "sha": "991472fa14c4fd623fe3efef362df9a50e862370",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-tyre-profile.ts",
+          "sha": "263d760bfad2c52540ca23abe41d325bc383c3e6",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-vehicle.ts",
+          "sha": "9635c8c501ad3235734e22de24c7bde1ac642fb4",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike.ts",
+          "sha": "3e8bcb98120a6200dcb870d4615a93964918b446",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/brake-thermal.ts",
+          "sha": "22d35f56d80c0cfa87033960f60aa13c754697da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bvh.ts",
+          "sha": "d9d3a403efc0bbcf6586e807b58de90d7ccb3f77",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/catalogue-dynamics.ts",
+          "sha": "deb7f66181b7d60285d982be8173bf1f9e82e855",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/catalogue-events.ts",
+          "sha": "00bccf88e06c3a359504db9225bc798f24631b20",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/circuit-catalogue",
+          "sha": "426826007d7b747ea0f5c1514ae96670e29e029a",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/circuits.ts",
+          "sha": "f7725db33f49976e3be63a98e5246a16a9f87712",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/clutch.ts",
+          "sha": "d81f72ad7675f5762b93d809a43af65656ea9b1f",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/collision.ts",
+          "sha": "404341932dd7c09b07bf3920c87d24cd4afc2d71",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/config.ts",
+          "sha": "b7a7edf3cb2ed14ee6ca6b6d4fca8bd710d6f885",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/contact.ts",
+          "sha": "45fb3e38ac150e1870cb9d001fb0128bd82503fa",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/contamination.ts",
+          "sha": "d047680e23672ee34c6e0662de52064113732337",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/content-import.ts",
+          "sha": "e8de4d8bff850d2b5976bf54133995bbcad58ef3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/content-validation.ts",
+          "sha": "3c74d2ba22e538af77c51b51f9fd46fc7ff3629b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/damage.ts",
+          "sha": "ffba8a4fcb1debd0618a81648cdc5314db4e5224",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/differential.ts",
+          "sha": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/driver-brain.ts",
+          "sha": "27ca7bb2a67442957756015329995535758225d8",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/driving-assists.ts",
+          "sha": "ca1ad6d8e5b46de738a36399d568ae2f7f855d41",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/drs.ts",
+          "sha": "eb8610c7565d7c01a246e8918d8c5005c33a1e66",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/events.ts",
+          "sha": "f30314a10e8b2dd96717f1d68ff9dcd3cc611ffe",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-brake-fade.ts",
+          "sha": "ab7d879558a77d0f795b73a722b370504ec5341e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-corner-shape.ts",
+          "sha": "e243c546afd6ea5a0acc511343ebe92debad0b66",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-course-edges.ts",
+          "sha": "01c9de55e353e2c3dfe4b431dd7a5feded46f7f1",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-engine-braking.ts",
+          "sha": "c0b4b597a9de182bcae3c0f70bf0a6d6aa62244b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-front-contact.ts",
+          "sha": "303e1f6b568ac56ec6cf9952eac5eeee887b040b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-grid.ts",
+          "sha": "62478d7c5acc2fb04318020191c94a4a170b6020",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/lap-reference.ts",
+          "sha": "64bcc4b5b3de55a4f3b4e9b279446f2e3c116f05",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/local-frame.ts",
+          "sha": "6c901024adc3e7d80c308077fb050501e61f10a5",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/marshal.ts",
+          "sha": "bc7531a958cdde6ef2697ce69a2048468d5bdddf",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/motogp-physics.ts",
+          "sha": "317fae66f74185c5081989388e91db7d16da7762",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/motorcycle-braking-plan.ts",
+          "sha": "3d633c53f6f2a416d285975790c0756fbb38d0a6",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/motorcycle-thermal.ts",
+          "sha": "f3b3cee3ac2f3a2a0b13d46d9b7fa8103a3b3ec2",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/moving-surface.ts",
+          "sha": "d239ff7c6fb1c0fc63e151e8b3bed1cd81b472da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/obb.ts",
+          "sha": "f7cb39fc86065d0e06ed4576f8dcd2751dd03a14",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/offroad",
+          "sha": "c050408e90d56f803f76a90537ca61697ec24be6",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/open-world",
+          "sha": "ba56e982574b0f04a7b53dd1e51220e3e4037f89",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/pit-safety.ts",
+          "sha": "0328dc9d72581291f8181e5c890e909bb0e42126",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/pit-service.ts",
+          "sha": "3fa2121b6ea68bd4db28e3c3ac049446b880580c",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/pose-kinematics.ts",
+          "sha": "4fa51f9176a046c4a187e072c8affb6b6c17ac29",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/powertrain.ts",
+          "sha": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/practice-programme.ts",
+          "sha": "cd0129c48225e55c16e3578cd4ed4947f5f2fad2",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/protocol.ts",
+          "sha": "73cefcf24cff63c46616d77f8b94327ccaaad5e3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/race.ts",
+          "sha": "06a9fbb8fe986ff94c6ecb12411d617a10fc6628",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/racing-line.ts",
+          "sha": "d5876ec095e9d89efa6d15d76f59534c69cbcd48",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/regenerative-braking.ts",
+          "sha": "24be23c1d5ce9a772b5ae2e345a3adf769a8f1a8",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/rigid.ts",
+          "sha": "99322eaac7dfbf8cb5a88de0e1302d7e89fab968",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/road-bike-suspension.ts",
+          "sha": "213d5e21a678f38aedb5e981021e12d3efeef7da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/road-contact.ts",
+          "sha": "b7db24e57a68bd217e46d743d36aeb470fac1c98",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/route-graph.ts",
+          "sha": "26be541f6c1148ac80d832a662e2a975d22dd6ef",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/safety-car.ts",
+          "sha": "db97fdad3cccdc82d91f9eba51481cbfd0b0b3f6",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/skid-contact.ts",
+          "sha": "0ff46ade6f2634735aab9050c54b3bc28488e0da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/surface-drainage.ts",
+          "sha": "25f870c81c68dd8dae0b291c78bb913439a51c7a",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/surface-material.ts",
+          "sha": "f4257a96f607734d341a3add10d6a317c89a1adc",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/suspension.ts",
+          "sha": "b1946cb5a3e047ca0ab849f80fc7f366baca8581",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/terrain.ts",
+          "sha": "98240b406b09143ac1d1830cf7fcba938287797a",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/test-venues.ts",
+          "sha": "4609b78ebe0b78cbcba5570af8cd4f545aa77736",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tire-families.ts",
+          "sha": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tire-footprint.ts",
+          "sha": "fc3271371d5957f28c470aeabce52583ba3564e7",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tire.ts",
+          "sha": "09fc377e6ec0e00d072c507661a87cf56136e900",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/track.ts",
+          "sha": "5bd9acb7d6d2076ec9005373d2dbe35e4f7d486e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/traffic.ts",
+          "sha": "43482082545ffd1fbc5b9d40580597e7eb32eddb",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tyre-force.ts",
+          "sha": "a16844a3c4b3496f284e4a925b24f996774b4000",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tyre-thermal.ts",
+          "sha": "fa52185f82889b08496e4e41f2be9de6879cf730",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue",
+          "sha": "8b957c3c7584be5eaa4be6bba09d4d00a0cc0747",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/vehicle-classes.ts",
+          "sha": "b9b6bdafecf7b6083a861915443055c03cd33bf5",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicle-dynamics.ts",
+          "sha": "fe8162122bbd8da111db10b8ab13315c2eca7913",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicle.ts",
+          "sha": "8d11b992b7f241adff5496e7f4db5b3ddc38f704",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicles.ts",
+          "sha": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/weather-catalogue.ts",
+          "sha": "c518d5c5e6089d4485b63d4df47b7e676033c68e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/weather.ts",
+          "sha": "94ff224d230d2e80bfcd683fb4c984e7bf0d610c",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wheel-contact-state.ts",
+          "sha": "40ddbf4e67a66fda59bd0592ae6ac6313c532dbb",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wheel-momentum.ts",
+          "sha": "4e3a952ba35abea71b20eba9d039b0ac7ece231e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wheel-rotation.ts",
+          "sha": "85055b6085827ee72100c252fd8fc0c32411f96c",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wildcard-rulesets.ts",
+          "sha": "706e70b15ba412a7ff29b2842c452806286bb6bf",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/world.ts",
+          "sha": "adadc6ad1f633e7a45dc4fed3d7d52b65b7cea79",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "id": "protected-set-2",
+      "identities": [
+        {
+          "path": "assets",
+          "sha": "a17835cbd39364c5baec560e73badf748a450a15",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "authoring",
+          "sha": "9232f7c8f4254fbe8d462f7a94fb1b212e8c15d7",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "public",
+          "sha": "2cac282975906f4e5403dd51c05df626cdbe1597",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "3dmodels.md",
+          "sha": "07261fb0d19428ff9b0c5ebf2b754cf054b56639",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "playable",
+          "sha": "b7f7b682ae52ebb54a674658c52acb0b70672eb4",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "reference",
+          "sha": "bd0b27bf01252f4ec5e882b34caaca8c9994d839",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "screenshots",
+          "sha": "c7822d73cbc3105ea4ffbf01d2eee43300157b12",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "tools",
+          "sha": "3a83898184a1dd677cc936571357edae2ccec984",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "desktop",
+          "sha": "2f63c9689875aac21f78088b719244b6ecd7dc1d",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "lookdev-tmp",
+          "sha": "6b9f345fdc65841370769013ae9e80baba806373",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "scratch-tmp",
+          "sha": "2ba00d354bb63b9c8e778c41f3b803e0b0e3ab95",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/rendering",
+          "sha": "8591057d9c35b83c5861e865e5c192aaac592bec",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/shaders",
+          "sha": "82b133b562ff1304bbff846861032a36252f76ef",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/main.ts",
+          "sha": "76825801ae05ea6b36ee355969affa89add85222",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/aero-map.ts",
+          "sha": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/aero.ts",
+          "sha": "e070d6c147501821d98b8606d4c03dad3645c108",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/ai.ts",
+          "sha": "25f018260cf209257c5b57c0d46a9c34460dd022",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-ai.ts",
+          "sha": "707955c4807bda586a17fc5cc9337b419166bcc9",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-definitions.ts",
+          "sha": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-slipstream.ts",
+          "sha": "991472fa14c4fd623fe3efef362df9a50e862370",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-tyre-profile.ts",
+          "sha": "263d760bfad2c52540ca23abe41d325bc383c3e6",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike-vehicle.ts",
+          "sha": "9635c8c501ad3235734e22de24c7bde1ac642fb4",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bike.ts",
+          "sha": "3e8bcb98120a6200dcb870d4615a93964918b446",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/brake-thermal.ts",
+          "sha": "22d35f56d80c0cfa87033960f60aa13c754697da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/bvh.ts",
+          "sha": "d9d3a403efc0bbcf6586e807b58de90d7ccb3f77",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/catalogue-dynamics.ts",
+          "sha": "deb7f66181b7d60285d982be8173bf1f9e82e855",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/catalogue-events.ts",
+          "sha": "00bccf88e06c3a359504db9225bc798f24631b20",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/circuit-catalogue",
+          "sha": "426826007d7b747ea0f5c1514ae96670e29e029a",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/circuits.ts",
+          "sha": "f7725db33f49976e3be63a98e5246a16a9f87712",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/clutch.ts",
+          "sha": "d81f72ad7675f5762b93d809a43af65656ea9b1f",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/collision.ts",
+          "sha": "404341932dd7c09b07bf3920c87d24cd4afc2d71",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/config.ts",
+          "sha": "b7a7edf3cb2ed14ee6ca6b6d4fca8bd710d6f885",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/contact.ts",
+          "sha": "45fb3e38ac150e1870cb9d001fb0128bd82503fa",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/contamination.ts",
+          "sha": "d047680e23672ee34c6e0662de52064113732337",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/content-import.ts",
+          "sha": "e8de4d8bff850d2b5976bf54133995bbcad58ef3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/content-validation.ts",
+          "sha": "3c74d2ba22e538af77c51b51f9fd46fc7ff3629b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/damage.ts",
+          "sha": "ffba8a4fcb1debd0618a81648cdc5314db4e5224",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/differential.ts",
+          "sha": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/driver-brain.ts",
+          "sha": "27ca7bb2a67442957756015329995535758225d8",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/driving-assists.ts",
+          "sha": "ca1ad6d8e5b46de738a36399d568ae2f7f855d41",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/drs.ts",
+          "sha": "eb8610c7565d7c01a246e8918d8c5005c33a1e66",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/events.ts",
+          "sha": "f30314a10e8b2dd96717f1d68ff9dcd3cc611ffe",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-brake-fade.ts",
+          "sha": "ab7d879558a77d0f795b73a722b370504ec5341e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-corner-shape.ts",
+          "sha": "e243c546afd6ea5a0acc511343ebe92debad0b66",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-course-edges.ts",
+          "sha": "01c9de55e353e2c3dfe4b431dd7a5feded46f7f1",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-engine-braking.ts",
+          "sha": "c0b4b597a9de182bcae3c0f70bf0a6d6aa62244b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-front-contact.ts",
+          "sha": "303e1f6b568ac56ec6cf9952eac5eeee887b040b",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/gp-grid.ts",
+          "sha": "62478d7c5acc2fb04318020191c94a4a170b6020",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/lap-reference.ts",
+          "sha": "64bcc4b5b3de55a4f3b4e9b279446f2e3c116f05",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/local-frame.ts",
+          "sha": "6c901024adc3e7d80c308077fb050501e61f10a5",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/marshal.ts",
+          "sha": "bc7531a958cdde6ef2697ce69a2048468d5bdddf",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/motogp-physics.ts",
+          "sha": "317fae66f74185c5081989388e91db7d16da7762",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/motorcycle-braking-plan.ts",
+          "sha": "3d633c53f6f2a416d285975790c0756fbb38d0a6",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/motorcycle-thermal.ts",
+          "sha": "f3b3cee3ac2f3a2a0b13d46d9b7fa8103a3b3ec2",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/moving-surface.ts",
+          "sha": "d239ff7c6fb1c0fc63e151e8b3bed1cd81b472da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/obb.ts",
+          "sha": "f7cb39fc86065d0e06ed4576f8dcd2751dd03a14",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/offroad",
+          "sha": "c050408e90d56f803f76a90537ca61697ec24be6",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/open-world",
+          "sha": "ba56e982574b0f04a7b53dd1e51220e3e4037f89",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/pit-safety.ts",
+          "sha": "0328dc9d72581291f8181e5c890e909bb0e42126",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/pit-service.ts",
+          "sha": "3fa2121b6ea68bd4db28e3c3ac049446b880580c",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/pose-kinematics.ts",
+          "sha": "4fa51f9176a046c4a187e072c8affb6b6c17ac29",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/powertrain.ts",
+          "sha": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/practice-programme.ts",
+          "sha": "cd0129c48225e55c16e3578cd4ed4947f5f2fad2",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/protocol.ts",
+          "sha": "73cefcf24cff63c46616d77f8b94327ccaaad5e3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/race.ts",
+          "sha": "06a9fbb8fe986ff94c6ecb12411d617a10fc6628",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/racing-line.ts",
+          "sha": "d5876ec095e9d89efa6d15d76f59534c69cbcd48",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/regenerative-braking.ts",
+          "sha": "24be23c1d5ce9a772b5ae2e345a3adf769a8f1a8",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/rigid.ts",
+          "sha": "99322eaac7dfbf8cb5a88de0e1302d7e89fab968",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/road-bike-suspension.ts",
+          "sha": "213d5e21a678f38aedb5e981021e12d3efeef7da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/road-contact.ts",
+          "sha": "b7db24e57a68bd217e46d743d36aeb470fac1c98",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/route-graph.ts",
+          "sha": "26be541f6c1148ac80d832a662e2a975d22dd6ef",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/safety-car.ts",
+          "sha": "db97fdad3cccdc82d91f9eba51481cbfd0b0b3f6",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/skid-contact.ts",
+          "sha": "0ff46ade6f2634735aab9050c54b3bc28488e0da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/surface-drainage.ts",
+          "sha": "25f870c81c68dd8dae0b291c78bb913439a51c7a",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/surface-material.ts",
+          "sha": "f4257a96f607734d341a3add10d6a317c89a1adc",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/suspension.ts",
+          "sha": "b1946cb5a3e047ca0ab849f80fc7f366baca8581",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/terrain.ts",
+          "sha": "98240b406b09143ac1d1830cf7fcba938287797a",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/test-venues.ts",
+          "sha": "4609b78ebe0b78cbcba5570af8cd4f545aa77736",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tire-families.ts",
+          "sha": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tire-footprint.ts",
+          "sha": "fc3271371d5957f28c470aeabce52583ba3564e7",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tire.ts",
+          "sha": "09fc377e6ec0e00d072c507661a87cf56136e900",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/track.ts",
+          "sha": "5bd9acb7d6d2076ec9005373d2dbe35e4f7d486e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/traffic.ts",
+          "sha": "43482082545ffd1fbc5b9d40580597e7eb32eddb",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tyre-force.ts",
+          "sha": "a16844a3c4b3496f284e4a925b24f996774b4000",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/tyre-thermal.ts",
+          "sha": "fa52185f82889b08496e4e41f2be9de6879cf730",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue",
+          "sha": "8b957c3c7584be5eaa4be6bba09d4d00a0cc0747",
+          "mode": "040000",
+          "type": "tree"
+        },
+        {
+          "path": "src/simulation/vehicle-classes.ts",
+          "sha": "b9b6bdafecf7b6083a861915443055c03cd33bf5",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicle-dynamics.ts",
+          "sha": "fe8162122bbd8da111db10b8ab13315c2eca7913",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicle.ts",
+          "sha": "8d11b992b7f241adff5496e7f4db5b3ddc38f704",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/vehicles.ts",
+          "sha": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/weather-catalogue.ts",
+          "sha": "c518d5c5e6089d4485b63d4df47b7e676033c68e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/weather.ts",
+          "sha": "94ff224d230d2e80bfcd683fb4c984e7bf0d610c",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wheel-contact-state.ts",
+          "sha": "40ddbf4e67a66fda59bd0592ae6ac6313c532dbb",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wheel-momentum.ts",
+          "sha": "4e3a952ba35abea71b20eba9d039b0ac7ece231e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wheel-rotation.ts",
+          "sha": "85055b6085827ee72100c252fd8fc0c32411f96c",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/wildcard-rulesets.ts",
+          "sha": "706e70b15ba412a7ff29b2842c452806286bb6bf",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "src/simulation/world.ts",
+          "sha": "adadc6ad1f633e7a45dc4fed3d7d52b65b7cea79",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    }
+  ],
+  "ancestry": {
+    "status": "ahead",
+    "aheadBy": 27,
+    "behindBy": 0,
+    "totalCommits": 27,
+    "returnedCommits": 27,
+    "base": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "mergeBase": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "commits": [
+      {
+        "sha": "ef503b28033760315eff29b1147f05d2ab426bcf",
+        "parents": [
+          "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc"
+        ],
+        "title": "Reveal the identical MX gate immediately and measure rider-pose presentation in the browser",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "8bfce45d0c42a4e540d124fa12159cb7f19c7fb1",
+        "parents": [
+          "ef503b28033760315eff29b1147f05d2ab426bcf"
+        ],
+        "title": "CI report: ci-reports/settings-interaction-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "643f4ab2040010b6b815a2f845b79c978405d5a1",
+        "parents": [
+          "8bfce45d0c42a4e540d124fa12159cb7f19c7fb1"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "40bf6c7ef42335b9ea20e5a99f2943f3873836c4",
+        "parents": [
+          "643f4ab2040010b6b815a2f845b79c978405d5a1"
+        ],
+        "title": "Keep historical audio acceptance independent of evolving engine inputs",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "fb71dadc6dcf3ede163940a2f4e867aa1a1593a1",
+        "parents": [
+          "40bf6c7ef42335b9ea20e5a99f2943f3873836c4"
+        ],
+        "title": "CI report: ci-reports/scenery-shadow-budget.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "6484ff3497a29bb11dd4a626004b2cad74340846",
+        "parents": [
+          "fb71dadc6dcf3ede163940a2f4e867aa1a1593a1"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "c5016905c52da6b87aa400f00b841af7d948ab57",
+        "parents": [
+          "6484ff3497a29bb11dd4a626004b2cad74340846"
+        ],
+        "title": "Make record saves atomic and remove repeated runtime queue and snapshot work",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "b52eec1386479e6cbc8bbac51e9e95fecb4a05d0",
+        "parents": [
+          "c5016905c52da6b87aa400f00b841af7d948ab57"
+        ],
+        "title": "CI report: ci-reports/settings-interaction-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "7045264ce6d5b4a33b287bc7795e710bb0c3b4fc",
+        "parents": [
+          "b52eec1386479e6cbc8bbac51e9e95fecb4a05d0"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "acd525fc148c1378c90cfb23dddee9dd53e4d52c",
+        "parents": [
+          "7045264ce6d5b4a33b287bc7795e710bb0c3b4fc"
+        ],
+        "title": "Release server resources and reduce dormant audio and physics cache work",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "f8692b10d121e2a771545c00625e51940748ab9c",
+        "parents": [
+          "acd525fc148c1378c90cfb23dddee9dd53e4d52c"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "04b7a6e2516020fb971d5e42a2e33973033361b4",
+        "parents": [
+          "f8692b10d121e2a771545c00625e51940748ab9c"
+        ],
+        "title": "Transfer exact packet buffers and verify native save and startup ownership",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "eb6da21e48c76bff15c3d46332372cfda1ccadcc",
+        "parents": [
+          "04b7a6e2516020fb971d5e42a2e33973033361b4"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "b3b8ec09183734287b71406f8894d07c91eb48c9",
+        "parents": [
+          "eb6da21e48c76bff15c3d46332372cfda1ccadcc"
+        ],
+        "title": "Correct native IndexedDB fixture typing and verify real driving audio",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "e3ad320b1d54fb28db5a3d6b09b1faf7350a0ff2",
+        "parents": [
+          "b3b8ec09183734287b71406f8894d07c91eb48c9"
+        ],
+        "title": "Ground the recovering motocross rider and carry bike, spectators and camera through touchdown",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "76df2be40dd0eb96ccf98437d5456758b7c054b8",
+        "parents": [
+          "e3ad320b1d54fb28db5a3d6b09b1faf7350a0ff2"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "77363ca6f3c657b0caa0c57859caf2f2f1f8a77e",
+        "parents": [
+          "76df2be40dd0eb96ccf98437d5456758b7c054b8"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "ebd1e3fba64f80c5f08afb8523014961d4c5e184",
+        "parents": [
+          "77363ca6f3c657b0caa0c57859caf2f2f1f8a77e"
+        ],
+        "title": "CI report: ci-reports/scenery-shadow-budget.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "c482ad9ce9fdef02660e4880a027d83326c840c4",
+        "parents": [
+          "ebd1e3fba64f80c5f08afb8523014961d4c5e184"
+        ],
+        "title": "fix(engine): preserve diagnostics through rewind and verify baseline equivalence",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "5bed115a9a7e4a9a027a1c6da4ea427511102857",
+        "parents": [
+          "c482ad9ce9fdef02660e4880a027d83326c840c4"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "92e2dc2ed2f4959011bb84816e90506cefed774d",
+        "parents": [
+          "5bed115a9a7e4a9a027a1c6da4ea427511102857"
+        ],
+        "title": "perf(engine): park idle physics worker intervals with explicit wake ownership",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "7dad59a67875065038807874337e88d0600227a9",
+        "parents": [
+          "92e2dc2ed2f4959011bb84816e90506cefed774d"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "acafc35a3d6c81f30ce295e8df4e73d4852bda7f",
+        "parents": [
+          "7dad59a67875065038807874337e88d0600227a9"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "e2d1fec2ff3b38a2cf962e9974cfe0622259823b",
+        "parents": [
+          "acafc35a3d6c81f30ce295e8df4e73d4852bda7f"
+        ],
+        "title": "fix(engine): preserve desktop recovery completeness and retire canceled events",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "748814f648badd2e355c47c2f6ddc7321a0ed494",
+        "parents": [
+          "e2d1fec2ff3b38a2cf962e9974cfe0622259823b"
+        ],
+        "title": "test(engine): validate native save recovery and enforce the complete engine gate",
+        "ownedByThisAudit": true
+      },
+      {
+        "sha": "7bf60e87079662a6d568452949ddc9a883f05e93",
+        "parents": [
+          "748814f648badd2e355c47c2f6ddc7321a0ed494"
+        ],
+        "title": "CI report: ci-reports/build-and-validation.md [skip ci]",
+        "ownedByThisAudit": false
+      },
+      {
+        "sha": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+        "parents": [
+          "7bf60e87079662a6d568452949ddc9a883f05e93"
+        ],
+        "title": "test(engine): use a constant native timer owner and retain gate evidence",
+        "ownedByThisAudit": true
+      }
+    ]
+  },
+  "concurrentAnimation": [
+    {
+      "commit": "ef503b28033760315eff29b1147f05d2ab426bcf",
+      "files": [
+        {
+          "path": "e2e/45-motocross-gameplay.spec.ts",
+          "animationBlob": "6e09bb37c7e6336dc32e4c4b97e3afb1527f90b5",
+          "auditedTipBlob": "6e09bb37c7e6336dc32e4c4b97e3afb1527f90b5",
+          "equal": true
+        },
+        {
+          "path": "src/main.ts",
+          "animationBlob": "76825801ae05ea6b36ee355969affa89add85222",
+          "auditedTipBlob": "76825801ae05ea6b36ee355969affa89add85222",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/renderer.ts",
+          "animationBlob": "78c33ac5d7941049c236b571786500145733a983",
+          "auditedTipBlob": "78c33ac5d7941049c236b571786500145733a983",
+          "equal": true
+        },
+        {
+          "path": "tests/startup.test.ts",
+          "animationBlob": "678a79a82ce035e7bf1044f430b807d6fc4d852a",
+          "auditedTipBlob": "678a79a82ce035e7bf1044f430b807d6fc4d852a",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "commit": "e3ad320b1d54fb28db5a3d6b09b1faf7350a0ff2",
+      "files": [
+        {
+          "path": "e2e/53-motocross-course-landmarks.spec.ts",
+          "animationBlob": "8e318c4c919188a2f11cfb7553afd88ee7cdfa04",
+          "auditedTipBlob": "8e318c4c919188a2f11cfb7553afd88ee7cdfa04",
+          "equal": true
+        },
+        {
+          "path": "e2e/fixtures/motocross-crowd-pass.ts",
+          "animationBlob": "a959b3c1ae3ba5c3534072d2be73d6ce346cc4bd",
+          "auditedTipBlob": "a959b3c1ae3ba5c3534072d2be73d6ce346cc4bd",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/chase-camera.ts",
+          "animationBlob": "bb36c6972242c8a093dfd9be93e5b4851feb6358",
+          "auditedTipBlob": "bb36c6972242c8a093dfd9be93e5b4851feb6358",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/dirt-bike-model.ts",
+          "animationBlob": "1bb197051aa8272c24a141cb1521c1c0866bf109",
+          "auditedTipBlob": "1bb197051aa8272c24a141cb1521c1c0866bf109",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/motocross-hand-brace.ts",
+          "animationBlob": "bf525a075e7cce22b5c4cbcd218457952a63d026",
+          "auditedTipBlob": "bf525a075e7cce22b5c4cbcd218457952a63d026",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/motocross-mechanics.ts",
+          "animationBlob": "6b955b87e030a8dcdcb3108c1f616b59e2385fe5",
+          "auditedTipBlob": "6b955b87e030a8dcdcb3108c1f616b59e2385fe5",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/motocross-rider-spine.ts",
+          "animationBlob": "e94a40b207fac591035885f18526f71151301dbd",
+          "auditedTipBlob": "e94a40b207fac591035885f18526f71151301dbd",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/mx-crowd-pass.ts",
+          "animationBlob": "ec5086ac29c43efc361228c66b7229f58f9dfa6c",
+          "auditedTipBlob": "ec5086ac29c43efc361228c66b7229f58f9dfa6c",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/mx-spectators.ts",
+          "animationBlob": "e9e343417d3bb9644af85f2544e1f07366a6e823",
+          "auditedTipBlob": "e9e343417d3bb9644af85f2544e1f07366a6e823",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/offroad/stadium.ts",
+          "animationBlob": "88832db4f407c7ee902fa9addbe3af2a14c551fd",
+          "auditedTipBlob": "88832db4f407c7ee902fa9addbe3af2a14c551fd",
+          "equal": true
+        },
+        {
+          "path": "src/rendering/rider.ts",
+          "animationBlob": "56ba1dc69aa3da57ec5af84b87b2c7c5248e2cac",
+          "auditedTipBlob": "56ba1dc69aa3da57ec5af84b87b2c7c5248e2cac",
+          "equal": true
+        },
+        {
+          "path": "tests/motocross-camera.test.ts",
+          "animationBlob": "02e6f4eebca022b6c227a10f7ff8c8b278001c95",
+          "auditedTipBlob": "02e6f4eebca022b6c227a10f7ff8c8b278001c95",
+          "equal": true
+        },
+        {
+          "path": "tests/motocross-get-up.test.ts",
+          "animationBlob": "59b2f69c4dafa906a652d047f0837c9b3ba34151",
+          "auditedTipBlob": "59b2f69c4dafa906a652d047f0837c9b3ba34151",
+          "equal": true
+        },
+        {
+          "path": "tests/motocross-mechanics.test.ts",
+          "animationBlob": "047b624256927e4218be6579ac8e5c08ba54ecb9",
+          "auditedTipBlob": "047b624256927e4218be6579ac8e5c08ba54ecb9",
+          "equal": true
+        },
+        {
+          "path": "tests/motocross-pass-and-ridges.test.ts",
+          "animationBlob": "af26e3ec768be0c1d40230264ab354bfeb31cbc7",
+          "auditedTipBlob": "af26e3ec768be0c1d40230264ab354bfeb31cbc7",
+          "equal": true
+        }
+      ]
+    }
+  ],
+  "diagnosticsException": {
+    "commit": "c482ad9ce9fdef02660e4880a027d83326c840c4",
+    "parent": "ebd1e3fba64f80c5f08afb8523014961d4c5e184",
+    "path": "tests/engine-diagnostics-backpressure.test.ts",
+    "beforeCharacters": 15095,
+    "afterCharacters": 15065,
+    "patch": "@@ -154,7 +154,7 @@ describe('the actual physics worker engineering transport', () => {\n     expect(samples()[1].epoch).toBeGreaterThan(first.epoch);\n   });\n \n-  it('keeps flashback reset bounded and requires a fresh explicit enable before resuming probes', () => {\n+  it('rebases flashback inspection after the held ACK without another enable', () => {\n     send({ type: 'engineering', enabled: true });\n     const first = samples()[0];\n     send({ type: 'pause', value: false });\n@@ -163,9 +163,9 @@ describe('the actual physics worker engineering transport', () => {\n     now += 4;\n     pump();\n     expect(simulation.tick).toBe(12);\n-    acknowledge(first);\n     expect(samples()).toHaveLength(1);\n-    send({ type: 'engineering', enabled: true });\n+    acknowledge(first);\n+    expect(samples()).toHaveLength(2);\n     expect(samples()[1].sample.tick).toBe(12);\n     expect(samples()[1].epoch).toBeGreaterThan(first.epoch);\n     acknowledge(first);",
+    "inverseRestoresEntireParent": true,
+    "unchangedMotocrossCase": "accepts the real mx450 dirt contacts at startup and after the first twelve physics ticks"
+  },
+  "limits": [
+    "Only the ten enumerated engine commits through0bc9543 are certified; subsequent commits require their own parent-relative check.",
+    "Git history proves ancestry and current content, not every historical API expected_sha/force argument or abandoned unreferenced object.",
+    "No local execution, new unit/browser validation, rendering comparison, or hardware performance measurement was performed by this assignment.",
+    "Protected source identity is not a certification of unchanged visible behavior under shared engine changes.",
+    "The new report and manifest are authored after the audited tip and are not part of that tip."
+  ],
+  "sources": {
+    "commitApi": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/commits/{sha}?per_page=100",
+    "treeApi": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/trees/{sha}",
+    "ancestry": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/compare/dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc...0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a?per_page=100",
+    "auditedTip": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a"
+  }
+}

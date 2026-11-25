@@ -1,0 +1,2916 @@
+﻿2026-11-25T15:28:58.8316278Z Current runner version: '2.338.2'
+##[group]Runner Image Provisioner
+Hosted Compute Agent
+Version: 20261111.635
+Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Build Date: 2026-11-11T01:49:01Z
+Worker ID: {cb464902-7b38-4a99-b425-c76a76ab32e6}
+Region: southcentralus
+Cloud: Azure
+##[endgroup]
+##[group]Operating System
+Ubuntu
+24.04.5
+LTS
+##[endgroup]
+##[group]Runner Image
+Image: ubuntu-24.04
+Version: 20261116.376.1
+Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.376/images/ubuntu/Ubuntu2404-Readme.md
+Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.376
+##[endgroup]
+##[group]GITHUB_TOKEN Permissions
+Contents: read
+Metadata: read
+##[endgroup]
+Secret source: Actions
+Cache mode: write
+Prepare workflow directory
+Prepare all required actions
+Getting action download info
+Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Complete job name: native-and-replay
+##[group]Run actions/checkout@v4
+with:
+  persist-credentials: false
+  repository: cheshmakzanoon-ops/Experiment-3
+  token: ***
+  ssh-strict: true
+  ssh-user: git
+  clean: true
+  sparse-checkout-cone-mode: true
+  fetch-depth: 1
+  fetch-tags: false
+  show-progress: true
+  lfs: false
+  submodules: false
+  set-safe-directory: true
+  allow-unsafe-pr-checkout: false
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+Syncing repository: cheshmakzanoon-ops/Experiment-3
+##[group]Getting Git version info
+Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+[command]/usr/bin/git version
+git version 2.56.1
+##[endgroup]
+Temporarily overriding HOME='/home/runner/work/_temp/a7953792-c399-4bc7-9e8d-4240104f3d8c' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+##[group]Initializing the repository
+[command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+[command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+##[endgroup]
+##[group]Disabling automatic garbage collection
+[command]/usr/bin/git config --local gc.auto 0
+##[endgroup]
+##[group]Setting up auth
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+[command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+##[endgroup]
+##[group]Fetching the repository
+[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a:refs/remotes/origin/main
+From https://github.com/cheshmakzanoon-ops/Experiment-3
+ * [new ref]         0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a -> origin/main
+##[endgroup]
+##[group]Determining the checkout info
+##[endgroup]
+[command]/usr/bin/git sparse-checkout disable
+[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+##[group]Checking out the ref
+[command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Updating files:  49% (5182/10394)
+Updating files:  50% (5197/10394)
+Updating files:  51% (5301/10394)
+Updating files:  52% (5405/10394)
+Updating files:  53% (5509/10394)
+Updating files:  54% (5613/10394)
+Updating files:  55% (5717/10394)
+Updating files:  56% (5821/10394)
+Updating files:  57% (5925/10394)
+Updating files:  58% (6029/10394)
+Updating files:  59% (6133/10394)
+Updating files:  60% (6237/10394)
+Updating files:  61% (6341/10394)
+Updating files:  62% (6445/10394)
+Updating files:  63% (6549/10394)
+Updating files:  64% (6653/10394)
+Updating files:  65% (6757/10394)
+Updating files:  66% (6861/10394)
+Updating files:  67% (6964/10394)
+Updating files:  68% (7068/10394)
+Updating files:  69% (7172/10394)
+Updating files:  70% (7276/10394)
+Updating files:  71% (7380/10394)
+Updating files:  72% (7484/10394)
+Updating files:  73% (7588/10394)
+Updating files:  74% (7692/10394)
+Updating files:  75% (7796/10394)
+Updating files:  76% (7900/10394)
+Updating files:  77% (8004/10394)
+Updating files:  78% (8108/10394)
+Updating files:  79% (8212/10394)
+Updating files:  80% (8316/10394)
+Updating files:  81% (8420/10394)
+Updating files:  82% (8524/10394)
+Updating files:  83% (8628/10394)
+Updating files:  84% (8731/10394)
+Updating files:  85% (8835/10394)
+Updating files:  86% (8939/10394)
+Updating files:  87% (9043/10394)
+Updating files:  88% (9147/10394)
+Updating files:  89% (9251/10394)
+Updating files:  90% (9355/10394)
+Updating files:  91% (9459/10394)
+Updating files:  92% (9563/10394)
+Updating files:  93% (9667/10394)
+Updating files:  94% (9771/10394)
+Updating files:  95% (9875/10394)
+Updating files:  96% (9979/10394)
+Updating files:  97% (10083/10394)
+Updating files:  98% (10187/10394)
+Updating files:  99% (10291/10394)
+Updating files: 100% (10394/10394)
+Updating files: 100% (10394/10394), done.
+Switched to a new branch 'main'
+branch 'main' set up to track 'origin/main'.
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a
+##[group]Removing auth
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+##[endgroup]
+##[group]Run actions/setup-node@v4
+with:
+  node-version: 22
+  cache: npm
+  always-auth: false
+  check-latest: false
+  token: ***
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+(node:2216) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+##[group]Environment details
+node: v22.23.5
+npm: 10.9.9
+yarn: 1.22.22
+##[endgroup]
+[command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+/home/runner/.npm
+Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+(node:2216) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Received 34424064 of 34424064 (100.0%), 46.2 MBs/sec
+Cache Size: ~33 MB (34424064 B)
+[command]/usr/bin/tar -xf /home/runner/work/_temp/48fdd140-0354-4499-a435-6aeeb354b85d/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+Cache restored successfully
+Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+##[group]Run set -euo pipefail
+set -euo pipefail
+git rev-parse HEAD > "$RUNNER_TEMP/engine-source-commit.txt"
+git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/engine-source-tree.txt"
+sha256sum package-lock.json > "$RUNNER_TEMP/engine-package-lock.sha256"
+sha256sum desktop/src/save-mirror.cjs > "$RUNNER_TEMP/engine-desktop-service.sha256"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+shell: /usr/bin/bash -e {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 194 packages in 2s
+(node:2272) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[group]Run set -euo pipefail
+set -euo pipefail
+node --experimental-transform-types scripts/source-stability.ts -- \
+  node node_modules/eslint/bin/eslint.js src tests e2e scripts \
+  2>&1 | tee "$RUNNER_TEMP/engine-runtime-lint.log"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+(node:2308) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[group]Run set -euo pipefail
+set -euo pipefail
+node --experimental-transform-types scripts/source-stability.ts -- \
+  node node_modules/vitest/vitest.mjs run tests/engine-*.test.ts \
+  tests/circuit-frame-transport.test.ts tests/circuit-preparation-lifetime.test.ts \
+  tests/circuit-startup-settlement.test.ts tests/festival-ground-height.test.ts \
+  tests/festival-renderer-loader-lifecycle.test.ts tests/festival-session-lifecycle.test.ts \
+  tests/surface-channel-backpressure.test.ts \
+  tests/net-event-loop-ownership.test.ts \
+  tests/net-transport-lifetime.test.ts \
+  tests/save-store-lifecycle.test.ts \
+  tests/desktop-mirror-consistency.test.ts \
+  tests/desktop-mirror-crash-recovery.test.ts \
+  tests/desktop-mirror-recovery.test.ts \
+  --pool=threads --maxWorkers=1 --minWorkers=1 --allowOnly=false --retry=0 \
+  2>&1 | tee "$RUNNER_TEMP/engine-runtime-unit.log"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=1024
+##[endgroup]
+
+ RUN  v3.2.4 /home/runner/work/Experiment-3/Experiment-3
+
+ ✓ tests/engine-page-lifecycle.test.ts (28 tests) 217ms
+ ✓ tests/engine-menu-gamepad-lifecycle.test.ts (42 tests) 197ms
+ ✓ tests/engine-shared-gpu-ownership.test.ts (34 tests) 210ms
+ ✓ tests/engine-cross-mode-startup.test.ts (24 tests) 105ms
+ ✓ tests/surface-channel-backpressure.test.ts (15 tests) 5473ms
+   ✓ real circuit worker surface backpressure > keeps every normal 60-tick surface and frozen field through the actual host ACK path  1395ms
+   ✓ real circuit worker surface backpressure > bounds every unacknowledged byte and allocation, then restores the exact paused latest state  1852ms
+   ✓ real circuit worker surface backpressure > retains all terrain deltas and bounds init and flashback rebases across old ACK ownership  1833ms
+ ✓ tests/festival-session-lifecycle.test.ts (34 tests) 116ms
+ ✓ tests/circuit-startup-settlement.test.ts (27 tests) 89ms
+ ✓ tests/engine-festival-frame-pacing.test.ts (28 tests) 72ms
+ ✓ tests/desktop-mirror-recovery.test.ts (30 tests) 97ms
+ ✓ tests/save-store-lifecycle.test.ts (35 tests) 36ms
+ ✓ tests/engine-snapshot-batch-encoding.test.ts (18 tests) 2572ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 4 recipients over varied boundaries  323ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 11 recipients over varied boundaries  804ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 12 recipients over varied boundaries  877ms
+ ✓ tests/engine-attribute-range-coalescing.test.ts (35 tests) 160ms
+ ✓ tests/engine-resource-integration.test.ts (18 tests) 47ms
+ ✓ tests/engine-loudness-coefficients.test.ts (8 tests) 633ms
+stdout | tests/engine-network-clock-drift.test.ts > preserves every real-server snapshot and input-packet byte while presentation converges
+clock discipline wire comparison: {
+  packets: 1228,
+  inputPackets: 734,
+  snapshots: 494,
+  correctingFrames: 100
+}
+
+ ✓ tests/engine-network-clock-drift.test.ts (11 tests) 2911ms
+   ✓ preserves every real-server snapshot and input-packet byte while presentation converges  2622ms
+ ✓ tests/engine-server-snapshot-lifetime.test.ts (10 tests) 1176ms
+   ✓ active peer failure isolation > keeps a healthy client and future ticks running after a failing timeout close  502ms
+   ✓ active peer failure isolation > keeps a healthy client and future ticks running after a failing snapshot send  306ms
+ ✓ tests/engine-desktop-revision-ownership.test.ts (16 tests) 50ms
+ ✓ tests/engine-network-runtime-composition.test.ts (3 tests) 1606ms
+   ✓ network runtime composition on the deterministic transport > admits a reordered command remainder without reviving its expired shift  848ms
+   ✓ network runtime composition on the deterministic transport > keeps transferred snapshots and input ownership across 12, 11 and 12 recipients  533ms
+ ✓ tests/engine-graphics-advancement-composition.test.ts (2 tests) 584ms
+   ✓ graphics advancement composition > publishes the exact latest real trail-ring bytes after long upload deferral and wrap  468ms
+ ✓ tests/engine-worker-session-adversarial.test.ts (6 tests) 2481ms
+   ✓ failed initialization with old delivered receipts > retires circuit credits across failed init without reviving the failed world or freeing newer credit  345ms
+   ✓ failed initialization with old delivered receipts > keeps the 64-status bound through failed replacement init and accepts each older receipt only once  1478ms
+ ✓ tests/engine-advancement-records.test.ts (2 tests) 317ms
+ ✓ tests/engine-save-atomic-update.test.ts (20 tests) 24ms
+ ✓ tests/engine-flashback-disabled-history.test.ts (14 tests) 57116ms
+   ✓ flashback eligibility and actual worker retention > time-trial retains no journal over 36,000 varying samples and matches all baseline inputs and recordings  27873ms
+   ✓ flashback eligibility and actual worker retention > qualifying retains no journal over 36,000 varying samples and matches all baseline inputs and recordings  22634ms
+   ✓ flashback eligibility and actual worker retention > time-trial preserves shift, pit, AI handback, pause and watchdog application without history  403ms
+   ✓ flashback eligibility and actual worker retention > qualifying preserves shift, pit, AI handback, pause and watchdog application without history  402ms
+   ✓ flashback eligibility and actual worker retention > race keeps history from tick zero and rewinds the actual command timeline beyond 30 seconds  1892ms
+   ✓ flashback eligibility and actual worker retention > endurance keeps history from tick zero and rewinds the actual command timeline beyond 30 seconds  1765ms
+   ✓ flashback eligibility and actual worker retention > practice keeps history from tick zero and rewinds the actual command timeline beyond 30 seconds  1763ms
+ ✓ tests/festival-ground-height.test.ts (11 tests) 304ms
+ ✓ tests/engine-festival-composition.test.ts (7 tests) 2467ms
+   ✓ Festival worker, session and startup-owner composition > applies real travel state and its discovery before settling the matching command  739ms
+   ✓ Festival worker, session and startup-owner composition > settles a busy command without mutation, then can travel after the actual host drains receipts  567ms
+   ✓ Festival worker, session and startup-owner composition > cancels pending travel and ignores old replies while a replacement owns the host  358ms
+ ✓ tests/engine-server-owned-deadlines.test.ts (14 tests) 397ms
+ ✓ tests/net-transport-lifetime.test.ts (50 tests) 116ms
+ ✓ tests/engine-network-advancement-composition.test.ts (2 tests) 3233ms
+   ✓ network advancement composition through live peers > preserves ownership and raw feedback through reentry, replacement and 3/1/0/1/3 recipients (seed 17)  1976ms
+   ✓ network advancement composition through live peers > preserves ownership and raw feedback through reentry, replacement and 3/1/0/1/3 recipients (seed 48177)  1255ms
+stdout | tests/engine-clock-accounting.test.ts > independent fixed-step accounting > conserves time across seeded mixed lifetimes at 120 Hz
+CLOCK_ACCOUNTING_SEEDED {"hz":120,"events":32768,"callbacks":67718,"pauses":1320,"resets":926,"callbackResets":976,"callbackRebases":1326,"failures":1678,"rejected":1292,"elapsedDrops":3216,"budgetDrops":4411,"interruptedDrops":3004,"maxErrorSeconds":7.105427357601002e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > independent fixed-step accounting > conserves time across seeded mixed lifetimes at 240 Hz
+CLOCK_ACCOUNTING_SEEDED {"hz":240,"events":32768,"callbacks":84679,"pauses":1320,"resets":926,"callbackResets":976,"callbackRebases":1326,"failures":1678,"rejected":1292,"elapsedDrops":3216,"budgetDrops":7198,"interruptedDrops":3004,"maxErrorSeconds":7.105427357601002e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > actual worker clock ownership > circuit conserves active time through transport stalls, pauses, failure and reinitialization
+CLOCK_ACCOUNTING_WORKER {"kind":"circuit","completedTicks":153,"chargedSeconds":13.11225,"remainderSeconds":0.0034166666666670537,"elapsedDroppedSeconds":9.400500000000001,"budgetDroppedSeconds":2.3333333333333326,"interruptedSeconds":0.1,"maxErrorSeconds":5.329070518200751e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > actual worker clock ownership > festival conserves active time through transport stalls, pauses, failure and reinitialization
+CLOCK_ACCOUNTING_WORKER {"kind":"festival","completedTicks":153,"chargedSeconds":13.11225,"remainderSeconds":0.0034166666666670537,"elapsedDroppedSeconds":9.400500000000001,"budgetDroppedSeconds":2.3333333333333326,"interruptedSeconds":0.1,"maxErrorSeconds":5.329070518200751e-15}
+
+ ✓ tests/engine-clock-accounting.test.ts (4 tests) 3096ms
+   ✓ actual worker clock ownership > circuit conserves active time through transport stalls, pauses, failure and reinitialization  1254ms
+   ✓ actual worker clock ownership > festival conserves active time through transport stalls, pauses, failure and reinitialization  1622ms
+ ✓ tests/engine-diagnostics-backpressure.test.ts (18 tests) 1760ms
+   ✓ the actual physics worker engineering transport > keeps one immutable copied sample while physics advances and does not construct discarded samples  639ms
+   ✓ the actual physics worker engineering transport > rebases flashback inspection after the held ACK without another enable  420ms
+ ✓ tests/engine-network-shift.test.ts (18 tests) 5048ms
+   ✓ network command shift edges > applies a 1-tick command once through the real manual GP gearbox, including missing slots  364ms
+   ✓ network command shift edges > discards a pending shift on AI takeover and requires a new first edge after handback  352ms
+   ✓ shift journal compatibility > uses explicit shift tags and reproduces a live record exactly  542ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 0  535ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 4  531ms
+   ✓ shift edges across real client and server delivery > clears rejected samples while retaining levels and allows later identical shift pulses  471ms
+   ✓ shift edges across real client and server delivery > does not revive a disconnected driver's shift while waiting for a rejoin command  398ms
+ ✓ tests/engine-records-transaction-order.test.ts (17 tests) 581ms
+ ✓ tests/engine-festival-status-backpressure.test.ts (16 tests) 3661ms
+   ✓ lossless Festival status backpressure > bounds copied statuses and stops stepping until an owned receipt returns  1142ms
+   ✓ lossless Festival status backpressure > rejects commands and init before mutation, while still neutralizing pause input  414ms
+   ✓ lossless Festival status backpressure > retains old receipt ownership across init without resetting the queue allowance  558ms
+   ✓ lossless Festival status backpressure > keeps normal 10 Hz cadence and command status-before-receipt when consumed  329ms
+   ✓ lossless Festival status backpressure > allows outstanding acknowledgements after fatal execution but never resumes the failed world  455ms
+   ✓ lossless Festival status backpressure > releases only the failed publication credit when status transport throws  463ms
+ ✓ tests/engine-input-queue-expiry.test.ts (7 tests) 125ms
+ ✓ tests/desktop-mirror-consistency.test.ts (22 tests) 15ms
+ ✓ tests/engine-audio-input-composition.test.ts (5 tests) 63ms
+ ✓ tests/engine-device-lifecycle-composition.test.ts (13 tests) 21ms
+ ✓ tests/engine-network-adversarial.test.ts (9 tests) 2228ms
+   ✓ server callback ownership at publication boundaries > retains already-published results without scheduling new work after their send ends the session  382ms
+   ✓ replays archived shift levels across AI handoff and a rear-brake tag change  606ms
+ ✓ tests/engine-worker-idle-scheduling.test.ts (7 tests) 4589ms
+   ✓ actual circuit worker interval ownership > retains one four-millisecond interval and exact fixed-step state across active callback jitter  721ms
+   ✓ actual circuit worker interval ownership > excludes a long pause while retaining the active fractional tick and fresh-input watchdog grace  410ms
+   ✓ actual circuit worker interval ownership > rejects canceled callbacks across resume and session replacement without revoking the current timer  381ms
+   ✓ actual circuit worker interval ownership > keeps resimulation runnable while paused, yields at the existing work budget, and parks after completion  567ms
+   ✓ actual circuit worker interval ownership > parks a terminal failure, ignores queued revival, and wakes only after fresh init and resume  369ms
+   ✓ actual circuit worker interval ownership > waits without timers for real exhausted surface credit and excludes the blocked interval after an early resume  2062ms
+ ✓ tests/engine-circuit-worker-terminal.test.ts (9 tests) 3132ms
+   ✓ terminal ownership in the actual circuit worker > does not advance again after a tick completed before an interval exception  310ms
+   ✓ terminal ownership in the actual circuit worker > reinitializes paused and removes old and failed-session shifts before accepting fresh one-shot input  395ms
+   ✓ terminal ownership in the actual circuit worker > cancels an active rewind before a queued worker turn can execute it  465ms
+   ✓ terminal ownership in the actual circuit worker > cancels an duplicate rewind before a queued worker turn can execute it  388ms
+   ✓ terminal ownership in the actual circuit worker > discards a failed resimulation after its real ticks have run and never commits its completion  373ms
+   ✓ terminal ownership in the actual circuit worker > does not publish a pending rewind completion after its surface transport failed  621ms
+   ✓ terminal ownership in the actual circuit worker > keeps failed initialization terminal until a complete new initialization publishes its frame  310ms
+ ✓ tests/engine-network-integration.test.ts (11 tests) 853ms
+ ✓ tests/circuit-preparation-lifetime.test.ts (19 tests) 47ms
+ ✓ tests/engine-ghost-bounds.test.ts (53 tests) 163ms
+ ✓ tests/engine-persistence-integration.test.ts (14 tests) 766ms
+ ✓ tests/engine-startup-error-recovery.test.ts (16 tests) 31ms
+ ✓ tests/desktop-mirror-crash-recovery.test.ts (33 tests) 11453ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'saves' / 'opened' after SIGKILL without false completion  346ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'saves' / 'partial-write' after SIGKILL without false completion  367ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'saves' / 'written' after SIGKILL without false completion  399ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'saves' / 'synced' after SIGKILL without false completion  341ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'saves' / 'backup' after SIGKILL without false completion  342ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'saves' / 'renamed' after SIGKILL without false completion  345ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'ghosts' / 'opened' after SIGKILL without false completion  341ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'ghosts' / 'partial-write' after SIGKILL without false completion  346ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'ghosts' / 'written' after SIGKILL without false completion  348ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'ghosts' / 'synced' after SIGKILL without false completion  342ms
+   ✓ native mirror process crashes over real files > repairs [ 'saves', 'ghosts' ] / 'ghosts' / 'backup' after SIGKILL without false completion  345ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'ghosts' / 'opened' after SIGKILL without false completion  343ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'ghosts' / 'partial-write' after SIGKILL without false completion  351ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'ghosts' / 'written' after SIGKILL without false completion  341ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'ghosts' / 'synced' after SIGKILL without false completion  352ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'ghosts' / 'backup' after SIGKILL without false completion  338ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'ghosts' / 'renamed' after SIGKILL without false completion  352ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'saves' / 'opened' after SIGKILL without false completion  346ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'saves' / 'partial-write' after SIGKILL without false completion  346ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'saves' / 'written' after SIGKILL without false completion  340ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'saves' / 'synced' after SIGKILL without false completion  348ms
+   ✓ native mirror process crashes over real files > repairs [ 'ghosts', 'saves' ] / 'saves' / 'backup' after SIGKILL without false completion  348ms
+   ✓ native mirror process crashes over real files > recovers locally committed data after native acceptance dies before any disk write  339ms
+   ✓ native mirror process crashes over real files > salvages readable mixed generations when only saves survived and IndexedDB is absent  400ms
+   ✓ native mirror process crashes over real files > salvages readable mixed generations when only ghosts survived and IndexedDB is absent  403ms
+   ✓ restart certificate and legacy boundaries > quarantines bad-checksum completion metadata and refuses its split backup as complete  354ms
+   ✓ restart certificate and legacy boundaries > quarantines negative-ghost-revision completion metadata and refuses its split backup as complete  369ms
+   ✓ restart certificate and legacy boundaries > quarantines array-certificate completion metadata and refuses its split backup as complete  349ms
+   ✓ restart certificate and legacy boundaries > verifies equal-revision legacy values before upgrade (matching data: false)  349ms
+   ✓ restart certificate and legacy boundaries > verifies equal-revision legacy values before upgrade (matching data: true)  352ms
+ ✓ tests/engine-surface-lane-integration.test.ts (3 tests) 2964ms
+   ✓ surface coefficients composed with lane ownership > keeps interleaved warm tracks exact through weather, exposure, drainage and traffic changes  1728ms
+   ✓ surface coefficients composed with lane ownership > reconstructs wet surface history and pending traffic heat when rewinding between surface ticks  1035ms
+ ✓ tests/engine-recording-composition.test.ts (7 tests) 6169ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'last frame of a sealed page' in replay and telemetry  987ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'first frame of a sealed page' in replay and telemetry  713ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'first frame of the open page' in replay and telemetry  591ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'downward-rounded frame' in replay and telemetry  559ms
+   ✓ saves only the complete human lap after real simulation automation hands back control  3078ms
+ ✓ tests/engine-physics-invariants.test.ts (8 tests) 208ms
+ ✓ tests/engine-codec-buffer-ownership.test.ts (11 tests) 235ms
+ ✓ tests/engine-network-composition.test.ts (6 tests) 3135ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 54 fails (close failure: false)  787ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 54 fails (close failure: true)  487ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 60 fails (close failure: false)  469ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 60 fails (close failure: true)  411ms
+   ✓ network composition at the completed physics boundary > preserves future-entry and order rejection instead of filtering unrelated corruption  351ms
+   ✓ codec, command edges and shared snapshots through impaired real peers > preserves accepted shifts and quantized inputs through loss, reordering and an AI handoff  629ms
+ ✓ tests/engine-flashback-state.test.ts (10 tests) 7246ms
+   ✓ engine flashback state and control ownership > gpr1 reconstructs control handback, hidden state, continuation and a new branch  2125ms
+   ✓ engine flashback state and control ownership > sbk1000 reconstructs control handback, hidden state, continuation and a new branch  1254ms
+   ✓ engine flashback state and control ownership > mx450 reconstructs control handback, hidden state, continuation and a new branch  1313ms
+   ✓ engine flashback state and control ownership > sc7 reconstructs control handback, hidden state, continuation and a new branch  2027ms
+   ✓ engine flashback state and control ownership > replays repeated shift edges consumed by the actual motorcycle gearbox  523ms
+ ✓ tests/engine-radio-compact-state.test.ts (40 tests) 10ms
+ ✓ tests/festival-renderer-loader-lifecycle.test.ts (18 tests) 40ms
+ ✓ tests/engine-ghost-first-passage.test.ts (14 tests) 86ms
+ ✓ tests/engine-loudness-sine-basis.test.ts (7 tests) 1237ms
+   ✓ exact bounded engine waveform sine basis > retains seeded custom spectra, including lengths above the authored basis  756ms
+   ✓ exact bounded engine waveform sine basis > preserves empty, silent, signed-zero, extreme and nonfinite inputs  315ms
+ ✓ tests/engine-driving-audio-lazy-route.test.ts (9 tests) 219ms
+ ✓ tests/engine-controller-shift-order.test.ts (11 tests) 22ms
+ ✓ tests/engine-audio-advancement-composition.test.ts (2 tests) 563ms
+   ✓ audio math caches remain separate from audio-context ownership > keeps new menu cues and warmed race voices independent of old resume, close and ended callbacks  497ms
+ ✓ tests/engine-loudness.test.ts (14 tests) 36ms
+ ✓ tests/engine-renderer-exclusive-release.test.ts (12 tests) 34ms
+ ✓ tests/engine-renderer-texture-composition.test.ts (5 tests) 15ms
+ ✓ tests/engine-export-host-ownership.test.ts (9 tests) 23ms
+ ✓ tests/engine-lane-fifo-eviction.test.ts (16 tests) 838ms
+   ✓ lane-cache FIFO eviction > matches iterator eviction and exact nearest fields through repeated cycles at capacity 2048  597ms
+ ✓ tests/engine-resource-adversarial.test.ts (10 tests) 13ms
+ ✓ tests/engine-audio-preview-cancellation.test.ts (9 tests) 72ms
+ ✓ tests/engine-bvh-scalar-bounds.test.ts (9 tests) 173ms
+ ✓ tests/engine-flashback-diagnostics-state.test.ts (7 tests) 3136ms
+   ✓ engineering state across actual worker flashback completion > resumes without another enable and restarts the twelve-tick cadence before the old sample tick  682ms
+   ✓ engineering state across actual worker flashback completion > holds old credit across the rebase and lets one valid ACK resume without duplicate credit  441ms
+   ✓ engineering state across actual worker flashback completion > keeps diagnostics disabled after rewind (previously enabled=false)  414ms
+   ✓ engineering state across actual worker flashback completion > keeps diagnostics disabled after rewind (previously enabled=true)  397ms
+   ✓ engineering state across actual worker flashback completion > keeps the latest toggle received during rewind (initially enabled=false)  379ms
+   ✓ engineering state across actual worker flashback completion > keeps the latest toggle received during rewind (initially enabled=true)  385ms
+   ✓ engineering state across actual worker flashback completion > still disables inspection on fresh init even when the prior session was enabled  367ms
+ ✓ tests/net-event-loop-ownership.test.ts (21 tests) 154ms
+ ✓ tests/engine-host-failure-cleanup.test.ts (28 tests) 30ms
+ ✓ tests/engine-paved-lane-index.test.ts (15 tests) 2357ms
+   ✓ bounded paved lane candidates > aurel exactly matches coarse search at offsets, signed cell boundaries and the lap seam  344ms
+   ✓ bounded paved lane candidates > vellamar exactly matches coarse search at offsets, signed cell boundaries and the lap seam  304ms
+ ✓ tests/engine-festival-command-errors.test.ts (16 tests) 3981ms
+   ✓ Festival command error boundaries > rejects 'start' before changing an active event  837ms
+   ✓ Festival command error boundaries > starts cleanly only after a fresh initialization following a fatal command  370ms
+ ✓ tests/engine-input-encoder-capacity.test.ts (5 tests) 166ms
+ ✓ tests/engine-surface-coefficients.test.ts (7 tests) 104ms
+ ✓ tests/engine-event-retirement.test.ts (7 tests) 84ms
+ ✓ tests/engine-input-audio-adversarial.test.ts (7 tests) 47ms
+ ✓ tests/engine-texture-budget-registration.test.ts (5 tests) 59ms
+ ✓ tests/engine-controller-fault-retry.test.ts (8 tests) 14ms
+ ✓ tests/circuit-frame-transport.test.ts (5 tests) 4735ms
+   ✓ circuit snapshot transport > rejects duplicate returns without publishing detached or aliased storage (transfer=false)  953ms
+   ✓ circuit snapshot transport > rejects duplicate returns without publishing detached or aliased storage (transfer=true)  861ms
+   ✓ circuit snapshot transport > keeps write failures terminal until reinitialization restores the complete frame pool  911ms
+   ✓ circuit snapshot transport > keeps post failures terminal until reinitialization restores the complete frame pool  876ms
+   ✓ circuit snapshot transport > delivers the exact flashback frame while all ordinary snapshots are held  1134ms
+ ✓ tests/engine-driving-cue-vehicles.test.ts (34 tests) 39ms
+ ✓ tests/engine-contact-construction.test.ts (8 tests) 513ms
+ ✓ tests/engine-control-quantization.test.ts (7 tests) 556ms
+   ✓ control quantization without temporary wire storage > matches every steering code and both sides of every rounding boundary  452ms
+ ✓ tests/engine-clock-transfer-integration.test.ts (7 tests) 120ms
+ ✓ tests/engine-contact-math-allocation.test.ts (6 tests) 9ms
+ ✓ tests/engine-telemetry-time-ring.test.ts (14 tests) 880ms
+ ✓ tests/engine-ui-opening-review.test.ts (7 tests) 9ms
+ ✓ tests/engine-telemetry-chunk-storage.test.ts (21 tests) 634ms
+ ✓ tests/engine-session-settlement.test.ts (10 tests) 9ms
+ ✓ tests/engine-frozen-thermal-signature.test.ts (8 tests) 147ms
+ ✓ tests/engine-raf-witness.test.ts (4 tests) 4ms
+ ✓ tests/engine-transfer-transport-accounting.test.ts (3 tests) 6ms
+ ✓ tests/engine-telemetry-lap-gap.test.ts (9 tests) 25ms
+ ✓ tests/engine-network-recovery-boundaries.test.ts (1 test) 454ms
+   ✓ voluntary departure at the real network recovery boundary > keeps a deliberately forfeited token retired while the other client continues racing  453ms
+ ✓ tests/engine-record-boundaries-review.test.ts (3 tests) 5ms
+ ✓ tests/engine-physics-adversarial.test.ts (13 tests) 5ms
+
+ Test Files  95 passed (95)
+      Tests  1351 passed (1351)
+   Start at  15:29:57
+   Duration  244.58s (transform 5.58s, setup 0ms, collect 65.92s, tests 162.06s, environment 14ms, prepare 4.71s)
+
+(node:2358) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[group]Run set -euo pipefail
+set -euo pipefail
+git fetch --no-tags --depth=1 origin dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc
+node --experimental-transform-types scripts/source-stability.ts -- \
+  bash -e -u -o pipefail -c 'for probe in scripts/engine-runtime-probes/*-probe.mjs; do node "$probe"; done' \
+  2>&1 | tee "$RUNNER_TEMP/engine-runtime-probes.log"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=1024
+##[endgroup]
+From https://github.com/cheshmakzanoon-ops/Experiment-3
+ * branch            dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc -> FETCH_HEAD
+{
+  "probe": "codec",
+  "schemaVersion": 1,
+  "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+  "status": "passed",
+  "scope": "Codec encoding only; all dependencies except bytes.ts and codec.ts use the candidate checkout.",
+  "provenance": {
+    "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "candidateHead": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+    "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+    "candidateTrackedState": "clean",
+    "candidateTrackedChanges": [],
+    "candidateTrackedStatusScope": [
+      "src",
+      "scripts/engine-runtime-probes",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ],
+    "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+    "nodeVersion": "v22.23.5",
+    "esbuildVersion": "0.25.12",
+    "entrySha256": "6eaa98a7e9a739b303615bf7784f3960a7a7d271a563c75defe477c002535e8a",
+    "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+    "files": [
+      {
+        "path": "src/net/bytes.ts",
+        "baselineSha256": "bf2235040d7700183705c94c3e8810eb25702247c8ba7fbde70edc60da8c323d",
+        "candidateSha256": "39273b9303322f7156cc0d1141f644ad6cd616f8b98394c2344575cc6dfcfdd0",
+        "baselineBytes": 5757,
+        "candidateBytes": 6469
+      },
+      {
+        "path": "src/net/codec.ts",
+        "baselineSha256": "3b1e8185691a6c9e63fbacfdfb59af2e691aed8e255c7d645c92c708da97a79a",
+        "candidateSha256": "ec7cd132cae7622d2e713eab15e035d88f58f3c90bccd8c939de8f8be3197a18",
+        "baselineBytes": 8086,
+        "candidateBytes": 8388
+      }
+    ],
+    "bundles": {
+      "baselineSha256": "03b7a6df44b7f41ad1d26981b4fefb3fcd940bfabaa34a25e48546e39aafcfee",
+      "candidateSha256": "472fcca80381cba5f58c530ff2824a4eabe4a8ea69134078f0c5dd5dca8d1e4c"
+    }
+  },
+  "correctness": {
+    "inputCases": 51,
+    "ordinarySnapshotCases": 396,
+    "preparedBoundaries": 96,
+    "preparedRecipients": 1584,
+    "inputCountRange": [
+      0,
+      16
+    ],
+    "snapshotCountRange": [
+      0,
+      32
+    ],
+    "fullPatterns": [
+      "none",
+      "last",
+      "alternating",
+      "all"
+    ],
+    "seeds": 3,
+    "reference": "Actual baseline encodeInput/encodeSnapshot; prepared outputs also match baseline ordinary encoding.",
+    "ownership": "Exact backing lengths, retained packets, source independence, peer independence, whole-buffer transfer, writer reuse."
+  },
+  "timings": {
+    "elapsedMs": 501.58867499999997,
+    "warmupPairs": 3,
+    "measuredPairs": 7,
+    "timer": "performance.now(), sequential alternating order within each pair",
+    "includes": "Encoding, prepared-car work once per prepared boundary, and output checksum reads.",
+    "excludes": "Bundling, fixtures, assertions, ownership checks, copy/backing instrumentation.",
+    "workBound": "8000 input packets, 600 ordinary boundaries, or 180 prepared boundaries per sample; no adaptive expansion.",
+    "timingPassCriteria": null,
+    "results": [
+      {
+        "name": "input-2",
+        "iterationsPerSample": 8000,
+        "packetsPerIteration": 1,
+        "warmups": [
+          {
+            "index": 0,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 7.375738000000183,
+            "candidateMs": 11.449036999999862,
+            "candidateOverBaseline": 1.552256465725813,
+            "checksum": 984000
+          },
+          {
+            "index": 1,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.931385999999975,
+            "candidateMs": 4.214952000000039,
+            "candidateOverBaseline": 1.072128760696626,
+            "checksum": 984000
+          },
+          {
+            "index": 2,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 2.8294969999999466,
+            "candidateMs": 3.2261940000000777,
+            "candidateOverBaseline": 1.140200537410055,
+            "checksum": 984000
+          }
+        ],
+        "pairs": [
+          {
+            "index": 3,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 2.8367279999999937,
+            "candidateMs": 4.309414000000061,
+            "candidateOverBaseline": 1.5191495272017868,
+            "checksum": 984000
+          },
+          {
+            "index": 4,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 2.8602739999998903,
+            "candidateMs": 2.771400000000085,
+            "candidateOverBaseline": 0.9689281516386862,
+            "checksum": 984000
+          },
+          {
+            "index": 5,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.5083390000002055,
+            "candidateMs": 3.939397999999983,
+            "candidateOverBaseline": 1.1228669749416325,
+            "checksum": 984000
+          },
+          {
+            "index": 6,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 2.9358470000001944,
+            "candidateMs": 2.6381900000001224,
+            "candidateOverBaseline": 0.8986129045552945,
+            "checksum": 984000
+          },
+          {
+            "index": 7,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.031264999999848,
+            "candidateMs": 3.414307000000008,
+            "candidateOverBaseline": 0.8469567245021442,
+            "checksum": 984000
+          },
+          {
+            "index": 8,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 2.915416999999934,
+            "candidateMs": 2.7582700000000386,
+            "candidateOverBaseline": 0.9460979338462049,
+            "checksum": 984000
+          },
+          {
+            "index": 9,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.746001000000206,
+            "candidateMs": 2.8595329999998285,
+            "candidateOverBaseline": 0.6025142009029717,
+            "checksum": 984000
+          }
+        ],
+        "baselineMedianMs": 2.9358470000001944,
+        "candidateMedianMs": 2.8595329999998285,
+        "medianPairedRatio": 0.9460979338462049,
+        "ratioOfMedians": 0.974006138603149
+      },
+      {
+        "name": "input-4",
+        "iterationsPerSample": 8000,
+        "packetsPerIteration": 1,
+        "warmups": [
+          {
+            "index": 0,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.67092300000013,
+            "candidateMs": 3.6469970000000558,
+            "candidateOverBaseline": 0.993482293145328,
+            "checksum": 2496000
+          },
+          {
+            "index": 1,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 4.6682140000000345,
+            "candidateMs": 4.109423000000106,
+            "candidateOverBaseline": 0.8802987609394247,
+            "checksum": 2496000
+          },
+          {
+            "index": 2,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.335704000000078,
+            "candidateMs": 3.923674000000119,
+            "candidateOverBaseline": 0.9049681435817686,
+            "checksum": 2496000
+          }
+        ],
+        "pairs": [
+          {
+            "index": 3,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 5.014405000000124,
+            "candidateMs": 4.491208000000142,
+            "candidateOverBaseline": 0.8956612000825683,
+            "checksum": 2496000
+          },
+          {
+            "index": 4,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.019117000000051,
+            "candidateMs": 3.788090000000011,
+            "candidateOverBaseline": 0.9425179709871504,
+            "checksum": 2496000
+          },
+          {
+            "index": 5,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 4.90040399999998,
+            "candidateMs": 4.738068999999996,
+            "candidateOverBaseline": 0.9668731394391187,
+            "checksum": 2496000
+          },
+          {
+            "index": 6,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.011846999999989,
+            "candidateMs": 3.734508999999889,
+            "candidateOverBaseline": 0.930870245051693,
+            "checksum": 2496000
+          },
+          {
+            "index": 7,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 4.774494000000004,
+            "candidateMs": 4.846452000000227,
+            "candidateOverBaseline": 1.0150713353080394,
+            "checksum": 2496000
+          },
+          {
+            "index": 8,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.9200579999999263,
+            "candidateMs": 3.6455550000000585,
+            "candidateOverBaseline": 0.9299747605775545,
+            "checksum": 2496000
+          },
+          {
+            "index": 9,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 4.6453089999999975,
+            "candidateMs": 4.612601000000041,
+            "candidateOverBaseline": 0.9929589183410712,
+            "checksum": 2496000
+          }
+        ],
+        "baselineMedianMs": 4.6453089999999975,
+        "candidateMedianMs": 4.491208000000142,
+        "medianPairedRatio": 0.9425179709871504,
+        "ratioOfMedians": 0.9668265340368413
+      },
+      {
+        "name": "input-12",
+        "iterationsPerSample": 8000,
+        "packetsPerIteration": 1,
+        "warmups": [
+          {
+            "index": 0,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 10.763075000000072,
+            "candidateMs": 8.087097999999969,
+            "candidateOverBaseline": 0.7513743052055212,
+            "checksum": 3104000
+          },
+          {
+            "index": 1,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 19.76061299999992,
+            "candidateMs": 8.304505999999947,
+            "candidateOverBaseline": 0.42025548498925513,
+            "checksum": 3104000
+          },
+          {
+            "index": 2,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 11.235796000000164,
+            "candidateMs": 6.775764999999865,
+            "candidateOverBaseline": 0.6030516217987374,
+            "checksum": 3104000
+          }
+        ],
+        "pairs": [
+          {
+            "index": 3,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 7.971182999999883,
+            "candidateMs": 6.769375000000082,
+            "candidateOverBaseline": 0.8492309108949301,
+            "checksum": 3104000
+          },
+          {
+            "index": 4,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 10.217903999999862,
+            "candidateMs": 8.979710999999952,
+            "candidateOverBaseline": 0.8788212337872888,
+            "checksum": 3104000
+          },
+          {
+            "index": 5,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 8.114300000000185,
+            "candidateMs": 6.853452000000061,
+            "candidateOverBaseline": 0.8446140763836566,
+            "checksum": 3104000
+          },
+          {
+            "index": 6,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 7.999577000000045,
+            "candidateMs": 6.957278000000088,
+            "candidateOverBaseline": 0.8697057356907807,
+            "checksum": 3104000
+          },
+          {
+            "index": 7,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 9.167263000000048,
+            "candidateMs": 9.057898999999907,
+            "candidateOverBaseline": 0.9880701579086211,
+            "checksum": 3104000
+          },
+          {
+            "index": 8,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 8.474420999999893,
+            "candidateMs": 7.243840000000091,
+            "candidateOverBaseline": 0.8547887814400751,
+            "checksum": 3104000
+          },
+          {
+            "index": 9,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 11.320443000000068,
+            "candidateMs": 7.261326000000054,
+            "candidateOverBaseline": 0.641434791906996,
+            "checksum": 3104000
+          }
+        ],
+        "baselineMedianMs": 8.474420999999893,
+        "candidateMedianMs": 7.243840000000091,
+        "medianPairedRatio": 0.8547887814400751,
+        "ratioOfMedians": 0.8547887814400751
+      },
+      {
+        "name": "snapshot-12-cars-2-ordinary",
+        "iterationsPerSample": 600,
+        "packetsPerIteration": 2,
+        "warmups": [
+          {
+            "index": 0,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.230414999999994,
+            "candidateMs": 9.364559999999983,
+            "candidateOverBaseline": 2.2136267954798754,
+            "checksum": 906600
+          },
+          {
+            "index": 1,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.744764000000032,
+            "candidateMs": 3.6705530000001545,
+            "candidateOverBaseline": 0.980182729806237,
+            "checksum": 906600
+          },
+          {
+            "index": 2,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.677564000000075,
+            "candidateMs": 3.673447000000124,
+            "candidateOverBaseline": 0.9988805089456089,
+            "checksum": 906600
+          }
+        ],
+        "pairs": [
+          {
+            "index": 3,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.6786950000000616,
+            "candidateMs": 3.6864969999999175,
+            "candidateOverBaseline": 1.0021208607943457,
+            "checksum": 906600
+          },
+          {
+            "index": 4,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.4647139999997307,
+            "candidateMs": 3.4262350000001334,
+            "candidateOverBaseline": 0.9888940328120589,
+            "checksum": 906600
+          },
+          {
+            "index": 5,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 5.311130999999932,
+            "candidateMs": 5.74378200000001,
+            "candidateOverBaseline": 1.0814611803022904,
+            "checksum": 906600
+          },
+          {
+            "index": 6,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.5583740000001853,
+            "candidateMs": 3.468257999999878,
+            "candidateOverBaseline": 0.9746749498506052,
+            "checksum": 906600
+          },
+          {
+            "index": 7,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.5055749999996806,
+            "candidateMs": 3.366555999999946,
+            "candidateOverBaseline": 0.9603434529286216,
+            "checksum": 906600
+          },
+          {
+            "index": 8,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.454639000000043,
+            "candidateMs": 3.383311000000049,
+            "candidateOverBaseline": 0.9793529801521973,
+            "checksum": 906600
+          },
+          {
+            "index": 9,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.4335869999999886,
+            "candidateMs": 3.363140999999814,
+            "candidateOverBaseline": 0.979483263420972,
+            "checksum": 906600
+          }
+        ],
+        "baselineMedianMs": 3.5055749999996806,
+        "candidateMedianMs": 3.4262350000001334,
+        "medianPairedRatio": 0.979483263420972,
+        "ratioOfMedians": 0.9773674789443801
+      },
+      {
+        "name": "snapshot-12-cars-12-prepared",
+        "iterationsPerSample": 180,
+        "packetsPerIteration": 12,
+        "warmups": [
+          {
+            "index": 0,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.7651660000001357,
+            "candidateMs": 7.421068000000105,
+            "candidateOverBaseline": 1.970980296751813,
+            "checksum": 1654560
+          },
+          {
+            "index": 1,
+            "phase": "warmup",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.167667000000165,
+            "candidateMs": 5.216290000000299,
+            "candidateOverBaseline": 1.6467292805714828,
+            "checksum": 1654560
+          },
+          {
+            "index": 2,
+            "phase": "warmup",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 2.6775290000000496,
+            "candidateMs": 2.402125000000069,
+            "candidateOverBaseline": 0.8971424772616934,
+            "checksum": 1654560
+          }
+        ],
+        "pairs": [
+          {
+            "index": 3,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.2955190000002403,
+            "candidateMs": 2.615886000000046,
+            "candidateOverBaseline": 0.7937705714941578,
+            "checksum": 1654560
+          },
+          {
+            "index": 4,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.5695019999998294,
+            "candidateMs": 5.250381000000289,
+            "candidateOverBaseline": 1.4709001423729526,
+            "checksum": 1654560
+          },
+          {
+            "index": 5,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 2.762126999999964,
+            "candidateMs": 4.627354000000196,
+            "candidateOverBaseline": 1.6752864730695787,
+            "checksum": 1654560
+          },
+          {
+            "index": 6,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 2.5828569999998763,
+            "candidateMs": 2.1417530000003353,
+            "candidateOverBaseline": 0.8292185746250907,
+            "checksum": 1654560
+          },
+          {
+            "index": 7,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 2.454512999999679,
+            "candidateMs": 2.14411599999994,
+            "candidateOverBaseline": 0.8735402908846767,
+            "checksum": 1654560
+          },
+          {
+            "index": 8,
+            "phase": "measured",
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 6.683326999999736,
+            "candidateMs": 3.5579839999995784,
+            "candidateOverBaseline": 0.5323671877793379,
+            "checksum": 1654560
+          },
+          {
+            "index": 9,
+            "phase": "measured",
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 2.610689000000093,
+            "candidateMs": 2.119850000000042,
+            "candidateOverBaseline": 0.8119887125582429,
+            "checksum": 1654560
+          }
+        ],
+        "baselineMedianMs": 2.762126999999964,
+        "candidateMedianMs": 2.615886000000046,
+        "medianPairedRatio": 0.8292185746250907,
+        "ratioOfMedians": 0.9470549326660505
+      }
+    ]
+  },
+  "copyCounts": {
+    "method": "Constructor proxy plus Uint8Array slice/set hooks; deduplicated nonempty backing identities and byte capacities.",
+    "exclusions": "Scalar DataView writes, zero-byte buffers, module initialization, JavaScript objects, transport copies, and engine heap/GC.",
+    "sharedEmptyReset": "Allocated once at module initialization before the hooks; never a per-packet nonempty backing.",
+    "results": [
+      {
+        "name": "input-2",
+        "unit": "one packet",
+        "runs": [
+          {
+            "seed": 0,
+            "packetLengths": [
+              36
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 72,
+              "sliceBytes": 36,
+              "setBytes": 0,
+              "copiedBytes": 36
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 36,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 1,
+            "packetLengths": [
+              36
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 72,
+              "sliceBytes": 36,
+              "setBytes": 0,
+              "copiedBytes": 36
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 36,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 2,
+            "packetLengths": [
+              36
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 72,
+              "sliceBytes": 36,
+              "setBytes": 0,
+              "copiedBytes": 36
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 36,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "input-4",
+        "unit": "one packet",
+        "runs": [
+          {
+            "seed": 0,
+            "packetLengths": [
+              54
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 108,
+              "sliceBytes": 54,
+              "setBytes": 0,
+              "copiedBytes": 54
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 54,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 1,
+            "packetLengths": [
+              54
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 108,
+              "sliceBytes": 54,
+              "setBytes": 0,
+              "copiedBytes": 54
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 54,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 2,
+            "packetLengths": [
+              54
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 108,
+              "sliceBytes": 54,
+              "setBytes": 0,
+              "copiedBytes": 54
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 54,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "input-12",
+        "unit": "one packet",
+        "runs": [
+          {
+            "seed": 0,
+            "packetLengths": [
+              126
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 252,
+              "sliceBytes": 126,
+              "setBytes": 0,
+              "copiedBytes": 126
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 126,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 1,
+            "packetLengths": [
+              126
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 252,
+              "sliceBytes": 126,
+              "setBytes": 0,
+              "copiedBytes": 126
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 126,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 2,
+            "packetLengths": [
+              126
+            ],
+            "baseline": {
+              "nonemptyBackings": 2,
+              "backingBytes": 252,
+              "sliceBytes": 126,
+              "setBytes": 0,
+              "copiedBytes": 126
+            },
+            "candidate": {
+              "nonemptyBackings": 1,
+              "backingBytes": 126,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "snapshot-12-cars-2-ordinary",
+        "unit": "one recipient boundary",
+        "runs": [
+          {
+            "seed": 0,
+            "packetLengths": [
+              503,
+              503
+            ],
+            "baseline": {
+              "nonemptyBackings": 4,
+              "backingBytes": 2318,
+              "sliceBytes": 1006,
+              "setBytes": 0,
+              "copiedBytes": 1006
+            },
+            "candidate": {
+              "nonemptyBackings": 2,
+              "backingBytes": 1006,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 1,
+            "packetLengths": [
+              503,
+              503
+            ],
+            "baseline": {
+              "nonemptyBackings": 4,
+              "backingBytes": 2318,
+              "sliceBytes": 1006,
+              "setBytes": 0,
+              "copiedBytes": 1006
+            },
+            "candidate": {
+              "nonemptyBackings": 2,
+              "backingBytes": 1006,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          },
+          {
+            "seed": 2,
+            "packetLengths": [
+              503,
+              503
+            ],
+            "baseline": {
+              "nonemptyBackings": 4,
+              "backingBytes": 2318,
+              "sliceBytes": 1006,
+              "setBytes": 0,
+              "copiedBytes": 1006
+            },
+            "candidate": {
+              "nonemptyBackings": 2,
+              "backingBytes": 1006,
+              "sliceBytes": 0,
+              "setBytes": 0,
+              "copiedBytes": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "snapshot-12-cars-12-prepared",
+        "unit": "one recipient boundary",
+        "runs": [
+          {
+            "seed": 0,
+            "packetLengths": [
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503
+            ],
+            "baseline": {
+              "nonemptyBackings": 27,
+              "backingBytes": 13764,
+              "sliceBytes": 6648,
+              "setBytes": 6228,
+              "copiedBytes": 12876
+            },
+            "candidate": {
+              "nonemptyBackings": 14,
+              "backingBytes": 7116,
+              "sliceBytes": 0,
+              "setBytes": 6228,
+              "copiedBytes": 6228
+            }
+          },
+          {
+            "seed": 1,
+            "packetLengths": [
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503
+            ],
+            "baseline": {
+              "nonemptyBackings": 27,
+              "backingBytes": 13764,
+              "sliceBytes": 6648,
+              "setBytes": 6228,
+              "copiedBytes": 12876
+            },
+            "candidate": {
+              "nonemptyBackings": 14,
+              "backingBytes": 7116,
+              "sliceBytes": 0,
+              "setBytes": 6228,
+              "copiedBytes": 6228
+            }
+          },
+          {
+            "seed": 2,
+            "packetLengths": [
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503,
+              503
+            ],
+            "baseline": {
+              "nonemptyBackings": 27,
+              "backingBytes": 13764,
+              "sliceBytes": 6648,
+              "setBytes": 6228,
+              "copiedBytes": 12876
+            },
+            "candidate": {
+              "nonemptyBackings": 14,
+              "backingBytes": 7116,
+              "sliceBytes": 0,
+              "setBytes": 6228,
+              "copiedBytes": 6228
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "statusMeaning": "Exact-byte, ownership, and deterministic copy/backing assertions passed; timing is descriptive only.",
+  "runtime": {
+    "node": "v22.23.5",
+    "v8": "12.4.254.21-node.57",
+    "platform": "linux",
+    "arch": "x64"
+  }
+}
+{
+  "probe": "lane-cache-actual-git-baseline",
+  "status": "passed",
+  "baselineCommit": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+  "provenance": {
+    "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "candidateHead": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+    "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+    "candidateTrackedState": "clean",
+    "candidateTrackedChanges": [],
+    "candidateTrackedStatusScope": [
+      "src",
+      "scripts/engine-runtime-probes",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ],
+    "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+    "nodeVersion": "v22.23.5",
+    "esbuildVersion": "0.25.12",
+    "entrySha256": "13eda1ce90d5496526d5400d7c02875ad4a7f339ed7742f5de79eb7db12a12e4",
+    "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+    "files": [
+      {
+        "path": "src/simulation/track-lane-index.ts",
+        "baselineSha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+        "candidateSha256": "bc5410b509594274522d87c88cea8af6688a3cf60c3cc500691234a80b58a50b",
+        "baselineBytes": 2784,
+        "candidateBytes": 3553
+      }
+    ],
+    "bundles": {
+      "baselineSha256": "baecaa15d231bb5c56b4ada8359196d11c11ef8462ec8d7139036d7c26b74a7a",
+      "candidateSha256": "350ab6afbc443d433d912e3b01f108a708fba814429ef7eefa744e54fc846cc6"
+    }
+  },
+  "baselineReplacementPaths": [
+    "src/simulation/track-lane-index.ts"
+  ],
+  "comparisonScope": "Only TrackLaneIndex source differs; both bundles execute actual candidate-tree Track.nearest and geometry.",
+  "primaryTrace": {
+    "venue": "aurel",
+    "capacity": 2048,
+    "nearestComparisons": 8195,
+    "primaryNearestComparisons": 8192,
+    "explicitOldestHitComparisons": 3,
+    "exactScalarComparisons": 106535,
+    "primaryExactScalarComparisons": 106496,
+    "candidateArrayComparisons": 8195,
+    "candidateRecordComparisons": 8195,
+    "fallbackIdentityComparisons": 8195,
+    "coarseFallbackReads": 2340,
+    "prunedCandidateReads": 5599,
+    "queriesWithoutCoarseCell": 0,
+    "negativeCoordinateQueries": 8195,
+    "negativeCoordinateLaneQueries": 8195,
+    "finiteHeightQueries": 3513,
+    "nonfiniteHeightQueries": 3510,
+    "omittedHeightQueries": 1172,
+    "cacheMisses": {
+      "baseline": 8192,
+      "candidate": 8192
+    },
+    "cacheHits": {
+      "baseline": 3,
+      "candidate": 3
+    },
+    "maximumResidentCells": {
+      "baseline": 2048,
+      "candidate": 2048
+    },
+    "maximumFifoKeyReferences": 2048,
+    "fifoCheckpoints": 8,
+    "instrumentation": {
+      "baseline": {
+        "freshMapKeysIterators": 6144,
+        "deleteCalls": 6144,
+        "successfulEvictions": 6144
+      },
+      "candidate": {
+        "freshMapKeysIterators": 0,
+        "deleteCalls": 6144,
+        "successfulEvictions": 6144
+      }
+    },
+    "finalResidentCells": {
+      "baseline": 2048,
+      "candidate": 2048
+    },
+    "finalFifoKeyReferences": 2048,
+    "outputSha256": {
+      "baseline": "878e33f23e7eae1dd7cf2893dc295202034b8e63b187798f0f6001a7fde869ae",
+      "candidate": "878e33f23e7eae1dd7cf2893dc295202034b8e63b187798f0f6001a7fde869ae"
+    },
+    "outputEncoding": "query order; Float64LE lateral then s,x,y,z,tx,tz,nx,nz,curvature,width,bank,gradient",
+    "distinctLaneCells": 4096,
+    "primaryCycles": 2
+  },
+  "boundaryTraces": [
+    {
+      "venue": "overpass",
+      "capacity": 2,
+      "nearestComparisons": 425,
+      "primaryNearestComparisons": 0,
+      "explicitOldestHitComparisons": 0,
+      "exactScalarComparisons": 5525,
+      "primaryExactScalarComparisons": 0,
+      "candidateArrayComparisons": 425,
+      "candidateRecordComparisons": 425,
+      "fallbackIdentityComparisons": 425,
+      "coarseFallbackReads": 156,
+      "prunedCandidateReads": 269,
+      "queriesWithoutCoarseCell": 0,
+      "negativeCoordinateQueries": 362,
+      "negativeCoordinateLaneQueries": 362,
+      "finiteHeightQueries": 257,
+      "nonfiniteHeightQueries": 126,
+      "omittedHeightQueries": 42,
+      "cacheMisses": {
+        "baseline": 31,
+        "candidate": 31
+      },
+      "cacheHits": {
+        "baseline": 394,
+        "candidate": 394
+      },
+      "maximumResidentCells": {
+        "baseline": 2,
+        "candidate": 2
+      },
+      "maximumFifoKeyReferences": 2,
+      "fifoCheckpoints": 43,
+      "instrumentation": {
+        "baseline": {
+          "freshMapKeysIterators": 29,
+          "deleteCalls": 29,
+          "successfulEvictions": 29
+        },
+        "candidate": {
+          "freshMapKeysIterators": 0,
+          "deleteCalls": 29,
+          "successfulEvictions": 29
+        }
+      },
+      "finalResidentCells": {
+        "baseline": 2,
+        "candidate": 2
+      },
+      "finalFifoKeyReferences": 2,
+      "outputSha256": {
+        "baseline": "1979660826afbbf04af99357fc1c358f817dd1e64910245d07a4e5698cec30d6",
+        "candidate": "1979660826afbbf04af99357fc1c358f817dd1e64910245d07a4e5698cec30d6"
+      },
+      "outputEncoding": "query order; Float64LE lateral then s,x,y,z,tx,tz,nx,nz,curvature,width,bank,gradient"
+    },
+    {
+      "venue": "speedbowl",
+      "capacity": 2,
+      "nearestComparisons": 425,
+      "primaryNearestComparisons": 0,
+      "explicitOldestHitComparisons": 0,
+      "exactScalarComparisons": 5525,
+      "primaryExactScalarComparisons": 0,
+      "candidateArrayComparisons": 3,
+      "candidateRecordComparisons": 3,
+      "fallbackIdentityComparisons": 3,
+      "coarseFallbackReads": 0,
+      "prunedCandidateReads": 3,
+      "queriesWithoutCoarseCell": 422,
+      "negativeCoordinateQueries": 363,
+      "negativeCoordinateLaneQueries": 3,
+      "finiteHeightQueries": 257,
+      "nonfiniteHeightQueries": 126,
+      "omittedHeightQueries": 42,
+      "cacheMisses": {
+        "baseline": 3,
+        "candidate": 3
+      },
+      "cacheHits": {
+        "baseline": 0,
+        "candidate": 0
+      },
+      "maximumResidentCells": {
+        "baseline": 2,
+        "candidate": 2
+      },
+      "maximumFifoKeyReferences": 2,
+      "fifoCheckpoints": 43,
+      "instrumentation": {
+        "baseline": {
+          "freshMapKeysIterators": 1,
+          "deleteCalls": 1,
+          "successfulEvictions": 1
+        },
+        "candidate": {
+          "freshMapKeysIterators": 0,
+          "deleteCalls": 1,
+          "successfulEvictions": 1
+        }
+      },
+      "finalResidentCells": {
+        "baseline": 2,
+        "candidate": 2
+      },
+      "finalFifoKeyReferences": 2,
+      "outputSha256": {
+        "baseline": "a7cc6fe2dd6746fba8247c4be39972ea59a2f54e1465b847b8ad2d61f6b4bee2",
+        "candidate": "a7cc6fe2dd6746fba8247c4be39972ea59a2f54e1465b847b8ad2d61f6b4bee2"
+      },
+      "outputEncoding": "query order; Float64LE lateral then s,x,y,z,tx,tz,nx,nz,curvature,width,bank,gradient"
+    }
+  ],
+  "totals": {
+    "nearestComparisons": 9045,
+    "exactScalarComparisons": 117585
+  },
+  "memoryTradeoff": {
+    "additionalFifoKeyReferenceBound": 2048,
+    "observedMaximumFifoKeyReferences": 2048,
+    "storage": "One lazily grown array of resident-key references plus cursor; evicted slots are overwritten.",
+    "heapBytesMeasured": false
+  },
+  "measurement": "Exact-output and structural operation counts only; no clock, FPS, GC or heap-byte result."
+}
+{"schemaVersion":1,"probe":"server-input-queue","status":"passed","provenance":{"baselineRef":"dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc","candidateHead":"0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a","candidateSource":"working-tree bytes, declared targets checked unchanged during bundling","candidateTrackedState":"clean","candidateTrackedChanges":[],"candidateTrackedStatusScope":["src","scripts/engine-runtime-probes","package.json","package-lock.json","tsconfig.json"],"candidateStatusPolicy":"Tracked changes only; untracked files are excluded from this status claim","nodeVersion":"v22.23.5","esbuildVersion":"0.25.12","entrySha256":"a323c218d2e47cd5bd5c2000f592c33fdb0c61b54cb28b2b5f568f19e77003f7","scope":"Only listed production files use the baseline ref; all other dependencies use the candidate checkout.","files":[{"path":"src/net/input.ts","baselineSha256":"1aa7212dc76a5f0d0de10b694ede0f15c68a701368e2cddc1998c765ce061d30","candidateSha256":"8d7fb2adf7a1d164916eb7632b8a833a23667c135855eac95cbbd6c8e56b50be","baselineBytes":16951,"candidateBytes":17629}],"bundles":{"baselineSha256":"db38801ea58336124c05a08ce160a8d66a367eb6cd383b6c32730ee3d85bdd6b","candidateSha256":"789566ab1b6a8b51edc26a83c326ea6b3def5db181d30d23328d0a946c8a0d51"}},"methodology":{"baseline":"actual git-show input.ts at BASELINE; other imports resolve from candidate checkout","compatibility":"every return, control reference, public ACK/depth/remembered/stats; explicit slack/reset calls","counts":"instance-only pending Map instrumentation; no seen/ACK Map counts","expiryBudget":"each instrumented take permits at most twice its starting pending depth in iteration visits plus delete calls","timing":"fresh uninstrumented queue replay including construction, dispatch and checksum; excludes bundling, assertions, hashes and counters","clock":"node:perf_hooks.performance.now","warmupBatchesPerVariant":2,"pairedSamples":7,"traceSeeds":[17,305441741,4275878552],"generatedStepsPerSeed":1200,"timingThreshold":null,"scope":"queue workloads only; no whole-engine, network latency, frame rate, allocation or GC claim"},"comparisons":[{"name":"dense-sequential","seed":null,"generatedSteps":null,"operationCount":251,"methods":{"accept":1,"take":248,"slack":2},"traceSha256":"0913beb339639d334ebc777a0660eac172ef3bc262338e23c32aa8b133841020","observationsSha256":"1064d5248f71bb7215757ab1649256516681f50ca27154c162269a9f0616c154","deliveredSlots":248,"firstEdges":31,"missingSlots":0,"controlReferenceChecks":248,"maximumDepth":248,"maximumRemembered":0,"finalState":{"depth":0,"remembered":0,"contiguousSeq":30,"stats":{"packets":1,"commands":31,"duplicates":0,"late":0,"lateTicks":0,"rejected":0,"missingTicks":0,"appliedTicks":248}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":248,"keyVisits":30876,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":248,"hasCalls":248,"setCalls":248,"deleteCalls":248,"iterationVisits":30876,"expiryWork":31124,"largestTakeExpiryWork":249},"candidate":{"keyIteratorCalls":0,"keyVisits":0,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":248,"hasCalls":248,"setCalls":248,"deleteCalls":248,"iterationVisits":0,"expiryWork":248,"largestTakeExpiryWork":1}},"instrumentationParity":true,"compatible":true},{"name":"reordered-late","seed":null,"generatedSteps":null,"operationCount":25,"methods":{"accept":6,"take":15,"slack":4},"traceSha256":"7c0952e0f10ddd3b06e578e70040c89ca4d9f664651a6b0584d1bf1f1632a6c1","observationsSha256":"5bc2c522eca950c646f2150ac2b320ecc7a0aebc80f8f73db06fb5f749d8bb3f","deliveredSlots":11,"firstEdges":3,"missingSlots":4,"controlReferenceChecks":11,"maximumDepth":12,"maximumRemembered":1,"finalState":{"depth":0,"remembered":0,"contiguousSeq":6,"stats":{"packets":6,"commands":6,"duplicates":2,"late":1,"lateTicks":5,"rejected":1,"missingTicks":0,"appliedTicks":11}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":15,"keyVisits":73,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":15,"hasCalls":23,"setCalls":17,"deleteCalls":17,"iterationVisits":73,"expiryWork":90,"largestTakeExpiryWork":13},"candidate":{"keyIteratorCalls":1,"keyVisits":2,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":15,"hasCalls":23,"setCalls":17,"deleteCalls":17,"iterationVisits":2,"expiryWork":19,"largestTakeExpiryWork":4}},"instrumentationParity":true,"compatible":true},{"name":"backward-take-and-admission","seed":null,"generatedSteps":null,"operationCount":14,"methods":{"accept":3,"take":9,"slack":2},"traceSha256":"060fbcaccbd0570443dfe91fe836ebb31fde84e3fd7145590fd3ccf1ef9d1f3b","observationsSha256":"1b599a996027ba91138c0079749ae41122c4a9c0e034e61c1afa68d7f7aa6c4e","deliveredSlots":5,"firstEdges":1,"missingSlots":4,"controlReferenceChecks":5,"maximumDepth":11,"maximumRemembered":0,"finalState":{"depth":0,"remembered":0,"contiguousSeq":2,"stats":{"packets":3,"commands":3,"duplicates":0,"late":0,"lateTicks":0,"rejected":0,"missingTicks":0,"appliedTicks":5}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":9,"keyVisits":55,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":9,"hasCalls":18,"setCalls":18,"deleteCalls":18,"iterationVisits":55,"expiryWork":73,"largestTakeExpiryWork":16},"candidate":{"keyIteratorCalls":1,"keyVisits":8,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":9,"hasCalls":18,"setCalls":18,"deleteCalls":18,"iterationVisits":8,"expiryWork":26,"largestTakeExpiryWork":16}},"instrumentationParity":true,"compatible":true},{"name":"large-sparse-jumps","seed":null,"generatedSteps":null,"operationCount":11,"methods":{"accept":4,"take":5,"slack":2},"traceSha256":"b29537dadc340171502ff2a36ec09ebb0dbfdd9c39e914283aea8ceb889e1fc5","observationsSha256":"9edd2b11557bc219da882f168d8d5153c9b1e34a6e80a99e4bf796713322770d","deliveredSlots":3,"firstEdges":3,"missingSlots":2,"controlReferenceChecks":3,"maximumDepth":3,"maximumRemembered":0,"finalState":{"depth":0,"remembered":0,"contiguousSeq":3,"stats":{"packets":4,"commands":4,"duplicates":0,"late":0,"lateTicks":0,"rejected":0,"missingTicks":0,"appliedTicks":3}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":5,"keyVisits":7,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":5,"hasCalls":4,"setCalls":4,"deleteCalls":4,"iterationVisits":7,"expiryWork":11,"largestTakeExpiryWork":5},"candidate":{"keyIteratorCalls":2,"keyVisits":4,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":5,"hasCalls":4,"setCalls":4,"deleteCalls":4,"iterationVisits":4,"expiryWork":8,"largestTakeExpiryWork":5}},"instrumentationParity":true,"compatible":true},{"name":"wire-endpoints","seed":null,"generatedSteps":null,"operationCount":11,"methods":{"accept":2,"take":7,"slack":2},"traceSha256":"bd94fa271f21b5347fe3c7cf6dade018c4e1f9cf435e3d4d6216b0d5b9d243db","observationsSha256":"290ddbd8e5bc28c931f583ae6551861bc500c97ad8af05ae85076af7e49e3b82","deliveredSlots":4,"firstEdges":2,"missingSlots":3,"controlReferenceChecks":4,"maximumDepth":12,"maximumRemembered":0,"finalState":{"depth":0,"remembered":0,"contiguousSeq":4294967294,"stats":{"packets":2,"commands":4,"duplicates":0,"late":0,"lateTicks":0,"rejected":5,"missingTicks":0,"appliedTicks":4}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":7,"keyVisits":40,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":7,"hasCalls":13,"setCalls":12,"deleteCalls":12,"iterationVisits":40,"expiryWork":52,"largestTakeExpiryWork":15},"candidate":{"keyIteratorCalls":0,"keyVisits":0,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":7,"hasCalls":13,"setCalls":12,"deleteCalls":12,"iterationVisits":0,"expiryWork":12,"largestTakeExpiryWork":7}},"instrumentationParity":true,"compatible":true},{"name":"seeded-11","seed":17,"generatedSteps":1200,"operationCount":1203,"methods":{"accept":608,"take":471,"slack":124},"traceSha256":"5d4b3ec43550d1777099dbed715f1232ebc43b7b27a0a3e2bd2ebafe62c1fc43","observationsSha256":"55bbdceeb379763a50f36bbbf4b04973556c0263c6132ea942dd7881e4c1fb92","deliveredSlots":101,"firstEdges":18,"missingSlots":370,"controlReferenceChecks":101,"maximumDepth":64,"maximumRemembered":54,"finalState":{"depth":0,"remembered":0,"contiguousSeq":2133,"stats":{"packets":608,"commands":258,"duplicates":1457,"late":47,"lateTicks":226,"rejected":83,"missingTicks":0,"appliedTicks":101}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":471,"keyVisits":8359,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":471,"hasCalls":939,"setCalls":552,"deleteCalls":552,"iterationVisits":8359,"expiryWork":8911,"largestTakeExpiryWork":100},"candidate":{"keyIteratorCalls":19,"keyVisits":213,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":471,"hasCalls":939,"setCalls":552,"deleteCalls":1027,"iterationVisits":213,"expiryWork":1240,"largestTakeExpiryWork":100}},"instrumentationParity":true,"compatible":true},{"name":"seeded-1234abcd","seed":305441741,"generatedSteps":1200,"operationCount":1203,"methods":{"accept":607,"take":478,"slack":118},"traceSha256":"48f7d45d36dd9d9683d343531944eb1e83135b5fedef41a0f92dec72ab59620c","observationsSha256":"f88c878a963fb8f969d2bb24a0a94c649ab6b536c30bc78a5a943f2851ad3ef8","deliveredSlots":125,"firstEdges":26,"missingSlots":353,"controlReferenceChecks":125,"maximumDepth":73,"maximumRemembered":80,"finalState":{"depth":0,"remembered":0,"contiguousSeq":2143,"stats":{"packets":607,"commands":352,"duplicates":1426,"late":75,"lateTicks":325,"rejected":118,"missingTicks":0,"appliedTicks":125}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":478,"keyVisits":6805,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":478,"hasCalls":1286,"setCalls":577,"deleteCalls":577,"iterationVisits":6805,"expiryWork":7382,"largestTakeExpiryWork":106},"candidate":{"keyIteratorCalls":25,"keyVisits":170,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":478,"hasCalls":1286,"setCalls":577,"deleteCalls":838,"iterationVisits":170,"expiryWork":1008,"largestTakeExpiryWork":106}},"instrumentationParity":true,"compatible":true},{"name":"seeded-fedcba98","seed":4275878552,"generatedSteps":1200,"operationCount":1203,"methods":{"accept":591,"take":483,"slack":129},"traceSha256":"c3b1a336dff1469616f29db7d547ccb8d511200cf215b26d4fea88efeaac2dc4","observationsSha256":"fa8f57b335a9346276fcf525fba3272d5a6bed5b82b479f477daeab1537a0bcb","deliveredSlots":226,"firstEdges":38,"missingSlots":257,"controlReferenceChecks":226,"maximumDepth":151,"maximumRemembered":355,"finalState":{"depth":0,"remembered":0,"contiguousSeq":1212,"stats":{"packets":591,"commands":887,"duplicates":300,"late":162,"lateTicks":789,"rejected":562,"missingTicks":0,"appliedTicks":226}},"pendingMapOperations":{"baseline":{"keyIteratorCalls":483,"keyVisits":34106,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":483,"hasCalls":3206,"setCalls":1415,"deleteCalls":1415,"iterationVisits":34106,"expiryWork":35521,"largestTakeExpiryWork":241},"candidate":{"keyIteratorCalls":13,"keyVisits":892,"entryIteratorCalls":0,"entryVisits":0,"valueIteratorCalls":0,"valueVisits":0,"defaultIteratorCalls":0,"defaultIteratorVisits":0,"forEachCalls":0,"forEachVisits":0,"getCalls":483,"hasCalls":3206,"setCalls":1415,"deleteCalls":1805,"iterationVisits":892,"expiryWork":2697,"largestTakeExpiryWork":241}},"instrumentationParity":true,"compatible":true}],"timings":[{"name":"dense-sequential","replaysPerBatch":16,"operationsPerBatch":4016,"samples":[{"order":["baseline","candidate"],"baselineMs":4.5085549999998875,"candidateMs":0.4342739999999594,"checksum":1899521312},{"order":["candidate","baseline"],"baselineMs":4.42848499999991,"candidateMs":0.3649190000000999,"checksum":1899521312},{"order":["baseline","candidate"],"baselineMs":4.56574999999998,"candidateMs":0.3901980000000549,"checksum":1899521312},{"order":["candidate","baseline"],"baselineMs":4.521003999999948,"candidateMs":0.3584399999999732,"checksum":1899521312},{"order":["baseline","candidate"],"baselineMs":4.3079519999998865,"candidateMs":0.3750640000000658,"checksum":1899521312},{"order":["candidate","baseline"],"baselineMs":5.724083999999948,"candidateMs":0.36598099999991973,"checksum":1899521312},{"order":["baseline","candidate"],"baselineMs":4.657157999999981,"candidateMs":0.3850689999999304,"checksum":1899521312}],"baselineMsPerReplay":{"min":0.2692469999999929,"median":0.28256274999999675,"max":0.35775524999999675},"candidateMsPerReplay":{"min":0.022402499999998327,"median":0.023441500000004112,"max":0.027142124999997463},"baselineOverCandidateMedianRatio":12.053953458607477},{"name":"reordered-late","replaysPerBatch":64,"operationsPerBatch":1600,"samples":[{"order":["baseline","candidate"],"baselineMs":0.19190800000001218,"candidateMs":0.15389200000004166,"checksum":2678652928},{"order":["candidate","baseline"],"baselineMs":0.19289099999991777,"candidateMs":0.1501060000000507,"checksum":2678652928},{"order":["baseline","candidate"],"baselineMs":0.20040100000005623,"candidateMs":0.14598000000000866,"checksum":2678652928},{"order":["candidate","baseline"],"baselineMs":0.1917280000000119,"candidateMs":0.14382599999999002,"checksum":2678652928},{"order":["baseline","candidate"],"baselineMs":0.1862300000000232,"candidateMs":0.14489800000001196,"checksum":2678652928},{"order":["candidate","baseline"],"baselineMs":0.26150299999994786,"candidateMs":0.18448800000010124,"checksum":2678652928},{"order":["baseline","candidate"],"baselineMs":0.3194610000000466,"candidateMs":0.14690100000007078,"checksum":2678652928}],"baselineMsPerReplay":{"min":0.0029098437500003627,"median":0.003013921874998715,"max":0.0049915781250007285},"candidateMsPerReplay":{"min":0.002247281249999844,"median":0.002295328125001106,"max":0.002882625000001582},"baselineOverCandidateMedianRatio":1.3130679845598385},{"name":"backward-take-and-admission","replaysPerBatch":64,"operationsPerBatch":896,"samples":[{"order":["baseline","candidate"],"baselineMs":0.1400309999999081,"candidateMs":0.11250900000004549,"checksum":12272640},{"order":["candidate","baseline"],"baselineMs":0.1527800000001207,"candidateMs":0.1721189999998387,"checksum":12272640},{"order":["baseline","candidate"],"baselineMs":0.13884900000016387,"candidateMs":0.11286999999992986,"checksum":12272640},{"order":["candidate","baseline"],"baselineMs":0.16710200000011355,"candidateMs":0.11063699999999699,"checksum":12272640},{"order":["baseline","candidate"],"baselineMs":0.15610500000002503,"candidateMs":0.11029600000006212,"checksum":12272640},{"order":["candidate","baseline"],"baselineMs":0.16934500000002117,"candidateMs":0.1106969999998455,"checksum":12272640},{"order":["baseline","candidate"],"baselineMs":0.13928999999984626,"candidateMs":0.11447199999997792,"checksum":12272640}],"baselineMsPerReplay":{"min":0.0021695156250025605,"median":0.002387187500001886,"max":0.002646015625000331},"candidateMsPerReplay":{"min":0.0017233750000009707,"median":0.0017579531250007108,"max":0.00268935937499748},"baselineOverCandidateMedianRatio":1.3579358095802019},{"name":"large-sparse-jumps","replaysPerBatch":64,"operationsPerBatch":704,"samples":[{"order":["baseline","candidate"],"baselineMs":0.0668310000000929,"candidateMs":0.06461800000010953,"checksum":3181649792},{"order":["candidate","baseline"],"baselineMs":0.06635000000005675,"candidateMs":0.06323500000007698,"checksum":3181649792},{"order":["baseline","candidate"],"baselineMs":0.08485799999994015,"candidateMs":0.27430299999991803,"checksum":3181649792},{"order":["candidate","baseline"],"baselineMs":0.06863400000020192,"candidateMs":0.06408699999997225,"checksum":3181649792},{"order":["baseline","candidate"],"baselineMs":0.06542800000011084,"candidateMs":0.06426600000008875,"checksum":3181649792},{"order":["candidate","baseline"],"baselineMs":0.06560899999999492,"candidateMs":0.06338499999992564,"checksum":3181649792},{"order":["baseline","candidate"],"baselineMs":0.0656490000001213,"candidateMs":0.06367599999998674,"checksum":3181649792}],"baselineMsPerReplay":{"min":0.001022312500001732,"median":0.0010367187500008868,"max":0.0013259062499990648},"candidateMsPerReplay":{"min":0.0009880468750012028,"median":0.0010013593749995664,"max":0.004285984374998719},"baselineOverCandidateMedianRatio":1.0353113736028443},{"name":"wire-endpoints","replaysPerBatch":64,"operationsPerBatch":704,"samples":[{"order":["baseline","candidate"],"baselineMs":0.13496299999997063,"candidateMs":0.10999600000013743,"checksum":3686464960},{"order":["candidate","baseline"],"baselineMs":0.13421199999993405,"candidateMs":0.10901399999988826,"checksum":3686464960},{"order":["baseline","candidate"],"baselineMs":0.1464499999999589,"candidateMs":0.10990500000002612,"checksum":3686464960},{"order":["candidate","baseline"],"baselineMs":0.13456199999995988,"candidateMs":0.10932400000001508,"checksum":3686464960},{"order":["baseline","candidate"],"baselineMs":0.1350840000000062,"candidateMs":0.11113799999998264,"checksum":3686464960},{"order":["candidate","baseline"],"baselineMs":0.13599500000009357,"candidateMs":0.10926399999993919,"checksum":3686464960},{"order":["baseline","candidate"],"baselineMs":0.15651600000001054,"candidateMs":0.11265999999977794,"checksum":3686464960}],"baselineMsPerReplay":{"min":0.0020970624999989695,"median":0.002110687500000097,"max":0.0024455625000001646},"candidateMsPerReplay":{"min":0.001703343749998254,"median":0.0017172656250004081,"max":0.0017603124999965303},"baselineOverCandidateMedianRatio":1.2290978572401081},{"name":"seeded-11","replaysPerBatch":3,"operationsPerBatch":3609,"samples":[{"order":["baseline","candidate"],"baselineMs":1.246906000000081,"candidateMs":1.0732649999999921,"checksum":3796248545},{"order":["candidate","baseline"],"baselineMs":1.017131000000063,"candidateMs":0.793423999999959,"checksum":3796248545},{"order":["baseline","candidate"],"baselineMs":0.9294279999999162,"candidateMs":0.7692479999998341,"checksum":3796248545},{"order":["candidate","baseline"],"baselineMs":0.9918920000000071,"candidateMs":0.6408750000000509,"checksum":3796248545},{"order":["baseline","candidate"],"baselineMs":0.9426690000000235,"candidateMs":0.7765289999999823,"checksum":3796248545},{"order":["candidate","baseline"],"baselineMs":0.9782020000000102,"candidateMs":0.6318309999999201,"checksum":3796248545},{"order":["baseline","candidate"],"baselineMs":0.875046999999995,"candidateMs":1.0484469999998964,"checksum":3796248545}],"baselineMsPerReplay":{"min":0.29168233333333166,"median":0.32606733333333676,"max":0.4156353333333603},"candidateMsPerReplay":{"min":0.2106103333333067,"median":0.2588429999999941,"max":0.3577549999999974},"baselineOverCandidateMedianRatio":1.2597108414496208},{"name":"seeded-1234abcd","replaysPerBatch":3,"operationsPerBatch":3609,"samples":[{"order":["baseline","candidate"],"baselineMs":0.8366889999999785,"candidateMs":0.6596419999998488,"checksum":2152342557},{"order":["candidate","baseline"],"baselineMs":0.9061439999998129,"candidateMs":0.6016859999999724,"checksum":2152342557},{"order":["baseline","candidate"],"baselineMs":0.8282269999999698,"candidateMs":0.659251999999924,"checksum":2152342557},{"order":["candidate","baseline"],"baselineMs":1.0553580000000693,"candidateMs":0.5517999999999574,"checksum":2152342557},{"order":["baseline","candidate"],"baselineMs":0.8957379999999375,"candidateMs":0.7572889999999006,"checksum":2152342557},{"order":["candidate","baseline"],"baselineMs":0.909809000000223,"candidateMs":0.6305890000001,"checksum":2152342557},{"order":["baseline","candidate"],"baselineMs":0.7855420000000777,"candidateMs":0.6600930000001881,"checksum":2152342557}],"baselineMsPerReplay":{"min":0.26184733333335924,"median":0.2985793333333125,"max":0.3517860000000231},"candidateMsPerReplay":{"min":0.18393333333331915,"median":0.21975066666664134,"max":0.2524296666666335},"baselineOverCandidateMedianRatio":1.3587186690370916},{"name":"seeded-fedcba98","replaysPerBatch":3,"operationsPerBatch":3609,"samples":[{"order":["baseline","candidate"],"baselineMs":1.8831739999998263,"candidateMs":1.1146069999999781,"checksum":4087501802},{"order":["candidate","baseline"],"baselineMs":2.1469110000000455,"candidateMs":1.0298700000000736,"checksum":4087501802},{"order":["baseline","candidate"],"baselineMs":1.904166000000032,"candidateMs":1.1266350000000784,"checksum":4087501802},{"order":["candidate","baseline"],"baselineMs":2.1392789999999877,"candidateMs":1.0267049999999927,"checksum":4087501802},{"order":["baseline","candidate"],"baselineMs":1.9175350000000435,"candidateMs":1.120877000000064,"checksum":4087501802},{"order":["candidate","baseline"],"baselineMs":1.8987680000000182,"candidateMs":1.0367300000000341,"checksum":4087501802},{"order":["baseline","candidate"],"baselineMs":2.0667399999999816,"candidateMs":1.1159099999999853,"checksum":4087501802}],"baselineMsPerReplay":{"min":0.6277246666666088,"median":0.6391783333333478,"max":0.7156370000000152},"candidateMsPerReplay":{"min":0.34223499999999757,"median":0.3715356666666594,"max":0.37554500000002616},"baselineOverCandidateMedianRatio":1.720368703946845}]}
+{
+  "probe": "radio",
+  "status": "passed",
+  "provenance": {
+    "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "candidateHead": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+    "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+    "candidateTrackedState": "clean",
+    "candidateTrackedChanges": [],
+    "candidateTrackedStatusScope": [
+      "src",
+      "scripts/engine-runtime-probes",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ],
+    "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+    "nodeVersion": "v22.23.5",
+    "esbuildVersion": "0.25.12",
+    "entrySha256": "02906612b87481e79d6a2745a4d77615e91bc51210c01ff21027f74b9080d038",
+    "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+    "files": [
+      {
+        "path": "src/core/radio.ts",
+        "baselineSha256": "6a23e0d89a143f7d5f6cf14ac948b916cca611d348ecabd150262293ef0dc73f",
+        "candidateSha256": "f11f7710b19fd9c87cf56efdeffddc065b7ec5a3b36bcbd0f4f2dd75257af4d1",
+        "baselineBytes": 6982,
+        "candidateBytes": 7820
+      }
+    ],
+    "bundles": {
+      "baselineSha256": "8c31b9151cb46c7e4adc3a9ce78ae7b703a0e87698a825413cf8d9b8bbdc01e5",
+      "candidateSha256": "0c5a03e07469cdaf2d643eaeb40edf1b4a3c22a9ac28bcdf9d8796b1cd39b8bf"
+    }
+  },
+  "equivalence": {
+    "equal": true,
+    "seed": 631619806,
+    "scenarios": 47,
+    "observationsPerVariant": 1620,
+    "cases": [
+      {
+        "name": "virtual-safety-car/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "60b4eba501ca2a063ebccd1f978e30d27059537aca7af46afe40bc2bcf23b56f"
+      },
+      {
+        "name": "deployed-safety-car/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "78b9c80ea978dee6d0e5e0fb3b1d014d3f751092bf1c3926981b18be55a574a6"
+      },
+      {
+        "name": "safety-car-in-this-lap/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "00c09afa0928cae89aebfe9cdcd5213e10ddff4f2f68399dfcb369cd99cdc828"
+      },
+      {
+        "name": "yellow-rounded-sequence/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "90cb56a27886ab2be402a7d342e6cc2c327b087c5abaa09a2744d953dd046baa"
+      },
+      {
+        "name": "double-yellow/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "230416ec3218b5f8fb8b005d0e297cff26f4b8ec164a22be99db43267cb45042"
+      },
+      {
+        "name": "blue-flag/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "00dd06ff2912a6b15a700afff53f717905c2dc099642778e0f17dab8c2f88cb7"
+      },
+      {
+        "name": "penalty-rounding/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "415a482ebb7dcca3291501323f81761c27fd06afe453abec5e4df9fd9b26e13d"
+      },
+      {
+        "name": "warning-rounding/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "80fe91cbf810c8a3f0b217308189fffe9a799624f238cf7f3ac067a972ad667e"
+      },
+      {
+        "name": "pit-entry/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "184950e274aef2e22e94a0f5599a16f67973026f755689115828330a0f6e7c97"
+      },
+      {
+        "name": "final-lap/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "5aba559e4718e65f4bdb0798f543611f9cccb15bd15e98eb4860f0eb15d34689"
+      },
+      {
+        "name": "fuel-crossing/fresh",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "76e5d85a5907145922016db9e5d17a20e2b9007943cc82469fa892c58930bac8"
+      },
+      {
+        "name": "virtual-safety-car/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "60b4eba501ca2a063ebccd1f978e30d27059537aca7af46afe40bc2bcf23b56f"
+      },
+      {
+        "name": "deployed-safety-car/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "78b9c80ea978dee6d0e5e0fb3b1d014d3f751092bf1c3926981b18be55a574a6"
+      },
+      {
+        "name": "safety-car-in-this-lap/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "00c09afa0928cae89aebfe9cdcd5213e10ddff4f2f68399dfcb369cd99cdc828"
+      },
+      {
+        "name": "yellow-rounded-sequence/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "90cb56a27886ab2be402a7d342e6cc2c327b087c5abaa09a2744d953dd046baa"
+      },
+      {
+        "name": "double-yellow/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "230416ec3218b5f8fb8b005d0e297cff26f4b8ec164a22be99db43267cb45042"
+      },
+      {
+        "name": "blue-flag/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "00dd06ff2912a6b15a700afff53f717905c2dc099642778e0f17dab8c2f88cb7"
+      },
+      {
+        "name": "penalty-rounding/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "415a482ebb7dcca3291501323f81761c27fd06afe453abec5e4df9fd9b26e13d"
+      },
+      {
+        "name": "warning-rounding/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "80fe91cbf810c8a3f0b217308189fffe9a799624f238cf7f3ac067a972ad667e"
+      },
+      {
+        "name": "pit-entry/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "184950e274aef2e22e94a0f5599a16f67973026f755689115828330a0f6e7c97"
+      },
+      {
+        "name": "final-lap/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "5aba559e4718e65f4bdb0798f543611f9cccb15bd15e98eb4860f0eb15d34689"
+      },
+      {
+        "name": "fuel-crossing/reused",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "76e5d85a5907145922016db9e5d17a20e2b9007943cc82469fa892c58930bac8"
+      },
+      {
+        "name": "virtual-safety-car/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "60b4eba501ca2a063ebccd1f978e30d27059537aca7af46afe40bc2bcf23b56f"
+      },
+      {
+        "name": "deployed-safety-car/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "78b9c80ea978dee6d0e5e0fb3b1d014d3f751092bf1c3926981b18be55a574a6"
+      },
+      {
+        "name": "safety-car-in-this-lap/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "00c09afa0928cae89aebfe9cdcd5213e10ddff4f2f68399dfcb369cd99cdc828"
+      },
+      {
+        "name": "yellow-rounded-sequence/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "90cb56a27886ab2be402a7d342e6cc2c327b087c5abaa09a2744d953dd046baa"
+      },
+      {
+        "name": "double-yellow/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "230416ec3218b5f8fb8b005d0e297cff26f4b8ec164a22be99db43267cb45042"
+      },
+      {
+        "name": "blue-flag/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "00dd06ff2912a6b15a700afff53f717905c2dc099642778e0f17dab8c2f88cb7"
+      },
+      {
+        "name": "penalty-rounding/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "415a482ebb7dcca3291501323f81761c27fd06afe453abec5e4df9fd9b26e13d"
+      },
+      {
+        "name": "warning-rounding/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "80fe91cbf810c8a3f0b217308189fffe9a799624f238cf7f3ac067a972ad667e"
+      },
+      {
+        "name": "pit-entry/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "184950e274aef2e22e94a0f5599a16f67973026f755689115828330a0f6e7c97"
+      },
+      {
+        "name": "final-lap/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "5aba559e4718e65f4bdb0798f543611f9cccb15bd15e98eb4860f0eb15d34689"
+      },
+      {
+        "name": "fuel-crossing/transferred",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "76e5d85a5907145922016db9e5d17a20e2b9007943cc82469fa892c58930bac8"
+      },
+      {
+        "name": "simultaneous-offers-order-hold-and-expiry",
+        "operations": 8,
+        "observations": 2,
+        "postOffers": 7,
+        "nonNullCaptionSamples": 6,
+        "streamSha256": "b8511b908d7bfec7a979b5a8a3f8f8cd1b57141637e223bb0b04ecb2607101ec"
+      },
+      {
+        "name": "first-frame-and-changing-car-counts",
+        "operations": 6,
+        "observations": 6,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "142b3a1311c40077fbdf3ff138409c032d69e1db50928d6e109626c4e94133e5"
+      },
+      {
+        "name": "overwrite-and-detach-previous-source",
+        "operations": 4,
+        "observations": 2,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "0fa38f9a4bcc416200442a65f5a7bddd29f9c9961ebd48cde965e4bb5d8511fc"
+      },
+      {
+        "name": "engineer-muted-race-control-retained",
+        "operations": 4,
+        "observations": 3,
+        "postOffers": 4,
+        "nonNullCaptionSamples": 1,
+        "streamSha256": "749df98d7fdf8160f439e49d933caead6466bcbe2c99916e465cb10d450ad445"
+      },
+      {
+        "name": "cooldown-survives-expiry-and-rewind-exact-boundary",
+        "operations": 9,
+        "observations": 0,
+        "postOffers": 4,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "3beb9736888bb189a943c9b0ccb9e5467ec3f9b9b09ec8b7a1ce964cdc666aaa"
+      },
+      {
+        "name": "custom-cooldown-exact-boundary",
+        "operations": 9,
+        "observations": 0,
+        "postOffers": 4,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "5f1759d484460a73bba725518604d9e851556c93cb1958cb4a51b49e958b3395"
+      },
+      {
+        "name": "reset-clears-caption-queue-history-and-comparison",
+        "operations": 10,
+        "observations": 3,
+        "postOffers": 4,
+        "nonNullCaptionSamples": 4,
+        "streamSha256": "de6d0e5d8db3edf00f051c2fc8936e6525a6e02027309fcd936aff2b539408f8"
+      },
+      {
+        "name": "urgent-interruption-and-stale-queued-message",
+        "operations": 6,
+        "observations": 0,
+        "postOffers": 3,
+        "nonNullCaptionSamples": 4,
+        "streamSha256": "bad808c064b0620878ed87abfbbfd6faabea587e7d719a3e2015470c91cc0cf2"
+      },
+      {
+        "name": "queued-key-replacement-preserves-equal-priority-order",
+        "operations": 6,
+        "observations": 0,
+        "postOffers": 3,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "26cd8fd69ba6a1350f3479353576b08d8ed8c08398e0c15d9c1c402ecb16a7a7"
+      },
+      {
+        "name": "expiry-equality-is-inclusive",
+        "operations": 4,
+        "observations": 0,
+        "postOffers": 1,
+        "nonNullCaptionSamples": 2,
+        "streamSha256": "517616f3c4dd4a89ec2630027b576513db5d96343a8b02acbe8720a72a17701c"
+      },
+      {
+        "name": "single-lap-finish-does-not-offer-final-lap-or-fuel",
+        "operations": 2,
+        "observations": 2,
+        "postOffers": 0,
+        "nonNullCaptionSamples": 0,
+        "streamSha256": "62e24646fa726bb512f01679fe6adf8b8d127e24382ac2b1184b4558160e5df0"
+      },
+      {
+        "name": "seeded-mixed-events-rewinds-count-changes-and-resets/fresh",
+        "operations": 563,
+        "observations": 512,
+        "postOffers": 1206,
+        "nonNullCaptionSamples": 551,
+        "streamSha256": "c129270658e796fb472b6f4c8c21346429ae5dcbcaa174032f9654469d55240c"
+      },
+      {
+        "name": "seeded-mixed-events-rewinds-count-changes-and-resets/reused",
+        "operations": 563,
+        "observations": 512,
+        "postOffers": 1206,
+        "nonNullCaptionSamples": 551,
+        "streamSha256": "c129270658e796fb472b6f4c8c21346429ae5dcbcaa174032f9654469d55240c"
+      },
+      {
+        "name": "seeded-mixed-events-rewinds-count-changes-and-resets/transferred",
+        "operations": 563,
+        "observations": 512,
+        "postOffers": 1206,
+        "nonNullCaptionSamples": 551,
+        "streamSha256": "c129270658e796fb472b6f4c8c21346429ae5dcbcaa174032f9654469d55240c"
+      }
+    ]
+  },
+  "copyCounts": {
+    "measurement": "Float32Array.slice calls and returned bytes during synchronous observe calls",
+    "observationsPerCasePerVariant": 600,
+    "cases": [
+      {
+        "cars": 1,
+        "baseline": {
+          "observations": 600,
+          "frameBytes": 1420,
+          "sliceCalls": 600,
+          "sliceCopiedBytes": 852000,
+          "fullFrameSliceCalls": 600,
+          "fullFrameCopiedBytes": 852000
+        },
+        "candidate": {
+          "observations": 600,
+          "frameBytes": 1420,
+          "sliceCalls": 0,
+          "sliceCopiedBytes": 0,
+          "fullFrameSliceCalls": 0,
+          "fullFrameCopiedBytes": 0
+        }
+      },
+      {
+        "cars": 24,
+        "baseline": {
+          "observations": 600,
+          "frameBytes": 31872,
+          "sliceCalls": 600,
+          "sliceCopiedBytes": 19123200,
+          "fullFrameSliceCalls": 600,
+          "fullFrameCopiedBytes": 19123200
+        },
+        "candidate": {
+          "observations": 600,
+          "frameBytes": 31872,
+          "sliceCalls": 0,
+          "sliceCopiedBytes": 0,
+          "fullFrameSliceCalls": 0,
+          "fullFrameCopiedBytes": 0
+        }
+      },
+      {
+        "cars": 32,
+        "baseline": {
+          "observations": 600,
+          "frameBytes": 42464,
+          "sliceCalls": 600,
+          "sliceCopiedBytes": 25478400,
+          "fullFrameSliceCalls": 600,
+          "fullFrameCopiedBytes": 25478400
+        },
+        "candidate": {
+          "observations": 600,
+          "frameBytes": 42464,
+          "sliceCalls": 0,
+          "sliceCopiedBytes": 0,
+          "fullFrameSliceCalls": 0,
+          "fullFrameCopiedBytes": 0
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Only src/core/radio.ts is replaced by baseline source; dependencies use the same candidate checkout.",
+    "Copy counters cover Float32Array.slice, not all allocations, retained heap, garbage collection, or elapsed time.",
+    "No whole-game or FPS improvement is measured or claimed."
+  ]
+}
+{
+  "probe": "whole-simulation-composition",
+  "status": "pass",
+  "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+  "scope": "Two historical modules composed inside the current real Simulation dependency graph.",
+  "provenance": {
+    "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "candidateHead": "0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a",
+    "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+    "candidateTrackedState": "clean",
+    "candidateTrackedChanges": [],
+    "candidateTrackedStatusScope": [
+      "src",
+      "scripts/engine-runtime-probes",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+    ],
+    "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+    "nodeVersion": "v22.23.5",
+    "esbuildVersion": "0.25.12",
+    "entrySha256": "daf3090461e30d69e9f9f080d2c827d3a88301b817e0d88de9e910eb73c344da",
+    "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+    "files": [
+      {
+        "path": "src/simulation/track-lane-index.ts",
+        "baselineSha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+        "candidateSha256": "bc5410b509594274522d87c88cea8af6688a3cf60c3cc500691234a80b58a50b",
+        "baselineBytes": 2784,
+        "candidateBytes": 3553
+      },
+      {
+        "path": "src/simulation/surface-thermal.ts",
+        "baselineSha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12",
+        "candidateSha256": "ed694932bf4a2e26ba992032e6af4c82d0ea6fb89523a3ca4717ad8525919ce0",
+        "baselineBytes": 11858,
+        "candidateBytes": 11966
+      }
+    ],
+    "bundles": {
+      "baselineSha256": "3cc66455cb5988d936f37814a41f2d7cefb78bde6c8582c88d2f67591a66ddf6",
+      "candidateSha256": "50b04929a6422f931b84b53103c7302ddfe893ca4d22119b768bc093819d8eca"
+    }
+  },
+  "workload": {
+    "cases": 3,
+    "carsPerVariant": 3,
+    "ticksPerVariantPerCase": 120,
+    "simulatedSecondsPerVariantPerCase": 1,
+    "frameComparisons": 363,
+    "frameWordsCompared": 369171,
+    "surfaceComparisons": 27,
+    "raceComparisons": 363
+  },
+  "comparison": {
+    "frames": "Every Float32 frame byte, including header, all car blocks and diagnostic defaults.",
+    "surfaces": "Every byte of all eight public surface arrays at each selected checkpoint.",
+    "race": "Exact unrounded race clocks, lap timing/progress, order and classification state.",
+    "diagnosticArguments": {
+      "stepMs": 0,
+      "dropped": 0
+    },
+    "outputNormalization": "none"
+  },
+  "cases": [
+    {
+      "name": "clear-human-ai",
+      "weather": "clear",
+      "compound": "medium",
+      "seed": 73021,
+      "circuit": "aurel",
+      "mode": "practice",
+      "cars": 3,
+      "ticks": 120,
+      "dt": 0.008333333333333333,
+      "inputSha256": "35933c3a8e7a37b21e771c2fd7252d3933159e1bf32aafa89163b392daf8b86d",
+      "counts": {
+        "frameComparisons": 121,
+        "frameWordsCompared": 123057,
+        "frameBytesCompared": 492228,
+        "raceComparisons": 121,
+        "surfaceComparisons": 9,
+        "surfaceValuesCompared": 230400,
+        "surfaceBytesCompared": 907776,
+        "humanTicks": 104,
+        "playerAiTicks": 16
+      },
+      "frameSha256": {
+        "baseline": "e7270b724cc77b54bd1bbc4dfeeab7654d108d03ee55090b8ad66867808bac5a",
+        "candidate": "e7270b724cc77b54bd1bbc4dfeeab7654d108d03ee55090b8ad66867808bac5a"
+      },
+      "raceSha256": {
+        "baseline": "2fb7229d4697ea6c8d20843d71c7cc2b62ae810446c06ef67e99fc6f1aad32ac",
+        "candidate": "2fb7229d4697ea6c8d20843d71c7cc2b62ae810446c06ef67e99fc6f1aad32ac"
+      },
+      "orderedSurfaceCheckpointDigestsSha256": {
+        "baseline": "b7ccd1ac4454451d41f254b98f4894a7c61eb75691baff5b80b83777a74889f9",
+        "candidate": "b7ccd1ac4454451d41f254b98f4894a7c61eb75691baff5b80b83777a74889f9"
+      },
+      "surfaceArrays": [
+        "water",
+        "rubber",
+        "marbles",
+        "frozen",
+        "temperature",
+        "substrateTemperature",
+        "drainage",
+        "sheltered"
+      ],
+      "surfaceCheckpoints": [
+        {
+          "tick": 0,
+          "baselineSha256": "ee5d68698cf2da4515a0ce931fb3c2052cde60eb2604c12e95069842d9a94baf",
+          "candidateSha256": "ee5d68698cf2da4515a0ce931fb3c2052cde60eb2604c12e95069842d9a94baf"
+        },
+        {
+          "tick": 1,
+          "baselineSha256": "c9857418f5475c8a5866bedb6d44d82cdc3940edd4f70daab544d77ff38d6ccc",
+          "candidateSha256": "c9857418f5475c8a5866bedb6d44d82cdc3940edd4f70daab544d77ff38d6ccc"
+        },
+        {
+          "tick": 29,
+          "baselineSha256": "8172c40ac4de763fceea05923495cf43cbff03f8d3167780233687db8e812c3a",
+          "candidateSha256": "8172c40ac4de763fceea05923495cf43cbff03f8d3167780233687db8e812c3a"
+        },
+        {
+          "tick": 59,
+          "baselineSha256": "a3ed01f1614dceb2bb646e2e1597e43ea23c0d0897d7cb7738cb25830ac737cf",
+          "candidateSha256": "a3ed01f1614dceb2bb646e2e1597e43ea23c0d0897d7cb7738cb25830ac737cf"
+        },
+        {
+          "tick": 60,
+          "baselineSha256": "747ac9f82f8203eb12e0fc4d89eefc0d2e14a53fe79afbd1b66494c5da3f0e93",
+          "candidateSha256": "747ac9f82f8203eb12e0fc4d89eefc0d2e14a53fe79afbd1b66494c5da3f0e93"
+        },
+        {
+          "tick": 61,
+          "baselineSha256": "3ec33a420db5d4b8c043d691bb758171ed09241670694d4d83a17dbd3da759e1",
+          "candidateSha256": "3ec33a420db5d4b8c043d691bb758171ed09241670694d4d83a17dbd3da759e1"
+        },
+        {
+          "tick": 89,
+          "baselineSha256": "dad83b42df090ba1ecf96c54723e9a9a35eddb771cd69173ace370d0b9f6f072",
+          "candidateSha256": "dad83b42df090ba1ecf96c54723e9a9a35eddb771cd69173ace370d0b9f6f072"
+        },
+        {
+          "tick": 119,
+          "baselineSha256": "e53f75e08fb45c6979f8f7a4af5a0576b2e819d819a86921431c6cfe1a716ce8",
+          "candidateSha256": "e53f75e08fb45c6979f8f7a4af5a0576b2e819d819a86921431c6cfe1a716ce8"
+        },
+        {
+          "tick": 120,
+          "baselineSha256": "a9044d55ee5033941acf9a5ef437760c8d7573678cf1e581e4f8e35ef90d0303",
+          "candidateSha256": "a9044d55ee5033941acf9a5ef437760c8d7573678cf1e581e4f8e35ef90d0303"
+        }
+      ],
+      "exercised": {
+        "surfaceSteps": [
+          2,
+          2
+        ],
+        "loadedPavedSlipWorkTicks": [
+          120,
+          120
+        ],
+        "maximumSpeed": [
+          7.661399972169799,
+          7.661399972169799
+        ],
+        "laneResidentCells": [
+          12,
+          12
+        ],
+        "opponentAiUpdatesPerVariant": 240
+      },
+      "finalRace": {
+        "time": 6.907441297872041,
+        "raceTime": 1.0000000000000497,
+        "greenAt": 5.9074412978719915,
+        "phase": 2,
+        "flag": "GREEN",
+        "order": [
+          1,
+          0,
+          2
+        ],
+        "completedLaps": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "rain-human-ai",
+      "weather": "rain",
+      "compound": "intermediate",
+      "seed": 2505,
+      "circuit": "aurel",
+      "mode": "practice",
+      "cars": 3,
+      "ticks": 120,
+      "dt": 0.008333333333333333,
+      "inputSha256": "35933c3a8e7a37b21e771c2fd7252d3933159e1bf32aafa89163b392daf8b86d",
+      "counts": {
+        "frameComparisons": 121,
+        "frameWordsCompared": 123057,
+        "frameBytesCompared": 492228,
+        "raceComparisons": 121,
+        "surfaceComparisons": 9,
+        "surfaceValuesCompared": 230400,
+        "surfaceBytesCompared": 907776,
+        "humanTicks": 104,
+        "playerAiTicks": 16
+      },
+      "frameSha256": {
+        "baseline": "44a6414594e70ebebf13cf92b12d23528ed5a956f95ea3529a3f6ee7c6bfb728",
+        "candidate": "44a6414594e70ebebf13cf92b12d23528ed5a956f95ea3529a3f6ee7c6bfb728"
+      },
+      "raceSha256": {
+        "baseline": "704872f19b31c855b318e6812e26984097b43f787ad270cd5f77ea2e2f9f9ab7",
+        "candidate": "704872f19b31c855b318e6812e26984097b43f787ad270cd5f77ea2e2f9f9ab7"
+      },
+      "orderedSurfaceCheckpointDigestsSha256": {
+        "baseline": "504315a451be9e031e180cb9de4fee577cdca8bc731041bf364e5bb48bda4ab2",
+        "candidate": "504315a451be9e031e180cb9de4fee577cdca8bc731041bf364e5bb48bda4ab2"
+      },
+      "surfaceArrays": [
+        "water",
+        "rubber",
+        "marbles",
+        "frozen",
+        "temperature",
+        "substrateTemperature",
+        "drainage",
+        "sheltered"
+      ],
+      "surfaceCheckpoints": [
+        {
+          "tick": 0,
+          "baselineSha256": "0173bd1ff8b103f15d0db308dbc27cb6a8503e1864b6f9ee0c08b053b48b3562",
+          "candidateSha256": "0173bd1ff8b103f15d0db308dbc27cb6a8503e1864b6f9ee0c08b053b48b3562"
+        },
+        {
+          "tick": 1,
+          "baselineSha256": "f55d0ba51ebdf86bdd13166fe991afd787d1361a8fb0374a70641957dd0133cc",
+          "candidateSha256": "f55d0ba51ebdf86bdd13166fe991afd787d1361a8fb0374a70641957dd0133cc"
+        },
+        {
+          "tick": 29,
+          "baselineSha256": "9914d5f50649e6550a359e54c85566896e076b6bb15d486f0edd8e71fbae6506",
+          "candidateSha256": "9914d5f50649e6550a359e54c85566896e076b6bb15d486f0edd8e71fbae6506"
+        },
+        {
+          "tick": 59,
+          "baselineSha256": "c5ac792234599799a8ab1b0385a6ba01a073e314a69528deeec55ef8db4d904f",
+          "candidateSha256": "c5ac792234599799a8ab1b0385a6ba01a073e314a69528deeec55ef8db4d904f"
+        },
+        {
+          "tick": 60,
+          "baselineSha256": "9841ccb65ee67210283ed3ba8f051b1a99069bdc62f130802bc6985b44fa6dbe",
+          "candidateSha256": "9841ccb65ee67210283ed3ba8f051b1a99069bdc62f130802bc6985b44fa6dbe"
+        },
+        {
+          "tick": 61,
+          "baselineSha256": "09f24e9679789ad6d1c8648bc3b469227c7941a7241fa82f582f177222f0485b",
+          "candidateSha256": "09f24e9679789ad6d1c8648bc3b469227c7941a7241fa82f582f177222f0485b"
+        },
+        {
+          "tick": 89,
+          "baselineSha256": "0ed77732b761b46aa351c5730f1f2f7eb0cf7e7bc80cd0452f5af73b082c5d48",
+          "candidateSha256": "0ed77732b761b46aa351c5730f1f2f7eb0cf7e7bc80cd0452f5af73b082c5d48"
+        },
+        {
+          "tick": 119,
+          "baselineSha256": "91ddf7aae252fd95ba20e76059b6ee0f01e582f8c42d5562b312656ffc97d122",
+          "candidateSha256": "91ddf7aae252fd95ba20e76059b6ee0f01e582f8c42d5562b312656ffc97d122"
+        },
+        {
+          "tick": 120,
+          "baselineSha256": "33ce4873a9ac7397d0f667793f6627f9f7de299e0a7a2bdd4c74b269f987e73b",
+          "candidateSha256": "33ce4873a9ac7397d0f667793f6627f9f7de299e0a7a2bdd4c74b269f987e73b"
+        }
+      ],
+      "exercised": {
+        "surfaceSteps": [
+          2,
+          2
+        ],
+        "loadedPavedSlipWorkTicks": [
+          120,
+          120
+        ],
+        "maximumSpeed": [
+          5.282667468221448,
+          5.282667468221448
+        ],
+        "laneResidentCells": [
+          11,
+          11
+        ],
+        "opponentAiUpdatesPerVariant": 240
+      },
+      "finalRace": {
+        "time": 6.733978483756122,
+        "raceTime": 1.0000000000000497,
+        "greenAt": 5.733978483756072,
+        "phase": 2,
+        "flag": "GREEN",
+        "order": [
+          1,
+          0,
+          2
+        ],
+        "completedLaps": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "storm-human-ai",
+      "weather": "storm",
+      "compound": "wet",
+      "seed": 9173,
+      "circuit": "aurel",
+      "mode": "practice",
+      "cars": 3,
+      "ticks": 120,
+      "dt": 0.008333333333333333,
+      "inputSha256": "35933c3a8e7a37b21e771c2fd7252d3933159e1bf32aafa89163b392daf8b86d",
+      "counts": {
+        "frameComparisons": 121,
+        "frameWordsCompared": 123057,
+        "frameBytesCompared": 492228,
+        "raceComparisons": 121,
+        "surfaceComparisons": 9,
+        "surfaceValuesCompared": 230400,
+        "surfaceBytesCompared": 907776,
+        "humanTicks": 104,
+        "playerAiTicks": 16
+      },
+      "frameSha256": {
+        "baseline": "e869eb340ce561cbcb408f058c00ab2390ef9cca3c52b0d679d15f9b3ddc2463",
+        "candidate": "e869eb340ce561cbcb408f058c00ab2390ef9cca3c52b0d679d15f9b3ddc2463"
+      },
+      "raceSha256": {
+        "baseline": "7d168b726c4724129fad12b2586fbf591ebebd7db7419534a381aac15d3a100f",
+        "candidate": "7d168b726c4724129fad12b2586fbf591ebebd7db7419534a381aac15d3a100f"
+      },
+      "orderedSurfaceCheckpointDigestsSha256": {
+        "baseline": "de4f48a4367a042099494bb343423da48e83332ba7823cb479d511913050e622",
+        "candidate": "de4f48a4367a042099494bb343423da48e83332ba7823cb479d511913050e622"
+      },
+      "surfaceArrays": [
+        "water",
+        "rubber",
+        "marbles",
+        "frozen",
+        "temperature",
+        "substrateTemperature",
+        "drainage",
+        "sheltered"
+      ],
+      "surfaceCheckpoints": [
+        {
+          "tick": 0,
+          "baselineSha256": "3e551aa17d45747218154b58a5dbe409641db34cc3880fabc21da6cd24b47f2a",
+          "candidateSha256": "3e551aa17d45747218154b58a5dbe409641db34cc3880fabc21da6cd24b47f2a"
+        },
+        {
+          "tick": 1,
+          "baselineSha256": "65dea3cf7d9233130b80482b22a92b2cc0c877f99144ff5f2e321bc4ca0b0a6a",
+          "candidateSha256": "65dea3cf7d9233130b80482b22a92b2cc0c877f99144ff5f2e321bc4ca0b0a6a"
+        },
+        {
+          "tick": 29,
+          "baselineSha256": "995430da1be02115426564af922cffd4e6accf61632010da1154c4cda9944f5c",
+          "candidateSha256": "995430da1be02115426564af922cffd4e6accf61632010da1154c4cda9944f5c"
+        },
+        {
+          "tick": 59,
+          "baselineSha256": "b7bc1797ef4f0627a054c097d1c4340e85f0711fad9259f55b176a914841565d",
+          "candidateSha256": "b7bc1797ef4f0627a054c097d1c4340e85f0711fad9259f55b176a914841565d"
+        },
+        {
+          "tick": 60,
+          "baselineSha256": "d26036166ec969d194e3330cfc32e74b64d26e46e1a508ab3123f263e8b132e0",
+          "candidateSha256": "d26036166ec969d194e3330cfc32e74b64d26e46e1a508ab3123f263e8b132e0"
+        },
+        {
+          "tick": 61,
+          "baselineSha256": "c1f7142eadac828aa800e535bb8deab3c6579b5bb51a6ad6b751fbab90a5b27c",
+          "candidateSha256": "c1f7142eadac828aa800e535bb8deab3c6579b5bb51a6ad6b751fbab90a5b27c"
+        },
+        {
+          "tick": 89,
+          "baselineSha256": "324f6e45d492917a1f85effca9b41f0a0d83a21123da1f27d6686a1b9714d03e",
+          "candidateSha256": "324f6e45d492917a1f85effca9b41f0a0d83a21123da1f27d6686a1b9714d03e"
+        },
+        {
+          "tick": 119,
+          "baselineSha256": "990079bf07e7acf7ca6e588f4f0e288091482b8da4cbd3e1927d73b6905d068d",
+          "candidateSha256": "990079bf07e7acf7ca6e588f4f0e288091482b8da4cbd3e1927d73b6905d068d"
+        },
+        {
+          "tick": 120,
+          "baselineSha256": "c8bae3242ec88d8d35f6394eeec8844b3ffaf303a33015082079898d21c79ac5",
+          "candidateSha256": "c8bae3242ec88d8d35f6394eeec8844b3ffaf303a33015082079898d21c79ac5"
+        }
+      ],
+      "exercised": {
+        "surfaceSteps": [
+          2,
+          2
+        ],
+        "loadedPavedSlipWorkTicks": [
+          120,
+          120
+        ],
+        "maximumSpeed": [
+          5.331972150335673,
+          5.331972150335673
+        ],
+        "laneResidentCells": [
+          11,
+          11
+        ],
+        "opponentAiUpdatesPerVariant": 240
+      },
+      "finalRace": {
+        "time": 7.089258790947547,
+        "raceTime": 1.0000000000000497,
+        "greenAt": 6.089258790947497,
+        "phase": 2,
+        "flag": "GREEN",
+        "order": [
+          1,
+          0,
+          2
+        ],
+        "completedLaps": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ]
+}
+{"probe":"surface-thermal","baseline":"dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc","provenance":{"baselineRef":"dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc","candidateHead":"0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a","candidateSource":"working-tree bytes, declared targets checked unchanged during bundling","candidateTrackedState":"clean","candidateTrackedChanges":[],"candidateTrackedStatusScope":["src","scripts/engine-runtime-probes","package.json","package-lock.json","tsconfig.json"],"candidateStatusPolicy":"Tracked changes only; untracked files are excluded from this status claim","nodeVersion":"v22.23.5","esbuildVersion":"0.25.12","entrySha256":"12a49525378301668aa362b77e3f50d544eeac8b69d8c0d1f1b875448e2d2332","scope":"Only listed production files use the baseline ref; all other dependencies use the candidate checkout.","files":[{"path":"src/simulation/surface-thermal.ts","baselineSha256":"9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12","candidateSha256":"ed694932bf4a2e26ba992032e6af4c82d0ea6fb89523a3ca4717ad8525919ce0","baselineBytes":11858,"candidateBytes":11966}],"bundles":{"baselineSha256":"1740dd0c1a749bb3c0ddd4246c326e6bd76447b21f11ae5a7d504f02c8ce35ed","candidateSha256":"dbebd52cf1ed61c0e636966a1ca42b629f4e9cad61d7956954a3415c8316e5cc"}},"status":"passed","comparison":{"directScalars":"finite and Object.is exact","trackSurfaceArrays":"finite Float32 values and all bytes equal","weatherAndClock":"finite and Object.is exact","operationCounts":"separate fresh-instance pass; real method wrappers restored in finally"},"exactness":{"defaultColumns":{"preparations":12,"cellSlots":128,"passesPerPreparation":2,"columns":3084,"scalarComparisons":12336,"verifiedCachedWetRevisits":896,"standaloneRainfallRestorations":12},"mutableParameters":{"matrixParameters":["surfaceCapacity","substrateCapacity","conduction","deepConductance"],"columns":20,"scalarComparisons":80,"editsAfterPreparation":4},"track":{"presets":[{"preset":"clear","initialStateCompared":true,"updates":4,"cellsPerUpdate":3584,"arrayNames":["temperature","substrateTemperature","water","rubber","marbles","frozen"],"bytesCompared":344064,"weatherClockFields":["ambient","cloud","rain","windX","windZ","visibility","dust","gust","moisture","fogCover","surfaceClock"],"scalarComparisons":44},{"preset":"rain","initialStateCompared":true,"updates":4,"cellsPerUpdate":3584,"arrayNames":["temperature","substrateTemperature","water","rubber","marbles","frozen"],"bytesCompared":344064,"weatherClockFields":["ambient","cloud","rain","windX","windZ","visibility","dust","gust","moisture","fogCover","surfaceClock"],"scalarComparisons":44},{"preset":"storm","initialStateCompared":true,"updates":4,"cellsPerUpdate":3584,"arrayNames":["temperature","substrateTemperature","water","rubber","marbles","frozen"],"bytesCompared":344064,"weatherClockFields":["ambient","cloud","rain","windX","windZ","visibility","dust","gust","moisture","fogCover","surfaceClock"],"scalarComparisons":44}],"postUpdateBytesCompared":1032192,"postUpdateWeatherClockScalarComparisons":132}},"operations":{"method":"SurfaceThermalStep.prototype.refreshMatrixInputs","defaultColumns":{"baseline":{"prepare":12,"prepareMatrix":3096,"refreshMatrixInputs":1822,"advanceWet":3072,"advance":12},"candidate":{"prepare":12,"prepareMatrix":3096,"refreshMatrixInputs":12,"advanceWet":3072,"advance":12}},"mutableParameters":{"baseline":{"prepare":4,"prepareMatrix":24,"refreshMatrixInputs":24,"advanceWet":20,"advance":0},"candidate":{"prepare":4,"prepareMatrix":24,"refreshMatrixInputs":24,"advanceWet":20,"advance":0}},"track":[{"preset":"clear","updates":4,"baseline":{"prepare":8,"prepareMatrix":14344,"refreshMatrixInputs":10,"advanceWet":14336,"advance":0},"candidate":{"prepare":8,"prepareMatrix":14344,"refreshMatrixInputs":8,"advanceWet":14336,"advance":0}},{"preset":"rain","updates":4,"baseline":{"prepare":8,"prepareMatrix":14344,"refreshMatrixInputs":14349,"advanceWet":14336,"advance":0},"candidate":{"prepare":8,"prepareMatrix":14344,"refreshMatrixInputs":8,"advanceWet":14336,"advance":0}},{"preset":"storm","updates":4,"baseline":{"prepare":8,"prepareMatrix":14344,"refreshMatrixInputs":14349,"advanceWet":14336,"advance":0},"candidate":{"prepare":8,"prepareMatrix":14344,"refreshMatrixInputs":8,"advanceWet":14336,"advance":0}}]},"limits":["Only the thermal module is historical; all other dependencies are the candidate checkout.","Track coverage is four half-second updates for each of clear, rain and storm.","Variable timestep and mutable-parameter cases are direct-solver coverage.","Counts are operation evidence; no elapsed-time, Simulation, browser, native or FPS claim."]}
+(node:5109) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[group]Run set -euo pipefail
+set -euo pipefail
+node --experimental-transform-types scripts/source-stability.ts -- bash -c \
+  'node node_modules/typescript/bin/tsc --noEmit && node node_modules/vite/bin/vite.js build' \
+  2>&1 | tee "$RUNNER_TEMP/engine-runtime-build.log"
+shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+##[error]e2e/fixtures/engine-native-desktop-recovery.ts(101,22): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'BindingWindow' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property '__engineNativeDesktopCall' is missing in type 'Window & typeof globalThis' but required in type '{ __engineNativeDesktopCall(request: BridgeRequest): Promise<unknown>; }'.
+(node:5525) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+##[error]Process completed with exit code 2.
+##[group]Run actions/upload-artifact@v4
+with:
+  name: engine-runtime-validation-0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a
+  retention-days: 7
+  if-no-files-found: error
+  path: test-results/
+playwright-report/
+browser-backend.json
+browser-progress.json
+dist/BUILD_IDENTITY.json
+/home/runner/work/_temp/engine-source-commit.txt
+/home/runner/work/_temp/engine-source-tree.txt
+/home/runner/work/_temp/engine-package-lock.sha256
+/home/runner/work/_temp/engine-desktop-service.sha256
+/home/runner/work/_temp/engine-runtime-lint.log
+/home/runner/work/_temp/engine-runtime-unit.log
+/home/runner/work/_temp/engine-runtime-build.log
+/home/runner/work/_temp/engine-runtime-probes.log
+/home/runner/work/_temp/engine-runtime-browser.log
+
+  compression-level: 6
+  overwrite: false
+  include-hidden-files: false
+env:
+  APEX_BROWSER_BACKEND: mesa
+  APEX_MOTOCROSS_XVFB_CAPTURE: 1
+  LIBGL_ALWAYS_SOFTWARE: true
+  GALLIUM_DRIVER: llvmpipe
+  NODE_OPTIONS: --max-old-space-size=4096
+##[endgroup]
+(node:5550) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Multiple search paths detected. Calculating the least common ancestor of all paths
+The least common ancestor is /home/runner/work. This will be the root directory of the artifact
+With the provided path, there will be 8 files uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+(node:5550) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Uploaded bytes 26867
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is b83d63a4ff3c5a3dbfae341169a748e780f15dbc24edb5fb1ae664cdb6fdaaa8
+Finalizing artifact upload
+Artifact engine-runtime-validation-0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a.zip successfully finalized. Artifact ID 15039040099
+Artifact engine-runtime-validation-0bc9543fa6d10a614f42d3df1fa5bf3b44e2154a has been successfully uploaded! Final size is 26867 bytes. Artifact ID is 15039040099
+Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45645636058/artifacts/15039040099
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.1
+Temporarily overriding HOME='/home/runner/work/_temp/eacbf91b-7faa-4ac7-ba38-4d372166fc45' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
