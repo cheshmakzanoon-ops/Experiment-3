@@ -29,8 +29,20 @@ export class RadioArbiter {
   current: RadioMessage | null = null;
   private shownAt = 0;
   private readonly queue: RadioMessage[] = [];
+  // Sent times survive rewinds; only an explicit reset starts a new history.
   private readonly lastSent = new Map<string, number>();
-  private previous: Float32Array | null = null;
+  private hasPrevious = false;
+  // Own only the fields used for transitions, never the caller's recycled buffer.
+  private readonly previous = {
+    cars: 0,
+    safetyCar: 0,
+    flag: 0,
+    penalty: 0,
+    warnings: 0,
+    inPit: 0,
+    laps: 0,
+    fuel: 0,
+  };
   constructor(
     readonly options: RadioOptions = { engineer: true },
     private readonly cooldown = 20,
@@ -39,7 +51,7 @@ export class RadioArbiter {
     this.current = null;
     this.queue.length = 0;
     this.lastSent.clear();
-    this.previous = null;
+    this.hasPrevious = false;
   }
   /** Offer a message; repeated keys inside the cooldown are ignored. */
   post(message: RadioMessage, now: number) {
@@ -71,10 +83,28 @@ export class RadioArbiter {
     const now = frame[H.TIME],
       o = carBase(0),
       prev = this.previous;
-    this.previous = frame.slice();
-    if (!prev || prev[H.CARS] !== frame[H.CARS]) return this.update(now);
+    const comparable = this.hasPrevious && prev.cars === frame[H.CARS];
+    const {
+      safetyCar: previousSafetyCar,
+      flag: previousFlag,
+      penalty: previousPenalty,
+      warnings: previousWarnings,
+      inPit: previousInPit,
+      laps: previousLaps,
+      fuel: previousFuel,
+    } = prev;
+    this.hasPrevious = true;
+    prev.cars = frame[H.CARS];
+    prev.safetyCar = frame[H.SC_PHASE];
+    prev.flag = frame[o + F.LOCAL_FLAG];
+    prev.penalty = frame[o + F.PENALTY];
+    prev.warnings = frame[o + F.WARNINGS];
+    prev.inPit = frame[o + F.IN_PIT];
+    prev.laps = frame[o + F.LAPS];
+    prev.fuel = frame[o + F.FUEL];
+    if (!comparable) return this.update(now);
     const sc = frame[H.SC_PHASE];
-    if (sc !== prev[H.SC_PHASE] && sc !== SC_PHASE.NONE)
+    if (sc !== previousSafetyCar && sc !== SC_PHASE.NONE)
       this.post(
         {
           key: `sc-${sc}`,
@@ -92,7 +122,7 @@ export class RadioArbiter {
         now,
       );
     const flag = frame[o + F.LOCAL_FLAG];
-    if (flag !== prev[o + F.LOCAL_FLAG] && (flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW))
+    if (flag !== previousFlag && (flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW))
       this.post(
         {
           key: `yellow-${Math.round(frame[o + F.CONTROL_SEQUENCE])}`,
@@ -107,7 +137,7 @@ export class RadioArbiter {
         },
         now,
       );
-    if (flag === FLAG.BLUE && prev[o + F.LOCAL_FLAG] !== FLAG.BLUE)
+    if (flag === FLAG.BLUE && previousFlag !== FLAG.BLUE)
       this.post(
         {
           key: 'blue',
@@ -119,7 +149,7 @@ export class RadioArbiter {
         },
         now,
       );
-    const penalty = frame[o + F.PENALTY] - prev[o + F.PENALTY];
+    const penalty = frame[o + F.PENALTY] - previousPenalty;
     if (penalty > 0)
       this.post(
         {
@@ -133,7 +163,7 @@ export class RadioArbiter {
         now,
       );
     const warnings = frame[o + F.WARNINGS];
-    if (warnings > prev[o + F.WARNINGS])
+    if (warnings > previousWarnings)
       this.post(
         {
           key: `limits-${warnings}`,
@@ -145,7 +175,7 @@ export class RadioArbiter {
         },
         now,
       );
-    if (frame[o + F.IN_PIT] && !prev[o + F.IN_PIT])
+    if (frame[o + F.IN_PIT] && !previousInPit)
       this.post(
         {
           key: 'pit-limit',
@@ -158,7 +188,7 @@ export class RadioArbiter {
         now,
       );
     const completed = frame[o + F.LAPS];
-    if (laps > 1 && completed !== prev[o + F.LAPS] && completed === laps - 1)
+    if (laps > 1 && completed !== previousLaps && completed === laps - 1)
       this.post(
         {
           key: 'final-lap',
@@ -174,7 +204,7 @@ export class RadioArbiter {
     const length = frame[H.LENGTH],
       lapsLeft = Math.max(0, laps - completed),
       need = lapsLeft * (length / 1000) * 0.37;
-    if (lapsLeft > 0 && frame[o + F.FUEL] < need && prev[o + F.FUEL] >= need)
+    if (lapsLeft > 0 && frame[o + F.FUEL] < need && previousFuel >= need)
       this.post(
         {
           key: 'fuel',

@@ -36,17 +36,30 @@ function clonedDatabase() {
     close: vi.fn(),
     transaction: () => {
       const pending = new Map<string, unknown>();
+      const reads: (() => void)[] = [];
       const tx = {
         oncomplete: null as (() => void) | null,
         onerror: null,
         onabort: null,
         objectStore: () => ({
-          get: (key: string) => ({ result: structuredClone(committed.get(key)), onerror: null }),
+          get: (key: string) => {
+            const request = {
+              result: undefined as unknown,
+              onsuccess: null as (() => void) | null,
+              onerror: null,
+            };
+            reads.push(() => {
+              request.result = structuredClone(committed.get(key));
+              request.onsuccess?.();
+            });
+            return request;
+          },
           getAllKeys: () => ({ result: [...committed.keys()], onerror: null }),
           put: (value: unknown, key: string) => pending.set(key, structuredClone(value)),
         }),
       };
       queueMicrotask(() => {
+        for (const read of reads) read();
         for (const [key, value] of pending) committed.set(key, value);
         tx.oncomplete?.();
       });

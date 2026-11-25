@@ -41,11 +41,13 @@ export function readLeaderboard(value: unknown): LeaderboardEntry[] {
 /** Insert a lap; returns the new board and its 1-based rank (0 if it missed the top ten). */
 export function insertLeaderboard(value: unknown, entry: LeaderboardEntry) {
   if (!valid(entry)) throw new Error('Invalid leaderboard lap');
-  const board = readLeaderboard([...readLeaderboard(value), entry]);
-  const rank =
-    board.findIndex(
-      (e) =>
-        e.lapTime === entry.lapTime && e.session === entry.session && e.driver === entry.driver,
-    ) + 1;
-  return { board, rank };
+  const board = readLeaderboard(value);
+  // Insert after every existing equal time. Tuple matching cannot distinguish
+  // another lap from the same driver/session, including an excluded eleventh lap.
+  const slower = board.findIndex((e) => e.lapTime > entry.lapTime);
+  const index = slower < 0 ? board.length : slower;
+  if (index >= LEADERBOARD_SIZE) return { board, rank: 0 };
+  board.splice(index, 0, { ...entry, driver: entry.driver.slice(0, 24) });
+  if (board.length > LEADERBOARD_SIZE) board.pop();
+  return { board, rank: index + 1 };
 }

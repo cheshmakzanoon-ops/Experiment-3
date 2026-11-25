@@ -294,6 +294,8 @@ export interface Slot {
  * (+ one command) of the server tick. */
 export class ServerInputQueue {
   private pending = new Map<number, Slot>();
+  /** Lower bound of pending ticks, rewound when older slots are admitted. */
+  private expireFrom = Infinity;
   /** seq → first tick, for received commands above the contiguous ack. */
   private seen = new Map<number, number>();
   contiguousSeq = -1;
@@ -353,8 +355,10 @@ export class ServerInputQueue {
           this.stats.lateTicks++;
           continue;
         }
-        if (!this.pending.has(t))
+        if (!this.pending.has(t)) {
           this.pending.set(t, { controls: c.controls, first: t === c.tick });
+          this.expireFrom = Math.min(this.expireFrom, t);
+        }
       }
     }
     return rejected;
@@ -375,7 +379,17 @@ export class ServerInputQueue {
   take(tick: number): Slot | null {
     if (!wireIndex(tick)) throw new Error('Invalid server input tick');
     const slot = this.pending.get(tick) ?? null;
-    for (const t of this.pending.keys()) if (t <= tick) this.pending.delete(t);
+    if (this.expireFrom <= tick) {
+      // Sequential server ticks touch only the consumed slot. Public callers
+      // may skip or rewind ticks: walk the shorter of the tick span and map,
+      // so even a jump across the wire range cannot produce a huge loop.
+      if (tick - this.expireFrom < this.pending.size) {
+        for (let t = this.expireFrom; t <= tick; t++) this.pending.delete(t);
+      } else {
+        for (const t of this.pending.keys()) if (t <= tick) this.pending.delete(t);
+      }
+      this.expireFrom = this.pending.size ? tick + 1 : Infinity;
+    }
     // A gap whose successor already started is in the past: never wait on it.
     while (this.seen.size) {
       const next = this.lowestSeen();

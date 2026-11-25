@@ -277,6 +277,74 @@ export class SaveStore {
       tx.onabort = () => reject(tx.error ?? new Error('Read aborted'));
     });
   }
+  /** Read, transform and write inside one readwrite transaction, including across
+   * SaveStore instances/tabs. The updater must be synchronous and return a new
+   * value to write. Returning the exact stored reference is a no-op; mutating it
+   * in place is unsupported and does not save those changes. Resolves only after
+   * commit with the updater's result, never the desktop mirror's private copy. */
+  async update(key: string, update: (stored: unknown) => unknown): Promise<unknown> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('saved', 'readwrite');
+      let result: unknown;
+      let writtenValue: unknown;
+      let changed = false;
+      let revision = 0;
+      const abort = (error: unknown) => {
+        reject(error);
+        try {
+          tx.abort();
+        } catch {
+          /* the transaction has already finished */
+        }
+      };
+      tx.oncomplete = () => {
+        try {
+          if (changed) this.mirror?.written([[key, writtenValue]], revision);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      tx.onerror = () => reject(tx.error ?? new Error('Save failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
+      try {
+        const store = tx.objectStore('saved'),
+          request = store.get(key);
+        request.onerror = () => abort(request.error ?? new Error('Read failed'));
+        request.onsuccess = () => {
+          try {
+            const stored = request.result;
+            result = update(stored);
+            if (
+              result !== null &&
+              (typeof result === 'object' || typeof result === 'function') &&
+              typeof (result as { then?: unknown }).then === 'function'
+            ) {
+              // Reject the update immediately, but still observe a mistaken async
+              // updater's rejection. Its eventual value must never be persisted.
+              void new Promise((resolve) => resolve(result)).catch(() => undefined);
+              throw new TypeError(
+                'SaveStore.update updater must be synchronous; Promises and thenables are unsupported',
+              );
+            }
+            if (result === stored) return;
+            // IndexedDB clones at put(); the desktop mirror needs its own
+            // snapshot, isolated from both the updater and the returned value.
+            writtenValue = this.mirror ? structuredClone(result) : result;
+            const write = store.put(writtenValue, key);
+            write.onerror = () => abort(write.error ?? new Error('Save failed'));
+            if (this.mirror) revision = this.mirror.stamp(store);
+            changed = true;
+          } catch (error) {
+            abort(error);
+          }
+        };
+      } catch (error) {
+        abort(error);
+      }
+    });
+  }
   /** Keep the previous value as `key:backup` and write the new one in the
    * same transaction: an interrupted save leaves either the old pair or the
    * new pair, never a half-written profile without a recovery copy. */
