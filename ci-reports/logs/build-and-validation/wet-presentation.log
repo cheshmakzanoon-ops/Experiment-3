@@ -1,255 +1,255 @@
-### wet-presentation (job 139232073192)
+### wet-presentation (job 139241226953)
 --- error digest (first 120 matching lines) ---
-431:wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:36.9725491Z ##[error]The operation was canceled.
+509:wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:39:15.9076117Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-wet-presentation	Download tested build (attempt 1 of 3)	2026-11-25T13:27:02.8801847Z SHA256 digest of downloaded artifact is 1335c03b1b96788728edfae7901e0f23dcf4da5d29cc8276236e1cb9bd4c086c
-wet-presentation	Download tested build (attempt 1 of 3)	2026-11-25T13:27:02.8802959Z Artifact download completed successfully.
-wet-presentation	Download tested build (attempt 1 of 3)	2026-11-25T13:27:02.8803402Z Total of 1 artifact(s) downloaded
-wet-presentation	Download tested build (attempt 1 of 3)	2026-11-25T13:27:02.8806615Z Download artifact has finished successfully
-wet-presentation	Require downloaded build before continuing	﻿2026-11-25T13:27:02.8949821Z ##[group]Run set -euo pipefail
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8950131Z ^[[36;1mset -euo pipefail^[[0m
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8950472Z ^[[36;1mtest "$DOWNLOAD_SUCCEEDED" = true^[[0m
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8950748Z ^[[36;1mtest -s dist/index.html^[[0m
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8951020Z ^[[36;1mtest -d dist/assets^[[0m
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8979829Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8980212Z env:
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8980452Z   APEX_BROWSER_BACKEND: swiftshader
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8980755Z   DOWNLOAD_SUCCEEDED: true
-wet-presentation	Require downloaded build before continuing	2026-11-25T13:27:02.8981012Z ##[endgroup]
-wet-presentation	Use HTTPS for Ubuntu packages	﻿2026-11-25T13:27:02.9048601Z ##[group]Run sudo python3 scripts/ci-ubuntu-https.py
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9049009Z ^[[36;1msudo python3 scripts/ci-ubuntu-https.py^[[0m
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9070847Z shell: /usr/bin/bash -e {0}
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9071200Z env:
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9071454Z   APEX_BROWSER_BACKEND: swiftshader
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9071708Z ##[endgroup]
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9361475Z Using Ubuntu HTTPS sources in /etc/apt/apt-mirrors.txt
-wet-presentation	Use HTTPS for Ubuntu packages	2026-11-25T13:27:02.9362420Z Updated 1 Ubuntu source files; suites and signing options retained.
-wet-presentation	Run npx playwright install --with-deps chromium	﻿2026-11-25T13:27:02.9422297Z ##[group]Run npx playwright install --with-deps chromium
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:02.9422672Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:02.9443324Z shell: /usr/bin/bash -e {0}
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:02.9443570Z env:
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:02.9443842Z   APEX_BROWSER_BACKEND: swiftshader
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:02.9444083Z ##[endgroup]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.4427218Z Installing dependencies...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.4511040Z Switching to root user to install dependencies...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.6214366Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.6530871Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.7712736Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [794 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.7939517Z Hit:2 https://archive.ubuntu.com/ubuntu noble InRelease
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.8019808Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [869 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.8152712Z Get:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.8391449Z Get:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:03.8781292Z Get:5 https://archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.0038876Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1492 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.0215353Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main Translation-en [321 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.0314230Z Get:11 https://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.0477644Z Get:12 https://archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.0636734Z Get:13 https://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1949 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.0887154Z Get:14 https://archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [448 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.1007520Z Get:15 https://archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1228 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.1148082Z Get:16 https://archive.ubuntu.com/ubuntu noble-security/main Translation-en [242 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.1261590Z Get:17 https://archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1232 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.1438184Z Get:18 https://archive.ubuntu.com/ubuntu noble-security/universe Translation-en [249 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.1980550Z Get:19 https://archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1842 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:04.2141479Z Get:20 https://archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [429 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:17.5226579Z Fetched 13.5 MB in 1s (10.3 MB/s)
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.5090128Z Reading package lists...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.5337342Z Reading package lists...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.7404768Z Building dependency tree...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.7410534Z Reading state information...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8839047Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8839681Z libasound2t64 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8840161Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8840593Z libatk-bridge2.0-0t64 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8840999Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8841425Z libatk1.0-0t64 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8841835Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8842353Z libatspi2.0-0t64 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8842749Z libcairo2 is already the newest version (1.18.0-3build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8843111Z libcairo2 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8843608Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8844254Z libcups2t64 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8844714Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8845408Z libdbus-1-3 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8846097Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8846578Z libdrm2 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8847001Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8847379Z libglib2.0-0t64 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8847787Z libnspr4 is already the newest version (2:4.35-1.1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8848142Z libnspr4 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8848508Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8848850Z libnss3 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8849206Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8849613Z libpango-1.0-0 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8849972Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8850342Z libx11-6 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8850669Z libxcb1 is already the newest version (1.15-1ubuntu2).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8851018Z libxcb1 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8851441Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8851830Z libxcomposite1 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8852218Z libxdamage1 is already the newest version (1:1.1.6-1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8852695Z libxdamage1 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8853096Z libxext6 is already the newest version (2:1.3.4-1build2).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8853449Z libxext6 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8853797Z libxfixes3 is already the newest version (1:6.0.0-2build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8854135Z libxfixes3 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8854565Z libxkbcommon0 is already the newest version (1.6.0-1build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8854993Z libxkbcommon0 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8855440Z libxrandr2 is already the newest version (2:1.5.2-2build1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8856097Z libxrandr2 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8856595Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8857265Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8858197Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8858741Z libfontconfig1 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8859314Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8859825Z libfreetype6 set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8860360Z fonts-liberation is already the newest version (1:2.1.5-3).
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8860827Z fonts-liberation set to manually installed.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8861387Z The following additional packages will be installed:
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8861969Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8862540Z Recommended packages:
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:18.8862888Z   fonts-ipafont-mincho fonts-tlwg-loma
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.0990855Z The following NEW packages will be installed:
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.0991491Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1001051Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1001487Z   xfonts-utils
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1006341Z The following packages will be upgraded:
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1011804Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1183091Z 4 upgraded, 9 newly installed, 0 to remove and 71 not upgraded.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1183763Z Need to get 32.1 MB of archives.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1184332Z After this operation, 79.7 MB of additional disk space will be used.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1184850Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.1930267Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.2264336Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.2647606Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.2776127Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.3034786Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.3515412Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.3634750Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.3745418Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.3864479Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.4496912Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.4647117Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.4756678Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:19.4892799Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.6800105Z Fetched 32.1 MB in 0s (84.0 MB/s)
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.7986786Z Selecting previously unselected package fonts-ipafont-gothic.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9599439Z (Reading database ... 
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9600107Z (Reading database ... 5%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9600389Z (Reading database ... 10%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9600725Z (Reading database ... 15%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9600976Z (Reading database ... 20%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9601288Z (Reading database ... 25%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9601543Z (Reading database ... 30%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9601991Z (Reading database ... 35%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9602282Z (Reading database ... 40%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9602529Z (Reading database ... 45%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:20.9603066Z (Reading database ... 50%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:21.1322015Z (Reading database ... 55%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:21.9150324Z (Reading database ... 60%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:22.2151268Z (Reading database ... 65%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:22.4094060Z (Reading database ... 70%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:22.5318310Z (Reading database ... 75%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:22.7974892Z (Reading database ... 80%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:24.6112110Z (Reading database ... 85%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:26.6000721Z (Reading database ... 90%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.3629181Z (Reading database ... 95%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.3629668Z (Reading database ... 100%
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.3630104Z (Reading database ... 216720 files and directories currently installed.)
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.3673958Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.3755822Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.5714800Z Selecting previously unselected package fonts-freefont-ttf.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.5816432Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.5821110Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.6486462Z Selecting previously unselected package fonts-tlwg-loma-otf.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.6586114Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.6590429Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.6735067Z Selecting previously unselected package fonts-unifont.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.6828244Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.6832249Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.7741138Z Selecting previously unselected package fonts-wqy-zenhei.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.7834252Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:27.7910919Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.1989761Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.2103665Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.3165151Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.3190465Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.3444500Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.3459938Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.3726688Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.3743319Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.5175106Z Selecting previously unselected package xfonts-encodings.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.5278612Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.5282297Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.5456865Z Selecting previously unselected package xfonts-utils.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.5552253Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.5556252Z Unpacking xfonts-utils (1:7.7+6build3) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7192416Z Selecting previously unselected package xfonts-cyrillic.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7293086Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7298296Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7492707Z Selecting previously unselected package xfonts-scalable.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7593248Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7597467Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7866774Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7879160Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7890517Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.7940192Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8015985Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8026986Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8037235Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8047417Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8087713Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8096619Z Setting up fonts-unifont (1:15.1.01-1build1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8106984Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8117559Z Setting up xfonts-utils (1:7.7+6build3) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8143530Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8384733Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:28.8571714Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:36.2612653Z Processing triggers for man-db (2.12.0-4build2) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:36.2636846Z Not building database; man-db/auto-update is not 'true'.
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:36.2646812Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:27:36.9725491Z ##[error]The operation was canceled.
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	﻿2026-11-25T13:27:36.9780237Z ##[group]Run actions/upload-artifact@v4
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9780556Z with:
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9780776Z   name: wet-presentation
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9781199Z   path: test-results/
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.1328329Z The following packages will be upgraded:
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.1330957Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.1492220Z 4 upgraded, 9 newly installed, 0 to remove and 74 not upgraded.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.1492697Z Need to get 32.1 MB of archives.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.1493097Z After this operation, 79.7 MB of additional disk space will be used.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.1493542Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.2408376Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.3330074Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.4233517Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.5409264Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.5873872Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.7237292Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.7579849Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.7882735Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.8255960Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:40.9135039Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.0119157Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.0498987Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.1368135Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.3841104Z Fetched 32.1 MB in 1s (31.8 MB/s)
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5798121Z Selecting previously unselected package fonts-ipafont-gothic.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5995408Z (Reading database ... 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5995666Z (Reading database ... 5%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5995895Z (Reading database ... 10%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5996130Z (Reading database ... 15%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5996353Z (Reading database ... 20%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5996854Z (Reading database ... 25%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5997079Z (Reading database ... 30%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5997307Z (Reading database ... 35%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5997556Z (Reading database ... 40%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5997787Z (Reading database ... 45%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.5998012Z (Reading database ... 50%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.6030853Z (Reading database ... 55%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:41.7965500Z (Reading database ... 60%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:42.0026858Z (Reading database ... 65%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:42.1894246Z (Reading database ... 70%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:42.3619814Z (Reading database ... 75%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:42.4968080Z (Reading database ... 80%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:42.7448624Z (Reading database ... 85%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:42.9593348Z (Reading database ... 90%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.1511060Z (Reading database ... 95%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.1511455Z (Reading database ... 100%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.1511905Z (Reading database ... 217092 files and directories currently installed.)
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.1553187Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.2157507Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.5382527Z Selecting previously unselected package fonts-freefont-ttf.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.5507817Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.6215498Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.9200366Z Selecting previously unselected package fonts-tlwg-loma-otf.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.9320347Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:43.9390027Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:44.3195935Z Selecting previously unselected package fonts-unifont.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:44.3310754Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:44.4306464Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.0368920Z Selecting previously unselected package fonts-wqy-zenhei.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.0488705Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.0583019Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.5200050Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.5351638Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.6019307Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.6045351Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.6399911Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.6421080Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.6776442Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:45.6796515Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.0236232Z Selecting previously unselected package xfonts-encodings.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.0351632Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.0359258Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.0630709Z Selecting previously unselected package xfonts-utils.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.0748692Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.0755399Z Unpacking xfonts-utils (1:7.7+6build3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.1072564Z Selecting previously unselected package xfonts-cyrillic.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.1189331Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.1195728Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.1490414Z Selecting previously unselected package xfonts-scalable.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.1604083Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.1615621Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2169596Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2190199Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2207609Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2274046Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2375805Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2393573Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2414554Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2430808Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2485370Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2499056Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2517268Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2533712Z Setting up xfonts-utils (1:7.7+6build3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2570237Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.2814619Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.3032823Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.4508271Z Processing triggers for man-db (2.12.0-4build2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.4533129Z Not building database; man-db/auto-update is not 'true'.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.4545404Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9808863Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9809607Z Running kernel seems to be up-to-date.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9809867Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9810006Z No services need to be restarted.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9810168Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9810294Z No containers need to be restarted.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9810457Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9810612Z No user sessions are running outdated binaries.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9811145Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:46.9811395Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:47.9184754Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.1170282Z |                                                                                |   0% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.3566463Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.4638478Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.5859270Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.6913120Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.8161961Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:48.9215513Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:49.0270496Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:49.1481331Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:49.2765392Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:49.3819556Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.4788981Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.4790699Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6320677Z |                                                                                |   0% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6612787Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6752696Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6839821Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6888892Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6940342Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.6979037Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.7013475Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.7040765Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.7064839Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.7087395Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.7426956Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.7428116Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.8770725Z |                                                                                |   0% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:51.9959440Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.0402901Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.0823448Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.1315293Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.1810731Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.2278140Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.2664229Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.3144858Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.3631614Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:52.4118251Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-25T13:32:53.5217219Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	﻿2026-11-25T13:32:53.5925184Z ##[group]Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.5925851Z ^[[36;1mnpm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts^[[0m
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.5943583Z shell: /usr/bin/bash -e {0}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.5943841Z env:
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.5944059Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.5944304Z ##[endgroup]
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.6681498Z 
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.6682196Z > apex-formula-laboratory@0.1.0 test:e2e
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.6682911Z > playwright test e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:53.6683203Z 
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:56.5193026Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:56.7791969Z 
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:56.7793095Z Running 7 tests using 1 worker
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:56.7793314Z 
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:32:57.2202198Z [browser-progress] START  >  > 00-wet-presentation.spec.ts > rain is directional geometry with fog, occlusion and near-plane safety
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:33:06.8559633Z   ✓  1 e2e/00-wet-presentation.spec.ts:7:1 › rain is directional geometry with fog, occlusion and near-plane safety (9.6s)
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:33:06.8576106Z [browser-progress] START  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:33:26.7984023Z [browser-progress] 20s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:33:56.8188174Z [browser-progress] 50s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:34:04.4259868Z [wet-probe] {"stage":"moving-1/19","elapsedMs":42678.8}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:34:12.5403922Z [wet-probe] {"stage":"moving-4/19","elapsedMs":50794}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:34:21.0993665Z [wet-probe] {"stage":"moving-8/19","elapsedMs":59354.80000000002}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:34:26.8248347Z [browser-progress] 80s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:34:51.2055794Z [wet-probe] {"stage":"moving-12/19","elapsedMs":89462.70000000001}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:34:56.8296575Z [browser-progress] 110s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:35:19.6177731Z [wet-probe] {"stage":"moving-16/19","elapsedMs":117875.80000000002}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:35:26.8384142Z [browser-progress] 140s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:35:40.3116648Z [wet-probe] {"stage":"moving-19/19","elapsedMs":138569.4}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:35:56.8529996Z [browser-progress] 170s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:36:26.8834065Z [browser-progress] 200s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:36:33.1364802Z [wet-probe] {"stage":"held-chase","elapsedMs":191394.6}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:36:55.1068203Z [wet-probe] {"stage":"held-cockpit","elapsedMs":213365.1}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:36:56.8873994Z [browser-progress] 230s  >  > 00-wet-presentation.spec.ts > wet race presentation survives moving frames and held chase, cockpit and trackside review / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:18.7809806Z [wet-probe] {"stage":"held-trackside","elapsedMs":237039.30000000002}
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:18.9399527Z   ✓  2 e2e/00-wet-presentation.spec.ts:64:1 › wet race presentation survives moving frames and held chase, cockpit and trackside review (4.2m)
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:18.9518217Z [browser-progress] START  >  > 30-race-finish.spec.ts > race finish: production signalGPU pixels, continuity and resource bounds
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:24.1864411Z   ✓  3 e2e/30-race-finish.spec.ts:29:3 › race finish: production signalGPU pixels, continuity and resource bounds (2.4s)
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:24.1865044Z [browser-progress] START  >  > 30-race-finish.spec.ts > race finish: production crewGPU pixels, continuity and resource bounds
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:26.8549964Z   ✓  4 e2e/30-race-finish.spec.ts:29:3 › race finish: production crewGPU pixels, continuity and resource bounds (2.7s)
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:26.8563418Z [browser-progress] START  >  > 30-race-finish.spec.ts > race finish: production canopyGPU pixels, continuity and resource bounds
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:26.8864006Z [browser-progress] 0s  >  > 30-race-finish.spec.ts > race finish: production canopyGPU pixels, continuity and resource bounds / Create page
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:29.9341935Z   ✓  5 e2e/30-race-finish.spec.ts:29:3 › race finish: production canopyGPU pixels, continuity and resource bounds (3.1s)
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:29.9414700Z [browser-progress] START  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:37:56.9008453Z [browser-progress] 27s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:38:26.9247063Z [browser-progress] 57s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:38:56.9584173Z [browser-progress] 87s  >  > 42-full-scene-index-budget.spec.ts > production grid index compaction preserves every held HDR channel and bounded buffers / Evaluate
+wet-presentation	Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts	2026-11-25T13:39:15.9076117Z ##[error]The operation was canceled.
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	﻿2026-11-25T13:39:15.9228349Z ##[group]Run actions/upload-artifact@v4
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9228668Z with:
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9228889Z   name: wet-presentation
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9229290Z   path: test-results/
 wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	playwright-report/
 wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-backend.json
 wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-progress.json
 wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9781580Z   retention-days: 7
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9781836Z   if-no-files-found: warn
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9782091Z   compression-level: 6
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9782341Z   overwrite: false
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9782847Z   include-hidden-files: false
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9783096Z env:
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9783326Z   APEX_BROWSER_BACKEND: swiftshader
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:36.9783628Z ##[endgroup]
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:37.1000859Z (node:2882) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:37.1001870Z (Use `node --trace-deprecation ...` to show where the warning was created)
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:37.1037057Z Multiple search paths detected. Calculating the least common ancestor of all paths
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:37.1041030Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:27:37.1051182Z ##[warning]No files were found with the provided path: test-results/
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	playwright-report/
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-backend.json
-wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-progress.json. No artifacts will be uploaded.
-wet-presentation	Post Run actions/checkout@v4	﻿2026-11-25T13:27:37.1206664Z Post job cleanup.
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.1949813Z [command]/usr/bin/git version
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.1982140Z git version 2.56.1
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2012011Z Temporarily overriding HOME='/home/runner/work/_temp/fcd2657f-3a51-48b4-8118-504e9998b882' before making global git config changes
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2012909Z Adding repository directory to the temporary git global config as a safe directory
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2016304Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2044128Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2068395Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2234781Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2253906Z http.https://github.com/.extraheader
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2261098Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2285884Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2459204Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:27:37.2480776Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-wet-presentation	Complete job	﻿2026-11-25T13:27:37.2777570Z Cleaning up orphan processes
-wet-presentation	Complete job	2026-11-25T13:27:37.2945984Z Terminate orphan process: pid (2248) (npm exec playwright install --with-deps chromium)
-wet-presentation	Complete job	2026-11-25T13:27:37.2971249Z Terminate orphan process: pid (2260) (sh)
-wet-presentation	Complete job	2026-11-25T13:27:37.3154083Z Terminate orphan process: pid (2261) (node)
-wet-presentation	Complete job	2026-11-25T13:27:37.3261644Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9229740Z   retention-days: 7
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9229956Z   if-no-files-found: warn
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9230195Z   compression-level: 6
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9230412Z   overwrite: false
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9230631Z   include-hidden-files: false
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9230874Z env:
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9231072Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:15.9231329Z ##[endgroup]
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.1854316Z (node:3534) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.1855325Z (Use `node --trace-deprecation ...` to show where the warning was created)
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.2247969Z Multiple search paths detected. Calculating the least common ancestor of all paths
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.2319114Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.2398269Z With the provided path, there will be 2 files uploaded
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.2406651Z Artifact name is valid!
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.2407364Z Root directory input is valid!
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.4897513Z Beginning upload of artifact content to blob storage
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.5077655Z (node:3534) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.6609099Z Uploaded bytes 1210
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.6970466Z Finished uploading artifact content to blob storage!
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.7003556Z SHA256 digest of uploaded artifact zip is a3407de307b6cdb73f72c3fbabae95751fc28d6360588c4e12baeaab0fbecc18
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:16.7011248Z Finalizing artifact upload
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:17.0823467Z Artifact wet-presentation.zip successfully finalized. Artifact ID 15026239699
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:17.0843783Z Artifact wet-presentation has been successfully uploaded! Final size is 1210 bytes. Artifact ID is 15026239699
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-25T13:39:17.0913269Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45623759005/artifacts/15026239699
+wet-presentation	Post Run actions/checkout@v4	﻿2026-11-25T13:39:17.1111923Z Post job cleanup.
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.2958839Z [command]/usr/bin/git version
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.3043729Z git version 2.56.1
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.3132758Z Temporarily overriding HOME='/home/runner/work/_temp/9435cfaf-227c-4606-8d05-ebdc96344bb1' before making global git config changes
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.3165978Z Adding repository directory to the temporary git global config as a safe directory
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.3167284Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.3191624Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.3377178Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.4020132Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.4033254Z http.https://github.com/.extraheader
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.4145970Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.4208775Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.4641497Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+wet-presentation	Post Run actions/checkout@v4	2026-11-25T13:39:17.4733459Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+wet-presentation	Complete job	﻿2026-11-25T13:39:17.5801128Z Cleaning up orphan processes
+wet-presentation	Complete job	2026-11-25T13:39:17.6106202Z Terminate orphan process: pid (3073) (npm run test:e2)
+wet-presentation	Complete job	2026-11-25T13:39:17.6138703Z Terminate orphan process: pid (3084) (sh)
+wet-presentation	Complete job	2026-11-25T13:39:17.6161935Z Terminate orphan process: pid (3085) (node)
+wet-presentation	Complete job	2026-11-25T13:39:17.6200039Z Terminate orphan process: pid (3101) (sh)
+wet-presentation	Complete job	2026-11-25T13:39:17.6230186Z Terminate orphan process: pid (3102) (npm run preview --port 4173)
+wet-presentation	Complete job	2026-11-25T13:39:17.6280823Z Terminate orphan process: pid (3113) (sh)
+wet-presentation	Complete job	2026-11-25T13:39:17.6306749Z Terminate orphan process: pid (3114) (node)
+wet-presentation	Complete job	2026-11-25T13:39:17.6345962Z Terminate orphan process: pid (3122) (esbuild)
+wet-presentation	Complete job	2026-11-25T13:39:17.6379309Z Terminate orphan process: pid (3209) (node)
+wet-presentation	Complete job	2026-11-25T13:39:17.6401586Z Terminate orphan process: pid (3222) (headless_shell)
+wet-presentation	Complete job	2026-11-25T13:39:17.6440009Z Terminate orphan process: pid (3279) (esbuild)
+wet-presentation	Complete job	2026-11-25T13:39:17.6520712Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
