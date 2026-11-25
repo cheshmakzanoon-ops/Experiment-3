@@ -37,16 +37,47 @@ export function bandHarmonics(
   return imag;
 }
 
+const WAVE_STEPS = 2048;
+// One profile-independent basis, allocated only for the authored spectrum size.
+// Float64 retains Math.sin's values exactly; the unused zero column keeps the
+// harmonic index unchanged. Its fixed payload is 655,360 bytes (640 KiB).
+let waveSineBasis: Float64Array | undefined;
+function getWaveSineBasis(): Float64Array {
+  if (!waveSineBasis) {
+    const basis = new Float64Array(WAVE_STEPS * BAND_HARMONICS);
+    for (let i = 0; i < WAVE_STEPS; i++) {
+      const theta = (i / WAVE_STEPS) * Math.PI * 2;
+      const offset = i * BAND_HARMONICS;
+      for (let k = 1; k < BAND_HARMONICS; k++) basis[offset + k] = Math.sin(k * theta);
+    }
+    waveSineBasis = basis;
+  }
+  return waveSineBasis;
+}
+
 /** Web Audio normalises a PeriodicWave to a peak of 1; so does this. Returns the
  * mean-square of that peak-normalised waveform (a unit sine is 0.5). */
 export function normalisedWavePower(imag: Float32Array): { peak: number; power: number } {
   let peak = 0;
-  const steps = 2048;
-  for (let i = 0; i < steps; i++) {
-    const theta = (i / steps) * Math.PI * 2;
-    let sum = 0;
-    for (let k = 1; k < imag.length; k++) sum += imag[k] * Math.sin(k * theta);
-    peak = Math.max(peak, Math.abs(sum));
+  const steps = WAVE_STEPS;
+  // A short one-off input need not build the whole basis. Longer public inputs
+  // always retain the original scan without growing the retained allocation.
+  let basis = imag.length <= BAND_HARMONICS ? waveSineBasis : undefined;
+  if (!basis && imag.length === BAND_HARMONICS) basis = getWaveSineBasis();
+  if (basis) {
+    for (let i = 0; i < steps; i++) {
+      const offset = i * BAND_HARMONICS;
+      let sum = 0;
+      for (let k = 1; k < imag.length; k++) sum += imag[k] * basis[offset + k];
+      peak = Math.max(peak, Math.abs(sum));
+    }
+  } else {
+    for (let i = 0; i < steps; i++) {
+      const theta = (i / steps) * Math.PI * 2;
+      let sum = 0;
+      for (let k = 1; k < imag.length; k++) sum += imag[k] * Math.sin(k * theta);
+      peak = Math.max(peak, Math.abs(sum));
+    }
   }
   let power = 0;
   for (let k = 1; k < imag.length; k++) power += (imag[k] / (peak || 1)) ** 2 / 2;

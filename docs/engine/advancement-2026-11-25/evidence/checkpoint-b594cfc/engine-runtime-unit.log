@@ -1,0 +1,159 @@
+
+ RUN  v3.2.4 /home/runner/work/Experiment-3/Experiment-3
+
+ ✓ tests/surface-channel-backpressure.test.ts (15 tests) 8012ms
+   ✓ real circuit worker surface backpressure > keeps every normal 60-tick surface and frozen field through the actual host ACK path  1927ms
+   ✓ real circuit worker surface backpressure > bounds every unacknowledged byte and allocation, then restores the exact paused latest state  2666ms
+   ✓ real circuit worker surface backpressure > retains all terrain deltas and bounds init and flashback rebases across old ACK ownership  2797ms
+   ✓ real circuit worker surface backpressure > keeps a failed surface post terminal and rebases real terrain after fresh initialization  338ms
+ ✓ tests/engine-cross-mode-startup.test.ts (18 tests) 101ms
+ ✓ tests/engine-snapshot-batch-encoding.test.ts (14 tests) 2205ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 4 recipients over varied boundaries  421ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 12 recipients over varied boundaries  1218ms
+ ✓ tests/engine-resource-integration.test.ts (18 tests) 75ms
+ ✓ tests/engine-loudness-coefficients.test.ts (8 tests) 1007ms
+   ✓ exact engine loudness coefficient reuse > matches the original source for 4,096 seeded normalisers across every authored profile  313ms
+   ✓ exact engine loudness coefficient reuse > retains silent, tiny, huge and nonfinite gains and target/clamp behavior  389ms
+stdout | tests/engine-network-clock-drift.test.ts > preserves every real-server snapshot and input-packet byte while presentation converges
+clock discipline wire comparison: {
+  packets: 1228,
+  inputPackets: 734,
+  snapshots: 494,
+  correctingFrames: 100
+}
+
+ ✓ tests/engine-network-clock-drift.test.ts (11 tests) 4217ms
+   ✓ preserves every real-server snapshot and input-packet byte while presentation converges  3758ms
+ ✓ tests/engine-server-snapshot-lifetime.test.ts (10 tests) 1555ms
+   ✓ active peer failure isolation > keeps a healthy client and future ticks running after a failing timeout close  648ms
+   ✓ active peer failure isolation > keeps a healthy client and future ticks running after a failing snapshot send  409ms
+   ✓ active peer failure isolation > keeps a healthy client and future ticks running after a failing event send  375ms
+ ✓ tests/engine-worker-session-adversarial.test.ts (6 tests) 3347ms
+   ✓ failed initialization with old delivered receipts > retires circuit credits across failed init without reviving the failed world or freeing newer credit  485ms
+   ✓ failed initialization with old delivered receipts > keeps the 64-status bound through failed replacement init and accepts each older receipt only once  2025ms
+ ✓ tests/engine-festival-composition.test.ts (7 tests) 3312ms
+   ✓ Festival worker, session and startup-owner composition > applies real travel state and its discovery before settling the matching command  1021ms
+   ✓ Festival worker, session and startup-owner composition > settles a busy command without mutation, then can travel after the actual host drains receipts  797ms
+   ✓ Festival worker, session and startup-owner composition > cancels pending travel and ignores old replies while a replacement owns the host  493ms
+ ✓ tests/engine-diagnostics-backpressure.test.ts (18 tests) 2273ms
+   ✓ the actual physics worker engineering transport > keeps one immutable copied sample while physics advances and does not construct discarded samples  877ms
+   ✓ the actual physics worker engineering transport > does not bypass the outstanding credit through repeated toggles, fresh init or late receipts  355ms
+   ✓ the actual physics worker engineering transport > keeps flashback reset bounded and requires a fresh explicit enable before resuming probes  482ms
+stdout | tests/engine-clock-accounting.test.ts > independent fixed-step accounting > conserves time across seeded mixed lifetimes at 120 Hz
+CLOCK_ACCOUNTING_SEEDED {"hz":120,"events":32768,"callbacks":67718,"pauses":1320,"resets":926,"callbackResets":976,"callbackRebases":1326,"failures":1678,"rejected":1292,"elapsedDrops":3216,"budgetDrops":4411,"interruptedDrops":3004,"maxErrorSeconds":7.105427357601002e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > independent fixed-step accounting > conserves time across seeded mixed lifetimes at 240 Hz
+CLOCK_ACCOUNTING_SEEDED {"hz":240,"events":32768,"callbacks":84679,"pauses":1320,"resets":926,"callbackResets":976,"callbackRebases":1326,"failures":1678,"rejected":1292,"elapsedDrops":3216,"budgetDrops":7198,"interruptedDrops":3004,"maxErrorSeconds":7.105427357601002e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > actual worker clock ownership > circuit conserves active time through transport stalls, pauses, failure and reinitialization
+CLOCK_ACCOUNTING_WORKER {"kind":"circuit","completedTicks":153,"chargedSeconds":13.11225,"remainderSeconds":0.0034166666666670537,"elapsedDroppedSeconds":9.400500000000001,"budgetDroppedSeconds":2.3333333333333326,"interruptedSeconds":0.1,"maxErrorSeconds":5.329070518200751e-15}
+
+stdout | tests/engine-clock-accounting.test.ts > actual worker clock ownership > festival conserves active time through transport stalls, pauses, failure and reinitialization
+CLOCK_ACCOUNTING_WORKER {"kind":"festival","completedTicks":153,"chargedSeconds":13.11225,"remainderSeconds":0.0034166666666670537,"elapsedDroppedSeconds":9.400500000000001,"budgetDroppedSeconds":2.3333333333333326,"interruptedSeconds":0.1,"maxErrorSeconds":5.329070518200751e-15}
+
+ ✓ tests/engine-clock-accounting.test.ts (4 tests) 4165ms
+   ✓ actual worker clock ownership > circuit conserves active time through transport stalls, pauses, failure and reinitialization  1684ms
+   ✓ actual worker clock ownership > festival conserves active time through transport stalls, pauses, failure and reinitialization  2186ms
+ ✓ tests/engine-network-shift.test.ts (18 tests) 6334ms
+   ✓ network command shift edges > applies a 1-tick command once through the real manual GP gearbox, including missing slots  469ms
+   ✓ network command shift edges > discards a pending shift on AI takeover and requires a new first edge after handback  443ms
+   ✓ shift journal compatibility > uses explicit shift tags and reproduces a live record exactly  671ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 0  659ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 4  658ms
+   ✓ shift edges across real client and server delivery > clears rejected samples while retaining levels and allows later identical shift pulses  601ms
+   ✓ shift edges across real client and server delivery > does not revive a disconnected driver's shift while waiting for a rejoin command  505ms
+ ✓ tests/engine-festival-status-backpressure.test.ts (16 tests) 5009ms
+   ✓ lossless Festival status backpressure > bounds copied statuses and stops stepping until an owned receipt returns  1583ms
+   ✓ lossless Festival status backpressure > rejects commands and init before mutation, while still neutralizing pause input  571ms
+   ✓ lossless Festival status backpressure > retains old receipt ownership across init without resetting the queue allowance  740ms
+   ✓ lossless Festival status backpressure > keeps FIFO air, landing, pass, discovery and banked-chain transitions for the real observer  398ms
+   ✓ lossless Festival status backpressure > keeps normal 10 Hz cadence and command status-before-receipt when consumed  465ms
+   ✓ lossless Festival status backpressure > allows outstanding acknowledgements after fatal execution but never resumes the failed world  638ms
+   ✓ lossless Festival status backpressure > releases only the failed publication credit when status transport throws  602ms
+ ✓ tests/engine-audio-input-composition.test.ts (5 tests) 94ms
+ ✓ tests/engine-network-adversarial.test.ts (9 tests) 2886ms
+   ✓ server callback ownership at publication boundaries > a previously scheduled results deadline cannot revive a terminal server  400ms
+   ✓ server callback ownership at publication boundaries > abandons finalization when a final snapshot send callback ends the session  337ms
+   ✓ server callback ownership at publication boundaries > retains already-published results without scheduling new work after their send ends the session  469ms
+   ✓ replays archived shift levels across AI handoff and a rear-brake tag change  785ms
+ ✓ tests/engine-circuit-worker-terminal.test.ts (9 tests) 3964ms
+   ✓ terminal ownership in the actual circuit worker > does not advance again after a tick completed before an interval exception  421ms
+   ✓ terminal ownership in the actual circuit worker > reinitializes paused and removes old and failed-session shifts before accepting fresh one-shot input  527ms
+   ✓ terminal ownership in the actual circuit worker > cancels an active rewind before a queued worker turn can execute it  560ms
+   ✓ terminal ownership in the actual circuit worker > cancels an duplicate rewind before a queued worker turn can execute it  474ms
+   ✓ terminal ownership in the actual circuit worker > discards a failed resimulation after its real ticks have run and never commits its completion  470ms
+   ✓ terminal ownership in the actual circuit worker > does not publish a pending rewind completion after its surface transport failed  764ms
+   ✓ terminal ownership in the actual circuit worker > keeps failed initialization terminal until a complete new initialization publishes its frame  384ms
+ ✓ tests/engine-network-integration.test.ts (11 tests) 1127ms
+   ✓ network service ownership across real codec delivery > honors terminal teardown requested by the results phase observer  401ms
+   ✓ network service ownership across real codec delivery > delivers loss-delayed results before graceful close after server teardown  313ms
+ ✓ tests/circuit-preparation-lifetime.test.ts (19 tests) 76ms
+ ✓ tests/engine-ghost-bounds.test.ts (53 tests) 236ms
+ ✓ tests/engine-recording-composition.test.ts (7 tests) 8538ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'last frame of a sealed page' in replay and telemetry  1337ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'first frame of a sealed page' in replay and telemetry  931ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'first frame of the open page' in replay and telemetry  786ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'downward-rounded frame' in replay and telemetry  730ms
+   ✓ saves only the complete human lap after real simulation automation hands back control  4446ms
+ ✓ tests/engine-physics-invariants.test.ts (8 tests) 305ms
+ ✓ tests/engine-network-composition.test.ts (6 tests) 4125ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 54 fails (close failure: false)  1034ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 54 fails (close failure: true)  631ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 60 fails (close failure: false)  570ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 60 fails (close failure: true)  539ms
+   ✓ network composition at the completed physics boundary > preserves future-entry and order rejection instead of filtering unrelated corruption  478ms
+   ✓ codec, command edges and shared snapshots through impaired real peers > preserves accepted shifts and quantized inputs through loss, reordering and an AI handoff  869ms
+ ✓ tests/engine-flashback-state.test.ts (10 tests) 10164ms
+   ✓ engine flashback state and control ownership > gpr1 reconstructs control handback, hidden state, continuation and a new branch  2967ms
+   ✓ engine flashback state and control ownership > sbk1000 reconstructs control handback, hidden state, continuation and a new branch  1671ms
+   ✓ engine flashback state and control ownership > mx450 reconstructs control handback, hidden state, continuation and a new branch  1959ms
+   ✓ engine flashback state and control ownership > sc7 reconstructs control handback, hidden state, continuation and a new branch  2863ms
+   ✓ engine flashback state and control ownership > replays repeated shift edges consumed by the actual motorcycle gearbox  699ms
+ ✓ tests/festival-renderer-loader-lifecycle.test.ts (18 tests) 52ms
+ ✓ tests/engine-controller-shift-order.test.ts (11 tests) 30ms
+ ✓ tests/engine-loudness.test.ts (14 tests) 114ms
+ ✓ tests/engine-renderer-exclusive-release.test.ts (12 tests) 55ms
+ ✓ tests/engine-renderer-texture-composition.test.ts (5 tests) 22ms
+ ✓ tests/engine-export-host-ownership.test.ts (9 tests) 34ms
+ ✓ tests/engine-resource-adversarial.test.ts (10 tests) 19ms
+ ✓ tests/engine-audio-preview-cancellation.test.ts (9 tests) 106ms
+ ✓ tests/engine-persistence-integration.test.ts (13 tests) 726ms
+ ✓ tests/engine-bvh-scalar-bounds.test.ts (9 tests) 258ms
+ ✓ tests/engine-host-failure-cleanup.test.ts (28 tests) 44ms
+ ✓ tests/engine-paved-lane-index.test.ts (15 tests) 3246ms
+   ✓ bounded paved lane candidates > aurel exactly matches coarse search at offsets, signed cell boundaries and the lap seam  481ms
+   ✓ bounded paved lane candidates > vellamar exactly matches coarse search at offsets, signed cell boundaries and the lap seam  420ms
+   ✓ bounded paved lane candidates > speedbowl exactly matches coarse search at offsets, signed cell boundaries and the lap seam  409ms
+   ✓ bounded paved lane candidates > dockyard exactly matches coarse search at offsets, signed cell boundaries and the lap seam  387ms
+   ✓ bounded paved lane candidates > dockyard-reverse exactly matches coarse search at offsets, signed cell boundaries and the lap seam  385ms
+   ✓ bounded paved lane candidates > poggio-alto exactly matches coarse search at offsets, signed cell boundaries and the lap seam  383ms
+ ✓ tests/engine-festival-command-errors.test.ts (16 tests) 5215ms
+   ✓ Festival command error boundaries > rejects 'start' before changing an active event  1153ms
+   ✓ Festival command error boundaries > rejects 'travel' before changing an active event  329ms
+   ✓ Festival command error boundaries > starts cleanly only after a fresh initialization following a fatal command  498ms
+ ✓ tests/engine-surface-coefficients.test.ts (7 tests) 149ms
+ ✓ tests/engine-input-audio-adversarial.test.ts (7 tests) 60ms
+ ✓ tests/engine-texture-budget-registration.test.ts (5 tests) 88ms
+ ✓ tests/circuit-frame-transport.test.ts (5 tests) 6341ms
+   ✓ circuit snapshot transport > rejects duplicate returns without publishing detached or aliased storage (transfer=false)  1239ms
+   ✓ circuit snapshot transport > rejects duplicate returns without publishing detached or aliased storage (transfer=true)  1157ms
+   ✓ circuit snapshot transport > keeps write failures terminal until reinitialization restores the complete frame pool  1223ms
+   ✓ circuit snapshot transport > keeps post failures terminal until reinitialization restores the complete frame pool  1190ms
+   ✓ circuit snapshot transport > delivers the exact flashback frame while all ordinary snapshots are held  1529ms
+ ✓ tests/engine-contact-construction.test.ts (8 tests) 671ms
+ ✓ tests/engine-control-quantization.test.ts (7 tests) 902ms
+   ✓ control quantization without temporary wire storage > matches every steering code and both sides of every rounding boundary  751ms
+ ✓ tests/engine-clock-transfer-integration.test.ts (7 tests) 177ms
+ ✓ tests/engine-contact-math-allocation.test.ts (6 tests) 13ms
+ ✓ tests/engine-telemetry-time-ring.test.ts (14 tests) 1205ms
+ ✓ tests/engine-telemetry-chunk-storage.test.ts (21 tests) 831ms
+ ✓ tests/engine-session-settlement.test.ts (10 tests) 14ms
+ ✓ tests/engine-physics-adversarial.test.ts (13 tests) 7ms
+
+ Test Files  48 passed (48)
+      Tests  579 passed (579)
+   Start at  06:09:46
+   Duration  155.00s (transform 6.76s, setup 0ms, collect 49.68s, tests 93.50s, environment 10ms, prepare 3.42s)
+
+(node:2590) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

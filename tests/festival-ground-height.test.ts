@@ -187,6 +187,7 @@ describe('festival carved-ground presentation queries', () => {
     // the test ends at the streaming boundary without creating WebGL.
     const fixture = {
       camera,
+      canSubmitFrame: () => true,
       world,
       target,
       groundHeight: sampledGround,

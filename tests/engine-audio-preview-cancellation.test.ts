@@ -119,6 +119,7 @@ function hostFixture(audio: RacingAudio, state: 'menu' | 'paused') {
   const disposable = () => ({ dispose: vi.fn() });
   const host = Object.assign(new Host(), {
     audio,
+    pageWaiters: new Set<() => void>(),
     state,
     generation: 0,
     initTimeout: 0,
@@ -132,6 +133,7 @@ function hostFixture(audio: RacingAudio, state: 'menu' | 'paused') {
     reviewVideo: disposable(),
     exporter: { cancel: vi.fn() },
     inputPump: disposable(),
+    ui: disposable(),
     festivalOwner: { cancel: vi.fn() },
     endDemoClock: vi.fn(),
     input: disposable(),

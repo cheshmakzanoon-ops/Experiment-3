@@ -52,6 +52,7 @@ import {
 import type { SceneAmbientPass } from '../scene-ambient-pass.ts';
 import { prewarmSky } from '../sky-light.ts';
 import { compileSceneTarget } from '../preparation.ts';
+import { acquireGpuFrameGate, type GpuFrameLease } from '../shared-gpu-frame-gate.ts';
 import { prepareMaterials } from '../materials/library.ts';
 import { postLensFrame } from '../studio/lens-effects.ts';
 import { SKY_CLOUDS, SkyClouds } from '../studio/sky-clouds.ts';
@@ -217,6 +218,8 @@ export class FestivalRenderer {
   private readonly lastSubject = new T.Vector3(NaN, NaN, NaN);
   private lastVehicle = -1;
   private disposed = false;
+  private readonly gpuFrames: GpuFrameLease;
+  preparationTimeoutMs = 90000;
   private readonly heightAt = (x: number, z: number, y?: number) => this.groundHeight(x, z, y);
   readonly discovered = new Set<string>();
   activeEvent: string | null = null;
@@ -368,6 +371,8 @@ export class FestivalRenderer {
       roadMaterial: this.roads.materials.asphalt,
     });
     prewarmSky('day');
+    // Borrow the circuit's completion history only once construction succeeds.
+    this.gpuFrames = acquireGpuFrameGate(renderer.getContext() as WebGL2RenderingContext);
   }
   /** Separately posed motorcycles belong to the same reflection system,
    * and must not appear inside the probe taken at their own position. */
@@ -643,28 +648,82 @@ export class FestivalRenderer {
       new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
   ) {
     const stopped = () => cancelled() || this.disposed;
+    const waitForGpu = async () => {
+      const timeoutMs = this.preparationTimeoutMs;
+      const deadline = performance.now() + timeoutMs;
+      while (!stopped()) {
+        if (this.canSubmitFrame()) return true;
+        // Deadline expiry retains the fence for the remaining context owner.
+        if (performance.now() >= deadline)
+          throw new Error(`GPU preparation did not complete within ${timeoutMs}ms`);
+        await yieldFrame();
+      }
+      return false;
+    };
+    const submitPreparation = <Result>(work: () => Result): Result => {
+      let failed = false;
+      let failure: unknown;
+      let result!: Result;
+      try {
+        result = work();
+      } catch (error) {
+        failed = true;
+        failure = error;
+      }
+      try {
+        this.gpuFrames.submittedFrame();
+        const gpuFailure = this.gpuFrames.diagnostics().failure;
+        if (gpuFailure) throw new Error(gpuFailure);
+      } catch (error) {
+        // Preserve the first synchronous stage error if fencing also fails.
+        if (!failed) throw error;
+      }
+      if (failed) throw failure;
+      return result;
+    };
+    if (stopped()) return false;
     progress('Baking festival materials…');
     await yieldFrame();
-    if (stopped()) return false;
-    prepareMaterials(this.renderer);
+    if (!(await waitForGpu()) || stopped()) return false;
+    submitPreparation(() => prepareMaterials(this.renderer));
     progress('Compiling the festival materials…');
     await yieldFrame();
+    if (!(await waitForGpu()) || stopped()) return false;
+    const compiling = submitPreparation(() => {
+      const pending = compileSceneTarget(
+        this.renderer,
+        this.scene,
+        this.camera,
+        this.composer.readBuffer,
+        undefined,
+        { cancelled: stopped },
+      );
+      // Observe rejection before synchronous fencing can fail. The normal
+      // path still awaits the original promise and preserves its rejection.
+      void pending.catch(() => {});
+      return pending;
+    });
+    // compileAsync submits synchronously. Its fence already owns those
+    // commands if cancellation releases this lease during the await.
+    await compiling;
     if (stopped()) return false;
-    await compileSceneTarget(
-      this.renderer,
-      this.scene,
-      this.camera,
-      this.composer.readBuffer,
-      undefined,
-      { cancelled: stopped },
-    );
     progress('Warming the festival view…');
     for (let i = 0; i < 2; i++) {
       await yieldFrame();
-      if (stopped()) return false;
-      this.draw(frame, frame, 1, 1 / 60);
+      if (!(await waitForGpu()) || stopped()) return false;
+      if (!this.draw(frame, frame, 1, 1 / 60)) return false;
     }
-    return !stopped();
+    return (await waitForGpu()) && !stopped();
+  }
+  /** Called before the session mutates rider/traffic presentation. */
+  canSubmitFrame(): boolean {
+    if (this.disposed) return false;
+    const ready = this.gpuFrames.ready();
+    if (!ready) {
+      const failure = this.gpuFrames.diagnostics().failure;
+      if (failure) throw new Error(failure);
+    }
+    return ready;
   }
   /** Is the terrain under (x, z) and the coarse cover resident? */
   ready(x: number, z: number) {
@@ -677,7 +736,7 @@ export class FestivalRenderer {
     this.terrain.update(this.camera);
   }
   draw(a: Float32Array, b: Float32Array, alpha: number, dt: number) {
-    if (this.disposed) return;
+    if (this.disposed || !this.canSubmitFrame()) return false;
     const start = performance.now();
     dt = clamp(dt, 1 / 300, 0.08);
     if (a.length !== b.length || a[H.CARS] !== b[H.CARS] || b[H.TIME] < a[H.TIME]) a = b;
@@ -994,78 +1053,105 @@ export class FestivalRenderer {
     // --- Render ---------------------------------------------------------------
     this.renderer.info.reset();
     this.renderer.info.autoReset = false;
-    this.shadows.update({
-      subject: this.target,
-      lighting: mode,
-      terrainRevision: this.terrain.shadowRevision,
-      dt,
-      terrain: this.terrain.root,
-      planting: [this.vegetation.root],
-      hidden: this.reflection.probeExclusions,
-    });
-    this.environment.update(this.renderer, this.scene, daylight.cover, mode);
-    if (
-      this.reflectionVersion !== this.cars.paintVersion ||
-      this.reflectedVehicleVersion !== this.vehiclePaintVersion
-    ) {
-      this.reflection.updateProbe(
-        this.renderer,
-        this.scene,
-        subject ?? this.cars.root,
-        this.reflectionMaterials,
-        false,
-      );
-      this.reflection.invalidate();
-      this.reflectionMaterials.length = 0;
-      for (const material of this.cars.reflectivePaint)
-        if (material instanceof T.MeshStandardMaterial) this.reflectionMaterials.push(material);
-      this.reflectionMaterials.push(...this.vehiclePaint);
-      for (const surface of ['asphalt', 'asphaltMajor', 'town'] as const) {
-        const material = this.roads.materials[surface];
-        if (material instanceof T.MeshStandardMaterial) this.reflectionMaterials.push(material);
+    let failed = false;
+    let failure: unknown;
+    try {
+      this.shadows.update({
+        subject: this.target,
+        lighting: mode,
+        terrainRevision: this.terrain.shadowRevision,
+        dt,
+        terrain: this.terrain.root,
+        planting: [this.vegetation.root],
+        hidden: this.reflection.probeExclusions,
+      });
+      this.environment.update(this.renderer, this.scene, daylight.cover, mode);
+      if (
+        this.reflectionVersion !== this.cars.paintVersion ||
+        this.reflectedVehicleVersion !== this.vehiclePaintVersion
+      ) {
+        this.reflection.updateProbe(
+          this.renderer,
+          this.scene,
+          subject ?? this.cars.root,
+          this.reflectionMaterials,
+          false,
+        );
+        this.reflection.invalidate();
+        this.reflectionMaterials.length = 0;
+        for (const material of this.cars.reflectivePaint)
+          if (material instanceof T.MeshStandardMaterial) this.reflectionMaterials.push(material);
+        this.reflectionMaterials.push(...this.vehiclePaint);
+        for (const surface of ['asphalt', 'asphaltMajor', 'town'] as const) {
+          const material = this.roads.materials[surface];
+          if (material instanceof T.MeshStandardMaterial) this.reflectionMaterials.push(material);
+        }
+        this.reflectionVersion = this.cars.paintVersion;
+        this.reflectedVehicleVersion = this.vehiclePaintVersion;
       }
-      this.reflectionVersion = this.cars.paintVersion;
-      this.reflectedVehicleVersion = this.vehiclePaintVersion;
+      this.updateLocalReflection(subject, time, cut ? 0 : Math.max(0, elapsed), wet, daylight.environment, discontinuity);
+      this.audioView.update(this.camera, time, 0, onboard, 0);
+      postLensFrame(
+        this.grade,
+        this.bloom,
+        presented,
+        mode,
+        this.graphics.lensEffects && !this.photo,
+        this.camera,
+        onboard ? 'cockpit' : 'chase',
+        speed,
+      );
+      this.ultra.prepareFrame({
+        presented,
+        cars: [
+          { reflectivePaint: this.cars.reflectivePaint },
+          { reflectivePaint: this.vehiclePaint },
+        ],
+        subject: this.target,
+        cameraMode: onboard ? 'cockpit' : 'chase',
+        lighting: mode,
+        studio: false,
+        menu: false,
+        photo: this.photo,
+        replay: false,
+        otherDof: false,
+        cut,
+      });
+      this.streetLights.renderWithShadows(this.renderer, time, this.terrain.shadowRevision, () => {
+        // Close-up photography retains the detailed vehicle shadow. Ordinary
+        // driving uses the live wheel/axle silhouette in the same light map.
+        if (this.photo) this.composer.render();
+        else
+          this.cars.drawWithVehicleShadows(this.renderer, this.scene, () => this.composer.render());
+      });
+      this.ultra.afterFrame();
+    } catch (error) {
+      failed = true;
+      failure = error;
+    } finally {
+      // A later pass may fail after shadows/reflections have submitted work.
+      // The surviving circuit owner must still wait for those real commands.
+      try {
+        this.gpuFrames.submittedFrame();
+        const gpuFailure = this.gpuFrames.diagnostics().failure;
+        if (!failed && gpuFailure) {
+          failed = true;
+          failure = new Error(gpuFailure);
+        }
+      } catch (error) {
+        // Preserve the first draw failure, including non-Error thrown values.
+        // The gate retains a separate terminal failure for every shared owner.
+        if (!failed) {
+          failed = true;
+          failure = error;
+        }
+      }
     }
-    this.updateLocalReflection(subject, time, cut ? 0 : Math.max(0, elapsed), wet, daylight.environment, discontinuity);
-    this.audioView.update(this.camera, time, 0, onboard, 0);
-    postLensFrame(
-      this.grade,
-      this.bloom,
-      presented,
-      mode,
-      this.graphics.lensEffects && !this.photo,
-      this.camera,
-      onboard ? 'cockpit' : 'chase',
-      speed,
-    );
-    this.ultra.prepareFrame({
-      presented,
-      cars: [
-        { reflectivePaint: this.cars.reflectivePaint },
-        { reflectivePaint: this.vehiclePaint },
-      ],
-      subject: this.target,
-      cameraMode: onboard ? 'cockpit' : 'chase',
-      lighting: mode,
-      studio: false,
-      menu: false,
-      photo: this.photo,
-      replay: false,
-      otherDof: false,
-      cut,
-    });
-    this.streetLights.renderWithShadows(this.renderer, time, this.terrain.shadowRevision, () => {
-      // Close-up photography retains the detailed vehicle shadow. Ordinary
-      // driving uses the live wheel/axle silhouette in the same light map.
-      if (this.photo) this.composer.render();
-      else
-        this.cars.drawWithVehicleShadows(this.renderer, this.scene, () => this.composer.render());
-    });
-    this.ultra.afterFrame();
+    if (failed) throw failure;
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;
     this.stats.renderMs = this.stats.renderMs * 0.9 + (performance.now() - start) * 0.1;
+    return true;
   }
   private updateLocalReflection(
     subject: T.Object3D | null,
@@ -1113,6 +1199,7 @@ export class FestivalRenderer {
   }
   diagnostics() {
     return {
+      gpuFrameQueue: this.gpuFrames.diagnostics(),
       ...this.imagePipeline.diagnostics(),
       shadows: this.shadows.diagnostics(),
       localShadows: this.streetLights.diagnostics(),
@@ -1189,6 +1276,7 @@ export class FestivalRenderer {
     release(() => this.photoSky.dispose());
     release(() => this.composer.dispose());
     release(() => this.scene.clear());
+    release(() => this.gpuFrames.dispose());
     if (failures.length) throw failures[0];
   }
 }

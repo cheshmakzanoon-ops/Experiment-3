@@ -258,11 +258,33 @@ export function ghostPose(): GhostPose {
   return { s: 0, x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1, steer: 0, speed: 0 };
 }
 
-/** Interpolated playback and the live delta against a saved lap. */
+/** Interpolated playback and the live delta against a validated saved lap.
+ * The recording remains unchanged while this player uses it. */
 export class GhostPlayer {
   readonly count: number;
+  private readonly distanceMaxima: Float32Array | null;
   constructor(readonly lap: GhostLap) {
     this.count = lap.samples.length / GHOST_FIELDS;
+    let increasing = true;
+    for (let i = 1; i < this.count; i++) {
+      if (lap.samples[i * GHOST_FIELDS + 1] <= lap.samples[(i - 1) * GHOST_FIELDS + 1]) {
+        increasing = false;
+        break;
+      }
+    }
+    if (increasing) {
+      this.distanceMaxima = null;
+      return;
+    }
+    // One entry per validated sample, bounded by GHOST_MAX_SAMPLES. Keep the
+    // original sample offsets: a new maximum after reversing must interpolate
+    // from its adjacent pose, not from the previous record-high distance.
+    this.distanceMaxima = new Float32Array(this.count);
+    let maximum = -Infinity;
+    for (let i = 0; i < this.count; i++) {
+      const distance = lap.samples[i * GHOST_FIELDS + 1];
+      this.distanceMaxima[i] = maximum = Math.max(maximum, distance);
+    }
   }
   private index(field: number, value: number) {
     const d = this.lap.samples;
@@ -311,11 +333,26 @@ export class GhostPlayer {
     out.speed = d[a + 10] + (d[b + 10] - d[a + 10]) * t;
     return true;
   }
-  /** Ghost time at a lap distance, for the live delta (positive = slower). */
+  /** Original segment ending at the first recorded forward crossing. */
+  private firstPassageIndex(s: number, maxima: Float32Array) {
+    let lo = 1,
+      hi = this.count - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (maxima[mid] < s) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo - 1;
+  }
+  /** Ghost's first time at a lap distance, for the live delta (positive = slower). */
   timeAt(s: number) {
     const d = this.lap.samples;
     if (!(s >= d[1])) return d[0];
-    const i = this.index(1, s),
+    const maxima = this.distanceMaxima;
+    if (maxima && s > maxima[this.count - 1]) return d[(this.count - 1) * GHOST_FIELDS];
+    // Preserve the existing arithmetic at exact knots on strictly increasing
+    // laps, including the denominator floor for sub-micrometre intervals.
+    const i = maxima ? this.firstPassageIndex(s, maxima) : this.index(1, s),
       a = i * GHOST_FIELDS,
       b = a + GHOST_FIELDS;
     const t = Math.min(1, Math.max(0, (s - d[a + 1]) / Math.max(1e-6, d[b + 1] - d[a + 1])));

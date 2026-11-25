@@ -47,6 +47,7 @@ function fixture() {
   const state = {
     disposed: false,
     renderer: {},
+    gpuFrames: disposable(),
     world: { field: { height: vi.fn(() => 12) } },
     structures: [],
     preset: 'high',

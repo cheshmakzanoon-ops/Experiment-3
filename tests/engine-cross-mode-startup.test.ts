@@ -27,7 +27,7 @@ function productionHost() {
     (node): node is ts.ClassDeclaration => ts.isClassDeclaration(node) && node.name?.text === 'GameApp',
   )!;
   const names = [
-    'disposed', 'errorStopped', 'generation', 'rendererBuild', 'circuitStartup', 'initTimeout',
+    'disposed', 'errorStopped', 'pageWaiters', 'generation', 'rendererBuild', 'circuitStartup', 'initTimeout',
     'worker', 'workerPause', 'current', 'previous', 'savingSettings',
     'festivalOwner', 'festival', 'festivalStarting', 'startFestival', 'exitFestival',
     'start', 'switchCircuit', 'post', 'accept', 'prepareTimeTrial', 'applySettings', 'fail', 'dispose',
@@ -190,6 +190,7 @@ function fixture() {
     },
     radio: { reset: vi.fn(), observe: () => null }, radioCaption: { show: vi.fn() },
     ui: {
+      dispose: vi.fn(),
       toast: vi.fn(), error: vi.fn(), loading: vi.fn(() => { screen.hidden = false; }),
       loadingSession: vi.fn(), loadingScene: vi.fn(), closeModal: vi.fn(), showMode: vi.fn(),
       ready: vi.fn(() => { screen.hidden = true; }), observePractice: vi.fn(), applyBindings: vi.fn(),

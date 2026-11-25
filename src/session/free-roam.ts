@@ -1,7 +1,7 @@
 import type * as T from 'three';
 import { loadLazyData } from '../core/lazy-data.ts';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
-import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
+import { controls, type Assist, type Controls, type WeatherPreset } from '../simulation/config.ts';
 import {
   isRace,
   resolveEvents,
@@ -117,7 +117,13 @@ export class FestivalSession {
   private current: Float32Array | null = null;
   private previous: Float32Array | null = null;
   private readonly liveFrames = new LiveFrameClock();
+  /** Wall time of the last submitted presentation, retained across GPU/idle skips. */
   private lastTime = 0;
+  private renderedState: 'driving' | 'paused' | 'photo' | null = null;
+  private redrawRevision = 0;
+  private renderedRevision = -1;
+  private resizeRevision = 0;
+  private renderedResizeRevision = 0;
   private status: FestivalStatus | null = null;
   /** Achievements: turns status samples into jump / chain / discovery events. */
   private readonly achievements = new FestivalStatusObserver(emitGameEvent);
@@ -129,6 +135,8 @@ export class FestivalSession {
   private travelling = false;
   private events: readonly FestivalEvent[] = [];
   private disposed = false;
+  private pageSuspended = false;
+  private pageEpoch = 0;
   private booting = true;
   private commandSerial = 0;
   private readonly commandRequests = new Map<
@@ -196,6 +204,21 @@ export class FestivalSession {
     }, options);
     document.addEventListener('pointerlockchange', () => {
       if (document.pointerLockElement !== host.canvas) this.renderer?.centreLook();
+    }, options);
+    // OrbitControls handles these inputs itself. Request their next available
+    // photo draw immediately; passive photography keeps the normal idle cap.
+    host.canvas.addEventListener('pointermove', (event) => {
+      if (this.renderer?.photo && event.buttons) this.redrawRevision++;
+    }, options);
+    host.canvas.addEventListener('wheel', () => {
+      if (this.renderer?.photo) this.redrawRevision++;
+    }, options);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // Browsers may stop RAF altogether while hidden.
+        this.lastTime = 0;
+        this.renderedState = null;
+      }
     }, options);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
@@ -290,6 +313,7 @@ export class FestivalSession {
       exit: () => this.host.exit(),
       lighting: (mode) => {
         renderer.lighting = mode;
+        this.redrawRevision++;
         this.openMenu();
       },
       vehicle: (id) => {
@@ -311,7 +335,10 @@ export class FestivalSession {
       },
       map: () => this.openMap(),
       photo: (open) => this.setPhoto(open),
-      photoAngle: (angle) => renderer.photoAngle(angle),
+      photoAngle: (angle) => {
+        renderer.photoAngle(angle);
+        this.redrawRevision++;
+      },
     });
     const hud = this.hud;
     this.controls = new FestivalControls(hud, {
@@ -401,6 +428,8 @@ export class FestivalSession {
   }
   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
     if (this.disposed) return;
+    if (this.pageSuspended &&
+      (message.type === 'input' || (message.type === 'pause' && !message.value))) return;
     if (message.type === 'pause') this.liveFrames.setPaused(message.value);
     try {
       this.worker.postMessage(message, transfer);
@@ -546,8 +575,11 @@ export class FestivalSession {
   private async travel(id: string, retry = false) {
     const renderer = this.renderer,
       event = this.events.find((e) => e.spec.id === id);
-    if (!renderer || !event || this.travelling || this.disposed) return;
+    if (!renderer || !event || this.travelling || this.disposed || this.pageSuspended) return;
+    const pageEpoch = this.pageEpoch;
     this.travelling = true;
+    this.lastTime = 0;
+    this.renderedState = null;
     // Retrying from the results is not already paused. Hold physics and
     // input before moving the car until the destination is resident.
     this.setPaused(true);
@@ -583,7 +615,9 @@ export class FestivalSession {
       this.travelling = false;
       if (!this.disposed) {
         this.host.loaded();
-        this.setPaused(!complete);
+        // A successful travel may finish after a history-cache return. Its old
+        // automatic resume permission does not survive that navigation.
+        this.setPaused(!complete || pageEpoch !== this.pageEpoch);
       }
     }
   }
@@ -606,12 +640,26 @@ export class FestivalSession {
     if (!this.renderer || !this.hud || this.travelling) return;
     if (open) this.setPaused(true);
     this.renderer.setPhoto(open);
+    this.redrawRevision++;
     this.hud.showPhoto(open);
     if (!open) this.setPaused(false);
   }
   /** Pause (menu open, driving input off) or resume (FestivalControls). */
   setPaused(value: boolean) {
-    this.controls?.setPaused(value);
+    this.controls?.setPaused(value || this.pageSuspended);
+  }
+  /** Retain the world across history navigation, with a fresh presentation
+   * clock and a pause that only a new player action may release. */
+  setPageSuspended(value: boolean) {
+    if (this.disposed || this.pageSuspended === value) return;
+    if (value) this.post({ type: 'input', input: controls() });
+    this.pageSuspended = value;
+    if (value) this.pageEpoch++;
+    else this.post({ type: 'input', input: controls() });
+    this.lastTime = 0;
+    this.renderedState = null;
+    this.setPaused(true);
+    this.host.audio?.stop();
   }
   get isPaused() {
     return this.controls?.paused ?? false;
@@ -619,11 +667,13 @@ export class FestivalSession {
   /** Hosts keep polling the mapped pause action while results own input,
    * even though rival finishers may still be moving in the worker. */
   get drivingInputEnabled() {
-    return !this.disposed && !this.travelling && (this.controls?.drivingInputEnabled ?? false);
+    return !this.disposed && !this.pageSuspended && !this.travelling &&
+      (this.controls?.drivingInputEnabled ?? false);
   }
   /** Application actions while the festival drives; true when consumed. */
   action(name: string) {
     if (this.disposed) return false;
+    if (this.pageSuspended) return true;
     // Fast travel owns the session until the destination has streamed in.
     if (this.travelling) return name !== 'mute';
     switch (name) {
@@ -637,6 +687,7 @@ export class FestivalSession {
       case 'camera':
         this.releaseMouseLook();
         this.renderer?.changeCamera();
+        this.redrawRevision++;
         return true;
       case 'replay':
         // R: reset to the road (the festival has no replay).
@@ -664,25 +715,67 @@ export class FestivalSession {
   }
   /** One animation frame. */
   frame(time: number) {
-    const renderer = this.renderer;
-    if (!renderer || !this.current || this.disposed || this.travelling) return;
-    const live = this.liveFrames.sample(performance.now());
-    if (!live) return;
-    const { a, b, alpha } = live;
-    const wall = Math.max(0.001, (time - (this.lastTime || time - 16)) / 1000);
-    this.lastTime = time;
-    // Posed before the draw, from the same interpolation as the cars.
-    this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
-    this.traffic?.update(
-      live.auxiliaryA,
-      live.auxiliaryB,
-      alpha,
-      renderer.night,
-      b[H.TIME],
-      renderer.camera,
-      this.host.canvas.height,
-    );
-    renderer.draw(a, b, alpha, Math.min(0.08, wall));
+    const renderer = this.renderer,
+      hud = this.hud,
+      controls = this.controls,
+      pageEpoch = this.pageEpoch;
+    if (!renderer || !this.current || this.disposed || this.pageSuspended || this.travelling) return;
+    const ownsFrame = () => !this.disposed && !this.pageSuspended && !this.travelling &&
+      this.pageEpoch === pageEpoch && this.renderer === renderer && this.hud === hud &&
+      this.controls === controls;
+    let submitted = false;
+    if (document.hidden) {
+      // Hidden time must not become camera/effect catch-up on the next view.
+      // HUD/gamepad and audio servicing below still observe the retained pose.
+      this.lastTime = 0;
+      this.renderedState = null;
+    } else {
+      const state = renderer.photo ? 'photo' : this.isPaused ? 'paused' : 'driving',
+        revision = this.redrawRevision,
+        resizeRevision = this.resizeRevision;
+      try {
+        // Poll even between idle draws so failures are observed promptly. A
+        // requested redraw bypasses cadence only, never shared GPU ownership.
+        const ready = renderer.canSubmitFrame();
+        if (!ownsFrame()) return;
+        if (ready && (state === 'driving' || this.renderedState !== state ||
+          this.renderedRevision !== revision || time - this.lastTime >= 1000 / 15 - 1e-6)) {
+          const live = this.liveFrames.sample(performance.now());
+          if (live) {
+            const { a, b, alpha } = live;
+            const wall = Math.max(0.001,
+              (time - (this.renderedState === null ? time - 16 : this.lastTime)) / 1000);
+            if (this.renderedResizeRevision !== resizeRevision) renderer.resize();
+            if (!ownsFrame()) return;
+            // Pose only an admitted draw, from the exact same measured pair
+            // as the cars. Skipped callbacks leave the presented frame intact.
+            this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
+            if (!ownsFrame()) return;
+            this.traffic?.update(
+              live.auxiliaryA,
+              live.auxiliaryB,
+              alpha,
+              renderer.night,
+              b[H.TIME],
+              renderer.camera,
+              this.host.canvas.height,
+            );
+            if (!ownsFrame()) return;
+            submitted = renderer.draw(a, b, alpha, Math.min(0.08, wall));
+            if (!ownsFrame()) return;
+            if (submitted) {
+              this.lastTime = time;
+              this.renderedState = state;
+              this.renderedRevision = revision;
+              this.renderedResizeRevision = resizeRevision;
+            }
+          }
+        }
+      } catch (error) {
+        this.fail(error instanceof Error ? error : new Error(String(error)), true);
+        return;
+      }
+    }
     const o = carBase(0),
       presented = renderer.presented.value;
     const qx = presented[o + F.QX],
@@ -694,9 +787,10 @@ export class FestivalSession {
       fz = 1 - 2 * (qx * qx + qy * qy);
     const spec = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])).spec;
     const heading = minimapHeading(fx, fz);
-    if (this.status && this.hud) {
-      this.hud.update(
-        this.status,
+    const status = this.status;
+    if (status && hud) {
+      hud.update(
+        status,
         presented[o + F.X],
         presented[o + F.Z],
         heading,
@@ -705,19 +799,22 @@ export class FestivalSession {
         renderer.guidance.cue,
         renderer.driftCue,
       );
-      // Gamepad polling can activate EXIT FESTIVAL during HUD update. Its
-      // callback has already released this session's renderer, status and HUD.
-      if (this.disposed) return;
+      // Gamepad actions can dispose, start travel, suspend the page or replace
+      // children. None may continue using the old presentation after returning.
+      if (!ownsFrame()) return;
+    }
+    controls?.syncInput();
+    if (!ownsFrame()) return;
+    if (submitted && status && hud) {
       const pane = renderer.mode === 'cockpit' && !renderer.photo
         ? renderer.cars.bodies.cabinOf(0)?.navigationPane ?? null : null;
       if (pane) {
-        const road = this.status.road;
-        const route = this.status.event?.id ?? this.status.card?.id ?? '';
-        renderer.cars.navigation.update(pane, this.hud.minimap, road, presented[H.TIME],
-          presented[o + F.X], presented[o + F.Z], heading, route, this.status.discovered.length, renderer.night);
+        const road = status.road;
+        const route = status.event?.id ?? status.card?.id ?? '';
+        renderer.cars.navigation.update(pane, hud.minimap, road, presented[H.TIME],
+          presented[o + F.X], presented[o + F.Z], heading, route, status.discovered.length, renderer.night);
       } else renderer.cars.navigation.detach();
     }
-    this.controls?.syncInput();
     this.host.audio?.update(
       presented,
       renderer.mode === 'hood' || renderer.mode === 'cockpit',
@@ -727,7 +824,8 @@ export class FestivalSession {
     );
   }
   resize() {
-    this.renderer?.resize();
+    this.resizeRevision++;
+    this.redrawRevision++;
   }
   setReducedMotion(value: boolean, shake = this.host.shake) {
     this.host.reducedMotion = value;
@@ -735,6 +833,7 @@ export class FestivalSession {
     if (this.renderer) {
       this.renderer.reducedMotion = value;
       if (shake !== undefined) this.renderer.shake = shake;
+      this.redrawRevision++;
     }
   }
   diagnostics() {

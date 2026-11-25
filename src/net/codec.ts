@@ -1,6 +1,11 @@
 import { ByteReader, ByteWriter, DecodeError } from './bytes.ts';
 import { LIMITS } from './constants.ts';
-import { readInputPacket, writeInputPacket, type InputPacket } from './input.ts';
+import {
+  CONTROLS_WIRE_BYTES,
+  readInputPacket,
+  writeInputPacket,
+  type InputPacket,
+} from './input.ts';
 import {
   validateClientControl,
   validateServerControl,
@@ -38,7 +43,10 @@ const encoder = new TextEncoder(),
   decoder = new TextDecoder('utf-8', { fatal: true });
 
 export function encodeInput(packet: InputPacket) {
-  const w = new ByteWriter(16 + packet.commands.length * 8).u8(MSG.INPUT);
+  const count = packet.commands.length,
+    // Tag, sentAt, ackTick, count, then a nonempty run's base sequence/tick.
+    headerBytes = 1 + 4 + 4 + 1 + (count ? 4 + 4 : 0),
+    w = new ByteWriter(headerBytes + count * (1 + CONTROLS_WIRE_BYTES)).u8(MSG.INPUT);
   writeInputPacket(w, packet);
   return w.finish();
 }

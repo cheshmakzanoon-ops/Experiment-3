@@ -49,6 +49,7 @@ const code: Record<Kind, string> = {
 
 const stages: Record<Kind, readonly string[]> = {
   festival: [
+    'gpuFrames',
     'atmosphere',
     'terrain',
     'roads',

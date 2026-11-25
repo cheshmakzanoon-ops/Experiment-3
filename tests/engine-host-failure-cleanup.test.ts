@@ -76,6 +76,7 @@ function fixture() {
   const startup = { close: release.startup };
   const host = Object.assign(Object.create(prototype) as HostMethods, {
     disposed: false,
+    pageWaiters: new Set<() => void>(),
     errorStopped: false,
     generation: 1,
     circuitStartup: startup as typeof startup | null,
@@ -95,6 +96,7 @@ function fixture() {
     rumble: { stop: release.rumble } as Pick<Rumble, 'stop'>,
     audio: { stop: release.audio, dispose: vi.fn(async () => {}) },
     ui: {
+      dispose: vi.fn(),
       error: release.screen,
       showMode: vi.fn(),
       pause: vi.fn(),

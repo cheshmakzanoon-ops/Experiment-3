@@ -329,7 +329,8 @@ export function completeLaps(data: PlotData, length: number): LapRange[] {
         contiguous = true;
       for (let j = start; j < i; j++) {
         clean &&= data.at(j, valid) > 0.5;
-        if (j > start && data.at(j, 0) - data.at(j - 1, 0) > 0.15) contiguous = false;
+        // Row i closes this lap's capture; its validity belongs to the next lap.
+        if (data.at(j + 1, 0) - data.at(j, 0) > 0.15) contiguous = false;
       }
       if (contiguous) result.push({ lap: previous, start, end: i - 1, valid: clean });
     }

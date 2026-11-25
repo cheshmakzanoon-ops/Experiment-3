@@ -46,6 +46,7 @@ const stages = {
     'imagePipeline',
     'ultra',
     'photoSky',
+    'gpuFrames',
   ],
   circuit: [
     'gridPreparation',

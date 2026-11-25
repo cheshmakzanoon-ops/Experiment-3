@@ -241,6 +241,11 @@ export class UiSounds {
     this.abort.abort();
     this.releaseContext();
   }
+  /** Cancel pre-navigation cues while keeping the event owner usable. A later
+   * player cue creates a fresh graph; an old context resume owns no voices. */
+  suspend() {
+    if (!this.disposed) this.releaseContext();
+  }
   /** Menu audio is optional: one failed release must not strand its other nodes. */
   private release(cleanup: () => void) {
     try {

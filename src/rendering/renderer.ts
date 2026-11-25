@@ -148,7 +148,7 @@ import { DebrisView } from './debris.ts';
 import { PitCrewView, serviceWheelOffset } from './pit-crew.ts';
 import { MotionBlur } from './motion-blur.ts';
 import { GpuTimer } from './gpu-timer.ts';
-import { GpuFrameGate } from './gpu-frame-gate.ts';
+import { acquireGpuFrameGate, type GpuFrameLease } from './shared-gpu-frame-gate.ts';
 import { createWebGLRenderer } from './webgl-renderer.ts';
 import { TextureBudget } from './texture-budget.ts';
 import {
@@ -504,7 +504,7 @@ export class RacingRenderer {
   /** Inputs of the baked far map besides the lighting: size and planting. */
   private farShadowInputs = '';
   private gpuTimer: GpuTimer;
-  private gpuFrames: GpuFrameGate;
+  private gpuFrames: GpuFrameLease;
   private previousAnchor = new T.Vector3();
   private temporary = new T.Vector3();
   private chaseBasis = new T.Quaternion();
@@ -553,7 +553,6 @@ export class RacingRenderer {
     this.renderer = renderer;
     this.gpuTimer = new GpuTimer(context);
     this.drawLedger = attachDrawLedger(this.renderer);
-    this.gpuFrames = new GpuFrameGate(context);
     this.bikeShells = new BikeShells(track);
     this.atmosphere = new LocalAtmosphere(track);
     this.guide = new DrivingGuide(track);
@@ -722,6 +721,8 @@ export class RacingRenderer {
       this.textures.register(this.circuit.group);
     }
     this.resize();
+    // Construction failures must not retain a context-wide ownership lease.
+    this.gpuFrames = acquireGpuFrameGate(context);
   }
   /** A new car field needs its own jack kit before the pit crew caches any poses. */
   canPrepareGrid(gpGrid: boolean) {

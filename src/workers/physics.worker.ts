@@ -7,7 +7,13 @@ import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
 import { controls, type Controls, type SessionOptions } from '../simulation/config.ts';
-import { InputLog, Resimulation, applyLoggedInput, flashbackFloor } from '../core/flashback.ts';
+import {
+  InputLog,
+  Resimulation,
+  applyLoggedInput,
+  flashbackFloor,
+  supportsFlashback,
+} from '../core/flashback.ts';
 import { EngineeringChannel, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
 const engineeringChannel = new EngineeringChannel();
 const scope = self as unknown as DedicatedWorkerGlobalScope;
@@ -22,8 +28,9 @@ const surfaces = new SurfaceChannel();
 let pendingFlashback = false;
 let pool: FrameBufferPool | null = null;
 let telemetry: TelemetrySampler | null = null;
-// D31 flashback: every applied input, the session options and a running rewind.
-let log = new InputLog(),
+// Enabled modes need every applied input from session start for resimulation.
+// Telemetry, replay and ghost capture do not consume this optional journal.
+let log: InputLog | null = null,
   sessionOptions: SessionOptions | null = null,
   rewind: Resimulation | null = null;
 function applyInput(input: Controls) {
@@ -42,7 +49,7 @@ function recorder(sim: Simulation) {
 function finishFlashback(job: Resimulation) {
   shifts.clear();
   simulation = job.simulation;
-  log.truncate(job.target);
+  log?.truncate(job.target);
   telemetry = recorder(simulation);
   engineeringChannel.reset();
   lastInput = performance.now();
@@ -136,7 +143,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         engineeringChannel.reset();
         simulation = new Simulation(msg.options);
         sessionOptions = msg.options;
-        log = new InputLog();
+        log = supportsFlashback(msg.options.mode) ? new InputLog() : null;
         rewind = null;
         pendingFlashback = false;
         surfaces.reset(0, true);
@@ -181,13 +188,13 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
           send({ type: 'pauseState', sequence: msg.sequence, value: paused, tick: simulation.tick });
         break;
       case 'pit':
-        if (simulation) log.pit(simulation.tick, msg.compound);
+        if (simulation) log?.pit(simulation.tick, msg.compound);
         simulation?.requestPit(msg.compound);
         break;
       case 'autopilot':
         if (simulation) {
           if (simulation.autoPlayer !== msg.value) shifts.clear();
-          log.autopilot(simulation.tick, msg.value);
+          log?.autopilot(simulation.tick, msg.value);
           simulation.autoPlayer = msg.value;
         }
         break;
@@ -195,6 +202,7 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
         if (
           !simulation ||
           !sessionOptions ||
+          !log ||
           rewind ||
           pendingFlashback ||
           !Number.isInteger(msg.tick) ||

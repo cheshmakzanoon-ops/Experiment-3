@@ -60,6 +60,8 @@ type Host = Record<string, unknown> & { disposed: boolean; generation: number; d
 const stages = [
   'keyboard',
   'blur',
+  'pagehide',
+  'pageshow',
   'review',
   'tab',
   'performance',
@@ -103,6 +105,8 @@ function fixture() {
   const removeEventListener = vi.fn((type: string, _listener: unknown) => {
     if (type === 'keydown') release.keyboard();
     else if (type === 'blur') release.blur();
+    else if (type === 'pagehide') release.pagehide();
+    else if (type === 'pageshow') release.pageshow();
     else throw new Error(`Unexpected host listener: ${type}`);
   });
   const dispose = method(hostCode, {
@@ -113,9 +117,12 @@ function fixture() {
   });
   const host: Host = {
     disposed: false,
+    pageWaiters: new Set<() => void>(),
     generation: 17,
     reviewKeyboard: () => undefined,
     suspendOnBlur: () => undefined,
+    pageHide: () => undefined,
+    pageShow: () => undefined,
     sessionReview: { stop: release.review },
     tabEvidence: { dispose: release.tab },
     performanceCapture: { interrupt: release.performance },
@@ -124,6 +131,7 @@ function fixture() {
     exporter: { cancel: release.export },
     replay: { dispose: replay },
     inputPump: { dispose: release.pump },
+    ui: { dispose: vi.fn() },
     festivalOwner: { cancel: release.festival },
     endDemoClock: release.demo,
     timer: 71,
@@ -231,6 +239,7 @@ const rendererOwners = [
   'ultra',
   'photoSky',
   'composer',
+  'gpuFrames',
 ] as const;
 
 function rendererFixture() {
@@ -422,6 +431,8 @@ describe('terminal host resource ownership', () => {
     expect(f.removeEventListener.mock.calls).toEqual([
       ['keydown', f.host.reviewKeyboard],
       ['blur', f.host.suspendOnBlur],
+      ['pagehide', f.host.pageHide],
+      ['pageshow', f.host.pageShow],
     ]);
     for (const name of stages) expect(f.release[name], name).toHaveBeenCalledTimes(1);
     expect(f.audio).toHaveBeenCalledTimes(1);

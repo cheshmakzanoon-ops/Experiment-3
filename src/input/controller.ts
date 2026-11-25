@@ -169,6 +169,12 @@ export class InputController {
     this.enabled = value;
     this.reset();
   }
+  /** History navigation also revokes action edges. Ordinary pause/resume keeps
+   * those edges, but a button held while away must become a new baseline. */
+  suspendForPage() {
+    this.buttons.reset();
+    this.setEnabled(false);
+  }
   reset() {
     this.generation++;
     this.keys.clear();

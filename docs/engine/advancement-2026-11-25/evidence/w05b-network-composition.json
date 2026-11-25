@@ -1,0 +1,118 @@
+{
+  "purpose": "correctness only; no timing samples",
+  "baseline": {
+    "root": "/dev/shm/aeebac160835-engine-baseline",
+    "suppliedCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+    "commitVerification": "Coordinator-provided pin; this runner checks file hashes without invoking Git."
+  },
+  "current": {
+    "root": "/tmp/aeebac160835-engine/Experiment-3"
+  },
+  "node": "v24.22.3",
+  "runnerSha256": "ba15d8f4fa42f255725591a201a19eb7ab907330d9cde0f6727e517f58a869e6",
+  "workloadSha256": "7be3dee9bbfea5531709a20a645cc06a7d8b023db63e7dd09caec50ceca0072b",
+  "sources": {
+    "baseline": {
+      "src/net/server.ts": "0eb3de9f8223fd6398f50187c8f1ae43123c334cd500a7f775929524e0aaa9de",
+      "src/net/client.ts": "87464b750e40da58f324d4a1b9eec83d6d29cd6414fa9b9396418e285307ab3c",
+      "src/net/interpolation.ts": "9395a43121736503fab7911ef56adeabfa5a126f33904fe5264c724047012bfd",
+      "src/net/codec.ts": "4a2c0e32ac8f39ffdb1944019bcbba69ff54aa27679d38bc6a1fffccb76524f1",
+      "src/net/snapshot.ts": "4c46a076b171f67072164b685b9400ce2d3993397ebfa52e10a9f67d2a7571a6",
+      "src/net/input.ts": "1aa7212dc76a5f0d0de10b694ede0f15c68a701368e2cddc1998c765ce061d30",
+      "src/net/transport.ts": "1d220ca8adee01a6f83c83bafb3619fc6c57e3f6eb3c06a43bda876f8fcccc44",
+      "tests/net-helpers.ts": "74ae3817927cbcc22c7c88bf579033966fab81532d47f98d6205c472d69e81a8"
+    },
+    "current": {
+      "src/net/server.ts": "6969952a1c5e85d4a8485df2e88acd91c2495ded05477f6c275bdfb9e1dd0c84",
+      "src/net/client.ts": "e6863b7945568f7794030165dcaa7637fa02c8042eeb9acb858fec98a49129cb",
+      "src/net/interpolation.ts": "1c8110321d901625581aecb7c97afd4aa05a6e618ad22df71563327c5d345984",
+      "src/net/codec.ts": "3b1e8185691a6c9e63fbacfdfb59af2e691aed8e255c7d645c92c708da97a79a",
+      "src/net/snapshot.ts": "5bb5c19c1ed830a3f89dc553c1a7333c4d7dcc6f5a353ac2909f0193cd136b61",
+      "src/net/input.ts": "1aa7212dc76a5f0d0de10b694ede0f15c68a701368e2cddc1998c765ce061d30",
+      "src/net/transport.ts": "1d220ca8adee01a6f83c83bafb3619fc6c57e3f6eb3c06a43bda876f8fcccc44",
+      "tests/net-helpers.ts": "74ae3817927cbcc22c7c88bf579033966fab81532d47f98d6205c472d69e81a8"
+    }
+  },
+  "comparisons": [
+    {
+      "baseline": {
+        "seed": 17,
+        "packets": 1146,
+        "inputPackets": 678,
+        "snapshotAttempts": 468,
+        "inputBytes": 68274,
+        "snapshotBytes": 71136,
+        "transitionTick": 708,
+        "worldTick": 1062,
+        "sentSnapshots": 467,
+        "missingTicks": 49,
+        "duplicatedCommands": 5006,
+        "quietBoundaries": 6,
+        "rawRewinds": 1,
+        "correctionFrames": 0,
+        "boundedPlayback": false,
+        "packetOwnership": true
+      },
+      "current": {
+        "seed": 17,
+        "packets": 1146,
+        "inputPackets": 678,
+        "snapshotAttempts": 468,
+        "inputBytes": 68274,
+        "snapshotBytes": 71136,
+        "transitionTick": 708,
+        "worldTick": 1062,
+        "sentSnapshots": 467,
+        "missingTicks": 49,
+        "duplicatedCommands": 5006,
+        "quietBoundaries": 6,
+        "rawRewinds": 1,
+        "correctionFrames": 99,
+        "boundedPlayback": true,
+        "packetOwnership": true
+      },
+      "matchedComparableSha256": "98d960b92518dddaa6852fc630fb15ef6381a69f6a13602b0ed541a6484efe2f",
+      "matchedPacketSha256": "f42f3e55f29c9e14b533399913e44436a7e1b593e533a828980859f9726f0ed5"
+    },
+    {
+      "baseline": {
+        "seed": 48177,
+        "packets": 1146,
+        "inputPackets": 678,
+        "snapshotAttempts": 468,
+        "inputBytes": 68184,
+        "snapshotBytes": 71136,
+        "transitionTick": 708,
+        "worldTick": 1062,
+        "sentSnapshots": 467,
+        "missingTicks": 58,
+        "duplicatedCommands": 5032,
+        "quietBoundaries": 6,
+        "rawRewinds": 1,
+        "correctionFrames": 0,
+        "boundedPlayback": false,
+        "packetOwnership": true
+      },
+      "current": {
+        "seed": 48177,
+        "packets": 1146,
+        "inputPackets": 678,
+        "snapshotAttempts": 468,
+        "inputBytes": 68184,
+        "snapshotBytes": 71136,
+        "transitionTick": 708,
+        "worldTick": 1062,
+        "sentSnapshots": 467,
+        "missingTicks": 58,
+        "duplicatedCommands": 5032,
+        "quietBoundaries": 6,
+        "rawRewinds": 1,
+        "correctionFrames": 100,
+        "boundedPlayback": true,
+        "packetOwnership": true
+      },
+      "matchedComparableSha256": "8249c3badea410bae377fc017fc52d3356b77fff7a1c77c08333ed8e0660a3c2",
+      "matchedPacketSha256": "0aabd4f865fd97499a49a41f72dab7bdd2c023d78330b6ee3c3b465d48bd60d6"
+    }
+  ]
+}

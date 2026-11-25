@@ -40,16 +40,74 @@ export function creditsHtml(lines: readonly CreditLine[] = creditLines()) {
  * the focused control, B or Start closes. Polls only while the modal is open.
  */
 export class CreditsGamepad {
-  private frame = 0;
+  private frame: number | null = null;
+  private frameGeneration = 0;
   private previous = new Set<number>();
+  private device: Pick<Gamepad, 'index' | 'id' | 'mapping'> | null = null;
+  private focused = true;
+  private pageActive = true;
+  private navigationReady = false;
+  private ownership = 0;
   private disposed = false;
+  private resetOwnership = () => {
+    this.ownership++;
+    this.device = null;
+    this.previous.clear();
+    this.navigationReady = false;
+  };
+  private blur = () => {
+    this.focused = false;
+    this.resetOwnership();
+  };
+  private focus = () => {
+    this.focused = true;
+    this.resetOwnership();
+  };
+  private pageHide = () => {
+    if (this.disposed || !this.pageActive) return;
+    this.pageActive = false;
+    this.resetOwnership();
+    this.cancelFrame();
+  };
+  private pageShow = () => {
+    if (this.disposed) return;
+    this.pageActive = true;
+    this.focused = document.hasFocus?.() ?? this.focused;
+    this.resetOwnership();
+    this.scheduleFrame();
+  };
+  private disconnect = (event: GamepadEvent) => {
+    if (event.gamepad.index === this.device?.index) this.resetOwnership();
+  };
   constructor(
     private readonly list: HTMLElement,
     private readonly close: () => void,
   ) {
     // Buttons held while the modal opened are not new presses.
-    this.previous = this.pressed();
-    this.frame = requestAnimationFrame(() => this.poll());
+    this.focused = document.hasFocus?.() ?? true;
+    const pad = this.pad();
+    if (pad && this.focused && !document.hidden) this.baseline(pad);
+    window.addEventListener('blur', this.blur);
+    window.addEventListener('focus', this.focus);
+    window.addEventListener('pagehide', this.pageHide);
+    window.addEventListener('pageshow', this.pageShow);
+    window.addEventListener('gamepaddisconnected', this.disconnect);
+    document.addEventListener('visibilitychange', this.resetOwnership);
+    this.scheduleFrame();
+  }
+  private scheduleFrame() {
+    if (this.disposed || !this.pageActive || this.frame !== null) return;
+    const generation = ++this.frameGeneration;
+    this.frame = requestAnimationFrame(() => {
+      if (this.disposed || !this.pageActive || generation !== this.frameGeneration) return;
+      this.frame = null;
+      this.poll();
+    });
+  }
+  private cancelFrame() {
+    this.frameGeneration++;
+    if (this.frame !== null) cancelAnimationFrame(this.frame);
+    this.frame = null;
   }
   private pad() {
     try {
@@ -60,29 +118,77 @@ export class CreditsGamepad {
       return null;
     }
   }
-  private pressed() {
-    const pad = this.pad(),
-      set = new Set<number>();
-    pad?.buttons.forEach((b, i) => b.pressed && set.add(i));
+  private pressed(pad: Gamepad) {
+    const set = new Set<number>();
+    pad.buttons.forEach((b, i) => b.pressed && set.add(i));
     return set;
   }
+  private baseline(pad: Gamepad) {
+    this.device = { index: pad.index, id: pad.id, mapping: pad.mapping };
+    this.previous = this.pressed(pad);
+    this.navigationReady =
+      !this.previous.has(12) && !this.previous.has(13) && Math.abs(pad.axes[1] ?? 0) <= 0.25;
+  }
   private poll() {
-    if (this.disposed) return;
+    if (this.disposed || !this.pageActive) return;
+    const ownership = this.ownership;
     const pad = this.pad();
-    if (pad) {
-      const now = this.pressed(),
-        edge = (i: number) => now.has(i) && !this.previous.has(i);
-      const stick = Math.abs(pad.axes[1] ?? 0) > 0.25 ? (pad.axes[1] ?? 0) : 0;
-      const step = (now.has(13) ? 1 : 0) - (now.has(12) ? 1 : 0) + stick;
-      if (step) this.list.scrollBy({ top: step * 14 });
-      this.previous = now;
-      if (edge(1) || edge(9)) return this.close();
-      if (edge(0) && document.activeElement instanceof HTMLElement) document.activeElement.click();
+    if (this.disposed || !this.pageActive || ownership !== this.ownership) {
+      this.scheduleFrame();
+      return;
     }
-    this.frame = requestAnimationFrame(() => this.poll());
+    if (!pad || !this.focused || document.hidden) {
+      this.resetOwnership();
+      this.scheduleFrame();
+      return;
+    }
+    if (
+      !this.device ||
+      pad.index !== this.device.index ||
+      pad.id !== this.device.id ||
+      pad.mapping !== this.device.mapping
+    ) {
+      this.resetOwnership();
+      this.baseline(pad);
+      this.scheduleFrame();
+      return;
+    }
+    const now = this.pressed(pad),
+      previous = this.previous;
+    this.previous = now;
+    const edge = (i: number) => now.has(i) && !previous.has(i);
+    const stick = Math.abs(pad.axes[1] ?? 0) > 0.25 ? (pad.axes[1] ?? 0) : 0;
+    const step = (now.has(13) ? 1 : 0) - (now.has(12) ? 1 : 0) + stick;
+    if (!now.has(12) && !now.has(13) && stick === 0) this.navigationReady = true;
+    if (step && this.navigationReady) {
+      this.list.scrollBy({ top: step * 14 });
+      // Scrolling may run a callback that replaces the modal or suspends its
+      // page. None of the remaining edges belongs to that new owner.
+      if (
+        this.disposed ||
+        !this.pageActive ||
+        !this.focused ||
+        document.hidden ||
+        ownership !== this.ownership
+      ) {
+        this.scheduleFrame();
+        return;
+      }
+    }
+    if (edge(1) || edge(9)) return this.close();
+    if (edge(0) && document.activeElement instanceof HTMLElement) document.activeElement.click();
+    this.scheduleFrame();
   }
   dispose() {
+    if (this.disposed) return;
     this.disposed = true;
-    cancelAnimationFrame(this.frame);
+    this.cancelFrame();
+    window.removeEventListener('blur', this.blur);
+    window.removeEventListener('focus', this.focus);
+    window.removeEventListener('pagehide', this.pageHide);
+    window.removeEventListener('pageshow', this.pageShow);
+    window.removeEventListener('gamepaddisconnected', this.disconnect);
+    document.removeEventListener('visibilitychange', this.resetOwnership);
+    this.resetOwnership();
   }
 }

@@ -315,7 +315,8 @@ async function runningFixture(mode: 'cockpit' | 'chase', gamepad: boolean) {
     presented: { value: frame },
     guidance: { cue: null },
     driftCue: null,
-    draw: vi.fn(),
+    canSubmitFrame: vi.fn(() => true),
+    draw: vi.fn(() => true),
     audioView: { value: {} },
     dispose: vi.fn(),
   };

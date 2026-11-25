@@ -238,7 +238,7 @@ export class GameApp {
   private readonly uiSounds = new UiSounds({
     settings: () => ({
       volume: this.settings.volume,
-      muted: this.audio.muted,
+      muted: this.audio.muted || this.pageSuspended || this.disposed,
       level: this.settings.audioLevels.ui,
     }),
   });
@@ -279,6 +279,12 @@ export class GameApp {
   private settingsPhase: SettingsPhase = 'idle';
   private settingsResizePending = false;
   private disposed = false;
+  private pageSuspended = false;
+  /** Revokes pre-navigation automatic completions without replacing a retained
+   * circuit worker's session generation. */
+  private pageEpoch = 0;
+  private pageMenuRecovery = false;
+  private readonly pageWaiters = new Set<() => void>();
   private settings: Settings = structuredClone(DEFAULT_SETTINGS);
   private worker: Worker | null = null;
   private current: Float32Array | null = null;
@@ -303,6 +309,7 @@ export class GameApp {
   private flashbacks = 0;
   private flashbackMode = false;
   private flashbackPending = false;
+  private flashbackResumeEpoch = 0;
   private flashbackPanel!: FlashbackPanel;
   private safetyCarScratch = ghostPose();
   private inputPump: InputPump;
@@ -321,7 +328,8 @@ export class GameApp {
   private readonly menuPreviewView = { circuit: '', width: 0, height: 0 };
   private viewportRedrawPending = false;
   private presentationFrames = 0;
-  private timer = 0;
+  /** RAF identifiers may be zero; only null means no callback is pending. */
+  private timer: number | null = null;
   private generation = 0;
   private rendererBuild = 0;
   private replay: SessionReplay | null = null;
@@ -388,6 +396,7 @@ export class GameApp {
       },
       remember: (entry) => this.rememberEntry(entry),
       previewAudio: (settings) => {
+        if (this.disposed || this.pageSuspended) return;
         void this.audio
           .previewDriving(settings)
           .catch((error) => this.ui.toast(`Audio preview unavailable: ${String(error)}`));
@@ -505,14 +514,14 @@ export class GameApp {
     });
     this.input = new InputController(this.settings, (name) => this.action(name));
     this.inputPump = new InputPump((dt) => {
-      if (this.errorStopped || document.hidden) return;
+      if (this.disposed || this.pageSuspended || this.errorStopped || document.hidden) return;
       const festival = this.festival;
       if (festival) {
         if (!festival.drivingInputEnabled) this.input.pollActions(['pause']);
         else {
           const input = this.input.update(dt);
           // An input action can pause or synchronously close this session.
-          if (this.festival !== festival || !festival.drivingInputEnabled) return;
+          if (this.pageSuspended || this.festival !== festival || !festival.drivingInputEnabled) return;
           festival.input(input);
           input.shift = 0;
         }
@@ -532,7 +541,7 @@ export class GameApp {
       }
       const input = this.input.update(dt);
       // A device fault may have paused the session during update().
-      if (this.state !== 'driving') return;
+      if (this.pageSuspended || this.state !== 'driving') return;
       input.ers = this.ers;
       input.drs = this.drsPress;
       input.overtake = this.overtakePress;
@@ -586,7 +595,8 @@ export class GameApp {
         this.renderer.lookY = clamp(this.renderer.lookY - e.movementY * 0.002, -0.45, 0.6);
       }
     });
-    window.addEventListener('pagehide', () => this.dispose());
+    window.addEventListener('pagehide', this.pageHide);
+    window.addEventListener('pageshow', this.pageShow);
     window.addEventListener('unhandledrejection', (e) => this.fail(e.reason));
     window.addEventListener('error', (e) => {
       if (e.error) this.fail(e.error);
@@ -630,10 +640,13 @@ export class GameApp {
     build = ++this.rendererBuild,
   ) {
     const generation = this.generation,
+      pageEpoch = this.pageEpoch,
       track = this.track,
       cancelled = () =>
         this.disposed ||
+        this.pageSuspended ||
         this.errorStopped ||
+        pageEpoch !== this.pageEpoch ||
         generation !== this.generation ||
         build !== this.rendererBuild;
     if (cancelled()) return false;
@@ -713,9 +726,12 @@ export class GameApp {
   private async switchCircuit(id: CircuitId, gpGrid = false) {
     const build = ++this.rendererBuild,
       generation = this.generation,
+      pageEpoch = this.pageEpoch,
       cancelled = () =>
         this.disposed ||
+        this.pageSuspended ||
         this.errorStopped ||
+        pageEpoch !== this.pageEpoch ||
         generation !== this.generation ||
         build !== this.rendererBuild;
     if (cancelled()) return false;
@@ -827,7 +843,14 @@ export class GameApp {
     this.ui.applyBindings(this.settings.bindings);
     this.ui.loading('Preparing your vehicle showroom…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    if (!(await this.buildRenderer(canvas, true))) return;
+    // A retained initial load waits for pageshow before creating GPU/worker
+    // resources. A build revoked during navigation is retried only on return.
+    for (;;) {
+      if (!(await this.waitForPage())) return;
+      const pageEpoch = this.pageEpoch;
+      if (await this.buildRenderer(canvas, true)) break;
+      if (pageEpoch === this.pageEpoch) return;
+    }
     this.applyAudio(this.settings);
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     applyHudScale(document.documentElement, this.settings.hudScale);
@@ -846,7 +869,7 @@ export class GameApp {
     // Merely submitting it can leave the browser unable to paint the menu or
     // complete normal input actionability checks while that work is pending.
     this.revealMenu = true;
-    this.timer = requestAnimationFrame(this.frame);
+    this.scheduleFrame();
   }
   /** The first-launch record (src/ui/first-run.ts), null until the screen has been shown. */
   private firstRunRecord: FirstRunRecord | null = null;
@@ -986,6 +1009,8 @@ export class GameApp {
   private workerPause = new PauseHandshake();
   private post(message: ClientMessage, transfer: Transferable[] = []) {
     if (!this.worker) return;
+    if (this.pageSuspended &&
+      (message.type === 'init' || (message.type === 'pause' && !message.value))) return;
     if (message.type === 'pause') this.liveFrames.setPaused(message.value);
     this.worker.postMessage(
       message.type === 'pause' ? this.workerPause.request(message.value) : message,
@@ -1001,6 +1026,8 @@ export class GameApp {
   ) {
     if (
       this.disposed ||
+      this.pageSuspended ||
+      this.pageMenuRecovery ||
       this.errorStopped ||
       this.festival ||
       this.festivalStarting ||
@@ -1069,14 +1096,16 @@ export class GameApp {
             livery: () => startup.current() ? this.team.livery : null,
             // Driving input off while a festival menu is open (keyboard focus
             // reaches its buttons), as in the circuit pause.
-            driving: startup.guard((on) => this.input.setEnabled(on)),
+            driving: startup.guard((on) => this.input.setEnabled(on && !this.pageSuspended)),
             audio: {
               start: async () => {
-                if (startup.current()) await this.audio.start();
+                if (startup.current() && !this.pageSuspended) await this.audio.start();
               },
               stop: startup.guard(() => this.audio.stop()),
-              update: startup.guard((frame, cockpit, playing, view, liveHuman) =>
-                this.audio.update(frame, cockpit, playing, view, liveHuman)),
+              update: startup.guard((frame, cockpit, playing, view, liveHuman) => {
+                if (!this.pageSuspended)
+                  this.audio.update(frame, cockpit, playing, view, liveHuman);
+              }),
             },
             // Career hook: a typed FestivalResult per finished/abandoned event.
             onResult: startup.guard((result) =>
@@ -1198,7 +1227,7 @@ export class GameApp {
     this.endDemoClock();
     this.input.setEnabled(false);
     this.audio.stop();
-    if (this.disposed || this.errorStopped) return;
+    if (this.disposed || this.pageSuspended || this.errorStopped) return;
     this.career.endFestival();
     // The festival shared the GL context: restore the circuit presentation.
     this.renderer?.setQuality(this.settings.quality, this.settings.graphics);
@@ -1215,7 +1244,8 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
-    if (this.disposed || this.errorStopped || this.festival || this.festivalStarting) return;
+    if (this.disposed || this.pageSuspended || this.pageMenuRecovery || this.errorStopped ||
+      this.festival || this.festivalStarting) return;
     // Steam demo: whichever door the session came through (paddock form, CONTINUE, career,
     // Wildcard board, meeting), content outside the slice stops here.
     const locked = demoSessionLock(options, career?.event?.key ?? null);
@@ -1665,7 +1695,8 @@ export class GameApp {
     });
   }
   private frame = (time: number) => {
-    this.timer = requestAnimationFrame(this.frame);
+    if (this.disposed || this.pageSuspended || this.errorStopped) return;
+    this.scheduleFrame();
     const menuActive = this.state === 'menu' && !this.festival && !this.festivalStarting;
     if (!menuActive && this.menuPresentationActive) this.resetMenuPresentation();
     this.menuPresentationActive = menuActive;
@@ -2074,6 +2105,102 @@ export class GameApp {
       }
     }
   };
+  /** A RAF belongs to the page visit that requested it. Cancelling a callback
+   * does not make an already queued delivery safe after the next pageshow. */
+  private scheduleFrame() {
+    if (this.disposed || this.errorStopped || this.pageSuspended || this.timer !== null) return;
+    const pageEpoch = this.pageEpoch;
+    this.timer = requestAnimationFrame((time) => {
+      if (this.disposed || this.pageSuspended || pageEpoch !== this.pageEpoch) return;
+      this.timer = null;
+      this.frame(time);
+    });
+  }
+  private async waitForPage() {
+    while (this.pageSuspended && !this.disposed && !this.errorStopped)
+      await new Promise<void>((resolve) => this.pageWaiters.add(resolve));
+    return !this.disposed && !this.errorStopped;
+  }
+  private readonly pageHide = (event: PageTransitionEvent) => {
+    if (!event.persisted) {
+      this.dispose();
+      return;
+    }
+    if (this.disposed || this.pageSuspended) return;
+    this.pageSuspended = true;
+    this.pageEpoch++;
+    const timer = this.timer;
+    this.timer = null;
+    if (timer !== null) cancelAnimationFrame(timer);
+    this.inputPump.dispose();
+    this.uiSounds.suspend();
+    this.menuFrames.suspend();
+    // Only unfinished starts are replaced. An active circuit keeps its worker
+    // generation so its final pause snapshot/receipt can still be consumed.
+    const startup = this.circuitStartup;
+    if (startup) {
+      this.generation++;
+      this.rendererBuild++;
+      this.circuitStartup = null;
+      startup.close();
+      clearTimeout(this.initTimeout);
+      this.initTimeout = 0;
+      const worker = this.worker;
+      this.worker = null;
+      worker?.terminate();
+      this.current = this.previous = null;
+      this.liveFrames.reset();
+      this.pageMenuRecovery = true;
+    }
+    if (this.festivalStarting) {
+      this.festivalOwner.cancel();
+      this.pageMenuRecovery = true;
+    } else this.festival?.setPageSuspended(true);
+    this.suspendPlayback();
+    this.gridAutomatic = false;
+    this.dirtGateRelease = null;
+    this.drsPress = this.overtakePress = false;
+    this.input.suspendForPage();
+    this.post({ type: 'input', input: controls() });
+    this.post({ type: 'pause', value: true });
+    this.audio.stop();
+    if (document.pointerLockElement) document.exitPointerLock();
+  };
+  private readonly pageShow = (event: PageTransitionEvent) => {
+    if (!event.persisted || !this.pageSuspended || this.disposed) return;
+    this.pageSuspended = false;
+    for (const resolve of this.pageWaiters) resolve();
+    this.pageWaiters.clear();
+    if (this.errorStopped) return;
+    // No wall time, queued input edge, preview sound or automatic grid/playback
+    // permission crosses a retained navigation. Resume is a new player action.
+    this.previousTime = this.renderedAt = this.demoClockAt = this.liveSkyChecked = 0;
+    this.renderedState = null;
+    this.viewportRedrawPending = true;
+    this.input.suspendForPage();
+    this.audio.stop();
+    this.liveFrames.setPaused(true);
+    this.renderer?.reset();
+    this.festival?.setPageSuspended(false);
+    if (this.state === 'menu') this.menuPreviewReceipt.request('return');
+    this.inputPump.start();
+    this.scheduleFrame();
+    if (this.pageMenuRecovery) void this.restorePageMenu().catch((error) => this.fail(error));
+  };
+  private async restorePageMenu() {
+    const pageEpoch = this.pageEpoch;
+    const current = () => !this.disposed && !this.errorStopped && !this.pageSuspended &&
+      pageEpoch === this.pageEpoch;
+    if (!current()) return;
+    if (!this.renderer && (!this.canvas || !(await this.buildRenderer(this.canvas, true)))) return;
+    if (!current()) return;
+    this.exitFestival();
+    const preview = this.menuMachineFrame!;
+    this.current = this.previous = preview;
+    this.liveFrames.reset();
+    this.liveFrames.observe(preview, performance.now());
+    this.pageMenuRecovery = false;
+  }
   private readonly suspendOnBlur = () => this.suspendPlayback();
   private suspendPlayback() {
     this.rumble.stop(null);
@@ -2410,7 +2537,8 @@ export class GameApp {
     else this.ui.pause();
   }
   private resume() {
-    if (this.savingSettings || this.state !== 'paused' || this.ui.telemetryModal.open) return;
+    if (this.disposed || this.pageSuspended || this.errorStopped || this.savingSettings ||
+      this.state !== 'paused' || this.ui.telemetryModal.open) return;
     this.ui.closeModal();
     this.state = 'driving';
     this.gridBriefingOpen = false;
@@ -2565,6 +2693,7 @@ export class GameApp {
       return;
     }
     this.flashbackPending = true;
+    this.flashbackResumeEpoch = this.pageEpoch;
     this.flashbackPanel.busy(true);
     this.post({ type: 'flashback', tick });
   }
@@ -2580,7 +2709,7 @@ export class GameApp {
     this.flashbackPanel.show(false);
     this.exitReplay();
     this.ui.toast(t('FLASHBACK · {n} LEFT', { n: FLASHBACK.perRace - this.flashbacks }));
-    if (this.state === 'paused') this.resume();
+    if (this.state === 'paused' && this.flashbackResumeEpoch === this.pageEpoch) this.resume();
   }
   private exitReplay() {
     if (this.state !== 'replay') return;
@@ -2709,6 +2838,7 @@ export class GameApp {
   /** The machine whose setup the garage shows: the session's own machine
    * while one runs, else (undefined) the menu's MACHINE choice. */
   private action(name: string) {
+    if (this.disposed || this.pageSuspended || (this.pageMenuRecovery && name !== 'reload')) return;
     // The worker is terminated after a fatal graphics error. A native dialog
     // cancel or a queued resume must leave the recovery button accessible.
     if (this.errorStopped && name !== 'reload') return;
@@ -3469,6 +3599,8 @@ export class GameApp {
     if (
       this.savingSettings ||
       this.disposed ||
+      this.pageSuspended ||
+      this.pageMenuRecovery ||
       this.errorStopped ||
       this.circuitStartup ||
       this.state === 'loading' ||
@@ -3480,9 +3612,12 @@ export class GameApp {
     const submit = form?.querySelector<HTMLButtonElement>('[type="submit"]');
     const renderer = this.renderer;
     const generation = this.generation;
+    const pageEpoch = this.pageEpoch;
     const cancelled = () =>
       this.disposed ||
+      this.pageSuspended ||
       this.errorStopped ||
+      pageEpoch !== this.pageEpoch ||
       this.generation !== generation ||
       this.renderer !== renderer;
     const graphicsChanged = graphicsSettingsChanged(this.settings, settings);
@@ -3540,7 +3675,9 @@ export class GameApp {
       // A new language rebuilds every screen: it takes effect with a restart, at once when
       // nothing would be lost (the paddock), otherwise at the next start.
       if (outcome.saved && resolveLocale(settings.language, navigator.languages) !== currentLocale()) {
-        if (this.state === 'menu') window.setTimeout(() => location.reload(), 700);
+        if (this.state === 'menu') window.setTimeout(() => {
+          if (!cancelled()) location.reload();
+        }, 700);
         else this.ui.toast(t('The language changes the next time the game starts.'));
       }
     } catch (error) {
@@ -3600,6 +3737,10 @@ export class GameApp {
       }
     };
     release(() => startup?.close(error instanceof Error ? error : new Error(String(error))));
+    release(() => {
+      for (const resolve of this.pageWaiters) resolve();
+      this.pageWaiters.clear();
+    });
     release(() => clearTimeout(initTimeout));
     release(() => this.exporter.cancel());
     release(() => this.referenceSession?.interrupt('Application error.'));
@@ -3626,6 +3767,7 @@ export class GameApp {
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
+      pageLifecycle: { suspended: this.pageSuspended, epoch: this.pageEpoch },
       festival: {
         starting: this.festivalStarting,
         active: !!this.festival,
@@ -3753,6 +3895,12 @@ export class GameApp {
     };
     release(() => window.removeEventListener('keydown', this.reviewKeyboard));
     release(() => window.removeEventListener('blur', this.suspendOnBlur));
+    release(() => window.removeEventListener('pagehide', this.pageHide));
+    release(() => window.removeEventListener('pageshow', this.pageShow));
+    release(() => {
+      for (const resolve of this.pageWaiters) resolve();
+      this.pageWaiters.clear();
+    });
     release(() => this.sessionReview.stop('Application disposed', true));
     release(() => this.tabEvidence.dispose());
     release(() => this.performanceCapture.interrupt('Application disposed'));
@@ -3764,9 +3912,14 @@ export class GameApp {
         void this.replay.dispose().catch((e) => console.warn('Replay cleanup:', e));
     });
     release(() => this.inputPump.dispose());
+    release(() => this.ui.dispose());
     release(() => this.festivalOwner.cancel());
     release(() => this.endDemoClock());
-    release(() => cancelAnimationFrame(this.timer));
+    release(() => {
+      const timer = this.timer;
+      this.timer = null;
+      if (timer !== null) cancelAnimationFrame(timer);
+    });
     release(() => {
       clearTimeout(this.initTimeout);
       this.initTimeout = 0;

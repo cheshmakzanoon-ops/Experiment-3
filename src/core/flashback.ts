@@ -6,8 +6,8 @@ import type { Compound, Controls, SessionOptions } from '../simulation/config.ts
  *
  * The simulation is deterministic per tick (fixed 1/120 s, seeded), so a past
  * state is recreated exactly by re-simulating the session from its start with
- * the same inputs. The worker logs every input it applies, stamped with the
- * simulation tick it was applied before (`Simulation.tick` at that moment):
+ * the same inputs. In supported modes, the worker logs every input it applies,
+ * stamped with the simulation tick before application (`Simulation.tick`):
  * driver controls (including the pause reset and the 0.4 watchdog brake), pit
  * requests and the AI-demonstration toggle. `Resimulation` replays the log in
  * slices bounded by both `FLASHBACK.slice` steps and a wall-time work budget
@@ -24,6 +24,12 @@ export const FLASHBACK = Object.freeze({
   maxWorkMs: 8,
   dt: 1 / 120,
 });
+
+/** Only these session modes can resume a recorded timeline. Time-trial and
+ * qualifying laps stay competitive and need no flashback input journal. */
+export function supportsFlashback(mode: SessionOptions['mode']) {
+  return mode === 'race' || mode === 'endurance' || mode === 'practice';
+}
 
 export type FlashbackEntry =
   | { tick: number; kind: 'input'; input: Controls }
@@ -86,9 +92,10 @@ export class InputLog {
 
 /** The worker's live input boundary. Inspect mutable controls before applying
  * the new message, so resimulation retains a held input after AI handback or
- * any other owner changed those controls. Replaying uses applyEntry instead. */
-export function applyLoggedInput(simulation: Simulation, log: InputLog, input: Controls) {
-  log.input(simulation.tick, input, simulation.cars[0].input);
+ * any other owner changed those controls. A null journal applies identical
+ * controls without retaining history. Replaying uses applyEntry instead. */
+export function applyLoggedInput(simulation: Simulation, log: InputLog | null, input: Controls) {
+  log?.input(simulation.tick, input, simulation.cars[0].input);
   simulation.setInput(input);
 }
 

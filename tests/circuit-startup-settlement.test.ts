@@ -26,6 +26,7 @@ function hostCode() {
   );
   const names = [
     'disposed',
+    'pageWaiters',
     'errorStopped',
     'generation',
     'circuitStartup',
@@ -223,6 +224,7 @@ function fixture() {
     radio: { reset: vi.fn(), observe: () => null },
     radioCaption: { show: vi.fn() },
     ui: {
+      dispose: vi.fn(),
       toast: vi.fn(),
       error: vi.fn(),
       loading: vi.fn(),

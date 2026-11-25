@@ -1,12 +1,10 @@
-import { FLASHBACK } from '../core/flashback.ts';
+import { FLASHBACK, supportsFlashback } from '../core/flashback.ts';
 import type { SessionOptions } from '../simulation/config.ts';
 
 /** Flashback is offered in race sessions and free practice (a time-trial or
  * qualifying lap stays honest), up to FLASHBACK.perRace times per session. */
 export function flashbackAllowed(mode: SessionOptions['mode'], used: number) {
-  return (
-    (mode === 'race' || mode === 'endurance' || mode === 'practice') && used < FLASHBACK.perRace
-  );
+  return supportsFlashback(mode) && used < FLASHBACK.perRace;
 }
 
 /** The replay bar's flashback controls: a tag with the flashbacks left and

@@ -287,6 +287,9 @@ export class Interface {
   readonly map: HTMLCanvasElement;
   readonly graph: HTMLCanvasElement;
   readonly replayBar: HTMLElement;
+  private disposed = false;
+  private readonly events = new AbortController();
+  private resizeObserver: ResizeObserver | null = null;
   private toastTimer = 0;
   private nodes = new Map<string, HTMLElement>();
   private panelFrames = 0;
@@ -425,17 +428,18 @@ export class Interface {
     this.bikeHud = new BikeHud(this.hud);
     installSpeedTunnel(element.ownerDocument);
     this.trackMap = new TrackMap(this.map);
+    const events = { signal: this.events.signal };
     element.addEventListener('click', (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
       if (button) this.callbacks.action(button.dataset.action!);
-    });
+    }, events);
     // The LANGUAGE dial on the first-launch screen announces its choice; the Settings
     // dial is read when the form is applied.
     element.addEventListener('change', (e) => {
       const target = e.target as HTMLElement;
       if (target.matches?.('select[data-language-choice]'))
         this.callbacks.action(`language:${(target as HTMLSelectElement).value}`);
-    });
+    }, events);
     // Preserve the browser's scrolling/focus behavior without delivering scroll
     // navigation keys to the window-level driving shortcuts. Keyup still releases
     // previously held driving input; controls retain their native key handling.
@@ -446,7 +450,7 @@ export class Interface {
         ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)
       )
         event.stopPropagation();
-    });
+    }, events);
     // Native standings scrolling must not also steer the car through window
     // keydown listeners. Keyup still propagates to release any held drive input.
     this.element.querySelector('.timing')!.addEventListener('keydown', (event) => {
@@ -456,15 +460,15 @@ export class Interface {
         )
       )
         event.stopPropagation();
-    });
+    }, events);
     this.modal.addEventListener('cancel', (e) => {
       e.preventDefault();
       this.callbacks.action('modalClose');
-    });
+    }, events);
     this.telemetryModal.addEventListener('cancel', (e) => {
       e.preventDefault();
       this.callbacks.action('telemetryClose');
-    });
+    }, events);
     this.get('sessionForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const { options, problems } = this.formOptions();
@@ -477,7 +481,7 @@ export class Interface {
       const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
       if (this.board) this.callbacks.remember?.(this.board.entry());
       this.callbacks.start(this.options, submitter?.name === 'prepareGrid');
-    });
+    }, events);
     // Restore the original menu structure before applying the selected road
     // machine's presentation. The MX helper owns its venue copy and dirt-bike
     // specification card; its change listeners must run before this refresh.
@@ -538,7 +542,7 @@ export class Interface {
     // Assist changes also refresh the MX helper's originals, so reapply the
     // selected road-bike presentation after that listener as well.
     for (const id of [...SESSION_RULES_FIELDS, 'assist'])
-      this.get(id).addEventListener('change', describeRules);
+      this.get(id).addEventListener('change', describeRules, events);
     let board: LaunchBoard | null = null;
     this.refreshMotocrossMenu = () => {
       refreshMotocross();
@@ -550,7 +554,7 @@ export class Interface {
       // The catalogue names the tyre each weather suggests (rain: full wets).
       const suggested = WEATHER_CATALOGUE[(this.get('weather') as HTMLSelectElement).value as WeatherId]?.suggestedTyre;
       if (suggested) (this.get('compound') as HTMLSelectElement).value = suggested;
-    });
+    }, events);
     // Time Trial is solo and open-ended: the field and distance do not apply.
     this.get('mode').addEventListener('change', () => {
       const mode = (this.get('mode') as HTMLSelectElement).value,
@@ -564,7 +568,7 @@ export class Interface {
       // Endurance distances apply only to endurance; other races stop at 10.
       if (mode === 'endurance' && Number(laps.value) < 15) laps.value = '15';
       else if (mode !== 'endurance' && Number(laps.value) > 10) laps.value = '10';
-    });
+    }, events);
     // The discipline plates, venue sheet and option dials sit over the form
     // above. Installed last so its change listeners run after every rule
     // handler (mode, weather, rules preview, motocross presenter) has run.
@@ -573,10 +577,12 @@ export class Interface {
     // The showroom machine is centred and fitted in the strip the board and the rail leave free.
     if (typeof ResizeObserver !== 'undefined') {
       const report = () => {
+        if (this.disposed) return;
         const free = showroomWindowOf(this.menu);
         if (free) this.callbacks.showroomWindow?.(free);
       };
       const watch = new ResizeObserver(report);
+      this.resizeObserver = watch;
       for (const node of [this.menu, ...this.menu.querySelectorAll('.lb-board, .menu-actions')])
         watch.observe(node);
     }
@@ -585,14 +591,44 @@ export class Interface {
     this.get('light').addEventListener('change', () => {
       const choice = (this.get('light') as HTMLSelectElement).value as LightChoice;
       this.callbacks.light?.(choice);
-    });
+    }, events);
     this.menuPad = new MenuGamepad(this.element, () => board!);
     this.get('replaySeek').addEventListener('input', (e) =>
       this.callbacks.seek(Number((e.target as HTMLInputElement).value)),
+      events,
     );
     this.get('replaySpeed').addEventListener('change', (e) =>
       this.callbacks.replaySpeed(Number((e.target as HTMLSelectElement).value)),
+      events,
     );
+  }
+  /** Release every UI-owned poller, observer and binding once, even if a child
+   * cleanup fails or reenters the application while it is being torn down. */
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    const { menuPad, board, resizeObserver, toastTimer } = this;
+    this.menuPad = null;
+    this.board = null;
+    this.resizeObserver = null;
+    this.toastTimer = 0;
+    const failures: unknown[] = [];
+    for (const cleanup of [
+      () => this.events.abort(),
+      () => menuPad?.dispose(),
+      () => this.releaseModalResources(),
+      () => board?.dispose(),
+      () => resizeObserver?.disconnect(),
+      () => clearTimeout(toastTimer),
+    ]) {
+      try {
+        cleanup();
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    this.nodes.clear();
+    if (failures.length) throw failures[0];
   }
   /** The session the form describes right now, and what is wrong with it (empty when it can start). */
   private formOptions(): { options: SessionOptions; problems: string[] } {
@@ -829,6 +865,7 @@ export class Interface {
     this.menu.hidden = false;
   }
   toast(message: string) {
+    if (this.disposed) return;
     const e = this.get('toast');
     e.textContent = message;
     e.hidden = false;
@@ -1313,26 +1350,47 @@ export class Interface {
   }
   /** Paddock "Credits & licences": every third-party attribution (manifest). */
   credits() {
+    if (this.disposed) return;
     this.modalContent(creditsHtml());
+    if (this.disposed) return;
     const list = this.element.querySelector<HTMLElement>('#creditsList');
     if (list) {
       list.focus();
+      if (this.disposed) return;
       this.creditsPad = new CreditsGamepad(list, () => this.callbacks.action('modalClose'));
     }
   }
-  modalContent(html: string) {
-    this.wildcardBinding?.();
+  private releaseModalResources() {
+    const {
+      wildcardBinding, firstRunBinding, settingsBinding, creditsPad, bindingCapture, deviceCalibration,
+    } = this;
     this.wildcardBinding = null;
-    this.firstRunBinding?.();
     this.firstRunBinding = null;
-    this.settingsBinding?.();
     this.settingsBinding = null;
-    this.creditsPad?.dispose();
     this.creditsPad = null;
-    this.bindingCapture?.abort();
     this.bindingCapture = null;
-    this.deviceCalibration?.dispose();
     this.deviceCalibration = null;
+    const failures: unknown[] = [];
+    for (const cleanup of [
+      wildcardBinding,
+      firstRunBinding,
+      settingsBinding,
+      () => creditsPad?.dispose(),
+      () => bindingCapture?.abort(),
+      () => deviceCalibration?.dispose(),
+    ]) {
+      try {
+        cleanup?.();
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    if (failures.length) throw failures[0];
+  }
+  modalContent(html: string) {
+    if (this.disposed) return;
+    this.releaseModalResources();
+    if (this.disposed) return;
     this.get('modalContent').innerHTML = html;
     if (!this.modal.open) {
       this.modal.showModal();
@@ -1356,18 +1414,8 @@ export class Interface {
     return this.modal.open && !!this.modal.querySelector('.pause-menu');
   }
   closeModal() {
-    this.wildcardBinding?.();
-    this.wildcardBinding = null;
-    this.firstRunBinding?.();
-    this.firstRunBinding = null;
-    this.settingsBinding?.();
-    this.settingsBinding = null;
-    this.creditsPad?.dispose();
-    this.creditsPad = null;
-    this.bindingCapture?.abort();
-    this.bindingCapture = null;
-    this.deviceCalibration?.dispose();
-    this.deviceCalibration = null;
+    this.releaseModalResources();
+    if (this.disposed) return;
     if (this.modal.open) {
       this.modal.close();
       uiCue('close');
@@ -1391,6 +1439,7 @@ export class Interface {
    * running session's entry); otherwise the MACHINE menu choice decides. A
    * career session racing a garage preset (`context.preset`) shows it read-only. */
   settings(settings: Settings, context?: SetupContext) {
+    if (this.disposed) return;
     const menuChoice = document.querySelector<HTMLSelectElement>('#vehicle')?.value ?? null;
     const vehicle = setupMachine(context?.machine, menuChoice, this.options),
       preset = context?.preset ?? null;
@@ -1444,6 +1493,7 @@ export class Interface {
           '',
         )}</div></section><section><h3>${th('Vehicle setup')}</h3>${setupSectionHtml(vehicle, settings.setup, preset)}<div class="setup-files"><button type="button" id="exportSetup">${th('EXPORT SETUP')}</button><label class="file-label">${th('IMPORT SETUP')}<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">${th('CANCEL')}</button><button class="primary" type="submit">${th('APPLY & SAVE')}</button></footer></form>`,
     );
+    if (this.disposed) return;
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
       document.getElementById('deviceCalibration')!,
@@ -1458,15 +1508,22 @@ export class Interface {
     const savedScale = root.style.getPropertyValue('--ui-scale');
     let applied = false;
     const stopGuide = bindQualityGuide(form);
+    const controller = new AbortController();
+    const events = { signal: controller.signal };
     this.settingsBinding = () => {
-      stopGuide();
-      if (!applied) {
-        root.style.setProperty('--ui-scale', savedScale || String(settings.uiScale));
-        applyHudScale(root, settings.hudScale);
+      controller.abort();
+      try {
+        stopGuide();
+      } finally {
+        if (!applied) {
+          root.style.setProperty('--ui-scale', savedScale || String(settings.uiScale));
+          applyHudScale(root, settings.hudScale);
+        }
       }
     };
-    form.querySelector<HTMLButtonElement>('#previewDrivingAudio')!.onclick = () =>
-      this.callbacks.previewAudio?.(readDrivingAudio(form));
+    form.querySelector<HTMLButtonElement>('#previewDrivingAudio')!.addEventListener(
+      'click', () => this.callbacks.previewAudio?.(readDrivingAudio(form)), events,
+    );
     form.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
@@ -1488,7 +1545,7 @@ export class Interface {
             Number(input.dataset.shown),
           );
       }
-    });
+    }, events);
     form.querySelectorAll<HTMLButtonElement>('[data-bind]').forEach((button) =>
       button.addEventListener('click', () => {
         this.bindingCapture?.abort();
@@ -1526,14 +1583,16 @@ export class Interface {
           capture: true,
           signal: capture.signal,
         });
-      }),
+      }, events),
     );
-    document.getElementById('exportSetup')!.onclick = () => this.callbacks.exportSetup();
-    document.getElementById('importSetup')!.onchange = (e) => {
+    document.getElementById('exportSetup')!.addEventListener(
+      'click', () => this.callbacks.exportSetup(), events,
+    );
+    document.getElementById('importSetup')!.addEventListener('change', (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) this.callbacks.importSetup(file);
-    };
-    form.onsubmit = (e) => {
+    }, events);
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       applied = true;
       const value = (key: string) => (form.elements.namedItem(key) as HTMLInputElement).value;
@@ -1589,7 +1648,7 @@ export class Interface {
       } catch (error) {
         this.toast(t('Settings not applied: {error}', { error: String(error) }));
       }
-    };
+    }, events);
   }
   /** Championship line under a race classification (set by the application). */
   championshipNote = '';

@@ -60,7 +60,9 @@ vi.mock('../src/simulation/open-world/festival-machines.ts', () => ({
   festivalVehicles: () => [{ id: 'tc1', classId: 'touring' }],
 }));
 vi.mock('../src/simulation/open-world/world.ts', () => ({ openWorld: () => ({}) }));
-vi.mock('../src/simulation/vehicles.ts', () => ({ vehicleAt: vi.fn() }));
+vi.mock('../src/simulation/vehicles.ts', () => ({
+  vehicleAt: vi.fn(), FORMULA_APX01: { spec: {} },
+}));
 vi.mock('../src/rendering/open-world/festival-renderer.ts', () => ({ FestivalRenderer: doubles.renderer }));
 vi.mock('../src/rendering/traffic-cars.ts', () => ({ TrafficCars: doubles.traffic }));
 vi.mock('../src/rendering/festival-riders.ts', () => ({ FestivalRiders: doubles.riders }));
