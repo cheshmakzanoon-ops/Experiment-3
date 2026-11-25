@@ -120,3 +120,29 @@ resume after its context has closed; required close promises did fulfill. The
 GPU failure now records complete striped pixel data for diagnosis. Both failed
 checks and all new passing native evidence are preserved under
 `evidence/checkpoint-6a1c76f/`; the overall workflow is still failed.
+
+## Complete initial measurement evidence and native raster isolation
+
+`6cb1c881d19d190f5dbc68adeb9bf8b6c600da1b` preserves all six original
+measurement tools, reports and raw results. It also repairs the audio fixture's
+wait on an abandoned resume promise and adds independent native raster
+diagnostics. There is no production-code change relative to the preceding
+checkpoint.
+
+The [exact-source workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45585197376)
+passed **820 unit tests in 65 files**, full TypeScript checking and the production
+build. **46 of 47 native browser/replay cases passed**. The audio replacement
+and teardown case now passes, alongside both strict retained-page restoration
+cycles and terminal cleanup.
+
+The remaining full-image GPU assertion is preserved as a failure. A separate
+native context reproduces its exact 64 differing bytes with a minimal raw
+`vec3` uniform shader, independently of Three materials and shared lease
+ownership. The raw `vec4` and constant shaders, native RGBA clear and exact
+texture upload each return all 256 bytes correctly. Bulk, individual-pixel and
+Three readbacks agree, with correct uniform values, complete RGBA8 attachments
+and no GL errors. This isolates the failing native shader path on the recorded
+software backend; it does not identify a specific driver/compiler defect or
+certify hardware rendering. All source identities, logs, original failed
+assertions and the six-path matrix are retained under
+`evidence/checkpoint-6cb1c88/`.

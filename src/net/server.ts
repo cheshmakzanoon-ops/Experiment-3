@@ -710,9 +710,10 @@ export class RaceServer {
         state = world.capture(car, full, this.scratch[car], player?.ghost === true);
       state.flags &= ~CAR_FLAG.FULL;
     }
-    // A sole recipient has no car serialization to share. Multi-recipient
-    // bytes live only in this call; queued batches retain owned packets alone.
-    const sharedCars = recipients.length > 1 ? prepareSnapshotCars(this.scratch) : null;
+    // Measured preparation overhead penalizes small groups. Twelve recipients
+    // retain the measured CPU gain without increasing backing byte capacity.
+    // Shared bytes live only here; queued batches retain owned packets alone.
+    const sharedCars = recipients.length >= 12 ? prepareSnapshotCars(this.scratch) : null;
     for (const { player, connection: conn } of recipients) {
       const slack = player.queue.takeSlack(),
         snapshot = {

@@ -355,6 +355,10 @@ export class GhostPlayer {
     const i = maxima ? this.firstPassageIndex(s, maxima) : this.index(1, s),
       a = i * GHOST_FIELDS,
       b = a + GHOST_FIELDS;
+    // The indexed path selects the segment ending at the first crossing.
+    // An exact endpoint keeps its recorded time even below the distance floor;
+    // a repeated initial station still belongs to the first sample.
+    if (maxima && s > d[1] && s === d[b + 1]) return d[b];
     const t = Math.min(1, Math.max(0, (s - d[a + 1]) / Math.max(1e-6, d[b + 1] - d[a + 1])));
     return d[a] + (d[b] - d[a]) * t;
   }

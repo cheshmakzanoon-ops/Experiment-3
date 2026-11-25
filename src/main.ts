@@ -1129,13 +1129,20 @@ export class GameApp {
         );
       },
       ready: (festival) => {
+        const pageEpoch = this.pageEpoch;
+        const current = () => !this.disposed && !this.errorStopped && !this.pageSuspended &&
+          pageEpoch === this.pageEpoch && this.festival === festival;
+        if (!current()) return;
         // Festival owns frame/input dispatch; retain the parked circuit's state.
         this.state = circuitState;
         this.input.setEnabled(festival.drivingInputEnabled);
+        if (!current()) return;
         // The launch button may remain focused after its screen is hidden.
         // Widgets retain their keys, so release it only when driving takes over.
         if (festival.drivingInputEnabled) (document.activeElement as HTMLElement)?.blur();
+        if (!current()) return;
         this.beginDemoClock();
+        if (!current()) return;
         emitSessionStarted(options, 'festival');
       },
       failed: () => {
@@ -1591,6 +1598,8 @@ export class GameApp {
           ? career.event.key.slice('wildcard.'.length)
           : undefined,
       );
+      // Public session subscribers can synchronously replace or close this start.
+      if (cancelled()) return;
       const referenceCamera = this.referenceSession.beginSession(this.sessionId);
       if (referenceCamera) this.renderer.changeCamera(referenceCamera);
       this.ui.get('loading').hidden = true;
@@ -1608,6 +1617,7 @@ export class GameApp {
       }
       this.input.setEnabled(true);
       (document.activeElement as HTMLElement)?.blur();
+      if (cancelled()) return;
       this.post({ type: 'pause', value: false });
       this.inputPump.poll();
     } catch (error) {

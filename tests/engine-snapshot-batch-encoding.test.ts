@@ -247,7 +247,7 @@ function snapshots(packets: readonly Packet[]): Snapshot[] {
 }
 
 describe('shared snapshot car serialization', () => {
-  it.each([0, 1, 4, 12])(
+  it.each([0, 1, 2, 4, 11, 12])(
     'matches complete reference packets for %i recipients over varied boundaries',
     (n) => {
       const actual = fixture(n),
@@ -290,10 +290,11 @@ describe('shared snapshot car serialization', () => {
     },
   );
 
-  it.each([0, 1, 4, 12])(
+  it.each([0, 1, 2, 4, 11, 12])(
     'does bounded scalar work and owns every buffer for %i recipients',
     (n) => {
-      const f = fixture(n);
+      const f = fixture(n),
+        prepared = n >= 12;
       vary(f, 0);
       const carWrites = vi.spyOn(wire, 'writeCar');
       const floatWrites = vi.spyOn(ByteWriter.prototype, 'f32');
@@ -319,24 +320,27 @@ describe('shared snapshot car serialization', () => {
       });
       try {
         f.state.snapshot();
-        expect(prepare).toHaveBeenCalledTimes(n > 1 ? 1 : 0);
+        expect(prepare).toHaveBeenCalledTimes(prepared ? 1 : 0);
         // The shared codec calls the actual scalar writer once per field car.
-        // The single-recipient reference uses its lexical writer, checked by its
+        // Ordinary encoding uses its lexical writer, checked by its
         // scalar counts here rather than replacing the reference implementation.
-        expect(carWrites).toHaveBeenCalledTimes(n > 1 ? 12 : 0);
-        expect(floatWrites).toHaveBeenCalledTimes(n ? 12 * 4 + n : 0);
-        expect(quantizedWrites).toHaveBeenCalledTimes(n > 1 ? 12 * 13 : n ? 12 * 7 + 6 : 0);
-        expect(backing.size).toBe(n + Number(n > 1));
+        expect(carWrites).toHaveBeenCalledTimes(prepared ? 12 : 0);
+        expect(floatWrites).toHaveBeenCalledTimes(12 * 4 * (prepared ? 1 : n) + n);
+        expect(quantizedWrites).toHaveBeenCalledTimes(prepared ? 12 * 13 : n * (12 * 7 + 6));
+        expect(backing.size).toBe(n + Number(prepared));
         expect(outputs.size).toBe(backing.size);
         const allBuffers = new Set([...backing, ...outputs]);
-        if (n > 1) {
+        if (prepared) {
           const shared = prepare.mock.results[0].value as codec.PreparedSnapshotCars;
           expect(shared.compact.byteLength).toBe(12 * 39);
           expect(shared.full.byteLength).toBe(12 * 51);
           expect(outputs.has(shared.full.buffer)).toBe(true);
           allBuffers.add(shared.compact.buffer);
         }
-        expect(allBuffers.size).toBe(2 * n + (n > 1 ? 3 : 0));
+        expect(allBuffers.size).toBe(2 * n + (prepared ? 3 : 0));
+        expect([...allBuffers].reduce((bytes, buffer) => bytes + buffer.byteLength, 0)).toBe(
+          prepared ? 1692 + 1006 * n : 1159 * n,
+        );
         const emitted = f.peers.map((peer) => peer.packets[0].data);
         expect(new Set(emitted.map((data) => data.buffer)).size).toBe(n);
         for (const data of emitted) {

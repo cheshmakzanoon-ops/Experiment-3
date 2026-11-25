@@ -1,11 +1,11 @@
 import type * as T from 'three';
 
-/** Maximum disjoint pending spans before falling back to a full upload. */
+/** Maximum pending entries before checking their union for a full upload. */
 const MAX_PENDING_RANGES = 16;
 
 /** Upload only items `first..last` (inclusive) of a dynamic attribute at its
- * next render. Ranges added before that render merge; an empty span is a
- * no-op, so an unchanged attribute costs no transfer at all. */
+ * next render. Three merges pending ranges before uploading; an empty span is
+ * a no-op, so an unchanged attribute costs no transfer at all. */
 export function markItems(attribute: T.BufferAttribute, first: number, last: number) {
   if (last < first) return;
   const size = attribute.itemSize;
@@ -13,14 +13,29 @@ export function markItems(attribute: T.BufferAttribute, first: number, last: num
   let end = start + (last - first + 1) * size;
   const ranges = attribute.updateRanges;
 
-  // A contained mark, including one after markAll(), needs no bookkeeping.
-  if (ranges.length === 1 && start >= ranges[0].start && end <= ranges[0].start + ranges[0].count) {
-    attribute.needsUpdate = true;
-    return;
+  // Most producers extend their last span or append a separate one. Keep this
+  // path constant-time; Three sorts and coalesces the public list at upload.
+  // Do not cache order or coverage: callers may directly mutate updateRanges.
+  if (ranges.length <= MAX_PENDING_RANGES) {
+    const previous = ranges[ranges.length - 1];
+    if (previous && start <= previous.start + previous.count && end >= previous.start) {
+      if (start < previous.start) {
+        previous.count += previous.start - start;
+        previous.start = start;
+      }
+      if (end > previous.start + previous.count) previous.count = end - previous.start;
+      attribute.needsUpdate = true;
+      return;
+    }
+    if (ranges.length < MAX_PENDING_RANGES) {
+      attribute.addUpdateRange(start, end - start);
+      attribute.needsUpdate = true;
+      return;
+    }
   }
 
-  // Also normalize ranges added directly through Three's public API. Work in
-  // place so repeated marks do not allocate another pending entry each time.
+  // At capacity, normalize the actual public list before deciding fallback.
+  // A duplicate or bridge can fit even when all pending entries are occupied.
   if (ranges.length > 1) {
     for (let i = 1; i < ranges.length; i++) {
       if (ranges[i].start < ranges[i - 1].start) {

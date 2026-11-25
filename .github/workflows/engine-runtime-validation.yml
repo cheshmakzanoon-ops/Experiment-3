@@ -7,6 +7,7 @@ on:
       - 'src/workers/**'
       - 'src/storage/**'
       - 'src/input/**'
+      - 'src/ui/**'
       - 'src/audio/**'
       - 'src/net/**'
       - 'src/session/**'
@@ -16,7 +17,10 @@ on:
       - 'tests/engine-*.test.ts'
       - 'tests/circuit-frame-transport.test.ts'
       - 'tests/circuit-preparation-lifetime.test.ts'
+      - 'tests/circuit-startup-settlement.test.ts'
+      - 'tests/festival-ground-height.test.ts'
       - 'tests/festival-renderer-loader-lifecycle.test.ts'
+      - 'tests/festival-session-lifecycle.test.ts'
       - 'tests/surface-channel-backpressure.test.ts'
       - 'tests/fake-audio.ts'
       - 'tests/net-helpers.ts'
@@ -76,7 +80,8 @@ jobs:
           node --experimental-transform-types scripts/source-stability.ts -- \
             node node_modules/vitest/vitest.mjs run tests/engine-*.test.ts \
             tests/circuit-frame-transport.test.ts tests/circuit-preparation-lifetime.test.ts \
-            tests/festival-renderer-loader-lifecycle.test.ts \
+            tests/circuit-startup-settlement.test.ts tests/festival-ground-height.test.ts \
+            tests/festival-renderer-loader-lifecycle.test.ts tests/festival-session-lifecycle.test.ts \
             tests/surface-channel-backpressure.test.ts \
             --pool=threads --maxWorkers=1 --minWorkers=1 --allowOnly=false --retry=0 \
             2>&1 | tee "$RUNNER_TEMP/engine-runtime-unit.log"

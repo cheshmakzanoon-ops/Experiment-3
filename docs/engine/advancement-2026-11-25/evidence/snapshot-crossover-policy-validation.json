@@ -1,0 +1,56 @@
+{
+  "schema": "engine-snapshot-policy-validation/1",
+  "createdAt": "2026-11-25T09:45:00.869810+00:00",
+  "assignment": 44,
+  "measurementCommit": "6cb1c881d19d190f5dbc68adeb9bf8b6c600da1b",
+  "measurementEvidence": "snapshot-crossover-measurement-6cb1c881.json",
+  "policy": "Prepare car bytes once for at least 12 selected ready recipients; ordinary encoding below 12.",
+  "changedProductionFiles": [
+    "src/net/server.ts"
+  ],
+  "ownedFileHashes": {
+    "src/net/server.ts": "4651dd030c86f285b7d0f0444d1bdb94db21ba346bce1ef3d04060e577132fc1",
+    "tests/engine-snapshot-batch-encoding.test.ts": "8ae35ee42dececf0f1625c1e63c92c3558142f62de6437d8b8d6c1333e78500c"
+  },
+  "before": {
+    "productionPolicy": "recipients.length > 1",
+    "exitCode": 1,
+    "failedRecipientCounts": [
+      2,
+      4,
+      11
+    ],
+    "passingRecipientCounts": [
+      0,
+      1,
+      12
+    ],
+    "log": "\n RUN  v3.2.4 /tmp/aeebac160835-engine/Experiment-3\n\n \u276f tests/engine-snapshot-batch-encoding.test.ts (18 tests | 3 failed | 12 skipped) 36ms\n   \u2193 shared snapshot car serialization > matches complete reference packets for 0 recipients over varied boundaries\n   \u2193 shared snapshot car serialization > matches complete reference packets for 1 recipients over varied boundaries\n   \u2193 shared snapshot car serialization > matches complete reference packets for 2 recipients over varied boundaries\n   \u2193 shared snapshot car serialization > matches complete reference packets for 4 recipients over varied boundaries\n   \u2193 shared snapshot car serialization > matches complete reference packets for 11 recipients over varied boundaries\n   \u2193 shared snapshot car serialization > matches complete reference packets for 12 recipients over varied boundaries\n   \u2713 shared snapshot car serialization > does bounded scalar work and owns every buffer for 0 recipients 6ms\n   \u2713 shared snapshot car serialization > does bounded scalar work and owns every buffer for 1 recipients 6ms\n   \u00d7 shared snapshot car serialization > does bounded scalar work and owns every buffer for 2 recipients 8ms\n     \u2192 expected \"prepareSnapshotCars\" to be called +0 times, but got 1 times\n   \u00d7 shared snapshot car serialization > does bounded scalar work and owns every buffer for 4 recipients 5ms\n     \u2192 expected \"prepareSnapshotCars\" to be called +0 times, but got 1 times\n   \u00d7 shared snapshot car serialization > does bounded scalar work and owns every buffer for 11 recipients 5ms\n     \u2192 expected \"prepareSnapshotCars\" to be called +0 times, but got 1 times\n   \u2713 shared snapshot car serialization > does bounded scalar work and owns every buffer for 12 recipients 6ms\n   \u2193 shared snapshot car serialization > keeps preparation bounded and source-independent, including arbitrary car order and flags\n   \u2193 shared snapshot car serialization > retains packet/event order and latches across reentry with 4 recipients\n   \u2193 shared snapshot car serialization > retains packet/event order and latches across reentry with 12 recipients\n   \u2193 shared snapshot car serialization > isolates a snapshot send failure after all recipient bytes are prepared\n   \u2193 shared snapshot car serialization > isolates a events send failure after all recipient bytes are prepared\n   \u2193 shared snapshot car serialization > skips a replaced connection without giving its captured packet to the new owner\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 3 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/engine-snapshot-batch-encoding.test.ts > shared snapshot car serialization > does bounded scalar work and owns every buffer for 2 recipients\n FAIL  tests/engine-snapshot-batch-encoding.test.ts > shared snapshot car serialization > does bounded scalar work and owns every buffer for 4 recipients\n FAIL  tests/engine-snapshot-batch-encoding.test.ts > shared snapshot car serialization > does bounded scalar work and owns every buffer for 11 recipients\nAssertionError: expected \"prepareSnapshotCars\" to be called +0 times, but got 1 times\n \u276f tests/engine-snapshot-batch-encoding.test.ts:323:25\n    321|       try {\n    322|         f.state.snapshot();\n    323|         expect(prepare).toHaveBeenCalledTimes(prepared ? 1 : 0);\n       |                         ^\n    324|         // The shared codec calls the actual scalar writer once per fi\u2026\n    325|         // Ordinary encoding uses its lexical writer, checked by its\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/3]\u23af\n\n\n Test Files  1 failed (1)\n      Tests  3 failed | 3 passed | 12 skipped (18)\n   Start at  02:43:16\n   Duration  2.10s (transform 1.08s, setup 0ms, collect 1.73s, tests 36ms, environment 0ms, prepare 79ms)\n\n"
+  },
+  "after": {
+    "productionPolicy": "recipients.length >= 12",
+    "exitCode": 0,
+    "testFiles": 7,
+    "testsPassed": 59,
+    "log": "\n RUN  v3.2.4 /tmp/aeebac160835-engine/Experiment-3\n\n \u2713 tests/engine-snapshot-batch-encoding.test.ts (18 tests) 3469ms\n   \u2713 shared snapshot car serialization > matches complete reference packets for 4 recipients over varied boundaries  386ms\n   \u2713 shared snapshot car serialization > matches complete reference packets for 11 recipients over varied boundaries  1282ms\n   \u2713 shared snapshot car serialization > matches complete reference packets for 12 recipients over varied boundaries  998ms\n \u2713 tests/engine-network-advancement-composition.test.ts (2 tests) 3048ms\n   \u2713 network advancement composition through live peers > preserves ownership and raw feedback through reentry, replacement and 3/1/0/1/3 recipients (seed 17)  1712ms\n   \u2713 network advancement composition through live peers > preserves ownership and raw feedback through reentry, replacement and 3/1/0/1/3 recipients (seed 48177)  1334ms\nstdout | tests/engine-network-clock-drift.test.ts > preserves every real-server snapshot and input-packet byte while presentation converges\nclock discipline wire comparison: {\n  packets: 1228,\n  inputPackets: 734,\n  snapshots: 494,\n  correctingFrames: 100\n}\n\n \u2713 tests/engine-network-clock-drift.test.ts (11 tests) 2596ms\n   \u2713 preserves every real-server snapshot and input-packet byte while presentation converges  2350ms\n \u2713 tests/engine-server-snapshot-lifetime.test.ts (10 tests) 1057ms\n   \u2713 active peer failure isolation > keeps a healthy client and future ticks running after a failing timeout close  432ms\n \u2713 tests/net-codec.test.ts (10 tests) 172ms\n \u2713 tests/engine-input-encoder-capacity.test.ts (5 tests) 139ms\n \u2713 tests/engine-transfer-transport-accounting.test.ts (3 tests) 6ms\n\n Test Files  7 passed (7)\n      Tests  59 passed (59)\n   Start at  02:44:00\n   Duration  16.39s (transform 1.10s, setup 0ms, collect 4.63s, tests 10.49s, environment 1ms, prepare 419ms)\n\n"
+  },
+  "scopedChecks": {
+    "eslint": [
+      "src/net/server.ts",
+      "tests/engine-snapshot-batch-encoding.test.ts",
+      "scripts/engine-advancement/measure-snapshot-crossover.mjs"
+    ],
+    "prettier": "same three files, check only",
+    "passed": true
+  },
+  "unchangedEvidence": {
+    "w07FilesComparedWithHEAD": [
+      "scripts/engine-advancement/measure-network.mjs",
+      "docs/engine/advancement-2026-11-25/evidence/network-measurement-preflight.json",
+      "docs/engine/advancement-2026-11-25/evidence/network-measurement.json"
+    ],
+    "crossoverRunnerAndSharedHelperMatchMeasurementHashes": true,
+    "measurementArtifactsNotOverwritten": true
+  },
+  "limits": "No new performance timing after policy repair; this is a route-selection change between the already measured actual codec variants. No compiler, build, native browser or physical-network validation in this assignment."
+}

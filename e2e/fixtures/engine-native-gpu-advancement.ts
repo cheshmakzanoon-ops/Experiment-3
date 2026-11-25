@@ -315,6 +315,28 @@ async function pixelEvidence(actual: Uint8Array, expected: Uint8Array) {
   };
 }
 
+// Isolated test materials, also retained in the raster-path diagnosis below.
+// The vec4 path is the shared gate's full-image witness; the vec3 and MeshBasic
+// controls continue to report their observed backend failures independently.
+function rawColourMaterial(kind: 'constant' | 'vec3' | 'vec4') {
+  const declarations = kind === 'constant' ? '' : `uniform ${kind} probeColour;`;
+  const colour =
+    kind === 'constant'
+      ? 'vec4(1.0, 0.0, 0.0, 1.0)'
+      : kind === 'vec3'
+        ? 'vec4(probeColour, 1.0)'
+        : 'probeColour';
+  const value = kind === 'vec3' ? new T.Vector3(1, 0, 0) : new T.Vector4(1, 0, 0, 1);
+  return new T.RawShaderMaterial({
+    glslVersion: T.GLSL3,
+    toneMapped: false,
+    uniforms: kind === 'constant' ? {} : { probeColour: { value } },
+    vertexShader:
+      'precision highp float; in vec3 position; void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `precision highp float; ${declarations} out vec4 probeOutput; void main() { probeOutput = ${colour}; }`,
+  });
+}
+
 /** Actual rendered commands, real WebGLSync objects and unchanged native wait
  * results. Pixel readback happens only after the gate observes completion. */
 export async function sharedFenceOwnership() {
@@ -322,7 +344,8 @@ export async function sharedFenceOwnership() {
   const { renderer, gl } = r;
   const trace = fenceTrace(gl);
   const geometry = new T.PlaneGeometry(2, 2);
-  const material = new T.MeshBasicMaterial({ color: 0xff0000, toneMapped: false });
+  const material = rawColourMaterial('vec4');
+  const colourUniform = material.uniforms.probeColour.value as T.Vector4;
   const scene = new T.Scene().add(new T.Mesh(geometry, material));
   const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
   camera.position.z = 1;
@@ -339,8 +362,8 @@ export async function sharedFenceOwnership() {
     backendDisposals++;
     disposeBackend();
   };
-  const draw = (colour: number, lease: GpuFrameLease) => {
-    material.color.setHex(colour);
+  const draw = (red: number, green: number, blue: number, lease: GpuFrameLease) => {
+    colourUniform.set(red, green, blue, 1);
     renderer.setRenderTarget(target);
     renderer.render(scene, camera);
     lease.submittedFrame();
@@ -362,7 +385,9 @@ export async function sharedFenceOwnership() {
     framebufferStatus: gl.checkFramebufferStatus(gl.FRAMEBUFFER),
     target: { width: target.width, height: target.height, colourSpace: target.texture.colorSpace },
     material: {
-      colour: material.color.toArray(),
+      type: material.type,
+      colourUniform: 'vec4',
+      colour: colourUniform.toArray(),
       dithering: material.dithering,
       toneMapped: material.toneMapped,
     },
@@ -373,7 +398,7 @@ export async function sharedFenceOwnership() {
     const circuit = acquire();
     const festival = acquire();
     const initial = { circuit: circuit.ready(), festival: festival.ready(), queue: queue(circuit) };
-    draw(0xff0000, circuit);
+    draw(1, 0, 0, circuit);
     const firstFence = [...trace.live][0];
     const submitted = { circuit: queue(circuit), festival: queue(festival) };
     festival.dispose();
@@ -390,7 +415,7 @@ export async function sharedFenceOwnership() {
     const red = pixels();
     const redState = pixelState();
 
-    draw(0x00ff00, replacement);
+    draw(0, 1, 0, replacement);
     replacement.dispose();
     const releasedReady = replacement.ready();
     let releasedSubmitRejected = false;
@@ -416,7 +441,7 @@ export async function sharedFenceOwnership() {
 
     // A terminal release disposes the native sync, not the borrowed backend.
     // This third submission is abandoned, never described as completed or read.
-    draw(0x0000ff, nextBorrower);
+    draw(0, 0, 1, nextBorrower);
     const finalFence = [...trace.live][0];
     circuit.dispose();
     const beforeFinalRelease = {
@@ -451,6 +476,14 @@ export async function sharedFenceOwnership() {
     }
     return {
       backend: r.identity,
+      witness: {
+        kind: 'test-only-explicit-vec4',
+        material: material.type,
+        colourUniform: 'vec4',
+        imageBytes: 256,
+        scope:
+          'shared gate render ordering and ownership; no MeshBasic or vec3 material acceptance',
+      },
       initial,
       submitted,
       firstHandoff,
@@ -488,8 +521,8 @@ export async function sharedFenceOwnership() {
   }
 }
 
-/** Failure-only layer isolation. These observations never replace the shared
- * handoff case's full-image assertions or turn its mismatch into acceptance. */
+/** Always-recorded layer isolation. Diagnostic material mismatches remain
+ * explicit failures; they are not the shared gate's vec4 acceptance witness. */
 export async function rasterPathDiagnostics() {
   const r = backend();
   const { renderer, gl } = r;
@@ -513,25 +546,6 @@ export async function rasterPathDiagnostics() {
       vertex: context.getShaderInfoLog(vertex),
       fragment: context.getShaderInfoLog(fragment),
     });
-  };
-  const raw = (kind: 'constant' | 'vec3' | 'vec4') => {
-    const declarations = kind === 'constant' ? '' : `uniform ${kind} probeColour;`;
-    const colour =
-      kind === 'constant'
-        ? 'vec4(1.0, 0.0, 0.0, 1.0)'
-        : kind === 'vec3'
-          ? 'vec4(probeColour, 1.0)'
-          : 'probeColour';
-    const value = kind === 'vec3' ? new T.Vector3(1, 0, 0) : new T.Vector4(1, 0, 0, 1);
-    const material = new T.RawShaderMaterial({
-      glslVersion: T.GLSL3,
-      uniforms: kind === 'constant' ? {} : { probeColour: { value } },
-      vertexShader:
-        'precision highp float; in vec3 position; void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
-      fragmentShader: `precision highp float; ${declarations} out vec4 probeOutput; void main() { probeOutput = ${colour}; }`,
-    });
-    materials.push(material);
-    return material;
   };
   const attachment = () => ({
     status: gl.checkFramebufferStatus(gl.FRAMEBUFFER),
@@ -623,14 +637,28 @@ export async function rasterPathDiagnostics() {
     results.push(await observe('native-texture-rgba-upload'));
 
     for (const kind of ['constant', 'vec3', 'vec4'] as const) {
-      mesh.material = raw(kind);
+      mesh.material = rawColourMaterial(kind);
+      materials.push(mesh.material);
       renderer.render(scene, camera);
       results.push(await observe(`raw-shader-${kind}`));
     }
     return {
       backend: r.identity,
-      purpose: 'failure-only diagnosis; no replacement for the original full-image assertion',
+      purpose:
+        'diagnostic material failures remain recorded; shared-gate acceptance uses an explicit vec4 witness',
       results,
+      rasterPathFailures: results
+        .filter((result) =>
+          [result.rawBulk, result.individual, result.viaThree].some((read) => read.differences > 0),
+        )
+        .map((result) => ({
+          path: result.name,
+          nativeBulkDifferingBytes: result.rawBulk.differences,
+          individualDifferingBytes: result.individual.differences,
+          threeDifferingBytes: result.viaThree.differences,
+          actualSha256: result.rawBulk.sha256,
+          expectedSha256: result.rawBulk.expectedSha256,
+        })),
       shaderErrors,
       constants: {
         rgba: gl.RGBA,

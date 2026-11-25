@@ -68,6 +68,14 @@ function spans(dirty: Uint8Array): Range[] {
   return result;
 }
 
+/** Pending entries may be unordered or overlap. Check their exact component
+ * coverage independently of the helper's representation and Three's merger. */
+function pendingUnion(attribute: T.BufferAttribute): Range[] {
+  const dirty = new Uint8Array(attribute.array.length);
+  for (const { start, count } of attribute.updateRanges) dirty.fill(1, start, start + count);
+  return spans(dirty);
+}
+
 function appendOnlyMark(attribute: T.BufferAttribute, first: number, last: number) {
   if (last < first) return;
   if (attribute.updateRanges.length >= 16) markAll(attribute);
@@ -84,7 +92,7 @@ describe('bounded pending component unions', () => {
     const before = array.slice();
     markItems(attribute, 7, 7);
     markItems(attribute, 0, 0);
-    expect(attribute.updateRanges).toEqual([
+    expect(pendingUnion(attribute)).toEqual([
       { start: 0, count: itemSize },
       { start: 7 * itemSize, count: itemSize },
     ]);
@@ -174,7 +182,8 @@ describe('bounded pending component unions', () => {
   ])('preserves the exact union for $name', ({ marks, expected }) => {
     const attribute = new T.BufferAttribute(new Float32Array(64), 1);
     for (const [first, last] of marks) markItems(attribute, first, last);
-    expect(attribute.updateRanges).toEqual(expected);
+    expect(pendingUnion(attribute)).toEqual(expected);
+    expect(attribute.updateRanges.length).toBeLessThanOrEqual(16);
     expect(attribute.version).toBe(marks.length);
   });
 
@@ -215,7 +224,28 @@ describe('bounded pending component unions', () => {
     const attribute = new T.BufferAttribute(new Float32Array(256), 1);
     for (let i = 15; i >= 0; i--) markItems(attribute, i * 3, i * 3);
     markItems(attribute, 1, 44);
-    expect(attribute.updateRanges).toEqual([{ start: 0, count: 46 }]);
+    expect(pendingUnion(attribute)).toEqual([{ start: 0, count: 46 }]);
+    expect(attribute.updateRanges.length).toBeLessThanOrEqual(16);
+    expect(attribute.version).toBe(17);
+  });
+
+  it('preserves non-last overlaps until publication and reclaims them at capacity', () => {
+    const attribute = new T.BufferAttribute(new Float32Array(256), 1);
+    markItems(attribute, 10, 14);
+    markItems(attribute, 80, 84);
+    markItems(attribute, 11, 12); // Overlaps the first entry rather than the last.
+    for (let i = 0; i < 13; i++) markItems(attribute, 100 + i * 3, 100 + i * 3);
+    expect(attribute.updateRanges).toHaveLength(16);
+    // The pending list is full, but its exact union has only 15 spans. A new
+    // disjoint mark still fits and must not turn into a full upload.
+    markItems(attribute, 200, 200);
+    expect(attribute.updateRanges).toHaveLength(16);
+    expect(pendingUnion(attribute)).toEqual([
+      { start: 10, count: 5 },
+      { start: 80, count: 5 },
+      ...Array.from({ length: 13 }, (_, i) => ({ start: 100 + i * 3, count: 1 })),
+      { start: 200, count: 1 },
+    ]);
     expect(attribute.version).toBe(17);
   });
 
@@ -260,6 +290,56 @@ describe('bounded pending component unions', () => {
 });
 
 describe('actual Three WebGLAttributes transfers', () => {
+  it('observes direct public mutations, reordering, clearing, and replacement', () => {
+    const attribute = new T.BufferAttribute(new Float32Array(64), 1);
+    const recording = recordingUpload(attribute);
+    markItems(attribute, 10, 12);
+    markItems(attribute, 30, 31);
+    const pending = attribute.updateRanges;
+    // No writes preceded these marks. A caller replaces the pending coverage
+    // in place, then writes exactly the new public spans before publication.
+    pending[0].start = 18;
+    pending[0].count = 4;
+    pending[1].start = 3;
+    pending[1].count = 2;
+    pending.reverse();
+    attribute.addUpdateRange(12, 2);
+    attribute.array.fill(1, 3, 5);
+    attribute.array.fill(2, 12, 14);
+    attribute.array.fill(3, 18, 22);
+    attribute.array[0] = 4;
+    markItems(attribute, 0, 0);
+    expect(attribute.updateRanges).toBe(pending);
+    expect(pendingUnion(attribute)).toEqual([
+      { start: 0, count: 1 },
+      { start: 3, count: 2 },
+      { start: 12, count: 2 },
+      { start: 18, count: 4 },
+    ]);
+    recording.upload();
+    expectSameBytes(recording.mirror, attribute.array);
+    expect(attribute.updateRanges).toEqual([]);
+    expect(recording.transfers.reduce((sum, transfer) => sum + transfer.length, 0)).toBe(36);
+
+    markAll(attribute);
+    attribute.clearUpdateRanges();
+    attribute.array[40] = 5;
+    markItems(attribute, 40, 40);
+    expect(attribute.updateRanges).toEqual([{ start: 40, count: 1 }]);
+    recording.upload();
+    expect(recording.transfers.at(-1)).toEqual({ offset: 160, length: 4 });
+    expectSameBytes(recording.mirror, attribute.array);
+
+    attribute.updateRanges = [{ start: 0, count: 64 }];
+    attribute.array.fill(6);
+    markItems(attribute, 50, 50);
+    expect(attribute.updateRanges).toEqual([{ start: 0, count: 64 }]);
+    recording.upload();
+    expect(recording.transfers.at(-1)).toEqual({ offset: 0, length: 256 });
+    expectSameBytes(recording.mirror, attribute.array);
+    expect(attribute.version).toBe(6);
+  });
+
   it.each([16, 17, 1000])('uploads 48 bytes after %i duplicate vec3 marks', (marks) => {
     for (const marker of [markItems, appendOnlyMark]) {
       const attribute = new T.BufferAttribute(new Float32Array(4096 * 3), 3);
@@ -384,7 +464,7 @@ describe('actual Three WebGLAttributes transfers', () => {
               markItems(attribute, first, last);
               expectSameBytes(array, before);
             }
-            expect(attribute.updateRanges).toEqual(spans(dirty));
+            expect(pendingUnion(attribute)).toEqual(spans(dirty));
             expect(attribute.updateRanges.length).toBeLessThanOrEqual(16);
             expect(attribute.version).toBe(version);
           }

@@ -13,6 +13,8 @@ import { WorkerReadiness } from '../src/session/worker-readiness.ts';
 import { controls, DEFAULT_OPTIONS, type Controls, type SessionOptions } from '../src/simulation/config.ts';
 import { CAR_STRIDE, HEADER, H } from '../src/simulation/protocol.ts';
 import { DEFAULT_SETTINGS, type Settings } from '../src/storage/data.ts';
+import { gameEvents } from '../src/steam/events.ts';
+import { emitSessionStarted } from '../src/steam/hooks.ts';
 import { PauseHandshake, type ClientMessage, type WorkerMessage } from '../src/workers/diagnostics.ts';
 
 /** Run complete production admission, preparation, recovery and input dispatch.
@@ -125,6 +127,7 @@ interface Host {
   dispose(): void;
 }
 const hosts: Host[] = [];
+const unsubscribeEvents: (() => void)[] = [];
 function fixture() {
   const workers: CircuitWorker[] = [];
   class PhysicsWorker extends CircuitWorker {
@@ -151,7 +154,7 @@ function fixture() {
     gpGridForVehicles: () => false, validateOptions: (options: SessionOptions) => options,
     resolveLighting: () => 'day', sessionLight: () => 'day', systemReducedMotion: () => false,
     rulesetFor: () => ({ service: { pitStops: false } }), racingSession: () => false,
-    rumbleFrom: () => ({ weak: 0, strong: 0 }), emitSessionStarted: vi.fn(),
+    rumbleFrom: () => ({ weak: 0, strong: 0 }), emitSessionStarted: vi.fn(emitSessionStarted),
     SessionReplay: Replay, TelemetryRecorder: class {},
     Track: class {
       cold = false;
@@ -226,7 +229,7 @@ function fixture() {
   const festivalOptions = { ...DEFAULT_OPTIONS, mode: 'festival' as SessionOptions['mode'] };
   return {
     app, workers, imported, preparing, module, festival, createFestival, screen, switchCircuit,
-    loadPhysicsWorker, loadFestivalModule,
+    loadPhysicsWorker, loadFestivalModule, document, emitted: dependencies.emitSessionStarted,
     // Match the production UI caller's terminal error handler.
     circuit: () => app.start(circuitOptions).catch((error) => app.fail(error)),
     festivalStart: () => app.startFestival(festivalOptions).catch((error) => app.fail(error)),
@@ -248,6 +251,7 @@ function fixture() {
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
+  for (const unsubscribe of unsubscribeEvents.splice(0)) unsubscribe();
   for (const host of hosts.splice(0)) host.dispose();
   vi.clearAllTimers();
   vi.useRealTimers();
@@ -504,6 +508,86 @@ describe('Festival startup recovery and cancellation', () => {
       expect(h.app.ui.ready).not.toHaveBeenCalled();
       expect(h.app.ui.toast).not.toHaveBeenCalled();
       expect(h.app.ui.error).toHaveBeenCalledTimes(terminal === 'fail' ? 1 : 0);
+    },
+  );
+});
+
+
+describe('final startup callbacks retain their original host owner', () => {
+  it.each(['fail', 'dispose'] as const)(
+    'does not activate circuit input after a session-start subscriber calls %s',
+    async (terminal) => {
+      const h = fixture();
+      let inputCallsAtRevocation = -1;
+      unsubscribeEvents.push(gameEvents.on('session.started', (event) => {
+        if (event.kind !== 'circuit') return;
+        if (terminal === 'fail') h.app.fail(new Error('Subscriber revoked the host'));
+        else h.app.dispose();
+        inputCallsAtRevocation = h.app.input.setEnabled.mock.calls.length;
+      }));
+      const pending = h.circuit();
+      await h.finishCircuit();
+      await pending;
+      expect(h.emitted).toHaveBeenCalledOnce();
+      expect(inputCallsAtRevocation).toBeGreaterThan(0);
+      expect(h.app.input.setEnabled).toHaveBeenCalledTimes(inputCallsAtRevocation);
+      expect(h.workers[0].postMessage.mock.calls.some(([message]) =>
+        message.type === 'pause' && !message.value)).toBe(false);
+    },
+  );
+
+  it('does not release the departed worker after a session-start subscriber replaces the circuit', async () => {
+    const h = fixture(), held = deferred<void>();
+    let replacement: Promise<void> | null = null;
+    let inputCallsAtReplacement = -1;
+    const unsubscribe = gameEvents.on('session.started', (event) => {
+      if (event.kind !== 'circuit') return;
+      unsubscribe();
+      h.app.audio.start.mockReturnValueOnce(held.promise);
+      replacement = h.circuit();
+      inputCallsAtReplacement = h.app.input.setEnabled.mock.calls.length;
+    });
+    unsubscribeEvents.push(unsubscribe);
+    const pending = h.circuit();
+    await h.finishCircuit();
+    await pending;
+    expect(h.app.generation).toBe(2);
+    expect(h.app.state).toBe('loading');
+    expect(h.app.circuitStartup?.pending).toBe(true);
+    expect(h.app.input.setEnabled).toHaveBeenCalledTimes(inputCallsAtReplacement);
+    expect(h.workers[0].postMessage.mock.calls.some(([message]) =>
+      message.type === 'pause' && !message.value)).toBe(false);
+    h.app.dispose();
+    await replacement;
+    held.resolve();
+  });
+
+  it('does not unpause the circuit after launch focus disposal', async () => {
+    const h = fixture();
+    h.document.activeElement.blur.mockImplementationOnce(() => h.app.dispose());
+    const pending = h.circuit();
+    await h.finishCircuit();
+    await pending;
+    expect(h.app.disposed).toBe(true);
+    expect(h.workers[0].postMessage.mock.calls.some(([message]) =>
+      message.type === 'pause' && !message.value)).toBe(false);
+  });
+
+  it.each(['exit', 'dispose'] as const)(
+    'does not publish Festival readiness after launch focus %s',
+    async (terminal) => {
+      const h = fixture();
+      h.document.activeElement.blur.mockImplementationOnce(() => {
+        if (terminal === 'exit') h.app.exitFestival();
+        else h.app.dispose();
+      });
+      const pending = h.festivalStart();
+      await h.finishFestival();
+      await pending;
+      expect(h.app.festival).toBeNull();
+      expect(h.festival.dispose).toHaveBeenCalledOnce();
+      expect(h.app.beginDemoClock).not.toHaveBeenCalled();
+      expect(h.emitted).not.toHaveBeenCalled();
     },
   );
 });

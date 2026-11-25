@@ -1,0 +1,35 @@
+{
+  "commit": "6cb1c881d19d190f5dbc68adeb9bf8b6c600da1b",
+  "tree": "a5b8816ef45c35ade9cd5ec6665fbbefd46d5707",
+  "workflowRun": 45585197376,
+  "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45585197376",
+  "conclusion": "failure",
+  "artifactId": 15008124681,
+  "archiveBytes": 2552727,
+  "archiveSha256": "f9a2b58d8850e59ae364c0c31d4aadc3b86faa65c53ccaa078207c26855fc456",
+  "unitTests": 820,
+  "unitFiles": 65,
+  "fullTypeScriptCheck": "passed",
+  "productionBuild": "passed",
+  "browserReplayTestsPassed": 46,
+  "browserReplayTestsFailed": 1,
+  "physicalHardwareValidated": false,
+  "failures": [
+    {
+      "case": "native shared GPU fences full-image oracle",
+      "observed": "Three MeshBasic and independent raw vec3 uniform shader each return 64 differing bytes; raw vec4 and constant shaders, native RGBA clear and native texture upload each return all 256 bytes exactly. Bulk, individual-pixel and Three readbacks agree. Correct uniform values, complete RGBA8 attachment, no GL errors.",
+      "status": "Native vec3 shader path isolated on this software backend; underlying driver/compiler cause not yet identified. Original strict failure preserved."
+    }
+  ],
+  "newPasses": [
+    "Native audio disposal and replacement with required closes, abandoned-resume observation and native-ended completion barrier"
+  ],
+  "browserReportStats": {
+    "total": 47,
+    "expected": 46,
+    "unexpected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": false
+  }
+}

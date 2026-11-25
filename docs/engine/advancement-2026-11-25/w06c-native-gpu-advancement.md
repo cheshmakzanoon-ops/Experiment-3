@@ -1,10 +1,14 @@
 # W06C — native GPU upload and fence acceptance
 
 Assignment 33/60, wave 6. Adds two browser acceptance cases for the production
-attribute-range helper and shared GPU gate. Two exact-source native runs
+attribute-range helper and shared GPU gate. Three exact-source native runs
 passed the upload case but failed the shared-fence case's complete-image
-control with the same reproducible pixel pattern. **The shared-fence case remains
-failed pending diagnosis and rerun.**
+MeshBasic control with the same reproducible pixel pattern. A six-path native
+comparison isolates the observed failure to the `vec3` colour-uniform draw path
+on the recorded Mesa/ANGLE/LLVM stack; its exact internal cause is not established.
+The shared-gate fixture now uses an explicit test-only `vec4` witness while
+retaining exact whole-image checks and always recording the failed material paths.
+**The revised shared-gate oracle awaits exact-source native CI.**
 Local compilation and discovery are not reported as a native GPU pass.
 
 Owned files:
@@ -74,9 +78,12 @@ caller relationship.
 
 ## Case 2: native shared fence handoff
 
-A minimal Three scene renders a solid plane into an 8×8 target. The fixture
-creates circuit and Festival leases on the same actual context, then exercises
-two handoffs:
+A minimal Three scene renders a solid plane into an 8×8 target using a test-only
+`RawShaderMaterial` with an explicit `vec4` colour uniform. This is a render-order
+and ownership witness, not an acceptance test for MeshBasic or authored game
+materials. The six-path diagnosis and reason for that boundary are retained below.
+The fixture creates circuit and Festival leases on the same actual context, then
+exercises two handoffs:
 
 1. The circuit submits a red frame. Releasing and replacing the Festival
    borrower must retain the same pending gate, one live native sync and zero
@@ -211,11 +218,11 @@ implementation selects `RGBA8` for the default unsigned-byte RGBA target with
 no sRGB transfer. The
 [Khronos WebGL 2 specification](https://registry.khronos.org/webgl/specs/latest/2.0/)
 defines the relevant native readback and framebuffer-attachment queries. These
-contracts do not identify the cause of the observed stripes. A packing,
-shader/uniform, backend, or fixture issue remains a hypothesis until a control
-separates the paths; no production-engine change is justified yet.
+contracts did not identify the cause of the observed stripes. At this checkpoint,
+packing, shader/uniform, backend, and fixture issues still required controls to
+separate them; no production-engine change was justified.
 
-A failure-only diagnostic now uses a separate native context and the same
+A failure-only diagnostic was added using a separate native context and the same
 8×8 RGBA target to compare six paths:
 
 | Input path                                       | Boundary exercised                                   |
@@ -235,7 +242,7 @@ attachment component sizes/type, implementation read format/type, actual native
 colour-uniform values for draw paths, shader logs, GL errors, and native gate
 counts. No synthetic wait status or blocking completion shortcut is used.
 
-This diagnostic runs only when the original image differs, attaches
+At this checkpoint the diagnostic ran only when the original image differed, attached
 `native-gpu-raster-path-diagnostics.json`, and cannot replace or satisfy the
 original oracle. All red/green full-image and lease assertions retain their
 exact expected values. The pixel assertions now follow the complete fence and
@@ -245,7 +252,86 @@ from executing. Both failed checkpoints and their image evidence are retained.
 The matrix fixture bundles locally to **1,117,564 bytes with seven inputs**;
 scoped ESLint and formatting passed. No local browser, full compiler/build, npm
 lifecycle hook, or production-source change was run. Native matrix execution
-and any resulting cause classification remain pending CI.
+and any resulting cause classification were pending at that handoff.
+
+## Third native run: observed vec3 colour-path failure
+
+The six-path matrix executed in focused workflow
+[45585197376](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45585197376)
+at exact commit `6cb1c881d19d190f5dbc68adeb9bf8b6c600da1b`, on
+`ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)`. The original shared
+case still failed its unchanged MeshBasic image oracle. All native ownership,
+fence, zero-time wait, and cleanup assertions preceding that oracle passed.
+
+The separate-context matrix recorded these differing-byte counts against the
+exact 256-byte solid-red control:
+
+| Draw/publication path                 | Native bulk read | All 64 individual pixel reads | Three readback |
+| ------------------------------------- | ---------------: | ----------------------------: | -------------: |
+| MeshBasic                             |           **64** |                        **64** |         **64** |
+| Native RGBA clear                     |                0 |                             0 |              0 |
+| Native exact RGBA texture upload      |                0 |                             0 |              0 |
+| Constant-colour raw shader            |                0 |                             0 |              0 |
+| Raw shader with `vec3` colour uniform |           **64** |                        **64** |         **64** |
+| Raw shader with `vec4` colour uniform |                0 |                             0 |              0 |
+
+MeshBasic and the minimal raw `vec3` shader produced the same failed hash,
+`c71a938f01e7932926a8a7de17446c1ab97662b2838cda203b18b5c6c23be6e2`.
+The other four paths produced the exact expected red hash,
+`0d1b5807a072040df4aab5871837e4296ddafc56a83226a1d098e6e86961c001`.
+All three read methods agreed byte-for-byte for every path. Native uniform
+queries returned the correct `[1, 0, 0]` or `[1, 0, 0, 1]` values; attachments
+were complete, unsigned-normalized RGBA with eight bits per component. There
+were no shader logs, GL errors, finish calls, or context loss, and all six
+diagnostic submissions reached observed native completion.
+
+These controls rule out the observed bulk-read packing hypothesis and isolate
+the mismatch to the tested `vec3` colour-uniform raster path on this software
+stack. The minimal shader reproduces it without MeshBasic's shader chunks or
+borrower handoffs. This evidence does **not** identify whether ANGLE translation,
+Mesa/llvmpipe compilation, LLVM, or another native draw implementation detail
+is responsible. It does not establish an authored game-material defect or
+justify changing game shaders. The original failed cases remain failed evidence.
+
+### Strict vec4 witness and visible material limitation
+
+The revised shared-gate case uses the same minimal `vec4` material as the exact
+matrix control. Its shader directly writes the four-component colour uniform.
+It still renders red, then green, then an abandoned blue submission using the
+same lease sequence and actual asynchronous native fence completion. The complete
+red and green byte arrays retain their original expected values, and all gate,
+pending-owner, released-owner, sync deletion, GL-error, and cleanup assertions
+remain intact. No tolerance, selected-pixel acceptance, expected stripes, skip,
+fabricated wait result, or readback-based admission is introduced.
+
+The test name and result metadata explicitly identify the `vec4` witness and
+its limited render-order/ownership scope. The six-path matrix now runs and is
+attached on **every** shared-gate execution. Any nonzero image differences remain
+listed in `rasterPathFailures` and visible Playwright
+`native-backend-raster-limitation` annotations. MeshBasic and `vec3` image failures
+are not represented as passing material checks. Their expected images remain
+the solid-red control; the test does not require a defect to persist on another
+backend or future driver.
+
+The known-valid clear, texture-upload, constant-shader, and `vec4` controls are
+now asserted exactly for all three read methods, including all 256 bytes and
+their expected hashes. The separate-context, single-owner `vec4` red result must
+also equal the shared-handoff red result. Both use the production gate; this is
+an independent context/ownership control, not a second implementation of the
+gate. Native attachment properties, agreement between read methods, zero GL
+errors, and diagnostic completion state remain checked; the shared-gate case
+continues to assert its native-sync and Three resource cleanup.
+
+### Local validation of the revised witness
+
+The fixture bundles to **1,118,974 bytes with seven inputs**. Scoped ESLint and
+the narrow semantic TypeScript check documented above passed, with the compiler
+limited to a 512 MiB heap. Formatting passed, and Playwright discovery still
+finds two tests in this file. These are local static checks;
+the new witness has not yet executed in the native browser. No local browser,
+full repository compiler/build, npm lifecycle hook, production code, authored
+shader, model, character, or environment was changed. The attribute-upload
+fixture representation was not changed in this follow-up.
 
 ## CI evidence to retain
 
@@ -254,10 +340,10 @@ test attaches its report before checking the returned assertions:
 
 - `native-gpu-attribute-uploads.json`
 - `native-gpu-shared-fences.json`
-- `native-gpu-raster-path-diagnostics.json` when the shared-frame pixel oracle fails
+- `native-gpu-raster-path-diagnostics.json` on every shared-gate execution
 
 CI must execute both cases without retries or skips and retain the exact source
-commit/tree and backend identity. The raster-path diagnostic rerun is pending at handoff.
+commit/tree and backend identity. The revised vec4-witness run is pending at handoff.
 Even after passing, this is native software-renderer correctness and lifetime
 evidence, not a physical-GPU, game-wide image-equivalence, latency, FPS, energy
 or performance result.

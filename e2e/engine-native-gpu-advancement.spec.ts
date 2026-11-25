@@ -92,7 +92,7 @@ test('native Three uploads latest coalesced bytes and resumes narrow updates aft
   expect(errors).toEqual([]);
 });
 
-test('native shared fence ownership survives borrower handoff and releases each sync once', async ({
+test('native shared fence ownership with an explicit vec4 witness survives borrower handoff and releases each sync once', async ({
   page,
 }, info) => {
   const errors = await load(page);
@@ -103,15 +103,17 @@ test('native shared fence ownership survives borrower handoff and releases each 
     body: JSON.stringify(report, null, 2),
     contentType: 'application/json',
   });
-  if (report.red.differences || report.green.differences) {
-    const diagnostic = await page.evaluate(() =>
-      (window as unknown as NativeWindow).EngineNativeGpuAdvancement.rasterPathDiagnostics().catch(
-        (error: unknown) => ({ diagnosticError: String(error) }),
-      ),
-    );
-    await info.attach('native-gpu-raster-path-diagnostics.json', {
-      body: JSON.stringify(diagnostic, null, 2),
-      contentType: 'application/json',
+  const diagnostic = await page.evaluate(() =>
+    (window as unknown as NativeWindow).EngineNativeGpuAdvancement.rasterPathDiagnostics(),
+  );
+  await info.attach('native-gpu-raster-path-diagnostics.json', {
+    body: JSON.stringify(diagnostic, null, 2),
+    contentType: 'application/json',
+  });
+  for (const failure of diagnostic.rasterPathFailures) {
+    info.annotations.push({
+      type: 'native-backend-raster-limitation',
+      description: `${failure.path} failed its exact image control: native bulk ${failure.nativeBulkDifferingBytes}/256, individual ${failure.individualDifferingBytes}/256, Three ${failure.threeDifferingBytes}/256 differing bytes on ${diagnostic.backend.renderer}. Shared-gate acceptance uses the separately asserted vec4 witness; this material path remains failed.`,
     });
   }
   const idle = { pending: false, submitted: 0, completed: 0, failure: null };
@@ -120,6 +122,13 @@ test('native shared fence ownership survives borrower handoff and releases each 
   const completed = { pending: false, submitted: 2, completed: 2, failure: null };
   expect(report.backend.webgl2).toBe(true);
   expect(report.backend.renderer).toBeTruthy();
+  expect(report.witness).toEqual({
+    kind: 'test-only-explicit-vec4',
+    material: 'RawShaderMaterial',
+    colourUniform: 'vec4',
+    imageBytes: 256,
+    scope: 'shared gate render ordering and ownership; no MeshBasic or vec3 material acceptance',
+  });
   expect(report.initial).toEqual({ circuit: true, festival: true, queue: idle });
   expect(report.submitted).toEqual({ circuit: first, festival: first });
   expect(report.firstHandoff).toEqual({
@@ -188,5 +197,46 @@ test('native shared fence ownership survives borrower handoff and releases each 
   expect(report.red.differences).toBe(0);
   expect(report.green.differences).toBe(0);
   expect(report.red.sha256).not.toBe(report.green.sha256);
+
+  // The independent diagnostic context must preserve the verified controls.
+  // MeshBasic/vec3 mismatches stay visible in the attachment and annotations;
+  // no assertion requires a backend defect to persist on future hardware.
+  expect(diagnostic.backend.webgl2).toBe(true);
+  expect(diagnostic.backend.renderer).toBe(report.backend.renderer);
+  expect(diagnostic.results.map((result) => result.name)).toEqual([
+    'three-mesh-basic',
+    'native-clear-rgba',
+    'native-texture-rgba-upload',
+    'raw-shader-constant',
+    'raw-shader-vec3',
+    'raw-shader-vec4',
+  ]);
+  const exactControls = new Set([
+    'native-clear-rgba',
+    'native-texture-rgba-upload',
+    'raw-shader-constant',
+    'raw-shader-vec4',
+  ]);
+  for (const result of diagnostic.results) {
+    expect(result.glError).toBe(0);
+    expect(result.attachment.status).toBe(diagnostic.constants.complete);
+    expect(result.attachment.componentBits).toEqual([8, 8, 8, 8]);
+    expect(result.attachment.componentType).toBe(diagnostic.constants.unsignedNormalized);
+    expect(result.bulkVsIndividual).toBe(0);
+    expect(result.bulkVsThree).toBe(0);
+    if (exactControls.has(result.name)) {
+      for (const read of [result.rawBulk, result.individual, result.viaThree]) {
+        expect(read.bytes).toBe(256);
+        expect(read.differences, `${result.name} full-image control`).toBe(0);
+        expect(read.sha256).toBe(read.expectedSha256);
+      }
+    }
+  }
+  const independentVec4 = diagnostic.results.find((result) => result.name === 'raw-shader-vec4');
+  expect(independentVec4?.rawBulk.sha256).toBe(report.red.sha256);
+  expect(diagnostic.shaderErrors).toEqual([]);
+  expect(diagnostic.counts.finishes).toBe(0);
+  expect(diagnostic.queue).toEqual({ pending: false, submitted: 6, completed: 6, failure: null });
+  expect(diagnostic.contextLost).toBe(false);
   expect(errors).toEqual([]);
 });

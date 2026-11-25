@@ -288,6 +288,7 @@ export class Interface {
   readonly graph: HTMLCanvasElement;
   readonly replayBar: HTMLElement;
   private disposed = false;
+  private modalOperation: object | null = null;
   private readonly events = new AbortController();
   private resizeObserver: ResizeObserver | null = null;
   private toastTimer = 0;
@@ -607,6 +608,7 @@ export class Interface {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.modalOperation = null;
     const { menuPad, board, resizeObserver, toastTimer } = this;
     this.menuPad = null;
     this.board = null;
@@ -1351,12 +1353,12 @@ export class Interface {
   /** Paddock "Credits & licences": every third-party attribution (manifest). */
   credits() {
     if (this.disposed) return;
-    this.modalContent(creditsHtml());
-    if (this.disposed) return;
+    if (!this.modalContent(creditsHtml())) return;
+    const operation = this.modalOperation;
     const list = this.element.querySelector<HTMLElement>('#creditsList');
     if (list) {
       list.focus();
-      if (this.disposed) return;
+      if (this.disposed || operation !== this.modalOperation) return;
       this.creditsPad = new CreditsGamepad(list, () => this.callbacks.action('modalClose'));
     }
   }
@@ -1387,14 +1389,19 @@ export class Interface {
     }
     if (failures.length) throw failures[0];
   }
-  modalContent(html: string) {
-    if (this.disposed) return;
+  modalContent(html: string): boolean {
+    if (this.disposed) return false;
+    const operation = {};
+    this.modalOperation = operation;
+    const current = () => !this.disposed && this.modalOperation === operation;
     this.releaseModalResources();
-    if (this.disposed) return;
+    if (!current()) return false;
     this.get('modalContent').innerHTML = html;
     if (!this.modal.open) {
       this.modal.showModal();
+      if (!current()) return false;
       uiCue('open');
+      if (!current()) return false;
     }
     // Open at the top. showModal() focuses the first control, which in a tall
     // screen (the controls list, a long classification) is at the bottom and
@@ -1403,21 +1410,33 @@ export class Interface {
     // The Wildcard board: its rows are a radio group that selects the programme
     // page; the chosen event takes the focus.
     const content = this.get('modalContent');
-    if (content.querySelector('.fr')) this.firstRunBinding = bindFirstRun(content);
+    if (content.querySelector('.fr')) {
+      const binding = bindFirstRun(content);
+      // Focus can replace or close the modal before the helper returns its
+      // disposer. A superseded opening must release it instead of adopting it.
+      if (!current()) {
+        binding();
+        return false;
+      }
+      this.firstRunBinding = binding;
+    }
     if (content.querySelector('.wc-board')) {
       this.wildcardBinding = bindWildcardBoard(content);
       content.querySelector<HTMLElement>('.wc-row[aria-checked="true"]')?.focus({ preventScroll: true });
     }
+    return current();
   }
   /** The dialog that is open right now is the pause menu (not a dialog opened from it). */
   get pauseMenuOpen() {
     return this.modal.open && !!this.modal.querySelector('.pause-menu');
   }
   closeModal() {
+    this.modalOperation = null;
     this.releaseModalResources();
-    if (this.disposed) return;
+    if (this.disposed || this.modalOperation !== null) return;
     if (this.modal.open) {
       this.modal.close();
+      if (this.disposed || this.modalOperation !== null) return;
       uiCue('close');
     }
   }
@@ -1443,7 +1462,7 @@ export class Interface {
     const menuChoice = document.querySelector<HTMLSelectElement>('#vehicle')?.value ?? null;
     const vehicle = setupMachine(context?.machine, menuChoice, this.options),
       preset = context?.preset ?? null;
-    this.modalContent(
+    const opened = this.modalContent(
       `<header><div><span class="eyebrow">${th('GARAGE / PREFERENCES')}</span><h2>${th('Garage & settings.')}</h2></div><button data-action="modalClose" aria-label="${ta('Close settings')}">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>${th('Presentation')}</h3>${settingsLanguageRow(settings.language)}<label>${th('RENDER QUALITY')}<select name="quality"><option value="low">${th('Low · No shadows / crowd / particles')}</option><option value="medium">${th('Medium · 2× MSAA / AO / bloom')}</option><option value="high">${th('High · 4× MSAA / local reflections / specular AA')}</option><option value="ultra">${th('Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)')}</option></select></label>${qualityGuideHtml(settings.quality, this.gpu ?? (this.gpu = readGpuName()))}${presentationControls(settings)}${[
         ['volume', N_('Volume'), 0, 1, 0.01],
         ['shake', N_('Camera vibration'), 0, 1, 0.01],
@@ -1493,7 +1512,7 @@ export class Interface {
           '',
         )}</div></section><section><h3>${th('Vehicle setup')}</h3>${setupSectionHtml(vehicle, settings.setup, preset)}<div class="setup-files"><button type="button" id="exportSetup">${th('EXPORT SETUP')}</button><label class="file-label">${th('IMPORT SETUP')}<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">${th('CANCEL')}</button><button class="primary" type="submit">${th('APPLY & SAVE')}</button></footer></form>`,
     );
-    if (this.disposed) return;
+    if (!opened) return;
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
       document.getElementById('deviceCalibration')!,

@@ -1,0 +1,1105 @@
+{
+  "schema": "engine-physics-cache-edge-proof-v1",
+  "passed": true,
+  "timingsCollected": false,
+  "productionChanged": false,
+  "sourceStable": true,
+  "runtime": {
+    "node": "v24.22.3",
+    "v8": "13.6.233.17-node.63",
+    "execArgv": [
+      "--no-warnings",
+      "--experimental-transform-types"
+    ]
+  },
+  "script": {
+    "path": "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/physics-cache-edge-proof.mjs",
+    "sha256": "a33892a0c47bf1e71a2f03f06197cbefc85212bd4c7aaf6125b4238000426943"
+  },
+  "source": {
+    "baseline": {
+      "root": "/dev/shm/aeebac160835-engine-baseline",
+      "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "files": {
+        "package-lock.json": {
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/core/math.ts": {
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/i18n/mark.ts": {
+          "bytes": 463,
+          "sha256": "63ba61f7c8aeba8bf6a0dd44f79969acbcfda0a48cb9feabc6f189e0e020b057"
+        },
+        "src/simulation/aero-map.ts": {
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/aero.ts": {
+          "bytes": 10170,
+          "sha256": "e18c357f5e77595a868360250965897bc679d8a2a19aff2ec0a53c5a7f83a742"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/bike.ts": {
+          "bytes": 59649,
+          "sha256": "bed29baf8e62d044c27188882a724588a07d24ee513191079869bedd0485c1ba"
+        },
+        "src/simulation/brake-thermal.ts": {
+          "bytes": 668,
+          "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+        },
+        "src/simulation/bvh.ts": {
+          "bytes": 21541,
+          "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+        },
+        "src/simulation/catalogue-dynamics.ts": {
+          "bytes": 7477,
+          "sha256": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821"
+        },
+        "src/simulation/catalogue-events.ts": {
+          "bytes": 12600,
+          "sha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a"
+        },
+        "src/simulation/circuit-catalogue/builder.ts": {
+          "bytes": 32157,
+          "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+        },
+        "src/simulation/circuit-catalogue/dsl.ts": {
+          "bytes": 3681,
+          "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+        },
+        "src/simulation/circuit-catalogue/endurance.ts": {
+          "bytes": 10864,
+          "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+        },
+        "src/simulation/circuit-catalogue/events.ts": {
+          "bytes": 7696,
+          "sha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720"
+        },
+        "src/simulation/circuit-catalogue/index.ts": {
+          "bytes": 1669,
+          "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+        },
+        "src/simulation/circuit-catalogue/industrial.ts": {
+          "bytes": 4699,
+          "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+        },
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": {
+          "bytes": 9535,
+          "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+        },
+        "src/simulation/circuit-catalogue/night-and-street.ts": {
+          "bytes": 11968,
+          "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+        },
+        "src/simulation/circuit-catalogue/real-world-classics.ts": {
+          "bytes": 12571,
+          "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+        },
+        "src/simulation/circuit-catalogue/real-world.ts": {
+          "bytes": 18890,
+          "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+        },
+        "src/simulation/circuit-catalogue/unconventional.ts": {
+          "bytes": 16927,
+          "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+        },
+        "src/simulation/circuit-catalogue/venue-data.ts": {
+          "bytes": 6907,
+          "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+        },
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": {
+          "bytes": 11336,
+          "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+        },
+        "src/simulation/circuits.ts": {
+          "bytes": 12745,
+          "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+        },
+        "src/simulation/clutch.ts": {
+          "bytes": 2526,
+          "sha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4"
+        },
+        "src/simulation/config.ts": {
+          "bytes": 11770,
+          "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e"
+        },
+        "src/simulation/contact.ts": {
+          "bytes": 9415,
+          "sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+        },
+        "src/simulation/contamination.ts": {
+          "bytes": 2124,
+          "sha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005"
+        },
+        "src/simulation/damage.ts": {
+          "bytes": 1950,
+          "sha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad"
+        },
+        "src/simulation/differential.ts": {
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/driving-assists.ts": {
+          "bytes": 933,
+          "sha256": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6"
+        },
+        "src/simulation/drs.ts": {
+          "bytes": 6621,
+          "sha256": "b7c79a93971179153152d87516fbbbb8f6579ed07544398f41efb242e90cee73"
+        },
+        "src/simulation/events.ts": {
+          "bytes": 15678,
+          "sha256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4"
+        },
+        "src/simulation/gp-corner-shape.ts": {
+          "bytes": 3493,
+          "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+        },
+        "src/simulation/gp-course-edges.ts": {
+          "bytes": 2898,
+          "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+        },
+        "src/simulation/gp-front-contact.ts": {
+          "bytes": 1411,
+          "sha256": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e"
+        },
+        "src/simulation/marshal.ts": {
+          "bytes": 13061,
+          "sha256": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46"
+        },
+        "src/simulation/motogp-physics.ts": {
+          "bytes": 27464,
+          "sha256": "dee3b01da0408aa5406bb0320c1f4b75b03b239f9158143dde4783257ce9b460"
+        },
+        "src/simulation/motorcycle-thermal.ts": {
+          "bytes": 5122,
+          "sha256": "1d1de37df607d1e2e338e7f8fd2f9ad552a69c8612f84fa0e0a03216244cfca7"
+        },
+        "src/simulation/offroad/berm-lines.ts": {
+          "bytes": 2729,
+          "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+        },
+        "src/simulation/offroad/braking-bumps.ts": {
+          "bytes": 3159,
+          "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+        },
+        "src/simulation/offroad/course-terrain.ts": {
+          "bytes": 18041,
+          "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+        },
+        "src/simulation/offroad/course.ts": {
+          "bytes": 17326,
+          "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/offroad/formats.ts": {
+          "bytes": 7757,
+          "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+        },
+        "src/simulation/offroad/profile.ts": {
+          "bytes": 10792,
+          "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+        },
+        "src/simulation/offroad/types.ts": {
+          "bytes": 2657,
+          "sha256": "0440f578e6ce5574a48765fe9a30bc112993568c0c5dd6e8b5fbbf633f3bde83"
+        },
+        "src/simulation/offroad/venues.ts": {
+          "bytes": 17834,
+          "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+        },
+        "src/simulation/powertrain.ts": {
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/racing-line.ts": {
+          "bytes": 5343,
+          "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+        },
+        "src/simulation/regenerative-braking.ts": {
+          "bytes": 4394,
+          "sha256": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0"
+        },
+        "src/simulation/rigid.ts": {
+          "bytes": 8360,
+          "sha256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7"
+        },
+        "src/simulation/road-contact.ts": {
+          "bytes": 2543,
+          "sha256": "1f4d573f9db4b0ad8b2b1a3dc365fac0f2792e3fe656cc66cff87bfd1309454b"
+        },
+        "src/simulation/skid-contact.ts": {
+          "bytes": 5898,
+          "sha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0"
+        },
+        "src/simulation/surface-drainage.ts": {
+          "bytes": 3107,
+          "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+        },
+        "src/simulation/surface-material.ts": {
+          "bytes": 11633,
+          "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+        },
+        "src/simulation/surface-thermal.ts": {
+          "bytes": 8920,
+          "sha256": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72"
+        },
+        "src/simulation/suspension.ts": {
+          "bytes": 17454,
+          "sha256": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97"
+        },
+        "src/simulation/terrain.ts": {
+          "bytes": 6942,
+          "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+        },
+        "src/simulation/tire-families.ts": {
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/tire-footprint.ts": {
+          "bytes": 14215,
+          "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+        },
+        "src/simulation/tire.ts": {
+          "bytes": 31050,
+          "sha256": "731b5a1e2579c41942714104fef334ac48e5dd6b4a5c36f456778e97ed136fc3"
+        },
+        "src/simulation/track-lane-index.ts": {
+          "bytes": 2784,
+          "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+        },
+        "src/simulation/track.ts": {
+          "bytes": 31783,
+          "sha256": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0"
+        },
+        "src/simulation/tyre-force.ts": {
+          "bytes": 29857,
+          "sha256": "e7027bd699777d31083aecbbac3f6dac85455de4d385b4ea1fb542ba1245f6e0"
+        },
+        "src/simulation/tyre-thermal.ts": {
+          "bytes": 7837,
+          "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicle-classes.ts": {
+          "bytes": 5538,
+          "sha256": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c"
+        },
+        "src/simulation/vehicle-dynamics.ts": {
+          "bytes": 5427,
+          "sha256": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7"
+        },
+        "src/simulation/vehicle.ts": {
+          "bytes": 46955,
+          "sha256": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9"
+        },
+        "src/simulation/vehicles.ts": {
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "src/simulation/weather-catalogue.ts": {
+          "bytes": 4157,
+          "sha256": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9"
+        },
+        "src/simulation/weather.ts": {
+          "bytes": 36688,
+          "sha256": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756"
+        },
+        "src/simulation/wheel-momentum.ts": {
+          "bytes": 720,
+          "sha256": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66"
+        },
+        "src/simulation/wheel-rotation.ts": {
+          "bytes": 2050,
+          "sha256": "e4877615359b82953ce760591507109bd1f07141c316ee835fddf0f5416e7bd6"
+        },
+        "src/simulation/wildcard-rulesets.ts": {
+          "bytes": 4622,
+          "sha256": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae"
+        },
+        "tsconfig.json": {
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "relevantStatus": ""
+    },
+    "current": {
+      "root": "/tmp/aeebac160835-engine/Experiment-3",
+      "commit": "6cb1c881d19d190f5dbc68adeb9bf8b6c600da1b",
+      "files": {
+        "package-lock.json": {
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/core/math.ts": {
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/i18n/mark.ts": {
+          "bytes": 463,
+          "sha256": "63ba61f7c8aeba8bf6a0dd44f79969acbcfda0a48cb9feabc6f189e0e020b057"
+        },
+        "src/simulation/aero-map.ts": {
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/aero.ts": {
+          "bytes": 10170,
+          "sha256": "e18c357f5e77595a868360250965897bc679d8a2a19aff2ec0a53c5a7f83a742"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/bike.ts": {
+          "bytes": 59649,
+          "sha256": "bed29baf8e62d044c27188882a724588a07d24ee513191079869bedd0485c1ba"
+        },
+        "src/simulation/brake-thermal.ts": {
+          "bytes": 668,
+          "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+        },
+        "src/simulation/bvh.ts": {
+          "bytes": 21541,
+          "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+        },
+        "src/simulation/catalogue-dynamics.ts": {
+          "bytes": 7477,
+          "sha256": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821"
+        },
+        "src/simulation/catalogue-events.ts": {
+          "bytes": 12600,
+          "sha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a"
+        },
+        "src/simulation/circuit-catalogue/builder.ts": {
+          "bytes": 32157,
+          "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+        },
+        "src/simulation/circuit-catalogue/dsl.ts": {
+          "bytes": 3681,
+          "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+        },
+        "src/simulation/circuit-catalogue/endurance.ts": {
+          "bytes": 10864,
+          "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+        },
+        "src/simulation/circuit-catalogue/events.ts": {
+          "bytes": 7696,
+          "sha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720"
+        },
+        "src/simulation/circuit-catalogue/index.ts": {
+          "bytes": 1669,
+          "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+        },
+        "src/simulation/circuit-catalogue/industrial.ts": {
+          "bytes": 4699,
+          "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+        },
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": {
+          "bytes": 9535,
+          "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+        },
+        "src/simulation/circuit-catalogue/night-and-street.ts": {
+          "bytes": 11968,
+          "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+        },
+        "src/simulation/circuit-catalogue/real-world-classics.ts": {
+          "bytes": 12571,
+          "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+        },
+        "src/simulation/circuit-catalogue/real-world.ts": {
+          "bytes": 18890,
+          "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+        },
+        "src/simulation/circuit-catalogue/unconventional.ts": {
+          "bytes": 16927,
+          "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+        },
+        "src/simulation/circuit-catalogue/venue-data.ts": {
+          "bytes": 6907,
+          "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+        },
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": {
+          "bytes": 11336,
+          "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+        },
+        "src/simulation/circuits.ts": {
+          "bytes": 12745,
+          "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+        },
+        "src/simulation/clutch.ts": {
+          "bytes": 2526,
+          "sha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4"
+        },
+        "src/simulation/config.ts": {
+          "bytes": 11770,
+          "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e"
+        },
+        "src/simulation/contact.ts": {
+          "bytes": 9415,
+          "sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+        },
+        "src/simulation/contamination.ts": {
+          "bytes": 2124,
+          "sha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005"
+        },
+        "src/simulation/damage.ts": {
+          "bytes": 1950,
+          "sha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad"
+        },
+        "src/simulation/differential.ts": {
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/driving-assists.ts": {
+          "bytes": 933,
+          "sha256": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6"
+        },
+        "src/simulation/drs.ts": {
+          "bytes": 6621,
+          "sha256": "b7c79a93971179153152d87516fbbbb8f6579ed07544398f41efb242e90cee73"
+        },
+        "src/simulation/events.ts": {
+          "bytes": 15678,
+          "sha256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4"
+        },
+        "src/simulation/gp-corner-shape.ts": {
+          "bytes": 3493,
+          "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+        },
+        "src/simulation/gp-course-edges.ts": {
+          "bytes": 2898,
+          "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+        },
+        "src/simulation/gp-front-contact.ts": {
+          "bytes": 1411,
+          "sha256": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e"
+        },
+        "src/simulation/marshal.ts": {
+          "bytes": 13061,
+          "sha256": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46"
+        },
+        "src/simulation/motogp-physics.ts": {
+          "bytes": 27464,
+          "sha256": "dee3b01da0408aa5406bb0320c1f4b75b03b239f9158143dde4783257ce9b460"
+        },
+        "src/simulation/motorcycle-thermal.ts": {
+          "bytes": 5122,
+          "sha256": "1d1de37df607d1e2e338e7f8fd2f9ad552a69c8612f84fa0e0a03216244cfca7"
+        },
+        "src/simulation/offroad/berm-lines.ts": {
+          "bytes": 2729,
+          "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+        },
+        "src/simulation/offroad/braking-bumps.ts": {
+          "bytes": 3159,
+          "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+        },
+        "src/simulation/offroad/course-terrain.ts": {
+          "bytes": 18041,
+          "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+        },
+        "src/simulation/offroad/course.ts": {
+          "bytes": 17326,
+          "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/offroad/formats.ts": {
+          "bytes": 7757,
+          "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+        },
+        "src/simulation/offroad/profile.ts": {
+          "bytes": 10792,
+          "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+        },
+        "src/simulation/offroad/types.ts": {
+          "bytes": 2657,
+          "sha256": "0440f578e6ce5574a48765fe9a30bc112993568c0c5dd6e8b5fbbf633f3bde83"
+        },
+        "src/simulation/offroad/venues.ts": {
+          "bytes": 17834,
+          "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+        },
+        "src/simulation/powertrain.ts": {
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/racing-line.ts": {
+          "bytes": 5343,
+          "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+        },
+        "src/simulation/regenerative-braking.ts": {
+          "bytes": 4394,
+          "sha256": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0"
+        },
+        "src/simulation/rigid.ts": {
+          "bytes": 8360,
+          "sha256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7"
+        },
+        "src/simulation/road-contact.ts": {
+          "bytes": 2543,
+          "sha256": "1f4d573f9db4b0ad8b2b1a3dc365fac0f2792e3fe656cc66cff87bfd1309454b"
+        },
+        "src/simulation/skid-contact.ts": {
+          "bytes": 5898,
+          "sha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0"
+        },
+        "src/simulation/surface-drainage.ts": {
+          "bytes": 3107,
+          "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+        },
+        "src/simulation/surface-material.ts": {
+          "bytes": 11633,
+          "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+        },
+        "src/simulation/surface-thermal.ts": {
+          "bytes": 11858,
+          "sha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12"
+        },
+        "src/simulation/suspension.ts": {
+          "bytes": 17454,
+          "sha256": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97"
+        },
+        "src/simulation/terrain.ts": {
+          "bytes": 6942,
+          "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+        },
+        "src/simulation/tire-families.ts": {
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/tire-footprint.ts": {
+          "bytes": 14215,
+          "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+        },
+        "src/simulation/tire.ts": {
+          "bytes": 31050,
+          "sha256": "731b5a1e2579c41942714104fef334ac48e5dd6b4a5c36f456778e97ed136fc3"
+        },
+        "src/simulation/track-lane-index.ts": {
+          "bytes": 2784,
+          "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+        },
+        "src/simulation/track.ts": {
+          "bytes": 32242,
+          "sha256": "11c4f225e953670d86a75660a128a944a38c4105ccf08e00e52b2d0ed6453bc5"
+        },
+        "src/simulation/tyre-force.ts": {
+          "bytes": 29857,
+          "sha256": "e7027bd699777d31083aecbbac3f6dac85455de4d385b4ea1fb542ba1245f6e0"
+        },
+        "src/simulation/tyre-thermal.ts": {
+          "bytes": 7837,
+          "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicle-classes.ts": {
+          "bytes": 5538,
+          "sha256": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c"
+        },
+        "src/simulation/vehicle-dynamics.ts": {
+          "bytes": 5427,
+          "sha256": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7"
+        },
+        "src/simulation/vehicle.ts": {
+          "bytes": 46955,
+          "sha256": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9"
+        },
+        "src/simulation/vehicles.ts": {
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "src/simulation/weather-catalogue.ts": {
+          "bytes": 4157,
+          "sha256": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9"
+        },
+        "src/simulation/weather.ts": {
+          "bytes": 37921,
+          "sha256": "71da8aa301efa348cc373f560f17cb8a18cde32c9085cdc8f8dbb613dba57088"
+        },
+        "src/simulation/wheel-momentum.ts": {
+          "bytes": 720,
+          "sha256": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66"
+        },
+        "src/simulation/wheel-rotation.ts": {
+          "bytes": 2050,
+          "sha256": "e4877615359b82953ce760591507109bd1f07141c316ee835fddf0f5416e7bd6"
+        },
+        "src/simulation/wildcard-rulesets.ts": {
+          "bytes": 4622,
+          "sha256": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae"
+        },
+        "tsconfig.json": {
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "relevantStatus": ""
+    }
+  },
+  "counts": {
+    "waterCases": 3920,
+    "numericComparisons": 15680,
+    "emptyNonpositiveCases": 672,
+    "baseInputRejections": 62,
+    "thermalCases": 480,
+    "thermalComparisons": 2160
+  },
+  "waterGrid": {
+    "water": [
+      "-0",
+      "0",
+      "5e-324",
+      "1e-12",
+      "0.1",
+      "1",
+      "1.7976931348623157e+308"
+    ],
+    "source": [
+      "-1.7976931348623157e+308",
+      "-1000000",
+      "-1",
+      "-5e-324",
+      "-0",
+      "0",
+      "5e-324",
+      "0.000001",
+      "1",
+      "1.7976931348623157e+308"
+    ],
+    "drainage": [
+      "-0",
+      "0",
+      "5e-324",
+      "9.99999e-13",
+      "1e-12",
+      "0.02",
+      "1",
+      "1.7976931348623157e+308"
+    ],
+    "dt": [
+      "-0",
+      "0",
+      "5e-324",
+      "1e-12",
+      "0.5",
+      "1",
+      "1.7976931348623157e+308"
+    ]
+  },
+  "thermalFixture": {
+    "initialWeather": {
+      "ambient": 18,
+      "cloud": 0.4,
+      "rain": 12,
+      "windX": 2,
+      "windZ": -1
+    },
+    "stages": [
+      {},
+      {
+        "weather": {
+          "ambient": 0,
+          "rain": 0
+        }
+      },
+      {
+        "weather": {
+          "ambient": 0,
+          "rain": 0
+        }
+      },
+      {
+        "weather": {
+          "rain": 24,
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      {
+        "weather": {
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      {
+        "parameters": {
+          "surfaceCapacity": 31000,
+          "substrateCapacity": 190000
+        }
+      },
+      {
+        "parameters": {
+          "conduction": 0,
+          "deepConductance": 0,
+          "airBase": 0,
+          "airWind": 0
+        }
+      },
+      {
+        "parameters": {
+          "conduction": 0,
+          "deepConductance": 0,
+          "airBase": 0,
+          "airWind": 0
+        }
+      },
+      {
+        "parameters": {
+          "solarFlux": 0
+        }
+      },
+      {
+        "parameters": {
+          "surfaceCapacity": 21000,
+          "substrateCapacity": 168000,
+          "conduction": 45,
+          "deepConductance": 3,
+          "airBase": 12,
+          "airWind": 4,
+          "solarFlux": 260
+        },
+        "weather": {
+          "windX": 6,
+          "windZ": 1,
+          "rain": 44
+        }
+      }
+    ],
+    "note": "Signed-zero stages are preserved in the identified script; JSON numbers normalize -0.",
+    "sheltered": [
+      false,
+      true,
+      false
+    ],
+    "dt": [
+      0.008333333333333333,
+      0.5,
+      60,
+      0.5
+    ],
+    "surface": [
+      "-0",
+      "0",
+      "24",
+      "60"
+    ],
+    "substrate": 20,
+    "localRainfall": [
+      "-0",
+      "0",
+      "0.001",
+      "0.003"
+    ],
+    "drainage": [
+      0,
+      1e-15,
+      0.02,
+      1
+    ],
+    "waterPerCell": 0.125,
+    "heatPerCell": 17,
+    "restorePreparedRainfallArgs": [
+      23,
+      20,
+      11
+    ]
+  },
+  "invalidCellObservations": [
+    {
+      "cell": "-1",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "-1",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "-1",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "-1",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "0.5",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "0.5",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "0.5",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "0.5",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "NaN",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "NaN",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "NaN",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "NaN",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "Infinity",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "Infinity",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "Infinity",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "Infinity",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "-Infinity",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "-Infinity",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "-Infinity",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "-Infinity",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "1",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "1",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "1",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "1",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "2",
+      "drainage": 0,
+      "outcome": "+0"
+    },
+    {
+      "cell": "2",
+      "drainage": 9.99e-13,
+      "outcome": "+0"
+    },
+    {
+      "cell": "2",
+      "drainage": 1e-12,
+      "outcome": "Invalid surface water coefficient cell"
+    },
+    {
+      "cell": "2",
+      "drainage": 0.02,
+      "outcome": "Invalid surface water coefficient cell"
+    }
+  ]
+}
