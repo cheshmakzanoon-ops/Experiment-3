@@ -106,6 +106,68 @@ describe('surface ownership', () => {
     },
   );
 
+  it('rebases the same real terrain after an attached post consumes its incremental changes', () => {
+    const simulation = new Simulation({
+      ...DEFAULT_OPTIONS,
+      mode: 'practice',
+      opponents: 0,
+      seed: 71010,
+      circuit: 'valley-ridge-mx',
+      vehicles: ['mx450'],
+    });
+    const terrain = simulation.offroad!.terrain;
+    const channel = new SurfaceChannel(1);
+    const messages: SurfaceMessage[] = [];
+    const capture = (full: boolean) => ({
+      ...state(simulation.race.time),
+      terrain: terrain.renderDelta(full),
+    });
+    const send = (message: SurfaceMessage, transfer: Transferable[]) => {
+      messages.push(structuredClone(message, { transfer }));
+      expect(message.water.byteLength).toBe(0);
+      expect(message.terrain!.blocks.byteLength).toBe(0);
+    };
+    channel.reset(0, true);
+    channel.request(0);
+    expect(channel.publish(0, capture, send)).toBe(true);
+    expect(channel.acknowledge(messages[0])).toBe(true);
+
+    terrain.deform(0, 30, 4000, 1, 0.1);
+    expect(terrain.changed.size).toBeGreaterThan(0);
+    const expected = authoritativeTerrain(terrain);
+    const terrainHash = terrain.hash();
+    expect(expected.size).toBeGreaterThan(0);
+    channel.request(60);
+    let rejected!: SurfaceMessage;
+    expect(() =>
+      channel.publish(60, capture, (message) => {
+        rejected = message;
+        throw new Error('surface post failed');
+      }),
+    ).toThrow('surface post failed');
+    expect(rejected.terrain!.reset).toBe(false);
+    expect(rejected.terrain!.blocks.length).toBeGreaterThan(0);
+    expect(terrain.changed.size).toBe(0);
+    expect(channel.acknowledge(rejected)).toBe(false);
+
+    expect(channel.publish(60, capture, send)).toBe(true);
+    expect(messages).toHaveLength(2);
+    const recovery = messages[1];
+    expect(recovery.terrain!.reset).toBe(true);
+    const blocks = recovery.terrain!.blocks;
+    const restored = new Map<number, [number, number]>();
+    for (let i = 0; i < blocks.length; i += 3)
+      restored.set(blocks[i], [blocks[i + 1], blocks[i + 2]]);
+    expect(restored).toEqual(expected);
+    expect(restored).toEqual(authoritativeTerrain(terrain));
+    expect(terrain.hash()).toBe(terrainHash);
+    expect(recovery.time).toBe(simulation.race.time);
+    expect(channel.acknowledge(rejected)).toBe(false);
+    channel.request(120);
+    expect(channel.publish(120, capture, send)).toBe(false);
+    expect(channel.acknowledge(recovery)).toBe(true);
+  });
+
   it('does not let a throwing older publication revoke reentrant new-epoch ownership', () => {
     const channel = new SurfaceChannel(1);
     channel.reset(0, true);
@@ -550,7 +612,7 @@ describe('real circuit worker surface backpressure', () => {
     expect(messages.filter((message) => message.type === 'error')).toEqual([]);
   });
 
-  it('rebases real terrain after a failed post consumed its incremental change set', () => {
+  it('keeps a failed surface post terminal and rebases real terrain after fresh initialization', () => {
     init({ circuit: 'valley-ridge-mx', vehicles: ['mx450'] });
     send({ type: 'pause', value: false });
     advance(500);
@@ -564,15 +626,41 @@ describe('real circuit worker surface backpressure', () => {
       message: expect.stringContaining('surface post failed'),
     });
     expect(current.offroad!.terrain.changed.size).toBe(0);
+    const failedSimulation = current;
+    const failedTick = current.tick;
+    const failedTerrainHash = current.offroad!.terrain.hash();
+    const failedMessages = messages.length;
     ack(first);
+    ack(first);
+    send({ type: 'pause', value: false, sequence: 37 });
+    advance(1000);
+    expect(messages).toHaveLength(failedMessages);
+    expect(packets()).toHaveLength(1);
+    expect(current).toBe(failedSimulation);
+    expect(current.tick).toBe(failedTick);
+    expect(current.offroad!.terrain.hash()).toBe(failedTerrainHash);
+
+    init({ circuit: 'valley-ridge-mx', vehicles: ['mx450'] });
+    expect(current).not.toBe(failedSimulation);
+    current.offroad!.terrain.deform(1, 130, 4000, 1, 0.1);
+    expect(current.offroad!.terrain.changed.size).toBeGreaterThan(0);
+    send({ type: 'pause', value: false, sequence: 38 });
+    advance(500);
     const recovery = packets().at(-1)!;
     expect(packets()).toHaveLength(2);
+    expect(recovery.epoch).toBeGreaterThan(first.epoch);
     expect(recovery.terrain!.reset).toBe(true);
     const blocks = recovery.terrain!.blocks;
+    expect(blocks.length).toBeGreaterThan(0);
     const restored = new Map<number, [number, number]>();
     for (let i = 0; i < blocks.length; i += 3)
       restored.set(blocks[i], [blocks[i + 1], blocks[i + 2]]);
     expect(restored).toEqual(authoritativeTerrain(current.offroad!.terrain));
     expect(recovery.time).toBe(current.race.time);
+    expect(messages.filter((message) => message.type === 'error')).toHaveLength(1);
+    expect(messages.filter((message) => message.type === 'pauseState')).toEqual([
+      { type: 'pauseState', sequence: 38, value: false, tick: 0 },
+    ]);
+    expect(detached.every((array) => array.byteLength === 0)).toBe(true);
   });
 });

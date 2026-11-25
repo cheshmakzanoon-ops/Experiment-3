@@ -17,6 +17,7 @@ on:
       - 'tests/circuit-frame-transport.test.ts'
       - 'tests/circuit-preparation-lifetime.test.ts'
       - 'tests/festival-renderer-loader-lifecycle.test.ts'
+      - 'tests/surface-channel-backpressure.test.ts'
       - 'tests/fake-audio.ts'
       - 'tests/net-helpers.ts'
       - 'e2e/engine-native-*.spec.ts'
@@ -76,6 +77,7 @@ jobs:
             node node_modules/vitest/vitest.mjs run tests/engine-*.test.ts \
             tests/circuit-frame-transport.test.ts tests/circuit-preparation-lifetime.test.ts \
             tests/festival-renderer-loader-lifecycle.test.ts \
+            tests/surface-channel-backpressure.test.ts \
             --pool=threads --maxWorkers=1 --minWorkers=1 --allowOnly=false --retry=0 \
             2>&1 | tee "$RUNNER_TEMP/engine-runtime-unit.log"
       - name: Typecheck and build exact source without asset-generation hooks
