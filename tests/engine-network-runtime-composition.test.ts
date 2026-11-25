@@ -238,7 +238,9 @@ describe('network runtime composition on the deterministic transport', () => {
         ackTick: old.client.lastSnapshotTick,
         commands: [oldCommand],
       });
-      old.client.leave();
+      // A lost process may rejoin; a voluntary leave forfeits its token.
+      old.client.dispose();
+      old.transport.close('connection lost');
       f.loop.runUntil(100);
       expect(old.link.server.onMessage).toBeNull();
       expect(old.link.server.onClose).toBeNull();

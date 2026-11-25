@@ -120,6 +120,43 @@ function snapshot(required = false) {
     send({ type: 'frame', buffer }, [buffer]);
   }, required);
 }
+// Keep scheduling and cancellation paired for this worker's lifetime.
+const scheduleInterval = setInterval.bind(globalThis),
+  cancelInterval = clearInterval.bind(globalThis);
+let interval: ReturnType<typeof scheduleInterval> | null = null,
+  intervalGeneration = 0;
+
+/** Only runnable physics or unfinished resimulation needs periodic work.
+ * Paused messages and credit returns are handled directly by onmessage. */
+function reconcileInterval() {
+  const active =
+    !failed && (rewind !== null || (!paused && !pendingFlashback && simulation !== null));
+  if (active) {
+    if (interval === null) {
+      // A resume may precede a blocked flashback's final surface receipt.
+      // Exclude that idle wall time without discarding fractional active time.
+      clock.rebase(performance.now());
+      startInterval();
+    }
+  } else if (interval !== null) {
+    const retired = interval;
+    interval = null;
+    intervalGeneration++;
+    cancelInterval(retired);
+  }
+}
+function startInterval() {
+  const generation = ++intervalGeneration;
+  interval = scheduleInterval(() => {
+    // A callback already queued before cancellation does not own its successor.
+    if (interval === null || generation !== intervalGeneration) return;
+    try {
+      pump();
+    } finally {
+      reconcileInterval();
+    }
+  }, 4);
+}
 scope.onmessage = (event: MessageEvent<ClientMessage>) => {
   try {
     const msg = event.data;
@@ -231,9 +268,11 @@ scope.onmessage = (event: MessageEvent<ClientMessage>) => {
     }
   } catch (error) {
     fail(error instanceof Error ? error.message : String(error));
+  } finally {
+    reconcileInterval();
   }
 };
-setInterval(() => {
+function pump() {
   const now = performance.now();
   if (failed) {
     clock.rebase(now);
@@ -300,4 +339,7 @@ setInterval(() => {
   } catch (error) {
     fail(error instanceof Error ? (error.stack ?? error.message) : String(error));
   }
-}, 4);
+}
+// Preserve the bootstrap turn: a worker that receives no session message parks
+// on its first callback; init and other idle messages can park it sooner.
+startInterval();
