@@ -48,12 +48,16 @@ export function encodeInput(packet: InputPacket) {
     headerBytes = 1 + 4 + 4 + 1 + (count ? 4 + 4 : 0),
     w = new ByteWriter(headerBytes + count * (1 + CONTROLS_WIRE_BYTES)).u8(MSG.INPUT);
   writeInputPacket(w, packet);
-  return w.finish();
+  return w.finishOwned();
 }
 export function encodeSnapshot(snapshot: Snapshot) {
-  const w = new ByteWriter(32 + snapshot.cars.length * 52).u8(MSG.SNAPSHOT);
+  if (snapshot.cars.length > LIMITS.carsPerSnapshot) throw new Error('Too many cars in snapshot');
+  let capacity = 1 + SNAPSHOT_HEADER_BYTES + snapshot.cars.length * CAR_COMPACT_BYTES;
+  for (const car of snapshot.cars)
+    if (car.flags & CAR_FLAG.FULL) capacity += CAR_FULL_BYTES - CAR_COMPACT_BYTES;
+  const w = new ByteWriter(capacity).u8(MSG.SNAPSHOT);
   writeSnapshot(w, snapshot);
-  return w.finish();
+  return w.finishOwned();
 }
 
 /** Shared only during one captured server boundary; never sent to a transport. */
@@ -70,7 +74,7 @@ export function prepareSnapshotCars(cars: readonly CarNetState[]): PreparedSnaps
   if (count > LIMITS.carsPerSnapshot) throw new Error('Too many cars in snapshot');
   const w = new ByteWriter(count * CAR_FULL_BYTES);
   for (const car of cars) writeCar(w, car, car.flags | CAR_FLAG.FULL);
-  const full = w.finish(),
+  const full = w.finishOwned(),
     compact = new Uint8Array(count * CAR_COMPACT_BYTES),
     extensionBytes = CAR_FULL_BYTES - CAR_COMPACT_BYTES;
   for (let i = 0; i < count; i++) {
@@ -106,7 +110,7 @@ export function encodePreparedSnapshot(
   w.bytes(cars.compact.subarray(0, compactOffset));
   w.bytes(cars.full.subarray(fullOffset, fullOffset + CAR_FULL_BYTES));
   w.bytes(cars.compact.subarray(compactOffset + CAR_COMPACT_BYTES));
-  return w.finish();
+  return w.finishOwned();
 }
 export function encodeControl(message: ClientControl | ServerControl) {
   const body = encoder.encode(JSON.stringify(message)),

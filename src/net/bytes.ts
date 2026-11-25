@@ -3,8 +3,11 @@
  * or a silently short value) on truncated or malformed input. */
 export class DecodeError extends Error {}
 
+const emptyWriterBuffer = new Uint8Array(0),
+  emptyWriterView = new DataView(emptyWriterBuffer.buffer);
+
 export class ByteWriter {
-  private buffer: Uint8Array;
+  private buffer: Uint8Array<ArrayBuffer>;
   private view: DataView;
   length = 0;
   constructor(capacity = 256) {
@@ -81,6 +84,20 @@ export class ByteWriter {
   }
   finish() {
     return this.buffer.slice(0, this.length);
+  }
+  /** Consume the written bytes and reset this writer. Exact-capacity buffers
+   * move to the caller; spare capacity is trimmed for safe whole-buffer transfer.
+   * Later writes allocate fresh storage, so retained packets stay independent. */
+  finishOwned() {
+    // Never expose the shared empty reset buffer: a caller may transfer it.
+    const out =
+      this.length > 0 && this.length === this.buffer.length
+        ? this.buffer
+        : this.buffer.slice(0, this.length);
+    this.buffer = emptyWriterBuffer;
+    this.view = emptyWriterView;
+    this.length = 0;
+    return out;
   }
 }
 

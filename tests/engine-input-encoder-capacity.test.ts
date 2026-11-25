@@ -63,6 +63,7 @@ interface WriterView {
   length: number;
   reserve(bytes: number): void;
   finish(): Uint8Array;
+  finishOwned(): Uint8Array;
 }
 
 /** Observe the actual writer and returned backing buffers, without replacing
@@ -71,6 +72,7 @@ function traceEncode(encode: typeof encodeInput, input: InputPacket) {
   const prototype = ByteWriter.prototype as unknown as WriterView,
     originalReserve = prototype.reserve,
     originalFinish = prototype.finish,
+    originalFinishOwned = prototype.finishOwned,
     buffers = new Set<ArrayBufferLike>(),
     views = new Set<DataView>();
   let initialCapacity = -1,
@@ -99,6 +101,15 @@ function traceEncode(encode: typeof encodeInput, input: InputPacket) {
     buffers.add(output.buffer);
     return output;
   });
+  const finishOwned = vi.spyOn(prototype, 'finishOwned').mockImplementation(function (
+    this: WriterView,
+  ) {
+    finalCapacity = this.buffer.length;
+    writerBuffer = this.buffer.buffer;
+    const output = originalFinishOwned.call(this);
+    buffers.add(output.buffer);
+    return output;
+  });
   try {
     const output = encode(input);
     return {
@@ -114,6 +125,7 @@ function traceEncode(encode: typeof encodeInput, input: InputPacket) {
   } finally {
     reserve.mockRestore();
     finish.mockRestore();
+    finishOwned.mockRestore();
   }
 }
 
@@ -133,7 +145,7 @@ describe('input encoder capacity', () => {
     }
   });
 
-  it('allocates an exact writer and an owned result with no growth for every allowed count', () => {
+  it('consumes an exact writer as the owned result with no growth for every allowed count', () => {
     for (let count = 0; count <= LIMITS.commandsPerPacket; count++) {
       const input = packet(count),
         previous = traceEncode(previousEncode, input),
@@ -149,10 +161,11 @@ describe('input encoder capacity', () => {
         finalCapacity: size,
         growths: 0,
         copiedBytes: 0,
-        backingBuffers: 2,
+        backingBuffers: 1,
         dataViews: 1,
       });
-      expect(current.output.buffer).not.toBe(current.writerBuffer);
+      // Consuming finalization releases the writer's ownership without copying.
+      expect(current.output.buffer).toBe(current.writerBuffer);
       expect(current.output).toEqual(previous.output);
     }
   });

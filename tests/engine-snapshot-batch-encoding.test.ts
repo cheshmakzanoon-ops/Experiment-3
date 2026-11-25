@@ -300,7 +300,8 @@ describe('shared snapshot car serialization', () => {
       const floatWrites = vi.spyOn(ByteWriter.prototype, 'f32');
       const quantizedWrites = vi.spyOn(ByteWriter.prototype, 'i16');
       const prepare = vi.spyOn(codec, 'prepareSnapshotCars');
-      // Observe actual writer backing/output buffers separately from timing.
+      // Consuming finalization moves each exact writer buffer into its owned
+      // output. Observe the backing/output identity separately from timing.
       const backing = new Set<ArrayBufferLike>();
       const outputs = new Set<ArrayBufferLike>();
       const prototype = ByteWriter.prototype as unknown as { reserve(n: number): void };
@@ -311,10 +312,10 @@ describe('shared snapshot car serialization', () => {
         reserve.call(this, n);
         backing.add(writer.buffer.buffer);
       });
-      const finish = ByteWriter.prototype.finish;
-      vi.spyOn(ByteWriter.prototype, 'finish').mockImplementation(function (this: ByteWriter) {
+      const finishOwned = ByteWriter.prototype.finishOwned;
+      vi.spyOn(ByteWriter.prototype, 'finishOwned').mockImplementation(function (this: ByteWriter) {
         backing.add((this as unknown as { buffer: Uint8Array }).buffer.buffer);
-        const result = finish.call(this);
+        const result = finishOwned.call(this);
         outputs.add(result.buffer);
         return result;
       });
@@ -337,15 +338,15 @@ describe('shared snapshot car serialization', () => {
           expect(outputs.has(shared.full.buffer)).toBe(true);
           allBuffers.add(shared.compact.buffer);
         }
-        expect(allBuffers.size).toBe(2 * n + (prepared ? 3 : 0));
+        expect(allBuffers.size).toBe(n + (prepared ? 2 : 0));
         expect([...allBuffers].reduce((bytes, buffer) => bytes + buffer.byteLength, 0)).toBe(
-          prepared ? 1692 + 1006 * n : 1159 * n,
+          503 * n + (prepared ? 1080 : 0),
         );
         const emitted = f.peers.map((peer) => peer.packets[0].data);
         expect(new Set(emitted.map((data) => data.buffer)).size).toBe(n);
         for (const data of emitted) {
           expect(outputs.has(data.buffer)).toBe(true);
-          expect(backing.has(data.buffer)).toBe(false);
+          expect(backing.has(data.buffer)).toBe(true);
           expect(data.byteLength).toBe(23 + 12 * 39 + 12);
         }
       } finally {
