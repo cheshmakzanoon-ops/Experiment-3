@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-11-25T03:22:01.951266+00:00",
+  "refs": {
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "current": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6"
+  },
+  "timedBundles": [
+    {
+      "archiveEntry": "node/telemetry-node.bundle.mjs",
+      "sha256": "9c3cfd54e7a1f5f99244a3e17181743a6477cc7acd3f21ce804ffe7183067ce3",
+      "bytes": 332212
+    },
+    {
+      "archiveEntry": "browser/telemetry-browser.bundle.js",
+      "sha256": "8be1ea8d435a157d8cc081058370b851356760d754c721bd0762908082b3fed7",
+      "bytes": 331791
+    },
+    {
+      "archiveEntry": "browser/telemetry-worker.bundle.js",
+      "sha256": "02674196ecd991b24d6ce9e3d3b24ffc6a04a1682b081d580542a1c8ae486f00",
+      "bytes": 147602
+    }
+  ],
+  "finalFormattedScripts": [
+    {
+      "path": "scripts/bench/engine-followup-telemetry.browser.mjs",
+      "sha256": "d2891041d6ad31117cef0f9204c842b4c6e8f90ae3e3b577f2919de746d392fc",
+      "bytes": 4426
+    },
+    {
+      "path": "scripts/bench/engine-followup-telemetry.fixture.mjs",
+      "sha256": "b572ad1fd4e983610e700ad366428770d81cb9ed765abe1ca6e37bca415e90c5",
+      "bytes": 3407
+    },
+    {
+      "path": "scripts/bench/engine-followup-telemetry.mjs",
+      "sha256": "3a7732a4459e03f761a749c3c3fbdcc6bfce769cb7f14198b3ff84634645c852",
+      "bytes": 13177
+    },
+    {
+      "path": "scripts/bench/engine-followup-telemetry.runner.mjs",
+      "sha256": "7226abf1738a0ff1f7fc9db46cd4f8fb31a4609ca8dcab775d1da54b590f58cf",
+      "bytes": 13597
+    }
+  ],
+  "measurementFiles": [
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w07d-telemetry-raw.json",
+      "sha256": "e79bca89e6202d32488e0c2d2f96c06b03ed306aba993726dca209cb2dd7421d",
+      "bytes": 177055
+    },
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w07d-telemetry-browser.json",
+      "sha256": "80bb81c1bc1e6f3ca05b440ed583b2d3f71b6d30f0d080f460e7e7658c1ba046",
+      "bytes": 11721
+    }
+  ],
+  "postMeasurementChange": {
+    "kind": "Prettier formatting only",
+    "timedBundlesRetainedExactly": true,
+    "productionSourceEdits": false,
+    "notes": "All recorded timed bundle hashes are verified against their retained bytes. Final script hashes identify the formatted, lint-passing delivery separately; no timing was re-run after formatting."
+  },
+  "archive": {
+    "path": "docs/engine/runtime-followup-2026-11-24/measurements/w07d-telemetry-timed-bundles.tar.gz",
+    "sha256": "a8453b8a2fcac1fe03dbaff6802c9cc760a7494406969eab2ce6ca0f3160e4a2",
+    "bytes": 190713,
+    "contains": "Only the exact three executable bundles used for the timed Node, native browser, and native worker runs; no dependency directories or other scratch files."
+  },
+  "validation": {
+    "focusedEslintExitCode": 0,
+    "nodeSnapshotFixtures": 16,
+    "snapshotIndependenceChecks": 32,
+    "exactNodeCsvFixtures": 3,
+    "exactNativeDefaultCsvFixtures": 1,
+    "computeAndBrowserLeasesReleased": true
+  }
+}

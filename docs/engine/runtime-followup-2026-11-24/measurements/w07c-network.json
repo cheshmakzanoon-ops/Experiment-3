@@ -1,0 +1,1336 @@
+{
+  "schema": "engine-followup-network-v1",
+  "startedAt": "2026-11-25T03:05:05.720Z",
+  "completedAt": "2026-11-25T03:06:26.404Z",
+  "environment": {
+    "node": "v24.22.3",
+    "v8": "13.6.233.17-node.63",
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "6.18.57",
+    "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+    "visibleLogicalCpus": 9,
+    "availableParallelism": 9,
+    "cgroupCpuMax": null,
+    "cgroupMemoryMax": null,
+    "nodeExecArgv": [
+      "--expose-gc",
+      "--max-old-space-size=768"
+    ],
+    "v8HeapSizeLimitBytes": 1006632960
+  },
+  "metadata": {
+    "refs": {
+      "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+      "current": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6"
+    },
+    "sourceBlobs": [
+      {
+        "role": "baseline",
+        "path": "src/net/authority.ts",
+        "blob": "4775000a66deaac72d167ae7a88536ddf03cb28c",
+        "sha256": "6150b8bf11a75cd7d54a0bd375d330bbbb1df53383192fd63c21db5d12f715e8"
+      },
+      {
+        "role": "baseline",
+        "path": "src/net/bytes.ts",
+        "blob": "e9d7aaa5d17711ae3b62ec331459719610d44013",
+        "sha256": "bf2235040d7700183705c94c3e8810eb25702247c8ba7fbde70edc60da8c323d"
+      },
+      {
+        "role": "baseline",
+        "path": "src/net/codec.ts",
+        "blob": "f3ba732b18fbe3bc4c7282a769b862b7a5a7213a",
+        "sha256": "4a2c0e32ac8f39ffdb1944019bcbba69ff54aa27679d38bc6a1fffccb76524f1"
+      },
+      {
+        "role": "baseline",
+        "path": "src/net/input.ts",
+        "blob": "031d159cf65ec861a564601d8696a0c209533d23",
+        "sha256": "d7f1873380764b2f239bfc2b8609cd477b6d6af612804fbe1eb9e484d78c352a"
+      },
+      {
+        "role": "baseline",
+        "path": "src/net/server.ts",
+        "blob": "83a04e11c1b2578b8938b41f77436ad0db4731c9",
+        "sha256": "315b55823d9c26c7817ac864a044e5a3ef429b98367d54e8d2fbf84a186fb916"
+      },
+      {
+        "role": "baseline",
+        "path": "src/net/snapshot.ts",
+        "blob": "5404c60b47e1c2670ee4f1de3245dcb759839b3b",
+        "sha256": "4c46a076b171f67072164b685b9400ce2d3993397ebfa52e10a9f67d2a7571a6"
+      },
+      {
+        "role": "baseline",
+        "path": "src/simulation/config.ts",
+        "blob": "b7a7edf3cb2ed14ee6ca6b6d4fca8bd710d6f885",
+        "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e"
+      },
+      {
+        "role": "baseline",
+        "path": "src/simulation/race.ts",
+        "blob": "06a9fbb8fe986ff94c6ecb12411d617a10fc6628",
+        "sha256": "ca494cad6319b84070b4e743cf37601f2077093faa1947143d13f14da86df941"
+      },
+      {
+        "role": "current",
+        "path": "src/net/authority.ts",
+        "blob": "1612dbb8eff4cf5ff4298e798040389d85629f29",
+        "sha256": "40ae4f4f9e97de5430de21b3873682dfa8140a347ca325378297ee725bf2f0db"
+      },
+      {
+        "role": "current",
+        "path": "src/net/bytes.ts",
+        "blob": "e9d7aaa5d17711ae3b62ec331459719610d44013",
+        "sha256": "bf2235040d7700183705c94c3e8810eb25702247c8ba7fbde70edc60da8c323d"
+      },
+      {
+        "role": "current",
+        "path": "src/net/codec.ts",
+        "blob": "f3ba732b18fbe3bc4c7282a769b862b7a5a7213a",
+        "sha256": "4a2c0e32ac8f39ffdb1944019bcbba69ff54aa27679d38bc6a1fffccb76524f1"
+      },
+      {
+        "role": "current",
+        "path": "src/net/input.ts",
+        "blob": "b5dcfa89afb9263eca30c68f3dd1673f5dc434d2",
+        "sha256": "1aa7212dc76a5f0d0de10b694ede0f15c68a701368e2cddc1998c765ce061d30"
+      },
+      {
+        "role": "current",
+        "path": "src/net/server.ts",
+        "blob": "40b98e5bca01402d54ba4b55e386e4f62aebb40e",
+        "sha256": "4826acc7e75c60fac4504c2c637e752c6c8ff14d45cb846e3c160ec10e8770f1"
+      },
+      {
+        "role": "current",
+        "path": "src/net/snapshot.ts",
+        "blob": "5404c60b47e1c2670ee4f1de3245dcb759839b3b",
+        "sha256": "4c46a076b171f67072164b685b9400ce2d3993397ebfa52e10a9f67d2a7571a6"
+      },
+      {
+        "role": "current",
+        "path": "src/simulation/config.ts",
+        "blob": "b7a7edf3cb2ed14ee6ca6b6d4fca8bd710d6f885",
+        "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e"
+      },
+      {
+        "role": "current",
+        "path": "src/simulation/race.ts",
+        "blob": "06a9fbb8fe986ff94c6ecb12411d617a10fc6628",
+        "sha256": "ca494cad6319b84070b4e743cf37601f2077093faa1947143d13f14da86df941"
+      }
+    ],
+    "dependencyManifestSha256": "ac42f3969a6ca93555ac73c388b6de5a89712844c830454d350f6b899976a976",
+    "committedModuleCount": 280,
+    "sourceEquivalence": {
+      "writeControls": {
+        "equal": true,
+        "sha256": "69ce359c64cdc94504fad4a9d6f0416f435310592ee2bb1515253be9fc4ad02e"
+      },
+      "readControls": {
+        "equal": true,
+        "sha256": "fbab4f21ce47f2d7947de08e45217e0fa840aedd800122d9b1a7c3d4ff6e7ccd"
+      },
+      "AuthoritativeWorld.capture": {
+        "equal": true,
+        "sha256": "a65de7a1fac7eb66026f7f9eabe10481e211aaeae2f0b47649147a997b560f7b"
+      },
+      "AuthoritativeWorld.acceleration": {
+        "equal": true,
+        "sha256": "cbe375169d202237e78a32e848bd0a91bad0cb5987e59ade45735ddbe2733f91"
+      },
+      "AuthoritativeWorld.clearContacts": {
+        "equal": true,
+        "sha256": "b5f693f3ad22f589f6ff9953e63778d03a92583a0d4475155ceca8767b7a37ef"
+      },
+      "AuthoritativeWorld.tick": {
+        "equal": true,
+        "sha256": "dc6571e23a81870c0b287cec7254c41489c72cc1f89263562eb628a367343310"
+      },
+      "src/net/bytes.ts": {
+        "equal": true,
+        "sha256": "bf2235040d7700183705c94c3e8810eb25702247c8ba7fbde70edc60da8c323d"
+      },
+      "src/net/codec.ts": {
+        "equal": true,
+        "sha256": "4a2c0e32ac8f39ffdb1944019bcbba69ff54aa27679d38bc6a1fffccb76524f1"
+      },
+      "src/net/snapshot.ts": {
+        "equal": true,
+        "sha256": "4c46a076b171f67072164b685b9400ce2d3993397ebfa52e10a9f67d2a7571a6"
+      }
+    },
+    "quantizerSourceSha256": {
+      "baseline": "a4dbd369472396d692121dc6e752772b7631032af2b809639cf41c29f151f826",
+      "current": "aff65062ef190faa5298b22ed01be0f17cea2f0225daaf1d9654602dce33585d"
+    },
+    "runnerSha256": "b654237ca195195cc23222087599197c5ebdc9abc414cb501bdc4d4449ce48f6",
+    "workloadSha256": "3c20370bf85eeff4750f4e31d19db7fa1292ec4a51f7bbf6dd6209081f426d10",
+    "bundleSha256": "a5a35799f38efb7fbc8aed600d86c8a2c35032fb5275fd9c189b62316c0beeef",
+    "esbuildVersion": "0.25.12",
+    "typescriptVersion": "5.9.3"
+  },
+  "settings": {
+    "pairs": 10,
+    "warmups": 3,
+    "snapshotIterations": 20000,
+    "controlIterations": 524288
+  },
+  "method": {
+    "source": "Actual baseline/current committed modules bundled by esbuild from git show; no transcription of the old snapshot or quantizer",
+    "realSnapshotMethods": [
+      "RaceServer.snapshot",
+      "RaceServer.sendData (current)",
+      "AuthoritativeWorld.capture",
+      "AuthoritativeWorld.acceleration",
+      "AuthoritativeWorld.clearContacts",
+      "AuthoritativeWorld.tick getter",
+      "Array.indexOf ranking",
+      "ServerInputQueue.takeSlack",
+      "encodeSnapshot/writeSnapshot/ByteWriter"
+    ],
+    "synthetic": "Deterministic twelve-car plain-data boundary and inert event loop/transports; AuthoritativeWorld constructor and physics stepping are omitted",
+    "excludedFromTimings": [
+      "Module loading/bundling",
+      "Fixture and corpus construction",
+      "Correctness checks and instrumented call counts",
+      "Explicit pre-sample full GC"
+    ],
+    "includedInTimings": [
+      "Real snapshot/quantizer calls",
+      "Ordinary internal allocations and any natural GC",
+      "Identical deterministic output-consumption sink"
+    ],
+    "pairing": "Alternating baseline/current ordering after equal full-iteration warmups; only one measured workload runs at a time",
+    "controlValidationOrder": "Finite timing corpus compared first; exhaustive boundary and malformed-runtime probes follow timing to avoid contaminating normal numeric JIT feedback",
+    "snapshots": "Steady fixed field with empty events, consumed contacts/slack, independent pre-encoded recipient packets; correctness cases also exercise initial events and latches",
+    "retention": "Two twelve-car boundary fixtures at a time for timing; timed packets/results are consumed without retention"
+  },
+  "sourceLevelAllocationInventoryPerQuantizeCall": {
+    "baselineTemporaryObjects": [
+      "ByteWriter instance",
+      "Uint8Array(8) view",
+      "Its backing ArrayBuffer",
+      "Writer DataView",
+      "finish().slice() Uint8Array view",
+      "Its new backing ArrayBuffer",
+      "ByteReader instance",
+      "Reader DataView"
+    ],
+    "currentTemporaryByteStorageObjects": 0,
+    "returnedControlsObjectPerVariant": 1,
+    "qualification": "Source/spec-level creation-path inventory, not observed heap allocation counts; JIT escape analysis and backing-store implementation may change runtime allocation. Capacity eight avoids ByteWriter growth."
+  },
+  "corpus": {
+    "startSeed": 1710242329,
+    "finalSeed": 4107270681,
+    "generator": "LCG: imul(seed, 1664525) + 1013904223, unsigned 32 bit; mixed finite analog values including clamp cases and periodic flags",
+    "size": 16384
+  },
+  "snapshotEquivalence": [
+    {
+      "recipients": 0,
+      "cars": 12,
+      "firstBatchCalls": {
+        "baseline": {
+          "capture": 0,
+          "rank": 0,
+          "acceleration": 0,
+          "clearContacts": 1
+        },
+        "current": {
+          "capture": 0,
+          "rank": 0,
+          "acceleration": 0,
+          "clearContacts": 1
+        }
+      },
+      "packetLengths": [],
+      "snapshotSha256ByRecipient": [],
+      "recipientFullIds": [],
+      "exactBytesAcrossTwoBatches": true,
+      "independentSnapshotBuffers": 0,
+      "retainedPacketsUnchanged": true
+    },
+    {
+      "recipients": 1,
+      "cars": 12,
+      "firstBatchCalls": {
+        "baseline": {
+          "capture": 12,
+          "rank": 12,
+          "acceleration": 1,
+          "clearContacts": 1
+        },
+        "current": {
+          "capture": 12,
+          "rank": 12,
+          "acceleration": 1,
+          "clearContacts": 1
+        }
+      },
+      "packetLengths": [
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ]
+      ],
+      "snapshotSha256ByRecipient": [
+        "1486a843d0de1cb5a0b04e41950122a664815e50e96cc12f4216f684bd1beda3"
+      ],
+      "recipientFullIds": [
+        [
+          0
+        ]
+      ],
+      "exactBytesAcrossTwoBatches": true,
+      "independentSnapshotBuffers": 2,
+      "retainedPacketsUnchanged": true
+    },
+    {
+      "recipients": 4,
+      "cars": 12,
+      "firstBatchCalls": {
+        "baseline": {
+          "capture": 48,
+          "rank": 48,
+          "acceleration": 4,
+          "clearContacts": 1
+        },
+        "current": {
+          "capture": 12,
+          "rank": 12,
+          "acceleration": 4,
+          "clearContacts": 1
+        }
+      },
+      "packetLengths": [
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ]
+      ],
+      "snapshotSha256ByRecipient": [
+        "b4c9394351a9bcc72d9dd5b3a2abe19ac5a87d3dfb4d52820578ef02f4964c3f",
+        "14f6a619ff486d5ff901b5ae6037d1ba5d4bc61c51db903b3e4d129e5f96d070",
+        "ea616111085f9483a2dee3ce236839887671d24e229ee1065983b1faa6f0f752",
+        "fdeb841a5e45e7325ee01453b6ec9fda9f05c8d0bac33bb8d8ae2acc65a4dda1"
+      ],
+      "recipientFullIds": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ]
+      ],
+      "exactBytesAcrossTwoBatches": true,
+      "independentSnapshotBuffers": 8,
+      "retainedPacketsUnchanged": true
+    },
+    {
+      "recipients": 12,
+      "cars": 12,
+      "firstBatchCalls": {
+        "baseline": {
+          "capture": 144,
+          "rank": 144,
+          "acceleration": 12,
+          "clearContacts": 1
+        },
+        "current": {
+          "capture": 12,
+          "rank": 12,
+          "acceleration": 12,
+          "clearContacts": 1
+        }
+      },
+      "packetLengths": [
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ],
+        [
+          {
+            "channel": "unreliable",
+            "bytes": 503
+          },
+          {
+            "channel": "reliable",
+            "bytes": 94
+          }
+        ]
+      ],
+      "snapshotSha256ByRecipient": [
+        "47867588cacf8d0f1fca2e234e8c3e887a3e7adb57cc8cefffb7b7bdb2cbf475",
+        "e7ee70d262a219fb8d712ab8407c3ab5f8976c04d9e4404676d6e8cda87ec43e",
+        "7b369ead286b0d9702c76640f70eb1f16ad44d412d8f04ef7f772049867042b2",
+        "e31f6cbb6ed2b26c37addf09722a7450199bb97ac0d5500333065a84684a8ef2",
+        "24dc1fd46353ef2fc1077e44221ca955a955fbc4e012b57f225551f3fc61c227",
+        "a70a5ad4a73dff99cc166932748d07c3af01c70a928cb1fb617ff86422ba9c7b",
+        "5c969e9726bde97380474906e4cd4a89226f31e46c73291dc1cc70ea6e1b0028",
+        "631dd19311d5dcce7614b796ef15cb4ecc34052f4cea3d6abe8c98bca1c0c879",
+        "adc94cd4a0f612b9b5c243aa6e7bf508ed0ac3ce6d124fd3f5f1c70b6c59df01",
+        "2bee2747d113de57bc989bc5d75168dea7f09a516c20b902af2d878bd5ddde86",
+        "58b4786386635d76045d42da23217a58c299a904ce2341354e3e025c543f7365",
+        "92d3ff3a4f3bc7c3cf0e0d36d56e75ef8d971e4cbbba2e2c45e436ef943b2345"
+      ],
+      "recipientFullIds": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ],
+        [
+          4
+        ],
+        [
+          5
+        ],
+        [
+          6
+        ],
+        [
+          7
+        ],
+        [
+          8
+        ],
+        [
+          9
+        ],
+        [
+          10
+        ],
+        [
+          11
+        ]
+      ],
+      "exactBytesAcrossTwoBatches": true,
+      "independentSnapshotBuffers": 24,
+      "retainedPacketsUnchanged": true
+    }
+  ],
+  "reentrantOwnership": {
+    "recipients": 2,
+    "reentrantSendCallsBeforeNextScheduledSnapshot": 2,
+    "firstDispatchCalls": {
+      "capture": 24,
+      "rank": 24,
+      "acceleration": 4,
+      "clearContacts": 2
+    },
+    "firstBatchSurvivesTransportMutation": true,
+    "nestedPacketsFollowEarlierBatch": true,
+    "deferredContactEventAndMissingWindowPreserved": true,
+    "verifiedTicks": [
+      120,
+      126,
+      126
+    ]
+  },
+  "controlEquivalence": {
+    "compared": 283305,
+    "randomCount": 16384,
+    "boundaryCount": 266726,
+    "edgeCaseCount": 195,
+    "wireBytes": 2266440,
+    "wireSha256": "3177aeb3d9b6e3846e3c2a7ef071d879dc9e39dfd94d2dee76381f383240bad4",
+    "allFieldsObjectIsEqual": true,
+    "allReencodedBytesEqual": true,
+    "independentReturnedObjects": true,
+    "rejectedUnsupportedRuntimeValues": [
+      {
+        "field": "throttle",
+        "type": "bigint"
+      },
+      {
+        "field": "throttle",
+        "type": "symbol"
+      },
+      {
+        "field": "brake",
+        "type": "bigint"
+      },
+      {
+        "field": "brake",
+        "type": "symbol"
+      },
+      {
+        "field": "clutch",
+        "type": "bigint"
+      },
+      {
+        "field": "clutch",
+        "type": "symbol"
+      },
+      {
+        "field": "rearBrake",
+        "type": "bigint"
+      },
+      {
+        "field": "rearBrake",
+        "type": "symbol"
+      },
+      {
+        "field": "steer",
+        "type": "bigint"
+      },
+      {
+        "field": "steer",
+        "type": "symbol"
+      },
+      {
+        "field": "riderLean",
+        "type": "bigint"
+      },
+      {
+        "field": "riderLean",
+        "type": "symbol"
+      }
+    ]
+  },
+  "snapshotTimings": [
+    {
+      "recipients": 0,
+      "cars": 12,
+      "timedOperation": "One real RaceServer.snapshot() dispatch including inert transport checksum consumption",
+      "transport": "Synchronous synthetic sink: increments counts and reads length plus three packet bytes; no network, decode, callback reentry or retained data",
+      "packetsPerVariantIncludingWarmup": 0,
+      "iterationsPerSample": 400000,
+      "warmupsPerVariant": 3,
+      "pairs": 10,
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 16.86296500000003,
+          "currentMs": 33.89420999999993,
+          "checksum": 0
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 14.364047000000028,
+          "currentMs": 34.047596999999996,
+          "checksum": 0
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 9.811455000000024,
+          "currentMs": 35.04074000000014,
+          "checksum": 0
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 10.990373999999974,
+          "currentMs": 35.34455000000003,
+          "checksum": 0
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 10.098179000000073,
+          "currentMs": 34.68207800000005,
+          "checksum": 0
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 10.049396999999999,
+          "currentMs": 34.79200100000003,
+          "checksum": 0
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 10.479286000000002,
+          "currentMs": 33.70409500000005,
+          "checksum": 0
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 10.191741999999977,
+          "currentMs": 33.56779400000005,
+          "checksum": 0
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 10.624895000000151,
+          "currentMs": 33.30259099999989,
+          "checksum": 0
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 10.030442999999877,
+          "currentMs": 33.8825710000001,
+          "checksum": 0
+        }
+      ],
+      "summary": {
+        "baselineNsPerOperation": {
+          "median": 25.838784999999973,
+          "min": 24.52863750000006,
+          "max": 42.15741250000008
+        },
+        "currentNsPerOperation": {
+          "median": 84.92725874999991,
+          "min": 83.25647749999973,
+          "max": 88.36137500000008
+        },
+        "pairedSpeedup": {
+          "median": 0.30726846776947403,
+          "min": 0.28000136412644205,
+          "max": 0.4975175701100591
+        },
+        "pairedLatencyReductionPercent": {
+          "median": -225.49427321640368,
+          "min": -257.14111719413745,
+          "max": -100.99792652122485
+        }
+      }
+    },
+    {
+      "recipients": 1,
+      "cars": 12,
+      "timedOperation": "One real RaceServer.snapshot() dispatch including inert transport checksum consumption",
+      "transport": "Synchronous synthetic sink: increments counts and reads length plus three packet bytes; no network, decode, callback reentry or retained data",
+      "packetsPerVariantIncludingWarmup": 1040001,
+      "iterationsPerSample": 80000,
+      "warmupsPerVariant": 3,
+      "pairs": 10,
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 466.3797770000001,
+          "currentMs": 456.8109119999999,
+          "checksum": 48720000
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 523.142049,
+          "currentMs": 487.4079670000001,
+          "checksum": 48720000
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 443.94981000000007,
+          "currentMs": 456.9290769999998,
+          "checksum": 48720000
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 466.8716430000004,
+          "currentMs": 438.8862990000007,
+          "checksum": 48720000
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 425.6346849999991,
+          "currentMs": 427.62697899999876,
+          "checksum": 48720000
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 459.20880000000034,
+          "currentMs": 411.55357899999944,
+          "checksum": 48720000
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 473.69340400000146,
+          "currentMs": 508.00309299999935,
+          "checksum": 48720000
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 422.8517699999993,
+          "currentMs": 496.81773799999974,
+          "checksum": 48720000
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 430.32768900000156,
+          "currentMs": 446.52936299999965,
+          "checksum": 48720000
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 416.6822119999997,
+          "currentMs": 464.5898780000007,
+          "checksum": 48720000
+        }
+      ],
+      "summary": {
+        "baselineNsPerOperation": {
+          "median": 5644.741312500002,
+          "min": 5208.527649999996,
+          "max": 6539.2756125000005
+        },
+        "currentNsPerOperation": {
+          "median": 5710.874931249999,
+          "min": 5144.419737499993,
+          "max": 6350.038662499992
+        },
+        "pairedSpeedup": {
+          "median": 0.9834678083994977,
+          "min": 0.8511205169570647,
+          "max": 1.1157934797111824
+        },
+        "pairedLatencyReductionPercent": {
+          "median": -1.6958324312324025,
+          "min": -17.49217414887505,
+          "max": 10.37768026222513
+        }
+      }
+    },
+    {
+      "recipients": 4,
+      "cars": 12,
+      "timedOperation": "One real RaceServer.snapshot() dispatch including inert transport checksum consumption",
+      "transport": "Synchronous synthetic sink: increments counts and reads length plus three packet bytes; no network, decode, callback reentry or retained data",
+      "packetsPerVariantIncludingWarmup": 2080004,
+      "iterationsPerSample": 40000,
+      "warmupsPerVariant": 3,
+      "pairs": 10,
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1031.208289000002,
+          "currentMs": 813.2993639999986,
+          "checksum": 97440000
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 835.5420489999997,
+          "currentMs": 924.1430360000013,
+          "checksum": 97440000
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 871.4737449999993,
+          "currentMs": 923.4401989999969,
+          "checksum": 97440000
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1037.3310230000025,
+          "currentMs": 871.9134410000006,
+          "checksum": 97440000
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1062.7651750000005,
+          "currentMs": 855.3341440000004,
+          "checksum": 97440000
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1042.7772450000011,
+          "currentMs": 803.0726059999979,
+          "checksum": 97440000
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 887.7656720000014,
+          "currentMs": 967.0034539999979,
+          "checksum": 97440000
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 864.052125000002,
+          "currentMs": 832.8256799999981,
+          "checksum": 97440000
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 841.5836060000001,
+          "currentMs": 783.426621999999,
+          "checksum": 97440000
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 866.1349630000041,
+          "currentMs": 829.5237870000055,
+          "checksum": 97440000
+        }
+      ],
+      "summary": {
+        "baselineNsPerOperation": {
+          "median": 21990.49271250001,
+          "min": 20888.551224999992,
+          "max": 26569.12937500001
+        },
+        "currentNsPerOperation": {
+          "median": 21101.997799999983,
+          "min": 19585.665549999976,
+          "max": 24175.086349999947
+        },
+        "pairedSpeedup": {
+          "median": 1.059184645399633,
+          "min": 0.9041263272582822,
+          "max": 1.298484392580568
+        },
+        "pairedLatencyReductionPercent": {
+          "median": 5.568691177017188,
+          "min": -10.604012940586504,
+          "max": 22.98713748783452
+        }
+      }
+    },
+    {
+      "recipients": 12,
+      "cars": 12,
+      "timedOperation": "One real RaceServer.snapshot() dispatch including inert transport checksum consumption",
+      "transport": "Synchronous synthetic sink: increments counts and reads length plus three packet bytes; no network, decode, callback reentry or retained data",
+      "packetsPerVariantIncludingWarmup": 3120012,
+      "iterationsPerSample": 20000,
+      "warmupsPerVariant": 3,
+      "pairs": 10,
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1424.9130040000018,
+          "currentMs": 1249.1533530000015,
+          "checksum": 143400000
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1343.6663810000027,
+          "currentMs": 1191.5466249999954,
+          "checksum": 143400000
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1430.535401000001,
+          "currentMs": 1404.3161800000016,
+          "checksum": 143400000
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1418.5111260000049,
+          "currentMs": 1288.8418579999998,
+          "checksum": 143400000
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1239.1248429999978,
+          "currentMs": 1385.978541999997,
+          "checksum": 143400000
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1288.5224009999947,
+          "currentMs": 1119.8856440000018,
+          "checksum": 143400000
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1333.3352240000022,
+          "currentMs": 1194.1560220000028,
+          "checksum": 143400000
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1367.792208999992,
+          "currentMs": 1202.4775760000048,
+          "checksum": 143400000
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baselineMs": 1195.8614119999984,
+          "currentMs": 1131.9456280000013,
+          "checksum": 143400000
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "baselineMs": 1235.332046999989,
+          "currentMs": 1200.7171439999947,
+          "checksum": 143400000
+        }
+      ],
+      "summary": {
+        "baselineNsPerOperation": {
+          "median": 66925.04012500012,
+          "min": 59793.07059999992,
+          "max": 71526.77005000005
+        },
+        "currentNsPerOperation": {
+          "median": 60079.86799999999,
+          "min": 55994.28220000008,
+          "max": 70215.80900000008
+        },
+        "pairedSpeedup": {
+          "median": 1.1085797018595414,
+          "min": 0.8940433097989481,
+          "max": 1.1505839081905336
+        },
+        "pairedLatencyReductionPercent": {
+          "median": 9.78982426906343,
+          "min": -11.851404628807005,
+          "max": 13.087607702366489
+        }
+      }
+    }
+  ],
+  "controlTiming": {
+    "corpusSize": 16384,
+    "timedOperation": "One real quantizeControls() call plus identical consumption of every returned field",
+    "iterationsPerSample": 524288,
+    "warmupsPerVariant": 3,
+    "pairs": 10,
+    "samples": [
+      {
+        "pair": 0,
+        "order": [
+          "baseline",
+          "current"
+        ],
+        "baselineMs": 672.0463149999996,
+        "currentMs": 76.102052000002,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 1,
+        "order": [
+          "current",
+          "baseline"
+        ],
+        "baselineMs": 503.1969529999915,
+        "currentMs": 81.37008599999535,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 2,
+        "order": [
+          "baseline",
+          "current"
+        ],
+        "baselineMs": 488.5047099999938,
+        "currentMs": 69.22458099998767,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 3,
+        "order": [
+          "current",
+          "baseline"
+        ],
+        "baselineMs": 559.2521500000003,
+        "currentMs": 68.72342800001206,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 4,
+        "order": [
+          "baseline",
+          "current"
+        ],
+        "baselineMs": 502.6184459999931,
+        "currentMs": 72.57699400000274,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 5,
+        "order": [
+          "current",
+          "baseline"
+        ],
+        "baselineMs": 510.1378479999985,
+        "currentMs": 70.5780689999956,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 6,
+        "order": [
+          "baseline",
+          "current"
+        ],
+        "baselineMs": 633.0213809999987,
+        "currentMs": 72.94818399999349,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 7,
+        "order": [
+          "current",
+          "baseline"
+        ],
+        "baselineMs": 513.0142559999949,
+        "currentMs": 72.6231620000035,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 8,
+        "order": [
+          "baseline",
+          "current"
+        ],
+        "baselineMs": 497.8772830000089,
+        "currentMs": 72.8503389999969,
+        "checksum": 1860965.1201752236
+      },
+      {
+        "pair": 9,
+        "order": [
+          "current",
+          "baseline"
+        ],
+        "baselineMs": 508.13181299999997,
+        "currentMs": 69.32402799998817,
+        "checksum": 1860965.1201752236
+      }
+    ],
+    "summary": {
+      "baselineNsPerOperation": {
+        "median": 971.0976228713974,
+        "min": 931.748790740955,
+        "max": 1281.826620101928
+      },
+      "currentNsPerOperation": {
+        "median": 138.47365951538683,
+        "min": 131.0795364380113,
+        "max": 155.20112228392668
+      },
+      "pairedSpeedup": {
+        "median": 7.146026109459859,
+        "min": 6.184053351006907,
+        "max": 8.830856689645923
+      },
+      "pairedLatencyReductionPercent": {
+        "median": 86.00436701575384,
+        "min": 83.82937624823083,
+        "max": 88.67607033899114
+      }
+    }
+  },
+  "limitations": [
+    "Microbenchmark of server snapshot dispatch and control normalization; no browser, rendering, FPS, end-to-end tick, real networking or simulation throughput claim.",
+    "Field state is representative deterministic test data, not a captured live race. Physics/session construction and joins are outside scope.",
+    "Transport is an inert synchronous checksum sink. Latency, bandwidth, socket queues, loss, duplication and reordering are not measured.",
+    "The current snapshot path also includes published ownership/reentrancy/failure-containment work. Timing changes cannot be attributed solely to capture/rank count reduction.",
+    "The zero-recipient path does no capture or encoding and mostly exposes fixed dispatch overhead.",
+    "One process on one shared host with alternating paired samples; ranges are observed variation, not confidence intervals or cross-device predictions.",
+    "Explicit GC precedes each measured member outside timing; natural GC during each measured loop remains included.",
+    "Source-level temporary-object counts are not measured heap allocations, bytes saved or GC-time reductions.",
+    "Reentrant dispatch is correctness-checked separately and is not included in normal throughput timings."
+  ]
+}

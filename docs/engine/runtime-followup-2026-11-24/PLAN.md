@@ -10,7 +10,7 @@ Previous engine work was recovered through Personal Context and then checked aga
 
 ## Execution
 
-The user requested sixty agents in ten waves of six. Three worker slots are available alongside the coordinator, so each wave runs in two groups of three. The coordinator owns integration, commits, pushes and shared-file reconciliation. Agent tasks use explicit file ownership; completed reports are collected into the final ledger.
+The user requested sixty agents in ten waves of six. Three worker slots are available alongside the coordinator, so assignments use successive groups of up to three. Independent preparation or review from the next wave may overlap the end of a preceding wave; performance measurements retain exclusive compute ownership. The coordinator owns integration, commits, pushes and shared-file reconciliation. Agent tasks use explicit file ownership; completed reports are collected into the final ledger.
 
 ## Priorities found in the initial audit
 

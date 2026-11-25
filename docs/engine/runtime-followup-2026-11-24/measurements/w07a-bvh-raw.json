@@ -1,0 +1,1513 @@
+{
+  "schema": "engine-followup-bvh/v1",
+  "status": "complete",
+  "startedAt": "2026-11-25T02:59:04.426Z",
+  "invocation": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/tmp/engine-c71f32882729/repo/scripts/bench/engine-followup-bvh.mjs",
+    "--repo",
+    "/tmp/engine-c71f32882729/repo",
+    "--work-dir",
+    "/tmp/engine-c71f32882729/w07a-work/run-01",
+    "--output",
+    "/tmp/engine-c71f32882729/w07a-work/w07a-bvh-raw.json"
+  ],
+  "options": {
+    "repo": "/tmp/engine-c71f32882729/repo",
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "current": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+    "cases": [
+      {
+        "id": "poggio-alto",
+        "rows": 1024
+      },
+      {
+        "id": "aurel",
+        "rows": 8192
+      }
+    ],
+    "warmupPairs": 2,
+    "measuredPairs": 10,
+    "querySamples": 256,
+    "heapMb": 768,
+    "prepareOnly": false,
+    "workDir": "/tmp/engine-c71f32882729/w07a-work/run-01",
+    "output": "/tmp/engine-c71f32882729/w07a-work/w07a-bvh-raw.json"
+  },
+  "sources": {
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "current": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+    "bvhBaselineBlob": "c729f0c0f4e0feec90439f5c38489c1f22ee4dd5",
+    "bvhCurrentBlob": "d9d3a403efc0bbcf6586e807b58de90d7ccb3f77",
+    "bvhPatch": "diff --git a/src/simulation/bvh.ts b/src/simulation/bvh.ts\nindex c729f0c..d9d3a40 100644\n--- a/src/simulation/bvh.ts\n+++ b/src/simulation/bvh.ts\n@@ -137,14 +137,32 @@ export class TriangleBVH {\n       end,\n     };\n     const id = this.nodes.push(node) - 1;\n+    let minX = Infinity,\n+      minY = Infinity,\n+      minZ = Infinity,\n+      maxX = -Infinity,\n+      maxY = -Infinity,\n+      maxZ = -Infinity;\n     for (let j = start; j < end; j++)\n       for (let k = 0; k < 3; k++) {\n-        const p = this.indices[this.order[j] * 3 + k] * 3;\n-        for (let a = 0; a < 3; a++) {\n-          node.min[a] = Math.min(node.min[a], this.vertices[p + a]);\n-          node.max[a] = Math.max(node.max[a], this.vertices[p + a]);\n-        }\n+        const p = this.indices[this.order[j] * 3 + k] * 3,\n+          x = this.vertices[p],\n+          y = this.vertices[p + 1],\n+          z = this.vertices[p + 2];\n+        minX = Math.min(minX, x);\n+        maxX = Math.max(maxX, x);\n+        minY = Math.min(minY, y);\n+        maxY = Math.max(maxY, y);\n+        minZ = Math.min(minZ, z);\n+        maxZ = Math.max(maxZ, z);\n       }\n+    // Write bounds once per node; retain Math.min/max's signed-zero rules.\n+    node.min[0] = minX;\n+    node.min[1] = minY;\n+    node.min[2] = minZ;\n+    node.max[0] = maxX;\n+    node.max[1] = maxY;\n+    node.max[2] = maxZ;\n     if (end - start > 8) {\n       let axis = 0;\n       for (let a = 1; a < 3; a++)",
+    "files": [
+      {
+        "version": "baseline",
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/core/math.ts",
+        "gitBlob": "5158d9dd40981bd2e00913f5222403189157035e",
+        "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+      },
+      {
+        "version": "baseline",
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/simulation/bvh.ts",
+        "gitBlob": "c729f0c0f4e0feec90439f5c38489c1f22ee4dd5",
+        "sha256": "a34dfd0196d5cba88127cea9603728a149ab612aa06016edc0a541514ef96e4d"
+      },
+      {
+        "version": "baseline",
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/simulation/tire-footprint.ts",
+        "gitBlob": "fc3271371d5957f28c470aeabce52583ba3564e7",
+        "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/core/math.ts",
+        "gitBlob": "5158d9dd40981bd2e00913f5222403189157035e",
+        "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/aero-map.ts",
+        "gitBlob": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+        "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/bike-definitions.ts",
+        "gitBlob": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+        "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/brake-thermal.ts",
+        "gitBlob": "22d35f56d80c0cfa87033960f60aa13c754697da",
+        "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/bvh.ts",
+        "gitBlob": "d9d3a403efc0bbcf6586e807b58de90d7ccb3f77",
+        "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/builder.ts",
+        "gitBlob": "986d0be88b476a8804921ac094c98fab609c9e51",
+        "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/dsl.ts",
+        "gitBlob": "1ff538ea487bd796e741500aa81c9cf016291a9a",
+        "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/endurance.ts",
+        "gitBlob": "b3fa428175c9dc071960ce08261047a74fd6c7ca",
+        "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/index.ts",
+        "gitBlob": "de449a9fc1b62ffb7800e8e9b940904018ac5191",
+        "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/industrial.ts",
+        "gitBlob": "48cc4d58d5715288189347a1d00506bf4920235c",
+        "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/motorcycle-gp.ts",
+        "gitBlob": "480b5f78eb7e3a255b9e0e96e43e28b21c662674",
+        "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/night-and-street.ts",
+        "gitBlob": "48e116033457b7a1011d4fbd34a976f233c6d9e9",
+        "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/real-world-classics.ts",
+        "gitBlob": "9f569e66125afa7e7494dccd7e8f56a02b8cef8d",
+        "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/real-world.ts",
+        "gitBlob": "cb0f5421c8856271f9dc7a83dbd35208caa0ffc8",
+        "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/unconventional.ts",
+        "gitBlob": "027453821f305dc3323366d13f1e7be0036411ce",
+        "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/venue-data.ts",
+        "gitBlob": "1500dc3f48c3938ad51c52e1ca8cb18e5af55fc9",
+        "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/wildcard-venues.ts",
+        "gitBlob": "ff5858a0020df37f3d24be8872eb68b3ec77e325",
+        "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuits.ts",
+        "gitBlob": "f7725db33f49976e3be63a98e5246a16a9f87712",
+        "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/contact.ts",
+        "gitBlob": "c587549ce58c49e7e7144b51d7b62ef8be7f8d86",
+        "sha256": "0905f07c4be45f9eb2739fc0906b88fbe54a3d74ba0f3cd222621236141d02df"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/differential.ts",
+        "gitBlob": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+        "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/gp-corner-shape.ts",
+        "gitBlob": "e243c546afd6ea5a0acc511343ebe92debad0b66",
+        "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/gp-course-edges.ts",
+        "gitBlob": "01c9de55e353e2c3dfe4b431dd7a5feded46f7f1",
+        "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/berm-lines.ts",
+        "gitBlob": "1d1a14a76eb9390f87394ac0425dc20e1c4958ad",
+        "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/braking-bumps.ts",
+        "gitBlob": "80d6a9e9f47b04a0ed83fe10bc0d8681907d5d06",
+        "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/course-terrain.ts",
+        "gitBlob": "e88b3769422044306989fb9fd49774b524debe99",
+        "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/course.ts",
+        "gitBlob": "2b73c3582695e4c060c714999540abe642a6d9c6",
+        "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/dirt-bikes.ts",
+        "gitBlob": "9eaba5ba8ac7471cd90f98a4e27765211add4e60",
+        "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/formats.ts",
+        "gitBlob": "ad429ace15023556ef56d0552b696db5800ed912",
+        "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/profile.ts",
+        "gitBlob": "4184f7109c442ba05c06ed9629cdfd58814e7bf6",
+        "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/venues.ts",
+        "gitBlob": "9003875d234f4d7dc4f79fcb63d390efa15b99d2",
+        "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/powertrain.ts",
+        "gitBlob": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+        "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/protocol.ts",
+        "gitBlob": "1d795cb5ce9e128432650b28a8a74c7b3b010df9",
+        "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/racing-line.ts",
+        "gitBlob": "d5876ec095e9d89efa6d15d76f59534c69cbcd48",
+        "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/surface-drainage.ts",
+        "gitBlob": "25f870c81c68dd8dae0b291c78bb913439a51c7a",
+        "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/surface-material.ts",
+        "gitBlob": "f4257a96f607734d341a3add10d6a317c89a1adc",
+        "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/surface-thermal.ts",
+        "gitBlob": "4df08bc8977bfe0f565a36610ae7b9f1ad0802cb",
+        "sha256": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/terrain.ts",
+        "gitBlob": "98240b406b09143ac1d1830cf7fcba938287797a",
+        "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tire-families.ts",
+        "gitBlob": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+        "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tire-footprint.ts",
+        "gitBlob": "fc3271371d5957f28c470aeabce52583ba3564e7",
+        "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/track-lane-index.ts",
+        "gitBlob": "dd6ff4c5a0a8dc8de9c51a45fccd8a2f1910055b",
+        "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/track.ts",
+        "gitBlob": "8d4aa8f1a812f6ba8c86765774dd4b79a7915ba4",
+        "sha256": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tyre-thermal.ts",
+        "gitBlob": "fa52185f82889b08496e4e41f2be9de6879cf730",
+        "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/builder.ts",
+        "gitBlob": "9ec154fbde4b52d868e3c372ef3599091fb2c039",
+        "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/common.ts",
+        "gitBlob": "dc7d90bee3fad4213ddb707b985b9abfd58877bc",
+        "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/dirt-2.ts",
+        "gitBlob": "bbaffab1f737e8100f45cb14acbd4426ef24a710",
+        "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/dirt.ts",
+        "gitBlob": "8e513fb5fa509d7a41c9b23204a46913a722e43f",
+        "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/endurance.ts",
+        "gitBlob": "a92dfad3635f17479b4f7d07df22ff4b4f442bb8",
+        "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/experimental.ts",
+        "gitBlob": "5c21cdef687574a98b946ab53c640da59c896f40",
+        "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/formula.ts",
+        "gitBlob": "d082a85123b1994735cf717f1693b9661189639e",
+        "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+        "gitBlob": "f49298f1d419040ad89b391ec82ba7a42e04cd81",
+        "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/gt.ts",
+        "gitBlob": "f268494812dcc5325ed6677147ff86a110745297",
+        "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/index.ts",
+        "gitBlob": "22ffe0d83d2927fffbe7bb089740d191c7035c86",
+        "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/prototypes.ts",
+        "gitBlob": "4db6efeaa7b7f2fd7925914a72026f747240b9b3",
+        "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/road-festival.ts",
+        "gitBlob": "4f86fdb2929614ed6e2d9466e2963861fb6432a6",
+        "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/single-seaters.ts",
+        "gitBlob": "372e243cd0131b246b0733e90fae8fe44b29b1d5",
+        "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/small-road.ts",
+        "gitBlob": "6a4ab7c2be816691f9af2f881f61ab8f4028587e",
+        "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+        "gitBlob": "56494a440755c1563cd29e4f490ec189ca151124",
+        "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/touring-club.ts",
+        "gitBlob": "bfdeed26bb0f30d4cbc06046831d40c1da129b4a",
+        "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicles.ts",
+        "gitBlob": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+        "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+      },
+      {
+        "version": "current",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/weather.ts",
+        "gitBlob": "8f7e871397b1ab1f4cf348dbec3fdd9c9e8d3330",
+        "sha256": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756"
+      }
+    ],
+    "harnessSha256": "b0522ab56adc8a758ebc8609811d5145ea1ffad816dee9eddf4bc8735052f2aa",
+    "runnerSha256": "86d542b71fe376e570aecdcdac0fda8eb0d1eb7e93447972a4768bf74734ff2d",
+    "bundleSha256": "3ae22cb24a812599ca2ea3b2092fe7ade6c0cf4f4157ef7cb5a8be2b308c8bac",
+    "esbuildVersion": "0.25.12"
+  },
+  "methodology": {
+    "timed": "Only new TriangleBVH(vertices, indices, normals, ownsContact), including constructor validation, centroids, partitioning and all nodes.",
+    "outsideTiming": [
+      "module initialization",
+      "Track and TrackContactMesh creation",
+      "query setup",
+      "explicit GC before every constructor",
+      "all correctness checks",
+      "hashes",
+      "memory sampling",
+      "output serialization"
+    ],
+    "fixture": "One actual current-commit TrackContactMesh, including authored normals and ownership, supplies identical immutable arrays to both constructors. At 8192 rows the actual default constructor argument is exercised.",
+    "scheduling": "One fresh bounded-heap Node child per case; children run sequentially. Pair 0 runs baseline/current, pair 1 current/baseline, repeating for warmup and measurement.",
+    "retention": "A single untimed mesh tree remains resident because its actual ownership callback captures its mesh. Each measured tree is compared against compact binary reference snapshots, then released before the next explicit GC. No sequence of large trees is retained.",
+    "equivalence": "Independent leaf reductions and parent unions validate exact signed-zero-sensitive bounds, balanced contiguous topology, leaf sizes and a complete triangle permutation. Binary snapshots compare every node field and ordered triangle against the actual baseline. Sampled ray, cached vertical and tire queries compare full hit outputs and candidate counts bit-for-bit.",
+    "limitations": [
+      "Constructor microbenchmark with warmed code; not a whole-game, cold-start, browser, frame-time or FPS result.",
+      "Explicit GC is outside timing; naturally occurring collections during a constructor remain included.",
+      "Queries cover deterministic samples and edge/miss cases, not every possible ray.",
+      "One runtime, host and run; frequency scaling, scheduler noise and JIT variability remain possible."
+    ]
+  },
+  "cases": [
+    {
+      "status": "complete",
+      "startedAt": "2026-11-25T02:59:05.023Z",
+      "finishedAt": "2026-11-25T02:59:06.116Z",
+      "runtime": {
+        "node": "v24.22.3",
+        "v8": "13.6.233.17-node.63",
+        "platform": "linux",
+        "arch": "x64",
+        "release": "6.18.57",
+        "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+        "logicalCpus": 9,
+        "availableParallelism": 9,
+        "totalMemoryBytes": 10451427328,
+        "cgroup": {
+          "cpuMax": null,
+          "memoryMax": null,
+          "effectiveCpuSet": null
+        },
+        "heapLimitBytes": 1006632960,
+        "execArgv": [
+          "--expose-gc",
+          "--max-old-space-size=768"
+        ],
+        "timer": "process.hrtime.bigint; reported milliseconds = integer nanoseconds / 1e6"
+      },
+      "fixture": {
+        "circuit": "poggio-alto",
+        "circuitName": "POGGIO ALTO / AUTODROMO",
+        "rows": 1024,
+        "defaultRowsArgumentUsed": false,
+        "columns": 15,
+        "vertices": 15375,
+        "triangles": 28672,
+        "geometryBytes": 1082064,
+        "hashesBefore": {
+          "vertices": "54740832ad09853221545693b8680c53296ae4789195c8690f9ad35881604b0d",
+          "normals": "204363de78a0e644047fb110219adb4f4001a05ee94c54c34d2f78cc659eef16",
+          "indices": "6d46fa7c1495c702b9d1813ef0988a358bba701e5c15f87b7091f682e95812b7"
+        },
+        "hashesAfter": {
+          "vertices": "54740832ad09853221545693b8680c53296ae4789195c8690f9ad35881604b0d",
+          "normals": "204363de78a0e644047fb110219adb4f4001a05ee94c54c34d2f78cc659eef16",
+          "indices": "6d46fa7c1495c702b9d1813ef0988a358bba701e5c15f87b7091f682e95812b7"
+        }
+      },
+      "verification": {
+        "exact": true,
+        "baseline": {
+          "nodes": 8191,
+          "leaves": 4096,
+          "maximumDepth": 12,
+          "triangles": 28672,
+          "boundValuesChecked": 49146
+        },
+        "current": {
+          "nodes": 8191,
+          "leaves": 4096,
+          "maximumDepth": 12,
+          "triangles": 28672,
+          "boundValuesChecked": 49146
+        },
+        "treeHashes": {
+          "nodes": "1fb3ab14c883c3f4c2b4ab1bbe2194e6a1ac06340fe9800a08ce294a570801bd",
+          "order": "50fd6fc45e013f8a3a42780d108f522cdd7ae05fcc89f122bd4fe0a993775cd4",
+          "combined": "2b6591836d90ca5a9d8f779469ab2f6fbbd4eb971b04a56846670bd4c0da465a"
+        },
+        "binaryLayout": "Each node: float64LE min[3], max[3], then int32LE left/right/start/end (64 bytes). Order: uint32LE triangle IDs. Query: float64LE found/distance/triangle/point[3]/normal[3]/triangleTests/featureTests (11 numbers).",
+        "queryTargets": 256,
+        "queryCounts": {
+          "ray": {
+            "queries": 769,
+            "hits": 384,
+            "misses": 385,
+            "trianglesTested": 6636,
+            "featureTests": 0
+          },
+          "vertical": {
+            "queries": 1025,
+            "hits": 448,
+            "misses": 577,
+            "trianglesTested": 2665,
+            "featureTests": 0
+          },
+          "tire": {
+            "queries": 513,
+            "hits": 256,
+            "misses": 257,
+            "trianglesTested": 5327,
+            "featureTests": 19324
+          }
+        },
+        "querySha256": "6a0fa7a5b7735d3c4f888533b2b2812da8a2e83076fe3489129e1dc7628a9511",
+        "queryNumbersCompared": 25377,
+        "treesComparedExactly": 26,
+        "geometryUnchanged": true
+      },
+      "memory": {
+        "peakObservedRssBytes": 136654848,
+        "peakObservedHeapUsedBytes": 31374360,
+        "maximumResidentSetKiB": 134308,
+        "note": "Observed after builds; maxRSS is the OS process high-water mark and includes untimed setup and checks."
+      },
+      "warmups": [
+        {
+          "phase": "warmup",
+          "pair": 0,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "39609085",
+          "milliseconds": 39.609085,
+          "heapUsedBeforeBytes": 16103600,
+          "heapUsedAfterBytes": 23288792,
+          "rssAfterBytes": 135180288
+        },
+        {
+          "phase": "warmup",
+          "pair": 0,
+          "position": 1,
+          "version": "current",
+          "durationNs": "40956597",
+          "milliseconds": 40.956597,
+          "heapUsedBeforeBytes": 16145976,
+          "heapUsedAfterBytes": 22512832,
+          "rssAfterBytes": 135213056
+        },
+        {
+          "phase": "warmup",
+          "pair": 1,
+          "position": 0,
+          "version": "current",
+          "durationNs": "30491355",
+          "milliseconds": 30.491355,
+          "heapUsedBeforeBytes": 16174800,
+          "heapUsedAfterBytes": 22080944,
+          "rssAfterBytes": 135376896
+        },
+        {
+          "phase": "warmup",
+          "pair": 1,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "41923484",
+          "milliseconds": 41.923484,
+          "heapUsedBeforeBytes": 16149296,
+          "heapUsedAfterBytes": 22829224,
+          "rssAfterBytes": 135405568
+        }
+      ],
+      "samples": [
+        {
+          "phase": "measured",
+          "pair": 0,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "28613666",
+          "milliseconds": 28.613666,
+          "heapUsedBeforeBytes": 16218304,
+          "heapUsedAfterBytes": 31374360,
+          "rssAfterBytes": 135254016
+        },
+        {
+          "phase": "measured",
+          "pair": 0,
+          "position": 1,
+          "version": "current",
+          "durationNs": "15328996",
+          "milliseconds": 15.328996,
+          "heapUsedBeforeBytes": 16209992,
+          "heapUsedAfterBytes": 25641600,
+          "rssAfterBytes": 135229440
+        },
+        {
+          "phase": "measured",
+          "pair": 1,
+          "position": 0,
+          "version": "current",
+          "durationNs": "14328330",
+          "milliseconds": 14.32833,
+          "heapUsedBeforeBytes": 16161792,
+          "heapUsedAfterBytes": 19144736,
+          "rssAfterBytes": 135229440
+        },
+        {
+          "phase": "measured",
+          "pair": 1,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "37668643",
+          "milliseconds": 37.668643,
+          "heapUsedBeforeBytes": 16176080,
+          "heapUsedAfterBytes": 25291992,
+          "rssAfterBytes": 135229440
+        },
+        {
+          "phase": "measured",
+          "pair": 2,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "23976578",
+          "milliseconds": 23.976578,
+          "heapUsedBeforeBytes": 16200256,
+          "heapUsedAfterBytes": 26456024,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 2,
+          "position": 1,
+          "version": "current",
+          "durationNs": "13838370",
+          "milliseconds": 13.83837,
+          "heapUsedBeforeBytes": 16230336,
+          "heapUsedAfterBytes": 19215272,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 3,
+          "position": 0,
+          "version": "current",
+          "durationNs": "14360706",
+          "milliseconds": 14.360706,
+          "heapUsedBeforeBytes": 16174960,
+          "heapUsedAfterBytes": 19160064,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 3,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "37178989",
+          "milliseconds": 37.178989,
+          "heapUsedBeforeBytes": 16189368,
+          "heapUsedAfterBytes": 24987024,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 4,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "24271121",
+          "milliseconds": 24.271121,
+          "heapUsedBeforeBytes": 16210440,
+          "heapUsedAfterBytes": 26372168,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 4,
+          "position": 1,
+          "version": "current",
+          "durationNs": "14001260",
+          "milliseconds": 14.00126,
+          "heapUsedBeforeBytes": 16242208,
+          "heapUsedAfterBytes": 19220472,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 5,
+          "position": 0,
+          "version": "current",
+          "durationNs": "14052687",
+          "milliseconds": 14.052687,
+          "heapUsedBeforeBytes": 16177144,
+          "heapUsedAfterBytes": 19162728,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 5,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "38573800",
+          "milliseconds": 38.5738,
+          "heapUsedBeforeBytes": 16191888,
+          "heapUsedAfterBytes": 24162960,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 6,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "25670259",
+          "milliseconds": 25.670259,
+          "heapUsedBeforeBytes": 16214160,
+          "heapUsedAfterBytes": 26787128,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 6,
+          "position": 1,
+          "version": "current",
+          "durationNs": "13994911",
+          "milliseconds": 13.994911,
+          "heapUsedBeforeBytes": 16245216,
+          "heapUsedAfterBytes": 19223344,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 7,
+          "position": 0,
+          "version": "current",
+          "durationNs": "14288097",
+          "milliseconds": 14.288097,
+          "heapUsedBeforeBytes": 16180016,
+          "heapUsedAfterBytes": 19165208,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 7,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "37331085",
+          "milliseconds": 37.331085,
+          "heapUsedBeforeBytes": 16179792,
+          "heapUsedAfterBytes": 25202256,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 8,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "24155890",
+          "milliseconds": 24.15589,
+          "heapUsedBeforeBytes": 16216384,
+          "heapUsedAfterBytes": 26299744,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 8,
+          "position": 1,
+          "version": "current",
+          "durationNs": "13876536",
+          "milliseconds": 13.876536,
+          "heapUsedBeforeBytes": 16247584,
+          "heapUsedAfterBytes": 19225616,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 9,
+          "position": 0,
+          "version": "current",
+          "durationNs": "14000970",
+          "milliseconds": 14.00097,
+          "heapUsedBeforeBytes": 16182608,
+          "heapUsedAfterBytes": 19165552,
+          "rssAfterBytes": 135360512
+        },
+        {
+          "phase": "measured",
+          "pair": 9,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "38297379",
+          "milliseconds": 38.297379,
+          "heapUsedBeforeBytes": 16182352,
+          "heapUsedAfterBytes": 24623032,
+          "rssAfterBytes": 135360512
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "first": "baseline",
+          "baselineMs": 28.613666,
+          "currentMs": 15.328996,
+          "savedMs": 13.284669999999998,
+          "reductionPercent": 46.42771045136264,
+          "speedRatio": 1.866636666876291
+        },
+        {
+          "pair": 1,
+          "first": "current",
+          "baselineMs": 37.668643,
+          "currentMs": 14.32833,
+          "savedMs": 23.340313000000002,
+          "reductionPercent": 61.96218164800893,
+          "speedRatio": 2.628962551811691
+        },
+        {
+          "pair": 2,
+          "first": "baseline",
+          "baselineMs": 23.976578,
+          "currentMs": 13.83837,
+          "savedMs": 10.138208,
+          "reductionPercent": 42.28379879730961,
+          "speedRatio": 1.7326157632726977
+        },
+        {
+          "pair": 3,
+          "first": "current",
+          "baselineMs": 37.178989,
+          "currentMs": 14.360706,
+          "savedMs": 22.818283,
+          "reductionPercent": 61.37413526763732,
+          "speedRatio": 2.5889388028694413
+        },
+        {
+          "pair": 4,
+          "first": "baseline",
+          "baselineMs": 24.271121,
+          "currentMs": 14.00126,
+          "savedMs": 10.269861,
+          "reductionPercent": 42.31308887628223,
+          "speedRatio": 1.7334954854063134
+        },
+        {
+          "pair": 5,
+          "first": "current",
+          "baselineMs": 38.5738,
+          "currentMs": 14.052687,
+          "savedMs": 24.521113,
+          "reductionPercent": 63.56934758825939,
+          "speedRatio": 2.7449412343703377
+        },
+        {
+          "pair": 6,
+          "first": "baseline",
+          "baselineMs": 25.670259,
+          "currentMs": 13.994911,
+          "savedMs": 11.675348000000001,
+          "reductionPercent": 45.482003122757746,
+          "speedRatio": 1.8342566808749268
+        },
+        {
+          "pair": 7,
+          "first": "current",
+          "baselineMs": 37.331085,
+          "currentMs": 14.288097,
+          "savedMs": 23.042988,
+          "reductionPercent": 61.72600662423822,
+          "speedRatio": 2.612740171066868
+        },
+        {
+          "pair": 8,
+          "first": "baseline",
+          "baselineMs": 24.15589,
+          "currentMs": 13.876536,
+          "savedMs": 10.279354,
+          "reductionPercent": 42.5542341847061,
+          "speedRatio": 1.7407723368425665
+        },
+        {
+          "pair": 9,
+          "first": "current",
+          "baselineMs": 38.297379,
+          "currentMs": 14.00097,
+          "savedMs": 24.296408999999997,
+          "reductionPercent": 63.44144073149236,
+          "speedRatio": 2.735337551612495
+        }
+      ],
+      "summary": {
+        "baselineMs": {
+          "count": 10,
+          "median": 32.8963275,
+          "minimum": 23.976578,
+          "maximum": 38.5738
+        },
+        "currentMs": {
+          "count": 10,
+          "median": 14.0269735,
+          "minimum": 13.83837,
+          "maximum": 15.328996
+        },
+        "ratioOfMedians": 2.345219195003113,
+        "reductionOfMediansPercent": 57.36006245681984,
+        "pairedSavedMs": {
+          "count": 10,
+          "median": 18.0514765,
+          "minimum": 10.138208,
+          "maximum": 24.521113
+        },
+        "pairedReductionPercent": {
+          "count": 10,
+          "median": 53.900922859499985,
+          "minimum": 42.28379879730961,
+          "maximum": 63.56934758825939
+        },
+        "pairedSpeedRatio": {
+          "count": 10,
+          "median": 2.2277877348728663,
+          "minimum": 1.7326157632726977,
+          "maximum": 2.7449412343703377
+        }
+      }
+    },
+    {
+      "status": "complete",
+      "startedAt": "2026-11-25T02:59:06.666Z",
+      "finishedAt": "2026-11-25T02:59:12.526Z",
+      "runtime": {
+        "node": "v24.22.3",
+        "v8": "13.6.233.17-node.63",
+        "platform": "linux",
+        "arch": "x64",
+        "release": "6.18.57",
+        "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+        "logicalCpus": 9,
+        "availableParallelism": 9,
+        "totalMemoryBytes": 10451427328,
+        "cgroup": {
+          "cpuMax": null,
+          "memoryMax": null,
+          "effectiveCpuSet": null
+        },
+        "heapLimitBytes": 1006632960,
+        "execArgv": [
+          "--expose-gc",
+          "--max-old-space-size=768"
+        ],
+        "timer": "process.hrtime.bigint; reported milliseconds = integer nanoseconds / 1e6"
+      },
+      "fixture": {
+        "circuit": "aurel",
+        "circuitName": "AUREL / GRAND CIRCUIT",
+        "rows": 8192,
+        "defaultRowsArgumentUsed": true,
+        "columns": 15,
+        "vertices": 122895,
+        "triangles": 229376,
+        "geometryBytes": 8651472,
+        "hashesBefore": {
+          "vertices": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+          "normals": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+          "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+        },
+        "hashesAfter": {
+          "vertices": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+          "normals": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+          "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f"
+        }
+      },
+      "verification": {
+        "exact": true,
+        "baseline": {
+          "nodes": 65535,
+          "leaves": 32768,
+          "maximumDepth": 15,
+          "triangles": 229376,
+          "boundValuesChecked": 393210
+        },
+        "current": {
+          "nodes": 65535,
+          "leaves": 32768,
+          "maximumDepth": 15,
+          "triangles": 229376,
+          "boundValuesChecked": 393210
+        },
+        "treeHashes": {
+          "nodes": "5101a7c7305425b76ae647f438765d52cbf20df33ea20bdb3a45d22b0bedb10a",
+          "order": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16",
+          "combined": "ea1f35c4554aab616c695069d187ffca0039aa2e8eed9495c282face542e0a6a"
+        },
+        "binaryLayout": "Each node: float64LE min[3], max[3], then int32LE left/right/start/end (64 bytes). Order: uint32LE triangle IDs. Query: float64LE found/distance/triangle/point[3]/normal[3]/triangleTests/featureTests (11 numbers).",
+        "queryTargets": 256,
+        "queryCounts": {
+          "ray": {
+            "queries": 769,
+            "hits": 384,
+            "misses": 385,
+            "trianglesTested": 10906,
+            "featureTests": 0
+          },
+          "vertical": {
+            "queries": 1025,
+            "hits": 448,
+            "misses": 577,
+            "trianglesTested": 3387,
+            "featureTests": 0
+          },
+          "tire": {
+            "queries": 513,
+            "hits": 256,
+            "misses": 257,
+            "trianglesTested": 9037,
+            "featureTests": 35179
+          }
+        },
+        "querySha256": "b0ebf37008fa0e812ad74ca72577cc40efbb1f410181799fab54052e51203e78",
+        "queryNumbersCompared": 25377,
+        "treesComparedExactly": 26,
+        "geometryUnchanged": true
+      },
+      "memory": {
+        "peakObservedRssBytes": 226304000,
+        "peakObservedHeapUsedBytes": 76642872,
+        "maximumResidentSetKiB": 221000,
+        "note": "Observed after builds; maxRSS is the OS process high-water mark and includes untimed setup and checks."
+      },
+      "warmups": [
+        {
+          "phase": "warmup",
+          "pair": 0,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "222228969",
+          "milliseconds": 222.228969,
+          "heapUsedBeforeBytes": 33611352,
+          "heapUsedAfterBytes": 56629896,
+          "rssAfterBytes": 225193984
+        },
+        {
+          "phase": "warmup",
+          "pair": 0,
+          "position": 1,
+          "version": "current",
+          "durationNs": "178726330",
+          "milliseconds": 178.72633,
+          "heapUsedBeforeBytes": 33644760,
+          "heapUsedAfterBytes": 71667152,
+          "rssAfterBytes": 226275328
+        },
+        {
+          "phase": "warmup",
+          "pair": 1,
+          "position": 0,
+          "version": "current",
+          "durationNs": "178865577",
+          "milliseconds": 178.865577,
+          "heapUsedBeforeBytes": 33636080,
+          "heapUsedAfterBytes": 68210256,
+          "rssAfterBytes": 226144256
+        },
+        {
+          "phase": "warmup",
+          "pair": 1,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "196256741",
+          "milliseconds": 196.256741,
+          "heapUsedBeforeBytes": 33638968,
+          "heapUsedAfterBytes": 75814848,
+          "rssAfterBytes": 226209792
+        }
+      ],
+      "samples": [
+        {
+          "phase": "measured",
+          "pair": 0,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "176712279",
+          "milliseconds": 176.712279,
+          "heapUsedBeforeBytes": 33687192,
+          "heapUsedAfterBytes": 64376784,
+          "rssAfterBytes": 226209792
+        },
+        {
+          "phase": "measured",
+          "pair": 0,
+          "position": 1,
+          "version": "current",
+          "durationNs": "135649192",
+          "milliseconds": 135.649192,
+          "heapUsedBeforeBytes": 33687008,
+          "heapUsedAfterBytes": 72280808,
+          "rssAfterBytes": 226209792
+        },
+        {
+          "phase": "measured",
+          "pair": 1,
+          "position": 0,
+          "version": "current",
+          "durationNs": "134057468",
+          "milliseconds": 134.057468,
+          "heapUsedBeforeBytes": 33666072,
+          "heapUsedAfterBytes": 72250040,
+          "rssAfterBytes": 226148352
+        },
+        {
+          "phase": "measured",
+          "pair": 1,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "209327405",
+          "milliseconds": 209.327405,
+          "heapUsedBeforeBytes": 33666328,
+          "heapUsedAfterBytes": 64102064,
+          "rssAfterBytes": 226189312
+        },
+        {
+          "phase": "measured",
+          "pair": 2,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "175777146",
+          "milliseconds": 175.777146,
+          "heapUsedBeforeBytes": 33702128,
+          "heapUsedAfterBytes": 66267472,
+          "rssAfterBytes": 226189312
+        },
+        {
+          "phase": "measured",
+          "pair": 2,
+          "position": 1,
+          "version": "current",
+          "durationNs": "135361124",
+          "milliseconds": 135.361124,
+          "heapUsedBeforeBytes": 33700960,
+          "heapUsedAfterBytes": 72291832,
+          "rssAfterBytes": 226168832
+        },
+        {
+          "phase": "measured",
+          "pair": 3,
+          "position": 0,
+          "version": "current",
+          "durationNs": "135535623",
+          "milliseconds": 135.535623,
+          "heapUsedBeforeBytes": 33675456,
+          "heapUsedAfterBytes": 72259336,
+          "rssAfterBytes": 226168832
+        },
+        {
+          "phase": "measured",
+          "pair": 3,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "223960660",
+          "milliseconds": 223.96066,
+          "heapUsedBeforeBytes": 33677064,
+          "heapUsedAfterBytes": 56463184,
+          "rssAfterBytes": 226168832
+        },
+        {
+          "phase": "measured",
+          "pair": 4,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "229088595",
+          "milliseconds": 229.088595,
+          "heapUsedBeforeBytes": 33721832,
+          "heapUsedAfterBytes": 76642872,
+          "rssAfterBytes": 226299904
+        },
+        {
+          "phase": "measured",
+          "pair": 4,
+          "position": 1,
+          "version": "current",
+          "durationNs": "152800851",
+          "milliseconds": 152.800851,
+          "heapUsedBeforeBytes": 33723992,
+          "heapUsedAfterBytes": 66288992,
+          "rssAfterBytes": 226299904
+        },
+        {
+          "phase": "measured",
+          "pair": 5,
+          "position": 0,
+          "version": "current",
+          "durationNs": "151860915",
+          "milliseconds": 151.860915,
+          "heapUsedBeforeBytes": 33678680,
+          "heapUsedAfterBytes": 66260416,
+          "rssAfterBytes": 226299904
+        },
+        {
+          "phase": "measured",
+          "pair": 5,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "226369027",
+          "milliseconds": 226.369027,
+          "heapUsedBeforeBytes": 33696016,
+          "heapUsedAfterBytes": 63422032,
+          "rssAfterBytes": 226299904
+        },
+        {
+          "phase": "measured",
+          "pair": 6,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "194012503",
+          "milliseconds": 194.012503,
+          "heapUsedBeforeBytes": 33732200,
+          "heapUsedAfterBytes": 72316872,
+          "rssAfterBytes": 226304000
+        },
+        {
+          "phase": "measured",
+          "pair": 6,
+          "position": 1,
+          "version": "current",
+          "durationNs": "147511607",
+          "milliseconds": 147.511607,
+          "heapUsedBeforeBytes": 33732584,
+          "heapUsedAfterBytes": 75450552,
+          "rssAfterBytes": 226299904
+        },
+        {
+          "phase": "measured",
+          "pair": 7,
+          "position": 0,
+          "version": "current",
+          "durationNs": "136829715",
+          "milliseconds": 136.829715,
+          "heapUsedBeforeBytes": 33699936,
+          "heapUsedAfterBytes": 66623032,
+          "rssAfterBytes": 225779712
+        },
+        {
+          "phase": "measured",
+          "pair": 7,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "264817481",
+          "milliseconds": 264.817481,
+          "heapUsedBeforeBytes": 33700128,
+          "heapUsedAfterBytes": 68904960,
+          "rssAfterBytes": 225792000
+        },
+        {
+          "phase": "measured",
+          "pair": 8,
+          "position": 0,
+          "version": "baseline",
+          "durationNs": "184401227",
+          "milliseconds": 184.401227,
+          "heapUsedBeforeBytes": 33737688,
+          "heapUsedAfterBytes": 72322264,
+          "rssAfterBytes": 225873920
+        },
+        {
+          "phase": "measured",
+          "pair": 8,
+          "position": 1,
+          "version": "current",
+          "durationNs": "132576039",
+          "milliseconds": 132.576039,
+          "heapUsedBeforeBytes": 33737208,
+          "heapUsedAfterBytes": 66660304,
+          "rssAfterBytes": 225701888
+        },
+        {
+          "phase": "measured",
+          "pair": 9,
+          "position": 0,
+          "version": "current",
+          "durationNs": "144088435",
+          "milliseconds": 144.088435,
+          "heapUsedBeforeBytes": 33704800,
+          "heapUsedAfterBytes": 66627896,
+          "rssAfterBytes": 225730560
+        },
+        {
+          "phase": "measured",
+          "pair": 9,
+          "position": 1,
+          "version": "baseline",
+          "durationNs": "236071825",
+          "milliseconds": 236.071825,
+          "heapUsedBeforeBytes": 33704992,
+          "heapUsedAfterBytes": 61515480,
+          "rssAfterBytes": 225693696
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "first": "baseline",
+          "baselineMs": 176.712279,
+          "currentMs": 135.649192,
+          "savedMs": 41.063086999999996,
+          "reductionPercent": 23.237257327205878,
+          "speedRatio": 1.3027153084701013
+        },
+        {
+          "pair": 1,
+          "first": "current",
+          "baselineMs": 209.327405,
+          "currentMs": 134.057468,
+          "savedMs": 75.269937,
+          "reductionPercent": 35.95799460658293,
+          "speedRatio": 1.5614751503437316
+        },
+        {
+          "pair": 2,
+          "first": "baseline",
+          "baselineMs": 175.777146,
+          "currentMs": 135.361124,
+          "savedMs": 40.416022,
+          "reductionPercent": 22.992762665517393,
+          "speedRatio": 1.29857924347614
+        },
+        {
+          "pair": 3,
+          "first": "current",
+          "baselineMs": 223.96066,
+          "currentMs": 135.535623,
+          "savedMs": 88.425037,
+          "reductionPercent": 39.482397042409154,
+          "speedRatio": 1.652411779595391
+        },
+        {
+          "pair": 4,
+          "first": "baseline",
+          "baselineMs": 229.088595,
+          "currentMs": 152.800851,
+          "savedMs": 76.287744,
+          "reductionPercent": 33.300542089404324,
+          "speedRatio": 1.4992625597353513
+        },
+        {
+          "pair": 5,
+          "first": "current",
+          "baselineMs": 226.369027,
+          "currentMs": 151.860915,
+          "savedMs": 74.50811199999998,
+          "reductionPercent": 32.91444637432664,
+          "speedRatio": 1.4906338935202648
+        },
+        {
+          "pair": 6,
+          "first": "baseline",
+          "baselineMs": 194.012503,
+          "currentMs": 147.511607,
+          "savedMs": 46.50089600000001,
+          "reductionPercent": 23.967989320770737,
+          "speedRatio": 1.3152355055016112
+        },
+        {
+          "pair": 7,
+          "first": "current",
+          "baselineMs": 264.817481,
+          "currentMs": 136.829715,
+          "savedMs": 127.987766,
+          "reductionPercent": 48.33055790603189,
+          "speedRatio": 1.9353799063310189
+        },
+        {
+          "pair": 8,
+          "first": "baseline",
+          "baselineMs": 184.401227,
+          "currentMs": 132.576039,
+          "savedMs": 51.825188,
+          "reductionPercent": 28.104578718448547,
+          "speedRatio": 1.3909091596860876
+        },
+        {
+          "pair": 9,
+          "first": "current",
+          "baselineMs": 236.071825,
+          "currentMs": 144.088435,
+          "savedMs": 91.98338999999999,
+          "reductionPercent": 38.96415423568653,
+          "speedRatio": 1.6383814912001784
+        }
+      ],
+      "summary": {
+        "baselineMs": {
+          "count": 10,
+          "median": 216.64403249999998,
+          "minimum": 175.777146,
+          "maximum": 264.817481
+        },
+        "currentMs": {
+          "count": 10,
+          "median": 136.2394535,
+          "minimum": 132.576039,
+          "maximum": 152.800851
+        },
+        "ratioOfMedians": 1.5901710329453134,
+        "reductionOfMediansPercent": 37.11368278745457,
+        "pairedSavedMs": {
+          "count": 10,
+          "median": 74.88902449999999,
+          "minimum": 40.416022,
+          "maximum": 127.987766
+        },
+        "pairedReductionPercent": {
+          "count": 10,
+          "median": 33.10749423186548,
+          "minimum": 22.992762665517393,
+          "maximum": 48.33055790603189
+        },
+        "pairedSpeedRatio": {
+          "count": 10,
+          "median": 1.494948226627808,
+          "minimum": 1.29857924347614,
+          "maximum": 1.9353799063310189
+        }
+      }
+    }
+  ],
+  "finishedAt": "2026-11-25T02:59:12.557Z"
+}

@@ -1,6 +1,6 @@
 # Agent execution ledger
 
-Distinct worker assignments actually started are listed below. Planned assignments are not counted as completed. Each wave contains six assignments and uses the three worker slots in successive groups. The coordinator is excluded.
+Distinct worker assignments actually started are listed below. Planned assignments are not counted as completed. Each wave contains six assignments and uses up to three worker slots at a time. Independent preparation may overlap a preceding wave; timings retain exclusive compute ownership. The coordinator is excluded.
 
 | Agent | Wave | Assignment | Status |
 | --- | --- | --- | --- |
@@ -40,6 +40,15 @@ Distinct worker assignments actually started are listed below. Planned assignmen
 | 34 | 6 | `w06d_native_gpu_resources` | complete |
 | 35 | 6 | `w06e_native_storage_export` | complete |
 | 36 | 6 | `w06f_ci_replay_gate` | complete |
+| 37 | 7 | `w07a_bvh_measurement` | complete |
+| 38 | 7 | `w07b_contact_measurement` | complete |
+| 39 | 7 | `w07c_network_measurement` | complete |
+| 40 | 7 | `w07d_telemetry_measurement` | complete |
+| 41 | 7 | `w07e_simulation_evidence` | complete |
+| 42 | 7 | `w07f_texture_measurement` | complete |
+| 43 | 8 | `w08a_network_review` | running |
+| 44 | 8 | `w08b_worker_session_review` | running |
+| 45 | 8 | `w08c_storage_memory_review` | running |
 
 ## Programme
 

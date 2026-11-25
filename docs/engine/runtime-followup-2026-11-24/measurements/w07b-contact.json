@@ -1,0 +1,3310 @@
+{
+  "schemaVersion": 1,
+  "worker": "w07b / worker38 of 60",
+  "recordedAt": "2026-11-25T03:01:05.953Z",
+  "status": "passed",
+  "baselineCommit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+  "candidateCommit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+  "environment": {
+    "node": "v24.22.3",
+    "versions": {
+      "node": "24.22.3",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.9",
+      "brotli": "1.2.1",
+      "cldr": "48.0",
+      "icu": "78.3",
+      "llhttp": "9.4.4",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "3.5.9",
+      "simdjson": "4.6.11",
+      "simdutf": "6.4.0",
+      "sqlite": "3.54.1",
+      "tz": "2026e",
+      "undici": "7.30.2",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.63",
+      "zlib": "1.3.2.1-motley-285e94b",
+      "zstd": "1.5.7"
+    },
+    "esbuild": "0.25.12",
+    "platform": "linux",
+    "release": "6.18.57",
+    "architecture": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCPUs": 9,
+    "totalMemoryBytes": 10451427328,
+    "childOldSpaceMiB": 768
+  },
+  "harness": {
+    "orchestratorSHA256": "b4ffc64db49aa80e51fc6a360bcbee58952799f885c169acb628b2099ca6dc47",
+    "workerSHA256": "23dacc73815c4e351d76e1d632544ddec20a6d2925ca837f8608e3db8f761399",
+    "bundleSHA256": "8162d9f94e53d4afffe976d844e2d42bd8d51b91fc39e755a02c36e3d254f063",
+    "sourceGraph": [
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "scripts/dynamics-fixtures.ts",
+        "blob": "d7429343bfb0048bb3084de58111c85e35406dc3",
+        "sha256": "b2e18ca9a17680f5658f5891053108290da21ccae585868852d0fa54075af1b2",
+        "bytes": 3442
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/core/math.ts",
+        "blob": "5158d9dd40981bd2e00913f5222403189157035e",
+        "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+        "bytes": 5754
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/i18n/mark.ts",
+        "blob": "641b8347183766b8860e5b0f0cc68af6fd422518",
+        "sha256": "63ba61f7c8aeba8bf6a0dd44f79969acbcfda0a48cb9feabc6f189e0e020b057",
+        "bytes": 463
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/aero-map.ts",
+        "blob": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+        "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+        "bytes": 3409
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/aero.ts",
+        "blob": "e070d6c147501821d98b8606d4c03dad3645c108",
+        "sha256": "e18c357f5e77595a868360250965897bc679d8a2a19aff2ec0a53c5a7f83a742",
+        "bytes": 10170
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/bike-definitions.ts",
+        "blob": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+        "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76",
+        "bytes": 28095
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/brake-thermal.ts",
+        "blob": "22d35f56d80c0cfa87033960f60aa13c754697da",
+        "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c",
+        "bytes": 668
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/bvh.ts",
+        "blob": "d9d3a403efc0bbcf6586e807b58de90d7ccb3f77",
+        "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09",
+        "bytes": 21541
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/catalogue-dynamics.ts",
+        "blob": "deb7f66181b7d60285d982be8173bf1f9e82e855",
+        "sha256": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821",
+        "bytes": 7477
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/catalogue-events.ts",
+        "blob": "00bccf88e06c3a359504db9225bc798f24631b20",
+        "sha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a",
+        "bytes": 12600
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/builder.ts",
+        "blob": "986d0be88b476a8804921ac094c98fab609c9e51",
+        "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5",
+        "bytes": 32157
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/dsl.ts",
+        "blob": "1ff538ea487bd796e741500aa81c9cf016291a9a",
+        "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+        "bytes": 3681
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/endurance.ts",
+        "blob": "b3fa428175c9dc071960ce08261047a74fd6c7ca",
+        "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+        "bytes": 10864
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/events.ts",
+        "blob": "b656ff38ff2fb852ed50fdaacb891545e53ded53",
+        "sha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+        "bytes": 7696
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/index.ts",
+        "blob": "de449a9fc1b62ffb7800e8e9b940904018ac5191",
+        "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6",
+        "bytes": 1669
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/industrial.ts",
+        "blob": "48cc4d58d5715288189347a1d00506bf4920235c",
+        "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+        "bytes": 4699
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/motorcycle-gp.ts",
+        "blob": "480b5f78eb7e3a255b9e0e96e43e28b21c662674",
+        "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+        "bytes": 9535
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/night-and-street.ts",
+        "blob": "48e116033457b7a1011d4fbd34a976f233c6d9e9",
+        "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+        "bytes": 11968
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/real-world-classics.ts",
+        "blob": "9f569e66125afa7e7494dccd7e8f56a02b8cef8d",
+        "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+        "bytes": 12571
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/real-world.ts",
+        "blob": "cb0f5421c8856271f9dc7a83dbd35208caa0ffc8",
+        "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+        "bytes": 18890
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/unconventional.ts",
+        "blob": "027453821f305dc3323366d13f1e7be0036411ce",
+        "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+        "bytes": 16927
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/venue-data.ts",
+        "blob": "1500dc3f48c3938ad51c52e1ca8cb18e5af55fc9",
+        "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386",
+        "bytes": 6907
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuit-catalogue/wildcard-venues.ts",
+        "blob": "ff5858a0020df37f3d24be8872eb68b3ec77e325",
+        "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a",
+        "bytes": 11336
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/circuits.ts",
+        "blob": "f7725db33f49976e3be63a98e5246a16a9f87712",
+        "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4",
+        "bytes": 12745
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/clutch.ts",
+        "blob": "d81f72ad7675f5762b93d809a43af65656ea9b1f",
+        "sha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4",
+        "bytes": 2526
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/config.ts",
+        "blob": "b7a7edf3cb2ed14ee6ca6b6d4fca8bd710d6f885",
+        "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e",
+        "bytes": 11770
+      },
+      {
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/simulation/contact.ts",
+        "blob": "b1c92ce6b4616781328cb2ccf50db99e72d6e465",
+        "sha256": "54c9d2de9eb899bf1968ce9b26e285cf9a6101ee6f97cedc647cccae9f98674a",
+        "bytes": 8981
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/contact.ts",
+        "blob": "c587549ce58c49e7e7144b51d7b62ef8be7f8d86",
+        "sha256": "0905f07c4be45f9eb2739fc0906b88fbe54a3d74ba0f3cd222621236141d02df",
+        "bytes": 9214
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/contamination.ts",
+        "blob": "d047680e23672ee34c6e0662de52064113732337",
+        "sha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005",
+        "bytes": 2124
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/damage.ts",
+        "blob": "ffba8a4fcb1debd0618a81648cdc5314db4e5224",
+        "sha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad",
+        "bytes": 1950
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/differential.ts",
+        "blob": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+        "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4",
+        "bytes": 17163
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/driving-assists.ts",
+        "blob": "ca1ad6d8e5b46de738a36399d568ae2f7f855d41",
+        "sha256": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6",
+        "bytes": 933
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/drs.ts",
+        "blob": "eb8610c7565d7c01a246e8918d8c5005c33a1e66",
+        "sha256": "b7c79a93971179153152d87516fbbbb8f6579ed07544398f41efb242e90cee73",
+        "bytes": 6621
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/events.ts",
+        "blob": "f30314a10e8b2dd96717f1d68ff9dcd3cc611ffe",
+        "sha256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4",
+        "bytes": 15678
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/gp-corner-shape.ts",
+        "blob": "e243c546afd6ea5a0acc511343ebe92debad0b66",
+        "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0",
+        "bytes": 3493
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/gp-course-edges.ts",
+        "blob": "01c9de55e353e2c3dfe4b431dd7a5feded46f7f1",
+        "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50",
+        "bytes": 2898
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/marshal.ts",
+        "blob": "bc7531a958cdde6ef2697ce69a2048468d5bdddf",
+        "sha256": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46",
+        "bytes": 13061
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/berm-lines.ts",
+        "blob": "1d1a14a76eb9390f87394ac0425dc20e1c4958ad",
+        "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996",
+        "bytes": 2729
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/braking-bumps.ts",
+        "blob": "80d6a9e9f47b04a0ed83fe10bc0d8681907d5d06",
+        "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf",
+        "bytes": 3159
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/course-terrain.ts",
+        "blob": "e88b3769422044306989fb9fd49774b524debe99",
+        "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d",
+        "bytes": 18041
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/course.ts",
+        "blob": "2b73c3582695e4c060c714999540abe642a6d9c6",
+        "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd",
+        "bytes": 17326
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/dirt-bikes.ts",
+        "blob": "9eaba5ba8ac7471cd90f98a4e27765211add4e60",
+        "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+        "bytes": 7870
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/formats.ts",
+        "blob": "ad429ace15023556ef56d0552b696db5800ed912",
+        "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+        "bytes": 7757
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/profile.ts",
+        "blob": "4184f7109c442ba05c06ed9629cdfd58814e7bf6",
+        "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa",
+        "bytes": 10792
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/offroad/venues.ts",
+        "blob": "9003875d234f4d7dc4f79fcb63d390efa15b99d2",
+        "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3",
+        "bytes": 17834
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/powertrain.ts",
+        "blob": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+        "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+        "bytes": 5588
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/protocol.ts",
+        "blob": "1d795cb5ce9e128432650b28a8a74c7b3b010df9",
+        "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+        "bytes": 16910
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/racing-line.ts",
+        "blob": "d5876ec095e9d89efa6d15d76f59534c69cbcd48",
+        "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c",
+        "bytes": 5343
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/regenerative-braking.ts",
+        "blob": "24be23c1d5ce9a772b5ae2e345a3adf769a8f1a8",
+        "sha256": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0",
+        "bytes": 4394
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/rigid.ts",
+        "blob": "99322eaac7dfbf8cb5a88de0e1302d7e89fab968",
+        "sha256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7",
+        "bytes": 8360
+      },
+      {
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/simulation/road-contact.ts",
+        "blob": "d70577eb3eb68dadd247eca7de0b750abbc51979",
+        "sha256": "1d38e02c09ea1791b1d7ea69f715455f411fef38651236643f24f477aa25fe57",
+        "bytes": 2396
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/road-contact.ts",
+        "blob": "b7db24e57a68bd217e46d743d36aeb470fac1c98",
+        "sha256": "1f4d573f9db4b0ad8b2b1a3dc365fac0f2792e3fe656cc66cff87bfd1309454b",
+        "bytes": 2543
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/skid-contact.ts",
+        "blob": "0ff46ade6f2634735aab9050c54b3bc28488e0da",
+        "sha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0",
+        "bytes": 5898
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/surface-drainage.ts",
+        "blob": "25f870c81c68dd8dae0b291c78bb913439a51c7a",
+        "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd",
+        "bytes": 3107
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/surface-material.ts",
+        "blob": "f4257a96f607734d341a3add10d6a317c89a1adc",
+        "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec",
+        "bytes": 11633
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/surface-thermal.ts",
+        "blob": "4df08bc8977bfe0f565a36610ae7b9f1ad0802cb",
+        "sha256": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72",
+        "bytes": 8920
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/suspension.ts",
+        "blob": "b1946cb5a3e047ca0ab849f80fc7f366baca8581",
+        "sha256": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97",
+        "bytes": 17454
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/terrain.ts",
+        "blob": "98240b406b09143ac1d1830cf7fcba938287797a",
+        "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679",
+        "bytes": 6942
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tire-families.ts",
+        "blob": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+        "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681",
+        "bytes": 3850
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tire-footprint.ts",
+        "blob": "fc3271371d5957f28c470aeabce52583ba3564e7",
+        "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909",
+        "bytes": 14215
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tire.ts",
+        "blob": "09fc377e6ec0e00d072c507661a87cf56136e900",
+        "sha256": "731b5a1e2579c41942714104fef334ac48e5dd6b4a5c36f456778e97ed136fc3",
+        "bytes": 31050
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/track-lane-index.ts",
+        "blob": "dd6ff4c5a0a8dc8de9c51a45fccd8a2f1910055b",
+        "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+        "bytes": 2784
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/track.ts",
+        "blob": "8d4aa8f1a812f6ba8c86765774dd4b79a7915ba4",
+        "sha256": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0",
+        "bytes": 31783
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tyre-force.ts",
+        "blob": "a16844a3c4b3496f284e4a925b24f996774b4000",
+        "sha256": "e7027bd699777d31083aecbbac3f6dac85455de4d385b4ea1fb542ba1245f6e0",
+        "bytes": 29857
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/tyre-thermal.ts",
+        "blob": "fa52185f82889b08496e4e41f2be9de6879cf730",
+        "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469",
+        "bytes": 7837
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/builder.ts",
+        "blob": "9ec154fbde4b52d868e3c372ef3599091fb2c039",
+        "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+        "bytes": 14798
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/common.ts",
+        "blob": "dc7d90bee3fad4213ddb707b985b9abfd58877bc",
+        "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+        "bytes": 1768
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/dirt-2.ts",
+        "blob": "bbaffab1f737e8100f45cb14acbd4426ef24a710",
+        "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+        "bytes": 8794
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/dirt.ts",
+        "blob": "8e513fb5fa509d7a41c9b23204a46913a722e43f",
+        "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+        "bytes": 5931
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/endurance.ts",
+        "blob": "a92dfad3635f17479b4f7d07df22ff4b4f442bb8",
+        "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+        "bytes": 3649
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/experimental.ts",
+        "blob": "5c21cdef687574a98b946ab53c640da59c896f40",
+        "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+        "bytes": 11831
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/formula.ts",
+        "blob": "d082a85123b1994735cf717f1693b9661189639e",
+        "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+        "bytes": 3605
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+        "blob": "f49298f1d419040ad89b391ec82ba7a42e04cd81",
+        "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+        "bytes": 6000
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/gt.ts",
+        "blob": "f268494812dcc5325ed6677147ff86a110745297",
+        "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+        "bytes": 5366
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/index.ts",
+        "blob": "22ffe0d83d2927fffbe7bb089740d191c7035c86",
+        "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+        "bytes": 2615
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/prototypes.ts",
+        "blob": "4db6efeaa7b7f2fd7925914a72026f747240b9b3",
+        "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+        "bytes": 6229
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/road-festival.ts",
+        "blob": "4f86fdb2929614ed6e2d9466e2963861fb6432a6",
+        "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+        "bytes": 15667
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/single-seaters.ts",
+        "blob": "372e243cd0131b246b0733e90fae8fe44b29b1d5",
+        "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+        "bytes": 10703
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/small-road.ts",
+        "blob": "6a4ab7c2be816691f9af2f881f61ab8f4028587e",
+        "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+        "bytes": 6540
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+        "blob": "56494a440755c1563cd29e4f490ec189ca151124",
+        "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+        "bytes": 6256
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-catalogue/touring-club.ts",
+        "blob": "bfdeed26bb0f30d4cbc06046831d40c1da129b4a",
+        "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+        "bytes": 3653
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-classes.ts",
+        "blob": "b9b6bdafecf7b6083a861915443055c03cd33bf5",
+        "sha256": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c",
+        "bytes": 5538
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle-dynamics.ts",
+        "blob": "fe8162122bbd8da111db10b8ab13315c2eca7913",
+        "sha256": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7",
+        "bytes": 5427
+      },
+      {
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/simulation/vehicle.ts",
+        "blob": "aecdfdff3000d46f68340b3357feaa84a2d1652e",
+        "sha256": "9804d53931ff092b9b268f15f5b64de4b94494932cd37ee586f8fe9a19d92dfb",
+        "bytes": 46835
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicle.ts",
+        "blob": "8d11b992b7f241adff5496e7f4db5b3ddc38f704",
+        "sha256": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9",
+        "bytes": 46955
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/vehicles.ts",
+        "blob": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+        "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+        "bytes": 14876
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/weather-catalogue.ts",
+        "blob": "c518d5c5e6089d4485b63d4df47b7e676033c68e",
+        "sha256": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9",
+        "bytes": 4157
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/weather.ts",
+        "blob": "8f7e871397b1ab1f4cf348dbec3fdd9c9e8d3330",
+        "sha256": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756",
+        "bytes": 36688
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/wheel-momentum.ts",
+        "blob": "4e3a952ba35abea71b20eba9d039b0ac7ece231e",
+        "sha256": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66",
+        "bytes": 720
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/wheel-rotation.ts",
+        "blob": "85055b6085827ee72100c252fd8fc0c32411f96c",
+        "sha256": "e4877615359b82953ce760591507109bd1f07141c316ee835fddf0f5416e7bd6",
+        "bytes": 2050
+      },
+      {
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/simulation/wildcard-rulesets.ts",
+        "blob": "706e70b15ba412a7ff29b2842c452806286bb6bf",
+        "sha256": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae",
+        "bytes": 4622
+      }
+    ]
+  },
+  "methodology": {
+    "baseline": "Actual target source files loaded with git show from baselineCommit; no hand-reimplemented baseline.",
+    "isolation": "All non-target dependencies resolve to candidateCommit. Baseline Vehicle imports the actual baseline RoadContactFrame; all other dependencies are shared. Both contact constructors use the identical candidate BVH and authored track data. Unrelated engine changes cannot explain the A/B difference.",
+    "frameAndClutch": "Actual baseline RoadContactFrame and Vehicle modules, with shared candidate dependencies. Baseline Vehicle imports baseline RoadContactFrame directly; no per-instance method patch is present during timing.",
+    "timing": "Sequential exclusive workers. Ten paired samples alternate baseline/candidate order, with five pairs of each order. Warmup precedes samples; explicit GC precedes each timed sample. Instrumentation, serialization, track/vehicle setup, comparison and GC are outside the timer.",
+    "heap": "One contact mesh/tree at a time. Baseline geometry is written to temporary binary files before the candidate is built and compared byte for byte. Each child has a 768 MiB old-space limit.",
+    "counts": "Instrumented proof workers count typed-array set calls with literal-array operands, Math.hypot calls and tire-array map calls. These semantic operation counts are distinct from physical allocator/GC counts.",
+    "catalogue": "No authored AWD definition enables engine.clutchCoupling at this revision. AWD microbenchmarks call the real method explicitly on real AWD Vehicle instances; this is dormant-branch evidence, not an active-catalogue runtime saving.",
+    "limits": "Node CPU evidence only. No renderer, browser, GPU, full-game FPS, physical-device or cross-machine claim. A controlled constructor includes the unchanged shared BVH cost. Hot-loop timings include identical input writes and checksum work."
+  },
+  "results": {
+    "proof": {
+      "geometry": [
+        {
+          "circuitId": "aurel",
+          "rows": 1,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 30,
+              "normalEntries": 90,
+              "indexArrays": 14,
+              "indexEntries": 84
+            },
+            "hashes": {
+              "vertices": "c24ae58a83b286290b98571e348fd1806f583665c3e65715c0c3c4041b25a025",
+              "normals": "d8cc5eca4772d0fd4e3f6f65f7adc639dfad4129fab843db09ea14fd3fbce13d",
+              "indices": "52e11b3c13009be6e39a8e51226d60d86e1f113a9828dea0dcff30db2d29fbcc",
+              "nodes": "883983f4b1664c660b72405bd85310a1a2f69ba2ee60fdb8761679eea8725d1a",
+              "order": "e836e801b1defba4dd01676efaeefb5f53839a14c910869ac217b237522ffe5c"
+            },
+            "byteLengths": {
+              "vertices": 720,
+              "normals": 720,
+              "indices": 336,
+              "nodes": 560,
+              "order": 112
+            },
+            "queryCount": 72,
+            "querySHA256": "784b46af973eb4fccf43acda6e587fad78ae6ce9de57c47d3c1e8a9bb79efddf",
+            "vertices": 30,
+            "triangles": 28,
+            "nodes": 7
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "c24ae58a83b286290b98571e348fd1806f583665c3e65715c0c3c4041b25a025",
+              "normals": "d8cc5eca4772d0fd4e3f6f65f7adc639dfad4129fab843db09ea14fd3fbce13d",
+              "indices": "52e11b3c13009be6e39a8e51226d60d86e1f113a9828dea0dcff30db2d29fbcc",
+              "nodes": "883983f4b1664c660b72405bd85310a1a2f69ba2ee60fdb8761679eea8725d1a",
+              "order": "e836e801b1defba4dd01676efaeefb5f53839a14c910869ac217b237522ffe5c"
+            },
+            "byteLengths": {
+              "vertices": 720,
+              "normals": 720,
+              "indices": 336,
+              "nodes": 560,
+              "order": 112
+            },
+            "queryCount": 72,
+            "querySHA256": "784b46af973eb4fccf43acda6e587fad78ae6ce9de57c47d3c1e8a9bb79efddf",
+            "vertices": 30,
+            "triangles": 28,
+            "nodes": 7
+          }
+        },
+        {
+          "circuitId": "aurel",
+          "rows": 2,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 45,
+              "normalEntries": 135,
+              "indexArrays": 28,
+              "indexEntries": 168
+            },
+            "hashes": {
+              "vertices": "b581c56ce36a72b70fa66ec0d0d0a904af5db0f0a8ebe179dd9c1fe95ece8b52",
+              "normals": "d41286f5e9d75a8d86094dfeb199e8f204dd9bd927316b9d86c6793a82caefb9",
+              "indices": "132d03f2d42dae9817005ef0ede9e0ddb7196e2025130ed07b9ec4a00dfd1585",
+              "nodes": "95bef7ece73fd42a4ea105306b32429bea6631de69b75cfeefc8d594e599fa91",
+              "order": "aa62e47e84ead91ff3fc9e7dc83913bb63c0cba739573dd0ab23e45058e1c74a"
+            },
+            "byteLengths": {
+              "vertices": 1080,
+              "normals": 1080,
+              "indices": 672,
+              "nodes": 1200,
+              "order": 224
+            },
+            "queryCount": 72,
+            "querySHA256": "21d6d37c2f13c5530273a7e29ec3bc630ba92f77b15a29b882720f48c9efa3bb",
+            "vertices": 45,
+            "triangles": 56,
+            "nodes": 15
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "b581c56ce36a72b70fa66ec0d0d0a904af5db0f0a8ebe179dd9c1fe95ece8b52",
+              "normals": "d41286f5e9d75a8d86094dfeb199e8f204dd9bd927316b9d86c6793a82caefb9",
+              "indices": "132d03f2d42dae9817005ef0ede9e0ddb7196e2025130ed07b9ec4a00dfd1585",
+              "nodes": "95bef7ece73fd42a4ea105306b32429bea6631de69b75cfeefc8d594e599fa91",
+              "order": "aa62e47e84ead91ff3fc9e7dc83913bb63c0cba739573dd0ab23e45058e1c74a"
+            },
+            "byteLengths": {
+              "vertices": 1080,
+              "normals": 1080,
+              "indices": 672,
+              "nodes": 1200,
+              "order": 224
+            },
+            "queryCount": 72,
+            "querySHA256": "21d6d37c2f13c5530273a7e29ec3bc630ba92f77b15a29b882720f48c9efa3bb",
+            "vertices": 45,
+            "triangles": 56,
+            "nodes": 15
+          }
+        },
+        {
+          "circuitId": "aurel",
+          "rows": 31,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 480,
+              "normalEntries": 1440,
+              "indexArrays": 434,
+              "indexEntries": 2604
+            },
+            "hashes": {
+              "vertices": "59e8bdba46a0ed51f6d4eec7246c3336335a30030519a628ec3ed735c4f85c98",
+              "normals": "46b22a935d64ac427f476f8787137a7dfe9ed9049b42be176f8b373cdf84bdfa",
+              "indices": "10ddc5109f509793802373fc1d81778b65e15f5038704aa405efebcb538381c7",
+              "nodes": "ba41816e5457ca9a6271452874ea8ac9f4651ede54fbabd348945e2e1a9e840f",
+              "order": "f8989e514683f7c2b162fab21e09cc030c393c4fabae24b30611d85038f12db2"
+            },
+            "byteLengths": {
+              "vertices": 11520,
+              "normals": 11520,
+              "indices": 10416,
+              "nodes": 20400,
+              "order": 3472
+            },
+            "queryCount": 72,
+            "querySHA256": "8c0e7562d13f05f32f163dd6d4a8fb82d7ec29487f3d137405a738b0a81ff18d",
+            "vertices": 480,
+            "triangles": 868,
+            "nodes": 255
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "59e8bdba46a0ed51f6d4eec7246c3336335a30030519a628ec3ed735c4f85c98",
+              "normals": "46b22a935d64ac427f476f8787137a7dfe9ed9049b42be176f8b373cdf84bdfa",
+              "indices": "10ddc5109f509793802373fc1d81778b65e15f5038704aa405efebcb538381c7",
+              "nodes": "ba41816e5457ca9a6271452874ea8ac9f4651ede54fbabd348945e2e1a9e840f",
+              "order": "f8989e514683f7c2b162fab21e09cc030c393c4fabae24b30611d85038f12db2"
+            },
+            "byteLengths": {
+              "vertices": 11520,
+              "normals": 11520,
+              "indices": 10416,
+              "nodes": 20400,
+              "order": 3472
+            },
+            "queryCount": 72,
+            "querySHA256": "8c0e7562d13f05f32f163dd6d4a8fb82d7ec29487f3d137405a738b0a81ff18d",
+            "vertices": 480,
+            "triangles": 868,
+            "nodes": 255
+          }
+        },
+        {
+          "circuitId": "ardennes",
+          "rows": 128,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 1935,
+              "normalEntries": 5805,
+              "indexArrays": 1792,
+              "indexEntries": 10752
+            },
+            "hashes": {
+              "vertices": "7f925efe7340d089c477d60c6d2470075eb6581479c48aaf734354fa0e059b7b",
+              "normals": "6aefc147fe9a723ba5711e475bbca00d0f7af40fcc6799fb373374432da0c507",
+              "indices": "4d09290bd32533834246a443cdbd06fa65b3f3a05600da442be4333751ddbf71",
+              "nodes": "21ec2e9770b8a0b4586c7abdca159ba634b19cf731021a5371625c5815c87e06",
+              "order": "4c665f8fbae25812ab68da9ba572d963780ed9bf179c655e18fccb2d6d5d062b"
+            },
+            "byteLengths": {
+              "vertices": 46440,
+              "normals": 46440,
+              "indices": 43008,
+              "nodes": 81840,
+              "order": 14336
+            },
+            "queryCount": 72,
+            "querySHA256": "d568ff7dcf6d8d33640f7efb111c6df1276315788b448c57baf36a3ada3974be",
+            "vertices": 1935,
+            "triangles": 3584,
+            "nodes": 1023
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "7f925efe7340d089c477d60c6d2470075eb6581479c48aaf734354fa0e059b7b",
+              "normals": "6aefc147fe9a723ba5711e475bbca00d0f7af40fcc6799fb373374432da0c507",
+              "indices": "4d09290bd32533834246a443cdbd06fa65b3f3a05600da442be4333751ddbf71",
+              "nodes": "21ec2e9770b8a0b4586c7abdca159ba634b19cf731021a5371625c5815c87e06",
+              "order": "4c665f8fbae25812ab68da9ba572d963780ed9bf179c655e18fccb2d6d5d062b"
+            },
+            "byteLengths": {
+              "vertices": 46440,
+              "normals": 46440,
+              "indices": 43008,
+              "nodes": 81840,
+              "order": 14336
+            },
+            "queryCount": 72,
+            "querySHA256": "d568ff7dcf6d8d33640f7efb111c6df1276315788b448c57baf36a3ada3974be",
+            "vertices": 1935,
+            "triangles": 3584,
+            "nodes": 1023
+          }
+        },
+        {
+          "circuitId": "poggio-alto",
+          "rows": 257,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 3870,
+              "normalEntries": 11610,
+              "indexArrays": 3598,
+              "indexEntries": 21588
+            },
+            "hashes": {
+              "vertices": "7e35e7d69ff0449b2403d6f5c2627e8393538234de872bb526441db41060d230",
+              "normals": "be90ee115fb798a854f6c3ff1c301420e88c63fbcd8a18bf069c44d77af57bfb",
+              "indices": "64ed9e84573e0880a4b38a24f2b41b5d714ae0dfd92c3ba2b9371a49177faf4d",
+              "nodes": "b90d3f66a8b6e95c6910e0a411b1aa676b65dda6675398bc65283e0eba7522fe",
+              "order": "9588589c43f03e4eea9cd6fb2f46943bcf00838fb19d8783c73a96f892662cad"
+            },
+            "byteLengths": {
+              "vertices": 92880,
+              "normals": 92880,
+              "indices": 86352,
+              "nodes": 163760,
+              "order": 28784
+            },
+            "queryCount": 72,
+            "querySHA256": "183009ced4dd5826b74e6dc34b80f5ed5dd8c9996c9cde1cd99e3a4321255903",
+            "vertices": 3870,
+            "triangles": 7196,
+            "nodes": 2047
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "7e35e7d69ff0449b2403d6f5c2627e8393538234de872bb526441db41060d230",
+              "normals": "be90ee115fb798a854f6c3ff1c301420e88c63fbcd8a18bf069c44d77af57bfb",
+              "indices": "64ed9e84573e0880a4b38a24f2b41b5d714ae0dfd92c3ba2b9371a49177faf4d",
+              "nodes": "b90d3f66a8b6e95c6910e0a411b1aa676b65dda6675398bc65283e0eba7522fe",
+              "order": "9588589c43f03e4eea9cd6fb2f46943bcf00838fb19d8783c73a96f892662cad"
+            },
+            "byteLengths": {
+              "vertices": 92880,
+              "normals": 92880,
+              "indices": 86352,
+              "nodes": 163760,
+              "order": 28784
+            },
+            "queryCount": 72,
+            "querySHA256": "183009ced4dd5826b74e6dc34b80f5ed5dd8c9996c9cde1cd99e3a4321255903",
+            "vertices": 3870,
+            "triangles": 7196,
+            "nodes": 2047
+          }
+        },
+        {
+          "circuitId": "aurel",
+          "rows": 8192,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 122895,
+              "normalEntries": 368685,
+              "indexArrays": 114688,
+              "indexEntries": 688128
+            },
+            "hashes": {
+              "vertices": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normals": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f",
+              "nodes": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "order": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "byteLengths": {
+              "vertices": 2949480,
+              "normals": 2949480,
+              "indices": 2752512,
+              "nodes": 5242800,
+              "order": 917504
+            },
+            "queryCount": 72,
+            "querySHA256": "c0acd594ffcd070a106370c14afdbc44656d06ec44cae36649fb11e6ddc5a5b9",
+            "vertices": 122895,
+            "triangles": 229376,
+            "nodes": 65535
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "68246d977f487b313aa702dbb53585b9a5d9a33ec2695b618ca200d7e01f7d48",
+              "normals": "ef189c0bb40dd31511ec853cb554e2cdbe807fd97abdff7f62c4a8208ea4e33b",
+              "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f",
+              "nodes": "4942df7ef1c31369a554438950ff71dbb6c383d9496c1a1e1b04cb90346d3d6f",
+              "order": "e6a5093bd7e4e841dfd8e7a6e668e261cae485ddd5f8a907fdef98c87516bf16"
+            },
+            "byteLengths": {
+              "vertices": 2949480,
+              "normals": 2949480,
+              "indices": 2752512,
+              "nodes": 5242800,
+              "order": 917504
+            },
+            "queryCount": 72,
+            "querySHA256": "c0acd594ffcd070a106370c14afdbc44656d06ec44cae36649fb11e6ddc5a5b9",
+            "vertices": 122895,
+            "triangles": 229376,
+            "nodes": 65535
+          }
+        },
+        {
+          "circuitId": "poggio-alto",
+          "rows": 8192,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 122895,
+              "normalEntries": 368685,
+              "indexArrays": 114688,
+              "indexEntries": 688128
+            },
+            "hashes": {
+              "vertices": "332b5efd3be2a1181006cd6f6c85842016bc19c68acb1d11136137c72bb495e5",
+              "normals": "99f72081db711af032357bba17b65e6676e6260d33d38118f62f932258f940aa",
+              "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f",
+              "nodes": "0f89dde447e8cca92b3d9770e3ccf0d7d981ced2b21d69990b22649e5f05a0a3",
+              "order": "42e0fc642a2420f23e8cb2c16a739b113fb1158e012f8c5b6c5823c1a9e3cefe"
+            },
+            "byteLengths": {
+              "vertices": 2949480,
+              "normals": 2949480,
+              "indices": 2752512,
+              "nodes": 5242800,
+              "order": 917504
+            },
+            "queryCount": 72,
+            "querySHA256": "40f1a3f684205b81b3079672a271b607d9921fc8929046e31b4d8b2a5bc20248",
+            "vertices": 122895,
+            "triangles": 229376,
+            "nodes": 65535
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "332b5efd3be2a1181006cd6f6c85842016bc19c68acb1d11136137c72bb495e5",
+              "normals": "99f72081db711af032357bba17b65e6676e6260d33d38118f62f932258f940aa",
+              "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f",
+              "nodes": "0f89dde447e8cca92b3d9770e3ccf0d7d981ced2b21d69990b22649e5f05a0a3",
+              "order": "42e0fc642a2420f23e8cb2c16a739b113fb1158e012f8c5b6c5823c1a9e3cefe"
+            },
+            "byteLengths": {
+              "vertices": 2949480,
+              "normals": 2949480,
+              "indices": 2752512,
+              "nodes": 5242800,
+              "order": 917504
+            },
+            "queryCount": 72,
+            "querySHA256": "40f1a3f684205b81b3079672a271b607d9921fc8929046e31b4d8b2a5bc20248",
+            "vertices": 122895,
+            "triangles": 229376,
+            "nodes": 65535
+          }
+        },
+        {
+          "circuitId": "vellamar",
+          "rows": 8192,
+          "exactBytesEqual": true,
+          "baseline": {
+            "counts": {
+              "normalArrays": 122895,
+              "normalEntries": 368685,
+              "indexArrays": 114688,
+              "indexEntries": 688128
+            },
+            "hashes": {
+              "vertices": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normals": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f",
+              "nodes": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "order": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "byteLengths": {
+              "vertices": 2949480,
+              "normals": 2949480,
+              "indices": 2752512,
+              "nodes": 5242800,
+              "order": 917504
+            },
+            "queryCount": 72,
+            "querySHA256": "bf978b03b8251cd5c5c0e98107b2d31fcf9393a8d2079b5e53140e2e65d5098c",
+            "vertices": 122895,
+            "triangles": 229376,
+            "nodes": 65535
+          },
+          "candidate": {
+            "counts": {
+              "normalArrays": 0,
+              "normalEntries": 0,
+              "indexArrays": 0,
+              "indexEntries": 0
+            },
+            "hashes": {
+              "vertices": "6bf647357af4d9ec0063b46e919fd0b89b5edd6c0c442c43e47358937be0e80e",
+              "normals": "944c61f269842a5eb47c77d39d397947cb5a7e2aad7762aedeaec3e88358d2b3",
+              "indices": "c1aa37136f70c9701805e4a742bc6a347aea9100e7fd80436731630d403b047f",
+              "nodes": "9226faf4a400ed5ee8dcf26f5ede5bbab33c9aae755931d4ce0dae7c5583f639",
+              "order": "07a5b43881cf43103814b1315ed21a23f7d55b7582d353c839bcdb7bf601f0cc"
+            },
+            "byteLengths": {
+              "vertices": 2949480,
+              "normals": 2949480,
+              "indices": 2752512,
+              "nodes": 5242800,
+              "order": 917504
+            },
+            "queryCount": 72,
+            "querySHA256": "bf978b03b8251cd5c5c0e98107b2d31fcf9393a8d2079b5e53140e2e65d5098c",
+            "vertices": 122895,
+            "triangles": 229376,
+            "nodes": 65535
+          }
+        }
+      ],
+      "frames": {
+        "cases": 2070,
+        "ordinaryCases": 2048,
+        "exactStateAndOutcomeEqual": true,
+        "stateSHA256": "69c379887ebbdbdab12cf533e662968561f59cb669ca04aa1f4d3aecf7c15cb1",
+        "baselineHypot": 10294,
+        "candidateHypot": 8234,
+        "specialCases": [
+          {
+            "label": "zero",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 1,
+            "candidateHypotCalls": 1,
+            "exactValues": [
+              -0.1574555471843541,
+              0.9465455674892063,
+              -0.2815301748079798,
+              0.6006409262355712,
+              -0.3497571676278744,
+              0.7189578578914079,
+              -0.7479768225423333,
+              0.07182757080479475,
+              0.6598268507811402,
+              0.644777809481957,
+              0.31447144343933414,
+              0.6966844964981146,
+              0.6790366707497865
+            ]
+          },
+          {
+            "label": "subnormal",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 1,
+            "candidateHypotCalls": 1,
+            "exactValues": [
+              -0.1574555471843541,
+              0.9465455674892063,
+              -0.2815301748079798,
+              0.6006409262355712,
+              -0.3497571676278744,
+              0.7189578578914079,
+              -0.7479768225423333,
+              0.07182757080479475,
+              0.6598268507811402,
+              0.644777809481957,
+              0.31447144343933414,
+              0.6966844964981146,
+              0.6790366707497865
+            ]
+          },
+          {
+            "label": "normal-below-threshold",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 1,
+            "candidateHypotCalls": 1,
+            "exactValues": [
+              -0.1574555471843541,
+              0.9465455674892063,
+              -0.2815301748079798,
+              0.6006409262355712,
+              -0.3497571676278744,
+              0.7189578578914079,
+              -0.7479768225423333,
+              0.07182757080479475,
+              0.6598268507811402,
+              0.644777809481957,
+              0.31447144343933414,
+              0.6966844964981146,
+              0.6790366707497865
+            ]
+          },
+          {
+            "label": "normal-at-threshold-signed-zero",
+            "returned": true,
+            "baselineHypotCalls": 5,
+            "candidateHypotCalls": 4,
+            "exactValues": [
+              "-0",
+              1,
+              "-0",
+              1,
+              0,
+              0,
+              "-0",
+              0,
+              1,
+              1,
+              0,
+              0,
+              "-0"
+            ]
+          },
+          {
+            "label": "normal-above-threshold",
+            "returned": true,
+            "baselineHypotCalls": 5,
+            "candidateHypotCalls": 4,
+            "exactValues": [
+              "-0",
+              1,
+              "-0",
+              1,
+              0,
+              0,
+              "-0",
+              0,
+              1,
+              1,
+              0,
+              0,
+              "-0"
+            ]
+          },
+          {
+            "label": "degenerate-tangent",
+            "returned": false,
+            "baselineHypotCalls": 4,
+            "candidateHypotCalls": 3,
+            "exactValues": [
+              1,
+              0,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "tangent-below-threshold",
+            "returned": false,
+            "baselineHypotCalls": 4,
+            "candidateHypotCalls": 3,
+            "exactValues": [
+              1,
+              9.999999999999999e-9,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963167948966
+            ]
+          },
+          {
+            "label": "tangent-at-threshold",
+            "returned": true,
+            "baselineHypotCalls": 5,
+            "candidateHypotCalls": 4,
+            "exactValues": [
+              1,
+              1e-8,
+              "-0",
+              1,
+              0,
+              0,
+              "-0",
+              0,
+              1,
+              1e-8,
+              -1,
+              0,
+              -1.5707963167948966
+            ]
+          },
+          {
+            "label": "finite-cancelling-overflow-length",
+            "returned": false,
+            "baselineHypotCalls": 4,
+            "candidateHypotCalls": 3,
+            "exactValues": [
+              0,
+              "-0",
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              "-0"
+            ]
+          },
+          {
+            "label": "overflow-finite-sum-rejected",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0,
+              "-0",
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              "-0"
+            ]
+          },
+          {
+            "label": "large-single-component",
+            "returned": false,
+            "baselineHypotCalls": 4,
+            "candidateHypotCalls": 3,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "nonfinite-normal-nan",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "nonfinite-normal-infinity",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "nonfinite-steering-nan",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "nonfinite-steering-infinity",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "nonfinite-camber-nan",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "nonfinite-camber-infinity",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact frame"
+            },
+            "baselineHypotCalls": 0,
+            "candidateHypotCalls": 0,
+            "exactValues": [
+              0.9999999999999999,
+              5.562684646268003e-309,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "invalid-orientation-nan",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact orientation"
+            },
+            "baselineHypotCalls": 3,
+            "candidateHypotCalls": 2,
+            "exactValues": [
+              0,
+              1,
+              0,
+              "NaN",
+              "NaN",
+              "NaN",
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "invalid-orientation-overflow",
+            "error": {
+              "name": "Error",
+              "message": "Invalid road-contact orientation"
+            },
+            "baselineHypotCalls": 3,
+            "candidateHypotCalls": 2,
+            "exactValues": [
+              0,
+              1,
+              0,
+              "-Infinity",
+              "NaN",
+              "NaN",
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1.5707963267948966
+            ]
+          },
+          {
+            "label": "zero-quaternion-existing-behavior",
+            "returned": true,
+            "baselineHypotCalls": 5,
+            "candidateHypotCalls": 4,
+            "exactValues": [
+              0,
+              1,
+              0,
+              0.9362933635841995,
+              -0.19866933079506127,
+              -0.2896294776255156,
+              0.29552020666133955,
+              "-0",
+              0.9553364891256061,
+              0.9553364891256061,
+              0,
+              -0.29552020666133955,
+              0.2
+            ]
+          },
+          {
+            "label": "wheel-flat-camber",
+            "returned": false,
+            "baselineHypotCalls": 4,
+            "candidateHypotCalls": 3,
+            "exactValues": [
+              0,
+              1,
+              0,
+              6.123233995736766e-17,
+              -1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1.5707963267948966
+            ]
+          },
+          {
+            "label": "normal-negative-up",
+            "returned": true,
+            "baselineHypotCalls": 5,
+            "candidateHypotCalls": 4,
+            "exactValues": [
+              "-0",
+              -1,
+              "-0",
+              1,
+              0,
+              0,
+              0,
+              0,
+              -1,
+              1,
+              "-0",
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "clutch": {
+        "cases": 540,
+        "exactInertiaTorqueAndClutchStateEqual": true,
+        "layouts": [
+          {
+            "id": "sk125",
+            "drivetrain": "rwd",
+            "cases": 180,
+            "baselineMaps": 0,
+            "candidateMaps": 0
+          },
+          {
+            "id": "hh2",
+            "drivetrain": "fwd",
+            "cases": 180,
+            "baselineMaps": 0,
+            "candidateMaps": 0
+          },
+          {
+            "id": "rl2",
+            "drivetrain": "awd",
+            "cases": 180,
+            "baselineMaps": 180,
+            "candidateMaps": 0
+          }
+        ],
+        "stateSHA256": "8bf4c05a42da72d96a36b9e6bd35484600ec67bacc7e601ede03589ca0d53a72"
+      },
+      "trajectories": [
+        {
+          "id": "sk125",
+          "explicitAWDCoupling": false,
+          "substeps": 240,
+          "simulatedSeconds": 1,
+          "exactCapturedStateAtEverySubstep": true,
+          "comparedBytes": 4521840,
+          "stateSHA256": "ca2d301df6a5b51574881cef495da7dec48d7d987857517a9a3332a2433e1fbb",
+          "counts": {
+            "baseline": {
+              "couplingCalls": 240,
+              "frameCalls": 960,
+              "substeps": 240
+            },
+            "candidate": {
+              "couplingCalls": 240,
+              "frameCalls": 960,
+              "substeps": 240
+            }
+          }
+        },
+        {
+          "id": "dk100",
+          "explicitAWDCoupling": false,
+          "substeps": 240,
+          "simulatedSeconds": 1,
+          "exactCapturedStateAtEverySubstep": true,
+          "comparedBytes": 4521840,
+          "stateSHA256": "7506022f152c82185d7cd5319141586b99891ea2a50beaa0c3a0574fd739702a",
+          "counts": {
+            "baseline": {
+              "couplingCalls": 240,
+              "frameCalls": 960,
+              "substeps": 240
+            },
+            "candidate": {
+              "couplingCalls": 240,
+              "frameCalls": 960,
+              "substeps": 240
+            }
+          }
+        },
+        {
+          "id": "rl2",
+          "explicitAWDCoupling": false,
+          "substeps": 240,
+          "simulatedSeconds": 1,
+          "exactCapturedStateAtEverySubstep": true,
+          "comparedBytes": 4566000,
+          "stateSHA256": "56d1f02095b3c6d3641c0be331e7135d7701df86aece28748af54bd49bd0a0c5",
+          "counts": {
+            "baseline": {
+              "couplingCalls": 0,
+              "frameCalls": 960,
+              "substeps": 240
+            },
+            "candidate": {
+              "couplingCalls": 0,
+              "frameCalls": 960,
+              "substeps": 240
+            }
+          }
+        },
+        {
+          "id": "rl2",
+          "explicitAWDCoupling": true,
+          "substeps": 240,
+          "simulatedSeconds": 1,
+          "exactCapturedStateAtEverySubstep": true,
+          "comparedBytes": 4566000,
+          "stateSHA256": "0fc21b7a4542e0ce15c2049b52ae5ef168bd27e7429dbe290ff5a3a405d91294",
+          "counts": {
+            "baseline": {
+              "couplingCalls": 240,
+              "frameCalls": 960,
+              "substeps": 240
+            },
+            "candidate": {
+              "couplingCalls": 240,
+              "frameCalls": 960,
+              "substeps": 240
+            }
+          }
+        }
+      ],
+      "authoredCouplingEnabled": [
+        {
+          "id": "sk125",
+          "drivetrain": "rwd",
+          "clutchCoupling": 0.15
+        },
+        {
+          "id": "dk100",
+          "drivetrain": "rwd",
+          "clutchCoupling": 0.15
+        }
+      ],
+      "resources": {
+        "heapLimitBytes": 1006632960,
+        "resource": {
+          "userCPUTime": 5279092,
+          "systemCPUTime": 1032913,
+          "maxRSS": 261696,
+          "sharedMemorySize": 0,
+          "unsharedDataSize": 0,
+          "unsharedStackSize": 0,
+          "minorPageFault": 103965,
+          "majorPageFault": 0,
+          "swappedOut": 0,
+          "fsRead": 0,
+          "fsWrite": 0,
+          "ipcSent": 0,
+          "ipcReceived": 0,
+          "signalsCount": 0,
+          "voluntaryContextSwitches": 3302,
+          "involuntaryContextSwitches": 36
+        },
+        "memory": {
+          "rss": 267976704,
+          "heapTotal": 158588928,
+          "heapUsed": 43601560,
+          "external": 25271384,
+          "arrayBuffers": 21325599
+        }
+      }
+    },
+    "construction": {
+      "scenarios": [
+        {
+          "circuitId": "aurel",
+          "rows": 8192,
+          "commonBVH": true,
+          "vertices": 122895,
+          "triangles": 229376,
+          "operationsPerSample": 1,
+          "warmupOperations": 1,
+          "warmupPairs": 2,
+          "samplePairs": 10,
+          "warmups": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 220.65956599999993,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "candidate": {
+                "elapsedMs": 217.160888,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 274.8834770000001,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "baseline": {
+                "elapsedMs": 243.93116699999996,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            }
+          ],
+          "samples": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 236.39380699999992,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "candidate": {
+                "elapsedMs": 200.0671910000001,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 237.55324200000018,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "baseline": {
+                "elapsedMs": 198.95458899999994,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 194.07744100000036,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "candidate": {
+                "elapsedMs": 191.58645500000011,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 189.65782200000012,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "baseline": {
+                "elapsedMs": 230.2889909999999,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 4,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 222.7291009999999,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "candidate": {
+                "elapsedMs": 196.40353700000014,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 5,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 204.2326949999997,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "baseline": {
+                "elapsedMs": 208.15262200000006,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 6,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 200.773193,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "candidate": {
+                "elapsedMs": 194.43076699999983,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 7,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 202.63663899999938,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "baseline": {
+                "elapsedMs": 205.60140799999954,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 8,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 205.26587000000018,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "candidate": {
+                "elapsedMs": 270.71925999999985,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            },
+            {
+              "index": 9,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 254.27719700000034,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              },
+              "baseline": {
+                "elapsedMs": 451.41997400000037,
+                "checksum": "ac61b17c7345103e2ab49910c5929bf7e31016cf4c9b5185fabd989d3de3f2d6"
+              }
+            }
+          ],
+          "summary": {
+            "baseline": {
+              "minimum": 194.07744100000036,
+              "q1": 201.89636225000004,
+              "median": 206.8770149999998,
+              "q3": 228.3990184999999,
+              "maximum": 451.41997400000037,
+              "medianMs": 206.8770149999998
+            },
+            "candidate": {
+              "minimum": 189.65782200000012,
+              "q1": 194.9239594999999,
+              "median": 201.35191499999974,
+              "q3": 229.22310525000006,
+              "maximum": 270.71925999999985,
+              "medianMs": 201.35191499999974
+            },
+            "pairedChangePercent": {
+              "minimum": -43.67170004754816,
+              "q1": -14.480129542099599,
+              "median": -2.5210994442174894,
+              "q3": -1.323125388516222,
+              "maximum": 31.887127655464397
+            },
+            "candidateFasterPairs": 8
+          }
+        },
+        {
+          "circuitId": "poggio-alto",
+          "rows": 8192,
+          "commonBVH": true,
+          "vertices": 122895,
+          "triangles": 229376,
+          "operationsPerSample": 1,
+          "warmupOperations": 1,
+          "warmupPairs": 2,
+          "samplePairs": 10,
+          "warmups": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 291.2677970000004,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "candidate": {
+                "elapsedMs": 223.41133399999944,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 226.7812440000007,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "baseline": {
+                "elapsedMs": 222.78339200000028,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            }
+          ],
+          "samples": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 228.07938999999988,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "candidate": {
+                "elapsedMs": 195.3447299999998,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 205.9013789999999,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "baseline": {
+                "elapsedMs": 220.9613679999993,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 211.157138999999,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "candidate": {
+                "elapsedMs": 212.92148699999962,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 239.667386000001,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "baseline": {
+                "elapsedMs": 211.88919499999975,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 4,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 195.50655499999993,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "candidate": {
+                "elapsedMs": 261.7422029999998,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 5,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 185.9773839999998,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "baseline": {
+                "elapsedMs": 193.78971699999965,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 6,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 188.48353300000053,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "candidate": {
+                "elapsedMs": 214.8447410000008,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 7,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 197.42677399999957,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "baseline": {
+                "elapsedMs": 203.7664960000002,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 8,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 198.49111900000025,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "candidate": {
+                "elapsedMs": 194.5174969999989,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            },
+            {
+              "index": 9,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 209.19630300000063,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              },
+              "baseline": {
+                "elapsedMs": 191.74978700000065,
+                "checksum": "8876b9f95b8d0893aad554b3460c0ee77543848a8b207278b82b5db70a8a8f04"
+              }
+            }
+          ],
+          "summary": {
+            "baseline": {
+              "minimum": 188.48353300000053,
+              "q1": 194.21892649999972,
+              "median": 201.12880750000022,
+              "q3": 211.70618099999956,
+              "maximum": 228.07938999999988,
+              "medianMs": 201.12880750000022
+            },
+            "candidate": {
+              "minimum": 185.9773839999998,
+              "q1": 195.86524099999974,
+              "median": 207.54884100000027,
+              "q3": 214.3639275000005,
+              "maximum": 261.7422029999998,
+              "medianMs": 207.54884100000027
+            },
+            "pairedChangePercent": {
+              "minimum": -14.352309518190175,
+              "q1": -3.8013261375736933,
+              "median": -0.583176318639228,
+              "q3": 12.10697530055761,
+              "maximum": 33.87899091158344
+            },
+            "candidateFasterPairs": 5
+          }
+        }
+      ],
+      "resources": {
+        "heapLimitBytes": 1006632960,
+        "resource": {
+          "userCPUTime": 15370672,
+          "systemCPUTime": 456655,
+          "maxRSS": 259384,
+          "sharedMemorySize": 0,
+          "unsharedDataSize": 0,
+          "unsharedStackSize": 0,
+          "minorPageFault": 139456,
+          "majorPageFault": 0,
+          "swappedOut": 0,
+          "fsRead": 0,
+          "fsWrite": 0,
+          "ipcSent": 0,
+          "ipcReceived": 0,
+          "signalsCount": 0,
+          "voluntaryContextSwitches": 5246,
+          "involuntaryContextSwitches": 99
+        },
+        "memory": {
+          "rss": 265572352,
+          "heapTotal": 165580800,
+          "heapUsed": 54541648,
+          "external": 36071472,
+          "arrayBuffers": 32157159
+        }
+      }
+    },
+    "frame": {
+      "description": "Actual set calls over 128 prebuilt pitch/roll/bank/steer/camber frames; checksum accumulation included.",
+      "operationsPerSample": 500000,
+      "warmupOperations": 100000,
+      "warmupPairs": 3,
+      "samplePairs": 10,
+      "warmups": [
+        {
+          "index": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 22.193978000000016,
+            "checksum": 62300.801693756366
+          },
+          "candidate": {
+            "elapsedMs": 19.603620999999976,
+            "checksum": 62300.801693756366
+          }
+        },
+        {
+          "index": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 23.693233000000077,
+            "checksum": 62300.801693756366
+          },
+          "baseline": {
+            "elapsedMs": 27.33294699999999,
+            "checksum": 62300.801693756366
+          }
+        },
+        {
+          "index": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 22.606349000000023,
+            "checksum": 62300.801693756366
+          },
+          "candidate": {
+            "elapsedMs": 21.683148999999958,
+            "checksum": 62300.801693756366
+          }
+        }
+      ],
+      "samples": [
+        {
+          "index": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 96.86737099999993,
+            "checksum": 311556.01324823895
+          },
+          "candidate": {
+            "elapsedMs": 96.07838000000004,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 91.51582699999994,
+            "checksum": 311556.01324823895
+          },
+          "baseline": {
+            "elapsedMs": 98.10853500000007,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 105.87396100000001,
+            "checksum": 311556.01324823895
+          },
+          "candidate": {
+            "elapsedMs": 87.09727799999996,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 88.41805900000008,
+            "checksum": 311556.01324823895
+          },
+          "baseline": {
+            "elapsedMs": 101.48351400000001,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 96.93400999999994,
+            "checksum": 311556.01324823895
+          },
+          "candidate": {
+            "elapsedMs": 88.81848300000001,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 97.18679599999996,
+            "checksum": 311556.01324823895
+          },
+          "baseline": {
+            "elapsedMs": 186.11512199999993,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 100.71303500000022,
+            "checksum": 311556.01324823895
+          },
+          "candidate": {
+            "elapsedMs": 87.2593280000001,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 86.29321500000015,
+            "checksum": 311556.01324823895
+          },
+          "baseline": {
+            "elapsedMs": 95.617436,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 99.65275599999995,
+            "checksum": 311556.01324823895
+          },
+          "candidate": {
+            "elapsedMs": 84.23586999999998,
+            "checksum": 311556.01324823895
+          }
+        },
+        {
+          "index": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 83.18425800000023,
+            "checksum": 311556.01324823895
+          },
+          "baseline": {
+            "elapsedMs": 93.64983500000017,
+            "checksum": 311556.01324823895
+          }
+        }
+      ],
+      "summary": {
+        "baseline": {
+          "minimum": 93.64983500000017,
+          "q1": 96.88403074999994,
+          "median": 98.88064550000001,
+          "q3": 101.29089425000006,
+          "maximum": 186.11512199999993,
+          "medianMs": 98.88064550000001
+        },
+        "candidate": {
+          "minimum": 83.18425800000023,
+          "q1": 86.4942307500001,
+          "median": 87.83869350000009,
+          "q3": 90.84149099999996,
+          "maximum": 97.18679599999996,
+          "medianMs": 87.83869350000009
+        },
+        "pairedChangePercent": {
+          "minimum": -47.78135438129525,
+          "q1": -14.942569197658159,
+          "median": -12.024841306755647,
+          "q3": -8.717061459592381,
+          "maximum": -0.814506465752951
+        },
+        "candidateFasterPairs": 10
+      },
+      "resources": {
+        "heapLimitBytes": 1006632960,
+        "resource": {
+          "userCPUTime": 3621918,
+          "systemCPUTime": 112995,
+          "maxRSS": 116224,
+          "sharedMemorySize": 0,
+          "unsharedDataSize": 0,
+          "unsharedStackSize": 0,
+          "minorPageFault": 46229,
+          "majorPageFault": 0,
+          "swappedOut": 0,
+          "fsRead": 0,
+          "fsWrite": 0,
+          "ipcSent": 0,
+          "ipcReceived": 0,
+          "signalsCount": 0,
+          "voluntaryContextSwitches": 1503,
+          "involuntaryContextSwitches": 60
+        },
+        "memory": {
+          "rss": 107900928,
+          "heapTotal": 30138368,
+          "heapUsed": 18732664,
+          "external": 21716264,
+          "arrayBuffers": 17797799
+        }
+      }
+    },
+    "clutch": {
+      "description": "Explicit dormant AWD method on a real rl2 Vehicle; four slip writes, four load writes and checksum accumulation per call. No authored coupling change.",
+      "vehicleId": "rl2",
+      "authoredCouplingEnabled": false,
+      "operationsPerSample": 1000000,
+      "warmupOperations": 200000,
+      "warmupPairs": 3,
+      "samplePairs": 10,
+      "warmups": [
+        {
+          "index": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 23.91393099999999,
+            "checksum": 1874635.8187534052
+          },
+          "candidate": {
+            "elapsedMs": 6.719595000000027,
+            "checksum": 1874635.8187534052
+          }
+        },
+        {
+          "index": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 7.418571999999983,
+            "checksum": 1874635.8187534052
+          },
+          "baseline": {
+            "elapsedMs": 24.651115000000004,
+            "checksum": 1874635.8187534052
+          }
+        },
+        {
+          "index": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 22.63764500000002,
+            "checksum": 1874635.8187534052
+          },
+          "candidate": {
+            "elapsedMs": 5.580955000000017,
+            "checksum": 1874635.8187534052
+          }
+        }
+      ],
+      "samples": [
+        {
+          "index": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 105.46549600000003,
+            "checksum": 9373184.119719176
+          },
+          "candidate": {
+            "elapsedMs": 26.184000999999967,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 19.678153000000066,
+            "checksum": 9373184.119719176
+          },
+          "baseline": {
+            "elapsedMs": 107.52686699999992,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 108.19776200000001,
+            "checksum": 9373184.119719176
+          },
+          "candidate": {
+            "elapsedMs": 21.19318199999998,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 22.351511000000073,
+            "checksum": 9373184.119719176
+          },
+          "baseline": {
+            "elapsedMs": 161.09806400000002,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 114.4652900000001,
+            "checksum": 9373184.119719176
+          },
+          "candidate": {
+            "elapsedMs": 21.50692499999991,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 24.793308000000025,
+            "checksum": 9373184.119719176
+          },
+          "baseline": {
+            "elapsedMs": 118.42333500000018,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 114.18040299999984,
+            "checksum": 9373184.119719176
+          },
+          "candidate": {
+            "elapsedMs": 21.715134000000035,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 22.004584000000023,
+            "checksum": 9373184.119719176
+          },
+          "baseline": {
+            "elapsedMs": 109.50604199999998,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "elapsedMs": 112.30309299999999,
+            "checksum": 9373184.119719176
+          },
+          "candidate": {
+            "elapsedMs": 22.658664999999928,
+            "checksum": 9373184.119719176
+          }
+        },
+        {
+          "index": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "elapsedMs": 29.483696999999893,
+            "checksum": 9373184.119719176
+          },
+          "baseline": {
+            "elapsedMs": 107.82132300000012,
+            "checksum": 9373184.119719176
+          }
+        }
+      ],
+      "summary": {
+        "baseline": {
+          "minimum": 105.46549600000003,
+          "q1": 107.9154327500001,
+          "median": 110.90456749999998,
+          "q3": 114.39406825000003,
+          "maximum": 161.09806400000002,
+          "medianMs": 110.90456749999998
+        },
+        "candidate": {
+          "minimum": 19.678153000000066,
+          "q1": 21.55897724999994,
+          "median": 22.178047500000048,
+          "q3": 24.25964725,
+          "maximum": 29.483696999999893,
+          "medianMs": 22.178047500000048
+        },
+        "pairedChangePercent": {
+          "minimum": -86.12552476111689,
+          "q1": -81.15365593129869,
+          "median": -80.15907438038133,
+          "q3": -79.25378675556814,
+          "maximum": -72.6550405989733
+        },
+        "candidateFasterPairs": 10
+      },
+      "resources": {
+        "heapLimitBytes": 1006632960,
+        "resource": {
+          "userCPUTime": 3074723,
+          "systemCPUTime": 107598,
+          "maxRSS": 115792,
+          "sharedMemorySize": 0,
+          "unsharedDataSize": 0,
+          "unsharedStackSize": 0,
+          "minorPageFault": 45180,
+          "majorPageFault": 0,
+          "swappedOut": 0,
+          "fsRead": 0,
+          "fsWrite": 0,
+          "ipcSent": 0,
+          "ipcReceived": 0,
+          "signalsCount": 0,
+          "voluntaryContextSwitches": 1448,
+          "involuntaryContextSwitches": 20
+        },
+        "memory": {
+          "rss": 104624128,
+          "heapTotal": 29876224,
+          "heapUsed": 18302704,
+          "external": 21716264,
+          "arrayBuffers": 17797799
+        }
+      }
+    },
+    "substeps": {
+      "fixture": "Unmodified DynamicsTrack analytic runway with deterministic support loss; real catalogue definitions, no explicit AWD coupling.",
+      "scenarios": [
+        {
+          "vehicleId": "sk125",
+          "authoredCouplingEnabled": true,
+          "operationsPerSample": 1200,
+          "warmupOperations": 600,
+          "warmupPairs": 2,
+          "samplePairs": 10,
+          "warmups": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 73.12483500000008,
+                "checksum": "13b07cbef920e19ed6746b3217ffc5b7c5d49510d8a106e54476e6b121f58f00"
+              },
+              "candidate": {
+                "elapsedMs": 56.72698099999991,
+                "checksum": "13b07cbef920e19ed6746b3217ffc5b7c5d49510d8a106e54476e6b121f58f00"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 50.589733000000024,
+                "checksum": "13b07cbef920e19ed6746b3217ffc5b7c5d49510d8a106e54476e6b121f58f00"
+              },
+              "baseline": {
+                "elapsedMs": 51.11401999999998,
+                "checksum": "13b07cbef920e19ed6746b3217ffc5b7c5d49510d8a106e54476e6b121f58f00"
+              }
+            }
+          ],
+          "samples": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 78.39468399999998,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "candidate": {
+                "elapsedMs": 73.57957899999997,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 95.94330000000002,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "baseline": {
+                "elapsedMs": 52.10322899999983,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 52.430875000000015,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "candidate": {
+                "elapsedMs": 68.62461600000006,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 67.36512199999993,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "baseline": {
+                "elapsedMs": 61.61478299999999,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 4,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 63.1617490000001,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "candidate": {
+                "elapsedMs": 56.77119599999992,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 5,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 68.45571499999983,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "baseline": {
+                "elapsedMs": 62.46224099999995,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 6,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 61.96635500000002,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "candidate": {
+                "elapsedMs": 60.26593300000013,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 7,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 53.019119000000046,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "baseline": {
+                "elapsedMs": 62.81511499999988,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 8,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 64.04517099999975,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "candidate": {
+                "elapsedMs": 61.210673999999926,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            },
+            {
+              "index": 9,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 60.88559099999975,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              },
+              "baseline": {
+                "elapsedMs": 58.358656999999766,
+                "checksum": "b3eec14d31d38883f927664a4784b8601c8fcf172fce4ef543bbb434b852c2d7"
+              }
+            }
+          ],
+          "summary": {
+            "baseline": {
+              "minimum": 52.10322899999983,
+              "q1": 59.17268849999982,
+              "median": 62.214297999999985,
+              "q3": 63.075090500000044,
+              "maximum": 78.39468399999998,
+              "medianMs": 62.214297999999985
+            },
+            "candidate": {
+              "minimum": 53.019119000000046,
+              "q1": 60.420847500000036,
+              "median": 64.28789799999993,
+              "q3": 68.58239075,
+              "maximum": 95.94330000000002,
+              "medianMs": 64.28789799999993
+            },
+            "pairedChangePercent": {
+              "minimum": -15.594966275234635,
+              "q1": -5.713043492114819,
+              "median": 0.7929509328635951,
+              "q3": 9.529698083860389,
+              "maximum": 84.14079480563544
+            },
+            "candidateFasterPairs": 5
+          }
+        },
+        {
+          "vehicleId": "rl2",
+          "authoredCouplingEnabled": false,
+          "operationsPerSample": 1200,
+          "warmupOperations": 600,
+          "warmupPairs": 2,
+          "samplePairs": 10,
+          "warmups": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 39.27173800000037,
+                "checksum": "3a45681620f85619c42149e7cee5e60ae9b868cd2c39414deb1904f2744b0d3a"
+              },
+              "candidate": {
+                "elapsedMs": 71.50179600000001,
+                "checksum": "3a45681620f85619c42149e7cee5e60ae9b868cd2c39414deb1904f2744b0d3a"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 54.440638000000035,
+                "checksum": "3a45681620f85619c42149e7cee5e60ae9b868cd2c39414deb1904f2744b0d3a"
+              },
+              "baseline": {
+                "elapsedMs": 63.30354000000034,
+                "checksum": "3a45681620f85619c42149e7cee5e60ae9b868cd2c39414deb1904f2744b0d3a"
+              }
+            }
+          ],
+          "samples": [
+            {
+              "index": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 82.58522300000004,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "candidate": {
+                "elapsedMs": 72.34143199999971,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 89.89331999999968,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "baseline": {
+                "elapsedMs": 73.97014799999988,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 69.07912699999997,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "candidate": {
+                "elapsedMs": 57.30858400000034,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 87.60318600000028,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "baseline": {
+                "elapsedMs": 82.2888869999997,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 4,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 64.47033600000032,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "candidate": {
+                "elapsedMs": 81.09328200000027,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 5,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 57.354673000000275,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "baseline": {
+                "elapsedMs": 54.328250000000025,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 6,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 53.42776300000014,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "candidate": {
+                "elapsedMs": 65.71701600000006,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 7,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 81.7158959999997,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "baseline": {
+                "elapsedMs": 72.0147850000003,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 8,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "elapsedMs": 71.57630299999983,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "candidate": {
+                "elapsedMs": 83.2428930000001,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            },
+            {
+              "index": 9,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "elapsedMs": 75.07953400000042,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              },
+              "baseline": {
+                "elapsedMs": 80.09843000000001,
+                "checksum": "f59a464c3d64c84dc54fc77f7b217b1c9731908ee3d006e3ccac83246a952c02"
+              }
+            }
+          ],
+          "summary": {
+            "baseline": {
+              "minimum": 53.42776300000014,
+              "q1": 65.62253375000023,
+              "median": 71.79554400000006,
+              "q3": 78.56635949999998,
+              "maximum": 82.58522300000004,
+              "medianMs": 71.79554400000006
+            },
+            "candidate": {
+              "minimum": 57.30858400000034,
+              "q1": 67.37311999999997,
+              "median": 78.08640800000035,
+              "q3": 82.86114375,
+              "maximum": 89.89331999999968,
+              "medianMs": 78.08640800000035
+            },
+            "pairedChangePercent": {
+              "minimum": -17.039217939160757,
+              "q1": -3.306776720433291,
+              "median": 9.964549758923091,
+              "q3": 20.219741589773932,
+              "maximum": 25.783867482868207
+            },
+            "candidateFasterPairs": 3
+          }
+        }
+      ],
+      "resources": {
+        "heapLimitBytes": 1006632960,
+        "resource": {
+          "userCPUTime": 6685846,
+          "systemCPUTime": 235469,
+          "maxRSS": 165940,
+          "sharedMemorySize": 0,
+          "unsharedDataSize": 0,
+          "unsharedStackSize": 0,
+          "minorPageFault": 62520,
+          "majorPageFault": 0,
+          "swappedOut": 0,
+          "fsRead": 0,
+          "fsWrite": 0,
+          "ipcSent": 0,
+          "ipcReceived": 0,
+          "signalsCount": 0,
+          "voluntaryContextSwitches": 5307,
+          "involuntaryContextSwitches": 66
+        },
+        "memory": {
+          "rss": 169746432,
+          "heapTotal": 83615744,
+          "heapUsed": 18472720,
+          "external": 22018372,
+          "arrayBuffers": 18099907
+        }
+      }
+    }
+  },
+  "completedAt": "2026-11-25T03:01:31.339Z"
+}

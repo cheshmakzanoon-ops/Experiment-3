@@ -1,0 +1,6114 @@
+{
+  "schema": 1,
+  "measuredAt": "2026-11-25T03:14:20.883Z",
+  "refs": {
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "current": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6"
+  },
+  "settings": {
+    "pairs": 10,
+    "warmups": 3,
+    "csvRepeats": 3,
+    "capacities": [
+      600,
+      6000,
+      54000
+    ],
+    "targetBytesPerSample": 33554432
+  },
+  "environment": {
+    "node": "v24.22.3",
+    "v8": "13.6.233.17-node.63",
+    "esbuild": "0.25.12",
+    "platform": "linux",
+    "release": "6.18.57",
+    "arch": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpuCount": 9,
+    "systemTotalMemoryBytes": 10451427328,
+    "childOldHeapMiB": 768
+  },
+  "methodology": [
+    "Each version is bundled from its actual committed TypeScript tree using esbuild; no rewritten snapshot implementation.",
+    "Fixtures call production appendBatch/truncate; equal exactly representable practice/session clocks isolate snapshot behavior.",
+    "Snapshot timings include the production destination allocation and copy; explicit GC occurs outside every timed sample.",
+    "Warmups and measured pairs alternate baseline/current order. Raw elapsed times and per-snapshot normalization are retained.",
+    "At most two rings and two full verification snapshots are intentionally live together; fixtures run in separate sequential child processes.",
+    "View/set/offset instrumentation runs after timings and measures method calls, not heap allocation bytes.",
+    "CSV source is unchanged between refs and already formats 500 rows per chunk; CSV results characterize the existing implementation.",
+    "No FPS claim; no browser-memory inference from Node/V8 or string code-unit counts."
+  ],
+  "capacities": {
+    "stride": 228,
+    "bytesPerRow": 912,
+    "default": {
+      "seconds": 900,
+      "rows": 54000,
+      "ringBytes": 49248000,
+      "ringPlusFullSnapshotBytes": 98496000
+    },
+    "configuredMaximumUnallocated": {
+      "seconds": 3600,
+      "rows": 216000,
+      "ringBytes": 196992000,
+      "ringPlusFullSnapshotBytes": 393984000
+    }
+  },
+  "snapshots": [
+    {
+      "kind": "snapshot",
+      "capacity": 60,
+      "state": "empty",
+      "stride": 228,
+      "ringBytesPerRecorder": 54720,
+      "exact": {
+        "bytesCompared": 0,
+        "differingBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "rows": 0,
+        "physicalHead": 0,
+        "firstPhysicalRow": null
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.3394529999999918,
+            "perSnapshotMs": 0.0003394529999999918,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.2997039999999913,
+            "perSnapshotMs": 0.0002997039999999913,
+            "iterations": 1000
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 0.2697000000000003,
+            "perSnapshotMs": 0.00026970000000000027,
+            "iterations": 1000
+          },
+          "baseline": {
+            "elapsedMs": 0.22951000000000477,
+            "perSnapshotMs": 0.00022951000000000476,
+            "iterations": 1000
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.2512529999999913,
+            "perSnapshotMs": 0.0002512529999999913,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.2195560000000114,
+            "perSnapshotMs": 0.00021955600000001142,
+            "iterations": 1000
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.17770300000000816,
+            "perSnapshotMs": 0.00017770300000000816,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.30077600000001325,
+            "perSnapshotMs": 0.0003007760000000133,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 0.5908150916296524
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 0.21567999999999188,
+            "perSnapshotMs": 0.0002156799999999919,
+            "iterations": 1000
+          },
+          "baseline": {
+            "elapsedMs": 0.2184129999999982,
+            "perSnapshotMs": 0.0002184129999999982,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 1.0126715504451336
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.2190249999999878,
+            "perSnapshotMs": 0.0002190249999999878,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.17293699999999035,
+            "perSnapshotMs": 0.00017293699999999034,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 1.266501674020019
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 0.23539900000000102,
+            "perSnapshotMs": 0.00023539900000000102,
+            "iterations": 1000
+          },
+          "baseline": {
+            "elapsedMs": 0.22106800000000248,
+            "perSnapshotMs": 0.00022106800000000249,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 0.9391203870874623
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.21915500000000065,
+            "perSnapshotMs": 0.00021915500000000066,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.215328999999997,
+            "perSnapshotMs": 0.000215328999999997,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 1.017768159421182
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 0.21468799999999533,
+            "perSnapshotMs": 0.00021468799999999533,
+            "iterations": 1000
+          },
+          "baseline": {
+            "elapsedMs": 0.21825300000000425,
+            "perSnapshotMs": 0.00021825300000000424,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 1.016605492621893
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.24236999999999398,
+            "perSnapshotMs": 0.00024236999999999398,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.2153989999999908,
+            "perSnapshotMs": 0.0002153989999999908,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 1.1252141374844096
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 0.21456799999998566,
+            "perSnapshotMs": 0.00021456799999998566,
+            "iterations": 1000
+          },
+          "baseline": {
+            "elapsedMs": 0.21932499999996935,
+            "perSnapshotMs": 0.00021932499999996935,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 1.022170127884792
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 0.7675769999999602,
+            "perSnapshotMs": 0.0007675769999999602,
+            "iterations": 1000
+          },
+          "current": {
+            "elapsedMs": 0.17333700000000363,
+            "perSnapshotMs": 0.00017333700000000363,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 4.428235171947963
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 0.23250400000000582,
+            "perSnapshotMs": 0.00023250400000000582,
+            "iterations": 1000
+          },
+          "baseline": {
+            "elapsedMs": 0.22362199999997756,
+            "perSnapshotMs": 0.00022362199999997757,
+            "iterations": 1000
+          },
+          "ratioBaselineOverCurrent": 0.9617985066922374
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 0.000219239999999985,
+          "min": 0.00017770300000000816,
+          "max": 0.0007675769999999602,
+          "samples": 10
+        },
+        "current": {
+          "median": 0.00021536399999999388,
+          "min": 0.00017293699999999034,
+          "max": 0.0003007760000000133,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.0171868260215375,
+          "min": 0.5908150916296524,
+          "max": 4.428235171947963,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 0,
+          "sourceViewCalls": 0,
+          "copiedFloat32Values": 0,
+          "viewedFloat32Values": 0,
+          "offsetCalls": 0,
+          "outputBytes": 0,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 0,
+          "sourceViewCalls": 0,
+          "copiedFloat32Values": 0,
+          "viewedFloat32Values": 0,
+          "offsetCalls": 0,
+          "outputBytes": 0,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 77,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "unchangedBytes": 0,
+          "continuingRows": 60,
+          "continuingSha256": "44c3b04311060c88f835ac860a3e49ddc660daf7e0870bfa585b87a225414aa2",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 77,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "unchangedBytes": 0,
+          "continuingRows": 60,
+          "continuingSha256": "44c3b04311060c88f835ac860a3e49ddc660daf7e0870bfa585b87a225414aa2",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 48402432,
+        "heapTotal": 19333120,
+        "heapUsed": 9306912,
+        "external": 4295100,
+        "arrayBuffers": 365459
+      },
+      "processMaxRssKiB": 47268,
+      "sink": 0
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 600,
+      "state": "unwrapped-partial",
+      "stride": 228,
+      "ringBytesPerRecorder": 547200,
+      "exact": {
+        "bytesCompared": 328320,
+        "differingBytes": 0,
+        "sha256": "9916db138a2fb80f43ac8db8c3a2eefd841ef213bea00bd6ab515dedf0aa7511",
+        "rows": 360,
+        "physicalHead": 360,
+        "firstPhysicalRow": 0
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 56.89482700000002,
+            "perSnapshotMs": 0.5577924215686276,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 89.37787800000004,
+            "perSnapshotMs": 0.8762537058823533,
+            "iterations": 102
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 37.974467000000004,
+            "perSnapshotMs": 0.3722986960784314,
+            "iterations": 102
+          },
+          "baseline": {
+            "elapsedMs": 26.417553999999996,
+            "perSnapshotMs": 0.25899562745098037,
+            "iterations": 102
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 23.824251999999944,
+            "perSnapshotMs": 0.23357109803921514,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 18.486644999999953,
+            "perSnapshotMs": 0.18124161764705837,
+            "iterations": 102
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 20.586142999999993,
+            "perSnapshotMs": 0.20182493137254895,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 17.758712999999943,
+            "perSnapshotMs": 0.17410502941176415,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.1592136772524033
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 15.377958999999919,
+            "perSnapshotMs": 0.15076430392156784,
+            "iterations": 102
+          },
+          "baseline": {
+            "elapsedMs": 15.943418000000065,
+            "perSnapshotMs": 0.15630801960784377,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.0367707444141416
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.250098999999977,
+            "perSnapshotMs": 0.1299029313725488,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 10.914189999999962,
+            "perSnapshotMs": 0.10700186274509767,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.2140249528366305
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.471386000000052,
+            "perSnapshotMs": 0.09285672549019659,
+            "iterations": 102
+          },
+          "baseline": {
+            "elapsedMs": 19.834576000000084,
+            "perSnapshotMs": 0.19445662745098122,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 2.094157708280496
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 20.769143999999983,
+            "perSnapshotMs": 0.20361905882352924,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 15.89881200000002,
+            "perSnapshotMs": 0.15587070588235313,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.306333076961974
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.885470999999939,
+            "perSnapshotMs": 0.09691638235294057,
+            "iterations": 102
+          },
+          "baseline": {
+            "elapsedMs": 12.039730000000077,
+            "perSnapshotMs": 0.11803656862745174,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.2179217358485146
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.915640000000053,
+            "perSnapshotMs": 0.10701607843137306,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 9.67897400000004,
+            "perSnapshotMs": 0.0948919019607847,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.1277682944493919
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 15.0618189999999,
+            "perSnapshotMs": 0.14766489215686177,
+            "iterations": 102
+          },
+          "baseline": {
+            "elapsedMs": 10.287869,
+            "perSnapshotMs": 0.10086146078431373,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 0.6830429312687974
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 14.375990000000002,
+            "perSnapshotMs": 0.14094107843137257,
+            "iterations": 102
+          },
+          "current": {
+            "elapsedMs": 12.049014000000057,
+            "perSnapshotMs": 0.11812758823529468,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 1.1931258441562052
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 15.895087000000103,
+            "perSnapshotMs": 0.15583418627451082,
+            "iterations": 102
+          },
+          "baseline": {
+            "elapsedMs": 14.43623100000002,
+            "perSnapshotMs": 0.14153167647058842,
+            "iterations": 102
+          },
+          "ratioBaselineOverCurrent": 0.9082196907761452
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 0.1412363774509805,
+          "min": 0.10086146078431373,
+          "max": 0.20361905882352924,
+          "samples": 10
+        },
+        "current": {
+          "median": 0.1328962401960782,
+          "min": 0.09285672549019659,
+          "max": 0.17410502941176415,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.1761697607043042,
+          "min": 0.6830429312687974,
+          "max": 2.094157708280496,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 360,
+          "sourceViewCalls": 360,
+          "copiedFloat32Values": 82080,
+          "viewedFloat32Values": 82080,
+          "offsetCalls": 720,
+          "outputBytes": 328320,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 1,
+          "sourceViewCalls": 1,
+          "copiedFloat32Values": 82080,
+          "viewedFloat32Values": 82080,
+          "offsetCalls": 1,
+          "outputBytes": 328320,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "9916db138a2fb80f43ac8db8c3a2eefd841ef213bea00bd6ab515dedf0aa7511",
+          "unchangedBytes": 328320,
+          "continuingRows": 600,
+          "continuingSha256": "2d90b915120b781f93ab62adaf50d095a7249ed8349eb3f212501d5b183bc2f9",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "9916db138a2fb80f43ac8db8c3a2eefd841ef213bea00bd6ab515dedf0aa7511",
+          "unchangedBytes": 328320,
+          "continuingRows": 600,
+          "continuingSha256": "2d90b915120b781f93ab62adaf50d095a7249ed8349eb3f212501d5b183bc2f9",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 54403072,
+        "heapTotal": 18808832,
+        "heapUsed": 7964168,
+        "external": 5275908,
+        "arrayBuffers": 1350419
+      },
+      "processMaxRssKiB": 86648,
+      "sink": -144552.43495750427
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 600,
+      "state": "unwrapped-full",
+      "stride": 228,
+      "ringBytesPerRecorder": 547200,
+      "exact": {
+        "bytesCompared": 547200,
+        "differingBytes": 0,
+        "sha256": "a216ce3a4ea51584b3779ba544d7fe2f685970f726e26641677f1a61acd19609",
+        "rows": 600,
+        "physicalHead": 0,
+        "firstPhysicalRow": 0
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 14.781622000000013,
+            "perSnapshotMs": 0.24232167213114775,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 17.599637,
+            "perSnapshotMs": 0.2885186393442623,
+            "iterations": 61
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 16.103886000000017,
+            "perSnapshotMs": 0.2639981311475413,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 11.044432,
+            "perSnapshotMs": 0.18105626229508198,
+            "iterations": 61
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.044092000000006,
+            "perSnapshotMs": 0.18105068852459028,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.719635000000011,
+            "perSnapshotMs": 0.15933827868852476,
+            "iterations": 61
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.52181600000003,
+            "perSnapshotMs": 0.17248878688524638,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.865010999999981,
+            "perSnapshotMs": 0.16172149180327838,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0665792465918233
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 11.11689100000001,
+            "perSnapshotMs": 0.18224411475409852,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 11.007757999999967,
+            "perSnapshotMs": 0.18045504918032734,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 0.9901831366341506
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.910443000000043,
+            "perSnapshotMs": 0.17885972131147612,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.303798000000029,
+            "perSnapshotMs": 0.15252127868852505,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1726870037376145
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.408263000000034,
+            "perSnapshotMs": 0.1542338196721317,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 13.057432000000006,
+            "perSnapshotMs": 0.21405626229508207,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.3878685151552375
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.445733000000018,
+            "perSnapshotMs": 0.17124152459016423,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.585576000000003,
+            "perSnapshotMs": 0.15714059016393447,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0897345136066956
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.36094700000001,
+            "perSnapshotMs": 0.16985159016393458,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 10.572291000000007,
+            "perSnapshotMs": 0.17331624590163947,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0203981354214047
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.965289999999982,
+            "perSnapshotMs": 0.1961522950819669,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.683480999999972,
+            "perSnapshotMs": 0.15874559016393397,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.2356393325912465
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.880323000000033,
+            "perSnapshotMs": 0.16197250819672185,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 10.74157299999996,
+            "perSnapshotMs": 0.17609136065573705,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.087168202901861
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.686591000000021,
+            "perSnapshotMs": 0.17519001639344298,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.743470000000002,
+            "perSnapshotMs": 0.15972901639344267,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0967951869303254
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.727076000000011,
+            "perSnapshotMs": 0.15946026229508214,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 10.643226000000027,
+            "perSnapshotMs": 0.1744791147540988,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0941855496965394
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 0.17564068852459003,
+          "min": 0.17124152459016423,
+          "max": 0.21405626229508207,
+          "samples": 10
+        },
+        "current": {
+          "median": 0.1595946393442624,
+          "min": 0.15252127868852505,
+          "max": 0.18224411475409852,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.0919600316516176,
+          "min": 0.9901831366341506,
+          "max": 1.3878685151552375,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 600,
+          "sourceViewCalls": 600,
+          "copiedFloat32Values": 136800,
+          "viewedFloat32Values": 136800,
+          "offsetCalls": 1200,
+          "outputBytes": 547200,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 1,
+          "sourceViewCalls": 1,
+          "copiedFloat32Values": 136800,
+          "viewedFloat32Values": 136800,
+          "offsetCalls": 1,
+          "outputBytes": 547200,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "a216ce3a4ea51584b3779ba544d7fe2f685970f726e26641677f1a61acd19609",
+          "unchangedBytes": 547200,
+          "continuingRows": 600,
+          "continuingSha256": "3c40022051a37053418035f0b29ecf7a19a1a6c28e98bcbbd41416f49f6182d2",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "a216ce3a4ea51584b3779ba544d7fe2f685970f726e26641677f1a61acd19609",
+          "unchangedBytes": 547200,
+          "continuingRows": 600,
+          "continuingSha256": "3c40022051a37053418035f0b29ecf7a19a1a6c28e98bcbbd41416f49f6182d2",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 87490560,
+        "heapTotal": 19070976,
+        "heapUsed": 7934136,
+        "external": 5275908,
+        "arrayBuffers": 1350419
+      },
+      "processMaxRssKiB": 87096,
+      "sink": -88046.15625
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 600,
+      "state": "wrapped-full",
+      "stride": 228,
+      "ringBytesPerRecorder": 547200,
+      "exact": {
+        "bytesCompared": 547200,
+        "differingBytes": 0,
+        "sha256": "141382200a4cba7004ff0058fbdb088a88d6c3ed6fa150cd3b074b86284b1b8c",
+        "rows": 600,
+        "physicalHead": 200,
+        "firstPhysicalRow": 200
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.881355,
+            "perSnapshotMs": 0.19477631147540983,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.435051999999985,
+            "perSnapshotMs": 0.15467298360655712,
+            "iterations": 61
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 83.20646199999999,
+            "perSnapshotMs": 1.3640403606557374,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 16.727652999999975,
+            "perSnapshotMs": 0.2742238196721307,
+            "iterations": 61
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.418879000000004,
+            "perSnapshotMs": 0.1871947377049181,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 26.089426000000003,
+            "perSnapshotMs": 0.42769550819672136,
+            "iterations": 61
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 20.327830000000006,
+            "perSnapshotMs": 0.33324311475409846,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.783799999999985,
+            "perSnapshotMs": 0.16039016393442598,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 2.0777029375089473
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.995007999999984,
+            "perSnapshotMs": 0.180246032786885,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 11.666646000000014,
+            "perSnapshotMs": 0.19125649180327892,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0610857218112102
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.693937000000005,
+            "perSnapshotMs": 0.19170388524590173,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 10.204364999999996,
+            "perSnapshotMs": 0.16728467213114748,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1459740023019571
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.26668699999999,
+            "perSnapshotMs": 0.16830634426229493,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 11.737792000000013,
+            "perSnapshotMs": 0.19242281967213137,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1432891642649692
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.921279999999967,
+            "perSnapshotMs": 0.1790373770491798,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 10.141451000000018,
+            "perSnapshotMs": 0.1662532950819675,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0768952095710909
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.40280899999999,
+            "perSnapshotMs": 0.17053785245901623,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 12.707873000000063,
+            "perSnapshotMs": 0.20832578688524694,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.221580921076228
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.235536000000025,
+            "perSnapshotMs": 0.18418911475409877,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 10.896853000000078,
+            "perSnapshotMs": 0.1786369344262308,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.031080808376505
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.241610000000037,
+            "perSnapshotMs": 0.16789524590163996,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 10.94557599999996,
+            "perSnapshotMs": 0.1794356721311469,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0687358725825256
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.696906000000013,
+            "perSnapshotMs": 0.17535911475409857,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.715840000000071,
+            "perSnapshotMs": 0.15927606557377166,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1009759320861536
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.171835999999985,
+            "perSnapshotMs": 0.16675140983606532,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 12.073049999999967,
+            "perSnapshotMs": 0.19791885245901583,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1869096198562368
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 0.1914801885245903,
+          "min": 0.17535911475409857,
+          "max": 0.33324311475409846,
+          "samples": 10
+        },
+        "current": {
+          "median": 0.16758995901639373,
+          "min": 0.15927606557377166,
+          "max": 0.180246032786885,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.1221325481755615,
+          "min": 1.031080808376505,
+          "max": 2.0777029375089473,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 600,
+          "sourceViewCalls": 600,
+          "copiedFloat32Values": 136800,
+          "viewedFloat32Values": 136800,
+          "offsetCalls": 1200,
+          "outputBytes": 547200,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 136800,
+          "viewedFloat32Values": 136800,
+          "offsetCalls": 1,
+          "outputBytes": 547200,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "141382200a4cba7004ff0058fbdb088a88d6c3ed6fa150cd3b074b86284b1b8c",
+          "unchangedBytes": 547200,
+          "continuingRows": 600,
+          "continuingSha256": "3ae399eee71f26647a12037918ed60b2d45351e8be545d0074b6abddefc96f05",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "141382200a4cba7004ff0058fbdb088a88d6c3ed6fa150cd3b074b86284b1b8c",
+          "unchangedBytes": 547200,
+          "continuingRows": 600,
+          "continuingSha256": "3ae399eee71f26647a12037918ed60b2d45351e8be545d0074b6abddefc96f05",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 53690368,
+        "heapTotal": 18546688,
+        "heapUsed": 7939216,
+        "external": 5275908,
+        "arrayBuffers": 1350419
+      },
+      "processMaxRssKiB": 87060,
+      "sink": -6471.15625
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 600,
+      "state": "truncated-wrap",
+      "stride": 228,
+      "ringBytesPerRecorder": 547200,
+      "exact": {
+        "bytesCompared": 410400,
+        "differingBytes": 0,
+        "sha256": "1d16d21441285c1465024d8a01d8f3193b40e82fb2c7f54214aa4e63e84bd666",
+        "rows": 450,
+        "physicalHead": 50,
+        "firstPhysicalRow": 200
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.262501,
+            "perSnapshotMs": 0.1513889012345679,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 10.126519000000002,
+            "perSnapshotMs": 0.12501875308641977,
+            "iterations": 81
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.985579999999999,
+            "perSnapshotMs": 0.12327876543209874,
+            "iterations": 81
+          },
+          "baseline": {
+            "elapsedMs": 11.540268999999995,
+            "perSnapshotMs": 0.1424724567901234,
+            "iterations": 81
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.334622999999993,
+            "perSnapshotMs": 0.13993361728395054,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 17.560520000000025,
+            "perSnapshotMs": 0.21679654320987685,
+            "iterations": 81
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 70.93445699999998,
+            "perSnapshotMs": 0.8757340370370368,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 21.71610099999998,
+            "perSnapshotMs": 0.26810001234567876,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 3.2664453439408874
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 21.608231999999987,
+            "perSnapshotMs": 0.2667682962962961,
+            "iterations": 81
+          },
+          "baseline": {
+            "elapsedMs": 17.233844999999974,
+            "perSnapshotMs": 0.21276351851851819,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 0.7975592357579271
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 83.37210900000002,
+            "perSnapshotMs": 1.0292852962962966,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 18.727643,
+            "perSnapshotMs": 0.23120546913580248,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 4.451820712302132
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 11.286472000000003,
+            "perSnapshotMs": 0.1393391604938272,
+            "iterations": 81
+          },
+          "baseline": {
+            "elapsedMs": 12.204655000000002,
+            "perSnapshotMs": 0.15067475308641978,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 1.0813525253950038
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.61330799999996,
+            "perSnapshotMs": 0.14337417283950568,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 9.85069999999996,
+            "perSnapshotMs": 0.1216135802469131,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 1.1789322586212154
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 13.266241000000036,
+            "perSnapshotMs": 0.1637807530864202,
+            "iterations": 81
+          },
+          "baseline": {
+            "elapsedMs": 20.994389999999953,
+            "perSnapshotMs": 0.2591899999999994,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 1.5825424850943002
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 44.19821999999999,
+            "perSnapshotMs": 0.5456570370370369,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 11.643621000000053,
+            "perSnapshotMs": 0.14374840740740805,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 3.7959170948624825
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 16.52003400000001,
+            "perSnapshotMs": 0.20395103703703715,
+            "iterations": 81
+          },
+          "baseline": {
+            "elapsedMs": 32.306779000000006,
+            "perSnapshotMs": 0.3988491234567902,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 1.955612137360007
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 21.900566000000026,
+            "perSnapshotMs": 0.2703773580246917,
+            "iterations": 81
+          },
+          "current": {
+            "elapsedMs": 26.869744999999966,
+            "perSnapshotMs": 0.33172524691357985,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 0.8150641548700984
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 12.536818999999923,
+            "perSnapshotMs": 0.1547755432098756,
+            "iterations": 81
+          },
+          "baseline": {
+            "elapsedMs": 11.294593999999961,
+            "perSnapshotMs": 0.13943943209876494,
+            "iterations": 81
+          },
+          "ratioBaselineOverCurrent": 0.9009138602064869
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 0.26478367901234556,
+          "min": 0.13943943209876494,
+          "max": 1.0292852962962966,
+          "samples": 10
+        },
+        "current": {
+          "median": 0.18386589506172868,
+          "min": 0.1216135802469131,
+          "max": 0.33172524691357985,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.3807373718577578,
+          "min": 0.7975592357579271,
+          "max": 4.451820712302132,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 450,
+          "sourceViewCalls": 450,
+          "copiedFloat32Values": 102600,
+          "viewedFloat32Values": 102600,
+          "offsetCalls": 900,
+          "outputBytes": 410400,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 102600,
+          "viewedFloat32Values": 102600,
+          "offsetCalls": 1,
+          "outputBytes": 410400,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "1d16d21441285c1465024d8a01d8f3193b40e82fb2c7f54214aa4e63e84bd666",
+          "unchangedBytes": 410400,
+          "continuingRows": 600,
+          "continuingSha256": "9017f6c1298044794cdd12d6dfd5da216dc2bddde690985fdbca02c2aaa3d441",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "1d16d21441285c1465024d8a01d8f3193b40e82fb2c7f54214aa4e63e84bd666",
+          "unchangedBytes": 410400,
+          "continuingRows": 600,
+          "continuingSha256": "9017f6c1298044794cdd12d6dfd5da216dc2bddde690985fdbca02c2aaa3d441",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 53784576,
+        "heapTotal": 18808832,
+        "heapUsed": 7940968,
+        "external": 5275908,
+        "arrayBuffers": 1350419
+      },
+      "processMaxRssKiB": 86204,
+      "sink": -7832.675676345825
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 600,
+      "state": "truncated-resumed",
+      "stride": 228,
+      "ringBytesPerRecorder": 547200,
+      "exact": {
+        "bytesCompared": 547200,
+        "differingBytes": 0,
+        "sha256": "23d1c0268ce516393ad7fee24d58ae98aea69edcd8b5f4489d995ca48f70a9f2",
+        "rows": 600,
+        "physicalHead": 350,
+        "firstPhysicalRow": 350
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.06219999999999,
+            "perSnapshotMs": 0.21413442622950804,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 15.564895000000007,
+            "perSnapshotMs": 0.25516221311475423,
+            "iterations": 61
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 12.506383,
+            "perSnapshotMs": 0.20502267213114753,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 11.289456000000001,
+            "perSnapshotMs": 0.18507304918032788,
+            "iterations": 61
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 77.628548,
+            "perSnapshotMs": 1.2725991475409835,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 9.452647999999954,
+            "perSnapshotMs": 0.15496144262295006,
+            "iterations": 61
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.986996999999974,
+            "perSnapshotMs": 0.18011470491803236,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 11.13131199999998,
+            "perSnapshotMs": 0.18248052459016362,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 0.9870352210053939
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 11.342434000000026,
+            "perSnapshotMs": 0.185941540983607,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 12.957164000000034,
+            "perSnapshotMs": 0.2124125245901645,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1423618598970913
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.684593000000007,
+            "perSnapshotMs": 0.22433759016393454,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 10.481476999999984,
+            "perSnapshotMs": 0.17182749180327841,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.3055977702379187
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 11.272070000000042,
+            "perSnapshotMs": 0.18478803278688594,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 11.670862,
+            "perSnapshotMs": 0.19132560655737704,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0353787724881016
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.000552999999968,
+            "perSnapshotMs": 0.1967303770491798,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 10.678479000000038,
+            "perSnapshotMs": 0.17505703278688586,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.1238073324862021
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.844314000000054,
+            "perSnapshotMs": 0.1777756393442632,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 10.776884999999993,
+            "perSnapshotMs": 0.17667024590163924,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 0.9937820870919026
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.784797000000026,
+            "perSnapshotMs": 0.17679995081967256,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 13.415032999999994,
+            "perSnapshotMs": 0.2199185737704917,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 0.803933691404265
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 14.808812999999986,
+            "perSnapshotMs": 0.24276742622950798,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 12.548175999999899,
+            "perSnapshotMs": 0.20570780327868687,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 0.8473451585890045
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 10.66750300000001,
+            "perSnapshotMs": 0.1748770983606559,
+            "iterations": 61
+          },
+          "current": {
+            "elapsedMs": 10.606893000000014,
+            "perSnapshotMs": 0.17388349180327892,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0057142086754336
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.00661100000002,
+            "perSnapshotMs": 0.16404280327868886,
+            "iterations": 61
+          },
+          "baseline": {
+            "elapsedMs": 10.800098999999932,
+            "perSnapshotMs": 0.1770508032786874,
+            "iterations": 61
+          },
+          "ratioBaselineOverCurrent": 1.0792963771650472
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 0.1857201557377047,
+          "min": 0.1748770983606559,
+          "max": 0.22433759016393454,
+          "samples": 10
+        },
+        "current": {
+          "median": 0.18012808196721342,
+          "min": 0.16404280327868886,
+          "max": 0.24276742622950798,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.0205464905817676,
+          "min": 0.803933691404265,
+          "max": 1.3055977702379187,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 600,
+          "sourceViewCalls": 600,
+          "copiedFloat32Values": 136800,
+          "viewedFloat32Values": 136800,
+          "offsetCalls": 1200,
+          "outputBytes": 547200,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 136800,
+          "viewedFloat32Values": 136800,
+          "offsetCalls": 1,
+          "outputBytes": 547200,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "23d1c0268ce516393ad7fee24d58ae98aea69edcd8b5f4489d995ca48f70a9f2",
+          "unchangedBytes": 547200,
+          "continuingRows": 600,
+          "continuingSha256": "372d6321e1e4cbf220460b3a0e8836b54b862b8b9b552bbff0c13ae949cf6265",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 617,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "23d1c0268ce516393ad7fee24d58ae98aea69edcd8b5f4489d995ca48f70a9f2",
+          "unchangedBytes": 547200,
+          "continuingRows": 600,
+          "continuingSha256": "372d6321e1e4cbf220460b3a0e8836b54b862b8b9b552bbff0c13ae949cf6265",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 54943744,
+        "heapTotal": 18546688,
+        "heapUsed": 7943616,
+        "external": 5275908,
+        "arrayBuffers": 1350419
+      },
+      "processMaxRssKiB": 87032,
+      "sink": 54710.09375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 6000,
+      "state": "unwrapped-partial",
+      "stride": 228,
+      "ringBytesPerRecorder": 5472000,
+      "exact": {
+        "bytesCompared": 3283200,
+        "differingBytes": 0,
+        "sha256": "dedc577c93b9d943285aafc451e5e3e984e520292d1e711aaa9d374cbed24063",
+        "rows": 3600,
+        "physicalHead": 3600,
+        "firstPhysicalRow": 0
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 19.81112200000001,
+            "perSnapshotMs": 1.9811122000000012,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 37.12814,
+            "perSnapshotMs": 3.7128140000000003,
+            "iterations": 10
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 85.521872,
+            "perSnapshotMs": 8.5521872,
+            "iterations": 10
+          },
+          "baseline": {
+            "elapsedMs": 28.436262,
+            "perSnapshotMs": 2.8436262,
+            "iterations": 10
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 27.51757699999996,
+            "perSnapshotMs": 2.751757699999996,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 12.817316000000005,
+            "perSnapshotMs": 1.2817316000000005,
+            "iterations": 10
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 77.895759,
+            "perSnapshotMs": 7.7895759,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 23.206074,
+            "perSnapshotMs": 2.3206074,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 3.3566970009662125
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 12.372605000000021,
+            "perSnapshotMs": 1.237260500000002,
+            "iterations": 10
+          },
+          "baseline": {
+            "elapsedMs": 19.800366000000054,
+            "perSnapshotMs": 1.9800366000000054,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 1.6003392979893902
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 19.62172099999998,
+            "perSnapshotMs": 1.9621720999999979,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 11.20645300000001,
+            "perSnapshotMs": 1.120645300000001,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 1.7509305575992655
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 25.810090999999943,
+            "perSnapshotMs": 2.5810090999999944,
+            "iterations": 10
+          },
+          "baseline": {
+            "elapsedMs": 12.89136499999995,
+            "perSnapshotMs": 1.289136499999995,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 0.49946995537520494
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.730671999999913,
+            "perSnapshotMs": 1.3730671999999913,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 20.173580000000015,
+            "perSnapshotMs": 2.0173580000000015,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 0.6806264431003274
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 14.734331999999995,
+            "perSnapshotMs": 1.4734331999999994,
+            "iterations": 10
+          },
+          "baseline": {
+            "elapsedMs": 12.011577999999986,
+            "perSnapshotMs": 1.2011577999999985,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 0.8152102178775387
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.626782000000048,
+            "perSnapshotMs": 1.2626782000000047,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 14.432745000000068,
+            "perSnapshotMs": 1.443274500000007,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 0.8748704421785313
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 18.128532999999948,
+            "perSnapshotMs": 1.8128532999999947,
+            "iterations": 10
+          },
+          "baseline": {
+            "elapsedMs": 15.622952000000055,
+            "perSnapshotMs": 1.5622952000000054,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 0.8617879891329375
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 11.829379000000017,
+            "perSnapshotMs": 1.1829379000000018,
+            "iterations": 10
+          },
+          "current": {
+            "elapsedMs": 11.326821999999993,
+            "perSnapshotMs": 1.1326821999999992,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 1.0443687558610903
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.823759999999993,
+            "perSnapshotMs": 0.9823759999999992,
+            "iterations": 10
+          },
+          "baseline": {
+            "elapsedMs": 11.604554000000007,
+            "perSnapshotMs": 1.1604554000000007,
+            "iterations": 10
+          },
+          "ratioBaselineOverCurrent": 1.1812741760792218
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 1.3311018499999931,
+          "min": 1.1604554000000007,
+          "max": 7.7895759,
+          "samples": 10
+        },
+        "current": {
+          "median": 1.458353850000003,
+          "min": 0.9823759999999992,
+          "max": 2.5810090999999944,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 0.9596195990198109,
+          "min": 0.49946995537520494,
+          "max": 3.3566970009662125,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 3600,
+          "sourceViewCalls": 3600,
+          "copiedFloat32Values": 820800,
+          "viewedFloat32Values": 820800,
+          "offsetCalls": 7200,
+          "outputBytes": 3283200,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 1,
+          "sourceViewCalls": 1,
+          "copiedFloat32Values": 820800,
+          "viewedFloat32Values": 820800,
+          "offsetCalls": 1,
+          "outputBytes": 3283200,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "dedc577c93b9d943285aafc451e5e3e984e520292d1e711aaa9d374cbed24063",
+          "unchangedBytes": 3283200,
+          "continuingRows": 6000,
+          "continuingSha256": "25ab335421c01916eae33f4d573365590750aca15f33dfb6d7a97fad95e3fbf4",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "dedc577c93b9d943285aafc451e5e3e984e520292d1e711aaa9d374cbed24063",
+          "unchangedBytes": 3283200,
+          "continuingRows": 6000,
+          "continuingSha256": "25ab335421c01916eae33f4d573365590750aca15f33dfb6d7a97fad95e3fbf4",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 67883008,
+        "heapTotal": 19857408,
+        "heapUsed": 8482480,
+        "external": 15125508,
+        "arrayBuffers": 11200019
+      },
+      "processMaxRssKiB": 107992,
+      "sink": -13759.6875
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 6000,
+      "state": "unwrapped-full",
+      "stride": 228,
+      "ringBytesPerRecorder": 5472000,
+      "exact": {
+        "bytesCompared": 5472000,
+        "differingBytes": 0,
+        "sha256": "5d12f06e6f5297f24d6ba30e379a62cfb0b305fcc1dfa4a1b446602dc5c526f1",
+        "rows": 6000,
+        "physicalHead": 0,
+        "firstPhysicalRow": 0
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 14.871616000000017,
+            "perSnapshotMs": 2.4786026666666694,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 26.787262,
+            "perSnapshotMs": 4.464543666666667,
+            "iterations": 6
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.159391999999997,
+            "perSnapshotMs": 1.5265653333333329,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 14.241190000000017,
+            "perSnapshotMs": 2.3735316666666697,
+            "iterations": 6
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 16.689816000000008,
+            "perSnapshotMs": 2.781636000000001,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 30.36163099999999,
+            "perSnapshotMs": 5.060271833333331,
+            "iterations": 6
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.780186000000015,
+            "perSnapshotMs": 2.296697666666669,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 50.49488100000002,
+            "perSnapshotMs": 8.415813500000004,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 0.2729026334372391
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.680576999999971,
+            "perSnapshotMs": 1.6134294999999952,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.958129999999983,
+            "perSnapshotMs": 2.3263549999999973,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.4418696323576607
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.338109000000031,
+            "perSnapshotMs": 2.2230181666666717,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 10.916161000000045,
+            "perSnapshotMs": 1.819360166666674,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.2218681091273733
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 13.183628999999996,
+            "perSnapshotMs": 2.1972714999999994,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 68.58808199999999,
+            "perSnapshotMs": 11.431346999999997,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 5.202519124286644
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 15.376066000000037,
+            "perSnapshotMs": 2.562677666666673,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 37.856671000000006,
+            "perSnapshotMs": 6.309445166666667,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 0.40616529646782823
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 12.906020000000012,
+            "perSnapshotMs": 2.1510033333333354,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 32.671052999999915,
+            "perSnapshotMs": 5.445175499999986,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 2.5314584201791015
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 20.31725199999994,
+            "perSnapshotMs": 3.3862086666666564,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 13.246125000000006,
+            "perSnapshotMs": 2.207687500000001,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.5338260812124247
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.246651000000043,
+            "perSnapshotMs": 1.7077751666666738,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 22.94658599999991,
+            "perSnapshotMs": 3.824430999999985,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 2.239423007575823
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 17.224700999999982,
+            "perSnapshotMs": 2.870783499999997,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 9.122491999999966,
+            "perSnapshotMs": 1.5204153333333277,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.8881574245283026
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.233136999999942,
+            "perSnapshotMs": 1.5388561666666571,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.752175999999963,
+            "perSnapshotMs": 2.292029333333327,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.4894370136606927
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 2.7167305833333346,
+          "min": 2.2230181666666717,
+          "max": 11.431346999999997,
+          "samples": 10
+        },
+        "current": {
+          "median": 1.9851817500000046,
+          "min": 1.5204153333333277,
+          "max": 8.415813500000004,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.5116315474365587,
+          "min": 0.2729026334372391,
+          "max": 5.202519124286644,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 6000,
+          "sourceViewCalls": 6000,
+          "copiedFloat32Values": 1368000,
+          "viewedFloat32Values": 1368000,
+          "offsetCalls": 12000,
+          "outputBytes": 5472000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 1,
+          "sourceViewCalls": 1,
+          "copiedFloat32Values": 1368000,
+          "viewedFloat32Values": 1368000,
+          "offsetCalls": 1,
+          "outputBytes": 5472000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "5d12f06e6f5297f24d6ba30e379a62cfb0b305fcc1dfa4a1b446602dc5c526f1",
+          "unchangedBytes": 5472000,
+          "continuingRows": 6000,
+          "continuingSha256": "44d0527f60e45439e2dd62dc25dcc505f78f57a0ef3c997973426480358676c7",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "5d12f06e6f5297f24d6ba30e379a62cfb0b305fcc1dfa4a1b446602dc5c526f1",
+          "unchangedBytes": 5472000,
+          "continuingRows": 6000,
+          "continuingSha256": "44d0527f60e45439e2dd62dc25dcc505f78f57a0ef3c997973426480358676c7",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 67809280,
+        "heapTotal": 20119552,
+        "heapUsed": 9933544,
+        "external": 15129660,
+        "arrayBuffers": 11200019
+      },
+      "processMaxRssKiB": 102916,
+      "sink": -7643.59375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 6000,
+      "state": "wrapped-full",
+      "stride": 228,
+      "ringBytesPerRecorder": 5472000,
+      "exact": {
+        "bytesCompared": 5472000,
+        "differingBytes": 0,
+        "sha256": "03d5bc082270c983eeea5e6c57104e0175597ef36b83cfb4e0c9ec9a074a7568",
+        "rows": 6000,
+        "physicalHead": 2000,
+        "firstPhysicalRow": 2000
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.914327000000014,
+            "perSnapshotMs": 2.3190545000000022,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 10.703120000000013,
+            "perSnapshotMs": 1.7838533333333355,
+            "iterations": 6
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.845700999999991,
+            "perSnapshotMs": 1.8076168333333318,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.583156000000002,
+            "perSnapshotMs": 2.263859333333334,
+            "iterations": 6
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.67602400000004,
+            "perSnapshotMs": 2.27933733333334,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 10.443063999999993,
+            "perSnapshotMs": 1.7405106666666654,
+            "iterations": 6
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.31071099999997,
+            "perSnapshotMs": 2.218451833333328,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 12.010179999999991,
+            "perSnapshotMs": 2.0016966666666653,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.1082857209467283
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 11.567843000000039,
+            "perSnapshotMs": 1.9279738333333398,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 15.69037400000002,
+            "perSnapshotMs": 2.6150623333333365,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.3563785400614414
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 15.835047999999972,
+            "perSnapshotMs": 2.639174666666662,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 12.136396999999988,
+            "perSnapshotMs": 2.022732833333331,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.3047569225034406
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 12.449060999999972,
+            "perSnapshotMs": 2.074843499999995,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 15.474513000000002,
+            "perSnapshotMs": 2.5790855,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.243026522241319
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 43.31059799999997,
+            "perSnapshotMs": 7.218432999999995,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 42.497792000000004,
+            "perSnapshotMs": 7.082965333333334,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.0191258407024997
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 19.82643399999995,
+            "perSnapshotMs": 3.3044056666666584,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 27.00869799999998,
+            "perSnapshotMs": 4.501449666666663,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.3622569747035724
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 18.710508000000004,
+            "perSnapshotMs": 3.1184180000000006,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 31.17093699999998,
+            "perSnapshotMs": 5.1951561666666635,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 0.6002549105277142
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.897578000000067,
+            "perSnapshotMs": 1.816263000000011,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.437669000000028,
+            "perSnapshotMs": 2.2396115000000045,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.2330876640662674
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 14.04042400000003,
+            "perSnapshotMs": 2.3400706666666715,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 12.938187999999968,
+            "perSnapshotMs": 2.1563646666666614,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.0851924550794951
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 11.95314499999995,
+            "perSnapshotMs": 1.992190833333325,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.511239000000046,
+            "perSnapshotMs": 2.2518731666666745,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.1303501296102494
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 2.5970739166666683,
+          "min": 2.218451833333328,
+          "max": 7.218432999999995,
+          "samples": 10
+        },
+        "current": {
+          "median": 2.048788166666663,
+          "min": 1.816263000000011,
+          "max": 7.082965333333334,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.1817188968382584,
+          "min": 0.6002549105277142,
+          "max": 1.3622569747035724,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 6000,
+          "sourceViewCalls": 6000,
+          "copiedFloat32Values": 1368000,
+          "viewedFloat32Values": 1368000,
+          "offsetCalls": 12000,
+          "outputBytes": 5472000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 1368000,
+          "viewedFloat32Values": 1368000,
+          "offsetCalls": 1,
+          "outputBytes": 5472000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "03d5bc082270c983eeea5e6c57104e0175597ef36b83cfb4e0c9ec9a074a7568",
+          "unchangedBytes": 5472000,
+          "continuingRows": 6000,
+          "continuingSha256": "1d7d951e32569992159fd4d9502fe9c9066346f8c924cfc0e7af5dbc3feebebe",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "03d5bc082270c983eeea5e6c57104e0175597ef36b83cfb4e0c9ec9a074a7568",
+          "unchangedBytes": 5472000,
+          "continuingRows": 6000,
+          "continuingSha256": "1d7d951e32569992159fd4d9502fe9c9066346f8c924cfc0e7af5dbc3feebebe",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 66711552,
+        "heapTotal": 19595264,
+        "heapUsed": 9940256,
+        "external": 15129660,
+        "arrayBuffers": 11200019
+      },
+      "processMaxRssKiB": 102224,
+      "sink": -4328.59375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 6000,
+      "state": "truncated-wrap",
+      "stride": 228,
+      "ringBytesPerRecorder": 5472000,
+      "exact": {
+        "bytesCompared": 4104000,
+        "differingBytes": 0,
+        "sha256": "9b06e016d050b142f9dad747ee16c723af537c4f6a07097742174a4f920ab150",
+        "rows": 4500,
+        "physicalHead": 500,
+        "firstPhysicalRow": 2000
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.366770000000002,
+            "perSnapshotMs": 1.5458462500000003,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 9.56114500000001,
+            "perSnapshotMs": 1.1951431250000013,
+            "iterations": 8
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 12.265949000000006,
+            "perSnapshotMs": 1.5332436250000008,
+            "iterations": 8
+          },
+          "baseline": {
+            "elapsedMs": 15.98481000000001,
+            "perSnapshotMs": 1.9981012500000013,
+            "iterations": 8
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 15.693578000000002,
+            "perSnapshotMs": 1.9616972500000003,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 9.622014000000036,
+            "perSnapshotMs": 1.2027517500000044,
+            "iterations": 8
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 35.702544000000046,
+            "perSnapshotMs": 4.462818000000006,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 11.63301100000001,
+            "perSnapshotMs": 1.4541263750000013,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 3.0690716272854908
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 19.74042099999997,
+            "perSnapshotMs": 2.467552624999996,
+            "iterations": 8
+          },
+          "baseline": {
+            "elapsedMs": 12.551894000000004,
+            "perSnapshotMs": 1.5689867500000005,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 0.6358473307129582
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 16.15640499999995,
+            "perSnapshotMs": 2.0195506249999937,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 10.02525300000002,
+            "perSnapshotMs": 1.2531566250000026,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.6115708002581
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.559963000000039,
+            "perSnapshotMs": 1.1949953750000049,
+            "iterations": 8
+          },
+          "baseline": {
+            "elapsedMs": 13.504399000000035,
+            "perSnapshotMs": 1.6880498750000044,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.4125995048307174
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.42969800000003,
+            "perSnapshotMs": 1.6787122500000038,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 9.618559000000005,
+            "perSnapshotMs": 1.2023198750000006,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.3962276469895358
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.26504900000009,
+            "perSnapshotMs": 1.2831311250000113,
+            "iterations": 8
+          },
+          "baseline": {
+            "elapsedMs": 13.250270999999998,
+            "perSnapshotMs": 1.6562838749999997,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.290814198743706
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.382934000000091,
+            "perSnapshotMs": 1.5478667500000114,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 9.841191000000094,
+            "perSnapshotMs": 1.2301488750000118,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.258275954607524
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.961949000000004,
+            "perSnapshotMs": 1.2452436250000005,
+            "iterations": 8
+          },
+          "baseline": {
+            "elapsedMs": 12.317766000000006,
+            "perSnapshotMs": 1.5397207500000007,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.2364815358922236
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.187404000000015,
+            "perSnapshotMs": 1.5234255000000019,
+            "iterations": 8
+          },
+          "current": {
+            "elapsedMs": 9.774381000000062,
+            "perSnapshotMs": 1.2217976250000078,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.2468722060251116
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.50307799999996,
+            "perSnapshotMs": 1.187884749999995,
+            "iterations": 8
+          },
+          "baseline": {
+            "elapsedMs": 12.743550000000027,
+            "perSnapshotMs": 1.5929437500000034,
+            "iterations": 8
+          },
+          "ratioBaselineOverCurrent": 1.3409918344351253
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 1.6246138125000016,
+          "min": 1.5234255000000019,
+          "max": 4.462818000000006,
+          "samples": 10
+        },
+        "current": {
+          "median": 1.2376962500000062,
+          "min": 1.187884749999995,
+          "max": 2.467552624999996,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.3159030165894157,
+          "min": 0.6358473307129582,
+          "max": 3.0690716272854908,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 4500,
+          "sourceViewCalls": 4500,
+          "copiedFloat32Values": 1026000,
+          "viewedFloat32Values": 1026000,
+          "offsetCalls": 9000,
+          "outputBytes": 4104000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 1026000,
+          "viewedFloat32Values": 1026000,
+          "offsetCalls": 1,
+          "outputBytes": 4104000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "9b06e016d050b142f9dad747ee16c723af537c4f6a07097742174a4f920ab150",
+          "unchangedBytes": 4104000,
+          "continuingRows": 6000,
+          "continuingSha256": "bf8eaed0b0fcd8862dab7cb20950889183f7a7904d0f9c65d5d0f0d5bebc2135",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "9b06e016d050b142f9dad747ee16c723af537c4f6a07097742174a4f920ab150",
+          "unchangedBytes": 4104000,
+          "continuingRows": 6000,
+          "continuingSha256": "bf8eaed0b0fcd8862dab7cb20950889183f7a7904d0f9c65d5d0f0d5bebc2135",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 68300800,
+        "heapTotal": 19857408,
+        "heapUsed": 9947264,
+        "external": 15129660,
+        "arrayBuffers": 11200019
+      },
+      "processMaxRssKiB": 101972,
+      "sink": -6340.34375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 6000,
+      "state": "truncated-resumed",
+      "stride": 228,
+      "ringBytesPerRecorder": 5472000,
+      "exact": {
+        "bytesCompared": 5472000,
+        "differingBytes": 0,
+        "sha256": "9d04c3f0f61a0653326d6e24f871205477542ef40dca6d9f88e9aae083eb74dc",
+        "rows": 6000,
+        "physicalHead": 3500,
+        "firstPhysicalRow": 3500
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 14.556209999999993,
+            "perSnapshotMs": 2.426034999999999,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 10.514240000000001,
+            "perSnapshotMs": 1.7523733333333336,
+            "iterations": 6
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.55601200000001,
+            "perSnapshotMs": 1.759335333333335,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 14.242232999999999,
+            "perSnapshotMs": 2.3737055,
+            "iterations": 6
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.532620000000009,
+            "perSnapshotMs": 2.255436666666668,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 9.77994799999999,
+            "perSnapshotMs": 1.6299913333333318,
+            "iterations": 6
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.50370799999996,
+            "perSnapshotMs": 2.2506179999999936,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 9.776845999999978,
+            "perSnapshotMs": 1.6294743333333297,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.3811926668375458
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 9.756505000000004,
+            "perSnapshotMs": 1.6260841666666674,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.760870000000011,
+            "perSnapshotMs": 2.293478333333335,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.41043027190577
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.628111999999987,
+            "perSnapshotMs": 2.271351999999998,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 11.522686000000022,
+            "perSnapshotMs": 1.9204476666666703,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.1827200706501906
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.758310999999992,
+            "perSnapshotMs": 1.793051833333332,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 15.108149999999966,
+            "perSnapshotMs": 2.5180249999999944,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.4043235968917405
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 13.835960999999998,
+            "perSnapshotMs": 2.3059934999999996,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 9.848961999999972,
+            "perSnapshotMs": 1.641493666666662,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.404814131682104
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.633847000000003,
+            "perSnapshotMs": 1.7723078333333337,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 14.131840000000011,
+            "perSnapshotMs": 2.3553066666666687,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.3289489683272675
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 12.821594000000005,
+            "perSnapshotMs": 2.136932333333334,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 11.307066999999961,
+            "perSnapshotMs": 1.88451116666666,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.133945168981492
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.277246999999988,
+            "perSnapshotMs": 1.712874499999998,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 15.86247000000003,
+            "perSnapshotMs": 2.643745000000005,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.5434551684901654
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 14.606716000000006,
+            "perSnapshotMs": 2.4344526666666675,
+            "iterations": 6
+          },
+          "current": {
+            "elapsedMs": 10.43150700000001,
+            "perSnapshotMs": 1.7385845000000018,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.4002498392609994
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 10.203897999999981,
+            "perSnapshotMs": 1.7006496666666635,
+            "iterations": 6
+          },
+          "baseline": {
+            "elapsedMs": 13.971020000000067,
+            "perSnapshotMs": 2.3285033333333445,
+            "iterations": 6
+          },
+          "ratioBaselineOverCurrent": 1.3691845998460679
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 2.317248416666672,
+          "min": 2.136932333333334,
+          "max": 2.643745000000005,
+          "samples": 10
+        },
+        "current": {
+          "median": 1.7257295,
+          "min": 1.6260841666666674,
+          "max": 1.9204476666666703,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.3907212530492727,
+          "min": 1.133945168981492,
+          "max": 1.5434551684901654,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 6000,
+          "sourceViewCalls": 6000,
+          "copiedFloat32Values": 1368000,
+          "viewedFloat32Values": 1368000,
+          "offsetCalls": 12000,
+          "outputBytes": 5472000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 1368000,
+          "viewedFloat32Values": 1368000,
+          "offsetCalls": 1,
+          "outputBytes": 5472000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "9d04c3f0f61a0653326d6e24f871205477542ef40dca6d9f88e9aae083eb74dc",
+          "unchangedBytes": 5472000,
+          "continuingRows": 6000,
+          "continuingSha256": "534d43d92ab19e4a1b763dd5c82ad41c0739c75a2fee896628751e02e392b1af",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 6017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "9d04c3f0f61a0653326d6e24f871205477542ef40dca6d9f88e9aae083eb74dc",
+          "unchangedBytes": 5472000,
+          "continuingRows": 6000,
+          "continuingSha256": "534d43d92ab19e4a1b763dd5c82ad41c0739c75a2fee896628751e02e392b1af",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 67874816,
+        "heapTotal": 19857408,
+        "heapUsed": 9950352,
+        "external": 15129660,
+        "arrayBuffers": 11200019
+      },
+      "processMaxRssKiB": 102688,
+      "sink": -1842.34375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 54000,
+      "state": "unwrapped-partial",
+      "stride": 228,
+      "ringBytesPerRecorder": 49248000,
+      "exact": {
+        "bytesCompared": 29548800,
+        "differingBytes": 0,
+        "sha256": "e2eb0508d676909e9590238d811736b1a315ca3e06fe4fd32bd0ed917a5eeb4d",
+        "rows": 32400,
+        "physicalHead": 32400,
+        "firstPhysicalRow": 0
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 215.35521000000006,
+            "perSnapshotMs": 107.67760500000003,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 8.665738999999917,
+            "perSnapshotMs": 4.332869499999958,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 6.2088509999999815,
+            "perSnapshotMs": 3.1044254999999907,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 50.89562000000001,
+            "perSnapshotMs": 25.447810000000004,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 16.80334300000004,
+            "perSnapshotMs": 8.40167150000002,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 7.154123999999911,
+            "perSnapshotMs": 3.5770619999999553,
+            "iterations": 2
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 18.59062700000004,
+            "perSnapshotMs": 9.29531350000002,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 7.2587299999999,
+            "perSnapshotMs": 3.62936499999995,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.5611404474336825
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 7.6505710000000136,
+            "perSnapshotMs": 3.8252855000000068,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 16.839217000000076,
+            "perSnapshotMs": 8.419608500000038,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.2010405497838064
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 16.754609999999957,
+            "perSnapshotMs": 8.377304999999978,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 7.213321999999948,
+            "perSnapshotMs": 3.606660999999974,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.3227314682472344
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 7.056589000000031,
+            "perSnapshotMs": 3.5282945000000154,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 16.479572000000076,
+            "perSnapshotMs": 8.239786000000038,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.3353453063512704
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 16.917642999999998,
+            "perSnapshotMs": 8.458821499999999,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 7.1907580000000735,
+            "perSnapshotMs": 3.5953790000000367,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.3526925812271564
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 6.852746000000025,
+            "perSnapshotMs": 3.4263730000000123,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 17.674396,
+            "perSnapshotMs": 8.837198,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.5791698685461184
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 17.35545399999978,
+            "perSnapshotMs": 8.67772699999989,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 7.1772289999998975,
+            "perSnapshotMs": 3.5886144999999487,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.4181273859312595
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 6.863631999999825,
+            "perSnapshotMs": 3.4318159999999125,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 16.58558999999991,
+            "perSnapshotMs": 8.292794999999956,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.4164451124419744
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 16.966045000000122,
+            "perSnapshotMs": 8.483022500000061,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 7.204869000000144,
+            "perSnapshotMs": 3.602434500000072,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.354802703560576
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 6.712158000000045,
+            "perSnapshotMs": 3.3560790000000225,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 14.88758800000005,
+            "perSnapshotMs": 7.443794000000025,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 2.2180032114857773
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 8.439215000000019,
+          "min": 7.443794000000025,
+          "max": 9.29531350000002,
+          "samples": 10
+        },
+        "current": {
+          "median": 3.5919967499999927,
+          "min": 3.3560790000000225,
+          "max": 3.8252855000000068,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 2.3537476423938664,
+          "min": 2.2010405497838064,
+          "max": 2.5791698685461184,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 32400,
+          "sourceViewCalls": 32400,
+          "copiedFloat32Values": 7387200,
+          "viewedFloat32Values": 7387200,
+          "offsetCalls": 64800,
+          "outputBytes": 29548800,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 1,
+          "sourceViewCalls": 1,
+          "copiedFloat32Values": 7387200,
+          "viewedFloat32Values": 7387200,
+          "offsetCalls": 1,
+          "outputBytes": 29548800,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "e2eb0508d676909e9590238d811736b1a315ca3e06fe4fd32bd0ed917a5eeb4d",
+          "unchangedBytes": 29548800,
+          "continuingRows": 54000,
+          "continuingSha256": "0c06af6d7936fa28e9775168984075a18ae43f1e136308e170fba586712017ff",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "e2eb0508d676909e9590238d811736b1a315ca3e06fe4fd32bd0ed917a5eeb4d",
+          "unchangedBytes": 29548800,
+          "continuingRows": 54000,
+          "continuingSha256": "0c06af6d7936fa28e9775168984075a18ae43f1e136308e170fba586712017ff",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 295444480,
+        "heapTotal": 49561600,
+        "heapUsed": 13075152,
+        "external": 102677508,
+        "arrayBuffers": 98752019
+      },
+      "processMaxRssKiB": 288988,
+      "sink": -1618.90625
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 54000,
+      "state": "unwrapped-full",
+      "stride": 228,
+      "ringBytesPerRecorder": 49248000,
+      "exact": {
+        "bytesCompared": 49248000,
+        "differingBytes": 0,
+        "sha256": "80fa0ccd0c8c7aa94ccb93f04c434dc559fc9a6bc3d041e9986ab2a662335b8a",
+        "rows": 54000,
+        "physicalHead": 0,
+        "firstPhysicalRow": 0
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 53.028166999999996,
+            "perSnapshotMs": 26.514083499999998,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 34.08517699999999,
+            "perSnapshotMs": 17.042588499999994,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 35.419219000000055,
+            "perSnapshotMs": 17.709609500000028,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 54.46065500000009,
+            "perSnapshotMs": 27.230327500000044,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 55.559256000000005,
+            "perSnapshotMs": 27.779628000000002,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 35.54155000000003,
+            "perSnapshotMs": 17.770775000000015,
+            "iterations": 2
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 56.66512899999998,
+            "perSnapshotMs": 28.33256449999999,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 158.952626,
+            "perSnapshotMs": 79.476313,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 0.3564906754041294
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 61.19112999999993,
+            "perSnapshotMs": 30.595564999999965,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 58.327988000000005,
+            "perSnapshotMs": 29.163994000000002,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 0.9532098524737176
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 58.63067699999988,
+            "perSnapshotMs": 29.31533849999994,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 42.10968300000013,
+            "perSnapshotMs": 21.054841500000066,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.392332423875043
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 41.0153479999999,
+            "perSnapshotMs": 20.50767399999995,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 61.508730000000014,
+            "perSnapshotMs": 30.754365000000007,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4996515450752768
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 56.41147100000012,
+            "perSnapshotMs": 28.20573550000006,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 37.028047000000015,
+            "perSnapshotMs": 18.514023500000008,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.5234795127056011
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 36.89678300000014,
+            "perSnapshotMs": 18.44839150000007,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 55.724911999999904,
+            "perSnapshotMs": 27.862455999999952,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.5102918864227184
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 54.529060999999956,
+            "perSnapshotMs": 27.264530499999978,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 39.67025600000011,
+            "perSnapshotMs": 19.835128000000054,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.3745578299267796
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 36.300602000000026,
+            "perSnapshotMs": 18.150301000000013,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 54.09088799999995,
+            "perSnapshotMs": 27.045443999999975,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4900823958787215
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 52.77576500000009,
+            "perSnapshotMs": 26.387882500000046,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 36.608243999999786,
+            "perSnapshotMs": 18.304121999999893,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4416360697333748
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 35.42044400000009,
+            "perSnapshotMs": 17.710222000000044,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 54.85769600000003,
+            "perSnapshotMs": 27.428848000000016,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.5487579997585545
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 28.034095750000006,
+          "min": 26.387882500000046,
+          "max": 30.754365000000007,
+          "samples": 10
+        },
+        "current": {
+          "median": 19.17457575000003,
+          "min": 17.710222000000044,
+          "max": 79.476313,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.4658592328060482,
+          "min": 0.3564906754041294,
+          "max": 1.5487579997585545,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 54000,
+          "sourceViewCalls": 54000,
+          "copiedFloat32Values": 12312000,
+          "viewedFloat32Values": 12312000,
+          "offsetCalls": 108000,
+          "outputBytes": 49248000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 1,
+          "sourceViewCalls": 1,
+          "copiedFloat32Values": 12312000,
+          "viewedFloat32Values": 12312000,
+          "offsetCalls": 1,
+          "outputBytes": 49248000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "80fa0ccd0c8c7aa94ccb93f04c434dc559fc9a6bc3d041e9986ab2a662335b8a",
+          "unchangedBytes": 49248000,
+          "continuingRows": 54000,
+          "continuingSha256": "9c603cbb21e0e32d769425b3ab682a54595d581e0c3d01e43f8e6ae712f5e047",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "80fa0ccd0c8c7aa94ccb93f04c434dc559fc9a6bc3d041e9986ab2a662335b8a",
+          "unchangedBytes": 49248000,
+          "continuingRows": 54000,
+          "continuingSha256": "9c603cbb21e0e32d769425b3ab682a54595d581e0c3d01e43f8e6ae712f5e047",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 178528256,
+        "heapTotal": 49299456,
+        "heapUsed": 13077696,
+        "external": 102677508,
+        "arrayBuffers": 98752019
+      },
+      "processMaxRssKiB": 310236,
+      "sink": -1618.90625
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 54000,
+      "state": "wrapped-full",
+      "stride": 228,
+      "ringBytesPerRecorder": 49248000,
+      "exact": {
+        "bytesCompared": 49248000,
+        "differingBytes": 0,
+        "sha256": "2f6d618f088a5bffa571aa725a0f020a90b4be926ef3e5a58218e8b31950961a",
+        "rows": 54000,
+        "physicalHead": 18000,
+        "firstPhysicalRow": 18000
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 92.82765700000004,
+            "perSnapshotMs": 46.41382850000002,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 54.676327000000015,
+            "perSnapshotMs": 27.338163500000007,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 42.54749800000002,
+            "perSnapshotMs": 21.27374900000001,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 59.93878199999995,
+            "perSnapshotMs": 29.969390999999973,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 60.93918699999995,
+            "perSnapshotMs": 30.469593499999974,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 40.759772,
+            "perSnapshotMs": 20.379886,
+            "iterations": 2
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 61.51061600000003,
+            "perSnapshotMs": 30.755308000000014,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 41.89238499999988,
+            "perSnapshotMs": 20.94619249999994,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4683006470030342
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 46.913771,
+            "perSnapshotMs": 23.4568855,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 59.84538199999997,
+            "perSnapshotMs": 29.922690999999986,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.2756463768389026
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 58.956292000000076,
+            "perSnapshotMs": 29.478146000000038,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 40.61780199999998,
+            "perSnapshotMs": 20.30890099999999,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4514889801274844
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 41.18953099999999,
+            "perSnapshotMs": 20.594765499999994,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 55.924911000000066,
+            "perSnapshotMs": 27.962455500000033,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.35774575826076
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 54.23061499999994,
+            "perSnapshotMs": 27.11530749999997,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 39.877072,
+            "perSnapshotMs": 19.938536,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.3599447572279115
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 40.20554100000004,
+            "perSnapshotMs": 20.10277050000002,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 57.84549300000003,
+            "perSnapshotMs": 28.922746500000017,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4387443014384504
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 62.791056000000026,
+            "perSnapshotMs": 31.395528000000013,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 43.834428000000116,
+            "perSnapshotMs": 21.917214000000058,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4324598007757705
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 43.14811899999995,
+            "perSnapshotMs": 21.574059499999976,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 58.770647000000054,
+            "perSnapshotMs": 29.385323500000027,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.3620674171219402
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 59.15973500000018,
+            "perSnapshotMs": 29.57986750000009,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 39.80285200000026,
+            "perSnapshotMs": 19.90142600000013,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4863189954327847
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 42.08913699999994,
+            "perSnapshotMs": 21.04456849999997,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 58.22463700000026,
+            "perSnapshotMs": 29.11231850000013,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.3833649523391356
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 29.431734750000032,
+          "min": 27.11530749999997,
+          "max": 31.395528000000013,
+          "samples": 10
+        },
+        "current": {
+          "median": 20.770478999999966,
+          "min": 19.90142600000013,
+          "max": 23.4568855,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.407912376557453,
+          "min": 1.2756463768389026,
+          "max": 1.4863189954327847,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 54000,
+          "sourceViewCalls": 54000,
+          "copiedFloat32Values": 12312000,
+          "viewedFloat32Values": 12312000,
+          "offsetCalls": 108000,
+          "outputBytes": 49248000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 12312000,
+          "viewedFloat32Values": 12312000,
+          "offsetCalls": 1,
+          "outputBytes": 49248000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "2f6d618f088a5bffa571aa725a0f020a90b4be926ef3e5a58218e8b31950961a",
+          "unchangedBytes": 49248000,
+          "continuingRows": 54000,
+          "continuingSha256": "fa994274c525efa20936d4548aa74df2cf2020ef5b4978a324d6685d260fe0b9",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "2f6d618f088a5bffa571aa725a0f020a90b4be926ef3e5a58218e8b31950961a",
+          "unchangedBytes": 49248000,
+          "continuingRows": 54000,
+          "continuingSha256": "fa994274c525efa20936d4548aa74df2cf2020ef5b4978a324d6685d260fe0b9",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 178208768,
+        "heapTotal": 48513024,
+        "heapUsed": 13075488,
+        "external": 102677508,
+        "arrayBuffers": 98752019
+      },
+      "processMaxRssKiB": 313592,
+      "sink": 6870.09375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 54000,
+      "state": "truncated-wrap",
+      "stride": 228,
+      "ringBytesPerRecorder": 49248000,
+      "exact": {
+        "bytesCompared": 36936000,
+        "differingBytes": 0,
+        "sha256": "4447962c15ca2754843e1a2c50409e291734bee580020486500bb9a78d7ffc3b",
+        "rows": 40500,
+        "physicalHead": 4500,
+        "firstPhysicalRow": 18000
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 43.00538399999999,
+            "perSnapshotMs": 21.502691999999996,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 32.57623100000001,
+            "perSnapshotMs": 16.288115500000004,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 35.76770000000005,
+            "perSnapshotMs": 17.883850000000024,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 41.85438799999997,
+            "perSnapshotMs": 20.927193999999986,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 47.66342400000008,
+            "perSnapshotMs": 23.83171200000004,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 32.11678000000006,
+            "perSnapshotMs": 16.05839000000003,
+            "iterations": 2
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 42.48562500000003,
+            "perSnapshotMs": 21.242812500000014,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 45.204207,
+            "perSnapshotMs": 22.6021035,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 0.93985997807682
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 48.636989000000085,
+            "perSnapshotMs": 24.318494500000043,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 47.83049200000005,
+            "perSnapshotMs": 23.915246000000025,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 0.983418031901604
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 50.36636299999998,
+            "perSnapshotMs": 25.18318149999999,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 48.933599999999956,
+            "perSnapshotMs": 24.466799999999978,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.0292797382575576
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 38.32155200000011,
+            "perSnapshotMs": 19.160776000000055,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 46.951115999999956,
+            "perSnapshotMs": 23.475557999999978,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.2251882700366576
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 49.282588999999916,
+            "perSnapshotMs": 24.641294499999958,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 32.97082799999998,
+            "perSnapshotMs": 16.48541399999999,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4947331319674453
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 33.63873899999999,
+            "perSnapshotMs": 16.819369499999993,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 37.5980390000002,
+            "perSnapshotMs": 18.7990195000001,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.1177006070293007
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 41.318753000000015,
+            "perSnapshotMs": 20.659376500000008,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 122.39006300000005,
+            "perSnapshotMs": 61.19503150000003,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 0.3375989192848115
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 46.55172300000004,
+            "perSnapshotMs": 23.27586150000002,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 50.43126499999994,
+            "perSnapshotMs": 25.21563249999997,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.083338311666786
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 38.76721499999985,
+            "perSnapshotMs": 19.383607499999925,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 33.02610000000004,
+            "perSnapshotMs": 16.51305000000002,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.1738356935877927
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 36.605215000000044,
+            "perSnapshotMs": 18.302607500000022,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 40.568489,
+            "perSnapshotMs": 20.2842445,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.1082707477609393
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 22.359185249999996,
+          "min": 18.7990195000001,
+          "max": 25.21563249999997,
+          "samples": 10
+        },
+        "current": {
+          "median": 20.881439750000027,
+          "min": 16.48541399999999,
+          "max": 61.19503150000003,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.0958045297138628,
+          "min": 0.3375989192848115,
+          "max": 1.4947331319674453,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 40500,
+          "sourceViewCalls": 40500,
+          "copiedFloat32Values": 9234000,
+          "viewedFloat32Values": 9234000,
+          "offsetCalls": 81000,
+          "outputBytes": 36936000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 9234000,
+          "viewedFloat32Values": 9234000,
+          "offsetCalls": 1,
+          "outputBytes": 36936000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "4447962c15ca2754843e1a2c50409e291734bee580020486500bb9a78d7ffc3b",
+          "unchangedBytes": 36936000,
+          "continuingRows": 54000,
+          "continuingSha256": "ba476280af9632553a98962d85653b793fe919e66ae7c1a7d2cecfadb072cb63",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "4447962c15ca2754843e1a2c50409e291734bee580020486500bb9a78d7ffc3b",
+          "unchangedBytes": 36936000,
+          "continuingRows": 54000,
+          "continuingSha256": "ba476280af9632553a98962d85653b793fe919e66ae7c1a7d2cecfadb072cb63",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 177160192,
+        "heapTotal": 49037312,
+        "heapUsed": 13085944,
+        "external": 102677508,
+        "arrayBuffers": 98752019
+      },
+      "processMaxRssKiB": 285308,
+      "sink": 6870.09375
+    },
+    {
+      "kind": "snapshot",
+      "capacity": 54000,
+      "state": "truncated-resumed",
+      "stride": 228,
+      "ringBytesPerRecorder": 49248000,
+      "exact": {
+        "bytesCompared": 49248000,
+        "differingBytes": 0,
+        "sha256": "e5ac511bde9de311d7a44f20a7049a1c5ffbfc66219595d550ca2a45ae2087d1",
+        "rows": 54000,
+        "physicalHead": 31500,
+        "firstPhysicalRow": 31500
+      },
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 69.21158700000001,
+            "perSnapshotMs": 34.605793500000004,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 41.72073799999998,
+            "perSnapshotMs": 20.86036899999999,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 37.23271999999997,
+            "perSnapshotMs": 18.616359999999986,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 55.69878199999994,
+            "perSnapshotMs": 27.84939099999997,
+            "iterations": 2
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 56.710572999999954,
+            "perSnapshotMs": 28.355286499999977,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 36.09260699999993,
+            "perSnapshotMs": 18.046303499999965,
+            "iterations": 2
+          }
+        }
+      ],
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 53.641797,
+            "perSnapshotMs": 26.8208985,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 36.770443,
+            "perSnapshotMs": 18.3852215,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4588292286823956
+        },
+        {
+          "pair": 1,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 39.84177399999999,
+            "perSnapshotMs": 19.920886999999993,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 56.85580000000016,
+            "perSnapshotMs": 28.42790000000008,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4270398702628095
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 63.187501999999995,
+            "perSnapshotMs": 31.593750999999997,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 141.05050499999993,
+            "perSnapshotMs": 70.52525249999997,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 0.4479778502033724
+        },
+        {
+          "pair": 3,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 53.56962900000008,
+            "perSnapshotMs": 26.78481450000004,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 63.49400700000001,
+            "perSnapshotMs": 31.747003500000005,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.1852612792968926
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 53.94094999999993,
+            "perSnapshotMs": 26.970474999999965,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 45.89985999999999,
+            "perSnapshotMs": 22.949929999999995,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.1751876803110062
+        },
+        {
+          "pair": 5,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 37.6891770000002,
+            "perSnapshotMs": 18.8445885000001,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 57.99465000000009,
+            "perSnapshotMs": 28.997325000000046,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.5387613796926312
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 57.72615100000007,
+            "perSnapshotMs": 28.863075500000036,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 36.45448299999998,
+            "perSnapshotMs": 18.22724149999999,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.5835130894600837
+        },
+        {
+          "pair": 7,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 39.29014699999993,
+            "perSnapshotMs": 19.645073499999967,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 56.19499300000007,
+            "perSnapshotMs": 28.097496500000034,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.4302566238807954
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": 52.53818500000011,
+            "perSnapshotMs": 26.269092500000056,
+            "iterations": 2
+          },
+          "current": {
+            "elapsedMs": 34.678928999999926,
+            "perSnapshotMs": 17.339464499999963,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.5149886837624145
+        },
+        {
+          "pair": 9,
+          "order": [
+            "current",
+            "baseline"
+          ],
+          "current": {
+            "elapsedMs": 37.08717400000023,
+            "perSnapshotMs": 18.543587000000116,
+            "iterations": 2
+          },
+          "baseline": {
+            "elapsedMs": 61.43493500000022,
+            "perSnapshotMs": 30.71746750000011,
+            "iterations": 2
+          },
+          "ratioBaselineOverCurrent": 1.6565008431216635
+        }
+      ],
+      "summaryMs": {
+        "baseline": {
+          "median": 28.645487750000058,
+          "min": 26.269092500000056,
+          "max": 31.747003500000005,
+          "samples": 10
+        },
+        "current": {
+          "median": 19.244831000000033,
+          "min": 17.339464499999963,
+          "max": 70.52525249999997,
+          "samples": 10
+        },
+        "pairedBaselineOverCurrent": {
+          "median": 1.4445429262815956,
+          "min": 0.4479778502033724,
+          "max": 1.6565008431216635,
+          "samples": 10
+        }
+      },
+      "operationsUntimed": {
+        "baseline": {
+          "setCalls": 54000,
+          "sourceViewCalls": 54000,
+          "copiedFloat32Values": 12312000,
+          "viewedFloat32Values": 12312000,
+          "offsetCalls": 108000,
+          "outputBytes": 49248000,
+          "outputIndependentOfRing": true
+        },
+        "current": {
+          "setCalls": 2,
+          "sourceViewCalls": 2,
+          "copiedFloat32Values": 12312000,
+          "viewedFloat32Values": 12312000,
+          "offsetCalls": 1,
+          "outputBytes": 49248000,
+          "outputIndependentOfRing": true
+        }
+      },
+      "independenceUntimed": {
+        "baseline": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "e5ac511bde9de311d7a44f20a7049a1c5ffbfc66219595d550ca2a45ae2087d1",
+          "unchangedBytes": 49248000,
+          "continuingRows": 54000,
+          "continuingSha256": "1290437d633663dd31f443eaa298f0e98910c2dde8faece32726ec41f3c73e6d",
+          "independentBuffer": true
+        },
+        "current": {
+          "appendedRows": 54017,
+          "allRingSlotsOverwritten": true,
+          "retainedSha256": "e5ac511bde9de311d7a44f20a7049a1c5ffbfc66219595d550ca2a45ae2087d1",
+          "unchangedBytes": 49248000,
+          "continuingRows": 54000,
+          "continuingSha256": "1290437d633663dd31f443eaa298f0e98910c2dde8faece32726ec41f3c73e6d",
+          "independentBuffer": true
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 187490304,
+        "heapTotal": 48775168,
+        "heapUsed": 13088384,
+        "external": 102677508,
+        "arrayBuffers": 98752019
+      },
+      "processMaxRssKiB": 322856,
+      "sink": 12404.84375
+    }
+  ],
+  "csvNode": [
+    {
+      "kind": "csv-node",
+      "capacity": 600,
+      "retainedInput": {
+        "rows": 600,
+        "stride": 228,
+        "ringBytes": 547200,
+        "snapshotBytes": 547200,
+        "combinedTypedPayloadBytes": 1094400
+      },
+      "warmups": [
+        {
+          "rows": 600,
+          "elapsedMs": 20.733162000000007,
+          "outputBytes": 1268138
+        },
+        {
+          "rows": 600,
+          "elapsedMs": 20.844436,
+          "outputBytes": 1268138
+        },
+        {
+          "rows": 600,
+          "elapsedMs": 19.852452999999997,
+          "outputBytes": 1268138
+        }
+      ],
+      "runs": [
+        {
+          "run": 0,
+          "elapsedMs": 17.862588999999986,
+          "outputBytes": 1268138,
+          "memoryBefore": {
+            "rss": 73695232,
+            "heapTotal": 28246016,
+            "heapUsed": 9237160,
+            "external": 5170620,
+            "arrayBuffers": 2509117
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 76972032,
+            "heapTotal": 33144832,
+            "heapUsed": 16237800,
+            "external": 6438798,
+            "arrayBuffers": 5045393
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 76185600,
+            "heapTotal": 27721728,
+            "heapUsed": 9303376,
+            "external": 5170660,
+            "arrayBuffers": 3777255
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 76185600,
+            "heapTotal": 27721728,
+            "heapUsed": 9316784,
+            "external": 5170660,
+            "arrayBuffers": 2509117
+          }
+        },
+        {
+          "run": 1,
+          "elapsedMs": 17.681178999999986,
+          "outputBytes": 1268138,
+          "memoryBefore": {
+            "rss": 76185600,
+            "heapTotal": 27721728,
+            "heapUsed": 9315736,
+            "external": 5170660,
+            "arrayBuffers": 2509117
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 78675968,
+            "heapTotal": 33406976,
+            "heapUsed": 16283024,
+            "external": 6438798,
+            "arrayBuffers": 5045393
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 76185600,
+            "heapTotal": 27721728,
+            "heapUsed": 9325744,
+            "external": 5170660,
+            "arrayBuffers": 3777255
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 76185600,
+            "heapTotal": 27721728,
+            "heapUsed": 9325872,
+            "external": 5170660,
+            "arrayBuffers": 2509117
+          }
+        },
+        {
+          "run": 2,
+          "elapsedMs": 19.12623500000001,
+          "outputBytes": 1268138,
+          "memoryBefore": {
+            "rss": 76185600,
+            "heapTotal": 27721728,
+            "heapUsed": 9326016,
+            "external": 5170660,
+            "arrayBuffers": 2509117
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 79331328,
+            "heapTotal": 50184192,
+            "heapUsed": 16293112,
+            "external": 6438798,
+            "arrayBuffers": 5045393
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 76869632,
+            "heapTotal": 44498944,
+            "heapUsed": 9327200,
+            "external": 5170660,
+            "arrayBuffers": 3777255
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 76869632,
+            "heapTotal": 44498944,
+            "heapUsed": 9327544,
+            "external": 5170660,
+            "arrayBuffers": 2509117
+          }
+        }
+      ],
+      "elapsedMs": {
+        "median": 17.862588999999986,
+        "min": 17.681178999999986,
+        "max": 19.12623500000001,
+        "samples": 3
+      },
+      "exact": {
+        "comparedBytes": 1268138,
+        "differingBytes": 0,
+        "expectedChunks": 3,
+        "sha256": "120e22a8e14c8efe4f2ff77b7e952f33abb8c8f33e209c09b0fcb3493bbe5298"
+      },
+      "blobConstructionUntimed": {
+        "parts": 3,
+        "retainedStringCodeUnits": 1268138,
+        "largestStringCodeUnits": 1061004,
+        "beforeNativeConstructor": {
+          "rss": 78311424,
+          "heapTotal": 48914432,
+          "heapUsed": 23262160,
+          "external": 5170660,
+          "arrayBuffers": 2509117
+        },
+        "afterNativeConstructor": {
+          "rss": 79622144,
+          "heapTotal": 50184192,
+          "heapUsed": 24536512,
+          "external": 6438798,
+          "arrayBuffers": 5045393
+        },
+        "outputBytes": 1268138,
+        "afterGcWithInputRingAndBlob": {
+          "rss": 77107200,
+          "heapTotal": 44498944,
+          "heapUsed": 9333520,
+          "external": 5170660,
+          "arrayBuffers": 3777255
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 77238272,
+        "heapTotal": 44498944,
+        "heapUsed": 9341688,
+        "external": 5170660,
+        "arrayBuffers": 2509117
+      },
+      "stillLiveRingBytes": 547200,
+      "stillLiveSnapshotBytes": 547200,
+      "processMaxRssKiB": 81312,
+      "limits": [
+        "Node/V8 only; these are not browser worker memory measurements.",
+        "process.memoryUsage samples and process max RSS are not exact per-export peak live bytes.",
+        "All completed CSV strings remain in the production chunks array until Blob construction.",
+        "The 216000-row configured maximum is reported arithmetically, not allocated or timed."
+      ]
+    },
+    {
+      "kind": "csv-node",
+      "capacity": 6000,
+      "retainedInput": {
+        "rows": 6000,
+        "stride": 228,
+        "ringBytes": 5472000,
+        "snapshotBytes": 5472000,
+        "combinedTypedPayloadBytes": 10944000
+      },
+      "warmups": [
+        {
+          "rows": 600,
+          "elapsedMs": 49.434629,
+          "outputBytes": 1268138
+        },
+        {
+          "rows": 600,
+          "elapsedMs": 34.50395499999999,
+          "outputBytes": 1268138
+        },
+        {
+          "rows": 600,
+          "elapsedMs": 24.350210000000004,
+          "outputBytes": 1268138
+        }
+      ],
+      "runs": [
+        {
+          "run": 0,
+          "elapsedMs": 307.22046100000006,
+          "outputBytes": 12765467,
+          "memoryBefore": {
+            "rss": 87179264,
+            "heapTotal": 27197440,
+            "heapUsed": 9237552,
+            "external": 15020220,
+            "arrayBuffers": 12358717
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 151724032,
+            "heapTotal": 61243392,
+            "heapUsed": 24155896,
+            "external": 19276324,
+            "arrayBuffers": 29380248
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 149385216,
+            "heapTotal": 77791232,
+            "heapUsed": 7912512,
+            "external": 15016108,
+            "arrayBuffers": 25124184
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 131248128,
+            "heapTotal": 77529088,
+            "heapUsed": 7915208,
+            "external": 15016108,
+            "arrayBuffers": 12358717
+          }
+        },
+        {
+          "run": 1,
+          "elapsedMs": 311.92459999999994,
+          "outputBytes": 12765467,
+          "memoryBefore": {
+            "rss": 131248128,
+            "heapTotal": 77529088,
+            "heapUsed": 7914160,
+            "external": 15016108,
+            "arrayBuffers": 12358717
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 212381696,
+            "heapTotal": 108855296,
+            "heapUsed": 53105184,
+            "external": 27781575,
+            "arrayBuffers": 37889651
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 186941440,
+            "heapTotal": 77004800,
+            "heapUsed": 7915176,
+            "external": 15016108,
+            "arrayBuffers": 25124184
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 163667968,
+            "heapTotal": 77004800,
+            "heapUsed": 7915360,
+            "external": 15016108,
+            "arrayBuffers": 12358717
+          }
+        },
+        {
+          "run": 2,
+          "elapsedMs": 196.66099200000008,
+          "outputBytes": 12765467,
+          "memoryBefore": {
+            "rss": 163667968,
+            "heapTotal": 77004800,
+            "heapUsed": 7915504,
+            "external": 15016108,
+            "arrayBuffers": 12358717
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 218324992,
+            "heapTotal": 176226304,
+            "heapUsed": 53028792,
+            "external": 27781575,
+            "arrayBuffers": 37889651
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 192790528,
+            "heapTotal": 144113664,
+            "heapUsed": 7910056,
+            "external": 15016108,
+            "arrayBuffers": 25124184
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 169517056,
+            "heapTotal": 144113664,
+            "heapUsed": 7910416,
+            "external": 15016108,
+            "arrayBuffers": 12358717
+          }
+        }
+      ],
+      "elapsedMs": {
+        "median": 307.22046100000006,
+        "min": 196.66099200000008,
+        "max": 311.92459999999994,
+        "samples": 3
+      },
+      "exact": {
+        "comparedBytes": 12765467,
+        "differingBytes": 0,
+        "expectedChunks": 13,
+        "sha256": "850e30ef0e040881426d0a18a604ff2a931f197e3eebbcdadf240f2313f829b1"
+      },
+      "blobConstructionUntimed": {
+        "parts": 13,
+        "retainedStringCodeUnits": 12765467,
+        "largestStringCodeUnits": 1064719,
+        "beforeNativeConstructor": {
+          "rss": 220372992,
+          "heapTotal": 194379776,
+          "heapUsed": 80438608,
+          "external": 15016108,
+          "arrayBuffers": 12358717
+        },
+        "afterNativeConstructor": {
+          "rss": 256417792,
+          "heapTotal": 207159296,
+          "heapUsed": 93217376,
+          "external": 27781575,
+          "arrayBuffers": 37889651
+        },
+        "outputBytes": 12765467,
+        "afterGcWithInputRingAndBlob": {
+          "rss": 230985728,
+          "heapTotal": 144113664,
+          "heapUsed": 7916592,
+          "external": 15016108,
+          "arrayBuffers": 25124184
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 207704064,
+        "heapTotal": 144113664,
+        "heapUsed": 7924536,
+        "external": 15016108,
+        "arrayBuffers": 12358717
+      },
+      "stillLiveRingBytes": 5472000,
+      "stillLiveSnapshotBytes": 5472000,
+      "processMaxRssKiB": 250408,
+      "limits": [
+        "Node/V8 only; these are not browser worker memory measurements.",
+        "process.memoryUsage samples and process max RSS are not exact per-export peak live bytes.",
+        "All completed CSV strings remain in the production chunks array until Blob construction.",
+        "The 216000-row configured maximum is reported arithmetically, not allocated or timed."
+      ]
+    },
+    {
+      "kind": "csv-node",
+      "capacity": 54000,
+      "retainedInput": {
+        "rows": 54000,
+        "stride": 228,
+        "ringBytes": 49248000,
+        "snapshotBytes": 49248000,
+        "combinedTypedPayloadBytes": 98496000
+      },
+      "warmups": [
+        {
+          "rows": 600,
+          "elapsedMs": 29.94532000000001,
+          "outputBytes": 1268138
+        },
+        {
+          "rows": 600,
+          "elapsedMs": 20.178279000000003,
+          "outputBytes": 1268138
+        },
+        {
+          "rows": 600,
+          "elapsedMs": 22.867491,
+          "outputBytes": 1268138
+        }
+      ],
+      "runs": [
+        {
+          "run": 0,
+          "elapsedMs": 2680.5951560000003,
+          "outputBytes": 115038761,
+          "memoryBefore": {
+            "rss": 172445696,
+            "heapTotal": 27459584,
+            "heapUsed": 9243224,
+            "external": 102572220,
+            "arrayBuffers": 99910717
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 637345792,
+            "heapTotal": 269979648,
+            "heapUsed": 133520656,
+            "external": 114286539,
+            "arrayBuffers": 226667909
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 514170880,
+            "heapTotal": 144113664,
+            "heapUsed": 7918928,
+            "external": 102568108,
+            "arrayBuffers": 214949478
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 490651648,
+            "heapTotal": 144113664,
+            "heapUsed": 7921552,
+            "external": 102568108,
+            "arrayBuffers": 99910717
+          }
+        },
+        {
+          "run": 1,
+          "elapsedMs": 1688.7569240000003,
+          "outputBytes": 115038761,
+          "memoryBefore": {
+            "rss": 490651648,
+            "heapTotal": 144113664,
+            "heapUsed": 7920504,
+            "external": 102568108,
+            "arrayBuffers": 99910717
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 670662656,
+            "heapTotal": 287047680,
+            "heapUsed": 150689944,
+            "external": 131327534,
+            "arrayBuffers": 243708904
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 527753216,
+            "heapTotal": 144113664,
+            "heapUsed": 7917296,
+            "external": 102568108,
+            "arrayBuffers": 214949478
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 490594304,
+            "heapTotal": 144113664,
+            "heapUsed": 7918008,
+            "external": 102568108,
+            "arrayBuffers": 99910717
+          }
+        },
+        {
+          "run": 2,
+          "elapsedMs": 1619.3865850000002,
+          "outputBytes": 115038761,
+          "memoryBefore": {
+            "rss": 490594304,
+            "heapTotal": 144113664,
+            "heapUsed": 7918152,
+            "external": 102568108,
+            "arrayBuffers": 99910717
+          },
+          "memoryImmediatelyAfter": {
+            "rss": 670699520,
+            "heapTotal": 287047680,
+            "heapUsed": 150705496,
+            "external": 131327534,
+            "arrayBuffers": 243708904
+          },
+          "memoryAfterGcWithInputRingAndBlob": {
+            "rss": 527794176,
+            "heapTotal": 144113664,
+            "heapUsed": 7920440,
+            "external": 102568108,
+            "arrayBuffers": 214949478
+          },
+          "memoryAfterBlobReleaseGc": {
+            "rss": 499167232,
+            "heapTotal": 144113664,
+            "heapUsed": 7921152,
+            "external": 102568108,
+            "arrayBuffers": 99910717
+          }
+        }
+      ],
+      "elapsedMs": {
+        "median": 1688.7569240000003,
+        "min": 1619.3865850000002,
+        "max": 2680.5951560000003,
+        "samples": 3
+      },
+      "exact": {
+        "comparedBytes": 115038761,
+        "differingBytes": 0,
+        "expectedChunks": 109,
+        "sha256": "cfc38f4dd65c878d824866c817e65511b1287161c525e3c8cafaed9bf7ad0d9b"
+      },
+      "blobConstructionUntimed": {
+        "parts": 109,
+        "retainedStringCodeUnits": 115038761,
+        "largestStringCodeUnits": 1067915,
+        "beforeNativeConstructor": {
+          "rss": 605786112,
+          "heapTotal": 328515584,
+          "heapUsed": 214688960,
+          "external": 102568108,
+          "arrayBuffers": 99910717
+        },
+        "afterNativeConstructor": {
+          "rss": 669671424,
+          "heapTotal": 288112640,
+          "heapUsed": 151767392,
+          "external": 133449215,
+          "arrayBuffers": 245830585
+        },
+        "outputBytes": 115038761,
+        "afterGcWithInputRingAndBlob": {
+          "rss": 525746176,
+          "heapTotal": 144113664,
+          "heapUsed": 7928976,
+          "external": 102568108,
+          "arrayBuffers": 214949478
+        }
+      },
+      "memoryAfterGc": {
+        "rss": 499240960,
+        "heapTotal": 144113664,
+        "heapUsed": 7935984,
+        "external": 102568108,
+        "arrayBuffers": 99910717
+      },
+      "stillLiveRingBytes": 49248000,
+      "stillLiveSnapshotBytes": 49248000,
+      "processMaxRssKiB": 654980,
+      "limits": [
+        "Node/V8 only; these are not browser worker memory measurements.",
+        "process.memoryUsage samples and process max RSS are not exact per-export peak live bytes.",
+        "All completed CSV strings remain in the production chunks array until Blob construction.",
+        "The 216000-row configured maximum is reported arithmetically, not allocated or timed."
+      ]
+    }
+  ],
+  "browser": null,
+  "nodeBundleSha256": "9c3cfd54e7a1f5f99244a3e17181743a6477cc7acd3f21ce804ffe7183067ce3",
+  "sources": [
+    {
+      "role": "baseline",
+      "path": "src/core/math.ts",
+      "gitBlob": "5158d9dd40981bd2e00913f5222403189157035e",
+      "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "bytes": 5754
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/aero-map.ts",
+      "gitBlob": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+      "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+      "bytes": 3409
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/bike-definitions.ts",
+      "gitBlob": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+      "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76",
+      "bytes": 28095
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/differential.ts",
+      "gitBlob": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+      "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4",
+      "bytes": 17163
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/offroad/dirt-bikes.ts",
+      "gitBlob": "9eaba5ba8ac7471cd90f98a4e27765211add4e60",
+      "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+      "bytes": 7870
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/powertrain.ts",
+      "gitBlob": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+      "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+      "bytes": 5588
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/protocol.ts",
+      "gitBlob": "1d795cb5ce9e128432650b28a8a74c7b3b010df9",
+      "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+      "bytes": 16910
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/tire-families.ts",
+      "gitBlob": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+      "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681",
+      "bytes": 3850
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/builder.ts",
+      "gitBlob": "9ec154fbde4b52d868e3c372ef3599091fb2c039",
+      "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "bytes": 14798
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/common.ts",
+      "gitBlob": "dc7d90bee3fad4213ddb707b985b9abfd58877bc",
+      "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "bytes": 1768
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/dirt-2.ts",
+      "gitBlob": "bbaffab1f737e8100f45cb14acbd4426ef24a710",
+      "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "bytes": 8794
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/dirt.ts",
+      "gitBlob": "8e513fb5fa509d7a41c9b23204a46913a722e43f",
+      "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "bytes": 5931
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/endurance.ts",
+      "gitBlob": "a92dfad3635f17479b4f7d07df22ff4b4f442bb8",
+      "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "bytes": 3649
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/experimental.ts",
+      "gitBlob": "5c21cdef687574a98b946ab53c640da59c896f40",
+      "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+      "bytes": 11831
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/formula.ts",
+      "gitBlob": "d082a85123b1994735cf717f1693b9661189639e",
+      "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "bytes": 3605
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+      "gitBlob": "f49298f1d419040ad89b391ec82ba7a42e04cd81",
+      "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+      "bytes": 6000
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/gt.ts",
+      "gitBlob": "f268494812dcc5325ed6677147ff86a110745297",
+      "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "bytes": 5366
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/index.ts",
+      "gitBlob": "22ffe0d83d2927fffbe7bb089740d191c7035c86",
+      "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "bytes": 2615
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/prototypes.ts",
+      "gitBlob": "4db6efeaa7b7f2fd7925914a72026f747240b9b3",
+      "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "bytes": 6229
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/road-festival.ts",
+      "gitBlob": "4f86fdb2929614ed6e2d9466e2963861fb6432a6",
+      "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "bytes": 15667
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/single-seaters.ts",
+      "gitBlob": "372e243cd0131b246b0733e90fae8fe44b29b1d5",
+      "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+      "bytes": 10703
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/small-road.ts",
+      "gitBlob": "6a4ab7c2be816691f9af2f881f61ab8f4028587e",
+      "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "bytes": 6540
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+      "gitBlob": "56494a440755c1563cd29e4f490ec189ca151124",
+      "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "bytes": 6256
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicle-catalogue/touring-club.ts",
+      "gitBlob": "bfdeed26bb0f30d4cbc06046831d40c1da129b4a",
+      "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+      "bytes": 3653
+    },
+    {
+      "role": "baseline",
+      "path": "src/simulation/vehicles.ts",
+      "gitBlob": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+      "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+      "bytes": 14876
+    },
+    {
+      "role": "baseline",
+      "path": "src/storage/recorders.ts",
+      "gitBlob": "23548b23fd0a6faa93dc8e0ca812f348db5e7524",
+      "sha256": "f6bdbf197f50dffc5cce07dacf7df1a6f73f63a1559fe3e354a552c6c50d196f",
+      "bytes": 8093
+    },
+    {
+      "role": "baseline",
+      "path": "src/storage/telemetry-plots.ts",
+      "gitBlob": "51174bc374f5be7e7f15b978a942aa84d2314f70",
+      "sha256": "9fde79db629f134f6572d22a0986a8291ef6dc668b346be6bc9a3651b45ea432",
+      "bytes": 14689
+    },
+    {
+      "role": "baseline",
+      "path": "src/storage/telemetry-schema.ts",
+      "gitBlob": "436ceef36e345d39981b9ba920abea441929e647",
+      "sha256": "3eaeeeaf3d870ced27977df037b848dc2ddee1f2bdd77cf6c80cc3fdc625223a",
+      "bytes": 6175
+    },
+    {
+      "role": "current",
+      "path": "src/core/math.ts",
+      "gitBlob": "5158d9dd40981bd2e00913f5222403189157035e",
+      "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "bytes": 5754
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/aero-map.ts",
+      "gitBlob": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+      "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+      "bytes": 3409
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/bike-definitions.ts",
+      "gitBlob": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+      "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76",
+      "bytes": 28095
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/differential.ts",
+      "gitBlob": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+      "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4",
+      "bytes": 17163
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/offroad/dirt-bikes.ts",
+      "gitBlob": "9eaba5ba8ac7471cd90f98a4e27765211add4e60",
+      "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+      "bytes": 7870
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/powertrain.ts",
+      "gitBlob": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+      "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+      "bytes": 5588
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/protocol.ts",
+      "gitBlob": "1d795cb5ce9e128432650b28a8a74c7b3b010df9",
+      "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a",
+      "bytes": 16910
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/tire-families.ts",
+      "gitBlob": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+      "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681",
+      "bytes": 3850
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/builder.ts",
+      "gitBlob": "9ec154fbde4b52d868e3c372ef3599091fb2c039",
+      "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "bytes": 14798
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/common.ts",
+      "gitBlob": "dc7d90bee3fad4213ddb707b985b9abfd58877bc",
+      "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "bytes": 1768
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/dirt-2.ts",
+      "gitBlob": "bbaffab1f737e8100f45cb14acbd4426ef24a710",
+      "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "bytes": 8794
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/dirt.ts",
+      "gitBlob": "8e513fb5fa509d7a41c9b23204a46913a722e43f",
+      "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "bytes": 5931
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/endurance.ts",
+      "gitBlob": "a92dfad3635f17479b4f7d07df22ff4b4f442bb8",
+      "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "bytes": 3649
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/experimental.ts",
+      "gitBlob": "5c21cdef687574a98b946ab53c640da59c896f40",
+      "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+      "bytes": 11831
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/formula.ts",
+      "gitBlob": "d082a85123b1994735cf717f1693b9661189639e",
+      "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "bytes": 3605
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+      "gitBlob": "f49298f1d419040ad89b391ec82ba7a42e04cd81",
+      "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+      "bytes": 6000
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/gt.ts",
+      "gitBlob": "f268494812dcc5325ed6677147ff86a110745297",
+      "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "bytes": 5366
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/index.ts",
+      "gitBlob": "22ffe0d83d2927fffbe7bb089740d191c7035c86",
+      "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "bytes": 2615
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/prototypes.ts",
+      "gitBlob": "4db6efeaa7b7f2fd7925914a72026f747240b9b3",
+      "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "bytes": 6229
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/road-festival.ts",
+      "gitBlob": "4f86fdb2929614ed6e2d9466e2963861fb6432a6",
+      "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "bytes": 15667
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/single-seaters.ts",
+      "gitBlob": "372e243cd0131b246b0733e90fae8fe44b29b1d5",
+      "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+      "bytes": 10703
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/small-road.ts",
+      "gitBlob": "6a4ab7c2be816691f9af2f881f61ab8f4028587e",
+      "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "bytes": 6540
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+      "gitBlob": "56494a440755c1563cd29e4f490ec189ca151124",
+      "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "bytes": 6256
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicle-catalogue/touring-club.ts",
+      "gitBlob": "bfdeed26bb0f30d4cbc06046831d40c1da129b4a",
+      "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+      "bytes": 3653
+    },
+    {
+      "role": "current",
+      "path": "src/simulation/vehicles.ts",
+      "gitBlob": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+      "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347",
+      "bytes": 14876
+    },
+    {
+      "role": "current",
+      "path": "src/storage/recorders.ts",
+      "gitBlob": "96d4accd8beb03b2722ebd081413b75109f8168b",
+      "sha256": "38375defa0d9c3371f93801a6a4c0017dcb9f119376355e064af3f640662ca72",
+      "bytes": 8627
+    },
+    {
+      "role": "current",
+      "path": "src/storage/telemetry-plots.ts",
+      "gitBlob": "51174bc374f5be7e7f15b978a942aa84d2314f70",
+      "sha256": "9fde79db629f134f6572d22a0986a8291ef6dc668b346be6bc9a3651b45ea432",
+      "bytes": 14689
+    },
+    {
+      "role": "current",
+      "path": "src/storage/telemetry-schema.ts",
+      "gitBlob": "436ceef36e345d39981b9ba920abea441929e647",
+      "sha256": "3eaeeeaf3d870ced27977df037b848dc2ddee1f2bdd77cf6c80cc3fdc625223a",
+      "bytes": 6175
+    }
+  ],
+  "completedAt": "2026-11-25T03:14:55.079Z"
+}

@@ -1,0 +1,4267 @@
+{
+  "schema": "engine-followup-texture/v1",
+  "worker": "worker42 / wave7 assignment f",
+  "status": "passed",
+  "startedAt": "2026-11-25T03:28:23.301Z",
+  "invocation": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/tmp/engine-c71f32882729/repo/scripts/bench/engine-followup-texture.mjs",
+    "--repo",
+    "/tmp/engine-c71f32882729/repo",
+    "--baseline",
+    "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "--candidate",
+    "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+    "--evidence-commit",
+    "0f7fecfda61ea7e669f04eebd138c52543144421",
+    "--scratch",
+    "/tmp/engine-c71f32882729/w07f-work/run",
+    "--output",
+    "/tmp/engine-c71f32882729/w07f-work/w07f-texture.json"
+  ],
+  "options": {
+    "repo": "/tmp/engine-c71f32882729/repo",
+    "baseline": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "candidate": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+    "evidenceCommit": "0f7fecfda61ea7e669f04eebd138c52543144421",
+    "warmupPairs": 6,
+    "pairs": 12,
+    "repetitions": 16,
+    "heapMb": 384,
+    "scratch": "/tmp/engine-c71f32882729/w07f-work/run",
+    "output": "/tmp/engine-c71f32882729/w07f-work/w07f-texture.json"
+  },
+  "environment": {
+    "node": "v24.22.3",
+    "v8": "13.6.233.17-node.63",
+    "esbuild": "0.25.12",
+    "three": "0.180.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "kernel": "6.18.57",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCPUs": 9,
+    "totalMemoryBytes": 10451427328,
+    "loadAverageAtStart": [
+      0.33,
+      0.98,
+      0.81
+    ],
+    "childOldSpaceMiB": 384,
+    "loadAverageAtEnd": [
+      0.56,
+      0.99,
+      0.82
+    ]
+  },
+  "sources": {
+    "baselineCommit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+    "candidateCommit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+    "repositoryHeadAtRun": "0f7fecfda61ea7e669f04eebd138c52543144421",
+    "sourceGraph": [
+      {
+        "variant": "baseline",
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/rendering/foliage-mipmaps.ts",
+        "gitBlob": "d2a24c06c17ea40acfdd598bb723e4da1bfa86dd",
+        "sha256": "da4abb9ae50380686d5bfba027280fe23aa763a66090ee1003dd3795774c5174",
+        "bytes": 3904
+      },
+      {
+        "variant": "baseline",
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/rendering/imported-texture-budget.ts",
+        "gitBlob": "f15934fbd975e965fd2a20a4ced5bb26d83eae42",
+        "sha256": "06474e8906e7cc6debc447eab9c53eea3bfeded9c0334555bec15329206ba239",
+        "bytes": 6153
+      },
+      {
+        "variant": "baseline",
+        "commit": "1c609bfa7006ee2c51a32a97f1fedd61c6c1bfcb",
+        "path": "src/rendering/texture-budget.ts",
+        "gitBlob": "a5a7c025830257253a45375008aa611ff6caee87",
+        "sha256": "b50da77a8ba36ea175c0612f3c6006cde11882aacafdce59a31d4c1f511c8167",
+        "bytes": 7965
+      },
+      {
+        "variant": "candidate",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/rendering/foliage-mipmaps.ts",
+        "gitBlob": "d2a24c06c17ea40acfdd598bb723e4da1bfa86dd",
+        "sha256": "da4abb9ae50380686d5bfba027280fe23aa763a66090ee1003dd3795774c5174",
+        "bytes": 3904
+      },
+      {
+        "variant": "candidate",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/rendering/imported-texture-budget.ts",
+        "gitBlob": "38ab7945c09891b251e43aedc558e72a8c76ee40",
+        "sha256": "f151bb6a72cbb6b125151b8a7d3b1bdee593309c6267aa558c79190986344f58",
+        "bytes": 6990
+      },
+      {
+        "variant": "candidate",
+        "commit": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+        "path": "src/rendering/texture-budget.ts",
+        "gitBlob": "35f76548eb3d78471c62ab67f6bd48e46251454c",
+        "sha256": "86ea998c33e9564b94fe8914abb0869e945875303f53381a053562054750f256",
+        "bytes": 8855
+      }
+    ],
+    "orchestratorSHA256": "7842d39bde5e783da972aff18e04f44cbb3087dc696572c06e9f02c848c57c22",
+    "workerSHA256": "326e671510a384ade17b9f8a152997c0103dc00580ba949249c4e2a18e97a1bf",
+    "bundles": {
+      "baseline": {
+        "path": "/tmp/engine-c71f32882729/w07f-work/run/texture-baseline.bundle.mjs",
+        "sha256": "5ddb23e4a4510ea51488178cc4ddf27f5ce43334e29bd5b74556f9e5cee8b094"
+      },
+      "candidate": {
+        "path": "/tmp/engine-c71f32882729/w07f-work/run/texture-candidate.bundle.mjs",
+        "sha256": "3c5e05e57b10cc6b49392916c6b4a2f90aa3133521e76d0f61d42f83a12b8767"
+      }
+    },
+    "dependencyFiles": [
+      {
+        "path": "node_modules/three/package.json",
+        "sha256": "aa42494664dba4cf76d89c6975ee38321a402f09a048672e190bad6f13beec93"
+      },
+      {
+        "path": "node_modules/three/build/three.module.js",
+        "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+      },
+      {
+        "path": "node_modules/three/build/three.core.js",
+        "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+      }
+    ]
+  },
+  "methodology": {
+    "source": "Actual git show bytes from each pinned commit, bundled with its own imported-texture-budget and foliage-mipmaps dependencies; no reconstructed baseline algorithm.",
+    "fixtures": "Every authored fixture image is a 1024x512 scalar canvas double. Generated cases use real Three.js CanvasTexture wrappers; imported cases use real Texture wrappers with flipY=false and immutableAssetTexture=true. The budget is configured to 128 pixels and anisotropy 2. Each wrapper appears in both map and alphaMap material slots. The mixed case has four authored sources and six budget groups, including a scale-2 claim and a separate CPU-readback claim.",
+    "operations": "Untimed separate proof processes use instrumented scalar canvas doubles, real Three.js 0.180.0 classes, duplicate map/alphaMap material slots and actual engine traversal. Counts are logical calls/version increments, not physical allocation or GPU work.",
+    "timing": "Separate fresh Node child per variant per case. Only one child executes each sample; pair order alternates. Six default warmup pairs (96 fresh registrations per variant per case) precede twelve measured pairs (192 registrations per variant per case). All raw per-registration durations are retained.",
+    "timedBoundary": "Only TextureBudget.register(root), including traversal, source/group ownership, stub canvas calls, wrapper disposal dispatch and version updates. The uninstrumented scalar canvas double does no rasterization, pixel copying or WebGL work.",
+    "outsideTiming": [
+      "module/process startup",
+      "canvas/texture/material/mesh fixture construction",
+      "budget construction/configuration",
+      "explicit GC before each multi-registration sample",
+      "assertions and checksum",
+      "budget/geometry/material cleanup",
+      "IPC and JSON serialization"
+    ],
+    "nativeEvidence": "Reuses committed w06d native results after validating target source hashes against candidate. This run does not rerun browser tests or compare baseline native pixels directly.",
+    "caveats": [
+      "Both implementations already share budget Source storage. No GPU-allocation reduction is claimed.",
+      "Imported immutable images already drew once in the baseline; their measured improvement is repeated wrapper-update/traversal work.",
+      "Initial resize disposal-event counts increase when every acquired wrapper is invalidated together; these events are reported separately and do not count allocated GPU objects.",
+      "Registration microbenchmark on one Node/runtime/host. No browser/GPU duration, end-to-end frame time/FPS or GC/allocation-rate claim.",
+      "Elapsed timings include any incidental runtime pauses within register. CPU affinity, frequency and JIT tier are not controlled."
+    ]
+  },
+  "nativeEvidence": {
+    "reused": true,
+    "artifactCommit": "0f7fecfda61ea7e669f04eebd138c52543144421",
+    "path": "docs/engine/runtime-followup-2026-11-24/validation/w06d-metrics.json",
+    "sha256": "dbc85551a9a236e9668f1b67810447ae17b73a5621e77cadc9fd72f96ef440e3",
+    "sourceChecks": [
+      {
+        "path": "src/rendering/texture-budget.ts",
+        "candidateBlob": "35f76548eb3d78471c62ab67f6bd48e46251454c",
+        "evidenceCommitBlob": "35f76548eb3d78471c62ab67f6bd48e46251454c",
+        "identical": true
+      },
+      {
+        "path": "src/rendering/imported-texture-budget.ts",
+        "candidateBlob": "38ab7945c09891b251e43aedc558e72a8c76ee40",
+        "evidenceCommitBlob": "38ab7945c09891b251e43aedc558e72a8c76ee40",
+        "identical": true
+      },
+      {
+        "path": "src/rendering/foliage-mipmaps.ts",
+        "candidateBlob": "d2a24c06c17ea40acfdd598bb723e4da1bfa86dd",
+        "evidenceCommitBlob": "d2a24c06c17ea40acfdd598bb723e4da1bfa86dd",
+        "identical": true
+      }
+    ],
+    "fixtures": [
+      {
+        "path": "e2e/engine-native-resources.spec.ts",
+        "commit": "0f7fecfda61ea7e669f04eebd138c52543144421",
+        "gitBlob": "0b6e28c14df832fc5ab4bf0572970d6809b47935",
+        "sha256": "4b16d3d06eec317ae685bbf4b173db7043b37c0467d85771a92b39677b17b882"
+      },
+      {
+        "path": "e2e/fixtures/engine-native-resources.ts",
+        "commit": "0f7fecfda61ea7e669f04eebd138c52543144421",
+        "gitBlob": "876cd67578cef748c22ba5e3b864ea1063e1de1e",
+        "sha256": "ae20121e84a156a3fa1be3cb8eeda1f8b5336d85f789736584ec1b98e287b76f"
+      }
+    ],
+    "texture": {
+      "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "registration": {
+        "wrappers": 1025,
+        "drawCalls": 3,
+        "versionIncrements": 1025,
+        "groups": 3,
+        "sizes": [
+          [
+            64,
+            32
+          ],
+          [
+            64,
+            32
+          ],
+          [
+            128,
+            64
+          ]
+        ],
+        "filters": [
+          {
+            "minFilter": 1008,
+            "mipmaps": true,
+            "anisotropy": 2
+          },
+          {
+            "minFilter": 1008,
+            "mipmaps": true,
+            "anisotropy": 2
+          },
+          {
+            "minFilter": 1008,
+            "mipmaps": true,
+            "anisotropy": 2
+          }
+        ]
+      },
+      "beforeUpload": {
+        "textures": 0,
+        "geometries": 0,
+        "programs": 0,
+        "programUses": 0
+      },
+      "afterUpload": {
+        "textures": 3,
+        "geometries": 0,
+        "programs": 0,
+        "programUses": 0
+      },
+      "pixels": [
+        {
+          "canvasDifferences": 0,
+          "gpuDifferences": 0,
+          "canvasHash": "9aa16dc5",
+          "referenceCanvasHash": "9aa16dc5",
+          "gpuHash": "f4a16dc5",
+          "referenceGpuHash": "f4a16dc5"
+        },
+        {
+          "canvasDifferences": 0,
+          "gpuDifferences": 0,
+          "canvasHash": "9aa16dc5",
+          "referenceCanvasHash": "9aa16dc5",
+          "gpuHash": "9aa16dc5",
+          "referenceGpuHash": "9aa16dc5"
+        },
+        {
+          "canvasDifferences": 0,
+          "gpuDifferences": 0,
+          "canvasHash": "578fddc5",
+          "referenceCanvasHash": "578fddc5",
+          "gpuHash": "f4a16dc5",
+          "referenceGpuHash": "f4a16dc5"
+        }
+      ],
+      "refreshedCenter": [
+        255,
+        255,
+        0,
+        255
+      ],
+      "fullSize": [
+        [
+          256,
+          128
+        ],
+        [
+          256,
+          128
+        ],
+        [
+          256,
+          128
+        ]
+      ],
+      "originalImages": true,
+      "restored": true,
+      "lateRestored": true,
+      "afterCleanup": {
+        "textures": 0,
+        "geometries": 0,
+        "programs": 0,
+        "programUses": 0
+      },
+      "glError": 0,
+      "lost": false
+    },
+    "teardownFailures": {
+      "imported": {
+        "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "everySourceRestored": true,
+        "foliageRestored": true,
+        "firstThrownUndefinedRetained": true,
+        "downstreamOwnerSourceSnapshots": [
+          [
+            true,
+            true,
+            true,
+            true
+          ]
+        ],
+        "releasedTextures": 0,
+        "glError": 0,
+        "contextLost": false
+      },
+      "generated": {
+        "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "everySourceRestored": true,
+        "foliageRestored": true,
+        "firstThrownUndefinedRetained": true,
+        "downstreamOwnerSourceSnapshots": [
+          [
+            true,
+            true,
+            true,
+            true
+          ]
+        ],
+        "releasedTextures": 0,
+        "glError": 0,
+        "contextLost": false
+      }
+    }
+  },
+  "operations": {
+    "baseline": {
+      "variant": "baseline",
+      "boundary": "Instrumented scalar paint-propagation canvas double; no browser rasterization or GPU.",
+      "cases": [
+        {
+          "caseId": "generated-shared-1024",
+          "registration": {
+            "wrappers": 1024,
+            "originalSources": 1,
+            "budgetSources": 1,
+            "createdCanvases": 1,
+            "drawImageCalls": 1024,
+            "clearRectCalls": 1023,
+            "getContextCalls": 1024,
+            "disposeEvents": 1025,
+            "wrapperVersionIncrements": 524800,
+            "minWrapperVersionIncrement": 1,
+            "maxWrapperVersionIncrement": 1024,
+            "groups": [
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 1024,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 524800,
+                "expectedOwnedSourceVersion": 524800
+              }
+            ],
+            "originalsAndExternalClonesUnchanged": true,
+            "allWrapperVersionDeltasChecked": true
+          },
+          "repeatedRegistration": {
+            "createdCanvases": 0,
+            "drawImageCalls": 0,
+            "clearRectCalls": 0,
+            "getContextCalls": 0,
+            "disposeEvents": 0,
+            "wrapperVersionIncrements": 0
+          },
+          "disposal": {
+            "disposeEvents": 1024,
+            "everySourceRestored": true,
+            "secondDisposalIsIdle": true
+          }
+        },
+        {
+          "caseId": "imported-shared-1024",
+          "registration": {
+            "wrappers": 1024,
+            "originalSources": 1,
+            "budgetSources": 1,
+            "createdCanvases": 1,
+            "drawImageCalls": 1,
+            "clearRectCalls": 0,
+            "getContextCalls": 1,
+            "disposeEvents": 1025,
+            "wrapperVersionIncrements": 524800,
+            "minWrapperVersionIncrement": 1,
+            "maxWrapperVersionIncrement": 1024,
+            "groups": [
+              {
+                "source": "imported-a",
+                "kind": "imported",
+                "wrappers": 1024,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 524800,
+                "expectedOwnedSourceVersion": 524800
+              }
+            ],
+            "originalsAndExternalClonesUnchanged": true,
+            "allWrapperVersionDeltasChecked": true
+          },
+          "repeatedRegistration": {
+            "createdCanvases": 0,
+            "drawImageCalls": 0,
+            "clearRectCalls": 0,
+            "getContextCalls": 0,
+            "disposeEvents": 0,
+            "wrapperVersionIncrements": 0
+          },
+          "disposal": {
+            "disposeEvents": 1024,
+            "everySourceRestored": true,
+            "secondDisposalIsIdle": true
+          }
+        },
+        {
+          "caseId": "mixed-six-groups-1024",
+          "registration": {
+            "wrappers": 1024,
+            "originalSources": 4,
+            "budgetSources": 6,
+            "createdCanvases": 6,
+            "drawImageCalls": 642,
+            "clearRectCalls": 636,
+            "getContextCalls": 642,
+            "disposeEvents": 1030,
+            "wrapperVersionIncrements": 94720,
+            "minWrapperVersionIncrement": 1,
+            "maxWrapperVersionIncrement": 256,
+            "groups": [
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 256,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 32896,
+                "expectedOwnedSourceVersion": 32896
+              },
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 128,
+                "scale": 2,
+                "cpuReadback": false,
+                "size": [
+                  256,
+                  128
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 8256,
+                "expectedOwnedSourceVersion": 8256
+              },
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 128,
+                "scale": 1,
+                "cpuReadback": true,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": {
+                  "willReadFrequently": true
+                },
+                "ownedSourceVersion": 8256,
+                "expectedOwnedSourceVersion": 8256
+              },
+              {
+                "source": "generated-b",
+                "kind": "generated",
+                "wrappers": 128,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 8256,
+                "expectedOwnedSourceVersion": 8256
+              },
+              {
+                "source": "imported-a",
+                "kind": "imported",
+                "wrappers": 192,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 18528,
+                "expectedOwnedSourceVersion": 18528
+              },
+              {
+                "source": "imported-b",
+                "kind": "imported",
+                "wrappers": 192,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 18528,
+                "expectedOwnedSourceVersion": 18528
+              }
+            ],
+            "originalsAndExternalClonesUnchanged": true,
+            "allWrapperVersionDeltasChecked": true
+          },
+          "repeatedRegistration": {
+            "createdCanvases": 0,
+            "drawImageCalls": 0,
+            "clearRectCalls": 0,
+            "getContextCalls": 0,
+            "disposeEvents": 0,
+            "wrapperVersionIncrements": 0
+          },
+          "disposal": {
+            "disposeEvents": 1024,
+            "everySourceRestored": true,
+            "secondDisposalIsIdle": true
+          }
+        }
+      ],
+      "lifecycle": {
+        "lateRegistration": {
+          "createdCanvases": 0,
+          "drawImageCalls": 2,
+          "clearRectCalls": 2,
+          "getContextCalls": 2,
+          "wrapperVersionIncrements": 9,
+          "generatedGroupPaint": 7,
+          "otherBudgetGroupsRetainPriorCopyUntilRefresh": [
+            1,
+            1
+          ],
+          "originalAndExternalPaint": [
+            7,
+            7
+          ],
+          "sourceAndCopyIdentityPreserved": true
+        },
+        "explicitRefresh": {
+          "createdCanvases": 0,
+          "drawImageCalls": 3,
+          "clearRectCalls": 3,
+          "getContextCalls": 3,
+          "disposeEvents": 0,
+          "allSourceGroupsRepainted": true
+        },
+        "resize": {
+          "releasedWidths": [
+            {
+              "wrapper": 5,
+              "width": 128
+            },
+            {
+              "wrapper": 8,
+              "width": 128
+            },
+            {
+              "wrapper": 0,
+              "width": 128
+            },
+            {
+              "wrapper": 1,
+              "width": 128
+            },
+            {
+              "wrapper": 6,
+              "width": 128
+            },
+            {
+              "wrapper": 7,
+              "width": 128
+            },
+            {
+              "wrapper": 2,
+              "width": 256
+            },
+            {
+              "wrapper": 3,
+              "width": 128
+            },
+            {
+              "wrapper": 4,
+              "width": 128
+            }
+          ],
+          "everyReleasePrecededDimensionChange": true,
+          "sourceIdentitiesStable": true
+        },
+        "fullQualityUsesAuthoredImages": true,
+        "unregisteredWrapperUnaffectedByLaterQualityChange": true,
+        "reRegistrationJoinsLiveGroup": true,
+        "everyOriginalSourceRestored": true,
+        "repeatedDisposalIsIdle": true,
+        "disposedBudgetReusable": true
+      },
+      "resourceUsage": {
+        "userCPUTime": 203708,
+        "systemCPUTime": 137605,
+        "maxRSS": 69412,
+        "sharedMemorySize": 0,
+        "unsharedDataSize": 0,
+        "unsharedStackSize": 0,
+        "minorPageFault": 19520,
+        "majorPageFault": 0,
+        "swappedOut": 0,
+        "fsRead": 0,
+        "fsWrite": 0,
+        "ipcSent": 0,
+        "ipcReceived": 0,
+        "signalsCount": 0,
+        "voluntaryContextSwitches": 440,
+        "involuntaryContextSwitches": 1
+      }
+    },
+    "candidate": {
+      "variant": "candidate",
+      "boundary": "Instrumented scalar paint-propagation canvas double; no browser rasterization or GPU.",
+      "cases": [
+        {
+          "caseId": "generated-shared-1024",
+          "registration": {
+            "wrappers": 1024,
+            "originalSources": 1,
+            "budgetSources": 1,
+            "createdCanvases": 1,
+            "drawImageCalls": 1,
+            "clearRectCalls": 0,
+            "getContextCalls": 1,
+            "disposeEvents": 2048,
+            "wrapperVersionIncrements": 1024,
+            "minWrapperVersionIncrement": 1,
+            "maxWrapperVersionIncrement": 1,
+            "groups": [
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 1024,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 1024,
+                "expectedOwnedSourceVersion": 1024
+              }
+            ],
+            "originalsAndExternalClonesUnchanged": true,
+            "allWrapperVersionDeltasChecked": true
+          },
+          "repeatedRegistration": {
+            "createdCanvases": 0,
+            "drawImageCalls": 0,
+            "clearRectCalls": 0,
+            "getContextCalls": 0,
+            "disposeEvents": 0,
+            "wrapperVersionIncrements": 0
+          },
+          "disposal": {
+            "disposeEvents": 1024,
+            "everySourceRestored": true,
+            "secondDisposalIsIdle": true
+          }
+        },
+        {
+          "caseId": "imported-shared-1024",
+          "registration": {
+            "wrappers": 1024,
+            "originalSources": 1,
+            "budgetSources": 1,
+            "createdCanvases": 1,
+            "drawImageCalls": 1,
+            "clearRectCalls": 0,
+            "getContextCalls": 1,
+            "disposeEvents": 2048,
+            "wrapperVersionIncrements": 1024,
+            "minWrapperVersionIncrement": 1,
+            "maxWrapperVersionIncrement": 1,
+            "groups": [
+              {
+                "source": "imported-a",
+                "kind": "imported",
+                "wrappers": 1024,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 1024,
+                "expectedOwnedSourceVersion": 1024
+              }
+            ],
+            "originalsAndExternalClonesUnchanged": true,
+            "allWrapperVersionDeltasChecked": true
+          },
+          "repeatedRegistration": {
+            "createdCanvases": 0,
+            "drawImageCalls": 0,
+            "clearRectCalls": 0,
+            "getContextCalls": 0,
+            "disposeEvents": 0,
+            "wrapperVersionIncrements": 0
+          },
+          "disposal": {
+            "disposeEvents": 1024,
+            "everySourceRestored": true,
+            "secondDisposalIsIdle": true
+          }
+        },
+        {
+          "caseId": "mixed-six-groups-1024",
+          "registration": {
+            "wrappers": 1024,
+            "originalSources": 4,
+            "budgetSources": 6,
+            "createdCanvases": 6,
+            "drawImageCalls": 6,
+            "clearRectCalls": 0,
+            "getContextCalls": 6,
+            "disposeEvents": 2048,
+            "wrapperVersionIncrements": 1024,
+            "minWrapperVersionIncrement": 1,
+            "maxWrapperVersionIncrement": 1,
+            "groups": [
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 256,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 256,
+                "expectedOwnedSourceVersion": 256
+              },
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 128,
+                "scale": 2,
+                "cpuReadback": false,
+                "size": [
+                  256,
+                  128
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 128,
+                "expectedOwnedSourceVersion": 128
+              },
+              {
+                "source": "generated-a",
+                "kind": "generated",
+                "wrappers": 128,
+                "scale": 1,
+                "cpuReadback": true,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": {
+                  "willReadFrequently": true
+                },
+                "ownedSourceVersion": 128,
+                "expectedOwnedSourceVersion": 128
+              },
+              {
+                "source": "generated-b",
+                "kind": "generated",
+                "wrappers": 128,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 128,
+                "expectedOwnedSourceVersion": 128
+              },
+              {
+                "source": "imported-a",
+                "kind": "imported",
+                "wrappers": 192,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 192,
+                "expectedOwnedSourceVersion": 192
+              },
+              {
+                "source": "imported-b",
+                "kind": "imported",
+                "wrappers": 192,
+                "scale": 1,
+                "cpuReadback": false,
+                "size": [
+                  128,
+                  64
+                ],
+                "firstContextOptions": null,
+                "ownedSourceVersion": 192,
+                "expectedOwnedSourceVersion": 192
+              }
+            ],
+            "originalsAndExternalClonesUnchanged": true,
+            "allWrapperVersionDeltasChecked": true
+          },
+          "repeatedRegistration": {
+            "createdCanvases": 0,
+            "drawImageCalls": 0,
+            "clearRectCalls": 0,
+            "getContextCalls": 0,
+            "disposeEvents": 0,
+            "wrapperVersionIncrements": 0
+          },
+          "disposal": {
+            "disposeEvents": 1024,
+            "everySourceRestored": true,
+            "secondDisposalIsIdle": true
+          }
+        }
+      ],
+      "lifecycle": {
+        "lateRegistration": {
+          "createdCanvases": 0,
+          "drawImageCalls": 1,
+          "clearRectCalls": 1,
+          "getContextCalls": 1,
+          "wrapperVersionIncrements": 6,
+          "generatedGroupPaint": 7,
+          "otherBudgetGroupsRetainPriorCopyUntilRefresh": [
+            1,
+            1
+          ],
+          "originalAndExternalPaint": [
+            7,
+            7
+          ],
+          "sourceAndCopyIdentityPreserved": true
+        },
+        "explicitRefresh": {
+          "createdCanvases": 0,
+          "drawImageCalls": 3,
+          "clearRectCalls": 3,
+          "getContextCalls": 3,
+          "disposeEvents": 0,
+          "allSourceGroupsRepainted": true
+        },
+        "resize": {
+          "releasedWidths": [
+            {
+              "wrapper": 5,
+              "width": 128
+            },
+            {
+              "wrapper": 8,
+              "width": 128
+            },
+            {
+              "wrapper": 0,
+              "width": 128
+            },
+            {
+              "wrapper": 1,
+              "width": 128
+            },
+            {
+              "wrapper": 6,
+              "width": 128
+            },
+            {
+              "wrapper": 7,
+              "width": 128
+            },
+            {
+              "wrapper": 2,
+              "width": 256
+            },
+            {
+              "wrapper": 3,
+              "width": 128
+            },
+            {
+              "wrapper": 4,
+              "width": 128
+            }
+          ],
+          "everyReleasePrecededDimensionChange": true,
+          "sourceIdentitiesStable": true
+        },
+        "fullQualityUsesAuthoredImages": true,
+        "unregisteredWrapperUnaffectedByLaterQualityChange": true,
+        "reRegistrationJoinsLiveGroup": true,
+        "everyOriginalSourceRestored": true,
+        "repeatedDisposalIsIdle": true,
+        "disposedBudgetReusable": true
+      },
+      "resourceUsage": {
+        "userCPUTime": 174993,
+        "systemCPUTime": 42844,
+        "maxRSS": 67580,
+        "sharedMemorySize": 0,
+        "unsharedDataSize": 0,
+        "unsharedStackSize": 0,
+        "minorPageFault": 18714,
+        "majorPageFault": 0,
+        "swappedOut": 0,
+        "fsRead": 0,
+        "fsWrite": 0,
+        "ipcSent": 0,
+        "ipcReceived": 0,
+        "signalsCount": 0,
+        "voluntaryContextSwitches": 292,
+        "involuntaryContextSwitches": 1
+      }
+    }
+  },
+  "timings": [
+    {
+      "caseId": "generated-shared-1024",
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 152.4941440000001,
+            "perRegistrationMs": 9.530884000000006,
+            "durationsMs": [
+              24.022327999999987,
+              21.757454000000052,
+              19.21835299999998,
+              4.751327000000003,
+              6.395756000000006,
+              3.637724999999989,
+              14.646603000000027,
+              6.302887999999996,
+              13.848138000000006,
+              3.6620120000000043,
+              6.313513999999998,
+              4.1810820000000035,
+              4.0487940000000435,
+              6.321436000000006,
+              8.159492,
+              5.22724199999999
+            ],
+            "checksum": 18512
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 50.38884099999984,
+            "perRegistrationMs": 3.14930256249999,
+            "durationsMs": [
+              11.858638000000042,
+              3.1413989999999785,
+              9.602049999999963,
+              3.4635869999999613,
+              1.461416999999983,
+              1.1448970000000145,
+              1.2916859999999133,
+              3.3788919999999507,
+              4.190234999999916,
+              1.2573650000000498,
+              3.842078000000015,
+              1.1937900000000354,
+              1.134141999999997,
+              1.1487640000000283,
+              1.194071000000008,
+              1.0858299999999872
+            ],
+            "checksum": 2144
+          },
+          "pairedChangePercent": -66.95686819291906
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 44.877206,
+            "perRegistrationMs": 2.804825375,
+            "durationsMs": [
+              3.5839059999999563,
+              9.040819000000056,
+              2.4801879999999983,
+              3.32792500000005,
+              2.960239999999999,
+              2.543521999999939,
+              1.2345609999999851,
+              1.2376649999999927,
+              1.1373969999999645,
+              1.1531509999999798,
+              1.5849610000000212,
+              4.088683999999944,
+              4.37489800000003,
+              1.228652000000011,
+              1.139169000000038,
+              3.7614680000000362
+            ],
+            "checksum": 4288
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 121.53366300000027,
+            "perRegistrationMs": 7.595853937500017,
+            "durationsMs": [
+              28.208365999999955,
+              15.290416999999934,
+              3.6230229999999892,
+              3.689220999999975,
+              15.007106000000022,
+              7.4157880000000205,
+              3.7543470000000525,
+              3.5356440000000475,
+              3.598948000000064,
+              3.560169999999971,
+              4.153570000000059,
+              4.640972000000033,
+              5.464023999999995,
+              8.393789000000083,
+              7.156924000000004,
+              4.041354000000069
+            ],
+            "checksum": 37024
+          },
+          "pairedChangePercent": -63.0742586932479
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 85.64146399999936,
+            "perRegistrationMs": 5.35259149999996,
+            "durationsMs": [
+              16.770992999999862,
+              3.626559000000043,
+              4.086510999999973,
+              3.8976000000000113,
+              5.71377399999983,
+              4.014112999999952,
+              4.323772999999846,
+              4.001795000000129,
+              3.854896999999937,
+              3.856458999999859,
+              4.029295999999931,
+              6.280424000000039,
+              5.9688330000001315,
+              7.236642999999958,
+              3.503234999999904,
+              4.476558999999952
+            ],
+            "checksum": 55536
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 44.0747580000002,
+            "perRegistrationMs": 2.7546723750000126,
+            "durationsMs": [
+              5.188756000000012,
+              5.7415249999999105,
+              12.689730000000054,
+              3.786826000000019,
+              1.2168349999999464,
+              1.1328499999999622,
+              1.2079220000000532,
+              1.1925780000001396,
+              1.2438250000000153,
+              2.0560800000000654,
+              2.248685000000023,
+              1.3150299999999788,
+              1.3024809999999434,
+              1.3075400000000172,
+              1.2300239999999576,
+              1.2140710000001036
+            ],
+            "checksum": 6432
+          },
+          "pairedChangePercent": -48.53572563869234
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 36.772567999999865,
+            "perRegistrationMs": 2.2982854999999915,
+            "durationsMs": [
+              5.673064000000068,
+              5.815824999999904,
+              4.162623000000167,
+              5.316444999999931,
+              1.161102000000028,
+              1.12810300000001,
+              1.132037999999966,
+              1.1613230000000385,
+              1.155713999999989,
+              1.2033349999999245,
+              2.2831659999999374,
+              1.126500999999962,
+              1.144708000000037,
+              1.1441469999999754,
+              2.0326649999999518,
+              1.1318089999999756
+            ],
+            "checksum": 8576
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 92.13306299999999,
+            "perRegistrationMs": 5.7583164374999996,
+            "durationsMs": [
+              15.350966999999855,
+              3.548543000000109,
+              3.714819000000034,
+              3.9780900000000656,
+              4.617377000000033,
+              3.59178699999984,
+              3.4316499999999905,
+              3.840304999999944,
+              3.898922999999968,
+              3.851942999999892,
+              5.564052000000174,
+              15.456194000000096,
+              5.453708000000006,
+              7.152467999999999,
+              3.6146909999999934,
+              5.067545999999993
+            ],
+            "checksum": 74048
+          },
+          "pairedChangePercent": -60.08754425107969
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 133.07902099999978,
+            "perRegistrationMs": 8.317438812499987,
+            "durationsMs": [
+              15.753445000000056,
+              3.932221000000027,
+              5.384186,
+              21.041987999999947,
+              3.394113999999945,
+              3.778053,
+              3.510475999999926,
+              5.925266999999849,
+              14.012242000000015,
+              15.336086000000023,
+              14.393808000000035,
+              10.679709000000003,
+              3.759885999999824,
+              4.345634000000018,
+              4.264515000000074,
+              3.5673910000000433
+            ],
+            "checksum": 92560
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 32.16933899999958,
+            "perRegistrationMs": 2.010583687499974,
+            "durationsMs": [
+              3.630583999999999,
+              5.51934499999993,
+              2.3996890000000803,
+              4.109965999999986,
+              2.816907999999785,
+              1.3141989999999169,
+              1.1892530000000079,
+              1.161972999999989,
+              1.3450950000001285,
+              1.2766429999999218,
+              1.256744000000026,
+              1.27383900000018,
+              1.159930999999915,
+              1.1610419999999522,
+              1.356401999999889,
+              1.197725999999875
+            ],
+            "checksum": 10720
+          },
+          "pairedChangePercent": -75.82688934869785
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 36.387363999999934,
+            "perRegistrationMs": 2.274210249999996,
+            "durationsMs": [
+              3.6614199999999073,
+              7.551329000000123,
+              2.401010999999926,
+              3.8670250000000124,
+              2.3850680000000466,
+              2.952939000000015,
+              1.1834549999998671,
+              1.4926929999999174,
+              1.1184989999999289,
+              1.2643550000000232,
+              2.0223889999999756,
+              1.1191100000000915,
+              1.3205889999999272,
+              1.2192380000001322,
+              1.6260010000000875,
+              1.202242999999953
+            ],
+            "checksum": 12864
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 82.66912899999966,
+            "perRegistrationMs": 5.166820562499979,
+            "durationsMs": [
+              16.22416199999998,
+              3.631746999999905,
+              3.650615000000016,
+              4.220348999999942,
+              4.88779999999997,
+              3.941906999999901,
+              3.818452999999863,
+              3.9866619999997965,
+              4.457271000000219,
+              3.819944999999734,
+              3.881597000000056,
+              4.945404999999937,
+              5.5631499999999505,
+              4.8218110000002525,
+              6.480070999999953,
+              4.338184000000183
+            ],
+            "checksum": 111072
+          },
+          "pairedChangePercent": -55.98433848262743
+        }
+      ],
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 87.17138199999954,
+            "perRegistrationMs": 5.448211374999971,
+            "durationsMs": [
+              15.805031999999755,
+              4.496197999999822,
+              3.9960660000001553,
+              3.629183000000012,
+              5.495880999999827,
+              4.397872000000007,
+              3.983737999999903,
+              4.332475000000159,
+              4.450450999999703,
+              3.813065000000279,
+              4.644849000000249,
+              6.40158399999973,
+              5.990593999999874,
+              6.2174700000000485,
+              5.594567000000097,
+              3.92235699999992
+            ],
+            "checksum": 129584
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 54.54584699999941,
+            "perRegistrationMs": 3.4091154374999633,
+            "durationsMs": [
+              3.7187239999998383,
+              8.16432900000018,
+              2.902354999999716,
+              11.390362000000096,
+              2.3654790000000503,
+              1.1368859999997767,
+              1.2151929999999993,
+              1.273258000000169,
+              1.3283700000001772,
+              3.2129449999997632,
+              3.9058219999997164,
+              3.954305000000204,
+              3.8472359999996115,
+              3.5423040000000583,
+              1.357774000000063,
+              1.2305049999999937
+            ],
+            "checksum": 15008
+          },
+          "pairedChangePercent": -37.42688741587268
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 40.47882400000117,
+            "perRegistrationMs": 2.529926500000073,
+            "durationsMs": [
+              3.3953059999998914,
+              8.033042999999907,
+              2.21033800000032,
+              2.4252369999999246,
+              2.4991170000002967,
+              2.564382999999907,
+              1.3653450000001612,
+              1.3868670000001657,
+              2.850988000000143,
+              1.142544000000271,
+              2.3978460000002997,
+              1.2837140000001455,
+              1.2360929999999826,
+              1.1597799999999552,
+              3.0124479999999494,
+              3.5157749999998487
+            ],
+            "checksum": 17152
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 88.33912900000132,
+            "perRegistrationMs": 5.521195562500083,
+            "durationsMs": [
+              24.787193000000116,
+              4.271064000000024,
+              5.090298999999959,
+              4.79448100000036,
+              6.3296080000000075,
+              4.857354000000214,
+              3.466482000000269,
+              3.634360999999899,
+              3.713187000000289,
+              3.521603000000141,
+              6.04270200000019,
+              3.508332999999766,
+              3.5164159999999356,
+              3.492428999999902,
+              3.6313350000000355,
+              3.682282000000214
+            ],
+            "checksum": 148096
+          },
+          "pairedChangePercent": -54.17792267342758
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 83.45604400000002,
+            "perRegistrationMs": 5.216002750000001,
+            "durationsMs": [
+              16.97959200000014,
+              3.910370000000057,
+              3.807137000000239,
+              3.7288799999996627,
+              3.6270290000002205,
+              3.510816999999861,
+              3.4780289999998786,
+              3.557585999999901,
+              3.6414510000004157,
+              3.522034000000076,
+              3.8818459999997685,
+              5.161023999999998,
+              8.19155899999987,
+              8.621315999999752,
+              3.872143000000051,
+              3.9652310000001307
+            ],
+            "checksum": 166608
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 34.59462600000052,
+            "perRegistrationMs": 2.1621641250000323,
+            "durationsMs": [
+              4.409398999999667,
+              8.6524730000001,
+              2.351097000000209,
+              2.4209100000002763,
+              2.3530390000000807,
+              1.6036189999999806,
+              1.290824000000157,
+              1.2398789999997462,
+              1.1546620000003713,
+              1.1661600000002181,
+              1.4021999999999935,
+              1.3558100000000195,
+              1.4551679999999578,
+              1.2311359999998785,
+              1.320318000000043,
+              1.1879319999998188
+            ],
+            "checksum": 19296
+          },
+          "pairedChangePercent": -58.547488783436094
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 34.80730100000028,
+            "perRegistrationMs": 2.1754563125000175,
+            "durationsMs": [
+              4.2602780000001985,
+              7.75027399999999,
+              2.263267000000269,
+              2.776136999999835,
+              2.5623899999995956,
+              2.4809690000001865,
+              1.41867400000001,
+              1.1469310000002224,
+              1.2119069999998828,
+              1.2917959999999766,
+              1.220198999999866,
+              1.140581000000111,
+              1.3615190000000439,
+              1.2399190000001,
+              1.2266700000000128,
+              1.455789999999979
+            ],
+            "checksum": 21440
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 84.7675349999995,
+            "perRegistrationMs": 5.297970937499969,
+            "durationsMs": [
+              17.602476000000024,
+              5.859159999999974,
+              5.058501999999862,
+              4.8261170000000675,
+              5.024370999999974,
+              5.06077600000026,
+              3.634139999999661,
+              3.731162999999924,
+              3.6042459999998755,
+              4.698026999999911,
+              5.674975999999788,
+              3.9896960000000945,
+              3.9685050000002775,
+              3.5807809999996607,
+              4.309982000000218,
+              4.144616999999926
+            ],
+            "checksum": 185120
+          },
+          "pairedChangePercent": -58.937934198510675
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 79.51996999999983,
+            "perRegistrationMs": 4.969998124999989,
+            "durationsMs": [
+              17.515038000000004,
+              3.6536489999998594,
+              3.5176870000000235,
+              3.6228030000002036,
+              3.6552419999998165,
+              3.3405940000002374,
+              3.4010840000000826,
+              3.6127980000001116,
+              3.475405000000137,
+              3.477998999999727,
+              3.799825999999939,
+              4.777155000000221,
+              7.670065999999679,
+              6.944880000000012,
+              3.4756149999998343,
+              3.5801289999999426
+            ],
+            "checksum": 203632
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 29.955387000000428,
+            "perRegistrationMs": 1.8722116875000268,
+            "durationsMs": [
+              4.2120969999996305,
+              5.667194999999992,
+              2.318528000000242,
+              2.308943999999883,
+              2.3796800000000076,
+              1.1425950000002558,
+              1.1501260000000002,
+              1.167461000000003,
+              1.1386990000000878,
+              1.187912000000324,
+              1.2739590000001044,
+              1.1183489999998528,
+              1.1256290000001172,
+              1.132799999999861,
+              1.217525999999907,
+              1.4138870000001589
+            ],
+            "checksum": 23584
+          },
+          "pairedChangePercent": -62.32973050668846
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 34.585917000000336,
+            "perRegistrationMs": 2.161619812500021,
+            "durationsMs": [
+              5.089839000000211,
+              7.9209679999999025,
+              2.309976000000006,
+              2.3253089999998338,
+              2.653295000000071,
+              1.1344629999998688,
+              1.159610000000157,
+              1.144256999999925,
+              1.153581000000031,
+              1.2226230000001124,
+              1.1140419999996993,
+              1.138919999999871,
+              1.1649280000001454,
+              2.209157000000232,
+              1.7152240000000347,
+              1.129725000000235
+            ],
+            "checksum": 25728
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 82.24651999999878,
+            "perRegistrationMs": 5.140407499999924,
+            "durationsMs": [
+              19.3076259999998,
+              3.537637000000359,
+              4.326325999999881,
+              3.4839069999998173,
+              3.6819809999997233,
+              4.601955000000089,
+              3.612807999999859,
+              3.468593999999939,
+              3.9295790000001034,
+              3.7131570000001375,
+              5.762766000000283,
+              4.881278999999722,
+              4.8202589999996235,
+              4.788902999999664,
+              4.858044999999947,
+              3.471697999999833
+            ],
+            "checksum": 222144
+          },
+          "pairedChangePercent": -57.948473686180456
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 87.20686599999908,
+            "perRegistrationMs": 5.450429124999943,
+            "durationsMs": [
+              19.53442099999984,
+              3.763230999999905,
+              3.397989999999936,
+              3.7250450000001365,
+              3.4715590000000702,
+              3.706996999999774,
+              3.695600999999897,
+              3.795798999999988,
+              3.942888000000039,
+              3.8259840000000622,
+              5.924525999999787,
+              5.355223000000024,
+              8.031721999999718,
+              7.432393000000047,
+              3.8950669999999263,
+              3.7084199999999328
+            ],
+            "checksum": 240656
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 35.903776999999536,
+            "perRegistrationMs": 2.243986062499971,
+            "durationsMs": [
+              5.598492000000078,
+              6.705375000000004,
+              4.449850000000424,
+              4.867367999999715,
+              1.2217719999998735,
+              1.1629350000002887,
+              1.1852380000000267,
+              1.1751020000001517,
+              1.369040000000041,
+              1.2702939999999217,
+              1.2003599999998187,
+              1.1217039999996814,
+              1.129554999999982,
+              1.160750999999891,
+              1.1389799999997194,
+              1.1469609999999193
+            ],
+            "checksum": 27872
+          },
+          "pairedChangePercent": -58.82918553683616
+        },
+        {
+          "pair": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 40.69986600000129,
+            "perRegistrationMs": 2.543741625000081,
+            "durationsMs": [
+              6.044434999999794,
+              8.912278000000242,
+              4.489679000000251,
+              4.825497000000269,
+              1.1884820000000218,
+              1.1471610000003238,
+              1.1351730000001226,
+              1.1777469999997265,
+              1.175072999999884,
+              2.2422750000000633,
+              1.1436360000002423,
+              1.1573160000002645,
+              1.164557000000059,
+              2.4176109999998516,
+              1.344974000000093,
+              1.1339720000000852
+            ],
+            "checksum": 30016
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 84.25673700000107,
+            "perRegistrationMs": 5.266046062500067,
+            "durationsMs": [
+              19.732876999999917,
+              3.759023999999954,
+              3.9513809999998557,
+              3.9565880000000107,
+              3.741508999999951,
+              4.647467000000233,
+              4.43870300000026,
+              4.100752000000284,
+              4.046761999999944,
+              3.6427419999999984,
+              3.940194000000247,
+              5.096919000000071,
+              4.949411000000055,
+              4.947477000000163,
+              5.335923999999977,
+              3.969007000000147
+            ],
+            "checksum": 259168
+          },
+          "pairedChangePercent": -51.695416355844905
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 77.64620700000023,
+            "perRegistrationMs": 4.8528879375000145,
+            "durationsMs": [
+              16.31599800000049,
+              4.098517999999785,
+              3.6808890000002066,
+              3.696461999999883,
+              3.5121589999998832,
+              3.5099060000002282,
+              3.4326209999999264,
+              3.550344999999652,
+              4.04782300000079,
+              3.5348119999998744,
+              4.170796000000337,
+              5.547238000000107,
+              4.7007009999997535,
+              5.317207000000053,
+              4.8999269999994794,
+              3.630804999999782
+            ],
+            "checksum": 277680
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 33.704515999998875,
+            "perRegistrationMs": 2.1065322499999297,
+            "durationsMs": [
+              4.488105999999789,
+              7.692318000000341,
+              2.541349000000082,
+              2.658763000000363,
+              2.3001909999993586,
+              2.2012449999992896,
+              1.1936100000002625,
+              1.1927289999994173,
+              1.3560710000001563,
+              1.134142000000793,
+              1.1391899999998714,
+              1.2049769999994169,
+              1.1220439999997325,
+              1.1569959999997081,
+              1.1339420000003884,
+              1.1888429999999062
+            ],
+            "checksum": 32160
+          },
+          "pairedChangePercent": -56.592192584502186
+        },
+        {
+          "pair": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 35.716739999998936,
+            "perRegistrationMs": 2.2322962499999335,
+            "durationsMs": [
+              4.474875999999313,
+              8.447709000000032,
+              2.3531199999997625,
+              2.4826020000000426,
+              2.2457109999995737,
+              2.525134999999864,
+              1.1430449999998018,
+              1.141153000000486,
+              2.3658089999998992,
+              1.1289340000002994,
+              1.3245939999997063,
+              1.1326400000007197,
+              1.2098639999994703,
+              1.4872850000001563,
+              1.12695100000019,
+              1.1273119999996197
+            ],
+            "checksum": 34304
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 74.0998890000019,
+            "perRegistrationMs": 4.631243062500118,
+            "durationsMs": [
+              15.001367999999275,
+              3.561993000000257,
+              3.6172850000002654,
+              3.5812919999998485,
+              3.9748540000000503,
+              3.6073310000001584,
+              3.549775000000409,
+              3.4065529999998034,
+              3.567590999999993,
+              3.4302370000004885,
+              3.926934000000074,
+              4.808742000000166,
+              5.400039000000106,
+              4.999634000000697,
+              3.8442919999997684,
+              3.8219690000005357
+            ],
+            "checksum": 296192
+          },
+          "pairedChangePercent": -51.79919905143444
+        },
+        {
+          "pair": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 76.48099799999909,
+            "perRegistrationMs": 4.780062374999943,
+            "durationsMs": [
+              17.077276999999413,
+              3.7311739999995552,
+              4.178726999999526,
+              3.7446540000000823,
+              3.770752000000357,
+              3.3477750000001834,
+              3.4872519999998985,
+              3.572979000000487,
+              3.6613100000004124,
+              3.6688309999999547,
+              3.9081169999999474,
+              4.603647999999339,
+              4.501274999999623,
+              5.768425000000207,
+              3.651224999999613,
+              3.8075770000004923
+            ],
+            "checksum": 314704
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 31.507708999999522,
+            "perRegistrationMs": 1.9692318124999701,
+            "durationsMs": [
+              3.5026040000002467,
+              6.415114000000358,
+              2.454529999999977,
+              2.3905959999992774,
+              2.765121000000363,
+              1.157416000000012,
+              1.198978000000352,
+              1.1302960000002713,
+              1.3190870000007635,
+              1.3019210000002204,
+              1.2218830000001617,
+              1.2831829999995534,
+              1.246988999999303,
+              1.310443999999734,
+              1.2612709999993967,
+              1.5482759999995324
+            ],
+            "checksum": 36448
+          },
+          "pairedChangePercent": -58.80321933037551
+        },
+        {
+          "pair": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 32.12664799999857,
+            "perRegistrationMs": 2.0079154999999105,
+            "durationsMs": [
+              3.61946799999987,
+              5.9186280000003535,
+              2.2976279999993494,
+              2.2043890000004467,
+              1.3762010000000373,
+              2.8266429999994216,
+              1.102114999999685,
+              1.7480820000000676,
+              1.1973160000006828,
+              2.6618570000000545,
+              1.0740029999997205,
+              1.3878080000004047,
+              1.1230659999991985,
+              1.2327679999998509,
+              1.1069419999994352,
+              1.2497339999999895
+            ],
+            "checksum": 38592
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 77.28660399999626,
+            "perRegistrationMs": 4.830412749999766,
+            "durationsMs": [
+              16.51652600000034,
+              3.7188659999992524,
+              3.8560689999994793,
+              3.7178039999998873,
+              4.275641000000178,
+              3.5563139999994746,
+              3.544796999999562,
+              3.4437669999997524,
+              3.435034999999516,
+              3.4659810000002835,
+              3.545157999999901,
+              5.6640699999998105,
+              5.48938999999973,
+              5.589028999999755,
+              3.659637999999177,
+              3.8085190000001603
+            ],
+            "checksum": 333216
+          },
+          "pairedChangePercent": -58.43180274811903
+        }
+      ],
+      "summary": {
+        "medianBaselineMsPerRegistration": 5.1782051249999625,
+        "medianCandidateMsPerRegistration": 2.168810218750025,
+        "ratioOfMedians": 0.41883435792822915,
+        "medianPairedChangePercent": -58.190138217149745,
+        "candidateFasterPairs": 12,
+        "pairCount": 12,
+        "baselineRangeMsPerRegistration": [
+          4.631243062500118,
+          5.521195562500083
+        ],
+        "candidateRangeMsPerRegistration": [
+          1.8722116875000268,
+          3.4091154374999633
+        ],
+        "orderGroups": {
+          "baseline": {
+            "count": 6,
+            "medianPairedChangePercent": -58.6753540569058
+          },
+          "candidate": {
+            "count": 6,
+            "medianPairedChangePercent": -56.06319817980402
+          }
+        }
+      },
+      "resources": {
+        "baseline": {
+          "resourceUsage": {
+            "userCPUTime": 4006829,
+            "systemCPUTime": 550675,
+            "maxRSS": 183808,
+            "sharedMemorySize": 0,
+            "unsharedDataSize": 0,
+            "unsharedStackSize": 0,
+            "minorPageFault": 62531,
+            "majorPageFault": 0,
+            "swappedOut": 0,
+            "fsRead": 0,
+            "fsWrite": 0,
+            "ipcSent": 0,
+            "ipcReceived": 0,
+            "signalsCount": 0,
+            "voluntaryContextSwitches": 2739,
+            "involuntaryContextSwitches": 30
+          },
+          "memory": {
+            "rss": 186077184,
+            "heapTotal": 144306176,
+            "heapUsed": 50261616,
+            "external": 4048351,
+            "arrayBuffers": 212228
+          }
+        },
+        "candidate": {
+          "resourceUsage": {
+            "userCPUTime": 3115425,
+            "systemCPUTime": 541092,
+            "maxRSS": 162040,
+            "sharedMemorySize": 0,
+            "unsharedDataSize": 0,
+            "unsharedStackSize": 0,
+            "minorPageFault": 59792,
+            "majorPageFault": 0,
+            "swappedOut": 0,
+            "fsRead": 0,
+            "fsWrite": 0,
+            "ipcSent": 0,
+            "ipcReceived": 0,
+            "signalsCount": 0,
+            "voluntaryContextSwitches": 2171,
+            "involuntaryContextSwitches": 57
+          },
+          "memory": {
+            "rss": 162349056,
+            "heapTotal": 144568320,
+            "heapUsed": 46806248,
+            "external": 4048351,
+            "arrayBuffers": 212228
+          }
+        }
+      }
+    },
+    {
+      "caseId": "imported-shared-1024",
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 152.10502699999992,
+            "perRegistrationMs": 9.506564187499995,
+            "durationsMs": [
+              20.77287799999999,
+              17.520465,
+              16.192599,
+              5.836406000000011,
+              8.495443999999992,
+              7.070145999999994,
+              5.73696799999999,
+              7.556726999999995,
+              5.940661000000006,
+              5.977776000000006,
+              7.042654000000027,
+              5.961852999999962,
+              5.84157399999998,
+              11.882051999999987,
+              11.895472999999981,
+              8.381350999999995
+            ],
+            "checksum": 18480
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 29.782496000000094,
+            "perRegistrationMs": 1.861406000000006,
+            "durationsMs": [
+              5.550182000000007,
+              1.1836149999999748,
+              1.2159040000000232,
+              1.5064649999999915,
+              1.3195670000000064,
+              1.0628360000000043,
+              1.1056600000000003,
+              1.162033000000008,
+              3.36316800000003,
+              1.419083999999998,
+              0.9947450000000231,
+              1.6251400000000444,
+              1.3621899999999982,
+              2.504955999999993,
+              3.409591999999975,
+              0.9973590000000172
+            ],
+            "checksum": 2112
+          },
+          "pairedChangePercent": -80.41978191818728
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 25.02130999999997,
+            "perRegistrationMs": 1.5638318749999982,
+            "durationsMs": [
+              5.469672000000003,
+              1.2781869999999458,
+              2.3577080000000024,
+              2.2786609999999996,
+              1.2977750000000015,
+              1.2785670000000096,
+              1.0910590000000298,
+              1.0892259999999965,
+              1.0922800000000166,
+              1.0948040000000105,
+              1.0694770000000062,
+              1.1658699999999271,
+              1.150698000000034,
+              1.1054000000000315,
+              1.0984690000000228,
+              1.1034569999999349
+            ],
+            "checksum": 4224
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 129.3671690000001,
+            "perRegistrationMs": 8.085448062500006,
+            "durationsMs": [
+              29.429194000000052,
+              5.96876599999996,
+              6.3689390000000685,
+              5.685294999999996,
+              5.841346999999928,
+              6.157104999999888,
+              6.350772000000006,
+              6.722664000000009,
+              6.498482000000081,
+              6.079881,
+              7.813152000000059,
+              8.742331000000036,
+              9.540926000000013,
+              5.96443899999997,
+              5.97807899999998,
+              6.225797000000057
+            ],
+            "checksum": 36960
+          },
+          "pairedChangePercent": -80.6586862853898
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 125.22728200000006,
+            "perRegistrationMs": 7.826705125000004,
+            "durationsMs": [
+              21.895917000000054,
+              5.94075399999997,
+              6.106269999999995,
+              5.989166000000068,
+              5.74573399999997,
+              6.037278000000015,
+              6.091506999999979,
+              6.844298999999978,
+              5.933062999999947,
+              6.374166999999943,
+              9.572032000000036,
+              8.02205200000003,
+              12.467898999999989,
+              6.248981000000072,
+              6.019330999999966,
+              5.938832000000048
+            ],
+            "checksum": 55440
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 30.32083399999999,
+            "perRegistrationMs": 1.8950521249999994,
+            "durationsMs": [
+              4.355752999999936,
+              3.162247000000093,
+              2.6044039999999313,
+              5.478058000000033,
+              1.3656470000000809,
+              1.112751000000003,
+              1.077167999999915,
+              1.5264650000000302,
+              1.5665850000000319,
+              1.4992049999999608,
+              1.0667929999999615,
+              1.0690859999999702,
+              1.0584299999999303,
+              1.064369000000056,
+              1.2364950000001045,
+              1.0773779999999533
+            ],
+            "checksum": 6336
+          },
+          "pairedChangePercent": -75.78735758235176
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 26.048076000000265,
+            "perRegistrationMs": 1.6280047500000165,
+            "durationsMs": [
+              4.385637999999972,
+              1.3806190000000242,
+              2.3616739999999936,
+              2.53483099999994,
+              1.3732270000000426,
+              1.3079000000000178,
+              1.4272369999998773,
+              1.3555210000001807,
+              1.4876970000000256,
+              1.4058259999999336,
+              1.2824330000000828,
+              1.1492749999999887,
+              1.1728800000000774,
+              1.1369059999999536,
+              1.1068420000001424,
+              1.1795700000000124
+            ],
+            "checksum": 8448
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 133.89811799999984,
+            "perRegistrationMs": 8.36863237499999,
+            "durationsMs": [
+              25.70147699999984,
+              6.292324999999892,
+              6.739049000000023,
+              6.034172000000126,
+              5.7450139999998555,
+              6.079160000000002,
+              6.243784000000005,
+              7.437896000000137,
+              5.775658999999905,
+              6.030577999999878,
+              13.292150999999876,
+              7.799461999999949,
+              9.690899000000172,
+              7.1288670000001275,
+              6.96536500000002,
+              6.942260000000033
+            ],
+            "checksum": 73920
+          },
+          "pairedChangePercent": -80.54634643931269
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 128.47576500000014,
+            "perRegistrationMs": 8.029735312500009,
+            "durationsMs": [
+              25.86052799999993,
+              7.847103000000061,
+              7.273742000000084,
+              7.054045999999971,
+              8.087028000000146,
+              5.976366999999982,
+              6.185156000000006,
+              6.1921370000000024,
+              5.984719000000041,
+              5.817700999999943,
+              7.625574999999799,
+              7.704580999999962,
+              8.55027599999994,
+              5.966522000000168,
+              5.887445000000071,
+              6.462839000000031
+            ],
+            "checksum": 92400
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 29.36180300000001,
+            "perRegistrationMs": 1.8351126875000006,
+            "durationsMs": [
+              5.119866999999886,
+              1.8232960000000276,
+              2.4542109999999866,
+              2.574098999999933,
+              1.573374000000058,
+              1.5451619999998911,
+              1.3496820000000298,
+              1.3381550000001425,
+              1.4992239999999128,
+              1.417462999999998,
+              1.6476450000000114,
+              1.14048200000002,
+              1.1543229999999767,
+              1.2081520000001547,
+              1.2482119999999668,
+              2.2684560000000147
+            ],
+            "checksum": 10560
+          },
+          "pairedChangePercent": -77.14603762040258
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 34.819761999999855,
+            "perRegistrationMs": 2.176235124999991,
+            "durationsMs": [
+              4.8853579999999965,
+              1.3995869999998831,
+              2.833464000000049,
+              2.798381999999947,
+              3.0415720000000874,
+              1.5030499999998028,
+              1.7220750000001317,
+              1.4498909999999796,
+              4.037029999999959,
+              2.7460140000000592,
+              1.3256960000001072,
+              1.290224999999964,
+              1.4653450000000703,
+              1.1274029999999584,
+              2.0709019999999327,
+              1.1237679999999273
+            ],
+            "checksum": 12672
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 129.0247629999999,
+            "perRegistrationMs": 8.064047687499993,
+            "durationsMs": [
+              23.951996999999892,
+              6.015896000000112,
+              6.976761000000124,
+              6.331563999999844,
+              8.369507999999996,
+              7.769637999999986,
+              6.808432000000039,
+              6.220970999999963,
+              8.125103999999965,
+              6.036235999999917,
+              7.135526000000027,
+              8.413142999999991,
+              8.17820400000005,
+              6.121022000000039,
+              6.160709999999881,
+              6.410051000000067
+            ],
+            "checksum": 110880
+          },
+          "pairedChangePercent": -73.01311686966642
+        }
+      ],
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 118.49347599999987,
+            "perRegistrationMs": 7.405842249999992,
+            "durationsMs": [
+              21.91541499999994,
+              5.971099000000095,
+              6.530168999999887,
+              6.717326000000185,
+              8.070704999999862,
+              6.444731999999931,
+              5.98077400000011,
+              5.849097999999913,
+              5.855296999999837,
+              5.705575000000181,
+              6.400585999999976,
+              7.504805000000033,
+              7.60240900000008,
+              5.932442999999921,
+              6.1340909999998985,
+              5.878952000000027
+            ],
+            "checksum": 129360
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 33.82695999999987,
+            "perRegistrationMs": 2.114184999999992,
+            "durationsMs": [
+              5.097603000000163,
+              1.7269820000001346,
+              3.029244999999719,
+              3.2970510000000104,
+              1.759520000000066,
+              1.4785440000000563,
+              1.3622609999997621,
+              1.3049559999999474,
+              1.927299999999832,
+              2.807235000000219,
+              2.003863999999794,
+              1.321860999999899,
+              1.44652700000006,
+              1.3397979999999734,
+              2.7632800000001225,
+              1.1609330000001137
+            ],
+            "checksum": 14784
+          },
+          "pairedChangePercent": -71.45247051407293
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 31.335274999999,
+            "perRegistrationMs": 1.9584546874999376,
+            "durationsMs": [
+              4.877394999999979,
+              1.2360529999996288,
+              2.992098000000169,
+              2.8443380000003344,
+              1.1011529999996128,
+              1.5265039999999317,
+              1.2326490000000376,
+              1.1885829999996531,
+              5.599324999999681,
+              1.2179059999998572,
+              2.0397750000001906,
+              1.118268000000171,
+              1.0569079999995665,
+              1.0390910000000986,
+              1.2336689999997361,
+              1.0315600000003542
+            ],
+            "checksum": 16896
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 130.9672070000006,
+            "perRegistrationMs": 8.185450437500037,
+            "durationsMs": [
+              27.350774999999885,
+              6.306694000000334,
+              6.574431000000004,
+              6.910949999999957,
+              7.647261999999955,
+              6.417027999999846,
+              6.8329240000002756,
+              6.1007079999999405,
+              6.242558000000372,
+              5.741997000000083,
+              7.941088000000036,
+              8.523902999999791,
+              9.479299000000083,
+              6.325432000000092,
+              5.908372999999756,
+              6.663785000000189
+            ],
+            "checksum": 147840
+          },
+          "pairedChangePercent": -76.07395338285036
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 131.77900899999895,
+            "perRegistrationMs": 8.236188062499934,
+            "durationsMs": [
+              24.17374299999983,
+              6.3735429999996995,
+              11.933619999999792,
+              9.474110999999994,
+              6.893053000000236,
+              5.708506999999827,
+              5.931217000000288,
+              5.9967139999998835,
+              6.111363999999867,
+              5.968461999999818,
+              5.914041999999881,
+              7.650427000000036,
+              10.439222999999856,
+              6.962465999999949,
+              6.139145000000099,
+              6.109371999999894
+            ],
+            "checksum": 166320
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 26.721913000000768,
+            "perRegistrationMs": 1.670119562500048,
+            "durationsMs": [
+              4.397863000000143,
+              1.6225960000001578,
+              2.747595000000274,
+              2.6719429999998283,
+              1.1970150000001922,
+              1.5097900000000664,
+              1.3894810000001598,
+              1.0800810000000638,
+              1.479012999999668,
+              1.258987000000161,
+              1.1674519999996846,
+              1.3982739999996738,
+              1.1422040000002198,
+              1.2198499999999513,
+              1.1953130000001693,
+              1.2444560000003548
+            ],
+            "checksum": 19008
+          },
+          "pairedChangePercent": -79.7221779077114
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 41.76857800000107,
+            "perRegistrationMs": 2.610536125000067,
+            "durationsMs": [
+              4.6460110000002715,
+              1.669076000000132,
+              3.0204499999999825,
+              2.898559000000205,
+              1.9917239999999765,
+              1.9240939999999682,
+              3.9142150000002403,
+              3.887195000000247,
+              4.3310529999998835,
+              3.713357999999971,
+              3.860706000000391,
+              1.439002999999957,
+              1.1247180000000299,
+              1.0917089999998097,
+              1.070227000000159,
+              1.1864799999998468
+            ],
+            "checksum": 21120
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 121.72998599999983,
+            "perRegistrationMs": 7.608124124999989,
+            "durationsMs": [
+              22.54878400000007,
+              6.6839930000001,
+              6.45198900000014,
+              6.045446000000084,
+              7.514165000000048,
+              6.479820999999902,
+              6.574762000000192,
+              5.790947999999844,
+              6.915316000000075,
+              6.0832329999998365,
+              6.372270999999728,
+              7.638838999999734,
+              8.621898000000328,
+              6.0645949999998265,
+              5.895485000000008,
+              6.048440999999912
+            ],
+            "checksum": 184800
+          },
+          "pairedChangePercent": -65.68751926086549
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 123.1115639999989,
+            "perRegistrationMs": 7.694472749999932,
+            "durationsMs": [
+              20.74478799999997,
+              6.255728999999974,
+              5.853491999999733,
+              6.725976000000173,
+              7.567768999999771,
+              7.308759999999893,
+              6.694580000000315,
+              5.9917969999996785,
+              5.928281999999854,
+              6.608502000000044,
+              7.855421000000206,
+              7.477661999999782,
+              8.028947999999673,
+              8.150557999999819,
+              5.805331000000024,
+              6.113968999999997
+            ],
+            "checksum": 203280
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 27.703670999999304,
+            "perRegistrationMs": 1.7314794374999565,
+            "durationsMs": [
+              4.382129000000077,
+              1.5709500000002663,
+              2.613966000000346,
+              2.382372999999916,
+              1.289632999999867,
+              1.3055570000001353,
+              1.286689000000024,
+              1.5180420000001504,
+              1.324724999999944,
+              1.3530069999997067,
+              2.6636610000000474,
+              1.1082639999999628,
+              1.2665389999997387,
+              1.1132009999996626,
+              1.2992369999997209,
+              1.2256979999997384
+            ],
+            "checksum": 23232
+          },
+          "pairedChangePercent": -77.49710092221756
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 27.82724299999927,
+            "perRegistrationMs": 1.7392026874999544,
+            "durationsMs": [
+              4.3727859999999055,
+              1.4138269999998556,
+              2.3738899999998466,
+              2.4512049999998453,
+              1.3338180000000648,
+              1.4186540000000605,
+              1.3276789999999892,
+              1.3965519999997014,
+              1.4023999999999432,
+              1.5081869999999071,
+              2.826803000000382,
+              1.2968329999998787,
+              1.3790659999999662,
+              1.1294360000001689,
+              1.1143629999996847,
+              1.0817440000000715
+            ],
+            "checksum": 25344
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 167.1057150000006,
+            "perRegistrationMs": 10.444107187500038,
+            "durationsMs": [
+              24.964496999999938,
+              16.496577000000343,
+              6.2296699999997145,
+              6.560852000000068,
+              7.78919199999973,
+              5.8793399999999565,
+              8.16466900000023,
+              10.079310000000078,
+              8.081476000000293,
+              8.123649000000114,
+              10.501996999999847,
+              11.72789499999999,
+              13.289490999999998,
+              6.397770000000037,
+              15.485973000000286,
+              7.333356999999978
+            ],
+            "checksum": 221760
+          },
+          "pairedChangePercent": -83.34752165717421
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 125.67666500000087,
+            "perRegistrationMs": 7.854791562500054,
+            "durationsMs": [
+              27.350179000000026,
+              6.061541000000034,
+              5.86781400000018,
+              5.991977000000134,
+              7.156944000000294,
+              6.224361000000044,
+              5.988111000000117,
+              6.018697999999858,
+              5.872280000000046,
+              5.941612000000077,
+              7.683986000000004,
+              9.972189999999955,
+              8.020978000000014,
+              5.891458000000057,
+              5.692211999999927,
+              5.942324000000099
+            ],
+            "checksum": 240240
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 31.536753000000317,
+            "perRegistrationMs": 1.9710470625000198,
+            "durationsMs": [
+              4.32278099999985,
+              1.6276440000001458,
+              2.647136000000046,
+              4.408046999999897,
+              1.6237180000002809,
+              1.3827009999999973,
+              1.5284069999997882,
+              1.4482080000002497,
+              1.3531670000002123,
+              1.5648510000000897,
+              2.3562849999998434,
+              1.3340790000002016,
+              1.5778099999997721,
+              1.6841479999998228,
+              1.452354000000014,
+              1.2254170000001068
+            ],
+            "checksum": 27456
+          },
+          "pairedChangePercent": -74.90643708599357
+        },
+        {
+          "pair": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 30.246928999999,
+            "perRegistrationMs": 1.8904330624999375,
+            "durationsMs": [
+              4.020403999999871,
+              1.625069999999596,
+              2.369234000000233,
+              4.595014999999876,
+              1.3853839999997035,
+              1.335399999999936,
+              1.3673079999998663,
+              1.2856069999997999,
+              1.6169690000001538,
+              1.2707949999999073,
+              2.52437000000009,
+              1.5255529999999453,
+              1.244626000000153,
+              1.270904999999857,
+              1.4953279999999722,
+              1.3149610000000393
+            ],
+            "checksum": 29568
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 129.24969299999884,
+            "perRegistrationMs": 8.078105812499928,
+            "durationsMs": [
+              30.658136999999897,
+              6.137271999999939,
+              6.3103189999997085,
+              6.2554879999997866,
+              8.361120999999912,
+              6.05590200000006,
+              5.825590000000375,
+              6.321275000000242,
+              6.328145999999833,
+              5.883045999999922,
+              6.460440999999264,
+              8.150878999999804,
+              8.21987100000024,
+              6.148309999999583,
+              6.239102999999886,
+              5.894793000000391
+            ],
+            "checksum": 258720
+          },
+          "pairedChangePercent": -76.59806511107205
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 117.9751380000007,
+            "perRegistrationMs": 7.373446125000044,
+            "durationsMs": [
+              22.028371999999763,
+              6.376487999999881,
+              6.305131000000074,
+              6.070764000000054,
+              8.480859000000237,
+              6.170510999999351,
+              6.133998000000247,
+              5.816006000000016,
+              5.766472999999678,
+              5.870386999999937,
+              5.965057000000343,
+              8.116248000000269,
+              7.632300000000214,
+              5.837046999999984,
+              5.70238800000061,
+              5.70310900000004
+            ],
+            "checksum": 277200
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 24.81217999999899,
+            "perRegistrationMs": 1.5507612499999368,
+            "durationsMs": [
+              4.367878000000019,
+              1.4091600000001563,
+              2.335243999999875,
+              2.1469939999997223,
+              1.1653490000007878,
+              1.1001820000001317,
+              1.0902169999999387,
+              1.0752539999994042,
+              1.1002220000000307,
+              1.1532509999997274,
+              2.0176519999995435,
+              1.1025549999994837,
+              1.0849889999999505,
+              1.2368539999997665,
+              1.3436130000000048,
+              1.082766000000447
+            ],
+            "checksum": 31680
+          },
+          "pairedChangePercent": -78.968297540793
+        },
+        {
+          "pair": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 26.886858999999276,
+            "perRegistrationMs": 1.6804286874999548,
+            "durationsMs": [
+              4.361259000000246,
+              1.5051030000004175,
+              2.3205120000002353,
+              2.528019000000313,
+              1.307528999999704,
+              1.7885320000004867,
+              1.153190999999424,
+              1.1040579999998954,
+              1.1096059999999852,
+              1.2718769999992219,
+              2.9060800000006566,
+              1.1747029999996812,
+              1.1378880000002027,
+              1.0730109999994966,
+              1.0810129999999845,
+              1.0644779999993261
+            ],
+            "checksum": 33792
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 122.75042300000132,
+            "perRegistrationMs": 7.6719014375000825,
+            "durationsMs": [
+              21.93971099999999,
+              6.051926000000094,
+              5.948483000000124,
+              6.711914999999863,
+              8.558635000000322,
+              6.0226629999997385,
+              6.106157000000167,
+              6.285522000000128,
+              6.486280000000079,
+              5.791741000000002,
+              6.520319999999629,
+              7.570027000000664,
+              8.034276000000318,
+              7.450681000000259,
+              6.697234000000208,
+              6.574851999999737
+            ],
+            "checksum": 295680
+          },
+          "pairedChangePercent": -78.09632069455354
+        },
+        {
+          "pair": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 123.8297590000011,
+            "perRegistrationMs": 7.739359937500069,
+            "durationsMs": [
+              22.997949999999946,
+              6.205262999999832,
+              6.3320819999999,
+              6.075590999999804,
+              7.289620999999897,
+              6.133958000000348,
+              6.283429999999498,
+              6.231482000000142,
+              5.999577999999929,
+              6.002472000000125,
+              6.096061000000191,
+              8.92757200000051,
+              8.282955000000584,
+              6.43199900000036,
+              6.421393999999964,
+              8.118351000000075
+            ],
+            "checksum": 314160
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 29.71864800000003,
+            "perRegistrationMs": 1.8574155000000019,
+            "durationsMs": [
+              4.136986000000434,
+              1.4346679999998742,
+              2.882675000000745,
+              2.592555000000175,
+              1.3928959999993822,
+              1.6003439999994953,
+              1.6995399999996152,
+              1.3038239999996222,
+              1.6042390000002342,
+              1.1792789999999513,
+              3.176632000000609,
+              1.8193590000000768,
+              1.3598969999993642,
+              1.101553999999851,
+              1.1914670000005572,
+              1.2427330000000438
+            ],
+            "checksum": 35904
+          },
+          "pairedChangePercent": -76.0003990640087
+        },
+        {
+          "pair": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 42.8168880000012,
+            "perRegistrationMs": 2.676055500000075,
+            "durationsMs": [
+              6.43019699999968,
+              1.5033890000004249,
+              2.4029039999995803,
+              2.6307319999996253,
+              1.4011280000004263,
+              1.3591059999998834,
+              1.7200810000003912,
+              2.6838010000001304,
+              1.3696710000003804,
+              1.4228199999997742,
+              4.576358000000255,
+              1.5596730000006573,
+              1.138449000000037,
+              3.3963269999994736,
+              3.6969030000000203,
+              5.52534900000046
+            ],
+            "checksum": 38016
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 123.29914199999985,
+            "perRegistrationMs": 7.70619637499999,
+            "durationsMs": [
+              22.911391999999978,
+              8.198169000000235,
+              6.232053000000633,
+              6.427654000000075,
+              7.436869999999544,
+              6.512068999999428,
+              6.132744999999886,
+              6.015221000000565,
+              6.418360000000575,
+              5.914271999999983,
+              7.731826999999612,
+              7.468215999999302,
+              7.661262000000534,
+              5.9695849999998245,
+              6.1997449999998935,
+              6.069701999999779
+            ],
+            "checksum": 332640
+          },
+          "pairedChangePercent": -65.27397733229867
+        }
+      ],
+      "summary": {
+        "medianBaselineMsPerRegistration": 7.72277815625003,
+        "medianCandidateMsPerRegistration": 1.8739242812499697,
+        "ratioOfMedians": 0.24264898503311355,
+        "medianPairedChangePercent": -76.3360092469612,
+        "candidateFasterPairs": 12,
+        "pairCount": 12,
+        "baselineRangeMsPerRegistration": [
+          7.373446125000044,
+          10.444107187500038
+        ],
+        "candidateRangeMsPerRegistration": [
+          1.5507612499999368,
+          2.676055500000075
+        ],
+        "orderGroups": {
+          "baseline": {
+            "count": 6,
+            "medianPairedChangePercent": -76.74874999311314
+          },
+          "candidate": {
+            "count": 6,
+            "medianPairedChangePercent": -76.3360092469612
+          }
+        }
+      },
+      "resources": {
+        "baseline": {
+          "resourceUsage": {
+            "userCPUTime": 4689001,
+            "systemCPUTime": 176575,
+            "maxRSS": 182756,
+            "sharedMemorySize": 0,
+            "unsharedDataSize": 0,
+            "unsharedStackSize": 0,
+            "minorPageFault": 56483,
+            "majorPageFault": 0,
+            "swappedOut": 0,
+            "fsRead": 0,
+            "fsWrite": 0,
+            "ipcSent": 0,
+            "ipcReceived": 0,
+            "signalsCount": 0,
+            "voluntaryContextSwitches": 3055,
+            "involuntaryContextSwitches": 66
+          },
+          "memory": {
+            "rss": 185180160,
+            "heapTotal": 144044032,
+            "heapUsed": 8921504,
+            "external": 4048350,
+            "arrayBuffers": 212227
+          }
+        },
+        "candidate": {
+          "resourceUsage": {
+            "userCPUTime": 2646919,
+            "systemCPUTime": 203978,
+            "maxRSS": 148836,
+            "sharedMemorySize": 0,
+            "unsharedDataSize": 0,
+            "unsharedStackSize": 0,
+            "minorPageFault": 40087,
+            "majorPageFault": 0,
+            "swappedOut": 0,
+            "fsRead": 0,
+            "fsWrite": 0,
+            "ipcSent": 0,
+            "ipcReceived": 0,
+            "signalsCount": 0,
+            "voluntaryContextSwitches": 2183,
+            "involuntaryContextSwitches": 27
+          },
+          "memory": {
+            "rss": 152408064,
+            "heapTotal": 144044032,
+            "heapUsed": 38404128,
+            "external": 4048350,
+            "arrayBuffers": 212227
+          }
+        }
+      }
+    },
+    {
+      "caseId": "mixed-six-groups-1024",
+      "warmups": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 78.69508299999998,
+            "perRegistrationMs": 4.918442687499999,
+            "durationsMs": [
+              18.292651000000006,
+              9.270278999999988,
+              7.629887999999994,
+              4.770053999999988,
+              5.856906000000009,
+              3.5814919999999972,
+              4.196559000000008,
+              2.4977250000000026,
+              2.0928440000000137,
+              3.1351300000000037,
+              2.2252300000000105,
+              2.10774600000002,
+              3.249208999999979,
+              3.3070249999999817,
+              3.307114999999982,
+              3.175229999999999
+            ],
+            "checksum": 6208
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 65.10995000000003,
+            "perRegistrationMs": 4.069371875000002,
+            "durationsMs": [
+              10.918564000000003,
+              4.86808000000002,
+              4.802752999999996,
+              3.9185320000000274,
+              3.374896000000035,
+              2.607438000000002,
+              1.6064719999999966,
+              2.285570000000007,
+              1.3277989999999704,
+              2.2306089999999585,
+              1.5479260000000181,
+              6.492935999999986,
+              9.128494999999987,
+              6.976196000000016,
+              1.5857819999999947,
+              1.4379020000000082
+            ],
+            "checksum": 2128
+          },
+          "pairedChangePercent": -17.26300104416938
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 49.75541300000003,
+            "perRegistrationMs": 3.109713312500002,
+            "durationsMs": [
+              11.476235999999972,
+              9.472849999999994,
+              5.11404600000003,
+              3.523625999999979,
+              2.6061359999999922,
+              2.5288909999999305,
+              1.3516550000000507,
+              1.3426110000000335,
+              1.6285860000000412,
+              1.5983210000000554,
+              1.301890999999955,
+              1.3623700000000554,
+              1.2505149999999503,
+              1.777245999999991,
+              1.8654070000000047,
+              1.555025999999998
+            ],
+            "checksum": 4256
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 95.71228200000007,
+            "perRegistrationMs": 5.982017625000005,
+            "durationsMs": [
+              18.80076399999996,
+              12.531360999999947,
+              6.803692000000069,
+              23.986075000000028,
+              4.08021199999996,
+              2.4905240000000504,
+              4.489788999999973,
+              3.0476899999999887,
+              2.4648449999999684,
+              3.7568619999999555,
+              2.4474700000000666,
+              2.2840479999999843,
+              2.3483230000000503,
+              1.8963430000000017,
+              2.0869450000000143,
+              2.1973390000000563
+            ],
+            "checksum": 12416
+          },
+          "pairedChangePercent": -48.01564442899816
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 83.34435399999995,
+            "perRegistrationMs": 5.209022124999997,
+            "durationsMs": [
+              11.481097999999974,
+              7.374458000000004,
+              8.334166000000096,
+              9.937809000000016,
+              10.855609999999956,
+              7.739861000000019,
+              4.0218549999999595,
+              2.0094199999999773,
+              1.8861879999999474,
+              1.968138999999951,
+              1.9266270000000532,
+              1.998234000000025,
+              1.880959999999959,
+              7.672955000000002,
+              2.187084000000027,
+              2.0698899999999867
+            ],
+            "checksum": 18624
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 40.539776000000074,
+            "perRegistrationMs": 2.5337360000000047,
+            "durationsMs": [
+              7.640802000000008,
+              4.558091000000104,
+              2.835064999999986,
+              4.058268999999996,
+              2.5877980000000207,
+              2.5888299999999163,
+              2.857507999999939,
+              2.6698900000000094,
+              1.2899730000000318,
+              1.227170000000001,
+              1.2853559999999788,
+              1.6792310000000725,
+              1.2210210000000643,
+              1.4651629999999614,
+              1.204466000000025,
+              1.371142999999961
+            ],
+            "checksum": 6384
+          },
+          "pairedChangePercent": -51.358701514442
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 49.87365200000045,
+            "perRegistrationMs": 3.117103250000028,
+            "durationsMs": [
+              11.206400999999914,
+              7.873729000000139,
+              2.781686000000036,
+              4.453345000000127,
+              4.282511999999997,
+              4.528887000000168,
+              3.081521000000066,
+              1.2892820000001848,
+              1.2130389999999807,
+              1.184357000000091,
+              2.16901699999994,
+              1.233869999999797,
+              1.1965440000001308,
+              1.1220439999999599,
+              1.1304170000000795,
+              1.1270009999998365
+            ],
+            "checksum": 8512
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 62.7461830000002,
+            "perRegistrationMs": 3.9216364375000126,
+            "durationsMs": [
+              13.414084999999886,
+              7.601605000000063,
+              4.520794999999907,
+              4.3211089999999786,
+              4.431692999999996,
+              3.89354400000002,
+              1.9562110000001667,
+              2.029160000000047,
+              1.963713000000098,
+              1.8992070000001604,
+              2.6081790000000638,
+              3.310990999999831,
+              3.450507000000016,
+              3.5295350000001235,
+              1.889551999999867,
+              1.9262969999999768
+            ],
+            "checksum": 24832
+          },
+          "pairedChangePercent": -20.51524154066824
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 81.73686400000042,
+            "perRegistrationMs": 5.1085540000000265,
+            "durationsMs": [
+              11.698010000000068,
+              6.373972999999978,
+              16.679118000000017,
+              14.833099999999831,
+              9.745229000000108,
+              2.4679000000000997,
+              2.1473340000000007,
+              2.0431100000000697,
+              1.9040239999999358,
+              1.867328999999927,
+              2.146944000000076,
+              2.030913000000055,
+              1.9183649999999943,
+              1.883314000000155,
+              2.114577000000054,
+              1.8836240000000544
+            ],
+            "checksum": 31040
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 39.812179000000924,
+            "perRegistrationMs": 2.4882611875000578,
+            "durationsMs": [
+              5.650290999999925,
+              7.154562000000169,
+              2.7035390000000916,
+              4.197896000000128,
+              2.59331700000007,
+              2.6413370000000214,
+              2.6695190000000366,
+              1.2840949999999793,
+              1.3519850000000133,
+              1.3225810000001275,
+              1.549989000000096,
+              1.3345990000000256,
+              1.2325379999999768,
+              1.3729370000000927,
+              1.4211280000001807,
+              1.331865999999991
+            ],
+            "checksum": 10640
+          },
+          "pairedChangePercent": -51.292260246244936
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 47.70129899999938,
+            "perRegistrationMs": 2.9813311874999613,
+            "durationsMs": [
+              9.894154000000071,
+              7.5958069999999225,
+              3.5227849999998853,
+              3.742770999999948,
+              2.7171699999998964,
+              2.69452699999988,
+              2.828645999999935,
+              2.6432099999999537,
+              1.5537440000000515,
+              1.5317119999999704,
+              1.4857630000001336,
+              1.6408729999998286,
+              1.4444929999999658,
+              1.4852529999998296,
+              1.477771999999959,
+              1.4426190000001498
+            ],
+            "checksum": 12768
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 68.83433399999944,
+            "perRegistrationMs": 4.302145874999965,
+            "durationsMs": [
+              16.82520499999987,
+              6.552519000000075,
+              5.115286999999853,
+              4.46018499999991,
+              5.908333999999968,
+              4.4172819999998865,
+              6.461703999999827,
+              1.9168529999999464,
+              1.902411999999913,
+              3.1727750000000015,
+              2.0366300000000592,
+              2.083921000000146,
+              2.1054730000000745,
+              2.075837999999976,
+              1.8945799999999053,
+              1.905336000000034
+            ],
+            "checksum": 37248
+          },
+          "pairedChangePercent": -30.70129944164236
+        }
+      ],
+      "samples": [
+        {
+          "pair": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 65.49108799999931,
+            "perRegistrationMs": 4.093192999999957,
+            "durationsMs": [
+              14.005877000000055,
+              9.188648999999941,
+              6.046938999999838,
+              4.4564490000000205,
+              5.370245000000068,
+              3.910028999999895,
+              2.0722940000000563,
+              1.9701219999999466,
+              2.8145139999999174,
+              2.012183999999934,
+              3.57134700000006,
+              2.046685000000025,
+              2.0543169999998554,
+              1.9669169999999667,
+              2.024342999999817,
+              1.9801769999999124
+            ],
+            "checksum": 43456
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 47.26202799999987,
+            "perRegistrationMs": 2.953876749999992,
+            "durationsMs": [
+              8.09461599999986,
+              3.7077300000000832,
+              2.7097989999999754,
+              2.9539910000000873,
+              3.7938070000000153,
+              3.7910719999999856,
+              1.4349190000000362,
+              1.7399410000000444,
+              3.17603999999983,
+              1.2864680000000135,
+              1.667423000000099,
+              1.2686610000000655,
+              1.232187999999951,
+              2.3207619999998315,
+              4.137467000000015,
+              3.9471439999999802
+            ],
+            "checksum": 14896
+          },
+          "pairedChangePercent": -27.834413134195646
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 43.104594000000134,
+            "perRegistrationMs": 2.6940371250000084,
+            "durationsMs": [
+              6.54994499999998,
+              7.749643999999989,
+              2.6372910000000047,
+              2.326039999999921,
+              2.357817000000068,
+              2.4671589999998105,
+              2.404367000000093,
+              4.268951999999899,
+              1.23168700000042,
+              1.3604479999999057,
+              2.370625999999902,
+              1.2327179999997497,
+              1.2986470000000736,
+              1.1930999999999585,
+              1.3692610000002787,
+              2.28689200000008
+            ],
+            "checksum": 17024
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 69.36643100000038,
+            "perRegistrationMs": 4.3354019375000235,
+            "durationsMs": [
+              16.61524300000019,
+              7.891384000000016,
+              7.986644999999953,
+              4.496969999999692,
+              6.608189999999922,
+              3.9898379999999634,
+              2.1316320000000815,
+              2.1764290000000983,
+              2.056169000000409,
+              2.2098369999998795,
+              3.4249899999999798,
+              2.018754000000172,
+              2.005004000000099,
+              1.9425310000001446,
+              1.8857769999999618,
+              1.9270379999998113
+            ],
+            "checksum": 49664
+          },
+          "pairedChangePercent": -37.85957648592314
+        },
+        {
+          "pair": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 68.57109200000195,
+            "perRegistrationMs": 4.285693250000122,
+            "durationsMs": [
+              12.195917999999892,
+              9.495402999999897,
+              7.858095999999932,
+              4.624369000000115,
+              5.402873,
+              3.698986000000332,
+              3.2257439999998496,
+              1.9898620000003575,
+              1.8963220000000547,
+              1.9169730000003256,
+              3.4245890000001964,
+              2.0827790000003006,
+              2.050531000000319,
+              3.305323000000044,
+              3.405891000000338,
+              1.997433000000001
+            ],
+            "checksum": 55872
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 46.46918200000027,
+            "perRegistrationMs": 2.904323875000017,
+            "durationsMs": [
+              6.580851000000166,
+              5.100796000000173,
+              3.131565000000137,
+              7.209342000000106,
+              5.735315999999784,
+              2.4025839999999334,
+              1.2520170000002508,
+              1.2559229999997115,
+              3.1209390000003623,
+              1.6287459999998646,
+              1.5600039999999353,
+              1.6291759999999158,
+              1.7058899999997266,
+              1.3020110000002205,
+              1.375278999999864,
+              1.4787430000001223
+            ],
+            "checksum": 19152
+          },
+          "pairedChangePercent": -32.23211028927621
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 42.39648699999907,
+            "perRegistrationMs": 2.649780437499942,
+            "durationsMs": [
+              8.934555999999702,
+              7.394847999999911,
+              5.183688000000075,
+              2.731181000000106,
+              2.4251970000000256,
+              2.5342890000001717,
+              1.311384999999973,
+              1.1629449999995813,
+              2.1900179999997818,
+              1.1605719999997746,
+              1.2484119999999166,
+              1.244926000000305,
+              1.167341999999735,
+              1.2895720000001347,
+              1.1616429999999127,
+              1.255912999999964
+            ],
+            "checksum": 21280
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 64.08262300000024,
+            "perRegistrationMs": 4.005163937500015,
+            "durationsMs": [
+              14.405015000000276,
+              8.794222999999874,
+              5.441651000000093,
+              4.79765499999985,
+              6.369556999999986,
+              3.766815999999835,
+              3.1889900000001035,
+              1.9840019999996912,
+              1.9964010000003327,
+              1.8773449999998775,
+              1.9819690000003902,
+              1.9166829999999209,
+              1.911645000000135,
+              1.9019509999998263,
+              1.8834329999999682,
+              1.8652870000000803
+            ],
+            "checksum": 62080
+          },
+          "pairedChangePercent": -33.84089942760472
+        },
+        {
+          "pair": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 66.53913899999998,
+            "perRegistrationMs": 4.158696187499999,
+            "durationsMs": [
+              16.84765900000002,
+              7.2405979999998635,
+              5.024231999999756,
+              4.431273000000147,
+              5.886700999999903,
+              3.936909000000014,
+              1.987166999999772,
+              1.9937669999999343,
+              1.8872190000001865,
+              1.8621020000000499,
+              4.334869000000253,
+              1.9233819999999469,
+              1.9219309999998586,
+              1.8970540000000256,
+              3.3651310000000194,
+              1.999145000000226
+            ],
+            "checksum": 68288
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 45.87011100000018,
+            "perRegistrationMs": 2.866881937500011,
+            "durationsMs": [
+              9.73082199999999,
+              6.975386000000071,
+              2.9542320000000473,
+              2.5955999999996493,
+              4.379455000000235,
+              4.852517000000262,
+              2.933770999999979,
+              1.254921000000195,
+              1.1965549999999894,
+              1.2596779999998944,
+              1.2796779999998762,
+              1.4069869999998446,
+              1.2957010000000082,
+              1.200550000000021,
+              1.1995790000000852,
+              1.3546790000000328
+            ],
+            "checksum": 23408
+          },
+          "pairedChangePercent": -31.062962807498618
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 40.76500200000055,
+            "perRegistrationMs": 2.5478126250000344,
+            "durationsMs": [
+              9.206595000000107,
+              6.193565999999919,
+              3.025466999999935,
+              2.674507000000176,
+              2.471726000000217,
+              2.728016000000025,
+              1.218808000000081,
+              1.2765540000000328,
+              2.1247910000001866,
+              1.2266990000002806,
+              1.2567340000000513,
+              1.2321469999997134,
+              1.2318770000001678,
+              2.452878000000055,
+              1.2383569999997235,
+              1.2062799999998788
+            ],
+            "checksum": 25536
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 65.93823899999916,
+            "perRegistrationMs": 4.121139937499947,
+            "durationsMs": [
+              13.240827999999965,
+              12.375735000000077,
+              5.012493999999606,
+              4.330202999999983,
+              4.508476999999857,
+              3.9553869999999733,
+              3.578277000000071,
+              1.9674979999999778,
+              1.8948609999997643,
+              3.0771850000000995,
+              2.104761999999937,
+              1.934668999999758,
+              2.2207539999999426,
+              1.9212890000003426,
+              1.9179149999999936,
+              1.8979049999998097
+            ],
+            "checksum": 74496
+          },
+          "pairedChangePercent": -38.176993170835104
+        },
+        {
+          "pair": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 58.95086400000082,
+            "perRegistrationMs": 3.6844290000000512,
+            "durationsMs": [
+              14.039683999999852,
+              6.663213000000269,
+              4.626712000000225,
+              4.463760999999977,
+              4.5839390000001,
+              3.761949000000186,
+              2.4072800000003554,
+              2.0364300000001094,
+              2.1296390000002248,
+              2.532506000000012,
+              1.9382649999997739,
+              1.9952399999997397,
+              1.967117000000144,
+              1.9239330000000336,
+              1.9868470000001253,
+              1.8943489999996928
+            ],
+            "checksum": 80704
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 41.08709900000031,
+            "perRegistrationMs": 2.5679436875000192,
+            "durationsMs": [
+              8.360140000000229,
+              7.252506999999696,
+              2.876956000000064,
+              2.6655640000003586,
+              2.6177920000000086,
+              2.8648589999997967,
+              2.8305279999999584,
+              1.5562380000001212,
+              1.1974759999998241,
+              1.2465290000000095,
+              1.445184000000154,
+              1.2000800000000709,
+              1.3777939999999944,
+              1.2380259999999907,
+              1.237916000000041,
+              1.1195099999999911
+            ],
+            "checksum": 27664
+          },
+          "pairedChangePercent": -30.30280438298625
+        },
+        {
+          "pair": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 39.01880199999778,
+            "perRegistrationMs": 2.438675124999861,
+            "durationsMs": [
+              7.194660999999996,
+              8.126042999999754,
+              2.6082690000002913,
+              2.4129879999995865,
+              2.375032999999803,
+              2.391957999999704,
+              2.4687619999999697,
+              1.4213780000000042,
+              1.2019029999996746,
+              1.2408199999999852,
+              1.2353119999997944,
+              1.3534169999998085,
+              1.2928969999998117,
+              1.2128790000001572,
+              1.2244959999998173,
+              1.2579859999996188
+            ],
+            "checksum": 29792
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 62.464337999999316,
+            "perRegistrationMs": 3.9040211249999572,
+            "durationsMs": [
+              13.599860999999692,
+              6.56202200000007,
+              4.934217999999873,
+              4.7519680000000335,
+              5.661777999999686,
+              3.989908000000014,
+              2.1561280000000806,
+              2.3285040000000663,
+              2.1061939999999595,
+              1.8552119999999377,
+              4.215654000000086,
+              2.1379109999998036,
+              1.9499120000000403,
+              1.8688420000003134,
+              2.2283449999999903,
+              2.11788099999967
+            ],
+            "checksum": 86912
+          },
+          "pairedChangePercent": -37.5342743566766
+        },
+        {
+          "pair": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 67.47250200000235,
+            "perRegistrationMs": 4.217031375000147,
+            "durationsMs": [
+              17.032141000000138,
+              7.015755999999783,
+              5.218890000000101,
+              4.494386000000304,
+              5.92627900000025,
+              4.104076999999961,
+              3.8348479999999654,
+              1.9264770000004319,
+              2.0343070000003536,
+              2.194014000000152,
+              3.3998320000000604,
+              2.1545360000000073,
+              2.05834300000015,
+              2.1631890000003295,
+              1.963963000000149,
+              1.9514640000002146
+            ],
+            "checksum": 93120
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 37.678202999999485,
+            "perRegistrationMs": 2.354887687499968,
+            "durationsMs": [
+              5.890586999999869,
+              5.810767999999825,
+              2.820173000000068,
+              2.7093690000001516,
+              2.5297120000000177,
+              2.4471700000003693,
+              2.3635150000000067,
+              1.6566069999998945,
+              1.2654569999999694,
+              1.4334560000002057,
+              2.4037849999999708,
+              1.2253169999999045,
+              1.2029039999997622,
+              1.384773999999652,
+              1.2122380000000703,
+              1.3223709999997482
+            ],
+            "checksum": 31920
+          },
+          "pairedChangePercent": -44.157691084290654
+        },
+        {
+          "pair": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 36.95967900000005,
+            "perRegistrationMs": 2.309979937500003,
+            "durationsMs": [
+              7.928509999999733,
+              7.7357130000000325,
+              2.7332539999997607,
+              3.0671290000000226,
+              2.479707999999846,
+              1.2621320000002925,
+              1.2476509999996779,
+              1.2174960000002102,
+              1.265856999999869,
+              1.1761850000002596,
+              1.1155950000002122,
+              1.177255999999943,
+              1.1328800000001138,
+              1.150246000000152,
+              1.1553939999998875,
+              1.1146730000000389
+            ],
+            "checksum": 34048
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 69.80647100000078,
+            "perRegistrationMs": 4.362904437500049,
+            "durationsMs": [
+              21.026062000000366,
+              6.723371000000043,
+              5.1966379999998935,
+              4.719540000000052,
+              5.46487500000012,
+              3.98747400000002,
+              4.084108000000015,
+              2.0219590000001517,
+              1.9530870000003233,
+              1.9755600000003142,
+              1.972805999999764,
+              2.058592999999746,
+              2.1485760000000482,
+              2.125332999999955,
+              2.3586279999999533,
+              1.989861000000019
+            ],
+            "checksum": 99328
+          },
+          "pairedChangePercent": -47.05407898359504
+        },
+        {
+          "pair": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 61.062445999999,
+            "perRegistrationMs": 3.8164028749999375,
+            "durationsMs": [
+              11.217667999999321,
+              7.616046000000097,
+              4.621944999999869,
+              4.263874000000214,
+              5.537333000000217,
+              3.6944390000007843,
+              3.2123350000001665,
+              3.249670000000151,
+              1.9116649999996298,
+              2.782717000000048,
+              2.3540920000004917,
+              2.2653799999998228,
+              2.3579069999996136,
+              1.9956199999996898,
+              1.9039539999994304,
+              2.077800999999454
+            ],
+            "checksum": 105536
+          },
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 39.64358100000027,
+            "perRegistrationMs": 2.4777238125000167,
+            "durationsMs": [
+              6.7750599999999395,
+              7.665087999999741,
+              3.2675060000001395,
+              2.7450110000008863,
+              2.543322999999873,
+              2.4390880000000834,
+              1.658118999999715,
+              1.4179129999993165,
+              1.4358799999999974,
+              1.3852750000005472,
+              1.2673799999993207,
+              1.2332390000001396,
+              1.4026510000003327,
+              1.374087999999574,
+              1.2313860000003842,
+              1.802574000000277
+            ],
+            "checksum": 36176
+          },
+          "pairedChangePercent": -35.07698496060752
+        },
+        {
+          "pair": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "repetitions": 16,
+            "registrationMs": 38.18501799999649,
+            "perRegistrationMs": 2.3865636249997806,
+            "durationsMs": [
+              7.378924999999981,
+              7.435607999999775,
+              2.65009099999952,
+              2.3903159999999843,
+              2.485967999999957,
+              2.3569159999997282,
+              2.4245060000002923,
+              1.2197690000002694,
+              1.195161999999982,
+              1.2266189999991184,
+              1.236855000000105,
+              1.3210799999997107,
+              1.2462189999996554,
+              1.1976959999992687,
+              1.2039349999995466,
+              1.2153529999995953
+            ],
+            "checksum": 38304
+          },
+          "baseline": {
+            "repetitions": 16,
+            "registrationMs": 64.12946600000032,
+            "perRegistrationMs": 4.00809162500002,
+            "durationsMs": [
+              11.457092999999986,
+              6.786855999999716,
+              5.209976999999526,
+              5.533687999999529,
+              7.423861000000215,
+              4.378955000000133,
+              2.2502880000001824,
+              1.9954199999992852,
+              1.9400470000000496,
+              2.0127849999998944,
+              5.318778000000748,
+              2.015229000000545,
+              2.025854000000436,
+              1.9271490000000995,
+              1.9318160000002536,
+              1.9216699999997218
+            ],
+            "checksum": 111744
+          },
+          "pairedChangePercent": -40.45636057534566
+        }
+      ],
+      "summary": {
+        "medianBaselineMsPerRegistration": 4.107166468749952,
+        "medianCandidateMsPerRegistration": 2.557878156250027,
+        "ratioOfMedians": 0.6227841446681213,
+        "medianPairedChangePercent": -36.30562965864206,
+        "candidateFasterPairs": 12,
+        "pairCount": 12,
+        "baselineRangeMsPerRegistration": [
+          3.6844290000000512,
+          4.362904437500049
+        ],
+        "candidateRangeMsPerRegistration": [
+          2.309979937500003,
+          2.953876749999992
+        ],
+        "orderGroups": {
+          "baseline": {
+            "count": 6,
+            "medianPairedChangePercent": -31.647536548387414
+          },
+          "candidate": {
+            "count": 6,
+            "medianPairedChangePercent": -38.01828482837912
+          }
+        }
+      },
+      "resources": {
+        "baseline": {
+          "resourceUsage": {
+            "userCPUTime": 4182750,
+            "systemCPUTime": 384282,
+            "maxRSS": 186048,
+            "sharedMemorySize": 0,
+            "unsharedDataSize": 0,
+            "unsharedStackSize": 0,
+            "minorPageFault": 69140,
+            "majorPageFault": 0,
+            "swappedOut": 0,
+            "fsRead": 0,
+            "fsWrite": 0,
+            "ipcSent": 0,
+            "ipcReceived": 0,
+            "signalsCount": 0,
+            "voluntaryContextSwitches": 2991,
+            "involuntaryContextSwitches": 51
+          },
+          "memory": {
+            "rss": 186892288,
+            "heapTotal": 145354752,
+            "heapUsed": 61085264,
+            "external": 4048351,
+            "arrayBuffers": 212228
+          }
+        },
+        "candidate": {
+          "resourceUsage": {
+            "userCPUTime": 3487563,
+            "systemCPUTime": 278016,
+            "maxRSS": 166092,
+            "sharedMemorySize": 0,
+            "unsharedDataSize": 0,
+            "unsharedStackSize": 0,
+            "minorPageFault": 68175,
+            "majorPageFault": 0,
+            "swappedOut": 0,
+            "fsRead": 0,
+            "fsWrite": 0,
+            "ipcSent": 0,
+            "ipcReceived": 0,
+            "signalsCount": 0,
+            "voluntaryContextSwitches": 2564,
+            "involuntaryContextSwitches": 90
+          },
+          "memory": {
+            "rss": 167444480,
+            "heapTotal": 144306176,
+            "heapUsed": 54312040,
+            "external": 4048351,
+            "arrayBuffers": 212228
+          }
+        }
+      }
+    }
+  ],
+  "completedAt": "2026-11-25T03:28:38.551Z"
+}
