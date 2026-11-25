@@ -1,5 +1,6 @@
 import { Quaternion, Vector3 } from 'three';
 import { slerpDerivative } from './quaternion-derivative.ts';
+import { sampleMxJointField } from './offroad/mx-machine-pose.ts';
 import {
   B,
   BIKE_BASE,
@@ -97,6 +98,10 @@ export function sampleBikeField(
 ) {
   const p = car + BIKE_BASE + field;
   if (field === B.STATE || field === B.CRASHES) return snapshotSource(a, b, alpha)[p];
+  if (alpha > 0 && alpha < 1 && (field === B.FORK || field === B.SHOCK || field === B.STEER)) {
+    const motion = sampleMxJointField(a, b, car, field, alpha);
+    if (motion !== undefined) return motion;
+  }
   const t =
     field === B.STATE_CLOCK ||
     (field >= B.RIDER_X && field <= B.RIDER_Z) ||

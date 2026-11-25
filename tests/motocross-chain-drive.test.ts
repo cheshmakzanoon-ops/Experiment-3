@@ -484,3 +484,43 @@ it.each(['high', 'mid'] as const)('keeps the %s MX brake track on six hub arms w
   }
   material.dispose();
 });
+
+it('transfers slack only between the free chain runs, with rollers pinned at guides and sprockets', () => {
+  const { chain, dispose } = make('mid'), loop = motocrossChainLoop(0.52);
+  const positions = (pull?: number) => {
+    chain.update(0, 1, pull);
+    return Array.from({ length: chain.links }, (_, i) => point(chain.rollers, i));
+  };
+  try {
+    const straight = positions(), drive = positions(1), overrun = positions(-1);
+    let upperSag = 0, lowerSag = 0, guided = 0;
+    for (let i = 0; i < straight.length; i++) {
+      const at = loop.length * i / chain.links, upperEnd = loop.straightLength;
+      const lowerStart = upperEnd + loop.rearArcLength, lowerEnd = lowerStart + upperEnd;
+      const top = at > upperEnd * 0.29 + 0.116 && at < upperEnd;
+      const bottom = at > lowerStart + upperEnd * 0.21 + 0.063 && at < lowerEnd;
+      expect(drive[i].z).toBe(straight[i].z);
+      expect(overrun[i].z).toBe(straight[i].z);
+      if (top) {
+        expect(drive[i].y).toBe(straight[i].y);
+        upperSag = Math.max(upperSag, straight[i].y - overrun[i].y);
+      } else if (bottom) {
+        expect(overrun[i].y).toBe(straight[i].y);
+        lowerSag = Math.max(lowerSag, straight[i].y - drive[i].y);
+      } else {
+        expect(drive[i].equals(overrun[i])).toBe(true);
+        expect(drive[i].equals(straight[i])).toBe(true);
+        guided++;
+      }
+    }
+    expect(guided).toBeGreaterThan(chain.links / 2);
+    expect(upperSag).toBeGreaterThan(0.012);
+    expect(lowerSag).toBeGreaterThan(0.02);
+    expect(positions(1)).toEqual(drive);
+    const version = chain.rollers.instanceMatrix.version;
+    positions(1);
+    expect(chain.rollers.instanceMatrix.version).toBe(version);
+  } finally {
+    dispose();
+  }
+});

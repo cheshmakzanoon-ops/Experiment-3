@@ -1929,7 +1929,15 @@ export class RacingRenderer {
     );
     // Pose the subject before solving a first-frame or rewound photo. The
     // followed bike always selects the near LOD, regardless of camera range.
-    if (roadBikeSubject)
+    const mxHelmetView = motocrossFollow && isMotocrossVenue(this.circuit.track) &&
+      cameraMode === 'cockpit' && !this.reducedMotion && !pregame && !menu &&
+      (!this.photo || this.photo.backdrop === 'circuit');
+    if (mxHelmetView) {
+      this.bikeShells.motocrossGround = this.circuit.offroad?.terrain ?? undefined;
+      this.bikeShells.arenaGrid = this.circuit.offroad?.stadium?.lampGrid;
+    }
+    const subjectPosed = roadBikeSubject || mxHelmetView;
+    if (subjectPosed)
       this.bikeShells.update(
         a,
         b,
@@ -2261,6 +2269,7 @@ export class RacingRenderer {
             this.reducedMotion,
             presented,
             this.follow,
+            mxHelmetView ? this.bikeShells.motocrossPresentation(this.follow) : undefined,
           );
           this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
         }
@@ -2433,11 +2442,15 @@ export class RacingRenderer {
       !menu &&
       !pregame
     ) {
-      this.motocrossCamera.clearTerrain(
+      // The horizontal orbit uses the world spring. The MX rig owns the
+      // vertical channel so raw chassis heave cannot shake the lens a second time.
+      this.velocity.y = 0;
+      this.motocrossCamera.settleEye(
         this.camera.position,
         this.target,
         this.circuit.track,
         followedDefinition.bike!.cgHeight,
+        cameraDt,
       );
     }
     this.previousAnchor.copy(this.target);
@@ -2572,7 +2585,7 @@ export class RacingRenderer {
       this.quality,
       this.follow,
       undefined,
-      roadBikeSubject ? this.follow : undefined,
+      subjectPosed ? this.follow : undefined,
       this.circuit.offroad || (roadBikeSubject && followedDefinition.classId === 'gp-bike')
         ? this.renderHeight : undefined,
     );

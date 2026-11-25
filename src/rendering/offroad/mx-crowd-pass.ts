@@ -9,6 +9,8 @@ import { PHASE } from '../../simulation/race.ts';
 export class MxCrowdPass {
   readonly a = { value: new Vector4(0, 0, 0, 0) };
   readonly b = { value: new Vector4(0, 0, 0, 0) };
+  /** Displayed horizontal velocities of A and B, in metres per second. */
+  readonly velocity = { value: new Vector4(0, 0, 0, 0) };
   private readonly inverseReachSquared: number;
   constructor(reach: number) {
     this.inverseReachSquared = 1 / (reach * reach);
@@ -16,7 +18,10 @@ export class MxCrowdPass {
   update(frame?: Float32Array) {
     this.a.value.set(0, 0, 0, 0);
     this.b.value.set(0, 0, 0, 0);
-    if (!frame || frame[H.PHASE] !== PHASE.RACING) return;
+    this.velocity.value.set(0, 0, 0, 0);
+    // A chequered frame can still show the same bikes rolling past the
+    // stand. Their measured speed lets the gesture finish on the run-out.
+    if (!frame || (frame[H.PHASE] !== PHASE.RACING && frame[H.PHASE] !== PHASE.FINISHED)) return;
     const count = Math.min(
       Math.floor(frame[H.CARS]),
       Math.floor((frame.length - HEADER) / CAR_STRIDE),
@@ -44,13 +49,20 @@ export class MxCrowdPass {
         next = rank;
       }
     }
-    if (first >= 0) this.sample(frame, first, this.a.value);
-    if (second >= 0) this.sample(frame, second, this.b.value);
+    if (first >= 0) this.sample(frame, first, this.a.value, 0);
+    if (second >= 0) this.sample(frame, second, this.b.value, 2);
   }
-  private sample(frame: Float32Array, offset: number, out: Vector4) {
+  private sample(frame: Float32Array, offset: number, out: Vector4, slot: 0 | 2) {
     const o = offset + OFFROAD_BASE;
     const airborne = frame[o + O.AIRBORNE] > 0.5 ? clamp(frame[o + O.AIR_TIME] * 2, 0, 1) : 0;
     const response = clamp((frame[offset + F.SPEED] - 1) / 18, 0, 1) * (0.53 + 0.47 * airborne);
     out.set(frame[offset + F.X], frame[offset + F.Z], response, this.inverseReachSquared);
+    const vx = frame[offset + F.VX], vz = frame[offset + F.VZ];
+    const speed = Math.hypot(vx, vz);
+    if (Number.isFinite(speed) && speed > 0) {
+      const scale = Math.min(1, 48 / speed);
+      this.velocity.value.setComponent(slot, vx * scale);
+      this.velocity.value.setComponent(slot + 1, vz * scale);
+    }
   }
 }

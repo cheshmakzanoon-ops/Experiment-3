@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
-import { MxVenueWind } from './mx-venue-wind.ts';
+import { MX_GUST_GLSL, MxVenueWind } from './mx-venue-wind.ts';
 
 export const MX_CLOTH_EXCURSION = 0.16;
 
@@ -12,7 +12,7 @@ export function installMxClothWind(
   lit = false,
   wind = new MxVenueWind(),
 ) {
-  chainShaderHook(material, 'mx-pinned-event-fabric-v1', (shader) => {
+  chainShaderHook(material, 'mx-pinned-event-fabric-v2', (shader) => {
     shader.uniforms.mxClothTime = time;
     shader.uniforms.mxVenueWind = wind;
     injectDeclarations(
@@ -22,41 +22,46 @@ export function installMxClothWind(
       uniform float mxClothTime;
       uniform vec3 mxVenueWind;
       attribute vec3 mxCloth;
+      ${MX_GUST_GLSL}
       float mxWindPressure() {
         vec2 normal = mxCloth.xy * inversesqrt(max(dot(mxCloth.xy,mxCloth.xy),0.000001));
         return dot(normal,mxVenueWind.xy);
       }
       float mxClothWave(float phase) {
-        return 0.66 * sin(phase - mxClothTime * 2.9)
-             + 0.21 * sin(phase * 1.83 - mxClothTime * 4.25)
-             + 0.13 * sin(phase * 0.47 - mxClothTime * 1.18);
+        float fold = sin(phase - mxClothTime * 2.45);
+        return 0.72 * fold + 0.28 * sin(phase * 1.83 - mxClothTime * 4.25 + 0.48 * fold);
       }
       float mxClothSlope(float phase) {
-        return 0.66 * cos(phase - mxClothTime * 2.9)
-             + 0.3843 * cos(phase * 1.83 - mxClothTime * 4.25)
-             + 0.0611 * cos(phase * 0.47 - mxClothTime * 1.18);
+        float slow = phase - mxClothTime * 2.45;
+        float fast = phase * 1.83 - mxClothTime * 4.25 + 0.48 * sin(slow);
+        return 0.72 * cos(slow) + 0.28 * cos(fast) * (1.83 + 0.48 * cos(slow));
       }`,
       'vertex',
     );
-    injectAfter(
-      shader,
-      'begin_vertex',
-      `float mxPressure = mxWindPressure();
-      transformed.xz += mxCloth.xy * mxVenueWind.z * (0.52*mxPressure
-        + (0.12+0.36*abs(mxPressure))*mxClothWave(mxCloth.z));`,
-      'vertex',
-    );
+    const load = `float mxPressure = mxWindPressure();
+      float mxGust = mxVenueGust(position.xz, mxClothTime);
+      float mxRipple = sqrt(mxVenueWind.z) * (0.32 + 0.68 * mxGust)
+        * (0.19 + 0.35 * abs(mxPressure));
+      float mxPhase = mxCloth.z + 0.42 * mxGust;`;
     if (lit) {
       // Vertical phase advance is shared by all panels. Bend the shading
       // normal along the wave so reflected light follows the fabric.
       injectAfter(
         shader,
         'beginnormal_vertex',
-        `objectNormal.y -= dot(objectNormal.xz, mxCloth.xy) * mxVenueWind.z
-          * (0.12+0.36*abs(mxWindPressure())) * 2.1 * mxClothSlope(mxCloth.z);`,
+        `${load}
+         objectNormal.y -= dot(objectNormal.xz, mxCloth.xy) * mxRipple * 2.1 * mxClothSlope(mxPhase);`,
         'vertex',
       );
     }
+    injectAfter(
+      shader,
+      'begin_vertex',
+      `${lit ? '' : load}
+      transformed.xz += mxCloth.xy * (0.46 * mxPressure * mxVenueWind.z * (0.44 + 0.56 * mxGust)
+        + mxRipple * mxClothWave(mxPhase));`,
+      'vertex',
+    );
   });
 }
 

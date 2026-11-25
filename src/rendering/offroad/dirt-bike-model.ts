@@ -1181,7 +1181,7 @@ export class DirtBikeModel {
       // wheel spin and wheel removal. No swingarm stretch scales the casting.
       this.rearBrake.rotation.x = this.swingarm.rotation.x;
     }
-    this.chain?.update(v.rearRotation, this.swingarm.scale.z);
+    this.chain?.update(v.rearRotation, this.swingarm.scale.z, v.mxChainPull);
     // Steel stays dark at ordinary riding temperatures. The two rotors
     // use their own recorded heat, including brake dragging and cooldown.
     this.frontRotor.emissiveIntensity = mxRotorEmission(v.discTemp);
@@ -1212,8 +1212,8 @@ export class DirtBikeModel {
       );
     }
     if (this.frontFender.morphTargetInfluences && this.rearFender.morphTargetInfluences) {
-      this.frontFender.morphTargetInfluences[0] = mxFenderLoad(v.dirtSupportG, v.speed, bias);
-      this.rearFender.morphTargetInfluences[0] = mxFenderLoad(v.dirtSupportG, v.speed, -bias);
+      this.frontFender.morphTargetInfluences[0] = v.mxFrontFlex ?? mxFenderLoad(v.dirtSupportG, v.speed, bias);
+      this.rearFender.morphTargetInfluences[0] = v.mxRearFlex ?? mxFenderLoad(v.dirtSupportG, v.speed, -bias);
     }
     if (v.riding) {
       this.steerMount.updateMatrix();
@@ -1263,6 +1263,10 @@ export class DirtBikeModel {
         compression: (forkStroke + rearStroke) / 2,
         compressionBias: bias,
         supportG: v.dirtSupportG,
+        motocrossRace: this.definition.classId === 'motocross',
+        mxBottoming: v.mxBottoming,
+        mxFlightTime: v.mxFlightTime,
+        mxJerseyAir: v.mxJerseyAir,
       });
     }
   }

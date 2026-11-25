@@ -19,6 +19,7 @@ import * as T from 'three';
 import { gpFairingWear } from './gp-fairing-wear.ts';
 import { motocrossTravelYaw } from './offroad/motocross-rider-motion.ts';
 import { MxArenaBikeLight } from './offroad/mx-arena-bike-light.ts';
+import { MxJerseyAir } from './offroad/mx-jersey-airflow.ts';
 import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { MxRecoveryPose } from './offroad/motocross-recovery.ts';
@@ -93,6 +94,7 @@ import {
   R,
   OFFROAD_BASE,
   MX_FOOT,
+  MX_MOTION,
   hasMxFootControls,
   RACE_BASE,
   W,
@@ -105,6 +107,7 @@ import { vehicleAt, type VehicleDefinition } from '../simulation/vehicles.ts';
 import type { Track } from '../simulation/track.ts';
 import { offroadCourse } from '../simulation/offroad/venues.ts';
 import { MotocrossRiderSight } from './offroad/motocross-rider-sight.ts';
+import { sampleMxFender } from './offroad/mx-machine-pose.ts';
 import { MotorcycleRoadPreview, type GpRiderSight } from './motorcycle-camera.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { liveryScheme } from './car-livery.ts';
@@ -2269,8 +2272,18 @@ export interface BikePoseValues extends GpTyreAppearance {
   standing?: number;
   dab?: number;
   body?: number;
+  /** Recorded severity remaining after the last hard landing. */
+  mxBottoming?: number;
+  /** Age of the current flight, with grounded samples at zero. */
+  mxFlightTime?: number;
+  mxJerseyAir?: MxJerseyAir;
   /** Interpolated tyre support in multiples of the MX bike's own weight. */
   dirtSupportG?: number;
+  /** Independent front and rear mudguard bending on recorded motocross runs. */
+  mxFrontFlex?: number;
+  mxRearFlex?: number;
+  /** Signed pull on the MX drive and return chain runs. */
+  mxChainPull?: number;
   /** World horizontal motion of a motocross entrant, including tyre sideslip. */
   velocityX?: number;
   velocityZ?: number;
@@ -2404,6 +2417,9 @@ export class BikeShells {
   private readonly riderForward = new T.Vector3();
   private readonly mxRecoveryPose = new MxRecoveryPose();
   private readonly helmetUp = new T.Vector3();
+  private readonly mxJerseyAir = new MxJerseyAir();
+  private readonly mxHelmetCentre = new T.Vector3();
+  private readonly mxHelmetForward = new T.Vector3();
   private readonly fieldGeometry = new MxGeometryPool();
   readonly root = new T.Group();
   /** Renderer hook: install weather/atmosphere/IBL on newly built bikes. */
@@ -2876,13 +2892,33 @@ export class BikeShells {
     v.standing = sampleOffroadField(a, b, o, O.STANDING, t);
     v.dab = sampleOffroadField(a, b, o, O.DAB, t);
     if (model instanceof DirtBikeModel) {
+      v.mxBottoming = sampleOffroadField(a, b, o, O.BOTTOM, t);
+      const offroad = o + OFFROAD_BASE;
+      v.mxFlightTime = T.MathUtils.lerp(
+        a[offroad + O.AIRBORNE] > 0.5 ? a[offroad + O.AIR_TIME] : 0,
+        b[offroad + O.AIRBORNE] > 0.5 ? b[offroad + O.AIR_TIME] : 0,
+        t,
+      );
       const left = hasMxFootControls(a, o), right = hasMxFootControls(b, o);
       v.shiftAngle = T.MathUtils.lerp(left ? a[o + MX_FOOT.ANGLE] : 0, right ? b[o + MX_FOOT.ANGLE] : 0, t);
       v.shiftCover = T.MathUtils.lerp(left ? a[o + MX_FOOT.COVER] : 0, right ? b[o + MX_FOOT.COVER] : 0, t);
       v.shiftClear = T.MathUtils.lerp(left ? a[o + MX_FOOT.CLEAR] : 0, right ? b[o + MX_FOOT.CLEAR] : 0, t);
       v.dirtSupportG = sampleValue(a, b, o + F.G_VERT, t);
+      v.mxFrontFlex = sampleMxFender(a, b, o, true, t);
+      v.mxRearFlex = sampleMxFender(a, b, o, false, t);
+      v.mxChainPull = model.detail !== 'far' && v.mxFrontFlex !== undefined
+        ? sampleValue(a, b, o + MX_MOTION.CHAIN_PULL, t)
+        : undefined;
       v.velocityX = sampleValue(a, b, o + F.VX, t);
       v.velocityZ = sampleValue(a, b, o + F.VZ, t);
+      v.mxJerseyAir = undefined;
+      if (this.mxSight && model.definition.classId === 'motocross' && model.detail !== 'far') {
+        this.riderForward.set(0, 0, 1).applyQuaternion(model.root.quaternion);
+        v.mxJerseyAir = this.mxJerseyAir.set(
+          v.velocityX, v.velocityZ,
+          sampleValue(a, b, H.WIND_X, t), sampleValue(a, b, H.WIND_Z, t), this.riderForward,
+        );
+      }
     }
     v.body = sampleOffroadField(a, b, o, O.BODY, t);
     // Practice, a studio pose and older recordings have no assigned gate slot.
@@ -2942,6 +2978,7 @@ export class BikeShells {
         v.time,
         this.motocrossGround,
         model instanceof DirtBikeModel ? model.recoveryGrip : undefined,
+        this.mxRecoveryPose.pushMotion(a, b, o, t, heading),
       );
       return;
     }
@@ -2965,6 +3002,7 @@ export class BikeShells {
     reducedMotion = false,
     presented?: Float32Array,
     follow = 0,
+    posedMx?: DirtBikeModel,
   ) {
     const mx = !!definition?.bike?.offroad,
       profile = bikeCockpitProfile(definition),
@@ -2975,7 +3013,21 @@ export class BikeShells {
     const slot = carBase(follow);
     const ridden =
       mx && !tail && !reducedMotion && presented && presented[slot + BIKE_BASE + B.STATE] === 0;
-    if (ridden) {
+    const helmet = ridden && definition?.classId === 'motocross' && posedMx && posedMx.definition === definition &&
+      posedMx.rider.root.parent === posedMx.sprung ? posedMx.rider : undefined;
+    let helmetYaw = 0;
+    if (helmet) {
+      helmet.motocrossHelmetFrame(this.mxHelmetCentre, this.mxHelmetForward);
+      const centre = this.mxHelmetCentre, forward = this.mxHelmetForward;
+      // The seated MX rig's helmet centre is (0, .852, .041) above the bike origin.
+      // Use only part of its excursion to keep both grips in the peripheral view.
+      eye.x += 0.05 * Math.tanh(centre.x * 8);
+      eye.y += 0.09 * Math.tanh((centre.y - 0.852) * 7);
+      eye.z += 0.08 * Math.tanh((centre.z - 0.041) * 4.5);
+      const nod = Math.asin(T.MathUtils.clamp(forward.y, -1, 1)) + 0.3;
+      helmetPitch += 0.065 * Math.tanh(nod * 4);
+      helmetYaw = 0.16 * Math.tanh(Math.atan2(forward.x, forward.z) * 2.2);
+    } else if (ridden) {
       // The full rider rises 17 cm at the pelvis and hinges over the bars.
       // The helmet keeps a smaller vertical excursion as the knees absorb it.
       const stance = T.MathUtils.clamp(presented[slot + OFFROAD_BASE + O.STANDING], 0, 1);
@@ -2999,9 +3051,9 @@ export class BikeShells {
       const rollToLevel = Math.atan2(direction.z * up.x - direction.x * up.z, up.y);
       up.applyAxisAngle(direction, rollToLevel * horizon * (reducedMotion ? 1 : 0.44));
       const slope = Math.asin(T.MathUtils.clamp(direction.y, -1, 1));
-      const gaze =
-        helmetPitch - horizon * T.MathUtils.clamp(slope * (reducedMotion ? 0.55 : 0.32), -0.11, 0.11);
-      const yaw = ridden
+      const slopeGain = reducedMotion ? 0.55 : helmet ? 0.15 : 0.32;
+      const gaze = helmetPitch - horizon * T.MathUtils.clamp(slope * slopeGain, -0.11, 0.11);
+      const yaw = helmet ? helmetYaw * horizon : ridden
         ? 0.18 *
           horizon *
           motocrossTravelYaw(

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { clamp, smooth } from '../../core/math.ts';
 import { ChainLoop, chainLinkPlateGeometry } from '../chain-geometry.ts';
 import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
 import { installMud, type MudUniforms } from './mud.ts';
@@ -91,6 +92,9 @@ export class MotocrossChainDrive {
   private readonly linkScale = new T.Vector3(1, 1, 1);
   private lastWheelPhase = Number.NaN;
   private lastStretch = Number.NaN;
+  private lastPull: number | undefined;
+  private upperFreeStart = 0;
+  private lowerFreeStart = 0;
 
   constructor(
     private readonly arm: number,
@@ -141,7 +145,27 @@ export class MotocrossChainDrive {
     this.update(0);
   }
 
-  update(rearRotation: number, swingarmStretch = 1) {
+  /** Start bending after the nylon slider or return shoe, then arrive at
+   * the sprocket tangent with zero displacement and slope. The guided runs
+   * stay inside their narrow channels throughout drive and overrun. */
+  private sample(distance: number, upperSag: number, lowerSag: number, out: T.Vector3) {
+    this.loop.sample(distance, out);
+    if (upperSag === 0 && lowerSag === 0) return;
+    const s = ((distance % this.loop.length) + this.loop.length) % this.loop.length;
+    const upperEnd = this.loop.straightLength, lowerEnd = 2 * upperEnd + this.loop.rearArcLength;
+    let u: number, sag: number;
+    if (s > this.upperFreeStart && s < upperEnd) {
+      u = (s - this.upperFreeStart) / (upperEnd - this.upperFreeStart);
+      sag = upperSag;
+    } else if (s > this.lowerFreeStart && s < lowerEnd) {
+      u = (s - this.lowerFreeStart) / (lowerEnd - this.lowerFreeStart);
+      sag = lowerSag;
+    } else return;
+    const shape = 4 * u * (1 - u);
+    out.y -= sag * shape * shape;
+  }
+
+  update(rearRotation: number, swingarmStretch = 1, chainPull?: number) {
     // The rendered arm follows the actual rear axle. Cancel its non-uniform
     // scale before constructing a newly taut loop; scaling the loop itself
     // would turn both circular wraps into ellipses during suspension travel.
@@ -151,12 +175,18 @@ export class MotocrossChainDrive {
         : 1;
     const angle = Number.isFinite(rearRotation) ? ((rearRotation % TAU) + TAU) % TAU : 0;
     const armChanged = stretch !== this.lastStretch;
-    if (!armChanged && angle === this.lastWheelPhase) return;
+    const pull = chainPull !== undefined && Number.isFinite(chainPull) ? clamp(chainPull, -1, 1) : undefined;
+    if (!armChanged && angle === this.lastWheelPhase && pull === this.lastPull) return;
     if (armChanged) {
       this.lastStretch = stretch;
       this.root.scale.z = 1 / stretch;
       const arm = this.arm * stretch;
       this.loop.setArm(arm);
+      const straight = this.loop.straightLength;
+      // addMotocrossChainGuides centres the upper runner at 29% of the drive
+      // span, and the rear shoe at 21% of the return span measured from the axle.
+      this.upperFreeStart = 0.29 * straight + 0.116;
+      this.lowerFreeStart = straight + this.loop.rearArcLength + 0.21 * straight + 0.063;
       for (const mesh of [this.rollers, this.plates]) {
         mesh.boundingBox!.min.set(X - 0.016, -REAR_RADIUS - 0.016, -arm - REAR_RADIUS - 0.016);
         mesh.boundingBox!.max.set(X + 0.016, REAR_RADIUS + 0.016, FRONT_RADIUS + 0.016);
@@ -164,14 +194,19 @@ export class MotocrossChainDrive {
       }
     }
     this.lastWheelPhase = angle;
+    this.lastPull = pull;
+    // The excess length of a shallow span varies with its deflection squared.
+    // Transfer that reserve between loaded and slack runs without a phase clock.
+    const drive = pull === undefined ? 0 : smooth(-1, 1, pull);
+    const upperSag = pull === undefined ? 0 : 0.014 * Math.sqrt(1 - drive);
+    const lowerSag = pull === undefined ? 0 : 0.022 * Math.sqrt(drive);
     const spacing = this.loop.length / this.links;
     // Sampling traverses the rear wrap clockwise in YZ; positive wheel X
     // rotation is anticlockwise, so the phase must move in the opposite sign.
     const phase = -(angle / TAU) * REAR_TEETH;
+    this.sample(phase * spacing, upperSag, lowerSag, this.p);
     for (let i = 0; i < this.links; i++) {
-      const distance = (i + phase) * spacing;
-      this.loop.sample(distance, this.p);
-      this.loop.sample(distance + spacing, this.next);
+      this.sample((i + phase + 1) * spacing, upperSag, lowerSag, this.next);
       this.tangent.subVectors(this.next, this.p);
       this.midpoint.addVectors(this.p, this.next).multiplyScalar(0.5);
       this.qLink.setFromAxisAngle(this.axis, Math.atan2(-this.tangent.y, this.tangent.z));
@@ -183,6 +218,7 @@ export class MotocrossChainDrive {
         this.matrix.compose(this.midpoint, this.qLink, this.linkScale);
         this.plates.setMatrixAt(i * 2 + side, this.matrix);
       }
+      this.p.copy(this.next);
     }
     this.rollers.instanceMatrix.needsUpdate = true;
     this.plates.instanceMatrix.needsUpdate = true;

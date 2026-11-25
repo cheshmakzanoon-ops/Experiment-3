@@ -99,6 +99,47 @@ describe('Motocross production onboard visibility', () => {
     expect(sample(1, 1, 8)).toEqual(seated);
   });
 
+  it('reads the current mounted helmet through compression, a berm and an instant replay cut', () => {
+    const definition = VEHICLES.mx450, materials = new BikeMaterials(0, 'dirt');
+    const model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+    const shell = new BikeShells(), eye = new T.Vector3(), gaze = new T.Vector3(), up = new T.Vector3();
+    const packet = new Float32Array(HEADER + CAR_STRIDE);
+    packet[carBase(0) + OFFROAD_BASE + O.STANDING] = 1;
+    const stance = {
+      ...staticSag(definition), steer: 0, frontRotation: 0, rearRotation: 0,
+      chassisLean: 0, riderOffset: 0, tuck: 0, brake: 0, rearBrake: 0,
+      discTemp: 100, compoundColour: 0xffffff, riding: true, standing: 1, speed: 15,
+      dirtSupportG: 1,
+    };
+    const sample = (reduced = false, tail = false) => {
+      shell.onboard(model.root, eye, gaze, tail, definition, up, reduced, packet, 0, model);
+      return [...eye.toArray(), ...gaze.toArray()];
+    };
+    try {
+      model.pose(stance);
+      const neutral = sample(), reduced = sample(true), tail = sample(false, true);
+      model.pose({ ...stance, fork: definition.bike!.forkTravel, shock: definition.bike!.shockTravel,
+        dirtSupportG: 3.5, mxBottoming: 0.8 });
+      const landing = sample();
+      expect(landing[1]).toBeLessThan(neutral[1] - 0.025);
+      expect(sample(true)).toEqual(reduced);
+      expect(sample(false, true)).toEqual(tail);
+      model.pose({ ...stance, chassisLean: 0.55, steer: -0.05,
+        sight: { yaw: 0.45, gradeChange: 0, weight: 1 } });
+      const left = sample();
+      model.pose({ ...stance, chassisLean: -0.55, steer: 0.05,
+        sight: { yaw: -0.45, gradeChange: 0, weight: 1 } });
+      const right = sample();
+      expect(left[3] - right[3]).toBeGreaterThan(0.12);
+      expect(Math.abs(left[0] - right[0])).toBeGreaterThan(0.04);
+      model.pose(stance);
+      expect(sample()).toEqual(neutral);
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  });
+
   for (const id of ['mx250', 'mx450', 'sm450'])
     it(`${id}: clears the number plate and rider while keeping real controls in view`, () => {
       const definition = VEHICLES[id],
@@ -157,6 +198,8 @@ describe('Motocross production onboard visibility', () => {
               camera.up,
               false,
               frame,
+              0,
+              model,
             );
             camera.lookAt(camera.position.clone().add(direction));
             camera.aspect = aspect;

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { clamp } from '../../core/math.ts';
+import { angleDifference, clamp } from '../../core/math.ts';
 import { surfaceSample, trackPoint, type Track } from '../../simulation/track.ts';
 
 /** Framing derived from references 056, 059, 072 and 086: the complete rider
@@ -19,9 +19,12 @@ export const MOTOCROSS_CHASE = Object.freeze({
   terrainClearance: 1.05,
   sightlineClearance: 0.28,
   maximumRoll: 0.055,
+  /** Isolate the lens from short whoops, retaining the height of a sustained climb. */
+  heaveLag: 0.105,
+  maxHeaveOffset: 0.32,
   /** Heading follow time constant (s). The chassis heading carries the
    * tyres' small yaw corrections tick to tick; at 7-24 m of lookahead those
-   * become visible gaze shake. A short critically damped follow removes the
+   * become visible gaze shake. A short exponential follow removes the
    * shake and lets the rig swing a little wide through a turn. */
   headingLag: 0.11,
   /** Beyond this error (rad) the follow catches up at once: a spin, a
@@ -63,6 +66,11 @@ export class MotocrossChaseCamera {
   fov: number = MOTOCROSS_CHASE.fov;
   private airBlend = 0;
   private heading = 0;
+  private flightHeading = NaN;
+  private lastAnchorY = 0;
+  private filteredY = 0;
+  private freeEyeY = 0;
+  private terrainLift = 0;
   private roll = 0;
   private gazeHeight = 0;
   private landingOffset = 0;
@@ -78,6 +86,8 @@ export class MotocrossChaseCamera {
     this.initialized = false;
     this.airBlend = this.roll = this.gazeHeight = this.heading = 0;
     this.landingOffset = this.landingVelocity = 0;
+    this.flightHeading = NaN;
+    this.terrainLift = 0;
     this.wasAirborne = false;
     this.flightTime = 0;
   }
@@ -89,9 +99,6 @@ export class MotocrossChaseCamera {
       Number.isFinite(frame.velocityX) &&
       Number.isFinite(frame.velocityZ) &&
       frame.velocityX! ** 2 + frame.velocityZ! ** 2 > 4;
-    const targetHeading = movingInAir
-      ? Math.atan2(frame.velocityX!, frame.velocityZ!)
-      : frame.heading;
     if (
       dt < 0 ||
       ![
@@ -100,7 +107,6 @@ export class MotocrossChaseCamera {
         anchor.y,
         anchor.z,
         frame.heading,
-        targetHeading,
         frame.s,
         frame.speed,
         cgHeight,
@@ -114,17 +120,36 @@ export class MotocrossChaseCamera {
       throw new Error('Invalid motocross camera state');
 
     const h = Math.min(dt, 2);
-    if (!this.initialized) this.heading = targetHeading;
-    else if (h > 0) {
-      const error =
-        ((((targetHeading - this.heading + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) %
-          (2 * Math.PI)) -
-        Math.PI;
-      this.heading =
-        Math.abs(error) > MOTOCROSS_CHASE.headingSnap
-          ? targetHeading
-          : this.heading + error * -Math.expm1(-h / MOTOCROSS_CHASE.headingLag);
+    if (!this.initialized || h > 0) {
+      if (movingInAir) this.flightHeading = Math.atan2(frame.velocityX!, frame.velocityZ!);
+      if (!this.initialized) {
+        this.airBlend = Number(frame.airborne);
+        this.filteredY = anchor.y;
+      } else {
+        this.airBlend += (Number(frame.airborne) - this.airBlend) * -Math.expm1(-h / 0.18);
+        // Exact first-order response to the line between the two measured heights.
+        // Treating the latest height as a step puts the lens ahead at lower refresh rates.
+        const z = h / MOTOCROSS_CHASE.heaveLag;
+        const follow = -Math.expm1(-z);
+        const ramp = z < 0.001 ? z * (0.5 - z / 6) : 1 - follow / z;
+        this.filteredY += (this.lastAnchorY - this.filteredY) * follow +
+          (anchor.y - this.lastAnchorY) * ramp;
+      }
+      this.lastAnchorY = anchor.y;
+      if (!frame.airborne && this.airBlend < 0.005) this.flightHeading = NaN;
+      // Keep the landing corridor as the wheels touch down sideways. Hand the
+      // bearing back to the bike as its tyres settle, including across +/-pi.
+      const targetHeading = Number.isFinite(this.flightHeading)
+        ? this.flightHeading + angleDifference(frame.heading, this.flightHeading) * (1 - this.airBlend)
+        : frame.heading;
+      const error = angleDifference(targetHeading, this.heading);
+      this.heading = !this.initialized ||
+        (!Number.isFinite(this.flightHeading) && Math.abs(error) > MOTOCROSS_CHASE.headingSnap)
+        ? targetHeading
+        : this.heading + error * -Math.expm1(-h / MOTOCROSS_CHASE.headingLag);
     }
+    const heaveLimit = MOTOCROSS_CHASE.maxHeaveOffset;
+    const followY = anchor.y + heaveLimit * Math.tanh((this.filteredY - anchor.y) / heaveLimit);
     const heading = this.heading,
       speed = clamp(frame.speed, 0, 60),
       motion = clamp(frame.motion, 0, 1),
@@ -134,12 +159,10 @@ export class MotocrossChaseCamera {
         clamp(frame.lean * 0.12, -MOTOCROSS_CHASE.maximumRoll, MOTOCROSS_CHASE.maximumRoll) *
         motion;
     if (!this.initialized) {
-      this.airBlend = Number(frame.airborne);
       this.roll = rollTarget;
       this.wasAirborne = frame.airborne;
       this.flightTime = frame.airborne ? frame.airTime : 0;
     } else if (h > 0) {
-      this.airBlend += (Number(frame.airborne) - this.airBlend) * -Math.expm1(-h / 0.18);
       this.roll += (rollTarget - this.roll) * -Math.expm1(-h / 0.14);
       if (this.wasAirborne && !frame.airborne && this.flightTime > 0.16) {
         const strength = clamp(
@@ -176,7 +199,7 @@ export class MotocrossChaseCamera {
       );
     this.eye.set(
       anchor.x - sh * distance,
-      anchor.y + height + this.landingOffset,
+      followY + height + this.landingOffset,
       anchor.z - ch * distance,
     );
     this.gaze.set(anchor.x + sh * lookAhead, anchor.y, anchor.z + ch * lookAhead);
@@ -194,18 +217,19 @@ export class MotocrossChaseCamera {
     this.gaze.z -= sh * across;
     track.sample(this.gaze.x, this.gaze.z, this.probe, anchor.y - cgHeight);
     const groundAhead = this.probe.height,
-      groundRise = clamp(groundAhead + cgHeight - anchor.y, -1.3, 2.3),
+      groundRise = clamp(groundAhead + cgHeight - followY, -1.3, 2.3),
       // Keep a modest downward view angle as look distance increases. A
       // fixed gaze height would lift the horizon and hide the next rut at
       // speed, while placing the helmet in the centre of the screen.
       groundedAim = height - (distance + lookAhead) * 0.205 + groundRise * 0.35,
       // In flight gaze descends toward the surface ahead, keeping the
       // downslope visible instead of following a nose-up chassis into the sky.
-      landingAim = clamp(groundAhead + 0.85 - anchor.y, -5, 1.5),
+      landingAim = clamp(groundAhead + 0.85 - followY, -5, 1.5),
       wantedHeight = groundedAim * (1 - this.airBlend * 0.6) + landingAim * this.airBlend * 0.6;
     if (!this.initialized) this.gazeHeight = wantedHeight;
     else if (h > 0) this.gazeHeight += (wantedHeight - this.gazeHeight) * -Math.expm1(-h / 0.16);
-    this.gaze.y = anchor.y + this.gazeHeight + this.landingOffset * 0.25;
+    this.gaze.y = followY + this.gazeHeight + this.landingOffset * 0.25;
+    this.freeEyeY = this.eye.y;
     this.clearTerrain(this.eye, anchor, track, cgHeight);
     this.up.set(ch * Math.sin(this.roll), Math.cos(this.roll), -sh * Math.sin(this.roll));
     this.fov =
@@ -214,6 +238,16 @@ export class MotocrossChaseCamera {
       this.airBlend * MOTOCROSS_CHASE.airFov;
     this.initialized = true;
     return this;
+  }
+
+  /** The world spring slews around the bike in XZ. Resolve vertical clearance
+   * at that final position, lifting immediately and easing down off the crest. */
+  settleEye(eye: Vector3, anchor: Position, track: CameraTerrain, cgHeight: number, dt: number) {
+    eye.y = this.freeEyeY;
+    this.clearTerrain(eye, anchor, track, cgHeight);
+    const required = eye.y - this.freeEyeY;
+    this.terrainLift = required + Math.max(0, this.terrainLift - required) * Math.exp(-dt / 0.14);
+    eye.y = this.freeEyeY + this.terrainLift;
   }
 
   /** Apply to the final spring-filtered eye as well as the desired eye: a

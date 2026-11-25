@@ -21,6 +21,8 @@ describe('motocross venue sightlines', () => {
       frame[b + F.X] = 20 * (id + 1);
       frame[b + F.Z] = 4 * id;
       frame[b + F.SPEED] = 22;
+      frame[b + F.VX] = 10 - id;
+      frame[b + F.VZ] = 6 + id;
     }
     frame[carBase(2) + OFFROAD_BASE + O.AIR_TIME] = 0.65;
     frame[carBase(2) + OFFROAD_BASE + O.AIRBORNE] = 1;
@@ -31,9 +33,15 @@ describe('motocross venue sightlines', () => {
     expect(next[0]).toBe(20);
     expect(first[2]).toBeGreaterThan(next[2]);
     expect(first[3]).toBeCloseTo(1 / 44 ** 2, 12);
+    expect(pass.velocity.value.toArray()).toEqual([8, 8, 10, 6]);
+    frame[H.PHASE] = PHASE.FINISHED;
+    pass.update(frame);
+    expect(pass.a.value.toArray()).toEqual(first);
+    expect(pass.b.value.toArray()).toEqual(next);
     frame[H.PHASE] = PHASE.GRID;
     pass.update(frame);
     expect(pass.a.value.z + pass.b.value.z).toBe(0);
+    expect(pass.velocity.value.toArray()).toEqual([0, 0, 0, 0]);
     frame[H.PHASE] = PHASE.RACING;
     pass.update(frame);
     expect(pass.a.value.toArray()).toEqual(first);
@@ -42,6 +50,10 @@ describe('motocross venue sightlines', () => {
     pass.update(frame);
     expect(pass.a.value.x).toBe(20);
     expect(pass.b.value.z).toBe(0);
+    expect(pass.velocity.value.toArray()).toEqual([10, 6, 0, 0]);
+    frame[carBase(0) + F.VX] = NaN;
+    pass.update(frame);
+    expect(pass.velocity.value.toArray()).toEqual([0, 0, 0, 0]);
   });
 
   it('places the two woodland belts on the outdoor ridges and thins the same instances at lower detail', () => {

@@ -11,6 +11,7 @@ import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { addMotocrossGarment } from '../src/rendering/offroad/motocross-gear.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { MxRecoveryPose } from '../src/rendering/offroad/motocross-recovery.ts';
+import { MxJerseyAir, poseMxJerseyAirflow } from '../src/rendering/offroad/mx-jersey-airflow.ts';
 import { motocrossRecoveryStep } from '../src/rendering/offroad/motocross-rider-motion.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
@@ -49,6 +50,27 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('fills and releases the jersey in relative wind and restores its exact folds on a seek', () => {
+    const air = new MxJerseyAir(), nose = new T.Vector3(0, 0, 1), weights = [0, 0];
+    const sample = (time: number, windX: number, windZ: number) => {
+      air.set(0, 15, windX, windZ, nose);
+      poseMxJerseyAirflow(weights, time, 15, 7, air);
+      return [...weights];
+    };
+    expect(sample(1, 0, 15)).toEqual([0, 0]);
+    const headwind = sample(1, 0, -10);
+    expect(Math.hypot(...headwind)).toBeGreaterThan(0.50);
+    expect(sample(1, 12, 0)).not.toEqual(sample(1, -12, 0));
+    const amplitudes = [];
+    for (let i = 0; i < 180; i++) {
+      const radius = Math.hypot(...sample(i / 60, 0, -10));
+      expect(radius).toBeLessThanOrEqual(1);
+      amplitudes.push(radius);
+    }
+    expect(Math.max(...amplitudes) - Math.min(...amplitudes)).toBeGreaterThan(0.15);
+    expect(sample(1, 0, -10)).toEqual(headwind);
+  });
+
   it('flutters free jersey panels in the airstream with pinned seams, stable skinning and exact seeks', () => {
     for (const detail of ['high', 'mid', 'far'] as const) {
       const rider = new Rider(colours, detail, 'motocross', 17);

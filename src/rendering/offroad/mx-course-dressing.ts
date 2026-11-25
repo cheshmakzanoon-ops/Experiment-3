@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { mxAtlasRow, mxEventAtlas } from './mx-event-graphics.ts';
+import { MxBoundaryTapeMotion } from './mx-boundary-tape-motion.ts';
 import { mxOutdoorFinish } from './mx-finish-line.ts';
 import { MxVenueWind } from './mx-venue-wind.ts';
 import { disposeOffroadResources } from './owned-resources.ts';
@@ -114,6 +115,7 @@ export class MxCourseDressing {
   private readonly frame = new T.Matrix4();
   private readonly object = new T.Object3D();
   private readonly surface: TrackTerrainSurface;
+  private tapeMotion?: MxBoundaryTapeMotion;
   private readonly venueTime = { value: 0 };
   private readonly shoulderViews: MxShoulderView[] = [];
   private stopTufts: (() => void) | null = null;
@@ -439,7 +441,6 @@ export class MxCourseDressing {
     geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
     geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
-    geometry.computeBoundingSphere();
     // Alternating red and white, eight centimetres at a time, crisp.
     const data = new Uint8Array(16 * 4);
     for (let i = 0; i < 16; i++) data.set(i < 8 ? [226, 222, 212, 255] : [196, 44, 34, 255], i * 4);
@@ -458,6 +459,7 @@ export class MxCourseDressing {
       name: 'MX boundary tape',
     });
     const mesh = new T.Mesh(geometry, material);
+    this.tapeMotion = new MxBoundaryTapeMotion(mesh, segments, TAPE_HALF_WIDTH, this.venueTime, this.wind);
     mesh.name = 'MX boundary tape';
     mesh.receiveShadow = true;
     this.turf.add(mesh);
@@ -1082,8 +1084,10 @@ export class MxCourseDressing {
       for (const family of this.shoulderViews) family.end();
     }
   }
-  update(time: number) {
-    if (!this.disposed && Number.isFinite(time)) this.venueTime.value = Math.max(0, time);
+  update(time: number, frame?: Float32Array) {
+    if (this.disposed || !Number.isFinite(time)) return;
+    this.venueTime.value = Math.max(0, time);
+    this.tapeMotion?.update(frame);
   }
   dispose() {
     if (this.disposed) return;
@@ -1091,6 +1095,7 @@ export class MxCourseDressing {
     for (const family of this.shoulderViews) family.dispose();
     this.stopTufts?.();
     this.stopTufts = null;
+    this.tapeMotion = undefined;
     this.root.remove(this.trackside.root);
     this.trackside.dispose();
     disposeOffroadResources([this.root, this.turf], [], this.ownedTextures);

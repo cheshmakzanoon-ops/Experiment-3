@@ -16,6 +16,7 @@ import {
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import { sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
 import { RoadBikeContactPose } from './road-bike-pose.ts';
+import { writeMxMachinePose } from './offroad/mx-machine-pose.ts';
 import { Quaternion, Vector3 } from 'three';
 import {
   sampleBikeField,
@@ -177,6 +178,7 @@ export class PresentedFrame {
         if (b[counter] >= a[counter]) this.blend(a, b, counter, t);
       }
       this.roadBike.sample(a, b, o, t).write(out, o);
+      writeMxMachinePose(out, a, b, o, t);
     }
     return out;
   }

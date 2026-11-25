@@ -19,6 +19,8 @@ import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
 import { motocrossYawInertia, stepMotocrossGround } from './mx-ground-physics.ts';
 import { MxGearStroke } from './mx-gear-stroke.ts';
+import { MxMachineMotion } from './mx-machine-motion.ts';
+import { MX_PUSH_STRIDE } from './rider-recovery.ts';
 import { RiderWeight } from './rider-weight.ts';
 import { factoryBikeSag, risingRateSag } from './suspension-geometry.ts';
 import { motorcycleContactSlipPower, motorcycleRotorBrakeWork } from '../motorcycle-thermal.ts';
@@ -165,6 +167,9 @@ export class DirtBikeVehicle extends BikeVehicle {
   /** Adapter clock (s), independent of the race clock. */
   clock = 0;
   readonly gearStroke = new MxGearStroke();
+  readonly machineMotion?: MxMachineMotion;
+  /** Presentation-only movement of the rider's recorded position during a push. */
+  readonly pushGait = { x: 0, z: 0, phase: 0 };
   /** Why each crash happened (landing outcomes, grip, contact), with its lap distance. */
   readonly crashCauses: { cause: string; s: number; time: number }[] = [];
   private loadGrip = 1;
@@ -221,6 +226,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     super(id, compound, setup, assist, definition);
     if (!definition.bike?.offroad) throw new Error(`${definition.id} has no off-road block`);
     this.air = definition.bike.offroad;
+    if (definition.tireFamily === 'knobby') this.machineMotion = new MxMachineMotion();
     this.referenceSag = factoryBikeSag(definition);
   }
   /** Static sag (m) of each end under the bike's own weight. */
@@ -292,6 +298,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.riderBankInFlight = false;
     this.airContactRollRate = 0;
     this.gearStroke.reset();
+    this.machineMotion?.reset(this.fork, this.shock, this.dynamics.steer);
+    this.pushGait.x = this.pushGait.z = this.pushGait.phase = 0;
     this.riderWeight.reset();
     this.riderAirRate = 0;
     this.riderBody = this.automaticBody;
@@ -747,6 +755,19 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.fuel = Math.max(0, this.fuel - (power / (0.3 * 43e6) + 0.0002) * dt);
     this.writeBody(track, dt);
     this.updateSuspensionAndTyres(dt, track);
+    if (this.machineMotion) {
+      if (motocross && this.riding) {
+        const weightPerMetre = d.mass * G / this.spec.wheelbase;
+        this.machineMotion.step(
+          dt, this.fork, this.shock, this.steer, this.speed,
+          this.forceFront / (weightPerMetre * spec.cgToRear),
+          this.forceRear / (weightPerMetre * spec.cgToFront),
+          this.engineOutputTorque, this.airborne ? 0 : d.engineBrakeForce,
+        );
+      } else if (this.machineMotion.valid) {
+        this.machineMotion.reset();
+      }
+    }
     this.updateSkid(dt);
     this.updateMud(dt);
     this.impact = Math.max(0, this.impact - dt * 2);
@@ -1810,6 +1831,24 @@ export class DirtBikeVehicle extends BikeVehicle {
     super.restart(track);
     this.settle();
   }
+  protected override updateRider(dt: number, track: Track) {
+    const x = this.rider.x, z = this.rider.z;
+    super.updateRider(dt, track);
+    if (this.definition.classId !== 'motocross') return;
+    const gait = this.pushGait;
+    if (this.dynamics.state !== 'remount') {
+      gait.x = gait.z = gait.phase = 0;
+      return;
+    }
+    if (!(dt > 0 && Number.isFinite(dt))) return;
+    // Approach the measured displacement over a few ticks as each boot
+    // takes weight. This channel never feeds rider or motorcycle movement.
+    const blend = -Math.expm1(-dt / 0.055);
+    gait.x += ((this.rider.x - x) / dt - gait.x) * blend;
+    gait.z += ((this.rider.z - z) / dt - gait.z) * blend;
+    gait.phase += 2 * Math.PI * Math.hypot(this.rider.x - x, this.rider.z - z) / MX_PUSH_STRIDE;
+  }
+
   protected override pushToRemount(dt: number) {
     if (!(dt > 0) || !this.remount.active) return;
     const d = this.dynamics,

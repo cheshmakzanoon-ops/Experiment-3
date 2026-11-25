@@ -1,6 +1,15 @@
 import { Vector3 } from 'three';
 import { renderWind } from '../../simulation/weather.ts';
 
+/** A broad gust front and smaller pockets of air advance through venue
+ * space. Fabric and leaves sample it at their own position and race time. */
+export const MX_GUST_GLSL = `
+  float mxVenueGust(vec2 point, float time) {
+    float pocket = sin(dot(point, vec2(-0.047, 0.093)) - time * 0.56);
+    float front = sin(dot(point, vec2(0.092, 0.036)) - time * 1.08 + 0.68 * pocket);
+    return 0.50 + 0.32 * front + 0.18 * pocket;
+  }`;
+
 /** Unit world X/Z direction and a bounded pressure response shared by fabric
  * and planted foliage. No accumulated phase, so a replay seek restores both. */
 export class MxVenueWind {

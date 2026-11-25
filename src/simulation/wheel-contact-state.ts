@@ -4,6 +4,8 @@ import {
   C,
   ROAD_BIKE_CONTACT,
   MX_FOOT,
+  MX_MOTION,
+  MX_PUSH,
   WHEEL_CONTACT_BASE,
   WHEEL_CONTACT_SIZE,
   wheelContactBase,
@@ -31,6 +33,23 @@ export function writeWheelContact(out: Float32Array, car: number, vehicle: Vehic
         out[car + MX_FOOT.ANGLE] = stroke.angle;
         out[car + MX_FOOT.COVER] = stroke.cover;
         out[car + MX_FOOT.CLEAR] = stroke.clear;
+        const motion = vehicle.machineMotion;
+        if (motion?.valid) {
+          out[car + MX_MOTION.VALID] = 1;
+          out[car + MX_MOTION.FORK_RATE] = motion.forkRate;
+          out[car + MX_MOTION.SHOCK_RATE] = motion.shockRate;
+          out[car + MX_MOTION.STEER_RATE] = motion.steerRate;
+          out[car + MX_MOTION.FRONT_FLEX] = motion.front.position;
+          out[car + MX_MOTION.FRONT_FLEX_RATE] = motion.front.rate;
+          out[car + MX_MOTION.REAR_FLEX] = motion.rear.position;
+          out[car + MX_MOTION.REAR_FLEX_RATE] = motion.rear.rate;
+          out[car + MX_MOTION.CHAIN_PULL] = motion.chainPull;
+        }
+      } else if (vehicle.dynamics.state === 'remount') {
+        out[car + MX_PUSH.RECORDED] = 1;
+        out[car + MX_PUSH.VX] = vehicle.pushGait.x;
+        out[car + MX_PUSH.VZ] = vehicle.pushGait.z;
+        out[car + MX_PUSH.PHASE] = vehicle.pushGait.phase;
       }
       return;
     }

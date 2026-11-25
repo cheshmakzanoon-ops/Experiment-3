@@ -7,3 +7,6 @@ export const MX_RECOVERY = {
   restSeconds: 1.2,
   strideLength: 1.8,
 } as const;
+
+/** Full walking/running stride while steadying a moving bike. */
+export const MX_PUSH_STRIDE = 1.75;

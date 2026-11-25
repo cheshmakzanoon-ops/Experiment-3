@@ -62,10 +62,35 @@ export const MX_FOOT = {
   COVER: WHEEL_CONTACT_BASE + 2,
   CLEAR: WHEEL_CONTACT_BASE + 3,
 } as const;
+/** Optional remount gait in unused zero-mask MX slots. The marker distinguishes
+ * a measured stop from an older recording without a rider velocity. */
+export const MX_PUSH = {
+  RECORDED: WHEEL_CONTACT_BASE + 13,
+  VX: WHEEL_CONTACT_BASE + 14,
+  VZ: WHEEL_CONTACT_BASE + 15,
+  PHASE: WHEEL_CONTACT_BASE + 16,
+} as const;
 export function hasMxFootControls(frame: Float32Array, car: number) {
   return frame[car + WHEEL_CONTACT_BASE] === 0 &&
     vehicleAt(frame[car + RACE_BASE + R.VEHICLE]).tireFamily === 'knobby' &&
     frame[car + BIKE_BASE + B.STATE] === 0;
+}
+/** Optional fixed-tick animation on the two knobby race bikes. The contact
+ * mask remains zero. Offsets +1..+3 belong to the selector above; +4..+12
+ * describe the suspended parts and the chain. Every older zero-filled frame is unmarked. */
+export const MX_MOTION = {
+  VALID: WHEEL_CONTACT_BASE + 4,
+  FORK_RATE: WHEEL_CONTACT_BASE + 5,
+  SHOCK_RATE: WHEEL_CONTACT_BASE + 6,
+  STEER_RATE: WHEEL_CONTACT_BASE + 7,
+  FRONT_FLEX: WHEEL_CONTACT_BASE + 8,
+  FRONT_FLEX_RATE: WHEEL_CONTACT_BASE + 9,
+  REAR_FLEX: WHEEL_CONTACT_BASE + 10,
+  REAR_FLEX_RATE: WHEEL_CONTACT_BASE + 11,
+  CHAIN_PULL: WHEEL_CONTACT_BASE + 12,
+} as const;
+export function hasMxMachineMotion(frame: Float32Array, car: number) {
+  return frame[car + MX_MOTION.VALID] === 1 && hasMxFootControls(frame, car);
 }
 export const BC = {
   X: 0,

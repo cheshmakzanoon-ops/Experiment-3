@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { Random } from '../../core/math.ts';
-import { MxVenueWind } from './mx-venue-wind.ts';
+import { MX_GUST_GLSL, MxVenueWind } from './mx-venue-wind.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 export type MxPlantKind = 'grass' | 'fern' | 'scrub' | 'tuft' | 'meadow';
@@ -200,26 +200,30 @@ export function mxShoulderPlantMaterial(time: { value: number }, wind = new MxVe
     side: T.DoubleSide,
     name: 'MX living shoulder foliage',
   });
-  chainShaderHook(material, 'mx-shoulder-wind-v1', (shader) => {
+  chainShaderHook(material, 'mx-shoulder-wind-v2', (shader) => {
     shader.uniforms.mxPlantTime = time;
     shader.uniforms.mxVenueWind = wind;
     injectDeclarations(
       shader,
       'common',
-      'attribute float mxPlantFlex;\nuniform float mxPlantTime;\nuniform vec3 mxVenueWind;',
+      `attribute float mxPlantFlex;
+       uniform float mxPlantTime;
+       uniform vec3 mxVenueWind;
+       ${MX_GUST_GLSL}`,
       'vertex',
     );
     injectAfter(
       shader,
-      'begin_vertex',
+      'beginnormal_vertex',
       `
       vec4 mxPlantAnchor = vec4( 0.0, 0.0, 0.0, 1.0 );
       #ifdef USE_INSTANCING
         mxPlantAnchor = instanceMatrix * mxPlantAnchor;
       #endif
       mxPlantAnchor = modelMatrix * mxPlantAnchor;
-      float mxGust = sin( mxPlantTime * 1.45 + dot( mxPlantAnchor.xz, vec2( 0.14, 0.09 ) ) );
-      float mxFlutter = sin( mxPlantTime * 3.1 + dot( mxPlantAnchor.xz, vec2( 0.7, -0.43 ) ) );
+      float mxGust = mxVenueGust(mxPlantAnchor.xz, mxPlantTime);
+      float mxFlutter = sin(mxPlantTime * 3.1 + dot(mxPlantAnchor.xz, vec2(0.7, -0.43))
+                            - 1.35 * mxPlantFlex);
       mat3 mxPlantWorld = mat3(modelMatrix);
       #ifdef USE_INSTANCING
         mxPlantWorld *= mat3(instanceMatrix);
@@ -229,11 +233,16 @@ export function mxShoulderPlantMaterial(time: { value: number }, wind = new MxVe
       // root has zero flexibility and stays fixed on the berm.
       vec2 mxBend = vec2(dot(normalize(mxPlantWorld[0]),mxAir),
                          dot(normalize(mxPlantWorld[2]),mxAir));
-      transformed.xz += mxBend * ${MX_SHOULDER_WIND.x} * mxPlantFlex * mxVenueWind.z *
-        (0.48 + 0.40*mxGust + ${MX_SHOULDER_WIND.flutter}*mxFlutter);
+      vec2 mxDeflection = mxBend * ${MX_SHOULDER_WIND.x} * mxPlantFlex *
+        (mxVenueWind.z * (0.32 + 0.60 * mxGust)
+         + sqrt(mxVenueWind.z) * ${MX_SHOULDER_WIND.flutter} * mxPlantFlex * mxFlutter);
+      // Flexibility grows quadratically up each stem. Tilt the shading plane
+      // with that bend, so moving blades catch the light as the gust passes.
+      objectNormal.y -= 2.0 * dot(objectNormal.xz, mxDeflection) / max(0.06, position.y);
     `,
       'vertex',
     );
+    injectAfter(shader, 'begin_vertex', 'transformed.xz += mxDeflection;', 'vertex');
     // Thin blades transmit sunlight: seen against a low sun, a leaf glows
     // yellow-green instead of reading as a dark card. The directional light
     // here already carries its shadow, so shaded plants stay unlit.

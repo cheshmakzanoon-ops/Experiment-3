@@ -158,6 +158,7 @@ export class MxSpectators {
   private readonly uniforms = {
     crowdPassA: this.pass.a,
     crowdPassB: this.pass.b,
+    crowdPassVelocity: this.pass.velocity,
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0.28 },
     crowdReaction: { value: new T.Vector2(0.5, 0.3) },

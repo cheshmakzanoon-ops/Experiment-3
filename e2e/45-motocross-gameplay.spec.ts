@@ -5,7 +5,7 @@ import {
 } from './fixtures/motocross-screen-capture.ts';
 import { mod } from '../src/core/math.ts';
 import { SKY_RAMPS, skyBlend, withClearSky } from '../src/rendering/assets/sky-catalogue.ts';
-import { F, H, O, R, OFFROAD_BASE, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
+import { F, H, MX_MOTION, O, R, OFFROAD_BASE, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { LANDING_RULES } from '../src/simulation/offroad/riding-feedback.ts';
 import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
@@ -349,6 +349,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       presentedTime: number;
     };
     const observations: RideObservation[] = [];
+    const animatedRiders = new Set<number>();
+    let maxFenderDifference = 0;
     let previousS = aiStart[o + F.S],
       previousTick = aiStart[H.TICK],
       progressM = 0,
@@ -361,6 +363,15 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
           const d = await diag(),
             frame = d.frame!;
           if (frame[H.TICK] !== previousTick) {
+            // Check the player and opponents coming from the live racing worker.
+            // An initialized payload alone cannot demonstrate animated plastics.
+            for (let rider = 0; rider < frame[H.CARS]; rider++) {
+              const slot = carBase(rider);
+              if (frame[slot + MX_MOTION.VALID] !== 1) continue;
+              const split = Math.abs(frame[slot + MX_MOTION.FRONT_FLEX] - frame[slot + MX_MOTION.REAR_FLEX]);
+              maxFenderDifference = Math.max(maxFenderDifference, split);
+              if (split > 0.005) animatedRiders.add(rider);
+            }
             const s = frame[o + F.S];
             // The gate is just before S=0. Preserve signed progress through
             // that wrap; backwards movement cannot count as forward travel.
@@ -421,6 +432,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       `${circuit}: motocross retains local cautions without a pace car`,
     ).toBe(0);
     expect(ridden.frame![H.SC_PHASE]).toBe(0);
+    expect(animatedRiders.has(0), `${circuit}: followed rider has independent mudguard motion`).toBe(true);
+    expect(animatedRiders.size, `${circuit}: the racing field carries mechanical animation`).toBeGreaterThan(1);
     expect(ridden.frame!.every(Number.isFinite)).toBe(true);
     expect(ridden.renderer?.environmentAssets.freshMxTyreSegments).toBeGreaterThan(0);
     expect(ridden.options.vehicles?.every((id) => id === machine)).toBe(true);
@@ -479,6 +492,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       progressM,
       maxAirTime,
       maxSafetyCarPhase,
+      animatedRiders: [...animatedRiders],
+      maxFenderDifference,
       landing,
       observations,
       final: { frame: ridden.frame, renderer: ridden.renderer, presentation: ridden.presentation },

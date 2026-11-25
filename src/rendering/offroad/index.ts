@@ -251,7 +251,7 @@ export class OffroadScene {
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
     if (this.meadow) this.wind.set(frame[H.WIND_X], frame[H.WIND_Z]);
-    this.dressing?.update(time);
+    this.dressing?.update(time, frame);
     this.spectators?.update(time, frame);
     this.meadow?.update(time);
     // Even a sub-frame reverse seek can cross a takeoff/contact edge.

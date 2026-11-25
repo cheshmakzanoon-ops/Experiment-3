@@ -62,7 +62,7 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
   expect(result.sourceUnchanged).toBe(true);
   expect(result.sharedPlantMaterial).toBe(true);
   expect(result.plantTextures).toBe(false);
-  expect(result.windHooks).toContain('mx-shoulder-wind-v1');
+  expect(result.windHooks).toContain('mx-shoulder-wind-v2');
   expect(result.soilHooks).toContain(MX_SOIL_DETAIL_HOOK);
   expect(result.scans.failed).toEqual([]);
   expect(result.scans.resident).toContain('dryEarth');

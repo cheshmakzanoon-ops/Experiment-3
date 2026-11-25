@@ -52,6 +52,7 @@ export interface MotocrossPoseSample {
   gLong?: number;
   leanRate?: number;
   supportG?: number;
+  bottoming?: number;
   frontRotation?: number;
   rearRotation?: number;
   frontOmega?: number;
@@ -360,6 +361,7 @@ export function captureMotocrossBike(
         gLong: sample.gLong,
         leanRate: sample.leanRate,
         dirtSupportG: sample.supportG,
+        mxBottoming: sample.bottoming,
       });
       model.root.position.y =
         (explicitChassis ? def.bike!.cgHeight : chassis.height) -
@@ -415,6 +417,8 @@ export function captureMotocrossBike(
           camera.up,
           false,
           frame,
+          0,
+          model,
         );
         camera.fov = bikeOnboardFov(sample.speed ?? 0, def);
         camera.lookAt(camera.position.clone().add(direction));

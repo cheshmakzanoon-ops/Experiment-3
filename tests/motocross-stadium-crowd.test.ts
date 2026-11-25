@@ -82,6 +82,12 @@ describe('motocross stadium audience', () => {
       phases = all.geometry.getAttribute('spectatorPhase'),
       closePhases = close.geometry.getAttribute('spectatorPhase');
     const shader = compile(all.material as T.Material);
+    const sculpt = compile(close.material as T.Material);
+    for (const name of ['crowdPassA', 'crowdPassB', 'crowdPassVelocity', 'crowdClock', 'crowdReaction'])
+      expect(shader.uniforms[name]).toBe(sculpt.uniforms[name]);
+    expect(shader.vertexShader).toContain('mxLookLead(mxPhase)');
+    expect(shader.vertexShader).toContain('-mxCheerLag(mxPhase');
+    expect(shader.fragmentShader).toContain('mxCardArm');
     const range = shader.uniforms.crowdLodRange.value as T.Vector2;
     const chairs = arena.root.getObjectByName(
       'Moulded stadium chairs (instanced)',

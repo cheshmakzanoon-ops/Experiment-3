@@ -188,6 +188,86 @@ describe('motocross chase composition', () => {
     expect(results[0]).toBeCloseTo(results[2], 8);
   });
 
+  it('isolates repeated whoops while keeping sustained airborne height and a held lens', () => {
+    for (const hz of [30, 60, 144]) {
+      const rig = new MotocrossChaseCamera();
+      const f = frame({ motion: 0 });
+      const anchor = f.anchor;
+      rig.update(0, flat, f);
+      const staticY = rig.eye.y;
+      let ripple = 0;
+      for (let i = 1; i <= 2 * hz; i++) {
+        anchor.y = 0.86 + 0.09 * Math.sin(2 * Math.PI * 6 * i / hz);
+        rig.update(1 / hz, flat, f);
+        if (i >= hz) ripple = Math.max(ripple, Math.abs(rig.eye.y - staticY));
+      }
+      expect(ripple).toBeLessThan(0.031);
+      for (let i = 1; i <= hz; i++) {
+        anchor.y = 0.86 + 3 * i / hz;
+        rig.update(1 / hz, flat, f);
+        expect(Math.abs(rig.eye.y - anchor.y - MOTOCROSS_CHASE.height))
+          .toBeLessThanOrEqual(MOTOCROSS_CHASE.maxHeaveOffset);
+      }
+      const held = rig.eye.toArray();
+      for (let i = 0; i < 12; i++) rig.update(0, flat, f);
+      expect(rig.eye.toArray()).toEqual(held);
+      for (let i = 0; i < hz; i++) rig.update(1 / hz, flat, f);
+      expect(rig.eye.y).toBeCloseTo(anchor.y + MOTOCROSS_CHASE.height, 3);
+    }
+  });
+
+  it('hands a sideways landing back to the chassis without a first-contact camera cut', () => {
+    // The velocity and the chassis sit on opposite sides of the angle wrap.
+    const path = Math.PI - 0.20, yaw = 1.45;
+    for (const hz of [30, 60, 144]) {
+      const f = frame({ airborne: true, airTime: 0.6, heading: path + yaw - 2 * Math.PI,
+        velocityX: 18 * Math.sin(path), velocityZ: 18 * Math.cos(path) });
+      const rig = new MotocrossChaseCamera().update(0, flat, f);
+      const bearing = () => Math.atan2(f.anchor.x - rig.eye.x, f.anchor.z - rig.eye.z);
+      const delta = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+      expect(Math.abs(delta(bearing(), path))).toBeLessThan(1e-9);
+      f.airborne = false;
+      f.airTime = 0;
+      let previous = bearing();
+      for (let i = 0; i < hz * 2; i++) {
+        rig.update(1 / hz, flat, f);
+        const turn = delta(bearing(), previous);
+        expect(turn).toBeGreaterThanOrEqual(-1e-9);
+        expect(turn * hz).toBeLessThan(5.5);
+        previous = bearing();
+      }
+      expect(Math.abs(delta(bearing(), f.heading))).toBeLessThan(0.002);
+    }
+  });
+
+  it('lifts above a crest immediately and eases down after the camera clears it', () => {
+    let crest = 4;
+    const terrain = { ...flat, sample(x: number, z: number, out: ReturnType<typeof surfaceSample>) {
+      flat.sample(x, z, out);
+      out.height = z < -3 ? crest : 0;
+      return out;
+    } };
+    const f = frame({ motion: 0 });
+    const rig = new MotocrossChaseCamera().update(0, terrain, f);
+    const eye = rig.eye.clone();
+    rig.settleEye(eye, f.anchor, terrain, f.cgHeight, 0);
+    const raised = eye.y;
+    expect(raised).toBeGreaterThanOrEqual(crest + MOTOCROSS_CHASE.terrainClearance);
+    crest = 0;
+    rig.update(1 / 60, terrain, f);
+    rig.settleEye(eye, f.anchor, terrain, f.cgHeight, 1 / 60);
+    expect(eye.y).toBeGreaterThan(rig.eye.y + 0.75 * (raised - rig.eye.y));
+    expect(eye.y).toBeLessThan(raised);
+    const paused = eye.y;
+    rig.settleEye(eye, f.anchor, terrain, f.cgHeight, 0);
+    expect(eye.y).toBe(paused);
+    for (let i = 0; i < 90; i++) {
+      rig.update(1 / 60, terrain, f);
+      rig.settleEye(eye, f.anchor, terrain, f.cgHeight, 1 / 60);
+    }
+    expect(eye.y).toBeCloseTo(rig.eye.y, 3);
+  });
+
   it('rejects non-finite input before it can poison the world camera', () => {
     expect(() => new MotocrossChaseCamera().update(NaN, flat, frame())).toThrow();
     expect(() =>

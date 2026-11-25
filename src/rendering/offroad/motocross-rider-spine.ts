@@ -69,7 +69,7 @@ export class MotocrossRiderSpine {
     return skin;
   }
 
-  ride(pose: RiderPose, position: T.Vector3, pitch: number, yaw: number, roll: number) {
+  ride(pose: RiderPose, position: T.Vector3, pitch: number, yaw: number, roll: number, chestYaw = 0) {
     const standing = clamp(finite(pose.standing), 0, 1),
       compression = smooth(0.04, 1, finite(pose.compression)),
       body = clamp(finite(pose.body), -1, 1),
@@ -92,14 +92,29 @@ export class MotocrossRiderSpine {
     this.pelvis.quaternion.setFromEuler(
       this.euler.set(pitch - flex, yaw - twist, roll - sideBend, 'ZYX'),
     );
-    this.chest.quaternion.setFromEuler(this.euler.set(pitch, yaw, roll, 'ZYX'));
+    this.chest.quaternion.setFromEuler(this.euler.set(pitch, yaw + chestYaw, roll, 'ZYX'));
+    this.distribute();
+  }
+
+  /** The advancing hip and opposite shoulder turn forward in the same stride.
+   * Keep the bend between the waistband, lumbar frame and yoke continuous. */
+  stride(support: number, swing: number) {
+    this.chest.quaternion.copy(this.pelvis.quaternion).multiply(
+      this.lumbar.quaternion.setFromEuler(this.euler.set(0, -0.12 * swing, -0.055 * support, 'ZYX')),
+    );
+    this.pelvis.quaternion.multiply(
+      this.lumbar.quaternion.setFromEuler(this.euler.set(0, 0.09 * swing, 0.042 * support, 'ZYX')),
+    );
+    this.distribute();
+  }
+
+  private distribute() {
     this.lumbar.quaternion.copy(this.pelvis.quaternion).slerp(this.chest.quaternion, 0.52);
     this.placeFrame(this.lumbar, this.pelvis, 0.14);
     this.placeFrame(this.chest, this.lumbar, 0.31);
   }
 
-  /** Recovery uses the existing slide, stand and remount animations. All
-   * frames are reset explicitly so rewinding never retains riding flexion. */
+  /** Keep a slide or remount independent of any previous riding or running pose. */
   reset() {
     for (const frame of [this.lumbar, this.chest]) {
       frame.position.copy(this.pelvis.position);

@@ -57,18 +57,43 @@ export function prepareMxJerseyAirflow(skin: T.SkinnedMesh) {
   return skin.morphTargetInfluences!;
 }
 
+/** Horizontal air reaching the back of the jersey, in the presented bike frame. */
+export class MxJerseyAir {
+  speed = 0;
+  cross = 0;
+
+  set(vx: number, vz: number, windX: number, windZ: number, nose: T.Vector3) {
+    const x = windX - vx, z = windZ - vz;
+    this.speed = Math.hypot(x, z);
+    const span = this.speed * Math.hypot(nose.x, nose.z);
+    this.cross = span > 0.1 ? T.MathUtils.clamp((x * nose.z - z * nose.x) / span, -1, 1) : 0;
+    return this;
+  }
+}
+
 export function poseMxJerseyAirflow(
   weights: number[],
   time: number | undefined,
   speed: number | undefined,
   raceNumber: number,
+  air?: MxJerseyAir,
 ) {
-  const pressure = Number.isFinite(speed) ? smooth(Math.abs(speed!), 2.5, 25) : 0;
+  const airSpeed = air?.speed ?? speed;
+  let pressure = Number.isFinite(airSpeed) ? smooth(Math.abs(airSpeed!), 2.5, 25) : 0;
   if (pressure === 0) {
     weights[0] = weights[1] = 0;
     return;
   }
-  const phase = (Number.isFinite(time) ? time! : 0) * 15.5 + raceNumber * 2.39996323;
+  const clock = Number.isFinite(time) ? time! : 0, seed = raceNumber * 2.39996323;
+  let phase = clock * 15.5 + seed;
+  if (air) {
+    // The free fabric fills, flutters and releases. Modulate the travelling
+    // fold continuously so a change in speed or a crosswind cannot restart it.
+    const swell = Math.sin(clock * 2.1 + seed + 0.6 * air.cross);
+    const ripple = Math.sin(clock * 3.7 - seed * 0.73 + 0.65 * swell);
+    pressure *= 0.76 + 0.16 * swell + 0.08 * ripple;
+    phase += 0.9 * swell + 0.38 * ripple + 0.8 * air.cross;
+  }
   weights[0] = pressure * Math.cos(phase);
   weights[1] = pressure * Math.sin(phase);
 }

@@ -9,6 +9,7 @@ import {
   spectatorKitGeometry,
 } from './human-kit.ts';
 import { installAudienceActions } from './audience-actions.ts';
+import { MX_SPECTATOR_GESTURE_GLSL } from './offroad/mx-spectator-gesture.ts';
 import { MxTerraceSeats } from './offroad/mx-terrace-seats.ts';
 import { detailDistance } from './view-detail.ts';
 import type { ShadowSubstitute } from './shadow-proxies.ts';
@@ -63,6 +64,7 @@ interface CrowdUniforms {
   crowdReaction?: { value: T.Vector2 };
   crowdPassA?: { value: T.Vector4 };
   crowdPassB?: { value: T.Vector4 };
+  crowdPassVelocity?: { value: T.Vector4 };
   crowdGpYaw?: { value: number };
   crowdGpSeats?: { value: T.Vector3 };
   crowdLodRange?: { value: T.Vector2 };
@@ -118,15 +120,7 @@ uniform float crowdGpYaw;
 uniform vec3 crowdGpSeats;
 #endif
 #ifdef MX_CROWD_PASS
-uniform vec4 crowdPassA, crowdPassB;
-vec2 crowdPassAt(vec4 racer, vec2 seat, vec2 side, vec2 forward) {
-  vec2 delta = racer.xy - seat;
-  float d2 = dot(delta,delta);
-  vec2 dir = delta * inversesqrt(max(d2,0.01));
-  float strength = racer.z * (1.0-smoothstep(0.04,1.0,d2*racer.w))
-    * smoothstep(-0.3,0.25,dot(forward,dir));
-  return vec2(dot(side,dir)*strength,strength);
-}
+${MX_SPECTATOR_GESTURE_GLSL}
 #endif
 // Per-seat arm pose: about a third sit with their arms folded (no gestures).
 float crowdCrossed() { return step(.66, fract(spectatorPhase * 6.71)); }
@@ -136,17 +130,16 @@ mat3 crowdTurn() {
     + sin(crowdClock.y + spectatorPhase * 1.73) * 0.3) * crowdMotion;
   float angle = crowdJoint > 2.5 ? wave * 0.075 : wave * 0.035;
   vec2 nearby = vec2(0.0);
-  #if defined(MX_CROWD_PASS) && defined(USE_INSTANCING)
-  if (crowdJoint > .5 && crowdPassA.z+crowdPassB.z > 0.0) {
-    vec2 seat = (modelMatrix * instanceMatrix[3]).xz;
-    // The spectator faces local -X, with local +Z to the side.
-    vec2 side = normalize((mat3(modelMatrix)*instanceMatrix[2].xyz).xz);
-    vec2 forward = normalize(-(mat3(modelMatrix)*instanceMatrix[0].xyz).xz);
-    nearby = crowdPassAt(crowdPassA,seat,side,forward) + crowdPassAt(crowdPassB,seat,side,forward);
-    nearby /= max(1.0,nearby.y);
+  #ifdef MX_CROWD_PASS
+  if (crowdJoint > .5) {
+    float offset = crowdJoint > 2.5 ? mxLookLead(spectatorPhase) : -mxCheerLag(spectatorPhase, crowdJoint);
+    nearby = mxAudienceFocus(offset);
   }
   #endif
   if (crowdJoint > .5 && crowdJoint < 2.5) {
+    #ifdef MX_CROWD_PASS
+    angle -= mxRaisedHand(spectatorPhase, crowdJoint, nearby.y, crowdClock, crowdReaction);
+    #else
     float participant = smoothstep(.18,.5,fract(spectatorPhase * 2.17));
     float gesture = .86 + .14 * sin(crowdClock.x * 3. + spectatorPhase * 1.9);
     // Stable one-arm/both-arm cohorts, not twelve thousand synchronized poses.
@@ -154,6 +147,7 @@ mat3 crowdTurn() {
     float activeHand=handChoice<.34 ? step(1.5,crowdJoint) : handChoice<.68 ? 1.-step(1.5,crowdJoint) : 1.;
     participant*=activeHand;
     angle -= participant * ((crowdReaction.x + nearby.y*.72) * .82 * gesture + crowdReaction.y * .48);
+    #endif
   }
   if (crowdJoint < 0.5) angle = 0.0;
   float c = cos(angle), s = sin(angle);
@@ -194,6 +188,8 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     if (!shader.vertexShader.includes('#include <begin_vertex>'))
       throw new Error('Crowd shader position hook missing');
     Object.assign(shader.uniforms, uniforms);
+    if (uniforms.crowdPassA && !uniforms.crowdPassVelocity)
+      shader.uniforms.crowdPassVelocity = { value: new T.Vector4(0, 0, 0, 0) };
     if (uniforms.crowdGpYaw) shader.uniforms.crowdGpSeats = uniforms.crowdGpSeats ?? { value: new T.Vector3() };
     shader.uniforms.crowdReaction = uniforms.crowdReaction ?? { value: new T.Vector2() };
     shader.uniforms.crowdLodRange = uniforms.crowdLodRange ?? { value: new T.Vector2(0, 1) };
@@ -457,7 +453,7 @@ vColor.rgb = vec3(1.);`,
     }
   };
   material.customProgramCacheKey = () =>
-    `apex-procedural-crowd-v16-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}${clipInactiveSeats ? '-mx-seat-range' : ''}`;
+    `apex-procedural-crowd-v16-${colour ? 'colour' : 'depth'}${uniforms.crowdPassA ? '-mx-pass-v2' : ''}${uniforms.crowdGpYaw ? '-gp-gaze' : ''}${clipInactiveSeats ? '-mx-seat-range' : ''}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail, gpCards = false): CrowdDetail {

@@ -1,11 +1,19 @@
 import { clamp, smooth } from '../../core/math.ts';
 import { MX_RECOVERY } from '../../simulation/offroad/rider-recovery.ts';
+import type { MotocrossSightSample } from './motocross-rider-sight.ts';
 
 /** Presentation inputs already carried by the motorcycle snapshot. Pitch is
  * the sprung frame's render-space X angle: positive looks down the landing.
  * Compression is the remaining suspension stroke used past the static sag.
  * These are pose signals, not a second physics simulation. */
 export interface MotocrossRiderMotionInput {
+  /** The same dirt rig also dresses supermoto entrants. */
+  motocrossRace?: boolean;
+  /** Recorded intensity of a suspension bottom-out; releases after the hit. */
+  mxBottoming?: number;
+  /** Seconds since takeoff, zero on the ground. Older inspection poses omit it. */
+  mxFlightTime?: number;
+  sight?: MotocrossSightSample;
   standing?: number;
   lean?: number;
   speed?: number;
@@ -27,6 +35,11 @@ export interface MotocrossRiderMotionInput {
 }
 
 export interface MotocrossRiderMotion {
+  hipStance: number;
+  chestStance: number;
+  chestYaw: number;
+  cockpitFold: number;
+  cockpitTurn: number;
   pelvisDrop: number;
   pelvisBack: number;
   pelvisSide: number;
@@ -102,6 +115,56 @@ export function sampleMotocrossRiderMotion(
   const roll = Math.tanh(finite(pose.leanRate) * 0.7) * effort;
   out.pelvisSide = -0.027 * roll * mobility - corner * (0.055 - 0.022 * standing);
   out.counterRoll = 0.11 * roll * mobility + corner * (0.105 - 0.04 * standing);
+  out.hipStance = out.chestStance = standing;
+  out.chestYaw = out.cockpitFold = out.cockpitTurn = 0;
+  if (pose.motocrossRace) {
+    // Knees lift the hips before the chest hinges over the bar. On the
+    // way back to the seat the chest opens first; neither end hits a stop.
+    out.hipStance = smooth(0, 0.96, standing);
+    out.chestStance = smooth(0.08, 1, standing);
+    const speed = Math.abs(finite(pose.speed));
+    const attention = clamp(finite(pose.sight?.weight), 0, 1) * (1 - ready);
+    const terrain = attention * smooth(6, 12, speed);
+    const hips = terrain * clamp(finite(pose.sight?.hipPreload), 0, 1);
+    const shoulders = terrain * clamp(finite(pose.sight?.shoulderPreload), 0, 1);
+    // A short hop barely gathers the legs. A clear jump draws the bike
+    // back underneath the rider, then opens the knees as the ground rises.
+    const lift = smooth(0.12, 0.85, finite(pose.sight?.clearance));
+    const gather = pose.mxFlightTime === undefined
+      ? 1
+      : smooth(0.025, 0.27, finite(pose.mxFlightTime));
+    const flight = terrain * (1 - supported) * Math.min(lift, gather);
+    // Let compressed joints take the first hit. The recorded bottoming
+    // tail holds some flex as the chassis springs away from the ground.
+    const settle = smooth(0.02, 0.90, finite(pose.mxBottoming)) * (1 - ready);
+    out.pelvisDrop += out.hipStance * (
+      0.052 * hips * (1 - 0.6 * stroke) + 0.035 * flight + 0.036 * settle * (1 - 0.65 * stroke)
+    );
+    out.pelvisBack += out.hipStance * (0.019 * hips - 0.012 * flight + 0.022 * settle);
+    out.torsoPitch += out.chestStance * (0.105 * shoulders + 0.058 * flight + 0.083 * settle);
+    out.elbowLift += 0.034 * shoulders + 0.013 * flight + 0.028 * settle;
+    out.gazePitch += 0.012 * shoulders + 0.021 * settle;
+    // The eyes lead the shoulders into a berm; the hips stay over the
+    // pegs. Leave the existing landing sight in charge during a broad whip.
+    const previewYaw = clamp(finite(pose.sight?.yaw), -0.62, 0.62) * attention;
+    const whip = smooth(0.08, 0.42, Math.abs(finite(pose.travelYaw)));
+    out.chestYaw = 0.22 * previewYaw * (1 - 0.65 * whip);
+    out.cockpitTurn = clamp(corner + 0.22 * roll + 0.48 * previewYaw, -1, 1);
+    out.cockpitFold = clamp(
+      0.20 * out.chestStance + 0.32 * brace + 0.19 * load +
+      0.20 * braking - 0.10 * drive + 0.22 * shoulders + 0.10 * flight + 0.16 * settle,
+      -0.12, 1,
+    );
+    if (Number.isFinite(pose.time)) {
+      const phase = raceNumber * 2.39996323;
+      const breath = Math.sin(pose.time! * (1.58 + 0.12 * Math.cos(phase)) + phase) *
+        (1 - ready) * (1 - 0.82 * smooth(2, 17, speed));
+      // A relaxed chest opens on the inhale; the seated hips stay planted.
+      out.torsoPitch -= 0.013 * breath;
+      out.elbowLift += 0.006 * breath;
+      out.cockpitFold += 0.032 * breath;
+    }
+  }
   if (ready > 0) {
     // Riders set their weight over the bars before the gate drops. The race
     // number keeps each rider's elbow carriage and breathing phase the same
@@ -118,14 +181,26 @@ export function sampleMotocrossRiderMotion(
 }
 
 
+/** Fraction of a complete stride that one boot spends on the dirt. */
+export const MX_RUN_STANCE = 0.36;
+export const MX_PUSH_STANCE = 0.53;
+
+export interface MxPushGait {
+  phase: number;
+  /** Rider-frame travel in metres per full stride. */
+  x: number;
+  z: number;
+  weight: number;
+}
+
 /** Fore-aft contact in rider metres. During stance the relative foot travels
  * back exactly as far as the pelvis moves ahead. The return swing has
  * matching endpoint velocities and zero lift speed at heel strike/toe-off.
  * Returns boot pitch in radians, relative to its planted sole. */
-export function motocrossRecoveryStep(angle: number, right: boolean, out: { z: number; y: number }) {
+export function motocrossRecoveryStep(angle: number, right: boolean, out: { z: number; y: number }, push = false) {
   const cycles = angle / (2 * Math.PI) + (right ? 0.5 : 0);
   const u = cycles - Math.floor(cycles);
-  const stance = 0.36, length = MX_RECOVERY.strideLength;
+  const stance = push ? MX_PUSH_STANCE : MX_RUN_STANCE, length = push ? 1 : MX_RECOVERY.strideLength;
   if (u < stance) {
     out.z = (stance / 2 - u) * length;
     out.y = 0;
@@ -135,7 +210,7 @@ export function motocrossRecoveryStep(angle: number, right: boolean, out: { z: n
   const smooth = t * t * (3 - 2 * t);
   out.z = length * (stance * (smooth - 0.5) - (1 - stance) * (2 * t * t * t - 3 * t * t + t));
   const lift = Math.sin(t * Math.PI) ** 2;
-  out.y = 0.14 * lift;
+  out.y = (push ? 0.085 : 0.14) * lift;
   // The stiff MX boot trails toe-down, then lifts its toe for the next plant.
   // Using the lift envelope keeps both angle and angular speed zero at contact.
   return 0.31 * lift * Math.sin(2 * Math.PI * t);

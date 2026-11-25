@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { MxArenaHaze } from './mx-arena-haze.ts';
+import { installMxAudienceCardMotion } from './mx-spectator-gesture.ts';
 import { MxStadiumAudience } from './mx-stadium-audience.ts';
 import { installMxRoofBounce, mxArenaLampGrid, MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { MX_LAMP_OPTICS, mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
@@ -58,6 +59,7 @@ export class Stadium {
   private readonly crowdUniforms = {
     crowdPassA: this.pass.a,
     crowdPassB: this.pass.b,
+    crowdPassVelocity: this.pass.velocity,
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0.32 },
     crowdReaction: { value: new T.Vector2(0.72, 0.45) },
@@ -395,6 +397,7 @@ export class Stadium {
     );
     distant.setAttribute('sculptedSeat', sculptedSeats);
     installCrowdImpostorShader(distantClothing, crowdRange, true);
+    installMxAudienceCardMotion(distantClothing, this.crowdUniforms);
     this.crowd = new T.InstancedMesh(distant, distantClothing, seats.length);
     const seated = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.485, 0.02);
     const standing = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.3, 0.02);

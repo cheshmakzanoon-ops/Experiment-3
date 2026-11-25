@@ -1,4 +1,3 @@
-import type { GpRiderSight } from './motorcycle-camera.ts';
 import { installGpOpticalRain, type GpOpticalRain } from './gp-optics-rain.ts';
 import { gpEyePortFace, gpEyePose, installGpHelmetFace, installGpVisorGlazing } from './gp-helmet-optics.ts';
 import { paintDistantGpRider } from './gp-distant-rider.ts';
@@ -73,12 +72,15 @@ import {
   type MxRecoveryGrip,
 } from './offroad/motocross-rider-contact.ts';
 import {
+  MX_PUSH_STANCE,
+  MX_RUN_STANCE,
+  type MxPushGait,
   motocrossRecoveryStep,
   sampleMotocrossRiderMotion,
   type MotocrossRiderMotion,
   type MotocrossRiderMotionInput,
 } from './offroad/motocross-rider-motion.ts';
-import { prepareMxJerseyAirflow, poseMxJerseyAirflow } from './offroad/mx-jersey-airflow.ts';
+import { prepareMxJerseyAirflow, poseMxJerseyAirflow, type MxJerseyAir } from './offroad/mx-jersey-airflow.ts';
 import { MotocrossRiderSpine, motocrossHeadFrame } from './offroad/motocross-rider-spine.ts';
 import {
   addMotocrossBoot,
@@ -116,7 +118,6 @@ export interface RiderColours {
   motocrossBib?: number;
 }
 export interface RiderPose extends MotocrossRiderMotionInput {
-  sight?: GpRiderSight;
   /** Interpolated simulation seconds for the GP eyelids, including held replays. */
   time?: number;
   /** Chassis lean (rad, + left) and hang-off offset (m, + left). */
@@ -126,6 +127,8 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   /** 0 coasting .. 1 hard braking. */
   braking: number;
   steer: number;
+  /** Relative airflow over the MX jersey at this displayed instant. */
+  mxJerseyAir?: MxJerseyAir;
   /** Presented road speed (m/s); distinguishes slow steering from countersteer. */
   speed?: number;
   /** Sprung chassis pitch relative to the bike frame, in radians. */
@@ -475,6 +478,11 @@ export class Rider {
   private motocrossThrottle = 0;
   private readonly motocrossShoulders: T.Bone[] = [];
   private readonly motocrossMotion: MotocrossRiderMotion = {
+    hipStance: 0,
+    chestStance: 0,
+    chestYaw: 0,
+    cockpitFold: 0,
+    cockpitTurn: 0,
     pelvisDrop: 0,
     pelvisBack: 0,
     pelvisSide: 0,
@@ -524,11 +532,10 @@ export class Rider {
   private riding = false;
   private readonly materials: T.Material[] = [];
   private readonly q = new T.Quaternion();
-  private readonly recoveryStep = new T.Vector3();
+  private recoveryFeet?: { step: T.Vector3; ankle: T.Vector3; sole: T.Quaternion }[];
   private readonly recoverySample = new T.Vector3();
   private readonly recoveryFootPlane = new T.Plane();
   private readonly recoveryInverse = new T.Matrix4();
-  private readonly recoveryBoot = new T.Quaternion();
   private readonly recoveryTilt = new T.Quaternion();
   private readonly euler = new T.Euler();
   private readonly v = [0, 1, 2, 3, 4, 5].map(() => new T.Vector3());
@@ -1426,6 +1433,14 @@ export class Rider {
   helmetCentre(out: T.Vector3) {
     return this.head.localToWorld(this.gp ? out.fromArray(GP_HELMET_CENTRE) : out.set(0, 0.15, 0.02));
   }
+  /** Helmet centre and sightline in the mounted MX rider's frame. The
+   * first-person lens can follow the same chest and neck as the exterior. */
+  motocrossHelmetFrame(centre: T.Vector3, forward: T.Vector3) {
+    const chest = this.motocrossSpine?.chest ?? this.torso;
+    centre.set(0, 0.15, 0.02).applyQuaternion(this.head.quaternion).add(this.head.position)
+      .applyQuaternion(chest.quaternion).add(chest.position);
+    forward.set(0, 0, 1).applyQuaternion(this.head.quaternion).applyQuaternion(chest.quaternion);
+  }
   /** Orient the GP cockpit from the same posed helmet seen by other riders.
    * The screen socket keeps a small forward bias so the instrument remains
    * readable while the rider looks towards the exit. */
@@ -1519,6 +1534,7 @@ export class Rider {
   }
   private onboardArms() {
     const [elbow, pole, offset, shoulder, wrist] = this.v;
+    const fold = this.motocrossMotion.cockpitFold;
     for (let i = 0; i < this.forearms.length; i++) {
       const side = i === 0 ? 1 : -1;
       // Preserve the authored forearm length and the exact hand contact. The
@@ -1526,9 +1542,14 @@ export class Rider {
       // the first-person pole instead carries each sleeve out of the lower view.
       this.motocrossGripFrame(i);
       gpContactJoint(this.grips[i], this.q, MX_GLOVE_GRIP, MX_GLOVE_WRIST, wrist);
-      offset.set(side * 0.09, -0.13, -0.23).normalize();
+      // The outside elbow opens to carry the bar through a berm. On a hard
+      // landing both elbows flare and fold without shifting either palm.
+      const inside = side * this.motocrossMotion.cockpitTurn;
+      offset.set(side * (0.09 + 0.055 * fold - 0.032 * inside),
+        -0.13 + 0.018 * fold - 0.021 * inside, -0.23 + 0.032 * fold).normalize();
       elbow.copy(wrist).addScaledVector(offset, RIDER.forearm);
-      offset.set(side * 0.015, -0.16, -0.24).normalize();
+      offset.set(side * (0.015 + 0.026 * fold - 0.014 * inside),
+        -0.16 - 0.016 * fold, -0.24 + 0.018 * fold).normalize();
       shoulder.copy(elbow).addScaledVector(offset, RIDER.upperArm);
       pole.copy(wrist);
       pole.z += 1;
@@ -1574,8 +1595,8 @@ export class Rider {
       : null;
     // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
     // ankles planted on their pegs with flex left in the knees for a landing.
-    pelvis.y += standing * (mx ? 0.17 : 0.3);
-    pelvis.z += mx ? standing * 0.055 + body * 0.085 : standing * 0.04 - body * 0.1;
+    pelvis.y += motion ? motion.hipStance * 0.17 : standing * 0.3;
+    pelvis.z += motion ? motion.hipStance * 0.055 + body * 0.085 : standing * 0.04 - body * 0.1;
     if (motion) {
       pelvis.x += motion.pelvisSide;
       pelvis.y -= motion.pelvisDrop;
@@ -1592,7 +1613,7 @@ export class Rider {
     // An off-road rider sits up; standing, bends at the hips over the bars.
     // Standing, the attack position folds the chest down over the bars
     // (about 45 degrees) with the hips back; seated stays upright.
-    if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.36 + motion!.torsoPitch;
+    if (motion) pitch = 0.36 + braking * 0.12 + body * 0.16 + motion.chestStance * 0.36 + motion.torsoPitch;
     else if (this.roadClass === 'road-bike') {
       // The raised, swept roadster bar puts the shoulders above the saddle.
       // Airflow brings the chest down at speed without folding it onto the tank.
@@ -1605,8 +1626,9 @@ export class Rider {
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
-    this.motocrossSpine?.ride(pose, pelvis, pitch, yaw, -into);
-    if (this.jerseyAirflow) poseMxJerseyAirflow(this.jerseyAirflow, pose.time, pose.speed, this.raceNumber);
+    if (motion) this.motocrossSpine?.ride(pose, pelvis, pitch, yaw, -into, motion.chestYaw);
+    if (this.jerseyAirflow)
+      poseMxJerseyAirflow(this.jerseyAirflow, pose.time, pose.speed, this.raceNumber, pose.mxJerseyAir);
     const upperTorso = this.motocrossSpine?.chest ?? this.torso;
     // Look through the turn independently of the torso and the suspension.
     if (mx)
@@ -1902,6 +1924,39 @@ export class Rider {
       (this.ground.plane?.normal.y ?? Math.cos(lean));
     return gpContactJoint(contact, frame, GP_BOOT_PEDAL, GP_BOOT_ANKLE, ankle);
   }
+  /** Query both footfalls before posing the body. On an off-camber landing
+   * the lower boot may need the hips to yield even with the other knee bent. */
+  private recoveryFootfalls(phase: number, running: number, floor?: T.Plane, dirt?: MxDabSurface, push?: MxPushGait) {
+    const contact = this.v[5];
+    const feet = this.recoveryFeet ??= [0, 1].map(() => ({
+      step: new T.Vector3(), ankle: new T.Vector3(), sole: new T.Quaternion(),
+    }));
+    for (let i = 0; i < feet.length; i++) {
+      const { step, sole, ankle } = feet[i];
+      step.set(0, 0, 0);
+      const weight = push?.weight ?? running;
+      const pitch = weight > 0 ? motocrossRecoveryStep(phase, i === 1, step, !!push) * weight : 0;
+      const restX = i === 0 ? 0.11 : -0.11;
+      contact.set(restX + (push ? step.z * push.x : 0), step.y * weight,
+        push ? step.z * push.z : step.z * running);
+      let support = floor;
+      if (floor && dirt && floor.normal.y > 0.1) {
+        this.recoverySample.set(contact.x,
+          -(floor.normal.x * contact.x + floor.normal.z * contact.z + floor.constant) / floor.normal.y,
+          contact.z).applyMatrix4(this.root.matrixWorld);
+        if (dirt.planeAtWorld(this.recoverySample, this.recoveryFootPlane))
+          support = this.recoveryFootPlane.applyMatrix4(this.recoveryInverse);
+      }
+      if (support && support.normal.y > 0.1)
+        contact.y -= (support.normal.x * contact.x + support.normal.z * contact.z + support.constant) /
+          support.normal.y;
+      motocrossBootFrame(sole).premultiply(this.recoveryTilt.setFromAxisAngle(X, pitch));
+      if (support) sole.premultiply(this.recoveryTilt.setFromUnitVectors(Y, support.normal));
+      gpContactJoint(contact, sole, MX_BOOT_PEG, MX_BOOT_ANKLE, ankle);
+    }
+    return feet;
+  }
+
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
   separated(
     phase: number,
@@ -1911,6 +1966,7 @@ export class Rider {
     floor?: T.Plane,
     dirt?: MxDabSurface,
     grip?: MxRecoveryGrip,
+    push?: MxPushGait,
   ) {
     this.riding = false;
     if (this.helmetEyes) gpEyePose(this.helmetEyes, this.raceNumber, time);
@@ -1921,8 +1977,15 @@ export class Rider {
     if (floor && dirt && rise > 0) this.recoveryInverse.copy(this.root.matrixWorld).invert();
     const bracing = mxRise === undefined ? 0 : Math.sin(Math.PI * rise);
     const running = mxRise !== undefined && phase === 1 ? T.MathUtils.smoothstep(rise, 0.82, 1) : 0;
-    const bob = running * (0.028 + 0.012 * Math.cos(tumble * 2));
-    pelvis.set(0, 0.95 * rise - bob, 0);
+    const footWeight = push?.weight ?? running;
+    const runningSpine = footWeight > 0 ? this.motocrossSpine : undefined;
+    // The pelvis passes over each planted boot halfway through its stance.
+    const footPhase = push?.phase ?? tumble;
+    const gait = footPhase - Math.PI * (push ? MX_PUSH_STANCE : MX_RUN_STANCE);
+    const bodySwing = push ? 0.48 * push.weight : running;
+    const support = runningSpine ? Math.cos(gait) * bodySwing : 0;
+    const bob = bodySwing * (0.028 + 0.012 * Math.cos((runningSpine ? gait : tumble) * 2));
+    pelvis.set(0.018 * support, 0.95 * rise - bob, 0);
     this.torso.position.copy(pelvis);
     this.euler.set(Math.PI / 2 - 0.1, 0, tumble, 'ZYX');
     this.torso.quaternion.setFromEuler(this.euler);
@@ -1931,9 +1994,35 @@ export class Rider {
     this.torso.quaternion.slerp(this.q.setFromEuler(this.euler), rise);
     this.gpSpine?.reset();
     this.gpSuitLoads?.set(0, 0, 0);
-    this.motocrossSpine?.reset();
     this.jerseyAirflow?.fill(0);
     this.head.rotation.set(-0.6 + 0.5 * rise, 0, 0);
+    const feet = mxRise !== undefined && rise > 0 ? this.recoveryFootfalls(footPhase, running, floor, dirt, push) : undefined;
+    if (runningSpine && feet) {
+      this.recoveryTilt.copy(this.torso.quaternion).multiply(this.head.quaternion);
+      runningSpine.stride(support, Math.sin(gait) * bodySwing);
+      // Keep tracking the machine as the shoulders swing underneath the helmet.
+      this.q.copy(runningSpine.chest.quaternion).invert().multiply(this.recoveryTilt);
+      this.head.quaternion.slerp(this.q, 0.78);
+      // Lower the body as far as the two solved ankle positions require.
+      // Leave a few millimetres of bend instead of hitting a straight knee.
+      let lower = 0;
+      const leg = RIDER.thigh + RIDER.shin - 0.004;
+      for (let i = 0; i < 2; i++) {
+        const hip = a.set(i === 0 ? RIDER.hipWidth : -RIDER.hipWidth, 0, 0)
+          .applyQuaternion(this.torso.quaternion).add(pelvis);
+        const ankle = feet[i].ankle;
+        const dx = hip.x - ankle.x, dz = hip.z - ankle.z;
+        const verticalReach = Math.sqrt(Math.max(0, leg * leg - dx * dx - dz * dz));
+        lower = Math.max(lower, hip.y - ankle.y - verticalReach);
+      }
+      // A foot beyond a ledge has no reachable support.
+      lower = Math.min(0.16, lower) * footWeight;
+      pelvis.y -= lower;
+      this.torso.position.y = pelvis.y;
+      runningSpine.lumbar.position.y -= lower;
+      runningSpine.chest.position.y -= lower;
+    } else this.motocrossSpine?.reset();
+    const recoveryChest = runningSpine?.chest ?? this.torso;
     // The GP neck articulates while riding; recovery restores its rest length.
     if (this.gp && this.kit !== 'motocross')
       this.head.position.copy(GP_NECK_BASE).addScaledVector(Y, GP_NECK_LENGTH);
@@ -1944,17 +2033,15 @@ export class Rider {
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
       a.set(side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0)
-        .applyQuaternion(this.torso.quaternion)
-        .add(pelvis);
+        .applyQuaternion(recoveryChest.quaternion)
+        .add(recoveryChest.position);
       // Hands: spread when sliding, swinging when jogging, on the bars at the bike.
       c.set(side * (0.38 - 0.07 * bracing), -0.25 * rise - 0.18 * bracing,
         T.MathUtils.lerp(0.35, 0.15 + side * stride * 0.4, rise));
-      let swingPitch = 0;
-      if (running > 0) {
+      if (running > 0 && feet) {
         // The wrist advances as its own boot drives back. Read the actual
         // recorded stance/swing curve so a held or rewound step stays paired.
-        swingPitch = motocrossRecoveryStep(tumble, i === 1, this.recoveryStep) * running;
-        const counter = T.MathUtils.clamp(-this.recoveryStep.z / 0.38, -1, 1);
+        const counter = T.MathUtils.clamp(-feet[i].step.z / 0.38, -1, 1);
         c.x = T.MathUtils.lerp(c.x, side * 0.09, running);
         c.y = T.MathUtils.lerp(c.y, -0.32 + 0.09 * Math.max(0, counter), running);
         c.z = T.MathUtils.lerp(c.z, 0.13 + 0.27 * counter, running);
@@ -1963,7 +2050,7 @@ export class Rider {
         if (grip) c.set(side * 0.07, -0.42, 0.1);
         else c.set(side * 0.25, -0.05, 0.45);
       }
-      c.applyQuaternion(this.torso.quaternion).add(a);
+      c.applyQuaternion(recoveryChest.quaternion).add(a);
       // The recovering rider stands on the bike's left. Their inside hand
       // steadies that bar while the outside arm balances the planted stance.
       const guidingHand = i === 1 && reach > 0 ? grip : undefined;
@@ -1979,34 +2066,7 @@ export class Rider {
       c.set(side * T.MathUtils.lerp(0.22, 0.16, rise), -0.82 - 0.04 * rise + 0.16 * bracing,
         T.MathUtils.lerp(-0.08, side * stride * 0.6, rise));
       c.applyQuaternion(this.torso.quaternion).add(a);
-      if (mxRise !== undefined && rise > 0) {
-        // Resolve the foot against the ground under the rider, including on
-        // a sloping landing several metres away from the fallen motorcycle.
-        b.set(side * 0.11, this.recoveryStep.y * running, this.recoveryStep.z * running);
-        let support = floor;
-        if (floor && dirt && floor.normal.y > 0.1) {
-          // Straddling a rut or a crest can put each sole on a different
-          // triangle from the pelvis. Query near its expected surface height.
-          this.recoverySample
-            .set(
-              b.x,
-              -(floor.normal.x * b.x + floor.normal.z * b.z + floor.constant) / floor.normal.y,
-              b.z,
-            )
-            .applyMatrix4(this.root.matrixWorld);
-          if (dirt.planeAtWorld(this.recoverySample, this.recoveryFootPlane))
-            support = this.recoveryFootPlane.applyMatrix4(this.recoveryInverse);
-        }
-        if (support && support.normal.y > 0.1)
-          b.y -=
-            (support.normal.x * b.x + support.normal.z * b.z + support.constant) / support.normal.y;
-        motocrossBootFrame(this.recoveryBoot);
-        this.recoveryBoot.premultiply(this.recoveryTilt.setFromAxisAngle(X, swingPitch));
-        if (support)
-          this.recoveryBoot.premultiply(this.recoveryTilt.setFromUnitVectors(Y, support.normal));
-        gpContactJoint(b, this.recoveryBoot, MX_BOOT_PEG, MX_BOOT_ANKLE, pole);
-        c.lerp(pole, rise);
-      }
+      if (feet) c.lerp(feet[i].ankle, rise);
       pole.copy(a).add(b.set(side * 0.1, 0, 0.6).applyQuaternion(this.torso.quaternion));
       twoBone(this.thighs[i], this.shins[i], a, c, pole, joint);
       this.feet[i].rotation.set(-1.4, 0, 0);
@@ -2024,7 +2084,7 @@ export class Rider {
           hand.rotation.set(0.2, 0, 0);
         }
         motocrossBootFrame(this.q).premultiply(this.torso.quaternion);
-        if (mxRise !== undefined && rise > 0) this.q.slerp(this.recoveryBoot, rise);
+        if (feet) this.q.slerp(feet[i].sole, rise);
         gpAttachAtJoint(
           this.feet[i],
           this.shins[i].group.quaternion,

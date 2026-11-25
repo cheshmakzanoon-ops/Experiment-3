@@ -412,13 +412,14 @@ test('Motocross MX450: suspension absorption, gaze and lever are reversible on t
   const { capture, attach } = review;
   const relaxed = { standing: 1, body: 0.35, pitch: 0.22, elevation: 0.3 };
   const compressed = { ...relaxed, forkOffset: 0.13, shockOffset: 0.13, brake: 0.8 };
+  const rebound = { ...relaxed, bottoming: 0.75 };
   // Controlled geometry inspection: these are posed fixture samples, not
   // claimed simulated landings. MX45 separately exercises the live worker.
   const sequence = await capture({
     id: 'mx450',
     detail: 'high',
     view: 'motion-side',
-    samples: [relaxed, compressed, compressed, relaxed],
+    samples: [relaxed, compressed, compressed, rebound, relaxed],
   });
   for (const [i, result] of sequence.entries()) {
     await attach(`suspension-motion-${i}`, result);
@@ -429,9 +430,12 @@ test('Motocross MX450: suspension absorption, gaze and lever are reversible on t
   expect(sequence[1].motion.frontLever).toBeLessThan(sequence[0].motion.frontLever! - 0.1);
   expect(sequence[0].hash).not.toBe(sequence[1].hash);
   expect(sequence[1].hash).toBe(sequence[2].hash);
-  expect(sequence[0].hash).toBe(sequence[3].hash);
+  // The suspension has returned to sag while the knees are still absorbing the landing.
+  expect(sequence[3].motion.pelvis[1]).toBeLessThan(sequence[0].motion.pelvis[1] - 0.015);
+  expect(sequence[3].hash).not.toBe(sequence[0].hash);
+  expect(sequence[0].hash).toBe(sequence[4].hash);
   expect(sequence[1].motion).toEqual(sequence[2].motion);
-  expect(sequence[0].motion).toEqual(sequence[3].motion);
+  expect(sequence[0].motion).toEqual(sequence[4].motion);
 });
 
 for (const [id, detail] of [
