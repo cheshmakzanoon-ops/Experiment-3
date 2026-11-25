@@ -156,7 +156,7 @@
       "wave": 4,
       "agent": "/root/w04d_network_composition",
       "task": "Full server transport, queue, codec and teardown composition",
-      "status": "running"
+      "status": "complete"
     },
     {
       "number": 23,
@@ -170,13 +170,90 @@
       "wave": 4,
       "agent": "/root/w04f_worker_audit",
       "task": "Deep worker ownership and clock audit",
-      "status": "running"
+      "status": "complete"
     },
     {
       "number": 25,
       "wave": 5,
       "agent": "/root/w05a_radio_probe",
       "task": "Reproducible baseline radio comparison and shared probe helper",
+      "status": "complete"
+    },
+    {
+      "number": 26,
+      "wave": 5,
+      "agent": "/root/w05b_queue_probe",
+      "task": "Actual baseline input queue equivalence and bounded-work probe",
+      "status": "complete"
+    },
+    {
+      "number": 27,
+      "wave": 5,
+      "agent": "/root/w05c_lane_probe",
+      "task": "Actual baseline lane cache and nearest geometry comparison",
+      "status": "complete"
+    },
+    {
+      "number": 28,
+      "wave": 5,
+      "agent": "/root/w05d_thermal_probe",
+      "task": "Reproducible thermal exact-output and signature-work comparison",
+      "status": "complete"
+    },
+    {
+      "number": 29,
+      "wave": 5,
+      "agent": "/root/w05e_codec_probe",
+      "task": "Reproducible packet bytes, ownership, copies and paired timings",
+      "status": "complete"
+    },
+    {
+      "number": 30,
+      "wave": 5,
+      "agent": "/root/w05f_simulation_probe",
+      "task": "Full Simulation differential with original lane and thermal modules",
+      "status": "complete"
+    },
+    {
+      "number": 31,
+      "wave": 6,
+      "agent": "/root/w06a_native_audio_repair",
+      "task": "Repair native driving audio harness using supported OfflineAudioContext",
+      "status": "complete"
+    },
+    {
+      "number": 32,
+      "wave": 6,
+      "agent": "/root/w06b_flashback_diagnostics",
+      "task": "Preserve engineering diagnostics across flashback with bounded credit",
+      "status": "complete"
+    },
+    {
+      "number": 33,
+      "wave": 6,
+      "agent": "/root/w06c_raf_witness",
+      "task": "Investigate native RAF ownership witness and duplicate timestamps",
+      "status": "complete"
+    },
+    {
+      "number": 34,
+      "wave": 6,
+      "agent": "/root/w06d_native_diagnostics",
+      "task": "Native worker flashback diagnostic-credit acceptance",
+      "status": "running"
+    },
+    {
+      "number": 35,
+      "wave": 6,
+      "agent": "/root/w06e_worker_idle",
+      "task": "Safe physics-worker idle scheduling and transition ownership",
+      "status": "running"
+    },
+    {
+      "number": 36,
+      "wave": 6,
+      "agent": "/root/w06f_probe_review",
+      "task": "Independent adversarial review of actual-baseline engine probes",
       "status": "running"
     }
   ]

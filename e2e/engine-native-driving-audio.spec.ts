@@ -26,34 +26,56 @@ async function load(page: Page) {
   await page.route('**/__engine_native_driving_audio__', (route) =>
     route.fulfill({
       contentType: 'text/html',
-      body: '<!doctype html><title>Native driving audio</title><button>Enable test audio</button>',
+      body: '<!doctype html><title>Native offline driving audio</title>',
     }),
   );
   await page.goto('/__engine_native_driving_audio__');
   await page.addScriptTag({ content: fixture });
-  await page.getByRole('button', { name: 'Enable test audio' }).click();
   return errors;
 }
 
 function expectLifecycle(
   report: Pick<
     NativeReport,
-    'lifecycle' | 'unhandled' | 'activation' | 'sampleRate' | 'frameCompatibility'
+    | 'lifecycle'
+    | 'unhandled'
+    | 'contextKind'
+    | 'sampleRate'
+    | 'frameCompatibility'
+    | 'checkpoints'
+    | 'render'
   >,
 ) {
-  expect(report.activation).toBe(true);
+  expect(report.contextKind).toBe('OfflineAudioContext');
   expect(report.sampleRate).toBe(48000);
   expect(report.frameCompatibility).toBeNull();
   expect(report.unhandled).toEqual([]);
+  expect(report.render).toEqual({ frames: 48000, channels: 2, finalTime: 1 });
+  expect(report.checkpoints.length).toBeGreaterThan(0);
+  for (const checkpoint of report.checkpoints) {
+    expect(checkpoint.state).toBe('suspended');
+    expect(checkpoint.time - checkpoint.from).toBeGreaterThan(0.025);
+    const requestedFrame = Math.round(checkpoint.requested * report.sampleRate),
+      actualFrame = Math.round(checkpoint.time * report.sampleRate);
+    expect(actualFrame % 128).toBe(0);
+    expect(Math.abs(actualFrame - requestedFrame)).toBeLessThanOrEqual(128);
+  }
+  // Native rendering closes the offline context before RacingAudio releases
+  // its ownership. This does not assert a live hardware-context close.
   expect(report.lifecycle).toEqual({
-    started: 'running',
+    initial: 'suspended',
+    started: 'suspended',
+    rendered: 'closed',
+    beforeDispose: 'closed',
     state: 'closed',
-    ownerClosed: true,
+    ownerReleased: true,
     ownerState: 'uninitialized',
+    sameDisposal: true,
     cueStops: 1,
     retainedTrack: false,
     retainedDirector: false,
     retainedSynth: false,
+    retainedBus: false,
     frameMutations: 0,
   });
 }
@@ -61,6 +83,7 @@ function expectLifecycle(
 function expectSignal(signal: NativeReport['signal'], audible: boolean) {
   for (const channel of [signal.cue, signal.mix]) {
     expect(channel.samples).toBeGreaterThanOrEqual(4800);
+    expect(channel.samples).toBe(Math.round((signal.end - signal.start) * 48000));
     expect(channel.finite).toBe(true);
     if (audible) {
       expect(channel.peak).toBeGreaterThan(0.005);
@@ -73,11 +96,15 @@ function expectSignal(signal: NativeReport['signal'], audible: boolean) {
   }
 }
 
-function expectUpshift(automation: NativeReport['cases'][number]['automation']) {
+function expectUpshift(
+  automation: NativeReport['cases'][number]['automation'],
+  updateTime: number,
+) {
   expect(automation).toHaveLength(6);
   const time = automation[0].args[1];
   expect(Number.isFinite(time)).toBe(true);
-  expect(time).toBeGreaterThanOrEqual(0);
+  expect(time).toBeGreaterThan(0);
+  expect(time).toBe(updateTime);
   expect(automation).toEqual([
     { parameter: 'frequency', method: 'setValueAtTime', args: [1100, time] },
     { parameter: 'pan', method: 'setValueAtTime', args: [0, time] },
@@ -101,6 +128,7 @@ test('native disabled driving configurations never sample the track or schedule 
   });
   expect(report.beforeStart).toMatchObject({
     state: 'uninitialized',
+    time: 0,
     trackSamples: 0,
     hasDirector: false,
     drivingCues: { last: null, emitted: 0 },
@@ -151,7 +179,7 @@ test('native driving route builds at the first live-human update and survives sa
   expect(report.reenabled.drivingCues).toEqual({ enabled: true, last: null, emitted: 1 });
   expect(report.retainedDirector).toBe(true);
   expect(report.retainedRoute).toBe(true);
-  expectUpshift(report.automation);
+  expectUpshift(report.automation, report.first.time);
   expectSignal(report.signal, true);
   expectLifecycle(report);
   expect(errors).toEqual([]);
@@ -181,7 +209,7 @@ test('native gear audio sounds near the TC1 limiter and suppresses GPR1 final-ge
   for (const item of [fifthGear, touring]) {
     expect(item.drivingCues.last).toBe('upshift');
     expect(item.emitted).toBe(1);
-    expectUpshift(item.automation);
+    expectUpshift(item.automation, item.time);
     expectSignal(item.signal, true);
   }
   expect(report.cases.map((item) => item.trackSamples)).toEqual([

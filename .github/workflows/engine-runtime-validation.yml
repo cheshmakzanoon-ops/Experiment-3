@@ -34,6 +34,7 @@ on:
       - 'scripts/browser-backend.ts'
       - 'scripts/browser-backend-setup.ts'
       - 'scripts/source-stability.ts'
+      - 'scripts/engine-runtime-probes/**'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.ts'
@@ -85,6 +86,16 @@ jobs:
             tests/surface-channel-backpressure.test.ts \
             --pool=threads --maxWorkers=1 --minWorkers=1 --allowOnly=false --retry=0 \
             2>&1 | tee "$RUNNER_TEMP/engine-runtime-unit.log"
+      - name: Verify engine baseline comparisons
+        shell: bash
+        env:
+          NODE_OPTIONS: --max-old-space-size=1024
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc
+          node --experimental-transform-types scripts/source-stability.ts -- \
+            bash -e -u -o pipefail -c 'for probe in scripts/engine-runtime-probes/*-probe.mjs; do node "$probe"; done' \
+            2>&1 | tee "$RUNNER_TEMP/engine-runtime-probes.log"
       - name: Typecheck and build exact source without asset-generation hooks
         shell: bash
         run: |
@@ -125,6 +136,7 @@ jobs:
             ${{ runner.temp }}/engine-package-lock.sha256
             ${{ runner.temp }}/engine-runtime-unit.log
             ${{ runner.temp }}/engine-runtime-build.log
+            ${{ runner.temp }}/engine-runtime-probes.log
             ${{ runner.temp }}/engine-runtime-browser.log
 
 # This diagnostic job never deploys, changes source, generates model assets, or

@@ -33,3 +33,21 @@ Commit `acd525fc148c1378c90cfb23dddee9dd53e4d52c` passed [workflow 45625750491](
 [Workflow 45627137718](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45627137718) passed 1,114 tests in 82 files, then rejected the new IndexedDB fixture's overloaded native transaction `apply` call (TS2345). The correction uses typed reflective delegation, preserving every native argument. Browser tests were skipped by that failed gate; they are not counted as passed.
 
 The shared execution environment disconnected after this commit was pushed. Root continued through the GitHub connector with reviewed, isolated Git trees, expected-head non-forced ref updates, and hosted execution. Agent reports distinguish completed local evidence from unexecuted candidates. Protected content remains outside the permitted write paths.
+
+## b3b8ec0 native evidence and unresolved cases
+
+[Workflow 45628545692](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45628545692) passed 1,114 unit tests, complete TypeScript/build, and 52 of 56 native cases. All three new IndexedDB cases and all three new startup-cancellation cases passed. Three new driving-audio cases timed out loading their native AudioWorklet probe; the existing device-ownership focus case reported one duplicate timestamp (other ownership bounds passed). These are retained failures, not a green native gate. Follow-up work must resolve the harness and examine the timestamp assumption before final acceptance.
+
+## Concurrent animation preserved
+
+Observed incoming commit `e3ad320b1d54fb28db5a3d6b09b1faf7350a0ff2` after b3b8ec0. Its motocross renderer/rider/camera and test paths are protected and disjoint from this session's pending engine work. Subsequent publication must use the latest main tree as its base and preserve this ancestry; a full-tree comparison against the initial baseline would include the other session's legitimate changes and must not attribute them to this engine work.
+
+## Baseline probes and flashback diagnostics checkpoint
+
+Integrated six reproducible comparisons against immutable baseline `dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc`. CI fetches that object explicitly, verifies tracked-source stability, runs each comparison with fail-fast handling, and retains the log. These new remote-authored probes have been source-reviewed but are not yet claimed as executed.
+
+Preserve the engineering-enable choice across flashback while resetting only sample cadence and epoch; outstanding diagnostic delivery credit remains occupied until the matching ACK. Fresh init still disables diagnostics. Added actual-worker state/cadence/credit tests and full network-runtime composition tests.
+
+Replaced the unsupported live AudioWorklet observer in the new driving-audio fixture with supported native OfflineAudioContext rendering and suspension checkpoints, retaining real synthesis, PCM, envelope, lazy-route and lifecycle assertions. The device ownership witness now uses a first native RAF sentinel as a callback-batch identifier, retains all real timestamp evidence, and calibrates itself with two actual native callbacks under a separate diagnostic owner. Equal exposed timestamp numbers alone are no longer treated as duplicate frames. No claim is made about the precise browser mechanism behind the earlier collision.
+
+Root inspected incoming animation commit `e3ad320` and report commits through parent `ebd1e3f`; no changed path overlaps this checkpoint. No protected rendering, model, environment, character, offroad, main-entry or protocol source is included. New unit/probe/compiler/native acceptance remains pending the hosted gate for this source.

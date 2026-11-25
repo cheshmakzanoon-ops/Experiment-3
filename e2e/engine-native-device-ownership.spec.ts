@@ -47,6 +47,23 @@ async function load(page: Page) {
   expect(boot.focused).toBe(true);
   expect(boot.pendingRafs).toBe(1);
   expect(boot.ownedListeners).toBe(8);
+  expect(boot.rafWitness).toMatchObject({ pending: true, stopped: false });
+  expect(boot.rafWitness.frames).toBeGreaterThan(0);
+  expect(boot.rafControl).toMatchObject({
+    scheduled: 2,
+    delivered: 2,
+    cancelled: 0,
+    maxPending: 2,
+    duplicateFrames: 1,
+    duplicateTimestamps: 1,
+    unwitnessedDeliveries: 0,
+    timestampMismatches: 0,
+    scheduledAfterRelease: 0,
+    deliveredAfterRelease: 0,
+    released: true,
+    pending: 0,
+    listeners: 0,
+  });
   return errors;
 }
 const checkpoint = (page: Page, label: string) =>
@@ -174,16 +191,21 @@ test('native focus and controller replacement suppress held credits input, then 
     });
     expect(late.submits).toEqual(submitted.submits);
     expect(late.gamepadReads).toBe(disposed.gamepadReads);
-    for (const owner of Object.values(late.owners))
+    for (const owner of Object.values(late.owners)) {
+      expect(owner.delivered).toBeGreaterThan(0);
+      expect(owner.scheduled).toBe(owner.delivered + owner.cancelled);
       expect(owner).toMatchObject({
         maxPending: 1,
-        duplicateTimestamps: 0,
+        duplicateFrames: 0,
+        unwitnessedDeliveries: 0,
+        timestampMismatches: 0,
         scheduledAfterRelease: 0,
         deliveredAfterRelease: 0,
         released: true,
         pending: 0,
         listeners: 0,
       });
+    }
     expect(errors).toEqual([]);
     const cleaned = await page.evaluate(() =>
       (window as unknown as NativeWindow).EngineNativeDeviceOwnership.close(),
@@ -191,6 +213,7 @@ test('native focus and controller replacement suppress held credits input, then 
     expect(cleaned).toMatchObject({
       restored: true,
       nativeApisRestored: true,
+      rafWitness: { pending: false, stopped: true },
       pendingRafs: 0,
       ownedListeners: 0,
     });
@@ -280,16 +303,21 @@ test('native modal replacement and reentrant credits replacement establish separ
     const later = await checkpoint(page, 'native frames after all owners are disposed');
     expect(later.gamepadReads).toBe(first.gamepadReads);
     expect(later).toMatchObject({ pendingRafs: 0, ownedListeners: 0 });
-    for (const owner of Object.values(later.owners))
+    for (const owner of Object.values(later.owners)) {
+      expect(owner.delivered).toBeGreaterThan(0);
+      expect(owner.scheduled).toBe(owner.delivered + owner.cancelled);
       expect(owner).toMatchObject({
         maxPending: 1,
-        duplicateTimestamps: 0,
+        duplicateFrames: 0,
+        unwitnessedDeliveries: 0,
+        timestampMismatches: 0,
         scheduledAfterRelease: 0,
         deliveredAfterRelease: 0,
         released: true,
         pending: 0,
         listeners: 0,
       });
+    }
     expect(errors).toEqual([]);
     const cleaned = await page.evaluate(() =>
       (window as unknown as NativeWindow).EngineNativeDeviceOwnership.close(),
@@ -297,6 +325,7 @@ test('native modal replacement and reentrant credits replacement establish separ
     expect(cleaned).toMatchObject({
       restored: true,
       nativeApisRestored: true,
+      rafWitness: { pending: false, stopped: true },
       pendingRafs: 0,
       ownedListeners: 0,
     });

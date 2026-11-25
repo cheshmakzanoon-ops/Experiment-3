@@ -51,7 +51,7 @@ function finishFlashback(job: Resimulation) {
   simulation = job.simulation;
   log?.truncate(job.target);
   telemetry = recorder(simulation);
-  engineeringChannel.reset();
+  engineeringChannel.rebase();
   lastInput = performance.now();
   clock.reset(lastInput);
   lastSent = simulation.tick;

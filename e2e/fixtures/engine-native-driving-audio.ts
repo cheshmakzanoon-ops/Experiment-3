@@ -1,8 +1,5 @@
 import { RacingAudio } from '../../src/audio/engine.ts';
-import {
-  validateDrivingAudio,
-  type DrivingCueDirector,
-} from '../../src/audio/driving-cues.ts';
+import { validateDrivingAudio, type DrivingCueDirector } from '../../src/audio/driving-cues.ts';
 import type { AudioView } from '../../src/audio/spatial.ts';
 import { GUIDE_SPACING } from '../../src/rendering/driving-guide.ts';
 import {
@@ -17,6 +14,9 @@ import {
 } from '../../src/simulation/protocol.ts';
 import { Track, trackPoint } from '../../src/simulation/track.ts';
 import { VEHICLE_IDS, vehicleIndex } from '../../src/simulation/vehicles.ts';
+
+const SAMPLE_RATE = 48000;
+const RENDER_FRAMES = SAMPLE_RATE;
 
 const settings = validateDrivingAudio({
   enabled: true,
@@ -43,6 +43,7 @@ const o = carBase(0);
 
 type CueNodes = { oscillator: OscillatorNode; gain: GainNode; pan: StereoPannerNode };
 type AudioInternals = {
+  context: BaseAudioContext | null;
   cueTrack: Track | null;
   cueDirector: DrivingCueDirector | null;
   cueSynth: CueNodes | null;
@@ -50,52 +51,10 @@ type AudioInternals = {
 };
 type Automation = { parameter: string; method: string; args: number[] };
 type Signal = { samples: number; peak: number; rms: number; finite: boolean };
-type Capture = { cue: Signal; mix: Signal };
+type Capture = { start: number; end: number; cue: Signal; mix: Signal };
+type Checkpoint = { from: number; requested: number; time: number; state: AudioContextState };
 
-// This observer records real rendered input in the audio thread, so a busy
-// browser task cannot miss the 90 ms cue. Its output is silent; the production
-// graph remains connected to its original destination. It does not synthesize,
-// reschedule or replace any production audio. The first channel is sufficient
-// for these centred gear cues; this is not a stereo or physical-speaker test.
-const PROBE_SOURCE = `
-class DrivingAudioProbe extends AudioWorkletProcessor {
-  constructor() {
-    super();
-    this.recording = false;
-    this.stats = [];
-    this.port.onmessage = ({ data }) => {
-      if (data === 'begin') {
-        this.stats = Array.from({ length: 2 }, () =>
-          ({ samples: 0, peak: 0, squares: 0, finite: true }));
-        this.recording = true;
-      } else {
-        this.recording = false;
-      }
-      const summarize = ({ samples, peak, squares, finite }) =>
-        ({ samples, peak, rms: samples ? Math.sqrt(squares / samples) : 0, finite });
-      this.port.postMessage({ cue: summarize(this.stats[0]), mix: summarize(this.stats[1]) });
-    };
-  }
-  process(inputs) {
-    if (this.recording) {
-      for (let i = 0; i < 2; i++) {
-        const channel = inputs[i][0];
-        if (!channel) continue;
-        const stats = this.stats[i];
-        for (const value of channel) {
-          stats.samples++;
-          stats.finite = stats.finite && Number.isFinite(value);
-          stats.peak = Math.max(stats.peak, Math.abs(value));
-          stats.squares += value * value;
-        }
-      }
-    }
-    return true;
-  }
-}
-registerProcessor('engine-driving-audio-probe', DrivingAudioProbe);
-`;
-
+// These deadlines only fail a stuck native operation; they never advance audio.
 async function deadline<T>(stage: string, pending: Promise<T>): Promise<T> {
   let timer = 0;
   try {
@@ -113,27 +72,31 @@ async function deadline<T>(stage: string, pending: Promise<T>): Promise<T> {
   }
 }
 
-/** Advance by rendered audio, without changing currentTime or using a wall-clock sleep. */
-async function advance(context: AudioContext, seconds = 0.04) {
-  const source = context.createBufferSource();
-  source.buffer = context.createBuffer(
-    1,
-    Math.ceil(seconds * context.sampleRate),
-    context.sampleRate,
-  );
-  source.connect(context.destination);
-  try {
-    await deadline(
-      'native render barrier',
-      new Promise<void>((resolve) => {
-        source.onended = () => resolve();
-        source.start();
-      }),
-    );
-  } finally {
-    source.onended = null;
-    source.disconnect();
+function signal(samples: Float32Array): Signal {
+  let peak = 0;
+  let squareSum = 0;
+  let finite = true;
+  for (const sample of samples) {
+    finite &&= Number.isFinite(sample);
+    peak = Math.max(peak, Math.abs(sample));
+    squareSum += sample * sample;
   }
+  return { samples: samples.length, peak, rms: Math.sqrt(squareSum / samples.length), finite };
+}
+
+/** Read actual native PCM only after the complete offline render. Window
+ * boundaries come from native suspension checkpoints, not a simulated clock. */
+function capture(buffer: AudioBuffer, start: number, end: number): Capture {
+  const from = Math.round(start * buffer.sampleRate),
+    to = Math.round(end * buffer.sampleRate);
+  if (from < 0 || to <= from || to > buffer.length)
+    throw new Error('Invalid native PCM capture window');
+  return {
+    start,
+    end,
+    cue: signal(buffer.getChannelData(0).subarray(from, to)),
+    mix: signal(buffer.getChannelData(1).subarray(from, to)),
+  };
 }
 
 function observeSynth(synth: CueNodes) {
@@ -168,38 +131,25 @@ function observeSynth(synth: CueNodes) {
   return { automation, stops: () => stops };
 }
 
-async function observeOutput(context: AudioContext, synth: CueNodes, output: AudioNode) {
-  const url = URL.createObjectURL(new Blob([PROBE_SOURCE], { type: 'text/javascript' }));
-  try {
-    await deadline('PCM observer module', context.audioWorklet.addModule(url));
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-  const node = new AudioWorkletNode(context, 'engine-driving-audio-probe', {
-    numberOfInputs: 2,
-    numberOfOutputs: 1,
-    outputChannelCount: [1],
-  });
-  synth.pan.connect(node, 0, 0);
-  output.connect(node, 0, 1);
-  node.connect(context.destination);
-  const command = (action: 'begin' | 'end') =>
-    deadline(
-      `PCM observer ${action}`,
-      new Promise<Capture>((resolve, reject) => {
-        node.onprocessorerror = () => reject(new Error('Native PCM observer failed'));
-        node.port.onmessage = (event: MessageEvent<Capture>) => resolve(event.data);
-        node.port.postMessage(action);
-      }),
-    );
+/** Preserve the production cue -> master -> dynamics path. Route the left
+ * channel of its cue stem and final mix to separate offline buffer channels.
+ * Only the final destination connection changes: no gain, synthesis, envelope
+ * or production clock is replaced, and the two measurements cannot sum. */
+function observeOutput(context: OfflineAudioContext, synth: CueNodes, output: AudioNode) {
+  const cue = context.createChannelSplitter(2),
+    mix = context.createChannelSplitter(2),
+    channels = context.createChannelMerger(2);
+  synth.pan.connect(cue);
+  cue.connect(channels, 0, 0);
+  output.disconnect(context.destination);
+  output.connect(mix);
+  mix.connect(channels, 0, 1);
+  channels.connect(context.destination);
   return {
-    begin: () => command('begin'),
-    end: () => command('end'),
     dispose() {
-      node.port.onmessage = null;
-      node.onprocessorerror = null;
-      node.port.close();
-      node.disconnect();
+      cue.disconnect();
+      mix.disconnect();
+      channels.disconnect();
     },
   };
 }
@@ -237,44 +187,94 @@ function fixture() {
 }
 
 function graph() {
-  const context = new AudioContext({ sampleRate: 48000 }),
+  const context = new OfflineAudioContext(2, RENDER_FRAMES, SAMPLE_RATE),
+    initial = context.state,
     audio = new RacingAudio(),
     input = fixture(),
-    internals = audio as unknown as AudioInternals;
+    internals = audio as unknown as AudioInternals,
+    checkpoints: Checkpoint[] = [];
   // Real public mixer controls isolate the accessibility path while every
   // production bus/voice remains present and receives normal frame updates.
   audio.setLevels({ engine: 0, effects: 0, ambience: 0, ui: 0, music: 0 });
   let observation: ReturnType<typeof observeSynth> | null = null;
-  let output: Awaited<ReturnType<typeof observeOutput>> | null = null;
+  let output: ReturnType<typeof observeOutput> | null = null;
   let mutations = 0;
   let started: AudioContextState | null = null;
+  let renderedState: AudioContextState | null = null;
+  let rendering: Promise<AudioBuffer> | null = null;
+  let rendered: AudioBuffer | null = null;
+  const completed = new Promise<void>((resolve) => {
+    context.addEventListener('complete', () => resolve(), { once: true });
+  });
   const snapshot = () => ({
+    time: context.currentTime,
     trackSamples: input.trackSamples(),
     hasDirector: internals.cueDirector !== null,
     drivingCues: audio.diagnostics().drivingCues,
   });
+  async function render() {
+    if (rendered) return rendered;
+    if (!rendering) rendering = context.startRendering();
+    else if (context.state === 'suspended')
+      await deadline('offline final resume', context.resume());
+    const [buffer] = await deadline(
+      'offline render completion',
+      Promise.all([rendering, completed]),
+    );
+    rendered = buffer;
+    renderedState = context.state;
+    return buffer;
+  }
   return {
     ...input,
     context,
     audio,
     internals,
+    checkpoints,
     snapshot,
+    render,
     get observation() {
       if (!observation) throw new Error('Native cue synth has not started');
       return observation;
     },
-    get output() {
-      if (!output) throw new Error('Native output observer has not started');
-      return output;
+    get renderInfo() {
+      return {
+        frames: rendered?.length ?? 0,
+        channels: rendered?.numberOfChannels ?? 0,
+        finalTime: context.currentTime,
+      };
     },
     async start() {
       await deadline('RacingAudio.start', audio.start(context));
       started = context.state;
-      if (started !== 'running') throw new Error(`Native context did not run: ${started}`);
+      if (started !== 'suspended' || context.currentTime !== 0)
+        throw new Error('Offline startup must build the graph before native rendering');
       if (!internals.cueSynth || !internals.bus)
         throw new Error('Production cue graph is missing');
       observation = observeSynth(internals.cueSynth);
-      output = await observeOutput(context, internals.cueSynth, internals.bus.output);
+      output = observeOutput(context, internals.cueSynth, internals.bus.output);
+    },
+    /** Schedule while suspended, then let the native renderer reach the next
+     * checkpoint. The 40 ms steps exceed RacingAudio's 25 ms update throttle;
+     * the 160 ms captures include the whole 90 ms cue and mixer tail. */
+    async advance(seconds = 0.04) {
+      if (context.state !== 'suspended')
+        throw new Error('Offline checkpoints must be scheduled while suspended');
+      const from = context.currentTime,
+        requested =
+          (Math.round(from * SAMPLE_RATE) + Math.round(seconds * SAMPLE_RATE)) / SAMPLE_RATE;
+      if (requested >= RENDER_FRAMES / SAMPLE_RATE)
+        throw new Error('Offline checkpoint exceeds the bounded render');
+      const suspended = context.suspend(requested);
+      let resumed: Promise<void> = Promise.resolve();
+      if (!rendering) {
+        rendering = context.startRendering();
+        // The final render is awaited by render(); also handle an early native
+        // rejection while a suspension promise is still pending.
+        void rendering.catch(() => undefined);
+      } else resumed = context.resume();
+      await deadline('offline suspension checkpoint', Promise.all([suspended, resumed]));
+      checkpoints.push({ from, requested, time: context.currentTime, state: context.state });
     },
     update(playing = true, liveHuman = true) {
       input.frame[H.TICK]++;
@@ -284,36 +284,53 @@ function graph() {
       return snapshot();
     },
     async dispose() {
-      let ownerClosed = false;
+      const beforeDispose = context.state,
+        first = audio.dispose(),
+        repeated = audio.dispose(),
+        sameDisposal = first === repeated;
       try {
-        output?.dispose();
+        await deadline('repeated RacingAudio.dispose', Promise.all([first, repeated]));
       } finally {
-        try {
-          await deadline('RacingAudio.dispose', audio.dispose());
-          await deadline('repeated RacingAudio.dispose', audio.dispose());
-        } finally {
-          ownerClosed = context.state === 'closed';
-          if (!ownerClosed) await deadline('fallback native close', context.close());
-        }
+        output?.dispose();
+        // An assertion/setup failure can leave native rendering suspended.
+        // Finish that finite buffer after releasing the production graph.
+        if (rendering && !rendered) await render();
       }
       return {
+        initial,
         started,
+        rendered: renderedState,
+        beforeDispose,
         state: context.state,
-        ownerClosed,
+        ownerReleased: internals.context === null,
         ownerState: audio.diagnostics().state,
+        sameDisposal,
         cueStops: observation?.stops() ?? 0,
         retainedTrack: internals.cueTrack !== null,
         retainedDirector: internals.cueDirector !== null,
         retainedSynth: internals.cueSynth !== null,
+        retainedBus: internals.bus !== null,
         frameMutations: mutations,
       };
     },
   };
 }
 
-async function run<T extends object>(
-  scenario: (owner: ReturnType<typeof graph>) => Promise<T>,
-) {
+/** Yield one event-loop task to observe unhandled rejections from cleanup.
+ * This is a message turn, never a wall-clock or audio-clock sleep. */
+function drainTask() {
+  return new Promise<void>((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => {
+      channel.port1.close();
+      channel.port2.close();
+      resolve();
+    };
+    channel.port2.postMessage(null);
+  });
+}
+
+async function run<T extends object>(scenario: (owner: ReturnType<typeof graph>) => Promise<T>) {
   const owner = graph(),
     unhandled: string[] = [];
   const onRejection = (event: PromiseRejectionEvent) => unhandled.push(String(event.reason));
@@ -325,7 +342,7 @@ async function run<T extends object>(
   } finally {
     try {
       lifecycle = await owner.dispose();
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      await drainTask();
     } finally {
       window.removeEventListener('unhandledrejection', onRejection);
     }
@@ -334,8 +351,10 @@ async function run<T extends object>(
     ...report,
     lifecycle,
     unhandled,
-    activation: navigator.userActivation.hasBeenActive,
+    contextKind: 'OfflineAudioContext' as const,
     sampleRate: owner.context.sampleRate,
+    checkpoints: owner.checkpoints,
+    render: owner.renderInfo,
     frameCompatibility: snapshotIncompatibility(owner.frame, undefined, VEHICLE_IDS.length),
   };
 }
@@ -354,16 +373,18 @@ export function disabledConfiguration() {
     }
     const beforeStart = { ...g.snapshot(), state: g.audio.diagnostics().state };
     await g.start();
-    await g.output.begin();
-    const cases = [];
+    const start = g.context.currentTime,
+      cases = [];
     for (const [name, value] of inactive) {
       g.audio.configureDriving(g.track, value);
       g.observation.automation.length = 0;
-      await advance(g.context);
+      await g.advance();
       cases.push({ name, ...g.update(), automation: [...g.observation.automation] });
     }
-    await advance(g.context);
-    return { beforeStart, cases, signal: await g.output.end() };
+    await g.advance();
+    const end = g.context.currentTime,
+      buffer = await g.render();
+    return { beforeStart, cases, signal: capture(buffer, start, end) };
   });
 }
 
@@ -373,56 +394,58 @@ export function lazyRouteReuse() {
     g.update();
     const beforeStart = g.snapshot();
     await g.start();
-    await g.output.begin();
-    const gated = [];
+    const gatedStart = g.context.currentTime,
+      gated = [];
     for (const [name, playing, liveHuman, muted] of [
       ['paused', false, true, false],
       ['nonhuman', true, false, false],
       ['muted', true, true, true],
     ] as const) {
       g.audio.muted = muted;
-      await advance(g.context);
+      await g.advance();
       gated.push({ name, ...g.update(playing, liveHuman) });
     }
-    await advance(g.context);
-    const gatedSignal = await g.output.end();
+    await g.advance();
+    const gatedEnd = g.context.currentTime;
     g.audio.muted = false;
     const latest = { ...settings };
     g.audio.configureDriving(g.track, latest);
     latest.volume = 0;
     g.observation.automation.length = 0;
-    await g.output.begin();
-    const first = g.update(),
+    const cueStart = g.context.currentTime,
+      first = g.update(),
       director = g.internals.cueDirector,
       route = director?.route,
       automation = [...g.observation.automation];
-    await advance(g.context, 0.16);
-    const signal = await g.output.end();
-    // Below the shift threshold: reuse should not depend on a wall-clock
-    // cooldown remaining unexpired while the hosted runner schedules tasks.
+    await g.advance(0.16);
+    const cueEnd = g.context.currentTime;
+    // Below the shift threshold: reuse does not depend on cue cooldown.
     g.frame[o + F.RPM] = 6000;
-    await advance(g.context);
+    await g.advance();
     const reused = g.update();
     g.audio.configureDriving(g.track, { ...settings, enabled: false });
-    await advance(g.context);
+    await g.advance();
     const disabled = g.update();
     g.audio.configureDriving(g.track, settings);
-    await advance(g.context);
-    const reenabled = g.update();
+    await g.advance();
+    const reenabled = g.update(),
+      retainedDirector = g.internals.cueDirector === director,
+      retainedRoute = g.internals.cueDirector?.route === route,
+      buffer = await g.render();
     return {
       beforeStart,
       gated,
-      gatedSignal,
+      gatedSignal: capture(buffer, gatedStart, gatedEnd),
       first,
       reused,
       disabled,
       reenabled,
       routeSamples: g.routeSamples,
-      retainedDirector: g.internals.cueDirector === director,
-      retainedRoute: g.internals.cueDirector?.route === route,
+      retainedDirector,
+      retainedRoute,
       routePoints: route ? route.points.length / 3 : 0,
       automation,
-      signal,
+      signal: capture(buffer, cueStart, cueEnd),
     };
   });
 }
@@ -442,13 +465,13 @@ export function vehicleGearCues() {
       g.frame[o + F.GEAR] = gear;
       // The same-track production configuration resets any prior cue cooldown.
       g.audio.configureDriving(g.track, settings);
-      await advance(g.context);
+      await g.advance();
       g.observation.automation.length = 0;
-      await g.output.begin();
-      const emittedBefore = g.audio.diagnostics().drivingCues.emitted,
+      const start = g.context.currentTime,
+        emittedBefore = g.audio.diagnostics().drivingCues.emitted,
         snapshot = g.update(),
         automation = [...g.observation.automation];
-      await advance(g.context, 0.16);
+      await g.advance(0.16);
       cases.push({
         vehicle,
         rpm,
@@ -456,9 +479,17 @@ export function vehicleGearCues() {
         ...snapshot,
         emitted: snapshot.drivingCues.emitted - emittedBefore,
         automation,
-        signal: await g.output.end(),
+        start,
+        end: g.context.currentTime,
       });
     }
-    return { cases, routeSamples: g.routeSamples };
+    const buffer = await g.render();
+    return {
+      cases: cases.map(({ start, end, ...item }) => ({
+        ...item,
+        signal: capture(buffer, start, end),
+      })),
+      routeSamples: g.routeSamples,
+    };
   });
 }

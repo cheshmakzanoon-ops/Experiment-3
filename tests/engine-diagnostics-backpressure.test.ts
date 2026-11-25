@@ -154,7 +154,7 @@ describe('the actual physics worker engineering transport', () => {
     expect(samples()[1].epoch).toBeGreaterThan(first.epoch);
   });
 
-  it('keeps flashback reset bounded and requires a fresh explicit enable before resuming probes', () => {
+  it('rebases flashback inspection after the held ACK without another enable', () => {
     send({ type: 'engineering', enabled: true });
     const first = samples()[0];
     send({ type: 'pause', value: false });
@@ -163,9 +163,9 @@ describe('the actual physics worker engineering transport', () => {
     now += 4;
     pump();
     expect(simulation.tick).toBe(12);
-    acknowledge(first);
     expect(samples()).toHaveLength(1);
-    send({ type: 'engineering', enabled: true });
+    acknowledge(first);
+    expect(samples()).toHaveLength(2);
     expect(samples()[1].sample.tick).toBe(12);
     expect(samples()[1].epoch).toBeGreaterThan(first.epoch);
     acknowledge(first);

@@ -4,13 +4,10 @@ import type { LaunchBoard } from '../../src/ui/launch-board.ts';
 
 interface OwnerRecord {
   scheduled: number;
-  delivered: number;
   cancelled: number;
   maxPending: number;
-  duplicateTimestamps: number;
   scheduledAfterRelease: number;
   deliveredAfterRelease: number;
-  lastTimestamp: number | null;
 }
 interface ListenerRecord {
   target: EventTarget;
@@ -26,6 +23,95 @@ export interface PadSample {
   label: string;
 }
 
+interface RafOwnerRecord {
+  delivered: number;
+  duplicateFrames: number;
+  unwitnessedDeliveries: number;
+  timestampMismatches: number;
+  duplicateTimestamps: number;
+  lastFrame: number | null;
+  lastTimestamp: number | null;
+  timestampCollisions: { timestamp: number; previousFrame: number | null; frame: number }[];
+}
+const emptyRafOwner = (): RafOwnerRecord => ({
+  delivered: 0,
+  duplicateFrames: 0,
+  unwitnessedDeliveries: 0,
+  timestampMismatches: 0,
+  duplicateTimestamps: 0,
+  lastFrame: null,
+  lastTimestamp: null,
+  timestampCollisions: [],
+});
+
+/**
+ * Start before scheduling any observed owner. HTML snapshots an ordered callback
+ * list: this native sentinel runs before the owners, and queues its successor
+ * before they can queue theirs. Its serial identifies that callback batch even
+ * when two batches receive equal timestamp numbers. It never supplies or changes
+ * an owner's callback timestamp.
+ */
+export function createRafWitness(
+  request: (callback: FrameRequestCallback) => number,
+  cancel: (id: number) => void,
+) {
+  const owners = new Map<string, RafOwnerRecord>();
+  let frame = 0;
+  let timestamp: number | null = null;
+  let pending: number | null = null;
+  let stopped = false;
+  const markFrame: FrameRequestCallback = (time) => {
+    pending = null;
+    if (stopped) return;
+    frame++;
+    timestamp = time;
+    pending = request(markFrame);
+  };
+  pending = request(markFrame);
+  return {
+    delivered(owner: string, time: number) {
+      let stats = owners.get(owner);
+      if (!stats) {
+        stats = emptyRafOwner();
+        owners.set(owner, stats);
+      }
+      stats.delivered++;
+      if (stopped || frame === 0) stats.unwitnessedDeliveries++;
+      if (timestamp !== time) stats.timestampMismatches++;
+      if (stats.lastFrame === frame) stats.duplicateFrames++;
+      if (stats.lastTimestamp === time) {
+        stats.duplicateTimestamps++;
+        stats.timestampCollisions.push({
+          timestamp: time,
+          previousFrame: stats.lastFrame,
+          frame,
+        });
+      }
+      stats.lastFrame = frame;
+      stats.lastTimestamp = time;
+    },
+    owner(name: string) {
+      const value = owners.get(name) ?? emptyRafOwner();
+      return {
+        ...value,
+        timestampCollisions: value.timestampCollisions.map((collision) => ({ ...collision })),
+      };
+    },
+    snapshot: () => ({
+      frames: frame,
+      lastTimestamp: timestamp,
+      pending: pending !== null,
+      stopped,
+    }),
+    stop() {
+      if (stopped) return;
+      stopped = true;
+      if (pending !== null) cancel(pending);
+      pending = null;
+    },
+  };
+}
+
 let state: ReturnType<typeof create> | null = null;
 
 function create() {
@@ -34,6 +120,11 @@ function create() {
   const content = document.getElementById('modalContent')!;
   const nativeRaf = window.requestAnimationFrame;
   const nativeCancel = window.cancelAnimationFrame;
+  const rafWitness = createRafWitness(
+    (callback) => nativeRaf.call(window, callback),
+    (id) => nativeCancel.call(window, id),
+  );
+  const controlOwner = 'raf-witness-negative-control';
   const originalPad = Object.getOwnPropertyDescriptor(navigator, 'getGamepads');
   const nativeGetGamepads = navigator.getGamepads;
   const events = new AbortController();
@@ -69,13 +160,10 @@ function create() {
     if (!value) {
       value = {
         scheduled: 0,
-        delivered: 0,
         cancelled: 0,
         maxPending: 0,
-        duplicateTimestamps: 0,
         scheduledAfterRelease: 0,
         deliveredAfterRelease: 0,
-        lastTimestamp: null,
       };
       owners.set(name, value);
     }
@@ -157,10 +245,8 @@ function create() {
       pending.delete(id);
       if (!owner) return callback(time);
       const stats = record(owner);
-      stats.delivered++;
+      rafWitness.delivered(owner, time);
       if (released.has(owner)) stats.deliveredAfterRelease++;
-      if (stats.lastTimestamp === time) stats.duplicateTimestamps++;
-      stats.lastTimestamp = time;
       owned(owner, () => callback(time));
     });
     if (owner) {
@@ -310,6 +396,16 @@ function create() {
     },
     { signal: events.signal },
   );
+  // Calibrate the witness with an actual duplicate owner in one native batch.
+  // Both requests are forwarded normally; the diagnostic owner is reported
+  // separately and releases itself after its second (and final) callback.
+  let controlCallbacks = 2;
+  owned(controlOwner, () => {
+    for (let i = 0; i < 2; i++)
+      window.requestAnimationFrame(() => {
+        if (--controlCallbacks === 0) released.add(controlOwner);
+      });
+  });
   menu = owned(
     'menu',
     () =>
@@ -324,12 +420,24 @@ function create() {
       ),
   );
 
+  function ownerSnapshot(name: string, value: OwnerRecord) {
+    return {
+      ...value,
+      ...rafWitness.owner(name),
+      released: released.has(name),
+      pending: [...pending.values()].filter((owner) => owner === name).length,
+      listeners: listeners.filter((item) => item.owner === name).length,
+    };
+  }
   function snapshot() {
+    const witness = rafWitness.snapshot();
     return {
       disposed,
       restored,
       nativeApisRestored:
         restored &&
+        witness.stopped &&
+        !witness.pending &&
         window.requestAnimationFrame === nativeRaf &&
         window.cancelAnimationFrame === nativeCancel &&
         navigator.getGamepads === nativeGetGamepads &&
@@ -349,16 +457,12 @@ function create() {
       gamepadReads,
       pendingRafs: pending.size,
       ownedListeners: listeners.length,
+      rafWitness: witness,
+      rafControl: ownerSnapshot(controlOwner, record(controlOwner)),
       owners: Object.fromEntries(
-        [...owners].map(([name, value]) => [
-          name,
-          {
-            ...value,
-            released: released.has(name),
-            pending: [...pending.values()].filter((owner) => owner === name).length,
-            listeners: listeners.filter((item) => item.owner === name).length,
-          },
-        ]),
+        [...owners]
+          .filter(([name]) => name !== controlOwner)
+          .map(([name, value]) => [name, ownerSnapshot(name, value)]),
       ),
       focusEvents: focusEvents.map((value) => ({ ...value })),
       clicks: clicks.map((value) => ({ ...value })),
@@ -382,6 +486,10 @@ function create() {
       menu = null;
       if (old) released.add('menu');
       old?.dispose();
+      released.add(controlOwner);
+      for (const [id, owner] of pending)
+        if (owner === controlOwner) window.cancelAnimationFrame(id);
+      rafWitness.stop();
       if (dialog.open) dialog.close();
       root.dataset.pad = 'retained-after-dispose';
     }
@@ -423,7 +531,9 @@ function create() {
       boundaries: {
         gamepad: 'scripted navigator.getGamepads',
         dom: 'native browser',
-        animationFrames: 'native callbacks and timestamps, forwarding instrumentation',
+        animationFrames:
+          'native callbacks and timestamps; first native sentinel marks each batch',
+        rafControl: 'two native callbacks under one separate diagnostic owner',
         listenerAccounting: 'forwarded registration/removal on production owner targets',
         physicalControllerValidated: false,
         nativeHistoryValidated: false,

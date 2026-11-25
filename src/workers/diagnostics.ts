@@ -68,6 +68,12 @@ export class EngineeringChannel {
     this.probe.reset();
   }
 
+  /** A flashback keeps the latest host toggle and outstanding delivery owner. */
+  rebase() {
+    this.epoch++;
+    this.probe.rebase();
+  }
+
   enable(value: boolean) {
     this.probe.enable(value);
     this.epoch++;
@@ -149,12 +155,16 @@ export class EngineeringProbe {
   private lastTick = -Infinity;
   reset() {
     this.enabled = false;
+    this.rebase();
+  }
+  /** Discard the old tick cadence without changing the current enable state. */
+  rebase() {
     this.lastTick = -Infinity;
   }
   enable(value: boolean) {
     if (typeof value !== 'boolean') throw new Error('Invalid engineering toggle');
     this.enabled = value;
-    this.lastTick = -Infinity;
+    this.rebase();
   }
   sample(simulation: Simulation): EngineeringSample | null {
     if (!this.enabled || simulation.tick - this.lastTick < 12) return null;
