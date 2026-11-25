@@ -2,6 +2,8 @@ import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { add, tube, type BikeMaterials } from '../bike.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
+import { MotocrossAxles } from './motocross-axles.ts';
+import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 
 const UP = new T.Vector3(0, 1, 0);
 const SPRING_RADIUS = 0.034;
@@ -258,18 +260,100 @@ export const MX_FRONT_HOSE_JOIN = Object.freeze({
   x: -0.054, y: 0.11, z: 0.05, dx: 0.208, dy: -0.035, dz: 0.003,
 });
 
+// The upper span passes between the fork and the back of the number plate.
+// Compression carries the free loop out and up while both ferrule tangents hold.
+const HOSE_BOW = new T.Vector3(0.77, 0.64, -0.10);
+const GUIDE_END = 0.56, GUIDE_OFFSET = 0.024;
+const HOSE_ROWS = 18, STROKE_SAMPLES = 64;
+const HOSE_RING = new T.Vector3(), HOSE_TANGENT = new T.Vector3(), HOSE_PREVIOUS = new T.Vector3();
+
+function frontHoseRing(t: number, lowerY: number, bow: number, tangent?: T.Vector3) {
+  const join = MX_FRONT_HOSE_JOIN, u = 1 - t;
+  const gx = join.x + join.dx, gy = join.y + join.dy, gz = join.z + join.dz;
+  const endY = lowerY + 0.51;
+  const a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
+  HOSE_RING.set(
+    a * join.x + b * gx + c * 0.148 + d * 0.123,
+    a * join.y + b * gy + c * (endY + 0.17) + d * endY,
+    a * join.z + b * gz + c * 0.035 + d * 0.035,
+  );
+  if (tangent) {
+    tangent.set(
+      3 * u * u * join.dx + 6 * u * t * (0.148 - gx) - 3 * t * t * 0.025,
+      3 * u * u * join.dy + 6 * u * t * (endY + 0.17 - gy) - 3 * t * t * 0.17,
+      3 * u * u * join.dz + 6 * u * t * (0.035 - gz),
+    );
+  }
+  if (bow > 0) {
+    const route = Math.min(t / GUIDE_END, 1), guide = 4 * route * (1 - route);
+    HOSE_RING.z += GUIDE_OFFSET * guide * guide;
+    HOSE_RING.addScaledVector(HOSE_BOW, bow * 16 * t * t * u * u);
+    if (tangent) {
+      tangent.z += GUIDE_OFFSET * 8 * guide * (1 - 2 * route) / GUIDE_END;
+      tangent.addScaledVector(HOSE_BOW, bow * 32 * t * u * (1 - 2 * t));
+    }
+  }
+  return HOSE_RING;
+}
+
+function frontHoseLength(lowerY: number, bow: number) {
+  HOSE_PREVIOUS.copy(frontHoseRing(0, lowerY, bow));
+  let length = 0;
+  for (let row = 1; row <= HOSE_ROWS; row++) {
+    const ring = frontHoseRing(row / HOSE_ROWS, lowerY, bow);
+    length += ring.distanceTo(HOSE_PREVIOUS);
+    HOSE_PREVIOUS.copy(ring);
+  }
+  return length;
+}
+
+interface FrontHoseStroke {
+  extension: number;
+  travel: number;
+  bows: Float64Array;
+}
+
+const frontHoseStrokes = new WeakMap<VehicleDefinition, FrontHoseStroke>();
+
+/** The cut length includes slack at full extension. Solve the free loop on the
+ * rendered tube once per fork design, then interpolate during playback. */
+function frontHoseStroke(definition: VehicleDefinition): FrontHoseStroke {
+  const cached = frontHoseStrokes.get(definition);
+  if (cached) return cached;
+  const axles = MotocrossAxles.of(definition);
+  const extension = axles.lowerY(0), compression = axles.lowerY(definition.bike!.forkTravel);
+  const bows = new Float64Array(STROKE_SAMPLES + 1);
+  bows[0] = 0.045;
+  const length = frontHoseLength(extension, bows[0]);
+  for (let i = 1; i <= STROKE_SAMPLES; i++) {
+    const lowerY = T.MathUtils.lerp(extension, compression, i / STROKE_SAMPLES);
+    let lo = bows[i - 1], hi = 0.36;
+    for (let j = 0; j < 18; j++) {
+      const mid = (lo + hi) * 0.5;
+      if (frontHoseLength(lowerY, mid) < length) lo = mid;
+      else hi = mid;
+    }
+    bows[i] = (lo + hi) * 0.5;
+  }
+  const stroke = { extension, travel: compression - extension, bows };
+  frontHoseStrokes.set(definition, stroke);
+  return stroke;
+}
+
 /** Flexible middle of the front brake hose, from the existing handlebar
  * cable to the sliding fork-guard clip. Both ends stay attached at any fork
  * travel. The fixed lower hose continues to the caliper on the fork lower. */
 export class MotocrossBrakeHose {
   readonly root = new T.Group();
   readonly mesh: T.Mesh;
-  private readonly rows = 18;
+  private readonly rows = HOSE_ROWS;
+  private readonly stroke?: FrontHoseStroke;
   private readonly columns = 5;
   private readonly angles = angularSamples(this.columns);
   private lastY = Number.NaN;
 
-  constructor(material: T.Material) {
+  constructor(material: T.Material, definition?: VehicleDefinition) {
+    this.stroke = definition && frontHoseStroke(definition);
     this.root.name = 'Motocross flexible front brake line';
     this.mesh = add(this.root, dynamicTube(this.rows, this.columns), material);
     this.update(-0.92);
@@ -278,21 +362,18 @@ export class MotocrossBrakeHose {
   update(forkLowerY: number) {
     if (!Number.isFinite(forkLowerY) || forkLowerY === this.lastY) return;
     this.lastY = forkLowerY;
-    const join = MX_FRONT_HOSE_JOIN,
-      gx = join.x + join.dx, gy = join.y + join.dy, gz = join.z + join.dz,
-      endY = forkLowerY + 0.51,
-      positions = this.mesh.geometry.getAttribute('position'),
+    const positions = this.mesh.geometry.getAttribute('position'),
       normals = this.mesh.geometry.getAttribute('normal');
-    // Cubic coordinates: bar cable endpoint, two elastic guides, lower clip.
+    let bow = 0;
+    if (this.stroke) {
+      const { extension, travel, bows } = this.stroke;
+      const index = STROKE_SAMPLES * T.MathUtils.clamp((forkLowerY - extension) / travel, 0, 1);
+      const lo = Math.min(STROKE_SAMPLES - 1, Math.floor(index));
+      bow = T.MathUtils.lerp(bows[lo], bows[lo + 1], index - lo);
+    }
     for (let row = 0; row <= this.rows; row++) {
-      const t = row / this.rows,
-        u = 1 - t,
-        x = u ** 3 * join.x + 3 * u * u * t * gx + 3 * u * t * t * 0.148 + t ** 3 * 0.123,
-        y = u ** 3 * join.y + 3 * u * u * t * gy + 3 * u * t * t * (endY + 0.17) + t ** 3 * endY,
-        z = u ** 3 * join.z + 3 * u * u * t * gz + 3 * u * t * t * 0.035 + t ** 3 * 0.035,
-        dx = 3 * u * u * join.dx + 6 * u * t * (0.148 - gx) + 3 * t * t * -0.025,
-        dy = 3 * u * u * join.dy + 6 * u * t * (endY + 0.17 - gy) + 3 * t * t * -0.17,
-        dz = 3 * u * u * join.dz + 6 * u * t * (0.035 - gz),
+      const { x, y, z } = frontHoseRing(row / this.rows, forkLowerY, bow, HOSE_TANGENT);
+      const dx = HOSE_TANGENT.x, dy = HOSE_TANGENT.y, dz = HOSE_TANGENT.z,
         tangentLength = Math.hypot(dx, dy, dz),
         xy = Math.hypot(dx, dy),
         nx = dy / xy,

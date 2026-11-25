@@ -64,7 +64,7 @@ export class Stadium {
     crowdMotion: { value: 0.32 },
     crowdReaction: { value: new T.Vector2(0.72, 0.45) },
   };
-  constructor(track: Track) {
+  constructor(private readonly track: Track) {
     this.root.name = 'Supercross stadium';
     const box = stadiumFloor(track), floor = box.min.y;
     // The bowl sits in the dark beyond the floodlit floor: darker concrete
@@ -601,7 +601,7 @@ export class Stadium {
     if (!Number.isFinite(time)) throw new Error('Invalid stadium presentation time');
     const cycle = Math.PI * 2;
     this.crowdUniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
-    this.pass.update(frame);
+    this.pass.update(frame, this.track);
     this.haze.update(frame);
     this.crowdUniforms.crowdReaction.value.set(
       frame ? 0.17 : 0.72 + Math.sin(time * 0.37) * 0.1,

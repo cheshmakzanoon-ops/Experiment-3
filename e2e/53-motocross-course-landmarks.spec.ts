@@ -166,6 +166,8 @@ test('the trackside crowd follows a passing leader and restores held, stopped an
   expect(measure.approach).toBeGreaterThan(100);
   expect(measure.cross).toBeGreaterThan(100);
   expect(measure.velocity).toBeGreaterThan(10);
+  expect(measure.descent).toBeGreaterThan(100);
+  expect(measure.contact).toBe(0);
   expect(measure.arenaCard.changed).toBeGreaterThan(40);
   expect(measure.arenaCard.velocity).toBeGreaterThan(10);
   expect(measure.arenaCard).toMatchObject({ feet: 0, held: 0, seek: 0, error: 0, draws: 1, triangles: 2 });

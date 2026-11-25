@@ -66,6 +66,7 @@ export class MotocrossChaseCamera {
   fov: number = MOTOCROSS_CHASE.fov;
   private airBlend = 0;
   private heading = 0;
+  private lastHeadingTarget = 0;
   private flightHeading = NaN;
   private lastAnchorY = 0;
   private filteredY = 0;
@@ -73,6 +74,7 @@ export class MotocrossChaseCamera {
   private terrainLift = 0;
   private roll = 0;
   private gazeHeight = 0;
+  private lastGazeTarget = 0;
   private landingOffset = 0;
   private landingVelocity = 0;
   private wasAirborne = false;
@@ -120,13 +122,24 @@ export class MotocrossChaseCamera {
       throw new Error('Invalid motocross camera state');
 
     const h = Math.min(dt, 2);
+    const takeoff = this.initialized && !this.wasAirborne && frame.airborne;
+    const touchdown = this.initialized && this.wasAirborne && !frame.airborne;
+    // AIR_TIME is the current flight in the air and its final duration on the
+    // ground. A missed redraw can span either edge. Only the part of that
+    // interval after the edge should pull the lens back or absorb the impact.
+    // A cleared touchdown timer falls back to the full grounded step.
+    const beforeEdge = takeoff ? h - clamp(frame.airTime, 0, h) :
+      touchdown ? clamp(frame.airTime - this.flightTime, 0, h) : 0;
+    const afterEdge = h - beforeEdge;
     if (!this.initialized || h > 0) {
       if (movingInAir) this.flightHeading = Math.atan2(frame.velocityX!, frame.velocityZ!);
       if (!this.initialized) {
         this.airBlend = Number(frame.airborne);
         this.filteredY = anchor.y;
       } else {
-        this.airBlend += (Number(frame.airborne) - this.airBlend) * -Math.expm1(-h / 0.18);
+        if (beforeEdge > 0)
+          this.airBlend += (Number(this.wasAirborne) - this.airBlend) * -Math.expm1(-beforeEdge / 0.18);
+        this.airBlend += (Number(frame.airborne) - this.airBlend) * -Math.expm1(-afterEdge / 0.18);
         // Exact first-order response to the line between the two measured heights.
         // Treating the latest height as a step puts the lens ahead at lower refresh rates.
         const z = h / MOTOCROSS_CHASE.heaveLag;
@@ -142,11 +155,15 @@ export class MotocrossChaseCamera {
       const targetHeading = Number.isFinite(this.flightHeading)
         ? this.flightHeading + angleDifference(frame.heading, this.flightHeading) * (1 - this.airBlend)
         : frame.heading;
+      if (beforeEdge > 0)
+        this.heading += angleDifference(this.lastHeadingTarget, this.heading) *
+          -Math.expm1(-beforeEdge / MOTOCROSS_CHASE.headingLag);
       const error = angleDifference(targetHeading, this.heading);
       this.heading = !this.initialized ||
         (!Number.isFinite(this.flightHeading) && Math.abs(error) > MOTOCROSS_CHASE.headingSnap)
         ? targetHeading
-        : this.heading + error * -Math.expm1(-h / MOTOCROSS_CHASE.headingLag);
+        : this.heading + error * -Math.expm1(-afterEdge / MOTOCROSS_CHASE.headingLag);
+      this.lastHeadingTarget = targetHeading;
     }
     const heaveLimit = MOTOCROSS_CHASE.maxHeaveOffset;
     const followY = anchor.y + heaveLimit * Math.tanh((this.filteredY - anchor.y) / heaveLimit);
@@ -158,19 +175,21 @@ export class MotocrossChaseCamera {
       rollTarget =
         clamp(frame.lean * 0.12, -MOTOCROSS_CHASE.maximumRoll, MOTOCROSS_CHASE.maximumRoll) *
         motion;
+    let landingImpulse = 0;
     if (!this.initialized) {
       this.roll = rollTarget;
       this.wasAirborne = frame.airborne;
       this.flightTime = frame.airborne ? frame.airTime : 0;
     } else if (h > 0) {
       this.roll += (rollTarget - this.roll) * -Math.expm1(-h / 0.14);
-      if (this.wasAirborne && !frame.airborne && this.flightTime > 0.16) {
+      const landedFlight = this.flightTime + beforeEdge;
+      if (touchdown && landedFlight > 0.16) {
         const strength = clamp(
           1.2 + Math.max(0, frame.landingSpeed) * 0.24 + clamp(frame.bottom, 0, 1) * 1.8,
           1.2,
           4.5,
         );
-        this.landingVelocity -= strength * motion * Math.min(1, this.flightTime * 2);
+        landingImpulse = -strength * motion * Math.min(1, landedFlight * 2);
       }
       this.wasAirborne = frame.airborne;
       this.flightTime = frame.airborne ? Math.max(this.flightTime, frame.airTime) : 0;
@@ -185,6 +204,13 @@ export class MotocrossChaseCamera {
         decay = Math.exp(-omega * h);
       this.landingOffset = (this.landingOffset + coefficient * h) * decay;
       this.landingVelocity = (this.landingVelocity - omega * coefficient * h) * decay;
+      if (landingImpulse !== 0) {
+        // Add just the new impulse at the recorded contact time. An earlier
+        // landing can still be settling beneath it and evolves for the full h.
+        const kick = landingImpulse * Math.exp(-omega * afterEdge);
+        this.landingOffset += kick * afterEdge;
+        this.landingVelocity += kick * (1 - omega * afterEdge);
+      }
     }
 
     const distance =
@@ -227,7 +253,12 @@ export class MotocrossChaseCamera {
       landingAim = clamp(groundAhead + 0.85 - followY, -5, 1.5),
       wantedHeight = groundedAim * (1 - this.airBlend * 0.6) + landingAim * this.airBlend * 0.6;
     if (!this.initialized) this.gazeHeight = wantedHeight;
-    else if (h > 0) this.gazeHeight += (wantedHeight - this.gazeHeight) * -Math.expm1(-h / 0.16);
+    else if (h > 0) {
+      if (beforeEdge > 0)
+        this.gazeHeight += (this.lastGazeTarget - this.gazeHeight) * -Math.expm1(-beforeEdge / 0.16);
+      this.gazeHeight += (wantedHeight - this.gazeHeight) * -Math.expm1(-afterEdge / 0.16);
+    }
+    if (!this.initialized || h > 0) this.lastGazeTarget = wantedHeight;
     this.gaze.y = followY + this.gazeHeight + this.landingOffset * 0.25;
     this.freeEyeY = this.eye.y;
     this.clearTerrain(this.eye, anchor, track, cgHeight);

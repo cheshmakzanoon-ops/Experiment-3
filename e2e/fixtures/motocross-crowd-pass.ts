@@ -2,6 +2,7 @@ import * as T from 'three';
 import { Stadium } from '../../src/rendering/offroad/stadium.ts';
 import { MxSpectators } from '../../src/rendering/offroad/mx-spectators.ts';
 import { setMxQuality } from '../../src/rendering/offroad/mx-quality.ts';
+import { TrackTerrainSurface } from '../../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../../src/simulation/offroad/jump-rig.ts';
 import {
   CAR_STRIDE,
@@ -13,7 +14,15 @@ import {
   carBase,
 } from '../../src/simulation/protocol.ts';
 import { PHASE } from '../../src/simulation/race.ts';
-import { trackPoint } from '../../src/simulation/track.ts';
+import { Track, trackPoint } from '../../src/simulation/track.ts';
+
+function bikeHeightAt(track: Track) {
+  const surface = Track.offroadOf(track) as TrackTerrainSurface, point = trackPoint();
+  return (x: number, z: number, clearance: number) => {
+    const lateral = track.nearest(x, z, point);
+    return surface.terrain.baseHeight(point.s, lateral) + clearance;
+  };
+}
 
 function changedPixels(a: Uint32Array, b: Uint32Array, end = a.length) {
   let count = 0;
@@ -24,7 +33,8 @@ function changedPixels(a: Uint32Array, b: Uint32Array, end = a.length) {
 /** Observe one real seated spectator through the stadium's far material.
  * Isolating the seat makes both its silhouette and its planted feet countable. */
 function captureArenaCard(renderer: T.WebGLRenderer) {
-  const arena = new Stadium(rigTrack('arena-nord-sx'));
+  const track = rigTrack('arena-nord-sx'), bikeY = bikeHeightAt(track);
+  const arena = new Stadium(track);
   const card = arena.crowd;
   const attr = (name: string) => card.geometry.getAttribute(name) as T.InstancedBufferAttribute;
   const phases = attr('spectatorPhase'), style = attr('spectatorStyle');
@@ -69,6 +79,7 @@ function captureArenaCard(renderer: T.WebGLRenderer) {
   const capture = (speed: number, direction: number) => {
     frame[b + F.X] = origin.x + 14 * face.x - 4 * side.x;
     frame[b + F.Z] = origin.z + 14 * face.z - 4 * side.z;
+    frame[b + F.Y] = bikeY(frame[b + F.X], frame[b + F.Z], 2.8);
     frame[b + F.SPEED] = speed;
     frame[b + F.VX] = speed * direction * side.x;
     frame[b + F.VZ] = speed * direction * side.z;
@@ -98,10 +109,11 @@ function captureArenaCard(renderer: T.WebGLRenderer) {
 }
 
 /** Observe the production outdoor crowd and its own depth shader through a
- * fixed lens. Only the leader's recorded position or speed varies per sample. */
+ * fixed lens while the leader approaches, turns, lands, stops or seeks. */
 export function captureMxSpectatorPass() {
   setMxQuality('high');
   const track = rigTrack('valley-ridge-mx');
+  const bikeY = bikeHeightAt(track);
   const spectators = new MxSpectators(track, []);
   const watch = spectators.plan.placements.find((p) => p.kind === 'spectator')!;
   const line = track.at(watch.station, trackPoint());
@@ -146,9 +158,13 @@ export function captureMxSpectatorPass() {
   frame[b + OFFROAD_BASE + O.AIRBORNE] = 1;
   frame[b + OFFROAD_BASE + O.AIR_TIME] = 0.65;
   const gl = renderer.getContext();
-  const capture = (distance: number, speed: number, direction = 1) => {
+  const capture = (
+    distance: number, speed: number, direction = 1, clearance = 2.8, airborne = true,
+  ) => {
     frame[b + F.X] = line.x + line.tx * distance;
     frame[b + F.Z] = line.z + line.tz * distance;
+    frame[b + F.Y] = bikeY(frame[b + F.X], frame[b + F.Z], clearance);
+    frame[b + OFFROAD_BASE + O.AIRBORNE] = Number(airborne);
     frame[b + F.SPEED] = speed;
     frame[b + F.VX] = line.tx * speed * direction;
     frame[b + F.VZ] = line.tz * speed * direction;
@@ -172,15 +188,19 @@ export function captureMxSpectatorPass() {
     const stopped = capture(-8, 0);
     const seek = capture(-8, 26);
     const reversed = capture(-8, 26, -1);
+    const low = capture(-8, 26, 1, 1.0);
+    const landed = capture(-8, 26, 1, 1.0, false);
     return {
       arenaCard: captureArenaCard(renderer),
+      descent: changedPixels(approach.pixels, low.pixels),
+      contact: changedPixels(low.pixels, landed.pixels),
       velocity: changedPixels(approach.pixels, reversed.pixels),
       approach: changedPixels(distant.pixels, approach.pixels),
       cross: changedPixels(approach.pixels, departure.pixels),
       parked: changedPixels(distant.pixels, stopped.pixels),
       hold: changedPixels(approach.pixels, held.pixels),
       seek: changedPixels(approach.pixels, seek.pixels),
-      measures: [distant, approach, held, departure, stopped, seek, reversed].map(
+      measures: [distant, approach, held, departure, stopped, seek, reversed, low, landed].map(
         ({ error, calls, triangles }) => ({ error, calls, triangles }),
       ),
       image,

@@ -5,7 +5,11 @@ import { MxRidgeWoodland } from '../src/rendering/offroad/mx-ridge-woodland.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import { terrainSurface } from '../src/rendering/terrain-surface.ts';
 import { terrainFor } from '../src/rendering/terrain.ts';
-import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
+import { rideLine, rigBike, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { jumpHoldSpeed } from '../src/simulation/offroad/jump-target.ts';
+import { writeOffroadBlock } from '../src/simulation/offroad/session.ts';
+import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import { CAR_STRIDE, F, H, HEADER, O, OFFROAD_BASE, carBase } from '../src/simulation/protocol.ts';
 import { PHASE } from '../src/simulation/race.ts';
 
@@ -54,6 +58,58 @@ describe('motocross venue sightlines', () => {
     frame[carBase(0) + F.VX] = NaN;
     pass.update(frame);
     expect(pass.velocity.value.toArray()).toEqual([0, 0, 0, 0]);
+  });
+
+  it.each([
+    ['valley-ridge-mx', 'RIDGE TABLE', 0],
+    ['valley-ridge-mx', 'SKY TRIPLE', 6],
+    ['arena-nord-sx', 'TABLETOP', 0],
+    ['arena-nord-sx', 'FINISH TRIPLE', 0],
+  ] as const)('finishes the crowd reaction smoothly as the MX450 lands on %s / %s', (venue, name, extra) => {
+    const track = rigTrack(venue);
+    const jump = offroadCourse(track.circuit)!.jumps.find((j) => j.name === name)!;
+    const target = jumpHoldSpeed(jump) + extra;
+    const bike = rigBike(MX_450, track, jump.start - 12, target);
+    const frame = new Float32Array(HEADER + CAR_STRIDE), b = carBase(0);
+    frame[H.CARS] = 1;
+    frame[H.PHASE] = PHASE.RACING;
+    const pass = new MxCrowdPass(44), dt = 1 / 240;
+    let apex = 0, previous = 0, flying = false, landed = false;
+    for (let t = 0; t < 6; t += dt) {
+      if (!bike.airborne) {
+        const onFace = bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 1;
+        rideLine(bike, track, onFace ? Math.max(target, bike.dynamics.speed) : target);
+      }
+      bike.step(dt, track);
+      frame[H.TIME] = t;
+      frame[b + F.X] = bike.body.position.x;
+      frame[b + F.Y] = bike.body.position.y;
+      frame[b + F.Z] = bike.body.position.z;
+      frame[b + F.SPEED] = bike.speed;
+      writeOffroadBlock(frame, b + OFFROAD_BASE, bike, null);
+      pass.update(frame, track);
+      const response = pass.a.value.z;
+      if (bike.airborne && Math.abs(bike.s - jump.takeoff) < 2) flying = true;
+      if (flying) {
+        apex = Math.max(apex, response);
+        if (!bike.airborne) {
+          expect(bike.lastLanding!.airTime).toBeGreaterThan(0.8);
+          expect(apex).toBeGreaterThan(0.9);
+          expect(response).toBeLessThan(apex - 0.3);
+          expect(Math.abs(response - previous)).toBeLessThan(0.02);
+          // A seek across the discrete contact edge at the same chassis pose
+          // must not cause an additional head or arm release.
+          frame[b + OFFROAD_BASE + O.AIRBORNE] = 1;
+          frame[b + OFFROAD_BASE + O.AIR_TIME] = bike.lastLanding!.airTime;
+          pass.update(frame, track);
+          expect(pass.a.value.z).toBe(response);
+          landed = true;
+          break;
+        }
+      }
+      previous = response;
+    }
+    expect(landed).toBe(true);
   });
 
   it('places the two woodland belts on the outdoor ridges and thins the same instances at lower detail', () => {

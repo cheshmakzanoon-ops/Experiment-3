@@ -108,6 +108,17 @@ export class MotocrossRiderSpine {
     this.distribute();
   }
 
+  /** Chest leads the hips off the dirt; the shoulders unwind as the first
+   * hand lifts and the knees take the load. */
+  getUp(rise: number) {
+    const press = smooth(0.02, 0.25, rise) * (1 - smooth(0.32, 0.76, rise));
+    const twist = smooth(0.16, 0.36, rise) * (1 - smooth(0.40, 0.68, rise));
+    this.chest.quaternion.copy(this.pelvis.quaternion).multiply(
+      this.lumbar.quaternion.setFromEuler(this.euler.set(-0.15 * press, -0.05 * twist, 0.035 * twist, 'ZYX')),
+    );
+    this.distribute();
+  }
+
   private distribute() {
     this.lumbar.quaternion.copy(this.pelvis.quaternion).slerp(this.chest.quaternion, 0.52);
     this.placeFrame(this.lumbar, this.pelvis, 0.14);

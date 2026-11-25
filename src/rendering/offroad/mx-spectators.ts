@@ -165,7 +165,11 @@ export class MxSpectators {
   };
   private readonly unsubscribe: (() => void) | null = null;
   private disposed = false;
-  constructor(track: Track, furniture: readonly MxFurnitureSite[], surveyed?: ReturnType<typeof planMxCourseSites>) {
+  constructor(
+    private readonly track: Track,
+    furniture: readonly MxFurnitureSite[],
+    surveyed?: ReturnType<typeof planMxCourseSites>,
+  ) {
     this.root.name = 'MX spectators and flag marshals';
     this.plan = planMxSpectators(track, furniture);
     const sites = this.plan.groups ? surveyed ?? planMxCourseSites(track, furniture) : undefined;
@@ -260,7 +264,7 @@ export class MxSpectators {
     if (this.disposed || !Number.isFinite(time)) return;
     const cycle = Math.PI * 2;
     this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
-    this.pass.update(frame);
+    this.pass.update(frame, this.track);
     this.uniforms.crowdReaction.value.set(
       frame ? 0.1 : 0.55 + Math.sin(time * 0.37) * 0.15,
       frame ? 0.07 : 0.32,

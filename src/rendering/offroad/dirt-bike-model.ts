@@ -742,7 +742,7 @@ export class DirtBikeModel {
         ),
         this.m.dark,
       );
-      this.brakeHose = new MotocrossBrakeHose(this.m.dark);
+      this.brakeHose = new MotocrossBrakeHose(this.m.dark, supermoto ? undefined : definition);
       this.steer.add(this.brakeHose.root);
     }
     // ---- Open perimeter frame, cast engine and folded radiator shrouds.

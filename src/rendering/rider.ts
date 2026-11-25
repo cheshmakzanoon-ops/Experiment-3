@@ -80,6 +80,7 @@ import {
   type MotocrossRiderMotion,
   type MotocrossRiderMotionInput,
 } from './offroad/motocross-rider-motion.ts';
+import { MotocrossHandBrace } from './offroad/motocross-hand-brace.ts';
 import { prepareMxJerseyAirflow, poseMxJerseyAirflow, type MxJerseyAir } from './offroad/mx-jersey-airflow.ts';
 import { MotocrossRiderSpine, motocrossHeadFrame } from './offroad/motocross-rider-spine.ts';
 import {
@@ -379,17 +380,24 @@ class Bone {
   private static y = new T.Vector3();
   private static z = new T.Vector3();
   private static m = new T.Matrix4();
-  aim(from: T.Vector3, to: T.Vector3, pole: T.Vector3) {
+  aim(from: T.Vector3, to: T.Vector3, pole: T.Vector3, hinge = false) {
     const { x, y, z, m } = Bone;
     y.subVectors(to, from);
     const len = y.length();
     if (len < 1e-6) return;
     y.multiplyScalar(1 / len);
-    z.subVectors(pole, from);
-    z.addScaledVector(y, -z.dot(y));
-    if (z.lengthSq() < 1e-10) z.set(0, 0, 1).addScaledVector(y, -y.z);
-    z.normalize();
-    x.crossVectors(y, z);
+    if (hinge) {
+      // The solved bend plane gives both segments the same elbow axis.
+      // Projecting a nearby pole onto the forearm can flip its sleeve 180°.
+      x.copy(pole);
+      z.crossVectors(x, y).normalize();
+    } else {
+      z.subVectors(pole, from);
+      z.addScaledVector(y, -z.dot(y));
+      if (z.lengthSq() < 1e-10) z.set(0, 0, 1).addScaledVector(y, -y.z);
+      z.normalize();
+      x.crossVectors(y, z);
+    }
     m.makeBasis(x, y, z);
     this.group.position.copy(from);
     this.group.quaternion.setFromRotationMatrix(m);
@@ -409,26 +417,35 @@ function twoBone(
   target: T.Vector3,
   pole: T.Vector3,
   joint: T.Vector3,
+  hinge = false,
 ) {
   const { e, m } = scratch;
   const l1 = upper.length,
     l2 = lower.length;
   e.subVectors(target, root);
   const d = T.MathUtils.clamp(e.length(), Math.abs(l1 - l2) + 1e-3, l1 + l2 - 1e-3);
+  if (hinge && e.lengthSq() < 1e-12) e.set(0, -1, 0);
   e.normalize();
   const cosA = (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d),
     sinA = Math.sqrt(Math.max(0, 1 - cosA * cosA));
   m.subVectors(pole, root);
   m.addScaledVector(e, -m.dot(e));
-  if (m.lengthSq() < 1e-10) m.set(0, 1, 0);
+  if (m.lengthSq() < 1e-10) {
+    m.set(0, 1, 0);
+    if (hinge) {
+      if (Math.abs(e.y) > 0.85) m.set(0, 0, 1);
+      m.addScaledVector(e, -m.dot(e));
+    }
+  }
   m.normalize();
   joint
     .copy(root)
     .addScaledVector(e, l1 * cosA)
     .addScaledVector(m, l1 * sinA);
-  upper.aim(root, joint, pole);
+  const axis = hinge ? scratch.b.crossVectors(e, m).normalize() : pole;
+  upper.aim(root, joint, axis, hinge);
   scratch.a.copy(root).addScaledVector(e, d);
-  lower.aim(joint, scratch.a, pole);
+  lower.aim(joint, scratch.a, axis, hinge);
 }
 /** Rider dimensions (m) for a ~1.75 m, 72 kg rider in leathers. */
 export const RIDER = Object.freeze({
@@ -532,6 +549,7 @@ export class Rider {
   private riding = false;
   private readonly materials: T.Material[] = [];
   private readonly q = new T.Quaternion();
+  private recoveryBrace?: MotocrossHandBrace;
   private recoveryFeet?: { step: T.Vector3; ankle: T.Vector3; sole: T.Quaternion }[];
   private readonly recoverySample = new T.Vector3();
   private readonly recoveryFootPlane = new T.Plane();
@@ -1974,7 +1992,10 @@ export class Rider {
     this.clutchFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;
     const rise = mxRise ?? (phase === 0 ? 0 : 1);
-    if (floor && dirt && rise > 0) this.recoveryInverse.copy(this.root.matrixWorld).invert();
+    if (floor && (dirt || (mxRise !== undefined && rise < 0.82 && this.motocrossSpine))) {
+      this.root.updateWorldMatrix(true, false);
+      this.recoveryInverse.copy(this.root.matrixWorld).invert();
+    }
     const bracing = mxRise === undefined ? 0 : Math.sin(Math.PI * rise);
     const running = mxRise !== undefined && phase === 1 ? T.MathUtils.smoothstep(rise, 0.82, 1) : 0;
     const footWeight = push?.weight ?? running;
@@ -2021,8 +2042,12 @@ export class Rider {
       this.torso.position.y = pelvis.y;
       runningSpine.lumbar.position.y -= lower;
       runningSpine.chest.position.y -= lower;
+    } else if (this.motocrossSpine && floor && mxRise !== undefined && phase === 1 && rise < 0.82) {
+      this.motocrossSpine.getUp(rise);
     } else this.motocrossSpine?.reset();
-    const recoveryChest = runningSpine?.chest ?? this.torso;
+    const recoveryChest = this.motocrossSpine?.chest ?? this.torso;
+    const groundBrace = this.motocrossSpine && floor && mxRise !== undefined && phase !== 2 && rise < 0.82
+      ? (this.recoveryBrace ??= new MotocrossHandBrace()) : undefined;
     // The GP neck articulates while riding; recovery restores its rest length.
     if (this.gp && this.kit !== 'motocross')
       this.head.position.copy(GP_NECK_BASE).addScaledVector(Y, GP_NECK_LENGTH);
@@ -2038,6 +2063,13 @@ export class Rider {
       // Hands: spread when sliding, swinging when jogging, on the bars at the bike.
       c.set(side * (0.38 - 0.07 * bracing), -0.25 * rise - 0.18 * bracing,
         T.MathUtils.lerp(0.35, 0.15 + side * stride * 0.4, rise));
+      if (this.motocrossSpine && floor && mxRise !== undefined && phase === 1) {
+        // After the push the supporting elbow folds alongside the ribs.
+        const fold = T.MathUtils.smoothstep(rise, 0.18, 0.46);
+        c.x -= side * 0.24 * fold;
+        c.y -= 0.075 * fold;
+        c.z -= 0.11 * fold;
+      }
       if (running > 0 && feet) {
         // The wrist advances as its own boot drives back. Read the actual
         // recorded stance/swing curve so a held or rewound step stays paired.
@@ -2054,12 +2086,29 @@ export class Rider {
       // The recovering rider stands on the bike's left. Their inside hand
       // steadies that bar while the outside arm balances the planted stance.
       const guidingHand = i === 1 && reach > 0 ? grip : undefined;
+      const plant = groundBrace?.sample(side, rise, tumble, this.detail === 'far', pelvis,
+        c, this.root, this.recoveryInverse, floor!, dirt);
       if (guidingHand) {
         gpContactJoint(guidingHand.point, guidingHand.frame, MX_GLOVE_GRIP, MX_GLOVE_WRIST, b);
         c.lerp(b, reach);
+      } else if (plant) {
+        c.lerp(plant.wrist, plant.weight);
+        // Preserve a little bend as the palm unloads instead of snapping
+        // through a straight elbow at the limit of the two-link solution.
+        const distance = c.distanceTo(a), reach = RIDER.upperArm + RIDER.forearm;
+        const soft = 0.042, start = reach - soft - 0.008;
+        if (distance > start) {
+          const length = start + soft * (1 - Math.exp(-(distance - start) / soft));
+          c.sub(a).multiplyScalar(length / distance).add(a);
+        }
       }
       pole.copy(a).add(b.set(side * (0.4 - 0.26 * running), -0.4, -0.2 - 0.08 * running));
-      twoBone(this.upperArms[i], this.forearms[i], a, c, pole, joint);
+      if (plant) {
+        // A rearward elbow pole stays away from the rolling wrist axis.
+        pole.addScaledVector(floor!.normal, 0.62 * plant.wristWeight);
+        pole.z -= 0.34 * plant.wristWeight;
+      }
+      twoBone(this.upperArms[i], this.forearms[i], a, c, pole, joint, mxRise !== undefined && !!this.motocrossSpine);
       a.set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
@@ -2074,14 +2123,17 @@ export class Rider {
         // Recovery starts from its own joint frames, not the last steering
         // angle or standing ankle pose retained by a previous riding frame.
         const hand = this.hands[i];
-        if (guidingHand) {
-          gpAttachAtJoint(hand, this.forearms[i].group.quaternion, RIDER.forearm,
-            guidingHand.frame, MX_GLOVE_WRIST);
-          hand.quaternion.slerp(this.q.setFromAxisAngle(X, 0.2), 1 - reach);
-          hand.position.lerp(b.set(0, RIDER.forearm + 0.02, 0), 1 - reach);
+        const held = guidingHand?.frame ?? plant?.frame;
+        // The long axis of the glove follows the forearm as the hand lifts.
+        const freePitch = mxRise !== undefined ? -1.33 : 0.2;
+        if (held) {
+          const weight = guidingHand ? reach : plant!.wristWeight;
+          gpAttachAtJoint(hand, this.forearms[i].group.quaternion, RIDER.forearm, held, MX_GLOVE_WRIST);
+          hand.quaternion.slerp(this.q.setFromAxisAngle(X, freePitch), 1 - weight);
+          hand.position.lerp(b.set(0, RIDER.forearm + 0.02, 0), 1 - weight);
         } else {
           hand.position.set(0, RIDER.forearm + 0.02, 0);
-          hand.rotation.set(0.2, 0, 0);
+          hand.rotation.set(freePitch, 0, 0);
         }
         motocrossBootFrame(this.q).premultiply(this.torso.quaternion);
         if (feet) this.q.slerp(feet[i].sole, rise);

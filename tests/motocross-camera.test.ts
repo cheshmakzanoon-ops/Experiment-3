@@ -216,6 +216,35 @@ describe('motocross chase composition', () => {
     }
   });
 
+  it('places takeoff and touchdown inside a missed redraw using the recorded flight duration', () => {
+    for (const takeoff of [true, false]) {
+      const flight = 0.6, beforeContact = 0.060, afterContact = 0.007;
+      const initial = frame({
+        airborne: !takeoff, airTime: takeoff ? 0 : flight,
+        heading: 0.68, velocityX: 0, velocityZ: 18, landingSpeed: 4.5, bottom: 0.4,
+      });
+      const split = new MotocrossChaseCamera().update(0, flat, initial);
+      const skipped = new MotocrossChaseCamera().update(0, flat, initial);
+      // The previous flight clock stays in the recording when the wheels
+      // touch down. At takeoff the clock measures time since the last wheel left.
+      const previous = { ...initial, airTime: takeoff ? 0 : flight + beforeContact };
+      const presented = { ...initial, airborne: takeoff, airTime: takeoff ? afterContact : previous.airTime };
+      split.update(beforeContact, flat, previous);
+      split.update(afterContact, flat, presented);
+      skipped.update(beforeContact + afterContact, flat, presented);
+      expect(skipped.eye.distanceTo(split.eye)).toBeLessThan(1e-8);
+      expect(skipped.gaze.distanceTo(split.gaze)).toBeLessThan(1e-8);
+      expect(skipped.fov).toBeCloseTo(split.fov, 10);
+      // The landing spring's velocity must resume from the same contact too.
+      for (let i = 0; i < 12; i++) {
+        if (takeoff) presented.airTime += 1 / 60;
+        skipped.update(1 / 60, flat, presented);
+        split.update(1 / 60, flat, presented);
+        expect(skipped.eye.distanceTo(split.eye)).toBeLessThan(1e-8);
+      }
+    }
+  });
+
   it('hands a sideways landing back to the chassis without a first-contact camera cut', () => {
     // The velocity and the chassis sit on opposite sides of the angle wrap.
     const path = Math.PI - 0.20, yaw = 1.45;

@@ -396,6 +396,62 @@ describe('motocross two-anchor suspension and brake geometry', () => {
       },
     );
 
+  it.each(['mx250', 'mx450'] as const)('%s sweeps the front brake line around its fork without changing its cut length', (id) => {
+    const definition = VEHICLES[id], materials = new BikeMaterials(0);
+    const model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+    const hose = model.root.getObjectByName('Motocross flexible front brake line')!.children[0] as T.Mesh;
+    const lower = model.root.getObjectByName('Motocross sliding fork lowers')!;
+    const position = hose.geometry.getAttribute('position') as T.BufferAttribute;
+    const centres = Array.from({ length: 19 }, () => new T.Vector3()), scratch = new T.Vector3();
+    const sag = staticSag(definition);
+    const sample = (stroke: number) => {
+      model.pose(pose(stroke * definition.bike!.forkTravel, sag.shock, { steer: .4 * Math.sin(2 * Math.PI * stroke) }));
+      for (let row = 0; row < centres.length; row++) {
+        const centre = centres[row].set(0, 0, 0);
+        // The closing vertex duplicates the first one on each five-sided ring.
+        for (let side = 0; side < 5; side++)
+          centre.add(scratch.fromBufferAttribute(position, row * 6 + side));
+        centre.multiplyScalar(0.2);
+      }
+    };
+    try {
+      let shortest = Infinity, longest = 0, bendRadius = Infinity;
+      const start = new T.Vector3(-.054, .11, .05), clip = new T.Vector3();
+      const tip = new T.Vector3(), half = new T.Vector3(), radial = new T.Vector3();
+      for (let tick = 0; tick <= 100; tick++) {
+        sample(tick / 100);
+        expect(centres[0].distanceTo(start)).toBeLessThan(2e-8);
+        expect(centres[18].distanceTo(clip.set(.123, lower.position.y + .51, .035))).toBeLessThan(3e-8);
+        if (!tick) tip.copy(centres[9]);
+        if (tick === 50) half.copy(centres[9]);
+        let length = 0;
+        for (let row = 1; row < centres.length; row++) {
+          const a = centres[row - 1], b = centres[row], ab = a.distanceTo(b);
+          length += ab;
+          if (row === 18) continue;
+          const c = centres[row + 1];
+          const twiceArea = radial.subVectors(b, a).cross(scratch.subVectors(c, a)).length();
+          if (twiceArea > 1e-9)
+            bendRadius = Math.min(bendRadius, ab * b.distanceTo(c) * c.distanceTo(a) / (2 * twiceArea));
+        }
+        shortest = Math.min(shortest, length);
+        longest = Math.max(longest, length);
+      }
+      expect(longest - shortest).toBeLessThan(.0002);
+      expect(bendRadius).toBeGreaterThan(.018);
+      expect(centres[9].x - tip.x).toBeGreaterThan(.08);
+      expect(centres[9].y - tip.y).toBeGreaterThan(.22);
+      sample(.5);
+      expect(centres[9].toArray()).toEqual(half.toArray());
+      const version = position.version;
+      sample(.5);
+      expect(position.version).toBe(version);
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  });
+
   it('front hydraulic hose remains attached at both ends without per-frame allocations, paused uploads or replay drift', () => {
     const material = new T.MeshStandardMaterial(),
       hose = new MotocrossBrakeHose(material),
