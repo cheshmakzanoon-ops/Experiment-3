@@ -1,0 +1,4038 @@
+{
+  "schema": "engine-advancement-simulation/1",
+  "createdAt": "2026-11-25T08:51:48.351Z",
+  "purpose": "smoke",
+  "sources": {
+    "baseline": {
+      "root": "/dev/shm/aeebac160835-engine-baseline",
+      "entry": "src/simulation/world.ts",
+      "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "expectedCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/core/math.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/core/stage-rules.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/core/stage-rules.ts",
+          "bytes": 2587,
+          "sha256": "79adc4ec8dec2d26482c6411582fa3dcfaf666094b92ce4d5a65639d64383dcd"
+        },
+        "src/i18n/mark.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/i18n/mark.ts",
+          "bytes": 463,
+          "sha256": "63ba61f7c8aeba8bf6a0dd44f79969acbcfda0a48cb9feabc6f189e0e020b057"
+        },
+        "src/simulation/aero-map.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/aero-map.ts",
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/aero.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/aero.ts",
+          "bytes": 10170,
+          "sha256": "e18c357f5e77595a868360250965897bc679d8a2a19aff2ec0a53c5a7f83a742"
+        },
+        "src/simulation/ai.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/ai.ts",
+          "bytes": 31200,
+          "sha256": "0914e897395cea5e837b6f82cc7db9551ef946ad4da4f9c584eed45368948994"
+        },
+        "src/simulation/bike-ai.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-ai.ts",
+          "bytes": 41383,
+          "sha256": "2634d353989e08f74a5268ed66b51fc4f745123c924dbd29fdb8dcfe6a5a1c4f"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-definitions.ts",
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/bike-slipstream.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-slipstream.ts",
+          "bytes": 1825,
+          "sha256": "b722ecd5dbf66ce734c7b15dd8084adc08b1124f03bcf60bf019f8819ea45e26"
+        },
+        "src/simulation/bike-tyre-profile.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-tyre-profile.ts",
+          "bytes": 1712,
+          "sha256": "400b09feae42a97af90559911ba892f1e0420a6841a3887ca7f1b8d4cd30e7ce"
+        },
+        "src/simulation/bike-vehicle.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-vehicle.ts",
+          "bytes": 62124,
+          "sha256": "58e0602e46d747ceb2f9b4063d2e4955563db744e7341aacb36d37b699a1a265"
+        },
+        "src/simulation/bike.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike.ts",
+          "bytes": 59649,
+          "sha256": "bed29baf8e62d044c27188882a724588a07d24ee513191079869bedd0485c1ba"
+        },
+        "src/simulation/brake-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/brake-thermal.ts",
+          "bytes": 668,
+          "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+        },
+        "src/simulation/bvh.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bvh.ts",
+          "bytes": 21541,
+          "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+        },
+        "src/simulation/catalogue-dynamics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/catalogue-dynamics.ts",
+          "bytes": 7477,
+          "sha256": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821"
+        },
+        "src/simulation/catalogue-events.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/catalogue-events.ts",
+          "bytes": 12600,
+          "sha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a"
+        },
+        "src/simulation/circuit-catalogue/builder.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/builder.ts",
+          "bytes": 32157,
+          "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+        },
+        "src/simulation/circuit-catalogue/dsl.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/dsl.ts",
+          "bytes": 3681,
+          "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+        },
+        "src/simulation/circuit-catalogue/endurance.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/endurance.ts",
+          "bytes": 10864,
+          "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+        },
+        "src/simulation/circuit-catalogue/events.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/events.ts",
+          "bytes": 7696,
+          "sha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720"
+        },
+        "src/simulation/circuit-catalogue/index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/index.ts",
+          "bytes": 1669,
+          "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+        },
+        "src/simulation/circuit-catalogue/industrial.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/industrial.ts",
+          "bytes": 4699,
+          "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+        },
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/motorcycle-gp.ts",
+          "bytes": 9535,
+          "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+        },
+        "src/simulation/circuit-catalogue/night-and-street.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/night-and-street.ts",
+          "bytes": 11968,
+          "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+        },
+        "src/simulation/circuit-catalogue/real-world-classics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/real-world-classics.ts",
+          "bytes": 12571,
+          "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+        },
+        "src/simulation/circuit-catalogue/real-world.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/real-world.ts",
+          "bytes": 18890,
+          "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+        },
+        "src/simulation/circuit-catalogue/unconventional.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/unconventional.ts",
+          "bytes": 16927,
+          "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+        },
+        "src/simulation/circuit-catalogue/venue-data.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/venue-data.ts",
+          "bytes": 6907,
+          "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+        },
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/wildcard-venues.ts",
+          "bytes": 11336,
+          "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+        },
+        "src/simulation/circuits.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuits.ts",
+          "bytes": 12745,
+          "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+        },
+        "src/simulation/clutch.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/clutch.ts",
+          "bytes": 2526,
+          "sha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4"
+        },
+        "src/simulation/collision.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/collision.ts",
+          "bytes": 14641,
+          "sha256": "8d4dd4f70a2129e6a70a762344c5b72c1e5fa2fd6e243e1c00e6826be275baff"
+        },
+        "src/simulation/config.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/config.ts",
+          "bytes": 11770,
+          "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e"
+        },
+        "src/simulation/contact.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/contact.ts",
+          "bytes": 9415,
+          "sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+        },
+        "src/simulation/contamination.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/contamination.ts",
+          "bytes": 2124,
+          "sha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005"
+        },
+        "src/simulation/damage.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/damage.ts",
+          "bytes": 1950,
+          "sha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad"
+        },
+        "src/simulation/differential.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/differential.ts",
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/driver-brain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/driver-brain.ts",
+          "bytes": 10745,
+          "sha256": "3059874d81d65bf3978e2f808eb83cbe11459872c72f304e2adf6cec49adcc8d"
+        },
+        "src/simulation/driving-assists.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/driving-assists.ts",
+          "bytes": 933,
+          "sha256": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6"
+        },
+        "src/simulation/drs.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/drs.ts",
+          "bytes": 6621,
+          "sha256": "b7c79a93971179153152d87516fbbbb8f6579ed07544398f41efb242e90cee73"
+        },
+        "src/simulation/events.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/events.ts",
+          "bytes": 15678,
+          "sha256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4"
+        },
+        "src/simulation/gp-brake-fade.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-brake-fade.ts",
+          "bytes": 628,
+          "sha256": "44b747004eb4c7c1256b6d65ccd16dd9b60fb00a49174e77962c99bc29fe543c"
+        },
+        "src/simulation/gp-corner-shape.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-corner-shape.ts",
+          "bytes": 3493,
+          "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+        },
+        "src/simulation/gp-course-edges.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-course-edges.ts",
+          "bytes": 2898,
+          "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+        },
+        "src/simulation/gp-engine-braking.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-engine-braking.ts",
+          "bytes": 597,
+          "sha256": "11c1a601b8d7cae52fee5572dfb67286f4eed25f8a91bd1e8c0b7af01e09b8d8"
+        },
+        "src/simulation/gp-front-contact.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-front-contact.ts",
+          "bytes": 1411,
+          "sha256": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e"
+        },
+        "src/simulation/gp-grid.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-grid.ts",
+          "bytes": 2257,
+          "sha256": "5372cea0c59890a260e28868f6dfce09fba8b5ef59b60841ce75199554be5f24"
+        },
+        "src/simulation/lap-reference.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/lap-reference.ts",
+          "bytes": 2305,
+          "sha256": "f9e6e02cc5f968d7d63f91aa1373d7427e6fa56caa6a8e1957ad47d09d436dd5"
+        },
+        "src/simulation/marshal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/marshal.ts",
+          "bytes": 13061,
+          "sha256": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46"
+        },
+        "src/simulation/motogp-physics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/motogp-physics.ts",
+          "bytes": 27464,
+          "sha256": "dee3b01da0408aa5406bb0320c1f4b75b03b239f9158143dde4783257ce9b460"
+        },
+        "src/simulation/motorcycle-braking-plan.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/motorcycle-braking-plan.ts",
+          "bytes": 2783,
+          "sha256": "593dd7177cf9f5b6f74da6b285ec2ecd612910182bc151233cd66d1b8ad185c7"
+        },
+        "src/simulation/motorcycle-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/motorcycle-thermal.ts",
+          "bytes": 5122,
+          "sha256": "1d1de37df607d1e2e338e7f8fd2f9ad552a69c8612f84fa0e0a03216244cfca7"
+        },
+        "src/simulation/obb.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/obb.ts",
+          "bytes": 11949,
+          "sha256": "def241f941738704c6d6d9a1d66dad4ee0ca838bf7cd772a029dcd961564a4fe"
+        },
+        "src/simulation/offroad/ai.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/ai.ts",
+          "bytes": 44390,
+          "sha256": "9ba826f4d2b0c42d5f98e175ed58a3bdb47a6bae739d29d9a63e6619f2b3b440"
+        },
+        "src/simulation/offroad/berm-lines.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/berm-lines.ts",
+          "bytes": 2729,
+          "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+        },
+        "src/simulation/offroad/braking-bumps.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/braking-bumps.ts",
+          "bytes": 3159,
+          "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+        },
+        "src/simulation/offroad/contact-impulse.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/contact-impulse.ts",
+          "bytes": 1519,
+          "sha256": "e1c3f033efe95250590ac427e0a5da7810cc5d0bae9d1fd8d503c1a263889e31"
+        },
+        "src/simulation/offroad/course-terrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/course-terrain.ts",
+          "bytes": 18041,
+          "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+        },
+        "src/simulation/offroad/course.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/course.ts",
+          "bytes": 17326,
+          "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+        },
+        "src/simulation/offroad/dirt-bike-vehicle.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/dirt-bike-vehicle.ts",
+          "bytes": 88697,
+          "sha256": "fc4806c3b65869735861d7935e75f0366cddb8b473ce6833d354d01f1109d74c"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/dirt-bikes.ts",
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/offroad/formats.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/formats.ts",
+          "bytes": 7757,
+          "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+        },
+        "src/simulation/offroad/jump-target.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/jump-target.ts",
+          "bytes": 1615,
+          "sha256": "e446969f7914f3abe798ec71bf2922b28ffcb19151c0304b79242742796c6de6"
+        },
+        "src/simulation/offroad/mx-gear-stroke.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/mx-gear-stroke.ts",
+          "bytes": 1900,
+          "sha256": "ded8ad7deb930a4931a34c5e2e2c1a8b2d466e035e04c3c6fd1cf5918c8606be"
+        },
+        "src/simulation/offroad/mx-ground-physics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/mx-ground-physics.ts",
+          "bytes": 13690,
+          "sha256": "2c600b0b79c04c2f43fd6e5620ef9b9e611af713826a75d3092009fe20efb440"
+        },
+        "src/simulation/offroad/profile.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/profile.ts",
+          "bytes": 10792,
+          "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+        },
+        "src/simulation/offroad/rider-recovery.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/rider-recovery.ts",
+          "bytes": 292,
+          "sha256": "fe47c37ad11a5503cddf941e6807f80559baa2a9a9b88c6b93a4b72f59ef9cdc"
+        },
+        "src/simulation/offroad/rider-weight.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/rider-weight.ts",
+          "bytes": 1868,
+          "sha256": "1b4819b96e4bf48f03113f0440b964cd0cc0aefb697bbc775f8ac823bb75940a"
+        },
+        "src/simulation/offroad/riding-feedback.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/riding-feedback.ts",
+          "bytes": 4724,
+          "sha256": "53cfe4252a64bce1277a797d731fb1e64369417b4ea7e5043657f94f602f0e67"
+        },
+        "src/simulation/offroad/session.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/session.ts",
+          "bytes": 23834,
+          "sha256": "d4557d29c66d1d4f23d3e5c1ccccfe7dfbf60b81684907ebbfe9b390b754d872"
+        },
+        "src/simulation/offroad/suspension-geometry.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/suspension-geometry.ts",
+          "bytes": 1370,
+          "sha256": "12fddb8870154e0a2ca5e833202c1796710274fc530ab28beb20de489befcf86"
+        },
+        "src/simulation/offroad/venues.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/venues.ts",
+          "bytes": 17834,
+          "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+        },
+        "src/simulation/offroad/wheel-pickup.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/wheel-pickup.ts",
+          "bytes": 1304,
+          "sha256": "3872c53e7b7bf7c6268b45fd436fd05dc4e5932c773ca660101c8b11864d0251"
+        },
+        "src/simulation/pit-safety.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/pit-safety.ts",
+          "bytes": 5611,
+          "sha256": "bcd4d012ea7abb7d8f5d37227752fa0d23defbcfd11218f17bff0a970b1561aa"
+        },
+        "src/simulation/pit-service.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/pit-service.ts",
+          "bytes": 5201,
+          "sha256": "af259102f985e8f12daabd174f72f78f9977cc13cba448fb307cb324fd3a3caf"
+        },
+        "src/simulation/pose-kinematics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/pose-kinematics.ts",
+          "bytes": 2518,
+          "sha256": "9f3d5dcb5562ea3751dc8ab6806ca0ffab729667e91b6c8b2647b3c2d5d00bb7"
+        },
+        "src/simulation/powertrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/powertrain.ts",
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/protocol.ts",
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/race.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/race.ts",
+          "bytes": 22295,
+          "sha256": "ca494cad6319b84070b4e743cf37601f2077093faa1947143d13f14da86df941"
+        },
+        "src/simulation/racing-line.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/racing-line.ts",
+          "bytes": 5343,
+          "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+        },
+        "src/simulation/regenerative-braking.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/regenerative-braking.ts",
+          "bytes": 4394,
+          "sha256": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0"
+        },
+        "src/simulation/rigid.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/rigid.ts",
+          "bytes": 8360,
+          "sha256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7"
+        },
+        "src/simulation/road-bike-suspension.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/road-bike-suspension.ts",
+          "bytes": 8181,
+          "sha256": "f2a0787ea34795ad4f826cfd8e33c07048e8251651b39052a0806cae835904f1"
+        },
+        "src/simulation/road-contact.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/road-contact.ts",
+          "bytes": 2543,
+          "sha256": "1f4d573f9db4b0ad8b2b1a3dc365fac0f2792e3fe656cc66cff87bfd1309454b"
+        },
+        "src/simulation/route-graph.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/route-graph.ts",
+          "bytes": 9648,
+          "sha256": "280981ed91e145ff3e6d1a64e3b4ddd98f79bfba48aa1d0993e8c43983bf17f6"
+        },
+        "src/simulation/safety-car.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/safety-car.ts",
+          "bytes": 7175,
+          "sha256": "514d97f852575bd0f657dc59909ed7df28ca2c000f2b2eca2f2b202143a62fbc"
+        },
+        "src/simulation/skid-contact.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/skid-contact.ts",
+          "bytes": 5898,
+          "sha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0"
+        },
+        "src/simulation/surface-drainage.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/surface-drainage.ts",
+          "bytes": 3107,
+          "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+        },
+        "src/simulation/surface-material.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/surface-material.ts",
+          "bytes": 11633,
+          "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+        },
+        "src/simulation/surface-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/surface-thermal.ts",
+          "bytes": 8920,
+          "sha256": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72"
+        },
+        "src/simulation/suspension.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/suspension.ts",
+          "bytes": 17454,
+          "sha256": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97"
+        },
+        "src/simulation/terrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/terrain.ts",
+          "bytes": 6942,
+          "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+        },
+        "src/simulation/tire-families.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tire-families.ts",
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/tire-footprint.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tire-footprint.ts",
+          "bytes": 14215,
+          "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+        },
+        "src/simulation/tire.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tire.ts",
+          "bytes": 31050,
+          "sha256": "731b5a1e2579c41942714104fef334ac48e5dd6b4a5c36f456778e97ed136fc3"
+        },
+        "src/simulation/track-lane-index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/track-lane-index.ts",
+          "bytes": 2784,
+          "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+        },
+        "src/simulation/track.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/track.ts",
+          "bytes": 31783,
+          "sha256": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0"
+        },
+        "src/simulation/traffic.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/traffic.ts",
+          "bytes": 40077,
+          "sha256": "97d4bf9e7afb4d1e0b75521d2df831c307f9e3427a07f06d164bc9b748fdceb3"
+        },
+        "src/simulation/tyre-force.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tyre-force.ts",
+          "bytes": 29857,
+          "sha256": "e7027bd699777d31083aecbbac3f6dac85455de4d385b4ea1fb542ba1245f6e0"
+        },
+        "src/simulation/tyre-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tyre-thermal.ts",
+          "bytes": 7837,
+          "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/builder.ts",
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/common.ts",
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/dirt-2.ts",
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/dirt.ts",
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/endurance.ts",
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/experimental.ts",
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/formula.ts",
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/gt.ts",
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/index.ts",
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/prototypes.ts",
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/road-festival.ts",
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/single-seaters.ts",
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/small-road.ts",
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/touring-club.ts",
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicle-classes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-classes.ts",
+          "bytes": 5538,
+          "sha256": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c"
+        },
+        "src/simulation/vehicle-dynamics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-dynamics.ts",
+          "bytes": 5427,
+          "sha256": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7"
+        },
+        "src/simulation/vehicle.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle.ts",
+          "bytes": 46955,
+          "sha256": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9"
+        },
+        "src/simulation/vehicles.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicles.ts",
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "src/simulation/weather-catalogue.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/weather-catalogue.ts",
+          "bytes": 4157,
+          "sha256": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9"
+        },
+        "src/simulation/weather.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/weather.ts",
+          "bytes": 36688,
+          "sha256": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756"
+        },
+        "src/simulation/wheel-contact-state.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/wheel-contact-state.ts",
+          "bytes": 4849,
+          "sha256": "d8c61d587cc8ca38850366901813540f6a3ba290051201690927613513a2c011"
+        },
+        "src/simulation/wheel-momentum.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/wheel-momentum.ts",
+          "bytes": 720,
+          "sha256": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66"
+        },
+        "src/simulation/wheel-rotation.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/wheel-rotation.ts",
+          "bytes": 2050,
+          "sha256": "e4877615359b82953ce760591507109bd1f07141c316ee835fddf0f5416e7bd6"
+        },
+        "src/simulation/wildcard-rulesets.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/wildcard-rulesets.ts",
+          "bytes": 4622,
+          "sha256": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae"
+        },
+        "src/simulation/world.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/world.ts",
+          "bytes": 20186,
+          "sha256": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1"
+        },
+        "tsconfig.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "native",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 125.483968,
+        "outputSha256": "4217130146f44a0b55db82981cedbc4bbd87eaae8e7d9f3e6ea90e959946d589",
+        "externalImports": [],
+        "warnings": []
+      }
+    },
+    "current": {
+      "root": "/tmp/aeebac160835-engine/Experiment-3",
+      "entry": "src/simulation/world.ts",
+      "commit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+      "expectedCommit": null,
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/core/math.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/core/stage-rules.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/core/stage-rules.ts",
+          "bytes": 2587,
+          "sha256": "79adc4ec8dec2d26482c6411582fa3dcfaf666094b92ce4d5a65639d64383dcd"
+        },
+        "src/i18n/mark.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/i18n/mark.ts",
+          "bytes": 463,
+          "sha256": "63ba61f7c8aeba8bf6a0dd44f79969acbcfda0a48cb9feabc6f189e0e020b057"
+        },
+        "src/simulation/aero-map.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/aero-map.ts",
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/aero.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/aero.ts",
+          "bytes": 10170,
+          "sha256": "e18c357f5e77595a868360250965897bc679d8a2a19aff2ec0a53c5a7f83a742"
+        },
+        "src/simulation/ai.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/ai.ts",
+          "bytes": 31200,
+          "sha256": "0914e897395cea5e837b6f82cc7db9551ef946ad4da4f9c584eed45368948994"
+        },
+        "src/simulation/bike-ai.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-ai.ts",
+          "bytes": 41383,
+          "sha256": "2634d353989e08f74a5268ed66b51fc4f745123c924dbd29fdb8dcfe6a5a1c4f"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-definitions.ts",
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/bike-slipstream.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-slipstream.ts",
+          "bytes": 1825,
+          "sha256": "b722ecd5dbf66ce734c7b15dd8084adc08b1124f03bcf60bf019f8819ea45e26"
+        },
+        "src/simulation/bike-tyre-profile.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-tyre-profile.ts",
+          "bytes": 1712,
+          "sha256": "400b09feae42a97af90559911ba892f1e0420a6841a3887ca7f1b8d4cd30e7ce"
+        },
+        "src/simulation/bike-vehicle.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-vehicle.ts",
+          "bytes": 62124,
+          "sha256": "58e0602e46d747ceb2f9b4063d2e4955563db744e7341aacb36d37b699a1a265"
+        },
+        "src/simulation/bike.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike.ts",
+          "bytes": 59649,
+          "sha256": "bed29baf8e62d044c27188882a724588a07d24ee513191079869bedd0485c1ba"
+        },
+        "src/simulation/brake-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/brake-thermal.ts",
+          "bytes": 668,
+          "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+        },
+        "src/simulation/bvh.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bvh.ts",
+          "bytes": 21541,
+          "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+        },
+        "src/simulation/catalogue-dynamics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/catalogue-dynamics.ts",
+          "bytes": 7477,
+          "sha256": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821"
+        },
+        "src/simulation/catalogue-events.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/catalogue-events.ts",
+          "bytes": 12600,
+          "sha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a"
+        },
+        "src/simulation/circuit-catalogue/builder.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/builder.ts",
+          "bytes": 32157,
+          "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+        },
+        "src/simulation/circuit-catalogue/dsl.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/dsl.ts",
+          "bytes": 3681,
+          "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+        },
+        "src/simulation/circuit-catalogue/endurance.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/endurance.ts",
+          "bytes": 10864,
+          "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+        },
+        "src/simulation/circuit-catalogue/events.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/events.ts",
+          "bytes": 7696,
+          "sha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720"
+        },
+        "src/simulation/circuit-catalogue/index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/index.ts",
+          "bytes": 1669,
+          "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+        },
+        "src/simulation/circuit-catalogue/industrial.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/industrial.ts",
+          "bytes": 4699,
+          "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+        },
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/motorcycle-gp.ts",
+          "bytes": 9535,
+          "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+        },
+        "src/simulation/circuit-catalogue/night-and-street.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/night-and-street.ts",
+          "bytes": 11968,
+          "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+        },
+        "src/simulation/circuit-catalogue/real-world-classics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/real-world-classics.ts",
+          "bytes": 12571,
+          "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+        },
+        "src/simulation/circuit-catalogue/real-world.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/real-world.ts",
+          "bytes": 18890,
+          "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+        },
+        "src/simulation/circuit-catalogue/unconventional.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/unconventional.ts",
+          "bytes": 16927,
+          "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+        },
+        "src/simulation/circuit-catalogue/venue-data.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/venue-data.ts",
+          "bytes": 6907,
+          "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+        },
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/wildcard-venues.ts",
+          "bytes": 11336,
+          "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+        },
+        "src/simulation/circuits.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuits.ts",
+          "bytes": 12745,
+          "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+        },
+        "src/simulation/clutch.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/clutch.ts",
+          "bytes": 2526,
+          "sha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4"
+        },
+        "src/simulation/collision.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/collision.ts",
+          "bytes": 14641,
+          "sha256": "8d4dd4f70a2129e6a70a762344c5b72c1e5fa2fd6e243e1c00e6826be275baff"
+        },
+        "src/simulation/config.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/config.ts",
+          "bytes": 11770,
+          "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e"
+        },
+        "src/simulation/contact.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/contact.ts",
+          "bytes": 9415,
+          "sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+        },
+        "src/simulation/contamination.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/contamination.ts",
+          "bytes": 2124,
+          "sha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005"
+        },
+        "src/simulation/damage.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/damage.ts",
+          "bytes": 1950,
+          "sha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad"
+        },
+        "src/simulation/differential.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/differential.ts",
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/driver-brain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/driver-brain.ts",
+          "bytes": 10745,
+          "sha256": "3059874d81d65bf3978e2f808eb83cbe11459872c72f304e2adf6cec49adcc8d"
+        },
+        "src/simulation/driving-assists.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/driving-assists.ts",
+          "bytes": 933,
+          "sha256": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6"
+        },
+        "src/simulation/drs.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/drs.ts",
+          "bytes": 6621,
+          "sha256": "b7c79a93971179153152d87516fbbbb8f6579ed07544398f41efb242e90cee73"
+        },
+        "src/simulation/events.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/events.ts",
+          "bytes": 15678,
+          "sha256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4"
+        },
+        "src/simulation/gp-brake-fade.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-brake-fade.ts",
+          "bytes": 628,
+          "sha256": "44b747004eb4c7c1256b6d65ccd16dd9b60fb00a49174e77962c99bc29fe543c"
+        },
+        "src/simulation/gp-corner-shape.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-corner-shape.ts",
+          "bytes": 3493,
+          "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+        },
+        "src/simulation/gp-course-edges.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-course-edges.ts",
+          "bytes": 2898,
+          "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+        },
+        "src/simulation/gp-engine-braking.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-engine-braking.ts",
+          "bytes": 597,
+          "sha256": "11c1a601b8d7cae52fee5572dfb67286f4eed25f8a91bd1e8c0b7af01e09b8d8"
+        },
+        "src/simulation/gp-front-contact.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-front-contact.ts",
+          "bytes": 1411,
+          "sha256": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e"
+        },
+        "src/simulation/gp-grid.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-grid.ts",
+          "bytes": 2257,
+          "sha256": "5372cea0c59890a260e28868f6dfce09fba8b5ef59b60841ce75199554be5f24"
+        },
+        "src/simulation/lap-reference.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/lap-reference.ts",
+          "bytes": 2305,
+          "sha256": "f9e6e02cc5f968d7d63f91aa1373d7427e6fa56caa6a8e1957ad47d09d436dd5"
+        },
+        "src/simulation/marshal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/marshal.ts",
+          "bytes": 13061,
+          "sha256": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46"
+        },
+        "src/simulation/motogp-physics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/motogp-physics.ts",
+          "bytes": 27464,
+          "sha256": "dee3b01da0408aa5406bb0320c1f4b75b03b239f9158143dde4783257ce9b460"
+        },
+        "src/simulation/motorcycle-braking-plan.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/motorcycle-braking-plan.ts",
+          "bytes": 2783,
+          "sha256": "593dd7177cf9f5b6f74da6b285ec2ecd612910182bc151233cd66d1b8ad185c7"
+        },
+        "src/simulation/motorcycle-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/motorcycle-thermal.ts",
+          "bytes": 5122,
+          "sha256": "1d1de37df607d1e2e338e7f8fd2f9ad552a69c8612f84fa0e0a03216244cfca7"
+        },
+        "src/simulation/obb.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/obb.ts",
+          "bytes": 11949,
+          "sha256": "def241f941738704c6d6d9a1d66dad4ee0ca838bf7cd772a029dcd961564a4fe"
+        },
+        "src/simulation/offroad/ai.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/ai.ts",
+          "bytes": 44390,
+          "sha256": "9ba826f4d2b0c42d5f98e175ed58a3bdb47a6bae739d29d9a63e6619f2b3b440"
+        },
+        "src/simulation/offroad/berm-lines.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/berm-lines.ts",
+          "bytes": 2729,
+          "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+        },
+        "src/simulation/offroad/braking-bumps.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/braking-bumps.ts",
+          "bytes": 3159,
+          "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+        },
+        "src/simulation/offroad/contact-impulse.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/contact-impulse.ts",
+          "bytes": 1519,
+          "sha256": "e1c3f033efe95250590ac427e0a5da7810cc5d0bae9d1fd8d503c1a263889e31"
+        },
+        "src/simulation/offroad/course-terrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/course-terrain.ts",
+          "bytes": 18041,
+          "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+        },
+        "src/simulation/offroad/course.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/course.ts",
+          "bytes": 17326,
+          "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+        },
+        "src/simulation/offroad/dirt-bike-vehicle.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/dirt-bike-vehicle.ts",
+          "bytes": 88697,
+          "sha256": "fc4806c3b65869735861d7935e75f0366cddb8b473ce6833d354d01f1109d74c"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/dirt-bikes.ts",
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/offroad/formats.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/formats.ts",
+          "bytes": 7757,
+          "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+        },
+        "src/simulation/offroad/jump-target.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/jump-target.ts",
+          "bytes": 1615,
+          "sha256": "e446969f7914f3abe798ec71bf2922b28ffcb19151c0304b79242742796c6de6"
+        },
+        "src/simulation/offroad/mx-gear-stroke.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/mx-gear-stroke.ts",
+          "bytes": 1900,
+          "sha256": "ded8ad7deb930a4931a34c5e2e2c1a8b2d466e035e04c3c6fd1cf5918c8606be"
+        },
+        "src/simulation/offroad/mx-ground-physics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/mx-ground-physics.ts",
+          "bytes": 13690,
+          "sha256": "2c600b0b79c04c2f43fd6e5620ef9b9e611af713826a75d3092009fe20efb440"
+        },
+        "src/simulation/offroad/profile.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/profile.ts",
+          "bytes": 10792,
+          "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+        },
+        "src/simulation/offroad/rider-recovery.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/rider-recovery.ts",
+          "bytes": 292,
+          "sha256": "fe47c37ad11a5503cddf941e6807f80559baa2a9a9b88c6b93a4b72f59ef9cdc"
+        },
+        "src/simulation/offroad/rider-weight.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/rider-weight.ts",
+          "bytes": 1868,
+          "sha256": "1b4819b96e4bf48f03113f0440b964cd0cc0aefb697bbc775f8ac823bb75940a"
+        },
+        "src/simulation/offroad/riding-feedback.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/riding-feedback.ts",
+          "bytes": 4724,
+          "sha256": "53cfe4252a64bce1277a797d731fb1e64369417b4ea7e5043657f94f602f0e67"
+        },
+        "src/simulation/offroad/session.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/session.ts",
+          "bytes": 23834,
+          "sha256": "d4557d29c66d1d4f23d3e5c1ccccfe7dfbf60b81684907ebbfe9b390b754d872"
+        },
+        "src/simulation/offroad/suspension-geometry.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/suspension-geometry.ts",
+          "bytes": 1370,
+          "sha256": "12fddb8870154e0a2ca5e833202c1796710274fc530ab28beb20de489befcf86"
+        },
+        "src/simulation/offroad/venues.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/venues.ts",
+          "bytes": 17834,
+          "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+        },
+        "src/simulation/offroad/wheel-pickup.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/wheel-pickup.ts",
+          "bytes": 1304,
+          "sha256": "3872c53e7b7bf7c6268b45fd436fd05dc4e5932c773ca660101c8b11864d0251"
+        },
+        "src/simulation/pit-safety.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/pit-safety.ts",
+          "bytes": 5611,
+          "sha256": "bcd4d012ea7abb7d8f5d37227752fa0d23defbcfd11218f17bff0a970b1561aa"
+        },
+        "src/simulation/pit-service.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/pit-service.ts",
+          "bytes": 5201,
+          "sha256": "af259102f985e8f12daabd174f72f78f9977cc13cba448fb307cb324fd3a3caf"
+        },
+        "src/simulation/pose-kinematics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/pose-kinematics.ts",
+          "bytes": 2518,
+          "sha256": "9f3d5dcb5562ea3751dc8ab6806ca0ffab729667e91b6c8b2647b3c2d5d00bb7"
+        },
+        "src/simulation/powertrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/powertrain.ts",
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/protocol.ts",
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/race.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/race.ts",
+          "bytes": 22295,
+          "sha256": "ca494cad6319b84070b4e743cf37601f2077093faa1947143d13f14da86df941"
+        },
+        "src/simulation/racing-line.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/racing-line.ts",
+          "bytes": 5343,
+          "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+        },
+        "src/simulation/regenerative-braking.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/regenerative-braking.ts",
+          "bytes": 4394,
+          "sha256": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0"
+        },
+        "src/simulation/rigid.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/rigid.ts",
+          "bytes": 8360,
+          "sha256": "62c60ad13231d08437088a12df59dcc233f645f0176e57070f155ae15c99f7b7"
+        },
+        "src/simulation/road-bike-suspension.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/road-bike-suspension.ts",
+          "bytes": 8181,
+          "sha256": "f2a0787ea34795ad4f826cfd8e33c07048e8251651b39052a0806cae835904f1"
+        },
+        "src/simulation/road-contact.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/road-contact.ts",
+          "bytes": 2543,
+          "sha256": "1f4d573f9db4b0ad8b2b1a3dc365fac0f2792e3fe656cc66cff87bfd1309454b"
+        },
+        "src/simulation/route-graph.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/route-graph.ts",
+          "bytes": 9648,
+          "sha256": "280981ed91e145ff3e6d1a64e3b4ddd98f79bfba48aa1d0993e8c43983bf17f6"
+        },
+        "src/simulation/safety-car.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/safety-car.ts",
+          "bytes": 7175,
+          "sha256": "514d97f852575bd0f657dc59909ed7df28ca2c000f2b2eca2f2b202143a62fbc"
+        },
+        "src/simulation/skid-contact.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/skid-contact.ts",
+          "bytes": 5898,
+          "sha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0"
+        },
+        "src/simulation/surface-drainage.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/surface-drainage.ts",
+          "bytes": 3107,
+          "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+        },
+        "src/simulation/surface-material.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/surface-material.ts",
+          "bytes": 11633,
+          "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+        },
+        "src/simulation/surface-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/surface-thermal.ts",
+          "bytes": 11858,
+          "sha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12"
+        },
+        "src/simulation/suspension.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/suspension.ts",
+          "bytes": 17454,
+          "sha256": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97"
+        },
+        "src/simulation/terrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/terrain.ts",
+          "bytes": 6942,
+          "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+        },
+        "src/simulation/tire-families.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tire-families.ts",
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/tire-footprint.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tire-footprint.ts",
+          "bytes": 14215,
+          "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+        },
+        "src/simulation/tire.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tire.ts",
+          "bytes": 31050,
+          "sha256": "731b5a1e2579c41942714104fef334ac48e5dd6b4a5c36f456778e97ed136fc3"
+        },
+        "src/simulation/track-lane-index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/track-lane-index.ts",
+          "bytes": 2784,
+          "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+        },
+        "src/simulation/track.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/track.ts",
+          "bytes": 32242,
+          "sha256": "11c4f225e953670d86a75660a128a944a38c4105ccf08e00e52b2d0ed6453bc5"
+        },
+        "src/simulation/traffic.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/traffic.ts",
+          "bytes": 40077,
+          "sha256": "97d4bf9e7afb4d1e0b75521d2df831c307f9e3427a07f06d164bc9b748fdceb3"
+        },
+        "src/simulation/tyre-force.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tyre-force.ts",
+          "bytes": 29857,
+          "sha256": "e7027bd699777d31083aecbbac3f6dac85455de4d385b4ea1fb542ba1245f6e0"
+        },
+        "src/simulation/tyre-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tyre-thermal.ts",
+          "bytes": 7837,
+          "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/builder.ts",
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/common.ts",
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/dirt-2.ts",
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/dirt.ts",
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/endurance.ts",
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/experimental.ts",
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/formula.ts",
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/gt.ts",
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/index.ts",
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/prototypes.ts",
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/road-festival.ts",
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/single-seaters.ts",
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/small-road.ts",
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/touring-club.ts",
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicle-classes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-classes.ts",
+          "bytes": 5538,
+          "sha256": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c"
+        },
+        "src/simulation/vehicle-dynamics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-dynamics.ts",
+          "bytes": 5427,
+          "sha256": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7"
+        },
+        "src/simulation/vehicle.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle.ts",
+          "bytes": 46955,
+          "sha256": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9"
+        },
+        "src/simulation/vehicles.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicles.ts",
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "src/simulation/weather-catalogue.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/weather-catalogue.ts",
+          "bytes": 4157,
+          "sha256": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9"
+        },
+        "src/simulation/weather.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/weather.ts",
+          "bytes": 37921,
+          "sha256": "71da8aa301efa348cc373f560f17cb8a18cde32c9085cdc8f8dbb613dba57088"
+        },
+        "src/simulation/wheel-contact-state.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/wheel-contact-state.ts",
+          "bytes": 4849,
+          "sha256": "d8c61d587cc8ca38850366901813540f6a3ba290051201690927613513a2c011"
+        },
+        "src/simulation/wheel-momentum.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/wheel-momentum.ts",
+          "bytes": 720,
+          "sha256": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66"
+        },
+        "src/simulation/wheel-rotation.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/wheel-rotation.ts",
+          "bytes": 2050,
+          "sha256": "e4877615359b82953ce760591507109bd1f07141c316ee835fddf0f5416e7bd6"
+        },
+        "src/simulation/wildcard-rulesets.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/wildcard-rulesets.ts",
+          "bytes": 4622,
+          "sha256": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae"
+        },
+        "src/simulation/world.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/world.ts",
+          "bytes": 20186,
+          "sha256": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1"
+        },
+        "tsconfig.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "native",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 81.14883600000007,
+        "outputSha256": "cec0537c3e5956b1582af9bed74460197ef3295f6bfc6b40bbad3bf664fb4b1e",
+        "externalImports": [],
+        "warnings": []
+      }
+    }
+  },
+  "runtime": {
+    "node": "v24.22.3",
+    "versions": {
+      "node": "24.22.3",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.9",
+      "brotli": "1.2.1",
+      "cldr": "48.0",
+      "icu": "78.3",
+      "llhttp": "9.4.4",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "3.5.9",
+      "simdjson": "4.6.11",
+      "simdutf": "6.4.0",
+      "sqlite": "3.54.1",
+      "tz": "2026e",
+      "undici": "7.30.2",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.63",
+      "zlib": "1.3.2.1-motley-285e94b",
+      "zstd": "1.5.7"
+    },
+    "execArgv": [
+      "--max-old-space-size=768",
+      "--no-warnings",
+      "--experimental-transform-types"
+    ],
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "6.18.57",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "host": "4f398b69b6a5",
+    "pid": 5
+  },
+  "supplementalImports": [
+    "src/simulation/config.ts",
+    "src/simulation/protocol.ts"
+  ],
+  "configuration": {
+    "dt": 0.008333333333333333,
+    "measuredSteps": 120,
+    "packedFrameEverySteps": 2,
+    "primeStepsExceptFirstCase": 240,
+    "auditSteps": 240,
+    "warmupPairs": 0,
+    "samplePairs": 1
+  },
+  "stateOracle": {
+    "method": "Actual own-object graph: Object.is numeric leaves, exact typed-array bytes, class names, object/array keys, references, Map/Set insertion order, function-source identities, race/terrain events and packed frames.",
+    "trackOmissions": [
+      "circuit",
+      "points",
+      "hash",
+      "stationIntervals",
+      "gpEdges",
+      "laneIndex",
+      "pit",
+      "contactMesh"
+    ],
+    "inaccessible": "ECMAScript #fields and closure-captured storage are not reflected. The Track heat accumulator and thermal cache are not directly inspected. Actual continuation and surface arrays are compared; W07B separately observes raw thermal call inputs/outputs.",
+    "metricPolicy": "No frame masking: both actual writeFrame calls receive stepMs=0 and dropped=0.",
+    "nonfinitePolicy": "Packed frames, physical body state and public surface grids must be finite. Identical internal sentinels such as uninitialised aero NaN and AI time -Infinity are retained and counted, not removed.",
+    "immutableGeometry": "Track geometry/index acceleration data are omitted explicitly; source identities and prior actual Track equivalence probes cover their inputs. Other own graph state remains present."
+  },
+  "audit": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "aurel-clear-four",
+        "seed": 2655550627,
+        "steps": 240,
+        "boundaries": [
+          {
+            "completedSteps": 0,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "685a604c964a5a02d2ec58600aed23a5186470c6a9967b734aee34c781c8cd89",
+                "current": "685a604c964a5a02d2ec58600aed23a5186470c6a9967b734aee34c781c8cd89"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123464,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326058
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326058
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 60,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "424618ebbed982deff304a534c37e60d8389de0e67f0e9029744bda3feeb4f94",
+                "current": "424618ebbed982deff304a534c37e60d8389de0e67f0e9029744bda3feeb4f94"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123464,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326059
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326059
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 120,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "5e1dcb2ed6528b79f653fc120a95c867250500e5740c2663c9db834cd1fd8320",
+                "current": "5e1dcb2ed6528b79f653fc120a95c867250500e5740c2663c9db834cd1fd8320"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326193
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326193
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 240,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "19e6826568c15b004475edce80652b0bf5d673d94a71aa5dfe8afb2a489e5ed8",
+                "current": "19e6826568c15b004475edce80652b0bf5d673d94a71aa5dfe8afb2a489e5ed8"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326187
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326187
+                }
+              }
+            }
+          }
+        ],
+        "complete": {
+          "equal": true,
+          "checksums": {
+            "baseline": "68fb8d4dfd4135f437722a0f54c515f3808df9c2378439253605935f1c19c79f",
+            "current": "68fb8d4dfd4135f437722a0f54c515f3808df9c2378439253605935f1c19c79f"
+          },
+          "state": {
+            "equal": true,
+            "checksums": {
+              "baseline": "19e6826568c15b004475edce80652b0bf5d673d94a71aa5dfe8afb2a489e5ed8",
+              "current": "19e6826568c15b004475edce80652b0bf5d673d94a71aa5dfe8afb2a489e5ed8"
+            },
+            "shapeEqual": true,
+            "comparedNumbers": 4548,
+            "comparedArrayBytes": 123596,
+            "unequalNumbers": 0,
+            "unequalArrayBytes": 0,
+            "firstMismatch": null,
+            "counts": {
+              "baseline": {
+                "objects": 1027,
+                "numbers": 4548,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123596,
+                "float64ArrayValues": 2816,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 326187
+              },
+              "current": {
+                "objects": 1027,
+                "numbers": 4548,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123596,
+                "float64ArrayValues": 2816,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 326187
+              }
+            }
+          },
+          "frame": {
+            "comparedBytes": 647040,
+            "unequalBytes": 0,
+            "firstMismatchByte": null,
+            "checksums": {
+              "baseline": "ea6be517e6380d9c4c731b9aeecc7605fa8cc8ed6ae440417573d562183521e9",
+              "current": "ea6be517e6380d9c4c731b9aeecc7605fa8cc8ed6ae440417573d562183521e9"
+            }
+          },
+          "summariesEqual": true,
+          "summary": {
+            "tick": 480,
+            "time": 10.198849185300023,
+            "order": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "playerOwner": "input",
+            "events": [
+              [
+                90,
+                "autopilot",
+                true
+              ],
+              [
+                150,
+                "autopilot",
+                false
+              ],
+              [
+                210,
+                "pit",
+                "intermediate"
+              ]
+            ],
+            "raceEvents": [],
+            "terrainEvents": [],
+            "terrainSequence": null,
+            "displacementsMetres": [
+              54.63939701005815,
+              54.91173153179896,
+              48.67206145208948,
+              46.85424723382011
+            ],
+            "speedsMetresPerSecond": [
+              36.956811497033144,
+              37.9403117318619,
+              33.167249794991235,
+              33.00777395231343
+            ],
+            "frameCount": 120,
+            "frameFloats": 161760,
+            "inputDigest": "5505c418663f60fc981e0d86bc35902c24c22396a19652600d54432361b4b2db"
+          }
+        }
+      },
+      {
+        "case": "aurel-rain-four",
+        "seed": 1007810152,
+        "steps": 240,
+        "boundaries": [
+          {
+            "completedSteps": 0,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "6cd1afe0a8f63b1c349c94ed05b556410bed0f2b8719190d3ddf46b1da5648f5",
+                "current": "6cd1afe0a8f63b1c349c94ed05b556410bed0f2b8719190d3ddf46b1da5648f5"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123464,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326057
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326057
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 60,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "858870abfd4603cbc0c45a49ef1905cb9c2d9255561986c448330e74d44e242f",
+                "current": "858870abfd4603cbc0c45a49ef1905cb9c2d9255561986c448330e74d44e242f"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123464,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326057
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326057
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 120,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "8f40f91425fd3b24d20abf12bbe52b8ae5e4419cc72f124ab37a4c82118134b6",
+                "current": "8f40f91425fd3b24d20abf12bbe52b8ae5e4419cc72f124ab37a4c82118134b6"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326199
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326199
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 240,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "3a7efaf7b2a506deba0dcd4e2b08eeaf1d723102039feda64141284981c07207",
+                "current": "3a7efaf7b2a506deba0dcd4e2b08eeaf1d723102039feda64141284981c07207"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326225
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326225
+                }
+              }
+            }
+          }
+        ],
+        "complete": {
+          "equal": true,
+          "checksums": {
+            "baseline": "1f986fdda629eb1595a24bbd34cd533a07cea7319990aeb97c66c0e98b3bf66f",
+            "current": "1f986fdda629eb1595a24bbd34cd533a07cea7319990aeb97c66c0e98b3bf66f"
+          },
+          "state": {
+            "equal": true,
+            "checksums": {
+              "baseline": "3a7efaf7b2a506deba0dcd4e2b08eeaf1d723102039feda64141284981c07207",
+              "current": "3a7efaf7b2a506deba0dcd4e2b08eeaf1d723102039feda64141284981c07207"
+            },
+            "shapeEqual": true,
+            "comparedNumbers": 4548,
+            "comparedArrayBytes": 123596,
+            "unequalNumbers": 0,
+            "unequalArrayBytes": 0,
+            "firstMismatch": null,
+            "counts": {
+              "baseline": {
+                "objects": 1027,
+                "numbers": 4548,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123596,
+                "float64ArrayValues": 2816,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 326225
+              },
+              "current": {
+                "objects": 1027,
+                "numbers": 4548,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123596,
+                "float64ArrayValues": 2816,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 326225
+              }
+            }
+          },
+          "frame": {
+            "comparedBytes": 647040,
+            "unequalBytes": 0,
+            "firstMismatchByte": null,
+            "checksums": {
+              "baseline": "ad2a73e77a44f1e3a8520d98ef94b90e9647a993661b69cb83ac3e3a3d9297ad",
+              "current": "ad2a73e77a44f1e3a8520d98ef94b90e9647a993661b69cb83ac3e3a3d9297ad"
+            }
+          },
+          "summariesEqual": true,
+          "summary": {
+            "tick": 480,
+            "time": 9.913798272376875,
+            "order": [
+              1,
+              0,
+              3,
+              2
+            ],
+            "playerOwner": "input",
+            "events": [
+              [
+                90,
+                "autopilot",
+                true
+              ],
+              [
+                150,
+                "autopilot",
+                false
+              ],
+              [
+                210,
+                "pit",
+                "intermediate"
+              ]
+            ],
+            "raceEvents": [],
+            "terrainEvents": [],
+            "terrainSequence": null,
+            "displacementsMetres": [
+              20.068520588297325,
+              21.04935455008355,
+              15.105990110389245,
+              19.65071326479736
+            ],
+            "speedsMetresPerSecond": [
+              14.001922309644822,
+              14.420479590520426,
+              8.916925444981086,
+              12.876042105516225
+            ],
+            "frameCount": 120,
+            "frameFloats": 161760,
+            "inputDigest": "e385478947474b7f1fa1c050896ed60e1345e75031dc79b5683a6d42b90bd8ee"
+          }
+        }
+      },
+      {
+        "case": "aurel-storm-four",
+        "seed": 3671681073,
+        "steps": 240,
+        "boundaries": [
+          {
+            "completedSteps": 0,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "37cd1d5dd7780e05baf108ec268aa08bd3bf439b26a8556d01aff2c3d4363c36",
+                "current": "37cd1d5dd7780e05baf108ec268aa08bd3bf439b26a8556d01aff2c3d4363c36"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4614,
+              "comparedArrayBytes": 123464,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 328729
+                },
+                "current": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 328729
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 60,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "625b75b8f01a0f143d2c20a95c0d03cbcbe842b22b0efd2d129e67c53a83d85f",
+                "current": "625b75b8f01a0f143d2c20a95c0d03cbcbe842b22b0efd2d129e67c53a83d85f"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4614,
+              "comparedArrayBytes": 123464,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 328729
+                },
+                "current": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123464,
+                  "float64ArrayValues": 2800,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 328729
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 120,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "a8622405b74d499e8316f8f9e6b2de63fcb910c6f139998a65898bf0edaf5a8a",
+                "current": "a8622405b74d499e8316f8f9e6b2de63fcb910c6f139998a65898bf0edaf5a8a"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4614,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 328872
+                },
+                "current": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 328872
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 240,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "eb0f4ba10bb4fcc674b1685595b1245df92eb65232be4a8bbf65cd916e3402f2",
+                "current": "eb0f4ba10bb4fcc674b1685595b1245df92eb65232be4a8bbf65cd916e3402f2"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4614,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 328878
+                },
+                "current": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 328878
+                }
+              }
+            }
+          }
+        ],
+        "complete": {
+          "equal": true,
+          "checksums": {
+            "baseline": "f752659d73c545855bbb82dbd1a540f4f8f17d83a83c36a3f2c58dee653dba57",
+            "current": "f752659d73c545855bbb82dbd1a540f4f8f17d83a83c36a3f2c58dee653dba57"
+          },
+          "state": {
+            "equal": true,
+            "checksums": {
+              "baseline": "eb0f4ba10bb4fcc674b1685595b1245df92eb65232be4a8bbf65cd916e3402f2",
+              "current": "eb0f4ba10bb4fcc674b1685595b1245df92eb65232be4a8bbf65cd916e3402f2"
+            },
+            "shapeEqual": true,
+            "comparedNumbers": 4614,
+            "comparedArrayBytes": 123596,
+            "unequalNumbers": 0,
+            "unequalArrayBytes": 0,
+            "firstMismatch": null,
+            "counts": {
+              "baseline": {
+                "objects": 1033,
+                "numbers": 4614,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123596,
+                "float64ArrayValues": 2816,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 328878
+              },
+              "current": {
+                "objects": 1033,
+                "numbers": 4614,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123596,
+                "float64ArrayValues": 2816,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 328878
+              }
+            }
+          },
+          "frame": {
+            "comparedBytes": 647040,
+            "unequalBytes": 0,
+            "firstMismatchByte": null,
+            "checksums": {
+              "baseline": "d70ed47b2dee83a1138216886d4488740734d27b99f31635ce961c01a9947be9",
+              "current": "d70ed47b2dee83a1138216886d4488740734d27b99f31635ce961c01a9947be9"
+            }
+          },
+          "summariesEqual": true,
+          "summary": {
+            "tick": 480,
+            "time": 9.642974144546338,
+            "order": [
+              1,
+              0,
+              3,
+              2
+            ],
+            "playerOwner": "input",
+            "events": [
+              [
+                90,
+                "autopilot",
+                true
+              ],
+              [
+                150,
+                "autopilot",
+                false
+              ],
+              [
+                210,
+                "pit",
+                "intermediate"
+              ]
+            ],
+            "raceEvents": [],
+            "terrainEvents": [],
+            "terrainSequence": null,
+            "displacementsMetres": [
+              19.71788195669387,
+              20.351360500245477,
+              18.89422917039469,
+              19.210765098312972
+            ],
+            "speedsMetresPerSecond": [
+              13.67990650348553,
+              13.953393450524858,
+              12.476831969579857,
+              12.53656560937219
+            ],
+            "frameCount": 120,
+            "frameFloats": 161760,
+            "inputDigest": "0b79ded2d65cd294be7b9de8fcc45fb3b08ab1f3f05d41c59acd5eeacdd672d6"
+          }
+        }
+      },
+      {
+        "case": "vellamar-first-steps-four",
+        "seed": 2023941118,
+        "steps": 240,
+        "boundaries": [
+          {
+            "completedSteps": 0,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "41134287a22bb31660876368426b549c180e88936f97c98d8f062a52aae120f1",
+                "current": "41134287a22bb31660876368426b549c180e88936f97c98d8f062a52aae120f1"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4317,
+              "comparedArrayBytes": 123100,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 974,
+                  "numbers": 4317,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123100,
+                  "float64ArrayValues": 2756,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 314027
+                },
+                "current": {
+                  "objects": 974,
+                  "numbers": 4317,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123100,
+                  "float64ArrayValues": 2756,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 314027
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 60,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "5dfd0a103126685dd2760d0edd0a9e1874a20b35b3697329b7a23293c7732f40",
+                "current": "5dfd0a103126685dd2760d0edd0a9e1874a20b35b3697329b7a23293c7732f40"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4551,
+              "comparedArrayBytes": 123496,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123496,
+                  "float64ArrayValues": 2804,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326206
+                },
+                "current": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123496,
+                  "float64ArrayValues": 2804,
+                  "nonfiniteNumericSentinels": 7,
+                  "bytes": 326206
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 120,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "31bceffb5e4ea8d956a924c0dc355bc3fce106d3fb8e05e028400d21872d98ba",
+                "current": "31bceffb5e4ea8d956a924c0dc355bc3fce106d3fb8e05e028400d21872d98ba"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4551,
+              "comparedArrayBytes": 123628,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123628,
+                  "float64ArrayValues": 2820,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326356
+                },
+                "current": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123628,
+                  "float64ArrayValues": 2820,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326356
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 240,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "dee44037aeac9aff1738be306e3b18eec8e109714c3852d7c4f382ed4e59b510",
+                "current": "dee44037aeac9aff1738be306e3b18eec8e109714c3852d7c4f382ed4e59b510"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4551,
+              "comparedArrayBytes": 123628,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123628,
+                  "float64ArrayValues": 2820,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326366
+                },
+                "current": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123628,
+                  "float64ArrayValues": 2820,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326366
+                }
+              }
+            }
+          }
+        ],
+        "complete": {
+          "equal": true,
+          "checksums": {
+            "baseline": "83f0969e263ff94a9ab2f3afd0c3e3885c397b5bfc935c43c9cb5c8b6e2426c4",
+            "current": "83f0969e263ff94a9ab2f3afd0c3e3885c397b5bfc935c43c9cb5c8b6e2426c4"
+          },
+          "state": {
+            "equal": true,
+            "checksums": {
+              "baseline": "dee44037aeac9aff1738be306e3b18eec8e109714c3852d7c4f382ed4e59b510",
+              "current": "dee44037aeac9aff1738be306e3b18eec8e109714c3852d7c4f382ed4e59b510"
+            },
+            "shapeEqual": true,
+            "comparedNumbers": 4551,
+            "comparedArrayBytes": 123628,
+            "unequalNumbers": 0,
+            "unequalArrayBytes": 0,
+            "firstMismatch": null,
+            "counts": {
+              "baseline": {
+                "objects": 1028,
+                "numbers": 4551,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123628,
+                "float64ArrayValues": 2820,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 326366
+              },
+              "current": {
+                "objects": 1028,
+                "numbers": 4551,
+                "functions": 1,
+                "typedArrays": 178,
+                "typedArrayBytes": 123628,
+                "float64ArrayValues": 2820,
+                "nonfiniteNumericSentinels": 6,
+                "bytes": 326366
+              }
+            }
+          },
+          "frame": {
+            "comparedBytes": 647040,
+            "unequalBytes": 0,
+            "firstMismatchByte": null,
+            "checksums": {
+              "baseline": "32cb0f829adf9b6c4a9293d2eac18f923ebf78105579e450750da597b8b2e0c4",
+              "current": "32cb0f829adf9b6c4a9293d2eac18f923ebf78105579e450750da597b8b2e0c4"
+            }
+          },
+          "summariesEqual": true,
+          "summary": {
+            "tick": 240,
+            "time": 8.273173714056682,
+            "order": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "playerOwner": "input",
+            "events": [
+              [
+                90,
+                "autopilot",
+                true
+              ],
+              [
+                150,
+                "autopilot",
+                false
+              ],
+              [
+                210,
+                "pit",
+                "intermediate"
+              ]
+            ],
+            "raceEvents": [],
+            "terrainEvents": [],
+            "terrainSequence": null,
+            "displacementsMetres": [
+              19.665373823273566,
+              16.34413483536713,
+              14.363061163497232,
+              13.903605744039128
+            ],
+            "speedsMetresPerSecond": [
+              20.10473604821806,
+              17.966781932000877,
+              16.664639072866308,
+              14.412836723829203
+            ],
+            "frameCount": 120,
+            "frameFloats": 161760,
+            "inputDigest": "791e8adf5056067780a47ff1d1becf167a9a22a22b86e51b4925440c22c551e4"
+          }
+        }
+      },
+      {
+        "case": "gp-clear-control",
+        "seed": 392848775,
+        "steps": 240,
+        "boundaries": [
+          {
+            "completedSteps": 0,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "d70a8fb39950e95c7a28446112ee58e33f97c65908b5796f48ddaf741be701cf",
+                "current": "d70a8fb39950e95c7a28446112ee58e33f97c65908b5796f48ddaf741be701cf"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 3476,
+              "comparedArrayBytes": 132716,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132716,
+                  "float64ArrayValues": 3970,
+                  "nonfiniteNumericSentinels": 15,
+                  "bytes": 285063
+                },
+                "current": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132716,
+                  "float64ArrayValues": 3970,
+                  "nonfiniteNumericSentinels": 15,
+                  "bytes": 285063
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 60,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "75797ab32df534c7b8f00fec700eec5f8bf304a30276576df20c868ceb7d80bb",
+                "current": "75797ab32df534c7b8f00fec700eec5f8bf304a30276576df20c868ceb7d80bb"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 3476,
+              "comparedArrayBytes": 132716,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132716,
+                  "float64ArrayValues": 3970,
+                  "nonfiniteNumericSentinels": 15,
+                  "bytes": 285063
+                },
+                "current": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132716,
+                  "float64ArrayValues": 3970,
+                  "nonfiniteNumericSentinels": 15,
+                  "bytes": 285063
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 120,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "f85424504b6711fa4a6007d0d0d4dfb947d463b2ceb1b23674f0da8d22633f7f",
+                "current": "f85424504b6711fa4a6007d0d0d4dfb947d463b2ceb1b23674f0da8d22633f7f"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 3476,
+              "comparedArrayBytes": 132782,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132782,
+                  "float64ArrayValues": 3978,
+                  "nonfiniteNumericSentinels": 12,
+                  "bytes": 285139
+                },
+                "current": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132782,
+                  "float64ArrayValues": 3978,
+                  "nonfiniteNumericSentinels": 12,
+                  "bytes": 285139
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 240,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "4edd5db07e5847cb4dd3a6fa37de210b1411df2c9ac257728bf355b1849d8d36",
+                "current": "4edd5db07e5847cb4dd3a6fa37de210b1411df2c9ac257728bf355b1849d8d36"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 3476,
+              "comparedArrayBytes": 132782,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132782,
+                  "float64ArrayValues": 3978,
+                  "nonfiniteNumericSentinels": 12,
+                  "bytes": 285152
+                },
+                "current": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132782,
+                  "float64ArrayValues": 3978,
+                  "nonfiniteNumericSentinels": 12,
+                  "bytes": 285152
+                }
+              }
+            }
+          }
+        ],
+        "complete": {
+          "equal": true,
+          "checksums": {
+            "baseline": "0256e8af70f7e7ea943f061679debb36b6578b9c37bec50c2d5e60ef49588cab",
+            "current": "0256e8af70f7e7ea943f061679debb36b6578b9c37bec50c2d5e60ef49588cab"
+          },
+          "state": {
+            "equal": true,
+            "checksums": {
+              "baseline": "4edd5db07e5847cb4dd3a6fa37de210b1411df2c9ac257728bf355b1849d8d36",
+              "current": "4edd5db07e5847cb4dd3a6fa37de210b1411df2c9ac257728bf355b1849d8d36"
+            },
+            "shapeEqual": true,
+            "comparedNumbers": 3476,
+            "comparedArrayBytes": 132782,
+            "unequalNumbers": 0,
+            "unequalArrayBytes": 0,
+            "firstMismatch": null,
+            "counts": {
+              "baseline": {
+                "objects": 736,
+                "numbers": 3476,
+                "functions": 1,
+                "typedArrays": 128,
+                "typedArrayBytes": 132782,
+                "float64ArrayValues": 3978,
+                "nonfiniteNumericSentinels": 12,
+                "bytes": 285152
+              },
+              "current": {
+                "objects": 736,
+                "numbers": 3476,
+                "functions": 1,
+                "typedArrays": 128,
+                "typedArrayBytes": 132782,
+                "float64ArrayValues": 3978,
+                "nonfiniteNumericSentinels": 12,
+                "bytes": 285152
+              }
+            }
+          },
+          "frame": {
+            "comparedBytes": 329280,
+            "unequalBytes": 0,
+            "firstMismatchByte": null,
+            "checksums": {
+              "baseline": "436877d9f8f9d8cff81d55553f4bda0cf9d27ef96bba680707cc3e047dd3ebad",
+              "current": "436877d9f8f9d8cff81d55553f4bda0cf9d27ef96bba680707cc3e047dd3ebad"
+            }
+          },
+          "summariesEqual": true,
+          "summary": {
+            "tick": 480,
+            "time": 9.714472666243108,
+            "order": [
+              1,
+              0
+            ],
+            "playerOwner": "input",
+            "events": [
+              [
+                90,
+                "autopilot",
+                true
+              ],
+              [
+                150,
+                "autopilot",
+                false
+              ],
+              [
+                210,
+                "pit",
+                "intermediate"
+              ]
+            ],
+            "raceEvents": [],
+            "terrainEvents": [],
+            "terrainSequence": null,
+            "displacementsMetres": [
+              34.542766484063854,
+              47.616799621797306
+            ],
+            "speedsMetresPerSecond": [
+              23.471394932075412,
+              32.60267474733665
+            ],
+            "frameCount": 120,
+            "frameFloats": 82320,
+            "inputDigest": "ded2d229f3bf9ac38847fe3885665da9c6938ffdf24855085aa38e97b0d00e8d"
+          }
+        }
+      },
+      {
+        "case": "mx-clear-control",
+        "seed": 3040075596,
+        "steps": 240,
+        "boundaries": [
+          {
+            "completedSteps": 0,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "4c380d0afa8010f304a1259e4a4880767481b88ec7f52efcf52925fda9aac25c",
+                "current": "4c380d0afa8010f304a1259e4a4880767481b88ec7f52efcf52925fda9aac25c"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4208,
+              "comparedArrayBytes": 1989012,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 863,
+                  "numbers": 4208,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989012,
+                  "float64ArrayValues": 6007,
+                  "nonfiniteNumericSentinels": 22,
+                  "bytes": 2169676
+                },
+                "current": {
+                  "objects": 863,
+                  "numbers": 4208,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989012,
+                  "float64ArrayValues": 6007,
+                  "nonfiniteNumericSentinels": 22,
+                  "bytes": 2169676
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 60,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "f6f3195bd93d8068187cc2bf244c8728297a9465f5a04c7b0b11eb70a550c93e",
+                "current": "f6f3195bd93d8068187cc2bf244c8728297a9465f5a04c7b0b11eb70a550c93e"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4355,
+              "comparedArrayBytes": 1989012,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 863,
+                  "numbers": 4355,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989012,
+                  "float64ArrayValues": 6007,
+                  "nonfiniteNumericSentinels": 21,
+                  "bytes": 2173204
+                },
+                "current": {
+                  "objects": 863,
+                  "numbers": 4355,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989012,
+                  "float64ArrayValues": 6007,
+                  "nonfiniteNumericSentinels": 21,
+                  "bytes": 2173204
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 120,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "bb1a723780694a629b5f0d42590e45058ee6cfc3e11e98771668a3a295af6b40",
+                "current": "bb1a723780694a629b5f0d42590e45058ee6cfc3e11e98771668a3a295af6b40"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4555,
+              "comparedArrayBytes": 1989078,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 868,
+                  "numbers": 4555,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989078,
+                  "float64ArrayValues": 6015,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 2178503
+                },
+                "current": {
+                  "objects": 868,
+                  "numbers": 4555,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989078,
+                  "float64ArrayValues": 6015,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 2178503
+                }
+              }
+            }
+          },
+          {
+            "completedSteps": 240,
+            "comparison": {
+              "equal": true,
+              "checksums": {
+                "baseline": "d01c4c1025f9622f20ec39978df8ab7552650acfaeecd78f877c8b9caff8fadf",
+                "current": "d01c4c1025f9622f20ec39978df8ab7552650acfaeecd78f877c8b9caff8fadf"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4961,
+              "comparedArrayBytes": 1989078,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 869,
+                  "numbers": 4961,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989078,
+                  "float64ArrayValues": 6015,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 2188365
+                },
+                "current": {
+                  "objects": 869,
+                  "numbers": 4961,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989078,
+                  "float64ArrayValues": 6015,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 2188365
+                }
+              }
+            }
+          }
+        ],
+        "complete": {
+          "equal": true,
+          "checksums": {
+            "baseline": "c53b38122997d27b23d23dea87fa76a2fca1ebfb5a928d9aff75be985b58c8db",
+            "current": "c53b38122997d27b23d23dea87fa76a2fca1ebfb5a928d9aff75be985b58c8db"
+          },
+          "state": {
+            "equal": true,
+            "checksums": {
+              "baseline": "d01c4c1025f9622f20ec39978df8ab7552650acfaeecd78f877c8b9caff8fadf",
+              "current": "d01c4c1025f9622f20ec39978df8ab7552650acfaeecd78f877c8b9caff8fadf"
+            },
+            "shapeEqual": true,
+            "comparedNumbers": 4961,
+            "comparedArrayBytes": 1989078,
+            "unequalNumbers": 0,
+            "unequalArrayBytes": 0,
+            "firstMismatch": null,
+            "counts": {
+              "baseline": {
+                "objects": 869,
+                "numbers": 4961,
+                "functions": 2,
+                "typedArrays": 135,
+                "typedArrayBytes": 1989078,
+                "float64ArrayValues": 6015,
+                "nonfiniteNumericSentinels": 18,
+                "bytes": 2188365
+              },
+              "current": {
+                "objects": 869,
+                "numbers": 4961,
+                "functions": 2,
+                "typedArrays": 135,
+                "typedArrayBytes": 1989078,
+                "float64ArrayValues": 6015,
+                "nonfiniteNumericSentinels": 18,
+                "bytes": 2188365
+              }
+            }
+          },
+          "frame": {
+            "comparedBytes": 329280,
+            "unequalBytes": 0,
+            "firstMismatchByte": null,
+            "checksums": {
+              "baseline": "1f61eedbff3d92ee581edd132b9b33c3af848c7182f1b97650aae95091f639d1",
+              "current": "1f61eedbff3d92ee581edd132b9b33c3af848c7182f1b97650aae95091f639d1"
+            }
+          },
+          "summariesEqual": true,
+          "summary": {
+            "tick": 480,
+            "time": 9.675987410754916,
+            "order": [
+              0,
+              1
+            ],
+            "playerOwner": "input",
+            "events": [
+              [
+                90,
+                "autopilot",
+                true
+              ],
+              [
+                150,
+                "autopilot",
+                false
+              ],
+              [
+                210,
+                "pit",
+                "intermediate"
+              ]
+            ],
+            "raceEvents": [],
+            "terrainEvents": [],
+            "terrainSequence": 13864,
+            "displacementsMetres": [
+              34.79645002164252,
+              32.05273416965309
+            ],
+            "speedsMetresPerSecond": [
+              18.91846571634903,
+              21.180289670191993
+            ],
+            "frameCount": 120,
+            "frameFloats": 82320,
+            "inputDigest": "adee2b8f384605f85ed64feb5ef7fc951fbfe234d35a14eee4f74ae6aa22ac7c"
+          }
+        }
+      }
+    ]
+  },
+  "cases": [
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "simulation/aurel-clear-four",
+      "createdAt": "2026-11-25T08:51:38.726Z",
+      "purpose": "smoke",
+      "concurrency": {
+        "exclusiveCompute": false,
+        "cooperativeLock": null,
+        "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+      },
+      "evidenceFiles": {
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+          "bytes": 17172,
+          "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+        },
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-simulation.mjs": {
+          "bytes": 22462,
+          "sha256": "874da9fd67c289d3c10c176a3948721fd24ec78c375f3f86153fc799e738113e"
+        }
+      },
+      "scope": {
+        "timedWork": "For each step: apply the precomputed control, execute declared owner/pit edges, call actual Simulation.step(1/120), and write the actual complete Float32 frame every second step with metric arguments (0,0).",
+        "setupWork": "Construct the actual 4-vehicle practice Simulation, prime 240 actual physics steps, allocate input objects and every frame view, then retain exact output observations after execution.",
+        "allocationScope": "Fixture construction, input/frame allocation, reflection, copies, hashing and comparison are outside run. All allocations from actual step/writeFrame and the small identical declared event log remain inside. No forced GC or heap saving claim.",
+        "limitations": "Local combined Simulation CPU; 1 measured simulated seconds. Priming advances the actual world; moving vehicles still enter new cells. This is not game FPS, a browser/worker/GPU result, a whole lap or a long-session proof."
+      },
+      "configuration": {
+        "seed": 2655550627,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 120,
+        "unitsPerIteration": 1,
+        "unit": "1/120 s physics step with one packed frame per two steps",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.20344199999999546,
+          "current": 0.03901800000039657
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 1015019100,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 640.4619920000005,
+              "observationMs": 6.531134000000748,
+              "disposeMs": 0.050945999999385094
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 438.14372399999957,
+              "observationMs": 7.0480420000003505,
+              "disposeMs": 0.0035049999996772385
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "59151e1b4d39a312bcc7bb2421bcf2c197f1ebf18f513b764bc3f6b457f015c8",
+              "current": "59151e1b4d39a312bcc7bb2421bcf2c197f1ebf18f513b764bc3f6b457f015c8"
+            },
+            "state": {
+              "equal": true,
+              "checksums": {
+                "baseline": "642ebb62bf94499aeef9d549ad135a91cee7c2b120010c4fcfb26ae6dea89a24",
+                "current": "642ebb62bf94499aeef9d549ad135a91cee7c2b120010c4fcfb26ae6dea89a24"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326193
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326193
+                }
+              }
+            },
+            "frame": {
+              "comparedBytes": 323520,
+              "unequalBytes": 0,
+              "firstMismatchByte": null,
+              "checksums": {
+                "baseline": "21ff4a3687d0bdf293edd036d73b0580ca54551cd4e277f259e0c11f591824a9",
+                "current": "21ff4a3687d0bdf293edd036d73b0580ca54551cd4e277f259e0c11f591824a9"
+              }
+            },
+            "summariesEqual": true,
+            "summary": {
+              "tick": 360,
+              "time": 9.12106736875142,
+              "order": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "playerOwner": "autopilot",
+              "events": [
+                [
+                  90,
+                  "autopilot",
+                  true
+                ]
+              ],
+              "raceEvents": [],
+              "terrainEvents": [],
+              "terrainSequence": null,
+              "displacementsMetres": [
+                22.73568006256963,
+                22.610279682535115,
+                19.97281043716508,
+                18.843099243424472
+              ],
+              "speedsMetresPerSecond": [
+                27.661933260325757,
+                27.853817788139928,
+                24.259846420327285,
+                23.76209756793872
+              ],
+              "frameCount": 60,
+              "frameFloats": 80880,
+              "inputDigest": "d4faccb0468d33e6b1f553b4dc840dd6d7e56a1473b64582a15e0571ca9e58dd"
+            }
+          },
+          "comparisonMs": 1.4346470000000409
+        }
+      ],
+      "sourcesRef": "sources",
+      "runtimeRef": "runtime"
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "simulation/aurel-rain-four",
+      "createdAt": "2026-11-25T08:51:41.320Z",
+      "purpose": "smoke",
+      "concurrency": {
+        "exclusiveCompute": false,
+        "cooperativeLock": null,
+        "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+      },
+      "evidenceFiles": {
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+          "bytes": 17172,
+          "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+        },
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-simulation.mjs": {
+          "bytes": 22462,
+          "sha256": "874da9fd67c289d3c10c176a3948721fd24ec78c375f3f86153fc799e738113e"
+        }
+      },
+      "scope": {
+        "timedWork": "For each step: apply the precomputed control, execute declared owner/pit edges, call actual Simulation.step(1/120), and write the actual complete Float32 frame every second step with metric arguments (0,0).",
+        "setupWork": "Construct the actual 4-vehicle practice Simulation, prime 240 actual physics steps, allocate input objects and every frame view, then retain exact output observations after execution.",
+        "allocationScope": "Fixture construction, input/frame allocation, reflection, copies, hashing and comparison are outside run. All allocations from actual step/writeFrame and the small identical declared event log remain inside. No forced GC or heap saving claim.",
+        "limitations": "Local combined Simulation CPU; 1 measured simulated seconds. Priming advances the actual world; moving vehicles still enter new cells. This is not game FPS, a browser/worker/GPU result, a whole lap or a long-session proof."
+      },
+      "configuration": {
+        "seed": 1007810152,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 120,
+        "unitsPerIteration": 1,
+        "unit": "1/120 s physics step with one packed frame per two steps",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.21519900000021153,
+          "current": 0.04557699999986653
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 3662245921,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 379.81431299999986,
+              "observationMs": 6.081787999999506,
+              "disposeMs": 0.0033149999999295687
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 362.3906659999993,
+              "observationMs": 5.722485000000233,
+              "disposeMs": 0.0032650000002831803
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "d0a738ac97730671fd1263a5354eefd55b5cdef61662e13fd955cd6d0fc36072",
+              "current": "d0a738ac97730671fd1263a5354eefd55b5cdef61662e13fd955cd6d0fc36072"
+            },
+            "state": {
+              "equal": true,
+              "checksums": {
+                "baseline": "09fe9d1bbb65e8fba3395c3a88dbfc7461f39881bfcfc4bf9f9ac0a7e8d603c5",
+                "current": "09fe9d1bbb65e8fba3395c3a88dbfc7461f39881bfcfc4bf9f9ac0a7e8d603c5"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4548,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326199
+                },
+                "current": {
+                  "objects": 1027,
+                  "numbers": 4548,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326199
+                }
+              }
+            },
+            "frame": {
+              "comparedBytes": 323520,
+              "unequalBytes": 0,
+              "firstMismatchByte": null,
+              "checksums": {
+                "baseline": "cfb53f5fcd6b8dfa7c2203f2d7315054a8085b241b1b24ee31c1104db9cc1f6b",
+                "current": "cfb53f5fcd6b8dfa7c2203f2d7315054a8085b241b1b24ee31c1104db9cc1f6b"
+              }
+            },
+            "summariesEqual": true,
+            "summary": {
+              "tick": 360,
+              "time": 9.042644894844889,
+              "order": [
+                1,
+                0,
+                3,
+                2
+              ],
+              "playerOwner": "autopilot",
+              "events": [
+                [
+                  90,
+                  "autopilot",
+                  true
+                ]
+              ],
+              "raceEvents": [],
+              "terrainEvents": [],
+              "terrainSequence": null,
+              "displacementsMetres": [
+                8.030737862334805,
+                8.557169960882046,
+                7.544943968356503,
+                8.209609271097843
+              ],
+              "speedsMetresPerSecond": [
+                9.989467465554851,
+                10.541884424850274,
+                6.486201108180647,
+                9.990361398742897
+              ],
+              "frameCount": 60,
+              "frameFloats": 80880,
+              "inputDigest": "6cfccabbc919db28d5257477d4839ff10e914bd8c4f971059057059bdc3d3051"
+            }
+          },
+          "comparisonMs": 1.4198249999999462
+        }
+      ],
+      "sourcesRef": "sources",
+      "runtimeRef": "runtime"
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "simulation/aurel-storm-four",
+      "createdAt": "2026-11-25T08:51:43.713Z",
+      "purpose": "smoke",
+      "concurrency": {
+        "exclusiveCompute": false,
+        "cooperativeLock": null,
+        "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+      },
+      "evidenceFiles": {
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+          "bytes": 17172,
+          "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+        },
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-simulation.mjs": {
+          "bytes": 22462,
+          "sha256": "874da9fd67c289d3c10c176a3948721fd24ec78c375f3f86153fc799e738113e"
+        }
+      },
+      "scope": {
+        "timedWork": "For each step: apply the precomputed control, execute declared owner/pit edges, call actual Simulation.step(1/120), and write the actual complete Float32 frame every second step with metric arguments (0,0).",
+        "setupWork": "Construct the actual 4-vehicle practice Simulation, prime 240 actual physics steps, allocate input objects and every frame view, then retain exact output observations after execution.",
+        "allocationScope": "Fixture construction, input/frame allocation, reflection, copies, hashing and comparison are outside run. All allocations from actual step/writeFrame and the small identical declared event log remain inside. No forced GC or heap saving claim.",
+        "limitations": "Local combined Simulation CPU; 1 measured simulated seconds. Priming advances the actual world; moving vehicles still enter new cells. This is not game FPS, a browser/worker/GPU result, a whole lap or a long-session proof."
+      },
+      "configuration": {
+        "seed": 3671681073,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 120,
+        "unitsPerIteration": 1,
+        "unit": "1/120 s physics step with one packed frame per two steps",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.19978600000104052,
+          "current": 0.04832100000021455
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 2031149546,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 351.1272560000016,
+              "observationMs": 7.081600999999864,
+              "disposeMs": 0.0035950000001321314
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 332.7824639999999,
+              "observationMs": 7.1332560000009835,
+              "disposeMs": 0.004737000001114211
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "7b32601e15beeb013b27d44bebd0fc9807b422958d8b281eb8f4f7b23e7391d6",
+              "current": "7b32601e15beeb013b27d44bebd0fc9807b422958d8b281eb8f4f7b23e7391d6"
+            },
+            "state": {
+              "equal": true,
+              "checksums": {
+                "baseline": "7dc99c8321c3aefbdb8e461a8341a1ede6067285ae1deedac738104684ec3441",
+                "current": "7dc99c8321c3aefbdb8e461a8341a1ede6067285ae1deedac738104684ec3441"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4614,
+              "comparedArrayBytes": 123596,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 328871
+                },
+                "current": {
+                  "objects": 1033,
+                  "numbers": 4614,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123596,
+                  "float64ArrayValues": 2816,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 328871
+                }
+              }
+            },
+            "frame": {
+              "comparedBytes": 323520,
+              "unequalBytes": 0,
+              "firstMismatchByte": null,
+              "checksums": {
+                "baseline": "355b34f6b4829ea1de2bb42afdcd3a6409f171dcd69ce564e859873c3adb57b4",
+                "current": "355b34f6b4829ea1de2bb42afdcd3a6409f171dcd69ce564e859873c3adb57b4"
+              }
+            },
+            "summariesEqual": true,
+            "summary": {
+              "tick": 360,
+              "time": 9.27719710385428,
+              "order": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "playerOwner": "autopilot",
+              "events": [
+                [
+                  90,
+                  "autopilot",
+                  true
+                ]
+              ],
+              "raceEvents": [],
+              "terrainEvents": [],
+              "terrainSequence": null,
+              "displacementsMetres": [
+                7.98055386699811,
+                8.39257825042392,
+                7.91736685008398,
+                8.10026513812628
+              ],
+              "speedsMetresPerSecond": [
+                9.866492597540827,
+                10.325131616104303,
+                9.539364008418763,
+                9.831657263727513
+              ],
+              "frameCount": 60,
+              "frameFloats": 80880,
+              "inputDigest": "d85c21af92371dcc4a91b8beacd098848ad665463e56bc1ecb518ba109dc88d9"
+            }
+          },
+          "comparisonMs": 1.4468359999991662
+        }
+      ],
+      "sourcesRef": "sources",
+      "runtimeRef": "runtime"
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "simulation/vellamar-first-steps-four",
+      "createdAt": "2026-11-25T08:51:45.296Z",
+      "purpose": "smoke",
+      "concurrency": {
+        "exclusiveCompute": false,
+        "cooperativeLock": null,
+        "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+      },
+      "evidenceFiles": {
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+          "bytes": 17172,
+          "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+        },
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-simulation.mjs": {
+          "bytes": 22462,
+          "sha256": "874da9fd67c289d3c10c176a3948721fd24ec78c375f3f86153fc799e738113e"
+        }
+      },
+      "scope": {
+        "timedWork": "For each step: apply the precomputed control, execute declared owner/pit edges, call actual Simulation.step(1/120), and write the actual complete Float32 frame every second step with metric arguments (0,0).",
+        "setupWork": "Construct the actual 4-vehicle practice Simulation, do not prime any physics step, allocate input objects and every frame view, then retain exact output observations after execution.",
+        "allocationScope": "Fixture construction, input/frame allocation, reflection, copies, hashing and comparison are outside run. All allocations from actual step/writeFrame and the small identical declared event log remain inside. No forced GC or heap saving claim.",
+        "limitations": "Local combined Simulation CPU; 1 measured simulated seconds. First steps include lazy contact geometry and cold lane/surface work, not cold process startup. This is not game FPS, a browser/worker/GPU result, a whole lap or a long-session proof."
+      },
+      "configuration": {
+        "seed": 2023941118,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 120,
+        "unitsPerIteration": 1,
+        "unit": "1/120 s physics step with one packed frame per two steps",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.2257049999989249,
+          "current": 0.03510200000164332
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 383409591,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 9.448669999999765,
+              "observationMs": 6.3778059999986,
+              "disposeMs": 0.003975999999966007
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 8.774191000000428,
+              "observationMs": 7.83470699999998,
+              "disposeMs": 0.0033249999996769475
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "e497318b615b2a17a5e0727b4a83c9b2b46543e06d7cefab5fcbd50d4ae96580",
+              "current": "e497318b615b2a17a5e0727b4a83c9b2b46543e06d7cefab5fcbd50d4ae96580"
+            },
+            "state": {
+              "equal": true,
+              "checksums": {
+                "baseline": "de69a35f7bc72fe5ae6c179cbf82d61ea412dddcb2b1f1763c61323c7b8fd399",
+                "current": "de69a35f7bc72fe5ae6c179cbf82d61ea412dddcb2b1f1763c61323c7b8fd399"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4551,
+              "comparedArrayBytes": 123628,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123628,
+                  "float64ArrayValues": 2820,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326356
+                },
+                "current": {
+                  "objects": 1028,
+                  "numbers": 4551,
+                  "functions": 1,
+                  "typedArrays": 178,
+                  "typedArrayBytes": 123628,
+                  "float64ArrayValues": 2820,
+                  "nonfiniteNumericSentinels": 6,
+                  "bytes": 326356
+                }
+              }
+            },
+            "frame": {
+              "comparedBytes": 323520,
+              "unequalBytes": 0,
+              "firstMismatchByte": null,
+              "checksums": {
+                "baseline": "2b8e60a068c8d0ebdd1d2330080af985bc2a0629d592ccf32b01290646cd3b11",
+                "current": "2b8e60a068c8d0ebdd1d2330080af985bc2a0629d592ccf32b01290646cd3b11"
+              }
+            },
+            "summariesEqual": true,
+            "summary": {
+              "tick": 120,
+              "time": 7.447251201630619,
+              "order": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "playerOwner": "autopilot",
+              "events": [
+                [
+                  90,
+                  "autopilot",
+                  true
+                ]
+              ],
+              "raceEvents": [],
+              "terrainEvents": [],
+              "terrainSequence": null,
+              "displacementsMetres": [
+                4.7544279165436425,
+                2.869826826824098,
+                2.9997989031702654,
+                2.9274270022601563
+              ],
+              "speedsMetresPerSecond": [
+                9.715699856912165,
+                7.540924970844474,
+                7.67150935400631,
+                6.978373426128062
+              ],
+              "frameCount": 60,
+              "frameFloats": 80880,
+              "inputDigest": "dc17714b4f6da8ee1b408293eee59c585d6c1b6611b0fa694124dbb7965d03df"
+            }
+          },
+          "comparisonMs": 4.175261000000319
+        }
+      ],
+      "sourcesRef": "sources",
+      "runtimeRef": "runtime"
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "simulation/gp-clear-control",
+      "createdAt": "2026-11-25T08:51:46.872Z",
+      "purpose": "smoke",
+      "concurrency": {
+        "exclusiveCompute": false,
+        "cooperativeLock": null,
+        "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+      },
+      "evidenceFiles": {
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+          "bytes": 17172,
+          "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+        },
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-simulation.mjs": {
+          "bytes": 22462,
+          "sha256": "874da9fd67c289d3c10c176a3948721fd24ec78c375f3f86153fc799e738113e"
+        }
+      },
+      "scope": {
+        "timedWork": "For each step: apply the precomputed control, execute declared owner/pit edges, call actual Simulation.step(1/120), and write the actual complete Float32 frame every second step with metric arguments (0,0).",
+        "setupWork": "Construct the actual 2-vehicle practice Simulation, prime 240 actual physics steps, allocate input objects and every frame view, then retain exact output observations after execution.",
+        "allocationScope": "Fixture construction, input/frame allocation, reflection, copies, hashing and comparison are outside run. All allocations from actual step/writeFrame and the small identical declared event log remain inside. No forced GC or heap saving claim.",
+        "limitations": "Local combined Simulation CPU; 1 measured simulated seconds. Priming advances the actual world; moving vehicles still enter new cells. This is not game FPS, a browser/worker/GPU result, a whole lap or a long-session proof."
+      },
+      "configuration": {
+        "seed": 392848775,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 120,
+        "unitsPerIteration": 1,
+        "unit": "1/120 s physics step with one packed frame per two steps",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.16931099999965227,
+          "current": 0.02486700000008568
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 3047284544,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 209.2961809999997,
+              "observationMs": 4.233076999998957,
+              "disposeMs": 0.004036000000269269
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 239.42765900000086,
+              "observationMs": 7.877030999999988,
+              "disposeMs": 0.0036159999999654246
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "4d9c50852b2921ea3656d01a66b0f68db4571275f97e3eca550fa3ba49c289c0",
+              "current": "4d9c50852b2921ea3656d01a66b0f68db4571275f97e3eca550fa3ba49c289c0"
+            },
+            "state": {
+              "equal": true,
+              "checksums": {
+                "baseline": "126252106600adeb6bf44b9da073f0904257a59b77927a6b0394f8f69d4051f0",
+                "current": "126252106600adeb6bf44b9da073f0904257a59b77927a6b0394f8f69d4051f0"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 3476,
+              "comparedArrayBytes": 132782,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132782,
+                  "float64ArrayValues": 3978,
+                  "nonfiniteNumericSentinels": 12,
+                  "bytes": 285138
+                },
+                "current": {
+                  "objects": 736,
+                  "numbers": 3476,
+                  "functions": 1,
+                  "typedArrays": 128,
+                  "typedArrayBytes": 132782,
+                  "float64ArrayValues": 3978,
+                  "nonfiniteNumericSentinels": 12,
+                  "bytes": 285138
+                }
+              }
+            },
+            "frame": {
+              "comparedBytes": 164640,
+              "unequalBytes": 0,
+              "firstMismatchByte": null,
+              "checksums": {
+                "baseline": "76ccb874217494d4eda34940d626e15a9acf70c0b71d31edc2159b6117919de9",
+                "current": "76ccb874217494d4eda34940d626e15a9acf70c0b71d31edc2159b6117919de9"
+              }
+            },
+            "summariesEqual": true,
+            "summary": {
+              "tick": 360,
+              "time": 8.851292777154653,
+              "order": [
+                0,
+                1
+              ],
+              "playerOwner": "autopilot",
+              "events": [
+                [
+                  90,
+                  "autopilot",
+                  true
+                ]
+              ],
+              "raceEvents": [],
+              "terrainEvents": [],
+              "terrainSequence": null,
+              "displacementsMetres": [
+                14.809229118744634,
+                19.281473161164346
+              ],
+              "speedsMetresPerSecond": [
+                16.79680477367887,
+                23.758846097986698
+              ],
+              "frameCount": 60,
+              "frameFloats": 41160,
+              "inputDigest": "605c378bf98d5464b9522aeef3cde4c5d7fd4a837a84abe6d638ace1a68dfdb0"
+            }
+          },
+          "comparisonMs": 3.4227350000001024
+        }
+      ],
+      "sourcesRef": "sources",
+      "runtimeRef": "runtime"
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "simulation/mx-clear-control",
+      "createdAt": "2026-11-25T08:51:48.255Z",
+      "purpose": "smoke",
+      "concurrency": {
+        "exclusiveCompute": false,
+        "cooperativeLock": null,
+        "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+      },
+      "evidenceFiles": {
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+          "bytes": 17172,
+          "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+        },
+        "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-simulation.mjs": {
+          "bytes": 22462,
+          "sha256": "874da9fd67c289d3c10c176a3948721fd24ec78c375f3f86153fc799e738113e"
+        }
+      },
+      "scope": {
+        "timedWork": "For each step: apply the precomputed control, execute declared owner/pit edges, call actual Simulation.step(1/120), and write the actual complete Float32 frame every second step with metric arguments (0,0).",
+        "setupWork": "Construct the actual 2-vehicle practice Simulation, prime 240 actual physics steps, allocate input objects and every frame view, then retain exact output observations after execution.",
+        "allocationScope": "Fixture construction, input/frame allocation, reflection, copies, hashing and comparison are outside run. All allocations from actual step/writeFrame and the small identical declared event log remain inside. No forced GC or heap saving claim.",
+        "limitations": "Local combined Simulation CPU; 1 measured simulated seconds. Priming advances the actual world; moving vehicles still enter new cells. This is not game FPS, a browser/worker/GPU result, a whole lap or a long-session proof."
+      },
+      "configuration": {
+        "seed": 3040075596,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 120,
+        "unitsPerIteration": 1,
+        "unit": "1/120 s physics step with one packed frame per two steps",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.15603099999862025,
+          "current": 0.026559000001725508
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 1399544069,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 231.47914200000014,
+              "observationMs": 12.970993999999337,
+              "disposeMs": 0.003985000001193839
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 150.7701280000001,
+              "observationMs": 8.491400999999314,
+              "disposeMs": 0.001872999999250169
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "cea55c0ba654bcc8e6fc398d76803979fa251570559c62dff7e88a778da26ae5",
+              "current": "cea55c0ba654bcc8e6fc398d76803979fa251570559c62dff7e88a778da26ae5"
+            },
+            "state": {
+              "equal": true,
+              "checksums": {
+                "baseline": "a08e43c7f7ff92d4be5d79bfdc299405404e877045db5280009336cc23d33dea",
+                "current": "a08e43c7f7ff92d4be5d79bfdc299405404e877045db5280009336cc23d33dea"
+              },
+              "shapeEqual": true,
+              "comparedNumbers": 4555,
+              "comparedArrayBytes": 1989078,
+              "unequalNumbers": 0,
+              "unequalArrayBytes": 0,
+              "firstMismatch": null,
+              "counts": {
+                "baseline": {
+                  "objects": 868,
+                  "numbers": 4555,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989078,
+                  "float64ArrayValues": 6015,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 2178503
+                },
+                "current": {
+                  "objects": 868,
+                  "numbers": 4555,
+                  "functions": 2,
+                  "typedArrays": 135,
+                  "typedArrayBytes": 1989078,
+                  "float64ArrayValues": 6015,
+                  "nonfiniteNumericSentinels": 18,
+                  "bytes": 2178503
+                }
+              }
+            },
+            "frame": {
+              "comparedBytes": 164640,
+              "unequalBytes": 0,
+              "firstMismatchByte": null,
+              "checksums": {
+                "baseline": "5da9e352d7b51de1aa0314087cca3f1e3b37ae56abfe55dc42e75a557acb6a00",
+                "current": "5da9e352d7b51de1aa0314087cca3f1e3b37ae56abfe55dc42e75a557acb6a00"
+              }
+            },
+            "summariesEqual": true,
+            "summary": {
+              "tick": 360,
+              "time": 8.773024428635903,
+              "order": [
+                0,
+                1
+              ],
+              "playerOwner": "autopilot",
+              "events": [
+                [
+                  90,
+                  "autopilot",
+                  true
+                ]
+              ],
+              "raceEvents": [],
+              "terrainEvents": [],
+              "terrainSequence": 10024,
+              "displacementsMetres": [
+                16.169402403999925,
+                13.468904557930594
+              ],
+              "speedsMetresPerSecond": [
+                18.756640447623965,
+                16.177802579138074
+              ],
+              "frameCount": 60,
+              "frameFloats": 41160,
+              "inputDigest": "e7c7e0a02fcc01b15cd30b1e833462d99fb874d4fd9b88ea6c834c8e17658d7a"
+            }
+          },
+          "comparisonMs": 3.276778999999806
+        }
+      ],
+      "sourcesRef": "sources",
+      "runtimeRef": "runtime"
+    }
+  ]
+}

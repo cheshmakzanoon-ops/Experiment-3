@@ -1,0 +1,2588 @@
+{
+  "provenance": {
+    "original": {
+      "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "path": "src/audio/engine-loudness.ts",
+      "gitBlob": "d784c320267e79bcfd6e2465e220674e044108b6",
+      "sha256": "01c9b225d95e3122fe3dff2278d40e8b279ef455bf5941c362d870adba5e3f00",
+      "unchanged": [
+        {
+          "path": "src/audio/airborne-audio.ts",
+          "gitBlob": "3e74354b2050704ab55efe6938a72898248038d6",
+          "sha256": "3f105fd3228339fbd28866f2b6e0bfa06f298b19ec5f15c8eb113cb6c12d1958"
+        },
+        {
+          "path": "src/audio/engine-voices.ts",
+          "gitBlob": "6f7491a9914e4ba2333de44dd1c4827398d68694",
+          "sha256": "8b2adc3e531bccaa2f7bb0ab7dfc447a36cf9b2c78c4002afc90e3dc4c693bdb"
+        },
+        {
+          "path": "src/audio/limiter-cue.ts",
+          "gitBlob": "32de6b892c5141c7fb9de867881461cb5df23be0",
+          "sha256": "fa979ce8c9af660c8c86640c6266af7e7ffeaeb5ed8148fba4381e7494b9e1eb"
+        },
+        {
+          "path": "src/audio/mixer.ts",
+          "gitBlob": "4b06e825ad874023a91d566e6dff777c0deff9d8",
+          "sha256": "8595deb250b0d0ee3db5f19dec933fbc4214c8a8e6478b81d41dd9e75c3fde22"
+        },
+        {
+          "path": "src/audio/sound-profiles.ts",
+          "gitBlob": "b4d30a9df42a3f2fcbae365f602091dfb23f6397",
+          "sha256": "7bb6f456d3999c242baeb436ebef40d6ec41a112aefba7c53ad3fe28f4af7490"
+        },
+        {
+          "path": "src/audio/spatial.ts",
+          "gitBlob": "32844e733703ede327d846b4acfcc19727773bd1",
+          "sha256": "6843dd2be18814a7f6ba83256f40eea98b6abad8d903af6168741789f4d4bf35"
+        },
+        {
+          "path": "src/core/math.ts",
+          "gitBlob": "5158d9dd40981bd2e00913f5222403189157035e",
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        {
+          "path": "src/simulation/aero-map.ts",
+          "gitBlob": "cb63e644cfdf7f11c1ee4143952423d4b5760b72",
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        {
+          "path": "src/simulation/bike-definitions.ts",
+          "gitBlob": "9476f65dc0cfebc32e0213ab4dadea1099a3f43e",
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        {
+          "path": "src/simulation/differential.ts",
+          "gitBlob": "968618740c7a610e5bbc548b2dd8667bcf8d3f0b",
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        {
+          "path": "src/simulation/offroad/dirt-bikes.ts",
+          "gitBlob": "9eaba5ba8ac7471cd90f98a4e27765211add4e60",
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        {
+          "path": "src/simulation/powertrain.ts",
+          "gitBlob": "ed887c6375d73f90432a7c93eae17d9754e5e682",
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        {
+          "path": "src/simulation/protocol.ts",
+          "gitBlob": "1d795cb5ce9e128432650b28a8a74c7b3b010df9",
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        {
+          "path": "src/simulation/tire-families.ts",
+          "gitBlob": "210f52c48f66f5d11fc10f1cce5610dd1bc4d5c3",
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/builder.ts",
+          "gitBlob": "9ec154fbde4b52d868e3c372ef3599091fb2c039",
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/common.ts",
+          "gitBlob": "dc7d90bee3fad4213ddb707b985b9abfd58877bc",
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/dirt-2.ts",
+          "gitBlob": "bbaffab1f737e8100f45cb14acbd4426ef24a710",
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/dirt.ts",
+          "gitBlob": "8e513fb5fa509d7a41c9b23204a46913a722e43f",
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/endurance.ts",
+          "gitBlob": "a92dfad3635f17479b4f7d07df22ff4b4f442bb8",
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/experimental.ts",
+          "gitBlob": "5c21cdef687574a98b946ab53c640da59c896f40",
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/formula.ts",
+          "gitBlob": "d082a85123b1994735cf717f1693b9661189639e",
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "gitBlob": "f49298f1d419040ad89b391ec82ba7a42e04cd81",
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/gt.ts",
+          "gitBlob": "f268494812dcc5325ed6677147ff86a110745297",
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/index.ts",
+          "gitBlob": "22ffe0d83d2927fffbe7bb089740d191c7035c86",
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/prototypes.ts",
+          "gitBlob": "4db6efeaa7b7f2fd7925914a72026f747240b9b3",
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/road-festival.ts",
+          "gitBlob": "4f86fdb2929614ed6e2d9466e2963861fb6432a6",
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/single-seaters.ts",
+          "gitBlob": "372e243cd0131b246b0733e90fae8fe44b29b1d5",
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/small-road.ts",
+          "gitBlob": "6a4ab7c2be816691f9af2f881f61ab8f4028587e",
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "gitBlob": "56494a440755c1563cd29e4f490ec189ca151124",
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        {
+          "path": "src/simulation/vehicle-catalogue/touring-club.ts",
+          "gitBlob": "bfdeed26bb0f30d4cbc06046831d40c1da129b4a",
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        {
+          "path": "src/simulation/vehicles.ts",
+          "gitBlob": "bf076ab2899bc250ba3f537c9a6f172544948a44",
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        }
+      ]
+    },
+    "currentLoudnessSha256": "19537125a0247ded5d1afb0992d5f9a7b4fcb4da318ec430f7ef3db045866c89",
+    "esbuildVersion": "0.25.12",
+    "sharedInputCount": 31,
+    "originalBundle": {
+      "bytes": 172506,
+      "sha256": "c4e8748e6575480d615d8f0e16219dd9e5675cc6da0792b98bd5ef4c598aa8db"
+    },
+    "fixtureBundle": {
+      "bytes": 207665,
+      "sha256": "33a91738a2abbf5bfc05ebc27404fff04fd154ad5472e5787551e0843c89bf34"
+    }
+  },
+  "report": {
+    "seconds": 0.64,
+    "vehicles": [
+      "apx01",
+      "tc1",
+      "eh3",
+      "gpr1"
+    ],
+    "families": [
+      "v6-turbo-hybrid",
+      "i4-turbo",
+      "electric",
+      "v4-bike"
+    ],
+    "cases": [
+      {
+        "numericCache": "cold module",
+        "baseline": {
+          "sampleRate": 44100,
+          "frames": 28224,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.6414512471655329,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06838960945606232,
+            "rms": 0.01585240895697862,
+            "samples": 56448,
+            "stereoDifferences": 27341,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.046748436987400055,
+                "meanSquare": 0.00017780330041776483,
+                "rms": 0.01333429039798387
+              },
+              {
+                "finite": true,
+                "peak": 0.06838960945606232,
+                "meanSquare": 0.00032479443906082084,
+                "rms": 0.018022054240868904
+              }
+            ]
+          },
+          "digest": "60908275d1e15ba64d4047a23f7b9651913e319a2468fc37e06756d895a688f7",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "current": {
+          "sampleRate": 44100,
+          "frames": 28224,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.6414512471655329,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06838961690664291,
+            "rms": 0.01585240895731727,
+            "samples": 56448,
+            "stereoDifferences": 27341,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.046748436987400055,
+                "meanSquare": 0.00017780330040614127,
+                "rms": 0.013334290397548017
+              },
+              {
+                "finite": true,
+                "peak": 0.06838961690664291,
+                "meanSquare": 0.0003247944390939177,
+                "rms": 0.018022054241787135
+              }
+            ]
+          },
+          "digest": "9b9135d852a9d2ae50cdc5a3a72952c9a303ce924dd13a5400afe0f4dd10fc99",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "differingSamples": 14970,
+        "differingBytes": 15134,
+        "maxDifference": 7.450580596923828e-9,
+        "perChannel": [
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.046748436987400055,
+              "meanSquare": 0.00017780330041776483,
+              "rms": 0.01333429039798387
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.046748436987400055,
+              "meanSquare": 0.00017780330040614127,
+              "rms": 0.013334290397548017
+            },
+            "maxDifference": 7.450580596923828e-9,
+            "rmsDifference": 5.873299596956969e-10,
+            "relativeRmsDifference": 4.404658531994328e-8,
+            "absoluteLimit": 6.130136776196042e-8,
+            "rmsLimit": 1.7485295599335237e-8,
+            "energyDifference": 1.162356886089122e-14,
+            "energyLimit": 4.663083241678132e-10,
+            "withinContract": true
+          },
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.06838960945606232,
+              "meanSquare": 0.00032479443906082084,
+              "rms": 0.018022054240868904
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.06838961690664291,
+              "meanSquare": 0.0003247944390939177,
+              "rms": 0.018022054241787135
+            },
+            "maxDifference": 7.450580596923828e-9,
+            "rmsDifference": 8.903178158897912e-10,
+            "relativeRmsDifference": 4.9401572314960695e-8,
+            "absoluteLimit": 8.96795128834716e-8,
+            "rmsLimit": 2.3632374601092192e-8,
+            "energyDifference": 3.3096843408270127e-14,
+            "energyLimit": 8.518084322919616e-10,
+            "withinContract": true
+          }
+        ],
+        "withinContract": true,
+        "suppliedInputs": {
+          "events": 489,
+          "differences": 0,
+          "exact": true
+        },
+        "digests": [
+          "60908275d1e15ba64d4047a23f7b9651913e319a2468fc37e06756d895a688f7",
+          "9b9135d852a9d2ae50cdc5a3a72952c9a303ce924dd13a5400afe0f4dd10fc99"
+        ],
+        "sameRateRepeat": null
+      },
+      {
+        "numericCache": "warm module",
+        "baseline": {
+          "sampleRate": 44100,
+          "frames": 28224,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.6414512471655329,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06838960945606232,
+            "rms": 0.015852408962457903,
+            "samples": 56448,
+            "stereoDifferences": 27341,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.04674844071269035,
+                "meanSquare": 0.00017780330039652504,
+                "rms": 0.013334290397187434
+              },
+              {
+                "finite": true,
+                "peak": 0.06838960945606232,
+                "meanSquare": 0.00032479443942949794,
+                "rms": 0.018022054251097402
+              }
+            ]
+          },
+          "digest": "c34a8df642b34e90fbfcfe32dc739d7ab6df009e5f7dec95f1c7e222a4b9309f",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "current": {
+          "sampleRate": 44100,
+          "frames": 28224,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.6414512471655329,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06838961690664291,
+            "rms": 0.0158524089445864,
+            "samples": 56448,
+            "stereoDifferences": 27341,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.046748436987400055,
+                "meanSquare": 0.0001778033000639681,
+                "rms": 0.013334290384717444
+              },
+              {
+                "finite": true,
+                "peak": 0.06838961690664291,
+                "meanSquare": 0.0003247944386288314,
+                "rms": 0.01802205422888388
+              }
+            ]
+          },
+          "digest": "0ae8cf759896ccdf4ae87f2c157066827f818a02bdba156ab31a9d3c46691116",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "differingSamples": 32841,
+        "differingBytes": 33267,
+        "maxDifference": 1.4901161193847656e-8,
+        "perChannel": [
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.04674844071269035,
+              "meanSquare": 0.00017780330039652504,
+              "rms": 0.013334290397187434
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.046748436987400055,
+              "meanSquare": 0.0001778033000639681,
+              "rms": 0.013334290384717444
+            },
+            "maxDifference": 1.4901161193847656e-8,
+            "rmsDifference": 1.3610559931084442e-9,
+            "relativeRmsDifference": 1.0207187278563606e-7,
+            "absoluteLimit": 6.130137264694493e-8,
+            "rmsLimit": 1.748529559829087e-8,
+            "energyDifference": 3.325569528957184e-13,
+            "energyLimit": 4.663083241121095e-10,
+            "withinContract": true
+          },
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.06838960945606232,
+              "meanSquare": 0.00032479443942949794,
+              "rms": 0.018022054251097402
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.06838961690664291,
+              "meanSquare": 0.0003247944386288314,
+              "rms": 0.01802205422888388
+            },
+            "maxDifference": 1.4901161193847656e-8,
+            "rmsDifference": 1.7011610431478168e-9,
+            "relativeRmsDifference": 9.439329276484835e-8,
+            "absoluteLimit": 8.96795128834716e-8,
+            "rmsLimit": 2.3632374613300776e-8,
+            "energyDifference": 8.006665534569801e-13,
+            "energyLimit": 8.518084332154571e-10,
+            "withinContract": true
+          }
+        ],
+        "withinContract": true,
+        "suppliedInputs": {
+          "events": 489,
+          "differences": 0,
+          "exact": true
+        },
+        "digests": [
+          "c34a8df642b34e90fbfcfe32dc739d7ab6df009e5f7dec95f1c7e222a4b9309f",
+          "0ae8cf759896ccdf4ae87f2c157066827f818a02bdba156ab31a9d3c46691116"
+        ],
+        "sameRateRepeat": {
+          "baseline": {
+            "differingSamples": 29485,
+            "differingBytes": 29856,
+            "maxDifference": 1.4901161193847656e-8,
+            "perChannel": [
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.046748436987400055,
+                  "meanSquare": 0.00017780330041776483,
+                  "rms": 0.01333429039798387
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.04674844071269035,
+                  "meanSquare": 0.00017780330039652504,
+                  "rms": 0.013334290397187434
+                },
+                "maxDifference": 1.4901161193847656e-8,
+                "rmsDifference": 1.2118604054552976e-9,
+                "relativeRmsDifference": 9.08830068406587e-8,
+                "absoluteLimit": 6.130137264694493e-8,
+                "rmsLimit": 1.7485295599335237e-8,
+                "energyDifference": 2.1239791609534153e-14,
+                "energyLimit": 4.663083241678132e-10,
+                "withinContract": true
+              },
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.06838960945606232,
+                  "meanSquare": 0.00032479443906082084,
+                  "rms": 0.018022054240868904
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.06838960945606232,
+                  "meanSquare": 0.00032479443942949794,
+                  "rms": 0.018022054251097402
+                },
+                "maxDifference": 1.4901161193847656e-8,
+                "rmsDifference": 1.6162697796312004e-9,
+                "relativeRmsDifference": 8.96828828230157e-8,
+                "absoluteLimit": 8.967950311350258e-8,
+                "rmsLimit": 2.3632374613300776e-8,
+                "energyDifference": 3.6867709406196436e-13,
+                "energyLimit": 8.518084327320097e-10,
+                "withinContract": true
+              }
+            ],
+            "withinContract": true,
+            "suppliedInputs": {
+              "events": 489,
+              "differences": 0,
+              "exact": true
+            },
+            "digests": [
+              "60908275d1e15ba64d4047a23f7b9651913e319a2468fc37e06756d895a688f7",
+              "c34a8df642b34e90fbfcfe32dc739d7ab6df009e5f7dec95f1c7e222a4b9309f"
+            ]
+          },
+          "current": {
+            "differingSamples": 16165,
+            "differingBytes": 16396,
+            "maxDifference": 1.4901161193847656e-8,
+            "perChannel": [
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.046748436987400055,
+                  "meanSquare": 0.00017780330040614127,
+                  "rms": 0.013334290397548017
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.046748436987400055,
+                  "meanSquare": 0.0001778033000639681,
+                  "rms": 0.013334290384717444
+                },
+                "maxDifference": 1.4901161193847656e-8,
+                "rmsDifference": 1.2165768029134556e-9,
+                "relativeRmsDifference": 9.123671126415294e-8,
+                "absoluteLimit": 6.130136776196042e-8,
+                "rmsLimit": 1.74852955987637e-8,
+                "energyDifference": 3.4217317564436134e-13,
+                "energyLimit": 4.663083241373291e-10,
+                "withinContract": true
+              },
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.06838961690664291,
+                  "meanSquare": 0.0003247944390939177,
+                  "rms": 0.018022054241787135
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.06838961690664291,
+                  "meanSquare": 0.0003247944386288314,
+                  "rms": 0.01802205422888388
+                },
+                "maxDifference": 1.4901161193847656e-8,
+                "rmsDifference": 1.2954489729546415e-9,
+                "relativeRmsDifference": 7.18813158352907e-8,
+                "absoluteLimit": 8.96795128834716e-8,
+                "rmsLimit": 2.3632374601092192e-8,
+                "energyDifference": 4.650863028032859e-13,
+                "energyLimit": 8.518084323353615e-10,
+                "withinContract": true
+              }
+            ],
+            "withinContract": true,
+            "suppliedInputs": {
+              "events": 489,
+              "differences": 0,
+              "exact": true
+            },
+            "digests": [
+              "9b9135d852a9d2ae50cdc5a3a72952c9a303ce924dd13a5400afe0f4dd10fc99",
+              "0ae8cf759896ccdf4ae87f2c157066827f818a02bdba156ab31a9d3c46691116"
+            ]
+          }
+        }
+      },
+      {
+        "numericCache": "warm module",
+        "baseline": {
+          "sampleRate": 48000,
+          "frames": 30720,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.64,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06849110871553421,
+            "rms": 0.01585606040895773,
+            "samples": 61440,
+            "stereoDifferences": 29759,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.046740300953388214,
+                "meanSquare": 0.0001778772117673785,
+                "rms": 0.013337061586698118
+              },
+              {
+                "finite": true,
+                "peak": 0.06849110871553421,
+                "meanSquare": 0.0003249520916176463,
+                "rms": 0.01802642758889421
+              }
+            ]
+          },
+          "digest": "417ea4d8d6cb610027035e4f32b6614d2f327de2c41c058fa109e9e9d8afe06a",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "current": {
+          "sampleRate": 48000,
+          "frames": 30720,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.64,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06849110871553421,
+            "rms": 0.01585606036356685,
+            "samples": 61440,
+            "stereoDifferences": 29759,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.04674030467867851,
+                "meanSquare": 0.00017787721033825078,
+                "rms": 0.013337061533120809
+              },
+              {
+                "finite": true,
+                "peak": 0.06849110871553421,
+                "meanSquare": 0.00032495209016789554,
+                "rms": 0.018026427548682392
+              }
+            ]
+          },
+          "digest": "e3c0c8642e3e0f0353e5bbcefbef54ba25c4500e0ec1c0931cb9423bc238ba63",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "differingSamples": 31662,
+        "differingBytes": 32103,
+        "maxDifference": 1.862645149230957e-8,
+        "perChannel": [
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.046740300953388214,
+              "meanSquare": 0.0001778772117673785,
+              "rms": 0.013337061586698118
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.04674030467867851,
+              "meanSquare": 0.00017787721033825078,
+              "rms": 0.013337061533120809
+            },
+            "maxDifference": 1.862645149230957e-8,
+            "rmsDifference": 1.3954640284330377e-9,
+            "relativeRmsDifference": 1.0463054544374458e-7,
+            "absoluteLimit": 6.129070384077248e-8,
+            "rmsLimit": 1.748892946753399e-8,
+            "energyDifference": 1.4291277308699918e-12,
+            "energyLimit": 4.665021646504946e-10,
+            "withinContract": true
+          },
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.06849110871553421,
+              "meanSquare": 0.0003249520916176463,
+              "rms": 0.01802642758889421
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.06849110871553421,
+              "meanSquare": 0.00032495209016789554,
+              "rms": 0.018026427548682392
+            },
+            "maxDifference": 1.862645149230957e-8,
+            "rmsDifference": 1.684653705897734e-9,
+            "relativeRmsDifference": 9.345466247209302e-8,
+            "absoluteLimit": 8.981259940149462e-8,
+            "rmsLimit": 2.363810938446974e-8,
+            "energyDifference": 1.4497507469686532e-12,
+            "energyLimit": 8.522218930752241e-10,
+            "withinContract": true
+          }
+        ],
+        "withinContract": true,
+        "suppliedInputs": {
+          "events": 489,
+          "differences": 0,
+          "exact": true
+        },
+        "digests": [
+          "417ea4d8d6cb610027035e4f32b6614d2f327de2c41c058fa109e9e9d8afe06a",
+          "e3c0c8642e3e0f0353e5bbcefbef54ba25c4500e0ec1c0931cb9423bc238ba63"
+        ],
+        "sameRateRepeat": {
+          "baseline": {
+            "differingSamples": 12538,
+            "differingBytes": 12694,
+            "maxDifference": 1.1175870895385742e-8,
+            "perChannel": [
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.046740300953388214,
+                  "meanSquare": 0.00017787721173289533,
+                  "rms": 0.01333706158540536
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.046740300953388214,
+                  "meanSquare": 0.0001778772117673785,
+                  "rms": 0.013337061586698118
+                },
+                "maxDifference": 3.725290298461914e-9,
+                "rmsDifference": 2.644027219369112e-10,
+                "relativeRmsDifference": 1.9824660793395186e-8,
+                "absoluteLimit": 6.129069895578797e-8,
+                "rmsLimit": 1.748892946753399e-8,
+                "energyDifference": 3.448318562117303e-14,
+                "energyLimit": 4.665021646052768e-10,
+                "withinContract": true
+              },
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.06849110871553421,
+                  "meanSquare": 0.00032495209154425795,
+                  "rms": 0.018026427586858632
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.06849110871553421,
+                  "meanSquare": 0.0003249520916176463,
+                  "rms": 0.01802642758889421
+                },
+                "maxDifference": 1.1175870895385742e-8,
+                "rmsDifference": 9.044809484463785e-10,
+                "relativeRmsDifference": 5.0175274273623385e-8,
+                "absoluteLimit": 8.981259940149462e-8,
+                "rmsLimit": 2.363810938446974e-8,
+                "energyDifference": 7.338834401293681e-14,
+                "energyLimit": 8.522218929789898e-10,
+                "withinContract": true
+              }
+            ],
+            "withinContract": true,
+            "suppliedInputs": {
+              "events": 489,
+              "differences": 0,
+              "exact": true
+            },
+            "digests": [
+              "5c07e1cfc47654a0867e8f5d5487401f6919d9e2eb3a7acc66230c8fb61f9f22",
+              "417ea4d8d6cb610027035e4f32b6614d2f327de2c41c058fa109e9e9d8afe06a"
+            ]
+          },
+          "current": {
+            "differingSamples": 5099,
+            "differingBytes": 5171,
+            "maxDifference": 7.450580596923828e-9,
+            "perChannel": [
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.04674030467867851,
+                  "meanSquare": 0.00017787721031244886,
+                  "rms": 0.013337061532153508
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.04674030467867851,
+                  "meanSquare": 0.00017787721033825078,
+                  "rms": 0.013337061533120809
+                },
+                "maxDifference": 3.725290298461914e-9,
+                "rmsDifference": 1.3999996238953002e-10,
+                "relativeRmsDifference": 1.0497062043378808e-8,
+                "absoluteLimit": 6.129070384077248e-8,
+                "rmsLimit": 1.74889293972779e-8,
+                "energyDifference": 2.580192461597297e-14,
+                "energyLimit": 4.665021608686189e-10,
+                "withinContract": true
+              },
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.06849110871553421,
+                  "meanSquare": 0.00032495209029359003,
+                  "rms": 0.018026427552168788
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.06849110871553421,
+                  "meanSquare": 0.00032495209016789554,
+                  "rms": 0.018026427548682392
+                },
+                "maxDifference": 7.450580596923828e-9,
+                "rmsDifference": 5.953008798357851e-10,
+                "relativeRmsDifference": 3.302378566762462e-8,
+                "absoluteLimit": 8.981259940149462e-8,
+                "rmsLimit": 2.363810933631158e-8,
+                "energyDifference": 1.2569448520211024e-13,
+                "energyLimit": 8.522218896027437e-10,
+                "withinContract": true
+              }
+            ],
+            "withinContract": true,
+            "suppliedInputs": {
+              "events": 489,
+              "differences": 0,
+              "exact": true
+            },
+            "digests": [
+              "ba7041efd671f64656ed8df3563e701488fd3d84032fd119f12e275eceee9161",
+              "e3c0c8642e3e0f0353e5bbcefbef54ba25c4500e0ec1c0931cb9423bc238ba63"
+            ]
+          }
+        }
+      },
+      {
+        "numericCache": "warm module",
+        "baseline": {
+          "sampleRate": 96000,
+          "frames": 61440,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.64,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06853017210960388,
+            "rms": 0.015871000077994593,
+            "samples": 122880,
+            "stereoDifferences": 59519,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.04674561694264412,
+                "meanSquare": 0.00017818028069599382,
+                "rms": 0.01334841865900204
+              },
+              {
+                "finite": true,
+                "peak": 0.06853017210960388,
+                "meanSquare": 0.0003255970062553988,
+                "rms": 0.018044306754635902
+              }
+            ]
+          },
+          "digest": "02837325d6884e74a8fe7e719db00f5ed8966d7bf2235961bb8fd0c2dcfada0b",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "current": {
+          "sampleRate": 96000,
+          "frames": 61440,
+          "channels": 2,
+          "state": "closed",
+          "finalTime": 0.64,
+          "periodicWaves": 13,
+          "oscillators": 13,
+          "stopCounts": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "retainedVoices": 0,
+          "reusedWaveObjects": 0,
+          "suppliedInputs": {
+            "events": 489,
+            "parameterValues": 33,
+            "automationEvents": 200,
+            "waveSelections": 22,
+            "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+          },
+          "signal": {
+            "finite": true,
+            "peak": 0.06853017210960388,
+            "rms": 0.01587100009504722,
+            "samples": 122880,
+            "stereoDifferences": 59519,
+            "perChannel": [
+              {
+                "finite": true,
+                "peak": 0.046745628118515015,
+                "meanSquare": 0.00017818028075292411,
+                "rms": 0.013348418661134514
+              },
+              {
+                "finite": true,
+                "peak": 0.06853017210960388,
+                "meanSquare": 0.000325597007281038,
+                "rms": 0.01804430678305592
+              }
+            ]
+          },
+          "digest": "469465af739ecfe5a17ca83de7a96073a642bd129d8106b246f1b3b888d41734",
+          "trace": [
+            {
+              "presence": 0.19094126505438228,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 1.0117994100294985
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.22412751750259913,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            },
+            {
+              "presence": 0.6016589382431551,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.82,
+                  "pan": 0,
+                  "doppler": 1
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 0.981572514932688
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 0.9745134459690823
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 0.9703365693100513
+                }
+              ]
+            },
+            {
+              "presence": 0.5253738653210199,
+              "spatial": [
+                {
+                  "id": 0,
+                  "distance": 4,
+                  "gain": 0.5466666666666666,
+                  "pan": 0,
+                  "doppler": 0.985632183908046
+                },
+                {
+                  "id": 1,
+                  "distance": 10.63014581273465,
+                  "gain": 0.3521174802354959,
+                  "pan": 0.7525766947068778,
+                  "doppler": 1.0259984232213595
+                },
+                {
+                  "id": 2,
+                  "distance": 18.867962264113206,
+                  "gain": 0.24415696045405014,
+                  "pan": 0.847998304005088,
+                  "doppler": 1.0352509027494468
+                },
+                {
+                  "id": 3,
+                  "distance": 27.29468812791236,
+                  "gain": 0.18586366243627767,
+                  "pan": 0.8792919665367741,
+                  "doppler": 1.040476104746399
+                }
+              ]
+            }
+          ]
+        },
+        "differingSamples": 77537,
+        "differingBytes": 78964,
+        "maxDifference": 3.725290298461914e-8,
+        "perChannel": [
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.04674561694264412,
+              "meanSquare": 0.00017818028069599382,
+              "rms": 0.01334841865900204
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.046745628118515015,
+              "meanSquare": 0.00017818028075292411,
+              "rms": 0.013348418661134514
+            },
+            "maxDifference": 3.725290298461914e-8,
+            "rmsDifference": 2.6283179755932846e-9,
+            "relativeRmsDifference": 1.9690107437564424e-7,
+            "absoluteLimit": 6.129768448363898e-8,
+            "rmsLimit": 1.7503822033822636e-8,
+            "energyDifference": 5.693029055987842e-14,
+            "energyLimit": 4.67296995664044e-10,
+            "withinContract": true
+          },
+          {
+            "baseline": {
+              "finite": true,
+              "peak": 0.06853017210960388,
+              "meanSquare": 0.0003255970062553988,
+              "rms": 0.018044306754635902
+            },
+            "current": {
+              "finite": true,
+              "peak": 0.06853017210960388,
+              "meanSquare": 0.000325597007281038,
+              "rms": 0.01804430678305592
+            },
+            "maxDifference": 3.725290298461914e-8,
+            "rmsDifference": 2.8987748539702442e-9,
+            "relativeRmsDifference": 1.6064761527399158e-7,
+            "absoluteLimit": 8.986382334907903e-8,
+            "rmsLimit": 2.3661554426212845e-8,
+            "energyDifference": 1.0256391547690258e-12,
+            "energyLimit": 8.539132525853527e-10,
+            "withinContract": true
+          }
+        ],
+        "withinContract": true,
+        "suppliedInputs": {
+          "events": 489,
+          "differences": 0,
+          "exact": true
+        },
+        "digests": [
+          "02837325d6884e74a8fe7e719db00f5ed8966d7bf2235961bb8fd0c2dcfada0b",
+          "469465af739ecfe5a17ca83de7a96073a642bd129d8106b246f1b3b888d41734"
+        ],
+        "sameRateRepeat": {
+          "baseline": {
+            "differingSamples": 49954,
+            "differingBytes": 50408,
+            "maxDifference": 7.450580596923828e-9,
+            "perChannel": [
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.04674562066793442,
+                  "meanSquare": 0.000178180280538447,
+                  "rms": 0.013348418653100711
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.04674561694264412,
+                  "meanSquare": 0.00017818028069599382,
+                  "rms": 0.01334841865900204
+                },
+                "maxDifference": 3.725290298461914e-9,
+                "rmsDifference": 6.750903095796544e-10,
+                "relativeRmsDifference": 5.057455319805843e-8,
+                "absoluteLimit": 6.129767471366996e-8,
+                "rmsLimit": 1.7503822031026316e-8,
+                "energyDifference": 1.5754682714669288e-13,
+                "energyLimit": 4.672969953827994e-10,
+                "withinContract": true
+              },
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.06853016465902328,
+                  "meanSquare": 0.0003255970064572995,
+                  "rms": 0.018044306760230482
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.06853017210960388,
+                  "meanSquare": 0.0003255970062553988,
+                  "rms": 0.018044306754635902
+                },
+                "maxDifference": 7.450580596923828e-9,
+                "rmsDifference": 1.0804912509116281e-9,
+                "relativeRmsDifference": 5.987989814565905e-8,
+                "absoluteLimit": 8.986382334907903e-8,
+                "rmsLimit": 2.3661554396281777e-8,
+                "energyDifference": 2.0190067066133688e-13,
+                "energyLimit": 8.539132517699336e-10,
+                "withinContract": true
+              }
+            ],
+            "withinContract": true,
+            "suppliedInputs": {
+              "events": 489,
+              "differences": 0,
+              "exact": true
+            },
+            "digests": [
+              "b779de74a9bc0247707cedc20babeb924c431e5b0a2710c3ffdb6f955faabead",
+              "02837325d6884e74a8fe7e719db00f5ed8966d7bf2235961bb8fd0c2dcfada0b"
+            ]
+          },
+          "current": {
+            "differingSamples": 46003,
+            "differingBytes": 46393,
+            "maxDifference": 7.450580596923828e-9,
+            "perChannel": [
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.046745624393224716,
+                  "meanSquare": 0.00017818028098063042,
+                  "rms": 0.01334841866966385
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.046745628118515015,
+                  "meanSquare": 0.00017818028075292411,
+                  "rms": 0.013348418661134514
+                },
+                "maxDifference": 7.450580596923828e-9,
+                "rmsDifference": 6.349794132177244e-10,
+                "relativeRmsDifference": 4.75696356948111e-8,
+                "absoluteLimit": 6.129768448363898e-8,
+                "rmsLimit": 1.750382204500718e-8,
+                "energyDifference": 2.277063086697506e-13,
+                "energyLimit": 4.672969963358813e-10,
+                "withinContract": true
+              },
+              {
+                "baseline": {
+                  "finite": true,
+                  "peak": 0.06853017210960388,
+                  "meanSquare": 0.0003255970074002807,
+                  "rms": 0.018044306786360088
+                },
+                "current": {
+                  "finite": true,
+                  "peak": 0.06853017210960388,
+                  "meanSquare": 0.000325597007281038,
+                  "rms": 0.01804430678305592
+                },
+                "maxDifference": 7.450580596923828e-9,
+                "rmsDifference": 9.797528827740429e-10,
+                "relativeRmsDifference": 5.429706413075675e-8,
+                "absoluteLimit": 8.986382334907903e-8,
+                "rmsLimit": 2.3661554430545607e-8,
+                "energyDifference": 1.1924272333430075e-13,
+                "energyLimit": 8.539132542430034e-10,
+                "withinContract": true
+              }
+            ],
+            "withinContract": true,
+            "suppliedInputs": {
+              "events": 489,
+              "differences": 0,
+              "exact": true
+            },
+            "digests": [
+              "b1ded8dfbb59e8323ab22de987ea6a55c92d8dc8428df0bc183af6ed177cc666",
+              "469465af739ecfe5a17ca83de7a96073a642bd129d8106b246f1b3b888d41734"
+            ]
+          }
+        }
+      }
+    ],
+    "contract": {
+      "unitRoundoff": 5.960464477539063e-8,
+      "mixAdditions": 11,
+      "relativeBudget": 0.0000013113030448158677
+    },
+    "sensitivity": {
+      "factor": 1.0009765625,
+      "sampleRate": 44100,
+      "differingSamples": 54682,
+      "differingBytes": 119076,
+      "maxDifference": 0.0000667870044708252,
+      "perChannel": [
+        {
+          "baseline": {
+            "finite": true,
+            "peak": 0.046748436987400055,
+            "meanSquare": 0.00017780330041776483,
+            "rms": 0.01333429039798387
+          },
+          "current": {
+            "finite": true,
+            "peak": 0.046794094145298004,
+            "meanSquare": 0.0001781507420889883,
+            "rms": 0.013347312167211356
+          },
+          "maxDifference": 0.00004565715789794922,
+          "rmsDifference": 0.000013021769288566966,
+          "relativeRmsDifference": 0.0009756098550355247,
+          "absoluteLimit": 6.136123813212964e-8,
+          "rmsLimit": 1.7502371084972128e-8,
+          "energyDifference": 3.474416712234544e-7,
+          "energyLimit": 4.667637037335824e-10,
+          "withinContract": false
+        },
+        {
+          "baseline": {
+            "finite": true,
+            "peak": 0.06838960945606232,
+            "meanSquare": 0.00032479443906082084,
+            "rms": 0.018022054240868904
+          },
+          "current": {
+            "finite": true,
+            "peak": 0.06845639646053314,
+            "meanSquare": 0.0003254291131448323,
+            "rms": 0.018039653908676637
+          },
+          "maxDifference": 0.0000667870044708252,
+          "rmsDifference": 0.00001759966789234301,
+          "relativeRmsDifference": 0.0009756100633326449,
+          "absoluteLimit": 8.97670811158193e-8,
+          "rmsLimit": 2.3655453097872144e-8,
+          "energyDifference": 6.346740840114363e-7,
+          "energyLimit": 8.526402772248255e-10,
+          "withinContract": false
+        }
+      ],
+      "withinContract": false,
+      "suppliedInputs": {
+        "events": 489,
+        "differences": 0,
+        "exact": true
+      },
+      "digests": [
+        "60908275d1e15ba64d4047a23f7b9651913e319a2468fc37e06756d895a688f7",
+        "2b9c7099da735ad61b2821cede60c25116d35db7a3ab8f1df6a243c5c9ac557a"
+      ],
+      "render": {
+        "sampleRate": 44100,
+        "frames": 28224,
+        "channels": 2,
+        "state": "closed",
+        "finalTime": 0.6414512471655329,
+        "periodicWaves": 13,
+        "oscillators": 13,
+        "stopCounts": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "retainedVoices": 0,
+        "reusedWaveObjects": 0,
+        "suppliedInputs": {
+          "events": 489,
+          "parameterValues": 33,
+          "automationEvents": 200,
+          "waveSelections": 22,
+          "digest": "016dd9b1426dba46369feb29ccf4e28eed85bb4e90865c9f074a558af0b6aa93"
+        },
+        "signal": {
+          "finite": true,
+          "peak": 0.06845639646053314,
+          "rms": 0.01586788982873627,
+          "samples": 56448,
+          "stereoDifferences": 27341,
+          "perChannel": [
+            {
+              "finite": true,
+              "peak": 0.046794094145298004,
+              "meanSquare": 0.0001781507420889883,
+              "rms": 0.013347312167211356
+            },
+            {
+              "finite": true,
+              "peak": 0.06845639646053314,
+              "meanSquare": 0.0003254291131448323,
+              "rms": 0.018039653908676637
+            }
+          ]
+        },
+        "digest": "2b9c7099da735ad61b2821cede60c25116d35db7a3ab8f1df6a243c5c9ac557a",
+        "trace": [
+          {
+            "presence": 0.19094126505438228,
+            "spatial": [
+              {
+                "id": 0,
+                "distance": 4,
+                "gain": 0.5466666666666666,
+                "pan": 0,
+                "doppler": 1.0117994100294985
+              },
+              {
+                "id": 1,
+                "distance": 10.63014581273465,
+                "gain": 0.3521174802354959,
+                "pan": 0.7525766947068778,
+                "doppler": 0.981572514932688
+              },
+              {
+                "id": 2,
+                "distance": 18.867962264113206,
+                "gain": 0.24415696045405014,
+                "pan": 0.847998304005088,
+                "doppler": 0.9745134459690823
+              },
+              {
+                "id": 3,
+                "distance": 27.29468812791236,
+                "gain": 0.18586366243627767,
+                "pan": 0.8792919665367741,
+                "doppler": 0.9703365693100513
+              }
+            ]
+          },
+          {
+            "presence": 0.22412751750259913,
+            "spatial": [
+              {
+                "id": 0,
+                "distance": 4,
+                "gain": 0.5466666666666666,
+                "pan": 0,
+                "doppler": 0.985632183908046
+              },
+              {
+                "id": 1,
+                "distance": 10.63014581273465,
+                "gain": 0.3521174802354959,
+                "pan": 0.7525766947068778,
+                "doppler": 1.0259984232213595
+              },
+              {
+                "id": 2,
+                "distance": 18.867962264113206,
+                "gain": 0.24415696045405014,
+                "pan": 0.847998304005088,
+                "doppler": 1.0352509027494468
+              },
+              {
+                "id": 3,
+                "distance": 27.29468812791236,
+                "gain": 0.18586366243627767,
+                "pan": 0.8792919665367741,
+                "doppler": 1.040476104746399
+              }
+            ]
+          },
+          {
+            "presence": 0.6016589382431551,
+            "spatial": [
+              {
+                "id": 0,
+                "distance": 4,
+                "gain": 0.82,
+                "pan": 0,
+                "doppler": 1
+              },
+              {
+                "id": 1,
+                "distance": 10.63014581273465,
+                "gain": 0.3521174802354959,
+                "pan": 0.7525766947068778,
+                "doppler": 0.981572514932688
+              },
+              {
+                "id": 2,
+                "distance": 18.867962264113206,
+                "gain": 0.24415696045405014,
+                "pan": 0.847998304005088,
+                "doppler": 0.9745134459690823
+              },
+              {
+                "id": 3,
+                "distance": 27.29468812791236,
+                "gain": 0.18586366243627767,
+                "pan": 0.8792919665367741,
+                "doppler": 0.9703365693100513
+              }
+            ]
+          },
+          {
+            "presence": 0.5253738653210199,
+            "spatial": [
+              {
+                "id": 0,
+                "distance": 4,
+                "gain": 0.5466666666666666,
+                "pan": 0,
+                "doppler": 0.985632183908046
+              },
+              {
+                "id": 1,
+                "distance": 10.63014581273465,
+                "gain": 0.3521174802354959,
+                "pan": 0.7525766947068778,
+                "doppler": 1.0259984232213595
+              },
+              {
+                "id": 2,
+                "distance": 18.867962264113206,
+                "gain": 0.24415696045405014,
+                "pan": 0.847998304005088,
+                "doppler": 1.0352509027494468
+              },
+              {
+                "id": 3,
+                "distance": 27.29468812791236,
+                "gain": 0.18586366243627767,
+                "pan": 0.8792919665367741,
+                "doppler": 1.040476104746399
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "renders": 13,
+    "renderedSamples": 1019520,
+    "samplesPerImplementation": 297216
+  }
+}

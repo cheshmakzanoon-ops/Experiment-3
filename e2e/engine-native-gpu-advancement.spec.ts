@@ -103,6 +103,17 @@ test('native shared fence ownership survives borrower handoff and releases each 
     body: JSON.stringify(report, null, 2),
     contentType: 'application/json',
   });
+  if (report.red.differences || report.green.differences) {
+    const diagnostic = await page.evaluate(() =>
+      (window as unknown as NativeWindow).EngineNativeGpuAdvancement.rasterPathDiagnostics().catch(
+        (error: unknown) => ({ diagnosticError: String(error) }),
+      ),
+    );
+    await info.attach('native-gpu-raster-path-diagnostics.json', {
+      body: JSON.stringify(diagnostic, null, 2),
+      contentType: 'application/json',
+    });
+  }
   const idle = { pending: false, submitted: 0, completed: 0, failure: null };
   const first = { pending: true, submitted: 1, completed: 0, failure: null };
   const second = { pending: true, submitted: 2, completed: 1, failure: null };
@@ -141,13 +152,6 @@ test('native shared fence ownership survives borrower handoff and releases each 
     backendDisposals: 0,
     contextLost: false,
   });
-  expect(report.red.rgba).toEqual([255, 0, 0, 255]);
-  expect(report.green.rgba).toEqual([0, 255, 0, 255]);
-  expect(report.red.bytes).toBe(256);
-  expect(report.green.bytes).toBe(256);
-  expect(report.red.differences).toBe(0);
-  expect(report.green.differences).toBe(0);
-  expect(report.red.sha256).not.toBe(report.green.sha256);
   expect(report.submittedFences).toEqual(
     [1, 2, 3].map((id) => ({
       id,
@@ -176,5 +180,13 @@ test('native shared fence ownership survives borrower handoff and releases each 
   expect(report.backendDisposals).toBe(1);
   expect(report.glError).toBe(0);
   expect(report.contextLost).toBe(false);
+  // A separate raster failure must not prevent the native lifetime checks above.
+  expect(report.red.rgba).toEqual([255, 0, 0, 255]);
+  expect(report.green.rgba).toEqual([0, 255, 0, 255]);
+  expect(report.red.bytes).toBe(256);
+  expect(report.green.bytes).toBe(256);
+  expect(report.red.differences).toBe(0);
+  expect(report.green.differences).toBe(0);
+  expect(report.red.sha256).not.toBe(report.green.sha256);
   expect(errors).toEqual([]);
 });

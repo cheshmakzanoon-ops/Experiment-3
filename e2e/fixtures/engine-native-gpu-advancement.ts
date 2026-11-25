@@ -487,3 +487,168 @@ export async function sharedFenceOwnership() {
     r.canvas.remove();
   }
 }
+
+/** Failure-only layer isolation. These observations never replace the shared
+ * handoff case's full-image assertions or turn its mismatch into acceptance. */
+export async function rasterPathDiagnostics() {
+  const r = backend();
+  const { renderer, gl } = r;
+  const trace = fenceTrace(gl);
+  const lease = acquireGpuFrameGate(gl);
+  const geometry = new T.PlaneGeometry(2, 2);
+  const basic = new T.MeshBasicMaterial({ color: 0xff0000, toneMapped: false });
+  const materials: T.Material[] = [basic];
+  const mesh = new T.Mesh<T.PlaneGeometry, T.Material>(geometry, basic);
+  const scene = new T.Scene().add(mesh);
+  const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+  camera.position.z = 1;
+  const target = new T.WebGLRenderTarget(8, 8, { depthBuffer: false, stencilBuffer: false });
+  const expected = new Uint8Array(8 * 8 * 4);
+  for (let i = 0; i < expected.length; i += 4) expected.set([255, 0, 0, 255], i);
+  const shaderErrors: { program: string | null; vertex: string | null; fragment: string | null }[] =
+    [];
+  renderer.debug.onShaderError = (context, program, vertex, fragment) => {
+    shaderErrors.push({
+      program: context.getProgramInfoLog(program),
+      vertex: context.getShaderInfoLog(vertex),
+      fragment: context.getShaderInfoLog(fragment),
+    });
+  };
+  const raw = (kind: 'constant' | 'vec3' | 'vec4') => {
+    const declarations = kind === 'constant' ? '' : `uniform ${kind} probeColour;`;
+    const colour =
+      kind === 'constant'
+        ? 'vec4(1.0, 0.0, 0.0, 1.0)'
+        : kind === 'vec3'
+          ? 'vec4(probeColour, 1.0)'
+          : 'probeColour';
+    const value = kind === 'vec3' ? new T.Vector3(1, 0, 0) : new T.Vector4(1, 0, 0, 1);
+    const material = new T.RawShaderMaterial({
+      glslVersion: T.GLSL3,
+      uniforms: kind === 'constant' ? {} : { probeColour: { value } },
+      vertexShader:
+        'precision highp float; in vec3 position; void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader: `precision highp float; ${declarations} out vec4 probeOutput; void main() { probeOutput = ${colour}; }`,
+    });
+    materials.push(material);
+    return material;
+  };
+  const attachment = () => ({
+    status: gl.checkFramebufferStatus(gl.FRAMEBUFFER),
+    componentType: Number(
+      gl.getFramebufferAttachmentParameter(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE,
+      ),
+    ),
+    componentBits: [
+      gl.FRAMEBUFFER_ATTACHMENT_RED_SIZE,
+      gl.FRAMEBUFFER_ATTACHMENT_GREEN_SIZE,
+      gl.FRAMEBUFFER_ATTACHMENT_BLUE_SIZE,
+      gl.FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE,
+    ].map((property) =>
+      Number(gl.getFramebufferAttachmentParameter(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, property)),
+    ),
+    implementationReadFormat: Number(gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_FORMAT)),
+    implementationReadType: Number(gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_TYPE)),
+    texture: {
+      format: target.texture.format,
+      type: target.texture.type,
+      internalFormat: target.texture.internalFormat,
+      colourSpace: target.texture.colorSpace,
+    },
+  });
+  const observe = async (name: string) => {
+    lease.submittedFrame();
+    const completion = await completed([lease], `diagnostic ${name}`);
+    const uniforms: Record<string, number | number[]> = {};
+    if (name === 'three-mesh-basic' || name.startsWith('raw-shader-')) {
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram | null;
+      if (!program) throw new Error(`Missing native program for ${name}`);
+      for (const uniformName of ['diffuse', 'opacity', 'probeColour']) {
+        const location = gl.getUniformLocation(program, uniformName);
+        if (location) {
+          const value = gl.getUniform(program, location) as number | Float32Array;
+          uniforms[uniformName] = typeof value === 'number' ? value : Array.from(value);
+        }
+      }
+    }
+    const bulk = new Uint8Array(expected.length);
+    gl.readPixels(0, 0, 8, 8, gl.RGBA, gl.UNSIGNED_BYTE, bulk);
+    const individual = new Uint8Array(expected.length);
+    const pixel = new Uint8Array(4);
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        individual.set(pixel, (y * 8 + x) * 4);
+      }
+    }
+    const viaThree = new Uint8Array(expected.length);
+    renderer.readRenderTargetPixels(target, 0, 0, 8, 8, viaThree);
+    return {
+      name,
+      completion,
+      queue: queue(lease),
+      attachment: attachment(),
+      uniforms,
+      rawBulk: await pixelEvidence(bulk, expected),
+      individual: await pixelEvidence(individual, expected),
+      viaThree: await pixelEvidence(viaThree, expected),
+      bulkVsIndividual: differences(bulk, individual),
+      bulkVsThree: differences(bulk, viaThree),
+      glError: gl.getError(),
+    };
+  };
+  const results: Awaited<ReturnType<typeof observe>>[] = [];
+  try {
+    renderer.setRenderTarget(target);
+    renderer.render(scene, camera);
+    results.push(await observe('three-mesh-basic'));
+
+    gl.clearBufferfv(gl.COLOR, 0, new Float32Array([1, 0, 0, 1]));
+    results.push(await observe('native-clear-rgba'));
+
+    const texture = gl.getFramebufferAttachmentParameter(
+      gl.FRAMEBUFFER,
+      gl.COLOR_ATTACHMENT0,
+      gl.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
+    );
+    if (!(texture instanceof WebGLTexture)) throw new Error('Expected the actual target texture');
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 8, 8, gl.RGBA, gl.UNSIGNED_BYTE, expected);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    renderer.resetState();
+    renderer.setRenderTarget(target);
+    results.push(await observe('native-texture-rgba-upload'));
+
+    for (const kind of ['constant', 'vec3', 'vec4'] as const) {
+      mesh.material = raw(kind);
+      renderer.render(scene, camera);
+      results.push(await observe(`raw-shader-${kind}`));
+    }
+    return {
+      backend: r.identity,
+      purpose: 'failure-only diagnosis; no replacement for the original full-image assertion',
+      results,
+      shaderErrors,
+      constants: {
+        rgba: gl.RGBA,
+        unsignedByte: gl.UNSIGNED_BYTE,
+        complete: gl.FRAMEBUFFER_COMPLETE,
+        unsignedNormalized: gl.UNSIGNED_NORMALIZED,
+      },
+      counts: trace.counts(),
+      queue: queue(lease),
+      contextLost: gl.isContextLost(),
+    };
+  } finally {
+    lease.dispose();
+    geometry.dispose();
+    for (const material of materials) material.dispose();
+    target.dispose();
+    renderer.dispose();
+    trace.restore();
+    r.canvas.remove();
+  }
+}

@@ -1,0 +1,949 @@
+{
+  "schema": "engine-advancement-audio/1",
+  "createdAt": "2026-11-25T08:55:49.730Z",
+  "mode": "counts",
+  "runtime": {
+    "node": "v24.22.3",
+    "versions": {
+      "node": "24.22.3",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.9",
+      "brotli": "1.2.1",
+      "cldr": "48.0",
+      "icu": "78.3",
+      "llhttp": "9.4.4",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "3.5.9",
+      "simdjson": "4.6.11",
+      "simdutf": "6.4.0",
+      "sqlite": "3.54.1",
+      "tz": "2026e",
+      "undici": "7.30.2",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.63",
+      "zlib": "1.3.2.1-motley-285e94b",
+      "zstd": "1.5.7"
+    },
+    "execArgv": [],
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "6.18.57",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "host": "4f398b69b6a5",
+    "pid": 2
+  },
+  "concurrency": {
+    "exclusiveCompute": false,
+    "cooperativeLock": null
+  },
+  "sourceGraphs": {
+    "baseline": {
+      "root": "/dev/shm/aeebac160835-engine-baseline",
+      "entry": "src/audio/engine-loudness.ts",
+      "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "expectedCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/audio/engine-loudness.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/audio/engine-loudness.ts",
+          "bytes": 7256,
+          "sha256": "01c9b225d95e3122fe3dff2278d40e8b279ef455bf5941c362d870adba5e3f00"
+        },
+        "src/core/math.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "tsconfig.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "bundle",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 17.575125999999997,
+        "outputSha256": "a7a33ad54ea3fce00d6e45757e3986e3490f8bdf71d326ef53bf7c624e9b017c",
+        "externalImports": [],
+        "warnings": []
+      }
+    },
+    "current": {
+      "root": "/tmp/aeebac160835-engine/Experiment-3",
+      "entry": "src/audio/engine-loudness.ts",
+      "commit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+      "expectedCommit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/audio/engine-loudness.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/audio/engine-loudness.ts",
+          "bytes": 9601,
+          "sha256": "19537125a0247ded5d1afb0992d5f9a7b4fcb4da318ec430f7ef3db045866c89"
+        },
+        "src/core/math.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "tsconfig.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "bundle",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 4.720227999999992,
+        "outputSha256": "c28483bc82e757c86dde61da6ab7ba11ae971f4477b70ec1c691f9b48372da8a",
+        "externalImports": [],
+        "warnings": []
+      }
+    }
+  },
+  "authoredProfileGraphs": {
+    "baseline": {
+      "root": "/dev/shm/aeebac160835-engine-baseline",
+      "entry": "src/audio/sound-profiles.ts",
+      "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "expectedCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/audio/sound-profiles.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/audio/sound-profiles.ts",
+          "bytes": 15502,
+          "sha256": "7bb6f456d3999c242baeb436ebef40d6ec41a112aefba7c53ad3fe28f4af7490"
+        },
+        "src/core/math.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/simulation/aero-map.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/aero-map.ts",
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-definitions.ts",
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/differential.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/differential.ts",
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/dirt-bikes.ts",
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/powertrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/powertrain.ts",
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/protocol.ts",
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/tire-families.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tire-families.ts",
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/builder.ts",
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/common.ts",
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/dirt-2.ts",
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/dirt.ts",
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/endurance.ts",
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/experimental.ts",
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/formula.ts",
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/gt.ts",
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/index.ts",
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/prototypes.ts",
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/road-festival.ts",
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/single-seaters.ts",
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/small-road.ts",
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/touring-club.ts",
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicles.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicles.ts",
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "tsconfig.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "bundle",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 31.88946899999999,
+        "outputSha256": "b9407316f07f5580e5403ff2efcf7732e1d787bd88c786a576c9a0299cbe62e1",
+        "externalImports": [],
+        "warnings": []
+      }
+    },
+    "current": {
+      "root": "/tmp/aeebac160835-engine/Experiment-3",
+      "entry": "src/audio/sound-profiles.ts",
+      "commit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+      "expectedCommit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/audio/sound-profiles.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/audio/sound-profiles.ts",
+          "bytes": 15502,
+          "sha256": "7bb6f456d3999c242baeb436ebef40d6ec41a112aefba7c53ad3fe28f4af7490"
+        },
+        "src/core/math.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/simulation/aero-map.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/aero-map.ts",
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-definitions.ts",
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/differential.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/differential.ts",
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/dirt-bikes.ts",
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/powertrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/powertrain.ts",
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/protocol.ts",
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/tire-families.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tire-families.ts",
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/builder.ts",
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/common.ts",
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/dirt-2.ts",
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/dirt.ts",
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/endurance.ts",
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/experimental.ts",
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/formula.ts",
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/gt.ts",
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/index.ts",
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/prototypes.ts",
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/road-festival.ts",
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/single-seaters.ts",
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/small-road.ts",
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/touring-club.ts",
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicles.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicles.ts",
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "tsconfig.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "bundle",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 23.774135,
+        "outputSha256": "b9407316f07f5580e5403ff2efcf7732e1d787bd88c786a576c9a0299cbe62e1",
+        "externalImports": [],
+        "warnings": []
+      }
+    }
+  },
+  "evidenceFiles": {
+    "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-audio.mjs": "b718f86fda366ccb34c18ecc1165cd2ecf2ce5b11553f4c08cc19bed1d8c6cf7",
+    "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+  },
+  "stableSources": true,
+  "authoredProfiles": {
+    "families": [
+      "v6-turbo-hybrid",
+      "i4-turbo",
+      "v8-na",
+      "v8-crossplane-turbo",
+      "v10-na",
+      "v12-na",
+      "flat6-na",
+      "i4-na",
+      "v4-bike",
+      "i4-bike",
+      "single-mx",
+      "two-stroke-kart",
+      "electric",
+      "v6-na",
+      "v6-turbo",
+      "i5-turbo",
+      "i6-turbo",
+      "flat4-turbo",
+      "flat12-na",
+      "v12-turbo",
+      "fuel-cell",
+      "i3-bike",
+      "two-stroke-bike",
+      "v8-truck"
+    ],
+    "familyCount": 24,
+    "familyBandPairs": 72,
+    "graphByteIdentical": true,
+    "values": {
+      "equal": true,
+      "comparedNumbers": 493,
+      "mismatches": 0,
+      "firstMismatch": null,
+      "maxFiniteDifference": 0,
+      "matchedNaNs": 0,
+      "matchedNegativeZeros": 0,
+      "checksums": {
+        "baseline": "b50080696df11f89741972cb8631e9755a87c98f5d854dd11be7782a547d05e7",
+        "current": "b50080696df11f89741972cb8631e9755a87c98f5d854dd11be7782a547d05e7"
+      }
+    },
+    "inputsUnchanged": true,
+    "serializedSha256": "1030e2f93a1e84befcc66402abc5e7fc5797a3266477bb5d68b59e050f858ae1"
+  },
+  "equalityPolicy": "Direct Object.is for every returned double: matching NaNs are equal, opposite zero signs differ, all finite values and infinities must match exactly. Checksums canonicalize NaN payloads only and supplement direct comparison. Complete fixture bytes are compared and checked for mutation.",
+  "cacheAccounting": {
+    "candidateLogicalPayloadBytes": 655360,
+    "candidateLogicalPayloadKiB": 640,
+    "baselineBasisPayloadBytes": 0,
+    "heapMeasured": false,
+    "note": "One lazy Float64Array(2048 * 40) per initialized candidate module, including unused column zero. Typed-array headers, existing WeakMap profile entries, allocator/GC behavior, and ESM instance retention are additional, unmeasured costs."
+  },
+  "untimedEdgeProof": {
+    "equal": true,
+    "comparedNumbers": 24,
+    "mismatches": 0,
+    "firstMismatch": null,
+    "maxFiniteDifference": 0,
+    "matchedNaNs": 8,
+    "matchedNegativeZeros": 0,
+    "checksums": {
+      "baseline": "75f7801cc5b2099523cc1a0f2a01a3508da91bc844914a8cf5067a25a6e3361e",
+      "current": "75f7801cc5b2099523cc1a0f2a01a3508da91bc844914a8cf5067a25a6e3361e"
+    },
+    "timing": null,
+    "spectra": 8,
+    "description": "Complete waveform returns plus K-weight/low-pass edge calls and inactive gains. Includes NaN, infinities, empty/silent input, signed-zero input and a long fallback. Comparator explicitly rejects opposite zero signs and accepts matching NaNs."
+  },
+  "operations": {
+    "mode": "separate-untimed-instrumentation-process",
+    "timingsCollected": false,
+    "rows": [
+      {
+        "name": "cold-first-waveform",
+        "calls": 1,
+        "operations": {
+          "baseline": {
+            "sin": 79872,
+            "cos": 0,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 79872,
+            "cos": 0,
+            "float64Allocations": 1,
+            "float64PayloadBytes": 655360
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 2,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "dc9cd966d0932a3d369f9624dc0edaf3b310afb235c25be46d67bea0c3493481",
+            "current": "dc9cd966d0932a3d369f9624dc0edaf3b310afb235c25be46d67bea0c3493481"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 873,
+          "inputChecksums": {
+            "baseline": "e4a3ebde11abf59d3f125021828fafe030634995fb25f99563fa20bb4d5fd75c",
+            "current": "e4a3ebde11abf59d3f125021828fafe030634995fb25f99563fa20bb4d5fd75c"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "cold-first-family",
+        "calls": 1,
+        "operations": {
+          "baseline": {
+            "sin": 239733,
+            "cos": 819,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 79873,
+            "cos": 235,
+            "float64Allocations": 1,
+            "float64PayloadBytes": 655360
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 1,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "5ac1326b726a8c6afec95a2f278cacfbba262ba431e40e0e02191d69555c562e",
+            "current": "5ac1326b726a8c6afec95a2f278cacfbba262ba431e40e0e02191d69555c562e"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 555,
+          "inputChecksums": {
+            "baseline": "f64e689ca60bdbf8a4af06eb46ed29ba0f27e6f85a3305532da69309fd556036",
+            "current": "f64e689ca60bdbf8a4af06eb46ed29ba0f27e6f85a3305532da69309fd556036"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "warm-basis-first-family",
+        "calls": 1,
+        "operations": {
+          "baseline": {
+            "sin": 239733,
+            "cos": 819,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 1,
+            "cos": 235,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 1,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "5ac1326b726a8c6afec95a2f278cacfbba262ba431e40e0e02191d69555c562e",
+            "current": "5ac1326b726a8c6afec95a2f278cacfbba262ba431e40e0e02191d69555c562e"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 555,
+          "inputChecksums": {
+            "baseline": "f64e689ca60bdbf8a4af06eb46ed29ba0f27e6f85a3305532da69309fd556036",
+            "current": "f64e689ca60bdbf8a4af06eb46ed29ba0f27e6f85a3305532da69309fd556036"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "warm-basis-fresh-profiles",
+        "calls": 2,
+        "operations": {
+          "baseline": {
+            "sin": 479466,
+            "cos": 1638,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 2,
+            "cos": 470,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 2,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "1d46127e2b210dbc339eb590e42113d8114317d2ff0ef28bbbf586f20386eb05",
+            "current": "1d46127e2b210dbc339eb590e42113d8114317d2ff0ef28bbbf586f20386eb05"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 961,
+          "inputChecksums": {
+            "baseline": "663d2d230b6bbb702b90c7dfcb152061481d81f57061606763470bafd849781e",
+            "current": "663d2d230b6bbb702b90c7dfcb152061481d81f57061606763470bafd849781e"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "all-72-waveforms-cold",
+        "calls": 72,
+        "operations": {
+          "baseline": {
+            "sin": 5750784,
+            "cos": 0,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 79872,
+            "cos": 0,
+            "float64Allocations": 1,
+            "float64PayloadBytes": 655360
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 144,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "0f12183481ee576278d07dd5b9f2fc837a1c637488fd5522d7d875f89e1d30ac",
+            "current": "0f12183481ee576278d07dd5b9f2fc837a1c637488fd5522d7d875f89e1d30ac"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 60131,
+          "inputChecksums": {
+            "baseline": "7cad6698aa1acd6da003072b2159abc11f84a913e6ded5ac0c7d71b0f16f47c6",
+            "current": "7cad6698aa1acd6da003072b2159abc11f84a913e6ded5ac0c7d71b0f16f47c6"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "all-72-waveforms-warm",
+        "calls": 72,
+        "operations": {
+          "baseline": {
+            "sin": 5750784,
+            "cos": 0,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 0,
+            "cos": 0,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 144,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "0f12183481ee576278d07dd5b9f2fc837a1c637488fd5522d7d875f89e1d30ac",
+            "current": "0f12183481ee576278d07dd5b9f2fc837a1c637488fd5522d7d875f89e1d30ac"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 60131,
+          "inputChecksums": {
+            "baseline": "7cad6698aa1acd6da003072b2159abc11f84a913e6ded5ac0c7d71b0f16f47c6",
+            "current": "7cad6698aa1acd6da003072b2159abc11f84a913e6ded5ac0c7d71b0f16f47c6"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "cached-117-harmonic-updates",
+        "calls": 1,
+        "operations": {
+          "baseline": {
+            "sin": 117,
+            "cos": 819,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 1,
+            "cos": 235,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 1,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "1f6e89db76f27b47e822dca9b7e5ef67ca16bbff6121772facf0c4498b60feea",
+            "current": "1f6e89db76f27b47e822dca9b7e5ef67ca16bbff6121772facf0c4498b60feea"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 31811,
+          "inputChecksums": {
+            "baseline": "6ae42d3567d28ce16411d0897af2dc44646287031079a4d6165dd0296181c59a",
+            "current": "6ae42d3567d28ce16411d0897af2dc44646287031079a4d6165dd0296181c59a"
+          }
+        },
+        "elapsedMs": null
+      },
+      {
+        "name": "cached-zero-gain-control",
+        "calls": 1,
+        "operations": {
+          "baseline": {
+            "sin": 0,
+            "cos": 0,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          },
+          "current": {
+            "sin": 0,
+            "cos": 0,
+            "float64Allocations": 0,
+            "float64PayloadBytes": 0
+          }
+        },
+        "equivalence": {
+          "equal": true,
+          "comparedNumbers": 1,
+          "mismatches": 0,
+          "firstMismatch": null,
+          "maxFiniteDifference": 0,
+          "matchedNaNs": 0,
+          "matchedNegativeZeros": 0,
+          "checksums": {
+            "baseline": "6c3c396ed6b5c36dcae172271f462051b1266b851e92df3deea8ac65478fd712",
+            "current": "6c3c396ed6b5c36dcae172271f462051b1266b851e92df3deea8ac65478fd712"
+          },
+          "inputsEqual": true,
+          "inputsUnchanged": true,
+          "inputBytes": 38118,
+          "inputChecksums": {
+            "baseline": "a3787268f9e4b0efd139b1b64376bd9b68258fb466b72c228850523aef2676a2",
+            "current": "a3787268f9e4b0efd139b1b64376bd9b68258fb466b72c228850523aef2676a2"
+          }
+        },
+        "elapsedMs": null
+      }
+    ],
+    "inactiveModuleCold": {
+      "baseline": {
+        "sin": 0,
+        "cos": 0,
+        "float64Allocations": 0,
+        "float64PayloadBytes": 0
+      },
+      "current": {
+        "sin": 0,
+        "cos": 0,
+        "float64Allocations": 0,
+        "float64PayloadBytes": 0
+      }
+    },
+    "limitation": "Math.sin/Math.cos and Float64Array construction are wrapped only in --mode counts. This mode never performs timing. Counts do not measure heap, GC, coefficient-array allocations, PCM, or device work."
+  },
+  "reports": [],
+  "equivalence": {
+    "passed": true,
+    "comparedWorkloadNumbers": 0,
+    "checkedPairs": 0
+  },
+  "timing": {
+    "validForComparison": false,
+    "limitation": "Untimed preparation only. Every workload duration is null; setup/import diagnostics are not performance evidence."
+  }
+}

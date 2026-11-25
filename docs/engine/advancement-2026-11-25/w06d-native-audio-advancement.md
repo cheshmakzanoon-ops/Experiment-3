@@ -1,10 +1,11 @@
 # W06D — native audio advancement acceptance
 
-Assignment 34/60, wave 6. **The first native run failed both new cases. The
-revised PCM contract and UI timeout diagnostics are prepared for another exact
-source CI run; native acceptance remains pending.** No production source,
-authored audio profile, recipe, tuning, model, character, environment, dependency,
-or workflow changed.
+Assignment 34/60, wave 6. **The exact-input / bounded-PCM case passed native CI
+45579529295 at source `6a1c76f`. That run localized the remaining UI failure to
+the fixture awaiting an abandoned native resume after its context had closed.
+The lifecycle fixture correction is locally checked and awaits native CI.**
+No production source, authored audio profile, recipe, tuning, model, character,
+environment, dependency, or workflow changed.
 
 Owned files:
 
@@ -89,6 +90,44 @@ not associative. This is a source-supported explanation, not a measurement of
 the failed browser's internal pointer order; those links describe the inspected
 Chromium main implementation, not a verified checkout of its exact locked tag.
 
+## Checkpoint 5 — PCM accepted, abandoned resume identified
+
+Workflow **45579529295**, exact source **`6a1c76f`**, passed the revised PCM case.
+All four original/current comparisons had **489 exact supplied-input events**
+and zero input differences. All same-implementation controls at 44.1, 48 and
+96 kHz passed the unchanged Float32 contract. Maximum original/current PCM
+errors were `7.450580596923828e-9`, `1.4901161193847656e-8`,
+`1.862645149230957e-8` and `3.725290298461914e-8`, respectively. The native gain
+perturbation was rejected, with maximum error `0.0000667870044708252` and
+relative RMS errors about `0.000975610` in both channels. No numerical tolerance
+or PCM assertion is changed by the subsequent UI correction.
+
+The passing 87,196-byte PCM attachment has SHA-256
+`8335dbe74b335fbcb7cf3031942ae9b482a8b751c2032d3d9821fcb01e1fcc6e`.
+The 16,572-byte UI diagnostic has SHA-256
+`56a8217ee86b0c17ab66016570f3773c61a6521e886c2d279cf8a0b8ef271d35`.
+Both remain under the coordinator's `checkpoint5-artifact` directory, alongside
+the exact-source browser log and trace archive.
+
+The UI failure stage was `settle-old-resumes-and-closes`. Its snapshot after
+the ten-second guard expired was:
+
+| Context                | Native state | Close requests / outcomes | Resume requests / outcomes | Nodes disconnected                  | Remaining source handlers |
+| ---------------------- | ------------ | ------------------------- | -------------------------- | ----------------------------------- | ------------------------- |
+| First discarded owner  | closed       | 1 / fulfilled             | 0 / none                   | 10 of 10                            | 0                         |
+| Second discarded owner | closed       | 1 / fulfilled             | 1 / **still pending**      | 10 of 10                            | 0                         |
+| Current replacement    | running      | 0 / none                  | 0 / none                   | 7 of 10, its completed cue branches | 0                         |
+
+The only unsettled promise in that awaited collection was the second owner's
+resume. Its native close had fulfilled, its old nodes and handlers were
+released, and the replacement remained running. This is a **fixture completion
+requirement defect**, not evidence of a production ownership defect. Production
+`UiSounds` clears ownership synchronously and never schedules a cue from the
+discarded resume's completion. The correction uses the required native closes
+and replacement source completion as barriers; it does not increase the timeout,
+force the old promise to settle, or claim that all browser versions settle it
+the same way.
+
 ## Case 1 — exact native inputs and bounded stereo PCM
 
 Both constructors run the real four-voice `EngineVoices` graph in native
@@ -116,7 +155,8 @@ The four principal pairs still compare **297,216 Float32 sample values per
 implementation**. Extra original/original and current/current renders at 48 and
 96 kHz extend the existing 44.1 kHz cold/warm self-controls to every rate. One
 native perturbation render brings the fixture to **13 renders and 1,019,520
-sample values**. These are authored budgets, not claimed passing CI results.
+sample values**. Checkpoint 5 executed this budget successfully; its exact
+source and attachment are recorded above.
 
 Exactness applies to the inputs supplied to native processing. Forwarding
 observers record every PeriodicWave coefficient, wave assignment, graph
@@ -184,14 +224,36 @@ replacements:
    native context, ask for a cue while suspended, then suspend the `UiSounds`
    owner before its actual resume promise is observed. The request must remain
    unqueued. A third fresh context must accept a deliberate cue and remain
-   running after the earlier resume/close promises settle.
+   the current running owner after both old native closes fulfill.
 
 Captured old `ended` handlers are then explicitly invoked against their original
 sources. This delivery is **controlled adversarial input**, not a claim that the
 browser naturally delivered those callbacks in that order. The surrounding
 contexts, sources, disconnections, resume and close promises are native. The
 replacement's node/handler/ownership snapshot must remain unchanged through the
-controlled deliveries.
+controlled deliveries. The same six captured handlers are delivered again after
+the replacement cue's native completion, and must still change nothing.
+
+The fixture awaits all three replacement sources' actual `ended` events,
+registering observational listeners after the production handlers so the
+production cleanup runs first. This supplies a native event barrier without an
+arbitrary sleep. At that point the old contexts must still be closed, their
+closes fulfilled, all their nodes disconnected, and their source counts fixed
+at three each. The replacement must still be the owned running context, with
+three sources total, zero cue ownership, and exactly its three bus nodes still
+connected. `played` must remain three: the cue attempted during suspension must
+not have been queued or revived. Its discarded resume's actual status is
+recorded as pending, fulfilled or rejected after old closure, replacement
+completion and final disposal; none of these statuses is manufactured.
+
+The [Web Audio Recommendation's close operation](https://www.w3.org/TR/2021/REC-webaudio-20210617/#dom-audiocontext-close)
+releases context resources and stops audio processing, while application-owned
+objects still require cleanup. Its
+[scheduled-source ended event](https://www.w3.org/TR/2021/REC-webaudio-20210617/#dom-audioscheduledsourcenode-onended)
+provides the completion event for a source reaching its stop time. These are the
+completion barriers asserted here. The checkpoint's older resume remained
+pending despite the fulfilled close; that is an observed browser outcome,
+not a claimed universal promise-settlement rule.
 
 A further fresh cue verifies that the replacement remains usable. Terminal
 disposal must close every context once, disconnect every observed node, remove
@@ -199,16 +261,14 @@ all cue ownership and handlers, and prevent a later event from creating sound.
 Native asynchronous operations have a bounded ten-second fixture deadline;
 all contexts are closed in `finally`, including failure paths.
 
-The first CI run failed this case with a generic ten-second native-operation
-timeout, before its result attachment existed. The original trace did not
-identify which await timed out. No production defect or browser resume defect
-is claimed from that evidence. The diagnostic revision preserves the existing
-resume-settlement and lifecycle assertions. It labels each await, records stage
-history, activation, context states and observed resume/close outcomes, and
-attaches the diagnostic snapshot even when evaluation throws. Cleanup also has
-a bounded deadline and records its failure without replacing the original
-error. A further native run must locate the failing stage before its semantics
-are changed.
+The first CI run failed this case before a diagnostic attachment existed. The
+second run supplied the concrete evidence above. Stage-labelled deadlines,
+activation/context history and native resume/close outcomes remain attached
+even when evaluation throws. Required closes now use `Promise.all`, so a native
+close rejection fails immediately; abandoned resume promises are observed but
+excluded from that completion collection. Cleanup remains bounded and records
+its failure without replacing an earlier error. The revised lifecycle case
+still needs its own passing native run.
 
 This case verifies native ownership and lifecycle behavior. It does not measure
 live output PCM, physical playback, audible latency, or speaker silence.
@@ -229,7 +289,9 @@ restriction workaround was attempted.
 | Scoped Prettier                                       | Passed                                |
 | Playwright discovery                                  | 2 cases in one file                   |
 | Original native run                                   | **Both cases failed; retained above** |
-| Revised native contract / UI diagnostic execution     | **Pending CI**                        |
+| Exact native inputs / bounded PCM at `6a1c76f`        | **Passed, workflow 45579529295**      |
+| UI diagnostic at `6a1c76f`                            | **Abandoned resume localized**        |
+| Corrected native UI lifecycle case                    | **Pending CI**                        |
 
 The exact beforeAll callback was selected using the TypeScript AST and executed
 with its normal dependencies for the local bundle/source check. This runs the
@@ -237,7 +299,9 @@ same archive, dependency, input-manifest, and bundle checks used in CI; it does
 not execute either browser case. Original preparation evidence remains at
 `/tmp/aeebac160835-engine/validation/w06d-local-bundle.json`; revised preparation
 evidence is at
-`/tmp/aeebac160835-engine/validation/w06d-checkpoint5-local-bundle.json`.
+`/tmp/aeebac160835-engine/validation/w06d-checkpoint5-local-bundle.json`. The
+abandoned-resume correction's preparation is retained separately at
+`/tmp/aeebac160835-engine/validation/w06d-checkpoint6-local-bundle.json`.
 
 Scoped commands:
 

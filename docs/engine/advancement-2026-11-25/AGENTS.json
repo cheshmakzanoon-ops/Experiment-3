@@ -222,8 +222,8 @@
     "wave": 6,
     "name": "w06b_native_page_history",
     "kind": "native browser verification",
-    "status": "native correction ready",
-    "native_validation": "first strict restore admitted at992; direct request/epoch ownership correction prepared, full rerun pending"
+    "status": "complete",
+    "native_validation": "passed both native restore cycles and terminal cleanup at6a1c76f, CI45579529295"
   },
   {
     "number": 33,
@@ -231,15 +231,15 @@
     "name": "w06c_native_gpu_advancement",
     "kind": "native browser verification",
     "status": "native diagnostic ready",
-    "native_validation": "upload passed; shared-fence pixel failure retained, detailed diagnostic prepared for next CI"
+    "native_validation": "upload passed; six-path raster/readback matrix prepared; strict full-pixel check remains failed pending diagnostic CI"
   },
   {
     "number": 34,
     "wave": 6,
     "name": "w06d_native_audio_advancement",
     "kind": "native browser verification",
-    "status": "native diagnostic ready",
-    "native_validation": "exact native inputs plus bounded Float32 PCM contract and live context stage diagnostics ready; rerun pending"
+    "status": "native correction ready",
+    "native_validation": "PCM passed6a1c76f; closed-context abandoned-resume await corrected with required closes/native-ended barrier; nextCI pending"
   },
   {
     "number": 35,
@@ -255,7 +255,7 @@
     "name": "w06f_native_device_ownership",
     "kind": "native browser verification",
     "status": "complete",
-    "native_validation": "pending CI"
+    "native_validation": "both native device ownership cases passed6a1c76f, CI45579529295"
   },
   {
     "number": 37,
@@ -278,31 +278,55 @@
     "wave": 7,
     "name": "w07c_network_measurement",
     "kind": "measurement",
-    "status": "preparing",
-    "measurement_validation": "resumed untimed preparation; timing still needs reservation"
+    "status": "complete",
+    "measurement_validation": "10 cases /120 pairs exact at6a1c76f; small-recipient regression retained for follow-up"
   },
   {
     "number": 40,
     "wave": 7,
     "name": "w07d_audio_measurement",
     "kind": "measurement",
-    "status": "preparation paused",
-    "measurement_validation": "no timing authorized or run"
+    "status": "complete",
+    "measurement_validation": "8 cases /80 pairs exact at6a1c76f; five consistent gains, first-use/zero-gain penalties and640KiB cost retained"
   },
   {
     "number": 41,
     "wave": 7,
     "name": "w07e_attribute_measurement",
     "kind": "measurement",
-    "status": "preparation paused",
-    "measurement_validation": "no timing authorized or run"
+    "status": "complete",
+    "measurement_validation": "26 cases /52 workloads /624 pairs exact at6a1c76f; all disjoint CPU regressions and upload benefits retained"
   },
   {
     "number": 42,
     "wave": 7,
     "name": "w07f_simulation_measurement",
     "kind": "measurement",
-    "status": "preparing",
-    "measurement_validation": "untimed preflight only; timing needs root reservation"
+    "status": "complete",
+    "measurement_validation": "six combined Simulation cases /72 pairs /81168000 packed bytes exact at6a1c76f; rain/storm gains and mixed controls retained"
+  },
+  {
+    "number": 43,
+    "wave": 8,
+    "name": "w08a_physics_cache_review",
+    "kind": "independent adversarial review",
+    "status": "reviewing",
+    "scope": "physics/lane/surface correctness and measured cache tradeoffs; production read-only pending root allocation"
+  },
+  {
+    "number": 44,
+    "wave": 8,
+    "name": "w08b_network_review",
+    "kind": "independent adversarial review",
+    "status": "reviewing",
+    "scope": "network correctness and separate snapshot batching crossover preparation; production read-only until root allocation"
+  },
+  {
+    "number": 45,
+    "wave": 8,
+    "name": "w08c_storage_records_review",
+    "kind": "independent adversarial review",
+    "status": "reviewing",
+    "scope": "ghost/telemetry/flashback correctness and persisted-record compatibility"
   }
 ]

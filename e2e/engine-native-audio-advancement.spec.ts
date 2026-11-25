@@ -202,7 +202,7 @@ test('native engine inputs remain exact and mixed PCM meets its Float32 contract
   expect(errors).toEqual([]);
 });
 
-test('native menu contexts release old cues and pending resumes without closing their replacement', async ({
+test('native menu contexts release old cues across an abandoned resume and preserve their replacement', async ({
   page,
 }, info) => {
   const errors = await load(page);
@@ -240,28 +240,65 @@ test('native menu contexts release old cues and pending resumes without closing 
   expect(report.afterFirstSuspend.graph.disconnected).toBe(report.afterFirstSuspend.graph.nodes);
   expect(report.afterFirstSuspend.graph.sourceHandlers).toBe(0);
   expect(report.suspendedState).toBe('suspended');
+  expect(report.afterPendingCue).toEqual(report.beforePendingCue);
   expect(report.pendingCueAccepted).toBe(false);
   expect(report.resumeWasPending).toBe(true);
+  expect(report.ownerAfterSecondSuspend).toBe(-1);
   expect(report.controlledOldCallbacks).toBe(6);
+  expect(report.controlledLateOldCallbacks).toBe(6);
   expect(report.replacementBefore.cues).toBe(1);
   expect(report.replacementBefore.graph.state).toBe('running');
   expect(report.replacementBefore.graph.sources).toBe(3);
   expect(report.replacementAfter).toEqual(report.replacementBefore);
-  expect(report.afterSettled.map((context) => context.state)).toEqual([
+  expect(report.afterOldCloses.map((context) => context.state)).toEqual([
     'closed',
     'closed',
     'running',
   ]);
-  expect(report.afterSettled[1].resumeRequests).toBe(1);
-  expect(report.afterSettled[1].resumeOutcomes).toHaveLength(1);
+  expect(report.afterOldCloses.map((context) => context.sources)).toEqual([3, 3, 3]);
+  expect(report.ownerAfterOldCloses).toBe(2);
+  expect(report.playedAfterOldCloses).toBe(3);
+  expect(report.replacementDrained).toMatchObject({
+    cues: 0,
+    played: 3,
+    owner: 2,
+    nativeEnded: 3,
+    graph: { state: 'running', sources: 3, closeRequests: 0, resumeRequests: 0, sourceHandlers: 0 },
+  });
+  expect(report.replacementAfterLateCallbacks).toEqual(report.replacementDrained);
+  expect(report.replacementDrained.graph.disconnected).toBe(
+    report.replacementDrained.graph.nodes - 3,
+  );
+  expect(report.afterReplacementEnded.map((context) => context.state)).toEqual([
+    'closed',
+    'closed',
+    'running',
+  ]);
+  expect(report.afterReplacementEnded.map((context) => context.sources)).toEqual([3, 3, 3]);
+  for (const snapshot of [report.afterOldCloses, report.afterReplacementEnded]) {
+    expect(snapshot[1].resumeRequests).toBe(1);
+    expect(snapshot[1].resumeOutcomes.length).toBeLessThanOrEqual(1);
+    for (const context of snapshot.slice(0, 2)) {
+      expect(context.closeRequests).toBe(1);
+      expect(context.closeOutcomes).toEqual(['fulfilled']);
+      expect(context.disconnected).toBe(context.nodes);
+      expect(context.sourceHandlers).toBe(0);
+    }
+  }
+  for (const status of Object.values(report.abandonedResume)) {
+    expect(['pending', 'fulfilled', 'rejected']).toContain(status);
+  }
   expect(report.deliberateFreshCue).toBe(true);
   expect(report.playedBeforeDispose).toBe(4);
   expect(report.playedAfterDispose).toBe(4);
   expect(report.finalCues).toBe(0);
+  expect(report.finalOwner).toBe(-1);
   expect(report.final.map((context) => context.sources)).toEqual([3, 3, 5]);
+  expect(report.final.map((context) => context.resumeRequests)).toEqual([0, 1, 0]);
   for (const context of report.final) {
     expect(context.state).toBe('closed');
     expect(context.closeRequests).toBe(1);
+    expect(context.closeOutcomes).toEqual(['fulfilled']);
     expect(context.disconnected).toBe(context.nodes);
     expect(context.sourceHandlers).toBe(0);
   }

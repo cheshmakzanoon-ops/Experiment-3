@@ -91,3 +91,32 @@ The failed result is retained, including sanitized logs, source/tree/lock identi
 backend identity, native result attachments and archive digest, under
 `evidence/checkpoint-9922926/`. Existing passing tests do not substitute for the
 four failed checks. The native backend remains Mesa llvmpipe software graphics.
+
+## Native diagnostics and measured baseline comparisons
+
+`6a1c76fae3736e4d814ab6d0a354f6837320731c` publishes native DOM/controller
+ownership cases, direct RAF request/epoch accounting, complete GPU readback
+diagnostics and a revised audio acceptance fixture. Original/original PCM also
+differed in the failed native run, so mixed native output is now tested against
+a documented Float32 fixture contract with same-rate self-controls and a real
+gain perturbation; supplied waveform, graph and automation inputs remain exact.
+The GPU pixel mismatch and live audio timeout retain their original assertions
+and need the more detailed native diagnostics.
+
+The checkpoint also retains both actual-source paired measurement reports. Warm
+paved lane queries improved 1.76–3.70 times, while deliberately all-miss streams
+were 2.19–2.67 times slower. Surface rain and staged mutable-weather workloads
+improved; first wet updates, changing-timestep solvers and some other cases
+regressed. See W07A and W07B for every sample, timing boundary, controls, source
+identity, pair-order analysis and exact-output checks. These are local CPU
+workload results, not game-wide frame-rate or physical-hardware measurements.
+
+The [exact-source workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45579529295)
+passed 820 unit tests in 65 files, full TypeScript checking and the production
+build. The browser run passed 45 of 47 cases, including both native device cases,
+all revised PCM checks and both strict BFCache restoration cycles followed by
+terminal reload cleanup. The remaining audio failure waits for an abandoned
+resume after its context has closed; required close promises did fulfill. The
+GPU failure now records complete striped pixel data for diagnosis. Both failed
+checks and all new passing native evidence are preserved under
+`evidence/checkpoint-6a1c76f/`; the overall workflow is still failed.

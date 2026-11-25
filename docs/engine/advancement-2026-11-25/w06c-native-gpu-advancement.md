@@ -1,9 +1,10 @@
 # W06C — native GPU upload and fence acceptance
 
 Assignment 33/60, wave 6. Adds two browser acceptance cases for the production
-attribute-range helper and shared GPU gate. The first exact-source native run
+attribute-range helper and shared GPU gate. Two exact-source native runs
 passed the upload case but failed the shared-fence case's complete-image
-control. **The shared-fence case remains failed pending diagnosis and rerun.**
+control with the same reproducible pixel pattern. **The shared-fence case remains
+failed pending diagnosis and rerun.**
 Local compilation and discovery are not reported as a native GPU pass.
 
 Owned files:
@@ -180,6 +181,72 @@ its strict assertions remain unchanged. No local browser run or additional
 TypeScript/build process was started; the coordinator reserved available memory
 for the other active work and the exact-source CI compiler check.
 
+## Second native run and raster-path isolation
+
+The diagnostic rerun
+[45579529295](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45579529295)
+used commit `6a1c76fae3736e4d814ab6d0a354f6837320731c` and the same reported
+ANGLE/Mesa/llvmpipe backend. The upload case passed again. The shared-fence case
+again failed its strict full-image comparison, with exactly the same red and
+green hashes recorded above.
+
+The complete readback now makes the discrepancy reproducible: each red row is
+`red, blue, green, red, red, blue, green, red`; each green row is
+`green, red, blue, green, green, red, blue, green`. Each image contains 32 pixels
+of the intended colour and 16 pixels of each other primary colour. All 64 alpha
+values are 255. Red mismatch counts by channel are `[32, 16, 16, 0]`; every row
+has eight differing bytes.
+
+The recorded state has an 8×8 viewport and scissor, disabled scissor testing,
+`PACK_ALIGNMENT = 4`, zero row length/skips, and a complete framebuffer. Material
+colours are exactly `[1, 0, 0]` and `[0, 1, 0]`, material dithering/tone mapping
+are disabled, and output colour space is linear sRGB. The report contains 19
+real zero-time waits, including 17 timeouts and two satisfied results. Pending
+ownership and handoff assertions again passed before the image failure; this
+does not turn the whole shared-fence test into a pass.
+
+Installed Three 0.180.0's `WebGLRenderer.readRenderTargetPixels` calls the native
+`readPixels` API with the target texture's format/type. Its `WebGLTextures`
+implementation selects `RGBA8` for the default unsigned-byte RGBA target with
+no sRGB transfer. The
+[Khronos WebGL 2 specification](https://registry.khronos.org/webgl/specs/latest/2.0/)
+defines the relevant native readback and framebuffer-attachment queries. These
+contracts do not identify the cause of the observed stripes. A packing,
+shader/uniform, backend, or fixture issue remains a hypothesis until a control
+separates the paths; no production-engine change is justified yet.
+
+A failure-only diagnostic now uses a separate native context and the same
+8×8 RGBA target to compare six paths:
+
+| Input path                                       | Boundary exercised                                   |
+| ------------------------------------------------ | ---------------------------------------------------- |
+| Three MeshBasic red draw                         | Original minimal Three material path                 |
+| Native `clearBufferfv` with red RGBA             | Native colour clear without a shader draw            |
+| Native `texSubImage2D` with exact red RGBA bytes | CPU-to-texture publication without shader evaluation |
+| Raw shader with a constant red `vec4`            | Native rasterization without a colour uniform        |
+| Raw shader with a red `vec3` uniform             | Three/native three-component uniform path            |
+| Raw shader with a red `vec4` uniform             | Three/native four-component uniform path             |
+
+After each input, the actual shared gate submits and observes a real fence.
+Only then does the diagnostic compare a bulk native RGBA read, all 64 native
+1×1 pixel reads assembled in row order, and Three's bulk readback. Every path
+retains complete expected/actual bytes and hashes. The report also records
+attachment component sizes/type, implementation read format/type, actual native
+colour-uniform values for draw paths, shader logs, GL errors, and native gate
+counts. No synthetic wait status or blocking completion shortcut is used.
+
+This diagnostic runs only when the original image differs, attaches
+`native-gpu-raster-path-diagnostics.json`, and cannot replace or satisfy the
+original oracle. All red/green full-image and lease assertions retain their
+exact expected values. The pixel assertions now follow the complete fence and
+cleanup checks so a raster failure does not prevent those lifetime assertions
+from executing. Both failed checkpoints and their image evidence are retained.
+
+The matrix fixture bundles locally to **1,117,564 bytes with seven inputs**;
+scoped ESLint and formatting passed. No local browser, full compiler/build, npm
+lifecycle hook, or production-source change was run. Native matrix execution
+and any resulting cause classification remain pending CI.
+
 ## CI evidence to retain
 
 The existing `engine-native-*.spec.ts` workflow glob includes these cases. Each
@@ -187,9 +254,10 @@ test attaches its report before checking the returned assertions:
 
 - `native-gpu-attribute-uploads.json`
 - `native-gpu-shared-fences.json`
+- `native-gpu-raster-path-diagnostics.json` when the shared-frame pixel oracle fails
 
 CI must execute both cases without retries or skips and retain the exact source
-commit/tree and backend identity. The diagnostic rerun is pending at handoff.
+commit/tree and backend identity. The raster-path diagnostic rerun is pending at handoff.
 Even after passing, this is native software-renderer correctness and lifetime
 evidence, not a physical-GPU, game-wide image-equivalence, latency, FPS, energy
 or performance result.

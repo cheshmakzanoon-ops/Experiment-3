@@ -1,0 +1,1254 @@
+{
+  "report": {
+    "boundaries": {
+      "gamepad": "scripted navigator.getGamepads",
+      "dom": "native browser",
+      "animationFrames": "native callbacks and timestamps, forwarding instrumentation",
+      "listenerAccounting": "forwarded registration/removal on production owner targets",
+      "physicalControllerValidated": false,
+      "nativeHistoryValidated": false
+    },
+    "stages": [
+      {
+        "label": "open",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "menuFocus",
+          "modalOpen": false,
+          "contentGeneration": 0,
+          "creditGeneration": 0,
+          "closeRequests": 0,
+          "creditActions": 0,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": null,
+          "padMarker": null,
+          "gamepadReads": 3,
+          "pendingRafs": 1,
+          "ownedListeners": 8,
+          "owners": {
+            "menu": {
+              "scheduled": 4,
+              "delivered": 3,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1184.9,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            }
+          },
+          "focusEvents": [],
+          "clicks": []
+        }
+      },
+      {
+        "label": "credits opened through native button",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditsList",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 0,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": null,
+          "gamepadReads": 17,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 12,
+              "delivered": 11,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1484.9,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 6,
+              "delivered": 5,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1484.9,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            }
+          ]
+        }
+      },
+      {
+        "label": "held input while child owns focus",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "focus-target",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 0,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": null,
+          "gamepadReads": 31,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 19,
+              "delivered": 18,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1601.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 13,
+              "delivered": 12,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1601.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            }
+          ]
+        }
+      },
+      {
+        "label": "same held input after native focus return",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 0,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": null,
+          "gamepadReads": 43,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 25,
+              "delivered": 24,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1701.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 19,
+              "delivered": 18,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1701.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            }
+          ]
+        }
+      },
+      {
+        "label": "neutral after focus return",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 0,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": null,
+          "gamepadReads": 49,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 28,
+              "delivered": 27,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1751.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 22,
+              "delivered": 21,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1751.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            }
+          ]
+        }
+      },
+      {
+        "label": "fresh credits A",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": null,
+          "gamepadReads": 55,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 31,
+              "delivered": 30,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1801.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 25,
+              "delivered": 24,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1801.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "neutral before scrolling",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": null,
+          "gamepadReads": 61,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 34,
+              "delivered": 33,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1851.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 28,
+              "delivered": 27,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1851.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "fresh down scroll",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 42,
+          "padMarker": null,
+          "gamepadReads": 67,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 37,
+              "delivered": 36,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1901.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 31,
+              "delivered": 30,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1901.6,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "neutral after scrolling",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 56,
+          "padMarker": null,
+          "gamepadReads": 75,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 41,
+              "delivered": 40,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1968.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 35,
+              "delivered": 34,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 1968.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "replacement controller with held actions and navigation",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 56,
+          "padMarker": null,
+          "gamepadReads": 81,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 44,
+              "delivered": 43,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2018.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 38,
+              "delivered": 37,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2018.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "replacement controller neutral",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "creditAction",
+          "modalOpen": true,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 0,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 56,
+          "padMarker": null,
+          "gamepadReads": 87,
+          "pendingRafs": 2,
+          "ownedListeners": 14,
+          "owners": {
+            "menu": {
+              "scheduled": 47,
+              "delivered": 46,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2068.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 41,
+              "delivered": 40,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2068.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 6
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "fresh Start closes credits",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "openCredits",
+          "modalOpen": false,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 1,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": "true",
+          "gamepadReads": 91,
+          "pendingRafs": 1,
+          "ownedListeners": 8,
+          "owners": {
+            "menu": {
+              "scheduled": 50,
+              "delivered": 49,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2118.3,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 41,
+              "delivered": 41,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2085,
+              "released": true,
+              "pending": 0,
+              "listeners": 0
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "held Start on restored menu",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "openCredits",
+          "modalOpen": false,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 1,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": "true",
+          "gamepadReads": 94,
+          "pendingRafs": 1,
+          "ownedListeners": 8,
+          "owners": {
+            "menu": {
+              "scheduled": 53,
+              "delivered": 52,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2168.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 41,
+              "delivered": 41,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2085,
+              "released": true,
+              "pending": 0,
+              "listeners": 0
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "menu neutral",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "openCredits",
+          "modalOpen": false,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 1,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [],
+          "scrollTop": 0,
+          "padMarker": "true",
+          "gamepadReads": 97,
+          "pendingRafs": 1,
+          "ownedListeners": 8,
+          "owners": {
+            "menu": {
+              "scheduled": 56,
+              "delivered": 55,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2218.3,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 41,
+              "delivered": 41,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2085,
+              "released": true,
+              "pending": 0,
+              "listeners": 0
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "fresh menu Start",
+        "snapshot": {
+          "disposed": false,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "openCredits",
+          "modalOpen": false,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 1,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [
+            {
+              "submitter": "launch",
+              "constructor": "SubmitEvent",
+              "prevented": true
+            }
+          ],
+          "scrollTop": 0,
+          "padMarker": "true",
+          "gamepadReads": 100,
+          "pendingRafs": 1,
+          "ownedListeners": 8,
+          "owners": {
+            "menu": {
+              "scheduled": 59,
+              "delivered": 58,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2268.2,
+              "released": false,
+              "pending": 1,
+              "listeners": 8
+            },
+            "credits-1": {
+              "scheduled": 41,
+              "delivered": 41,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2085,
+              "released": true,
+              "pending": 0,
+              "listeners": 0
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      },
+      {
+        "label": "late input and focus after disposal",
+        "snapshot": {
+          "disposed": true,
+          "restored": false,
+          "nativeApisRestored": false,
+          "focused": true,
+          "activeElement": "menuFocus",
+          "modalOpen": false,
+          "contentGeneration": 1,
+          "creditGeneration": 1,
+          "closeRequests": 1,
+          "creditActions": 1,
+          "secondActions": 0,
+          "contentReplacements": 0,
+          "submits": [
+            {
+              "submitter": "launch",
+              "constructor": "SubmitEvent",
+              "prevented": true
+            }
+          ],
+          "scrollTop": 0,
+          "padMarker": "retained-after-dispose",
+          "gamepadReads": 100,
+          "pendingRafs": 0,
+          "ownedListeners": 0,
+          "owners": {
+            "menu": {
+              "scheduled": 59,
+              "delivered": 58,
+              "cancelled": 1,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2268.2,
+              "released": true,
+              "pending": 0,
+              "listeners": 0
+            },
+            "credits-1": {
+              "scheduled": 41,
+              "delivered": 41,
+              "cancelled": 0,
+              "maxPending": 1,
+              "duplicateTimestamps": 0,
+              "scheduledAfterRelease": 0,
+              "deliveredAfterRelease": 0,
+              "lastTimestamp": 2085,
+              "released": true,
+              "pending": 0,
+              "listeners": 0
+            }
+          },
+          "focusEvents": [
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "focus-target"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            },
+            {
+              "type": "blur",
+              "trusted": true,
+              "active": "outside-focus"
+            },
+            {
+              "type": "focus",
+              "trusted": true,
+              "active": ""
+            }
+          ],
+          "clicks": [
+            {
+              "target": "openCredits",
+              "trusted": true,
+              "owner": null
+            },
+            {
+              "target": "creditAction",
+              "trusted": false,
+              "owner": "credits-1"
+            }
+          ]
+        }
+      }
+    ],
+    "current": {
+      "disposed": true,
+      "restored": true,
+      "nativeApisRestored": true,
+      "focused": true,
+      "activeElement": "menuFocus",
+      "modalOpen": false,
+      "contentGeneration": 1,
+      "creditGeneration": 1,
+      "closeRequests": 1,
+      "creditActions": 1,
+      "secondActions": 0,
+      "contentReplacements": 0,
+      "submits": [
+        {
+          "submitter": "launch",
+          "constructor": "SubmitEvent",
+          "prevented": true
+        }
+      ],
+      "scrollTop": 0,
+      "padMarker": "retained-after-dispose",
+      "gamepadReads": 100,
+      "pendingRafs": 0,
+      "ownedListeners": 0,
+      "owners": {
+        "menu": {
+          "scheduled": 59,
+          "delivered": 58,
+          "cancelled": 1,
+          "maxPending": 1,
+          "duplicateTimestamps": 0,
+          "scheduledAfterRelease": 0,
+          "deliveredAfterRelease": 0,
+          "lastTimestamp": 2268.2,
+          "released": true,
+          "pending": 0,
+          "listeners": 0
+        },
+        "credits-1": {
+          "scheduled": 41,
+          "delivered": 41,
+          "cancelled": 0,
+          "maxPending": 1,
+          "duplicateTimestamps": 0,
+          "scheduledAfterRelease": 0,
+          "deliveredAfterRelease": 0,
+          "lastTimestamp": 2085,
+          "released": true,
+          "pending": 0,
+          "listeners": 0
+        }
+      },
+      "focusEvents": [
+        {
+          "type": "blur",
+          "trusted": true,
+          "active": "focus-target"
+        },
+        {
+          "type": "focus",
+          "trusted": true,
+          "active": ""
+        },
+        {
+          "type": "blur",
+          "trusted": true,
+          "active": "outside-focus"
+        },
+        {
+          "type": "focus",
+          "trusted": true,
+          "active": ""
+        }
+      ],
+      "clicks": [
+        {
+          "target": "openCredits",
+          "trusted": true,
+          "owner": null
+        },
+        {
+          "target": "creditAction",
+          "trusted": false,
+          "owner": "credits-1"
+        }
+      ]
+    }
+  },
+  "errors": []
+}

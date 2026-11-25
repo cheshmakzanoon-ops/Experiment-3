@@ -1,0 +1,33 @@
+{
+  "commit": "6a1c76fae3736e4d814ab6d0a354f6837320731c",
+  "tree": "b96ef8e9d2acdc4d9ebc0ff787438f3dcdf98387",
+  "workflowRun": 45579529295,
+  "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45579529295",
+  "conclusion": "failure",
+  "artifactId": 15005748822,
+  "archiveSha256": "4213c14f31af6d5b5170d021f95ef23f0e7ee2c0776daffa8beb3b3c3f6e08b1",
+  "unitTests": 820,
+  "unitFiles": 65,
+  "fullTypeScriptCheck": "passed",
+  "productionBuild": "passed",
+  "browserReplayTestsPassed": 45,
+  "browserReplayTestsFailed": 2,
+  "physicalHardwareValidated": false,
+  "failures": [
+    {
+      "case": "native menu audio context ownership",
+      "observed": "discarded contexts closed and close promises fulfilled; an abandoned resume promise remained pending at10second deadline",
+      "status": "native fixture correction in progress; production no-revival assertions retained"
+    },
+    {
+      "case": "native shared GPU fences",
+      "observed": "red and green each have64differing bytes, repeating red/blue/green component stripes; lease checks passed",
+      "status": "raster/readback cause under investigation"
+    }
+  ],
+  "newPasses": [
+    "bounded native PCM with exact supplied inputs and real gain sensitivity",
+    "both native DOM/controller ownership cases",
+    "complete two-cycle native BFCache restore and terminal reload cleanup"
+  ]
+}

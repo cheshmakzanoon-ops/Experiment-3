@@ -457,6 +457,11 @@ function cueCount(sounds: UiSounds) {
   return (sounds as unknown as { cues: Set<unknown> }).cues.size;
 }
 
+function contextOwner(sounds: UiSounds, contexts: AudioContext[]) {
+  const current = (sounds as unknown as { context: AudioContext | null }).context;
+  return current ? contexts.indexOf(current) : -1;
+}
+
 function watchContext(context: AudioContext) {
   const nodes: AudioNode[] = [],
     sources: AudioScheduledSourceNode[] = [];
@@ -569,6 +574,7 @@ export function cueSuspensionDiagnostics() {
  * is controlled; it is not claimed as an observed native event ordering. */
 export async function cueSuspension() {
   const contexts = Array.from({ length: 3 }, () => new AudioContext({ sampleRate: 48000 }));
+  const endedObserver = new AbortController();
   let watched: ReturnType<typeof watchContext>[] = [];
   const diagnostic: SuspensionDiagnostic = {
     stage: 'created',
@@ -619,31 +625,74 @@ export async function cueSuspension() {
     await nativeDeadline('suspend-second-context', contexts[1].suspend());
     mark('second-context-suspended');
     const suspendedState = contexts[1].state;
+    const pendingCueSnapshot = () => ({
+      played: sounds!.played,
+      cues: cueCount(sounds!),
+      sources: watched[1].sources.length,
+    });
+    const beforePendingCue = pendingCueSnapshot();
     const pendingCueAccepted = sounds.cue('tick');
+    const afterPendingCue = pendingCueSnapshot();
     const resumeWasPending =
       watched[1].resumes.length === 1 && watched[1].snapshot().resumeOutcomes.length === 0;
     sounds.suspend();
+    const ownerAfterSecondSuspend = contextOwner(sounds, contexts);
     uiCue('confirm', target);
+    let nativeReplacementEnds = 0;
+    // Register after the production onended handlers: their native cue cleanup
+    // precedes these observers. No event is dispatched or handler replaced.
+    const replacementEnded = Promise.all(
+      watched[2].sources.map(
+        (source) =>
+          new Promise<void>((resolve) => {
+            source.addEventListener(
+              'ended',
+              () => {
+                nativeReplacementEnds++;
+                resolve();
+              },
+              { once: true, signal: endedObserver.signal },
+            );
+          }),
+      ),
+    );
     const replacementBefore = { cues: cueCount(sounds), graph: watched[2].snapshot() };
     for (const { source, handler } of oldHandlers) handler?.call(source, new Event('ended'));
     const replacementAfter = { cues: cueCount(sounds), graph: watched[2].snapshot() };
-    mark('settle-old-resumes-and-closes');
+    mark('settle-old-closes');
     await nativeDeadline(
-      'settle-old-resumes-and-closes',
-      Promise.allSettled(watched.flatMap((item) => [...item.resumes, ...item.closes])),
+      'settle-old-closes',
+      Promise.all(watched.slice(0, 2).flatMap((item) => item.closes)),
     );
-    mark('old-resumes-and-closes-settled');
-    const afterSettled = watched.map((item) => item.snapshot());
+    mark('old-closes-settled');
+    const afterOldCloses = watched.map((item) => item.snapshot());
+    const ownerAfterOldCloses = contextOwner(sounds, contexts);
+    const playedAfterOldCloses = sounds.played;
+    // Checkpoint 45579529295 observed this discarded context's resume still
+    // pending after its native close fulfilled. UiSounds owns no continuation
+    // that starts a cue from it. Observe the real outcome without awaiting or
+    // manufacturing settlement, while the replacement completes native work.
+    mark('replacement-cue-ended');
+    await nativeDeadline('replacement-cue-ended', replacementEnded);
+    mark('replacement-cue-ended-complete');
+    const replacementSnapshot = () => ({
+      cues: cueCount(sounds!),
+      played: sounds!.played,
+      owner: contextOwner(sounds!, contexts),
+      nativeEnded: nativeReplacementEnds,
+      graph: watched[2].snapshot(),
+    });
+    const replacementDrained = replacementSnapshot();
+    const afterReplacementEnded = watched.map((item) => item.snapshot());
+    for (const { source, handler } of oldHandlers) handler?.call(source, new Event('ended'));
+    const replacementAfterLateCallbacks = replacementSnapshot();
     const deliberateFreshCue = sounds.cue('deny');
     const playedBeforeDispose = sounds.played;
     sounds.dispose();
     sounds.dispose();
     uiCue('confirm', target);
     mark('terminal-closes');
-    await nativeDeadline(
-      'terminal-closes',
-      Promise.allSettled(watched.flatMap((item) => item.closes)),
-    );
+    await nativeDeadline('terminal-closes', Promise.all(watched.flatMap((item) => item.closes)));
     mark('complete');
     return {
       activation: navigator.userActivation.hasBeenActive,
@@ -653,16 +702,31 @@ export async function cueSuspension() {
       secondOwned,
       afterFirstSuspend,
       suspendedState,
+      beforePendingCue,
+      afterPendingCue,
       pendingCueAccepted,
       resumeWasPending,
+      ownerAfterSecondSuspend,
       controlledOldCallbacks: oldHandlers.filter(({ handler }) => handler !== null).length,
+      controlledLateOldCallbacks: oldHandlers.filter(({ handler }) => handler !== null).length,
       replacementBefore,
       replacementAfter,
-      afterSettled,
+      afterOldCloses,
+      ownerAfterOldCloses,
+      playedAfterOldCloses,
+      replacementDrained,
+      replacementAfterLateCallbacks,
+      afterReplacementEnded,
+      abandonedResume: {
+        afterOldCloses: afterOldCloses[1].resumeOutcomes[0] ?? 'pending',
+        afterReplacementEnded: afterReplacementEnded[1].resumeOutcomes[0] ?? 'pending',
+        afterDispose: watched[1].snapshot().resumeOutcomes[0] ?? 'pending',
+      },
       deliberateFreshCue,
       playedBeforeDispose,
       playedAfterDispose: sounds.played,
       finalCues: cueCount(sounds),
+      finalOwner: contextOwner(sounds, contexts),
       final: watched.map((item) => item.snapshot()),
     };
   } catch (error) {
@@ -673,6 +737,7 @@ export async function cueSuspension() {
     mark('failure-snapshot');
     throw error;
   } finally {
+    endedObserver.abort();
     sounds?.dispose();
     mark('cleanup-closes');
     try {
