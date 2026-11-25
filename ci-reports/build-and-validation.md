@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45627137460
-- commit: `04b7a6e251` · Transfer exact packet buffers and verify native save and startup ownership
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45628545797
+- commit: `b3b8ec0918` · Correct native IndexedDB fixture typing and verify real driving audio
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-25T13:47:16Z · updated: 2026-11-25T13:55:53Z
+- started: 2026-11-25T13:55:34Z · updated: 2026-11-25T13:56:14Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| validate | failure | 1 | Lint, validate content, typecheck and build without source changes |
-| unit-tests (2) | cancelled | 7 | Complete unit-suite partition without source changes |
-| offroad-scenarios | cancelled | 5 | Full offroad calibrations and races without source changes |
-| scenarios | cancelled | 6 | Run node --experimental-transform-types scripts/race-classification.ts |
-| unit-tests (3) | cancelled | 6 | Complete unit-suite partition without source changes |
-| unit-tests (1) | cancelled | 5 | Complete unit-suite partition without source changes |
-| unit-tests (4) | cancelled | 4 | Complete unit-suite partition without source changes |
-| wet-presentation | skipped | 0 |  |
-| owner-qa | skipped | 0 |  |
-| browser | skipped | 0 |  |
-| publish | cancelled | -1 |  |
+| validate | cancelled | 0 | Run actions/checkout@v4 |
+| unit-tests (4) | cancelled | 0 | Run actions/checkout@v4; Unit results, including failures |
+| scenarios | cancelled | 0 | Run actions/checkout@v4 |
+| offroad-scenarios | cancelled | 0 | Run actions/checkout@v4 |
+| unit-tests (1) | cancelled | 0 | Run actions/checkout@v4; Unit results, including failures |
+| unit-tests (3) | cancelled | 0 | Run actions/checkout@v4; Unit results, including failures |
+| unit-tests (2) | cancelled | 0 | Run actions/checkout@v4; Unit results, including failures |
+| wet-presentation | cancelled | -1 |  |
+| browser | cancelled | -1 |  |
+| owner-qa | cancelled | -1 |  |
+| publish | cancelled | 0 |  |
