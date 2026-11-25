@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45568546553
-- commit: `955bc20f98` · Improve engine resource ownership, frame pacing, input lifetimes and record correctness
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45590533533
+- commit: `26efaeefdf` · Refine measured engine paths and close reentrant startup and UI ownership gaps
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T07:29:33Z · updated: 2026-11-25T07:49:33Z
+- started: 2026-11-25T09:58:50Z · updated: 2026-11-25T10:00:22Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | success | 7 |  |
-| browser (night) | success | 7 |  |
+| browser (night) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (sunset) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (day) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
