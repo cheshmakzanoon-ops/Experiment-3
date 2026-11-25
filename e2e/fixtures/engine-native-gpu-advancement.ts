@@ -269,6 +269,52 @@ function queue(lease: GpuFrameLease) {
   return { pending, submitted, completed, failure };
 }
 
+async function pixelEvidence(actual: Uint8Array, expected: Uint8Array) {
+  const channels = [0, 0, 0, 0];
+  const rows = Array(8).fill(0) as number[];
+  const firstMismatches: {
+    index: number;
+    x: number;
+    y: number;
+    channel: number;
+    expected: number;
+    actual: number;
+  }[] = [];
+  const colours = new Map<string, number>();
+  for (let i = 0; i < actual.length; i++) {
+    if (i % 4 === 0) {
+      const rgba = Array.from(actual.subarray(i, i + 4)).join(',');
+      colours.set(rgba, (colours.get(rgba) ?? 0) + 1);
+    }
+    if (actual[i] === expected[i]) continue;
+    channels[i % 4]++;
+    const pixel = Math.floor(i / 4);
+    rows[Math.floor(pixel / 8)]++;
+    if (firstMismatches.length < 16)
+      firstMismatches.push({
+        index: i,
+        x: pixel % 8,
+        y: Math.floor(pixel / 8),
+        channel: i % 4,
+        expected: expected[i],
+        actual: actual[i],
+      });
+  }
+  return {
+    rgba: Array.from(actual.subarray(0, 4)),
+    bytes: actual.length,
+    differences: differences(actual, expected),
+    channels,
+    rows,
+    firstMismatches,
+    colours: [...colours].map(([rgba, pixels]) => ({ rgba, pixels })),
+    values: Array.from(actual),
+    expectedValues: Array.from(expected),
+    sha256: await digest(actual),
+    expectedSha256: await digest(expected),
+  };
+}
+
 /** Actual rendered commands, real WebGLSync objects and unchanged native wait
  * results. Pixel readback happens only after the gate observes completion. */
 export async function sharedFenceOwnership() {
@@ -304,6 +350,25 @@ export async function sharedFenceOwnership() {
     renderer.readRenderTargetPixels(target, 0, 0, 8, 8, bytes);
     return bytes;
   };
+  const pixelState = () => ({
+    viewport: Array.from(gl.getParameter(gl.VIEWPORT) as Int32Array),
+    scissor: Array.from(gl.getParameter(gl.SCISSOR_BOX) as Int32Array),
+    scissorEnabled: gl.isEnabled(gl.SCISSOR_TEST),
+    nativeDitherEnabled: gl.isEnabled(gl.DITHER),
+    packAlignment: Number(gl.getParameter(gl.PACK_ALIGNMENT)),
+    packRowLength: Number(gl.getParameter(gl.PACK_ROW_LENGTH)),
+    packSkipRows: Number(gl.getParameter(gl.PACK_SKIP_ROWS)),
+    packSkipPixels: Number(gl.getParameter(gl.PACK_SKIP_PIXELS)),
+    framebufferStatus: gl.checkFramebufferStatus(gl.FRAMEBUFFER),
+    target: { width: target.width, height: target.height, colourSpace: target.texture.colorSpace },
+    material: {
+      colour: material.color.toArray(),
+      dithering: material.dithering,
+      toneMapped: material.toneMapped,
+    },
+    outputColourSpace: renderer.outputColorSpace,
+    toneMapping: renderer.toneMapping,
+  });
   try {
     const circuit = acquire();
     const festival = acquire();
@@ -323,6 +388,7 @@ export async function sharedFenceOwnership() {
     };
     const firstCompletion = await completed([replacement, circuit], 'circuit to Festival');
     const red = pixels();
+    const redState = pixelState();
 
     draw(0x00ff00, replacement);
     replacement.dispose();
@@ -345,6 +411,7 @@ export async function sharedFenceOwnership() {
     };
     const secondCompletion = await completed([circuit, nextBorrower], 'Festival to circuit');
     const green = pixels();
+    const greenState = pixelState();
     const completedQueues = { circuit: queue(circuit), borrower: queue(nextBorrower) };
 
     // A terminal release disposes the native sync, not the borrowed backend.
@@ -393,18 +460,8 @@ export async function sharedFenceOwnership() {
       completedQueues,
       beforeFinalRelease,
       afterFinalRelease,
-      red: {
-        rgba: Array.from(red.subarray(0, 4)),
-        bytes: red.length,
-        differences: differences(red, expectedRed),
-        sha256: await digest(red),
-      },
-      green: {
-        rgba: Array.from(green.subarray(0, 4)),
-        bytes: green.length,
-        differences: differences(green, expectedGreen),
-        sha256: await digest(green),
-      },
+      red: { ...(await pixelEvidence(red, expectedRed)), state: redState },
+      green: { ...(await pixelEvidence(green, expectedGreen)), state: greenState },
       submittedFences: trace.submitted,
       waits: trace.waits,
       deletedFences: trace.deleted,

@@ -56,6 +56,24 @@ interface Pending {
   reject(error: Error): void;
   timer: number;
 }
+interface FrameRequest {
+  sequence: number;
+  nativeId: number;
+  epoch: number;
+  generation: number;
+  requestedAt: number;
+  cancelled: boolean;
+  delivered: boolean;
+  frameCalls: number;
+}
+interface FrameObservation {
+  kind: 'request' | 'cancel' | 'deliver' | 'frame' | 'return';
+  request: FrameRequest | null;
+  epoch: number;
+  generation: number;
+  observedAt: number;
+  timestamp?: number;
+}
 
 const STORAGE_KEY = 'engine-native-page-history-last-hide';
 let active: RetainedPage | null = null;
@@ -79,6 +97,17 @@ class RetainedPage {
     draws: 0,
     maxPendingFrames: 0,
     maxCallbacksAtOneTimestamp: 0,
+    frameRequests: 0,
+    cancelledFrameRequests: 0,
+    liveFrameDeliveries: 0,
+    cancelledFrameDeliveries: 0,
+    duplicateFrameDeliveries: 0,
+    untrackedFrameDeliveries: 0,
+    pendingFrameIdCollisions: 0,
+    maxFrameCallsPerRequest: 0,
+    framesWithoutRequest: 0,
+    startupFramesWithoutRequest: 0,
+    staleOwnerFrames: 0,
     maxInputIntervals: 0,
     rendererResets: 0,
     rendererDisposals: 0,
@@ -92,7 +121,12 @@ class RetainedPage {
   };
   workerInstance = '';
   private readonly url: string;
-  private readonly frames = new Set<number>();
+  private readonly frames = new Map<number, FrameRequest>();
+  private readonly frameEvents: FrameObservation[] = [];
+  private readonly timestampRepeats: { previous: FrameObservation; current: FrameObservation }[] =
+    [];
+  private activeFrameRequest: FrameRequest | null = null;
+  private lastFrameObservation: FrameObservation | null = null;
   private readonly intervals = new Set<number>();
   private readonly nativeInterval = window.setInterval;
   private readonly nativeClearInterval = window.clearInterval;
@@ -133,15 +167,49 @@ class RetainedPage {
     this.gl = gl;
     const gate = acquireGpuFrameGate(gl);
     const frame = (callback: FrameRequestCallback) => {
-      const id = window.requestAnimationFrame((time) => {
-        this.frames.delete(id);
-        callback(time);
+      const request: FrameRequest = {
+        sequence: ++this.counters.frameRequests,
+        nativeId: 0,
+        epoch: this.host.pageEpoch,
+        generation: this.host.generation,
+        requestedAt: performance.now(),
+        cancelled: false,
+        delivered: false,
+        frameCalls: 0,
+      };
+      request.nativeId = window.requestAnimationFrame((time) => {
+        const tracked = this.frames.get(request.nativeId) === request;
+        if (request.delivered) this.counters.duplicateFrameDeliveries++;
+        else if (request.cancelled) this.counters.cancelledFrameDeliveries++;
+        else {
+          this.counters.liveFrameDeliveries++;
+          if (!tracked) this.counters.untrackedFrameDeliveries++;
+        }
+        if (tracked) this.frames.delete(request.nativeId);
+        request.delivered = true;
+        this.observeFrame('deliver', request, time);
+        const outer = this.activeFrameRequest;
+        this.activeFrameRequest = request;
+        try {
+          callback(time);
+        } finally {
+          this.observeFrame('return', request, time);
+          this.activeFrameRequest = outer;
+        }
       });
-      this.frames.add(id);
+      if (this.frames.has(request.nativeId)) this.counters.pendingFrameIdCollisions++;
+      this.frames.set(request.nativeId, request);
+      this.observeFrame('request', request);
       this.counters.maxPendingFrames = Math.max(this.counters.maxPendingFrames, this.frames.size);
-      return id;
+      return request.nativeId;
     };
     const cancelFrame = (id: number) => {
+      const request = this.frames.get(id);
+      if (request) {
+        request.cancelled = true;
+        this.counters.cancelledFrameRequests++;
+        this.observeFrame('cancel', request);
+      }
       this.frames.delete(id);
       window.cancelAnimationFrame(id);
     };
@@ -257,8 +325,37 @@ class RetainedPage {
       },
       frame: (time: number) => {
         this.counters.frames++;
+        const request = this.activeFrameRequest;
+        if (request) {
+          request.frameCalls++;
+          this.counters.maxFrameCallsPerRequest = Math.max(
+            this.counters.maxFrameCallsPerRequest,
+            request.frameCalls,
+          );
+          if (
+            request.cancelled ||
+            request.epoch !== host.pageEpoch ||
+            request.generation !== host.generation ||
+            host.disposed ||
+            host.pageSuspended
+          )
+            this.counters.staleOwnerFrames++;
+        } else {
+          // Count direct startup calls separately; neither startup nor later
+          // unscheduled calls are excluded from the ownership assertions.
+          this.counters.framesWithoutRequest++;
+          if (this.counters.frameRequests === 0) this.counters.startupFramesWithoutRequest++;
+        }
+        const observation = this.observeFrame('frame', request, time);
         this.sameTimestampCallbacks =
           this.lastFrameTimestamp === time ? this.sameTimestampCallbacks + 1 : 1;
+        if (
+          this.sameTimestampCallbacks > 1 &&
+          this.lastFrameObservation &&
+          this.timestampRepeats.length < 8
+        )
+          this.timestampRepeats.push({ previous: this.lastFrameObservation, current: observation });
+        this.lastFrameObservation = observation;
         this.lastFrameTimestamp = time;
         this.counters.maxCallbacksAtOneTimestamp = Math.max(
           this.counters.maxCallbacksAtOneTimestamp,
@@ -299,6 +396,34 @@ class RetainedPage {
     document.querySelector('#resume')!.addEventListener('click', this.resume as EventListener);
   }
 
+  private observeFrame(
+    kind: FrameObservation['kind'],
+    request: FrameRequest | null,
+    timestamp?: number,
+  ): FrameObservation {
+    const observation = {
+      kind,
+      request: request ? { ...request } : null,
+      epoch: this.host.pageEpoch,
+      generation: this.host.generation,
+      observedAt: performance.now(),
+      timestamp,
+    };
+    this.frameEvents.push(observation);
+    if (this.frameEvents.length > 96) this.frameEvents.shift();
+    return observation;
+  }
+  private frameOwnership() {
+    return {
+      accountingBalance:
+        this.counters.frameRequests -
+        this.counters.cancelledFrameRequests -
+        this.counters.liveFrameDeliveries -
+        this.frames.size,
+      currentHandle: this.host.timer,
+      pending: Array.from(this.frames.values(), (request) => ({ ...request })),
+    };
+  }
   private fail(message: string) {
     this.errors.push(message);
     clearTimeout(this.startupTimer);
@@ -364,6 +489,7 @@ class RetainedPage {
         liveSkyChecked: this.host.liveSkyChecked,
       },
       counters: { ...this.counters },
+      raf: this.frameOwnership(),
     };
   }
   async start() {
@@ -403,6 +529,11 @@ class RetainedPage {
       input: { ...this.host.input.state },
       pause: this.host.workerPause.status(),
       counters: { ...this.counters },
+      raf: {
+        ...this.frameOwnership(),
+        events: this.frameEvents.slice(),
+        timestampRepeats: this.timestampRepeats.slice(),
+      },
       events: this.events.slice(),
       keys: this.keys.slice(),
       resumeClicks: this.resumeClicks.slice(),

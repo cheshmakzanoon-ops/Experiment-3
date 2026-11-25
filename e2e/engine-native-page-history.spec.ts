@@ -365,6 +365,7 @@ test('native Back restores the same paused engine owners twice; terminal reload 
       pendingFrames: 0,
       inputIntervals: 0,
       counters: { rendererDisposals: 0, workerTerminations: 0, inputDisposals: 0, uiDisposals: 0 },
+      raf: { accountingBalance: 0, currentHandle: null, pending: [] },
     });
     // Reloads fail these assertions; a history command or navigation.type
     // alone is never used as a substitute for actual BFCache admission.
@@ -404,13 +405,36 @@ test('native Back restores the same paused engine owners twice; terminal reload 
     const presentation = await snapshot(cdp);
     expect(presentation.contextLost).toBe(false);
     expect(presentation.glError).toBe(0);
+    // Native CI recorded timestamp repeats before the first departure.
+    // Keep that diagnostic, but identify ownership by the actual request and
+    // delivery, including cancelled requests and immediate startup calls.
     expect(presentation.counters).toMatchObject({
       maxPendingFrames: 1,
-      maxCallbacksAtOneTimestamp: 1,
+      maxFrameCallsPerRequest: 1,
+      duplicateFrameDeliveries: 0,
+      untrackedFrameDeliveries: 0,
+      pendingFrameIdCollisions: 0,
+      framesWithoutRequest: 0,
+      startupFramesWithoutRequest: 0,
+      staleOwnerFrames: 0,
       maxInputIntervals: 1,
       rendererResets: cycle,
       rendererDisposals: 0,
       workerTerminations: 0,
+    });
+    expect(presentation.pendingFrames).toBe(1);
+    expect(presentation.raf).toMatchObject({
+      accountingBalance: 0,
+      pending: [
+        {
+          nativeId: presentation.raf.currentHandle,
+          epoch: cycle,
+          generation: boot.generation,
+          cancelled: false,
+          delivered: false,
+          frameCalls: 0,
+        },
+      ],
     });
     expect(presentation.counters.frames).toBeGreaterThan(before.page.counters.frames);
 
@@ -485,6 +509,7 @@ test('native Back restores the same paused engine owners twice; terminal reload 
     disposed: true,
     pendingFrames: 0,
     inputIntervals: 0,
+    raf: { accountingBalance: 0, currentHandle: null, pending: [] },
     counters: {
       workerTerminations: 1,
       inputDisposals: 1,

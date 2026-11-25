@@ -70,3 +70,24 @@ probe reports no GL error and explicitly does not validate physical hardware.
 Source identity, sanitized full logs, backend identity and the artifact digest
 are retained under `evidence/checkpoint-955bc20/`. The newly authored wave-6
 fixtures were not included in this checkpoint and require their own CI run.
+
+## Native ownership and transport accounting
+
+`9922926e786c35e84810efc8b15e75bcfaba5372` publishes the composed audio and
+graphics proofs, five native acceptance fixtures, and a transport accounting
+repair: capture an input packet's length before a successful send can detach its
+buffer. Failed sends still do not count as successful network traffic.
+
+The [focused engine workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45573448610)
+passed **820 unit tests in 65 files**, full TypeScript checking and the production
+build. The browser run had **41 passes and four failures**. The new transferred
+network, native attribute upload, IndexedDB ghost reload and CSV worker cases
+passed. New audio PCM equality, live menu audio context ownership, shared-fence
+pixel and retained-page callback-count checks failed and require investigation.
+The first strict native history restore was admitted, but later assertions and
+the second restore remain unproven at this checkpoint.
+
+The failed result is retained, including sanitized logs, source/tree/lock identity,
+backend identity, native result attachments and archive digest, under
+`evidence/checkpoint-9922926/`. Existing passing tests do not substitute for the
+four failed checks. The native backend remains Mesa llvmpipe software graphics.

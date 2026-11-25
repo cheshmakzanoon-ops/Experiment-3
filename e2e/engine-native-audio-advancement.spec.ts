@@ -103,7 +103,29 @@ async function load(page: Page, reference = false) {
   return errors;
 }
 
-test('native engine PCM remains byte-exact against original source through cold and warm caches', async ({
+type PcmComparison = Pick<
+  Awaited<ReturnType<typeof Fixture.offlineParity>>['cases'][number],
+  'withinContract' | 'perChannel' | 'suppliedInputs'
+>;
+
+function expectNativeContract(comparison: PcmComparison) {
+  expect(comparison.suppliedInputs.events).toBeGreaterThan(0);
+  expect(comparison.suppliedInputs.differences).toBe(0);
+  expect(comparison.suppliedInputs.exact).toBe(true);
+  expect(comparison.withinContract).toBe(true);
+  expect(comparison.perChannel).toHaveLength(2);
+  for (const channel of comparison.perChannel) {
+    expect(channel.baseline.finite).toBe(true);
+    expect(channel.current.finite).toBe(true);
+    expect(channel.baseline.rms).toBeGreaterThan(0.001);
+    expect(channel.current.rms).toBeGreaterThan(0.001);
+    expect(channel.maxDifference).toBeLessThanOrEqual(channel.absoluteLimit);
+    expect(channel.rmsDifference).toBeLessThanOrEqual(channel.rmsLimit);
+    expect(channel.energyDifference).toBeLessThanOrEqual(channel.energyLimit);
+  }
+}
+
+test('native engine inputs remain exact and mixed PCM meets its Float32 contract against original source', async ({
   page,
 }, info) => {
   const errors = await load(page, true);
@@ -119,6 +141,13 @@ test('native engine PCM remains byte-exact against original source through cold 
   expect(new Set(report.families).size).toBe(4);
   expect(report.cases).toHaveLength(4);
   expect(report.samplesPerImplementation).toBe(297216);
+  expect(report.renders).toBe(13);
+  expect(report.renderedSamples).toBe(1019520);
+  expect(report.contract).toEqual({
+    unitRoundoff: 2 ** -24,
+    mixAdditions: 11,
+    relativeBudget: (2 * 11 * 2 ** -24) / (1 - 11 * 2 ** -24),
+  });
   expect(report.cases.map((item) => item.current.sampleRate)).toEqual([44100, 44100, 48000, 96000]);
   expect(report.cases.map((item) => item.numericCache)).toEqual([
     'cold module',
@@ -127,10 +156,8 @@ test('native engine PCM remains byte-exact against original source through cold 
     'warm module',
   ]);
   for (const item of report.cases) {
-    expect(item.differingSamples).toBe(0);
-    expect(item.differingBytes).toBe(0);
-    expect(item.maxDifference).toBe(0);
-    expect(item.current.digest).toBe(item.baseline.digest);
+    expectNativeContract(item);
+    expect(item.current.suppliedInputs).toEqual(item.baseline.suppliedInputs);
     expect(item.current.trace).toEqual(item.baseline.trace);
     for (const render of [item.baseline, item.current]) {
       expect(render.state).toBe('closed');
@@ -145,6 +172,9 @@ test('native engine PCM remains byte-exact against original source through cold 
       expect(render.signal.peak).toBeGreaterThan(0.001);
       expect(render.signal.rms).toBeGreaterThan(0.001);
       expect(render.signal.stereoDifferences).toBeGreaterThan(0);
+      expect(render.suppliedInputs.parameterValues).toBeGreaterThan(0);
+      expect(render.suppliedInputs.automationEvents).toBeGreaterThan(0);
+      expect(render.suppliedInputs.waveSelections).toBe(22);
       expect(render.digest).toMatch(/^[0-9a-f]{64}$/);
       expect(render.trace).toHaveLength(4);
       expect(
@@ -154,10 +184,21 @@ test('native engine PCM remains byte-exact against original source through cold 
       ).toBe(true);
     }
   }
-  expect(report.cases[1].sameRateRepeat).toEqual({
-    baseline: { differingSamples: 0, differingBytes: 0, maxDifference: 0 },
-    current: { differingSamples: 0, differingBytes: 0, maxDifference: 0 },
-  });
+  expect(report.cases[0].sameRateRepeat).toBeNull();
+  for (const item of report.cases.slice(1)) {
+    expect(item.sameRateRepeat).not.toBeNull();
+    expectNativeContract(item.sameRateRepeat!.baseline);
+    expectNativeContract(item.sameRateRepeat!.current);
+  }
+  expect(report.sensitivity.factor).toBe(1 + 2 ** -10);
+  expect(report.sensitivity.sampleRate).toBe(44100);
+  expect(report.sensitivity.suppliedInputs.exact).toBe(true);
+  expect(report.sensitivity.withinContract).toBe(false);
+  for (const channel of report.sensitivity.perChannel) {
+    expect(channel.current.finite).toBe(true);
+    expect(channel.maxDifference).toBeGreaterThan(channel.absoluteLimit * 100);
+    expect(channel.relativeRmsDifference).toBeGreaterThan(report.contract.relativeBudget * 100);
+  }
   expect(errors).toEqual([]);
 });
 
@@ -166,13 +207,29 @@ test('native menu contexts release old cues and pending resumes without closing 
 }, info) => {
   const errors = await load(page);
   await page.getByRole('button', { name: 'Enable test audio' }).click();
-  const report = await page.evaluate(() =>
-    (window as unknown as NativeWindow).EngineNativeAudioAdvancement.cueSuspension(),
+  const report = await page
+    .evaluate(() =>
+      (window as unknown as NativeWindow).EngineNativeAudioAdvancement.cueSuspension(),
+    )
+    .catch(async (error: unknown) => {
+      const diagnostic = await page.evaluate(() =>
+        (window as unknown as NativeWindow).EngineNativeAudioAdvancement.cueSuspensionDiagnostics(),
+      );
+      await info.attach('native-audio-advancement-suspension.json', {
+        body: JSON.stringify({ provenance, diagnostic, errors }, null, 2),
+        contentType: 'application/json',
+      });
+      throw error;
+    });
+  const diagnostic = await page.evaluate(() =>
+    (window as unknown as NativeWindow).EngineNativeAudioAdvancement.cueSuspensionDiagnostics(),
   );
   await info.attach('native-audio-advancement-suspension.json', {
-    body: JSON.stringify({ provenance, report }, null, 2),
+    body: JSON.stringify({ provenance, report, diagnostic }, null, 2),
     contentType: 'application/json',
   });
+  expect(diagnostic?.failure).toBeNull();
+  expect(diagnostic?.cleanupFailure).toBeNull();
   expect(report.activation).toBe(true);
   expect(report.sampleRates).toEqual([48000, 48000, 48000]);
   expect(report.created).toBe(3);

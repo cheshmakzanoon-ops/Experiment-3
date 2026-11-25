@@ -1,9 +1,10 @@
 # W06C — native GPU upload and fence acceptance
 
 Assignment 33/60, wave 6. Adds two browser acceptance cases for the production
-attribute-range helper and shared GPU gate. **Native execution is pending the
-coordinator's exact-source GitHub workflow.** Local compilation and discovery
-are not reported as a native GPU pass.
+attribute-range helper and shared GPU gate. The first exact-source native run
+passed the upload case but failed the shared-fence case's complete-image
+control. **The shared-fence case remains failed pending diagnosis and rerun.**
+Local compilation and discovery are not reported as a native GPU pass.
 
 Owned files:
 
@@ -134,6 +135,51 @@ node --max-old-space-size=512 node_modules/typescript/bin/tsc \
 
 No full repository compiler/build or npm lifecycle hook ran.
 
+## First native run and diagnostic follow-up
+
+The focused engine workflow
+[45573448610](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45573448610)
+executed the cases at commit `9922926e786c35e84810efc8b15e75bcfaba5372`,
+tree `9d1471a772048e1edd95fb0376be026023670add`, using
+`ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)`.
+
+- The attribute upload case **passed**, including native readback and its full
+  sequence of narrow/full/narrow transfers.
+- The shared-fence case **failed** at the strict full red-image comparison.
+  All preceding lease and pending-ownership assertions passed. Both first RGBA
+  pixels matched their red/green controls, but each full 256-byte image reported
+  64 differing bytes. This is not enough information to classify the remaining
+  image discrepancy as an engine or driver defect.
+
+The attached native report records 22 actual zero-time waits: 20
+`TIMEOUT_EXPIRED` results and two `CONDITION_SATISFIED` results. It records
+exactly one deletion for each of the three submitted syncs, zero finish calls,
+zero GL errors, a live context, and zero retained Three geometry/texture/program
+counts after cleanup. Assertions after the image failure did not execute;
+these fields are inspected report evidence, not a passed test case.
+
+The failed image hashes are retained:
+
+| Image | SHA-256                                                            |
+| ----- | ------------------------------------------------------------------ |
+| Red   | `c71a938f01e7932926a8a7de17446c1ab97662b2838cda203b18b5c6c23be6e2` |
+| Green | `d9dfbcc840c37fbf43fc03ce9abcd555ec8ef05fea3f708036c16e094fccda12` |
+
+The original attachment omitted full pixel values. The follow-up therefore adds
+bounded diagnostics without changing any rendering state, gate behavior, or
+assertion: all 256 actual and expected bytes, mismatch counts by channel and
+row, the first 16 mismatches, colour counts, expected hashes, and native
+viewport/scissor/packing/framebuffer state plus material and colour-space
+settings. Readbacks and state queries still happen only after observed native
+completion. The failed checkpoint remains preserved; no production patch or
+assertion weakening is justified by the available evidence.
+
+The diagnostic follow-up bundle passed at 1,110,500 bytes with seven inputs;
+scoped ESLint passed and both modified files were formatted. The spec and all
+its strict assertions remain unchanged. No local browser run or additional
+TypeScript/build process was started; the coordinator reserved available memory
+for the other active work and the exact-source CI compiler check.
+
 ## CI evidence to retain
 
 The existing `engine-native-*.spec.ts` workflow glob includes these cases. Each
@@ -143,7 +189,7 @@ test attaches its report before checking the returned assertions:
 - `native-gpu-shared-fences.json`
 
 CI must execute both cases without retries or skips and retain the exact source
-commit/tree and backend identity. Native results are pending at handoff. Even
-after passing, this is native software-renderer correctness and lifetime
+commit/tree and backend identity. The diagnostic rerun is pending at handoff.
+Even after passing, this is native software-renderer correctness and lifetime
 evidence, not a physical-GPU, game-wide image-equivalence, latency, FPS, energy
 or performance result.

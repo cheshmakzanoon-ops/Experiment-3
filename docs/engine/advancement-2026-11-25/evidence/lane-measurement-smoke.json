@@ -1,0 +1,3615 @@
+{
+  "schema": "engine-advancement-lanes/1",
+  "purpose": "smoke",
+  "sourceManifest": {
+    "baseline": {
+      "root": "/dev/shm/aeebac160835-engine-baseline",
+      "entry": "src/simulation/track.ts",
+      "commit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "expectedCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/core/math.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/simulation/aero-map.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/aero-map.ts",
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bike-definitions.ts",
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/brake-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/brake-thermal.ts",
+          "bytes": 668,
+          "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+        },
+        "src/simulation/bvh.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/bvh.ts",
+          "bytes": 21541,
+          "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+        },
+        "src/simulation/circuit-catalogue/builder.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/builder.ts",
+          "bytes": 32157,
+          "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+        },
+        "src/simulation/circuit-catalogue/dsl.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/dsl.ts",
+          "bytes": 3681,
+          "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+        },
+        "src/simulation/circuit-catalogue/endurance.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/endurance.ts",
+          "bytes": 10864,
+          "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+        },
+        "src/simulation/circuit-catalogue/index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/index.ts",
+          "bytes": 1669,
+          "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+        },
+        "src/simulation/circuit-catalogue/industrial.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/industrial.ts",
+          "bytes": 4699,
+          "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+        },
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/motorcycle-gp.ts",
+          "bytes": 9535,
+          "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+        },
+        "src/simulation/circuit-catalogue/night-and-street.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/night-and-street.ts",
+          "bytes": 11968,
+          "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+        },
+        "src/simulation/circuit-catalogue/real-world-classics.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/real-world-classics.ts",
+          "bytes": 12571,
+          "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+        },
+        "src/simulation/circuit-catalogue/real-world.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/real-world.ts",
+          "bytes": 18890,
+          "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+        },
+        "src/simulation/circuit-catalogue/unconventional.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/unconventional.ts",
+          "bytes": 16927,
+          "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+        },
+        "src/simulation/circuit-catalogue/venue-data.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/venue-data.ts",
+          "bytes": 6907,
+          "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+        },
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuit-catalogue/wildcard-venues.ts",
+          "bytes": 11336,
+          "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+        },
+        "src/simulation/circuits.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/circuits.ts",
+          "bytes": 12745,
+          "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+        },
+        "src/simulation/contact.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/contact.ts",
+          "bytes": 9415,
+          "sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+        },
+        "src/simulation/differential.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/differential.ts",
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/gp-corner-shape.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-corner-shape.ts",
+          "bytes": 3493,
+          "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+        },
+        "src/simulation/gp-course-edges.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/gp-course-edges.ts",
+          "bytes": 2898,
+          "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+        },
+        "src/simulation/offroad/berm-lines.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/berm-lines.ts",
+          "bytes": 2729,
+          "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+        },
+        "src/simulation/offroad/braking-bumps.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/braking-bumps.ts",
+          "bytes": 3159,
+          "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+        },
+        "src/simulation/offroad/course-terrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/course-terrain.ts",
+          "bytes": 18041,
+          "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+        },
+        "src/simulation/offroad/course.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/course.ts",
+          "bytes": 17326,
+          "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/dirt-bikes.ts",
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/offroad/formats.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/formats.ts",
+          "bytes": 7757,
+          "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+        },
+        "src/simulation/offroad/profile.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/profile.ts",
+          "bytes": 10792,
+          "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+        },
+        "src/simulation/offroad/venues.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/offroad/venues.ts",
+          "bytes": 17834,
+          "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+        },
+        "src/simulation/powertrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/powertrain.ts",
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/protocol.ts",
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/racing-line.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/racing-line.ts",
+          "bytes": 5343,
+          "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+        },
+        "src/simulation/surface-drainage.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/surface-drainage.ts",
+          "bytes": 3107,
+          "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+        },
+        "src/simulation/surface-material.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/surface-material.ts",
+          "bytes": 11633,
+          "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+        },
+        "src/simulation/surface-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/surface-thermal.ts",
+          "bytes": 8920,
+          "sha256": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72"
+        },
+        "src/simulation/terrain.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/terrain.ts",
+          "bytes": 6942,
+          "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+        },
+        "src/simulation/test-venues.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/test-venues.ts",
+          "bytes": 1903,
+          "sha256": "1b549431c90100c63607de2f93348c2b6e3283cd1b1b4d0232fe33ec0b0277d5"
+        },
+        "src/simulation/tire-families.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tire-families.ts",
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/tire-footprint.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tire-footprint.ts",
+          "bytes": 14215,
+          "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+        },
+        "src/simulation/track-lane-index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/track-lane-index.ts",
+          "bytes": 2784,
+          "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+        },
+        "src/simulation/track.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/track.ts",
+          "bytes": 31783,
+          "sha256": "27f343ff03e33c0ce28bf10576132aa29ae0e504def48f695d2cf748c47126c0"
+        },
+        "src/simulation/tyre-thermal.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/tyre-thermal.ts",
+          "bytes": 7837,
+          "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/builder.ts",
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/common.ts",
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/dirt-2.ts",
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/dirt.ts",
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/endurance.ts",
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/experimental.ts",
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/formula.ts",
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/gt.ts",
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/index.ts",
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/prototypes.ts",
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/road-festival.ts",
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/single-seaters.ts",
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/small-road.ts",
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicle-catalogue/touring-club.ts",
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicles.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/vehicles.ts",
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "src/simulation/weather.ts": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/src/simulation/weather.ts",
+          "bytes": 36688,
+          "sha256": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756"
+        },
+        "tsconfig.json": {
+          "path": "/dev/shm/aeebac160835-engine-baseline/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "native",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 92.31203099999999,
+        "outputSha256": "03771457b4bf788f516c8f4a6cfd056b906628aef1725e3dd5382e5a8df169f1",
+        "externalImports": [],
+        "warnings": []
+      }
+    },
+    "current": {
+      "root": "/tmp/aeebac160835-engine/Experiment-3",
+      "entry": "src/simulation/track.ts",
+      "commit": "9922926e786c35e84810efc8b15e75bcfaba5372",
+      "expectedCommit": null,
+      "allowDirty": false,
+      "relevantStatus": "",
+      "files": {
+        "package-lock.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package-lock.json",
+          "bytes": 119733,
+          "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+        },
+        "package.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/package.json",
+          "bytes": 5246,
+          "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+        },
+        "src/core/math.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/core/math.ts",
+          "bytes": 5754,
+          "sha256": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+        },
+        "src/simulation/aero-map.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/aero-map.ts",
+          "bytes": 3409,
+          "sha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6"
+        },
+        "src/simulation/bike-definitions.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bike-definitions.ts",
+          "bytes": 28095,
+          "sha256": "581732861c6487498705ec34e6982dd8da7731b28b46ce53c797cafddb26fc76"
+        },
+        "src/simulation/brake-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/brake-thermal.ts",
+          "bytes": 668,
+          "sha256": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c"
+        },
+        "src/simulation/bvh.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/bvh.ts",
+          "bytes": 21541,
+          "sha256": "d446e7fd319f20744173b22972c5b6c05ef77140e78fb261a41df73a21db6b09"
+        },
+        "src/simulation/circuit-catalogue/builder.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/builder.ts",
+          "bytes": 32157,
+          "sha256": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5"
+        },
+        "src/simulation/circuit-catalogue/dsl.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/dsl.ts",
+          "bytes": 3681,
+          "sha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6"
+        },
+        "src/simulation/circuit-catalogue/endurance.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/endurance.ts",
+          "bytes": 10864,
+          "sha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261"
+        },
+        "src/simulation/circuit-catalogue/index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/index.ts",
+          "bytes": 1669,
+          "sha256": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6"
+        },
+        "src/simulation/circuit-catalogue/industrial.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/industrial.ts",
+          "bytes": 4699,
+          "sha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
+        },
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/motorcycle-gp.ts",
+          "bytes": 9535,
+          "sha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15"
+        },
+        "src/simulation/circuit-catalogue/night-and-street.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/night-and-street.ts",
+          "bytes": 11968,
+          "sha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37"
+        },
+        "src/simulation/circuit-catalogue/real-world-classics.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/real-world-classics.ts",
+          "bytes": 12571,
+          "sha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68"
+        },
+        "src/simulation/circuit-catalogue/real-world.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/real-world.ts",
+          "bytes": 18890,
+          "sha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc"
+        },
+        "src/simulation/circuit-catalogue/unconventional.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/unconventional.ts",
+          "bytes": 16927,
+          "sha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+        },
+        "src/simulation/circuit-catalogue/venue-data.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/venue-data.ts",
+          "bytes": 6907,
+          "sha256": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386"
+        },
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuit-catalogue/wildcard-venues.ts",
+          "bytes": 11336,
+          "sha256": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a"
+        },
+        "src/simulation/circuits.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/circuits.ts",
+          "bytes": 12745,
+          "sha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4"
+        },
+        "src/simulation/contact.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/contact.ts",
+          "bytes": 9415,
+          "sha256": "c63bd32811c56dba4b79c79f61df0411f9fd2c3121425342f97af858b3252961"
+        },
+        "src/simulation/differential.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/differential.ts",
+          "bytes": 17163,
+          "sha256": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4"
+        },
+        "src/simulation/gp-corner-shape.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-corner-shape.ts",
+          "bytes": 3493,
+          "sha256": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0"
+        },
+        "src/simulation/gp-course-edges.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/gp-course-edges.ts",
+          "bytes": 2898,
+          "sha256": "9ccec1807e16d26093bc2f1d75dc7873221fa80d0a002ea2c3af13bead4c4f50"
+        },
+        "src/simulation/offroad/berm-lines.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/berm-lines.ts",
+          "bytes": 2729,
+          "sha256": "657783971d41f1cf1b408ecc4402685a20efa4ac528ae313bf675ae4317bd996"
+        },
+        "src/simulation/offroad/braking-bumps.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/braking-bumps.ts",
+          "bytes": 3159,
+          "sha256": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf"
+        },
+        "src/simulation/offroad/course-terrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/course-terrain.ts",
+          "bytes": 18041,
+          "sha256": "104241ed4dd552498b11d580dbe9eb2a759bed4f7463564aa9d67aea4528d68d"
+        },
+        "src/simulation/offroad/course.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/course.ts",
+          "bytes": 17326,
+          "sha256": "707758e7c2fe24fc79354f01edbc786d0eb7254c3bd871ac1c121ed8b18357fd"
+        },
+        "src/simulation/offroad/dirt-bikes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/dirt-bikes.ts",
+          "bytes": 7870,
+          "sha256": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324"
+        },
+        "src/simulation/offroad/formats.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/formats.ts",
+          "bytes": 7757,
+          "sha256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a"
+        },
+        "src/simulation/offroad/profile.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/profile.ts",
+          "bytes": 10792,
+          "sha256": "c921ee5dcaa85ae390b567d1070ea7113a358060d28d83fb8c93a02144a74ffa"
+        },
+        "src/simulation/offroad/venues.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/offroad/venues.ts",
+          "bytes": 17834,
+          "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3"
+        },
+        "src/simulation/powertrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/powertrain.ts",
+          "bytes": 5588,
+          "sha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307"
+        },
+        "src/simulation/protocol.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/protocol.ts",
+          "bytes": 16910,
+          "sha256": "0b2d2e5b02c29934cc3246ec39ede1ebba31605d9c5a3a19754ae6bcf1fafa8a"
+        },
+        "src/simulation/racing-line.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/racing-line.ts",
+          "bytes": 5343,
+          "sha256": "0f5c272dd12fcd1acf7813d0e5db571e43b19675613267f748fb5d7312c1516c"
+        },
+        "src/simulation/surface-drainage.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/surface-drainage.ts",
+          "bytes": 3107,
+          "sha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd"
+        },
+        "src/simulation/surface-material.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/surface-material.ts",
+          "bytes": 11633,
+          "sha256": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec"
+        },
+        "src/simulation/surface-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/surface-thermal.ts",
+          "bytes": 11858,
+          "sha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12"
+        },
+        "src/simulation/terrain.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/terrain.ts",
+          "bytes": 6942,
+          "sha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679"
+        },
+        "src/simulation/test-venues.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/test-venues.ts",
+          "bytes": 1903,
+          "sha256": "1b549431c90100c63607de2f93348c2b6e3283cd1b1b4d0232fe33ec0b0277d5"
+        },
+        "src/simulation/tire-families.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tire-families.ts",
+          "bytes": 3850,
+          "sha256": "edec72d793d58d76ce63c1022067ebd4f457bca9a8fc64c90ec34dfeb6d68681"
+        },
+        "src/simulation/tire-footprint.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tire-footprint.ts",
+          "bytes": 14215,
+          "sha256": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909"
+        },
+        "src/simulation/track-lane-index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/track-lane-index.ts",
+          "bytes": 2784,
+          "sha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54"
+        },
+        "src/simulation/track.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/track.ts",
+          "bytes": 32242,
+          "sha256": "11c4f225e953670d86a75660a128a944a38c4105ccf08e00e52b2d0ed6453bc5"
+        },
+        "src/simulation/tyre-thermal.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/tyre-thermal.ts",
+          "bytes": 7837,
+          "sha256": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469"
+        },
+        "src/simulation/vehicle-catalogue/builder.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/builder.ts",
+          "bytes": 14798,
+          "sha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a"
+        },
+        "src/simulation/vehicle-catalogue/common.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/common.ts",
+          "bytes": 1768,
+          "sha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede"
+        },
+        "src/simulation/vehicle-catalogue/dirt-2.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/dirt-2.ts",
+          "bytes": 8794,
+          "sha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733"
+        },
+        "src/simulation/vehicle-catalogue/dirt.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/dirt.ts",
+          "bytes": 5931,
+          "sha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114"
+        },
+        "src/simulation/vehicle-catalogue/endurance.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/endurance.ts",
+          "bytes": 3649,
+          "sha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70"
+        },
+        "src/simulation/vehicle-catalogue/experimental.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/experimental.ts",
+          "bytes": 11831,
+          "sha256": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419"
+        },
+        "src/simulation/vehicle-catalogue/formula.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/formula.ts",
+          "bytes": 3605,
+          "sha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2"
+        },
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/gt-layouts.ts",
+          "bytes": 6000,
+          "sha256": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05"
+        },
+        "src/simulation/vehicle-catalogue/gt.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/gt.ts",
+          "bytes": 5366,
+          "sha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c"
+        },
+        "src/simulation/vehicle-catalogue/index.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/index.ts",
+          "bytes": 2615,
+          "sha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b"
+        },
+        "src/simulation/vehicle-catalogue/prototypes.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/prototypes.ts",
+          "bytes": 6229,
+          "sha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47"
+        },
+        "src/simulation/vehicle-catalogue/road-festival.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/road-festival.ts",
+          "bytes": 15667,
+          "sha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e"
+        },
+        "src/simulation/vehicle-catalogue/single-seaters.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/single-seaters.ts",
+          "bytes": 10703,
+          "sha256": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4"
+        },
+        "src/simulation/vehicle-catalogue/small-road.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/small-road.ts",
+          "bytes": 6540,
+          "sha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7"
+        },
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/touring-club-2.ts",
+          "bytes": 6256,
+          "sha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f"
+        },
+        "src/simulation/vehicle-catalogue/touring-club.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicle-catalogue/touring-club.ts",
+          "bytes": 3653,
+          "sha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0"
+        },
+        "src/simulation/vehicles.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/vehicles.ts",
+          "bytes": 14876,
+          "sha256": "9145791bd38e32f9967f20f291778222a20c6c5d2df58277085422c3a16f7347"
+        },
+        "src/simulation/weather.ts": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/src/simulation/weather.ts",
+          "bytes": 37921,
+          "sha256": "71da8aa301efa348cc373f560f17cb8a18cde32c9085cdc8f8dbb613dba57088"
+        },
+        "tsconfig.json": {
+          "path": "/tmp/aeebac160835-engine/Experiment-3/tsconfig.json",
+          "bytes": 460,
+          "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+        }
+      },
+      "dependencyRoot": "/tmp/aeebac160835-engine/Experiment-3/node_modules",
+      "mode": "native",
+      "build": {
+        "tool": "esbuild",
+        "version": "0.25.12",
+        "options": {
+          "bundle": true,
+          "write": false,
+          "format": "esm",
+          "platform": "node",
+          "target": "esnext",
+          "minify": false,
+          "treeShaking": false,
+          "sourcemap": false,
+          "conditions": [],
+          "mainFields": [
+            "main"
+          ]
+        },
+        "buildMs": 41.405902999999995,
+        "outputSha256": "13143d38c8080eba46e508f1570cad291c56413343e76d8b1fbf7adfed577d7c",
+        "externalImports": [],
+        "warnings": []
+      }
+    }
+  },
+  "sourceUse": "Native imports execute the actual Track modules from each root. circuitDefinition is already in that static graph; the actual test-venues module is an explicit hashed extra input and imports only the already recorded circuits module.",
+  "outputFields": [
+    "lateral",
+    "s",
+    "x",
+    "y",
+    "z",
+    "tx",
+    "tz",
+    "nx",
+    "nz",
+    "curvature",
+    "width",
+    "bank",
+    "gradient"
+  ],
+  "constructionFields": {
+    "scalars": [
+      "length",
+      "rain",
+      "cloud",
+      "ambient",
+      "windX",
+      "windZ",
+      "visibility",
+      "dust",
+      "gust",
+      "moisture",
+      "fogCover",
+      "surfaceClock"
+    ],
+    "point": [
+      "s",
+      "x",
+      "y",
+      "z",
+      "tx",
+      "tz",
+      "nx",
+      "nz",
+      "curvature",
+      "width",
+      "bank",
+      "gradient"
+    ],
+    "surface": [
+      "water",
+      "rubber",
+      "marbles",
+      "frozen",
+      "temperature",
+      "substrateTemperature",
+      "drainage",
+      "sheltered"
+    ]
+  },
+  "memoryLimits": "Resident cell/segment counts are structural observations, not V8 heap bytes. New surface banks add 286720 fixed payload bytes per Track as established by W02E/W05A; full Track construction includes that separate change.",
+  "cases": [
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:aurel",
+      "createdAt": "2026-11-25T08:16:55.738Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934464,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 627.216799,
+          "current": 438.988708
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402937,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 49.09960000000001,
+              "observationMs": 0.6190579999999954,
+              "disposeMs": 0.02049000000010892
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 54.327862000000096,
+              "observationMs": 0.3540850000001683,
+              "disposeMs": 0.0033650000000307045
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "378ca7518a3c3609df0e054c11c8fdd8edef0a90524722e0e2610f33bb8ce62f",
+              "current": "378ca7518a3c3609df0e054c11c8fdd8edef0a90524722e0e2610f33bb8ce62f"
+            },
+            "inputChecksums": {
+              "baseline": "2bf4bb79d1b71ffff94007ccc5171eea6203c907acbcda1f5811fd0f327a2ab5",
+              "current": "2bf4bb79d1b71ffff94007ccc5171eea6203c907acbcda1f5811fd0f327a2ab5"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 221,
+                "residentSegmentSlots": 2160,
+                "maximumCellSegments": 19
+              }
+            }
+          },
+          "comparisonMs": 0.5399999999999636
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 14545,
+          "actualCandidateChecks": 14545,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "a4c2698d3f93a25f4d3309a66c324e066a47036ddf1fde01be006f6be1bb0019"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 14545,
+          "actualCandidateChecks": 2448,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 225,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 225,
+            "residentSegmentSlots": 2213,
+            "maximumCellSegments": 17
+          },
+          "querySha256": "a4c2698d3f93a25f4d3309a66c324e066a47036ddf1fde01be006f6be1bb0019"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:vellamar",
+      "createdAt": "2026-11-25T08:16:55.934Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934465,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.20841900000004898,
+          "current": 0.0992069999999785
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402938,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 35.806339999999864,
+              "observationMs": 0.18626599999993232,
+              "disposeMs": 0.0033650000000307045
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 38.51729,
+              "observationMs": 0.10849099999995815,
+              "disposeMs": 0.002713999999969019
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "88b1faff6935487599adde03b295bd96b0046eebafe6f0f0f36d4f73472139c2",
+              "current": "88b1faff6935487599adde03b295bd96b0046eebafe6f0f0f36d4f73472139c2"
+            },
+            "inputChecksums": {
+              "baseline": "e6aaafecc084d67a967db374edbd338180e5e421bee6d04ebad98f693cddc051",
+              "current": "e6aaafecc084d67a967db374edbd338180e5e421bee6d04ebad98f693cddc051"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 226,
+                "residentSegmentSlots": 1852,
+                "maximumCellSegments": 19
+              }
+            }
+          },
+          "comparisonMs": 0.07774499999982254
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 11833,
+          "actualCandidateChecks": 11833,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "f097b8b85fc2b3d327641566f3af92c9bb480efa847a874c732a80f35c3a4963"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 11833,
+          "actualCandidateChecks": 2045,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 220,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 220,
+            "residentSegmentSlots": 1828,
+            "maximumCellSegments": 21
+          },
+          "querySha256": "f097b8b85fc2b3d327641566f3af92c9bb480efa847a874c732a80f35c3a4963"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:speedbowl",
+      "createdAt": "2026-11-25T08:16:56.339Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934466,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 2.2464109999996253,
+          "current": 0.43854000000010274
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402939,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 59.817397000000256,
+              "observationMs": 0.1074189999999362,
+              "disposeMs": 0.003294999999980064
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 51.7624679999999,
+              "observationMs": 0.12747899999976653,
+              "disposeMs": 0.0037650000003850437
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "8f5b9d983df8b192337f71cb6f090c3b48c0ca74e881306e97a79aa8baa65ff9",
+              "current": "8f5b9d983df8b192337f71cb6f090c3b48c0ca74e881306e97a79aa8baa65ff9"
+            },
+            "inputChecksums": {
+              "baseline": "a9eb26cbc55bff728f5876b2549291f503e711dfdca997eb9a02e2224bd712a2",
+              "current": "a9eb26cbc55bff728f5876b2549291f503e711dfdca997eb9a02e2224bd712a2"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 223,
+                "residentSegmentSlots": 1734,
+                "maximumCellSegments": 10
+              }
+            }
+          },
+          "comparisonMs": 0.11559099999976752
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 10142,
+          "actualCandidateChecks": 10142,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "b4f2dd023dcac80495580d94c20a898d46bff7359c39840a06648ec15e1b5c4f"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 10142,
+          "actualCandidateChecks": 2556,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 21,
+          "outsideHashQueries": 0,
+          "peakCells": 226,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 226,
+            "residentSegmentSlots": 1741,
+            "maximumCellSegments": 11
+          },
+          "querySha256": "b4f2dd023dcac80495580d94c20a898d46bff7359c39840a06648ec15e1b5c4f"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:figure-eight",
+      "createdAt": "2026-11-25T08:16:56.582Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934467,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.23073199999998906,
+          "current": 0.07468099999960032
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402940,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 58.431806999999935,
+              "observationMs": 0.11808500000006461,
+              "disposeMs": 0.0032540000001972658
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 37.97200100000009,
+              "observationMs": 0.11256700000012643,
+              "disposeMs": 0.0035449999995762482
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "c59d106f99ab08f00c98329d53547f02743669857d16c8e9940f7905dfc21ee6",
+              "current": "c59d106f99ab08f00c98329d53547f02743669857d16c8e9940f7905dfc21ee6"
+            },
+            "inputChecksums": {
+              "baseline": "01882cdf49609a555d97773632340e72ddf5a91d25abf35d75b26f12f0bdf139",
+              "current": "01882cdf49609a555d97773632340e72ddf5a91d25abf35d75b26f12f0bdf139"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 221,
+                "residentSegmentSlots": 2748,
+                "maximumCellSegments": 19
+              }
+            }
+          },
+          "comparisonMs": 0.027370000000246364
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 19566,
+          "actualCandidateChecks": 19566,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "da2ca5f7a02596dcdfc1c15477f97e1da8466a70d1cead7391df7f3824c1da71"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 19566,
+          "actualCandidateChecks": 3268,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 2,
+          "outsideHashQueries": 0,
+          "peakCells": 223,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 223,
+            "residentSegmentSlots": 2769,
+            "maximumCellSegments": 20
+          },
+          "querySha256": "da2ca5f7a02596dcdfc1c15477f97e1da8466a70d1cead7391df7f3824c1da71"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:poggio-alto",
+      "createdAt": "2026-11-25T08:16:56.784Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934468,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.2632310000003599,
+          "current": 0.12225199999966208
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402941,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 42.001646000000164,
+              "observationMs": 0.17726300000003903,
+              "disposeMs": 0.0034050000003844616
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 38.22921200000019,
+              "observationMs": 0.09907700000030673,
+              "disposeMs": 0.003135000000384025
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "80ae746a01bb708b4b21e9280e881e31df70c1535db0b386cd19eafbbe91f888",
+              "current": "80ae746a01bb708b4b21e9280e881e31df70c1535db0b386cd19eafbbe91f888"
+            },
+            "inputChecksums": {
+              "baseline": "d922359a8a64593d4713b82ccf2ee700fe65e16ea8b0d7ed01ceff7ea982c172",
+              "current": "d922359a8a64593d4713b82ccf2ee700fe65e16ea8b0d7ed01ceff7ea982c172"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 231,
+                "residentSegmentSlots": 1387,
+                "maximumCellSegments": 15
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 231,
+                "residentSegmentSlots": 1387,
+                "maximumCellSegments": 15
+              }
+            }
+          },
+          "comparisonMs": 0.021612000000004628
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 8268,
+          "actualCandidateChecks": 1506,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 232,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 232,
+            "residentSegmentSlots": 1389,
+            "maximumCellSegments": 15
+          },
+          "querySha256": "57da0acafeda050057c88bc99226a093a8bee4738edb1f4b174eed0a47ea51f3"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 8268,
+          "actualCandidateChecks": 1506,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 232,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 232,
+            "residentSegmentSlots": 1389,
+            "maximumCellSegments": 15
+          },
+          "querySha256": "57da0acafeda050057c88bc99226a093a8bee4738edb1f4b174eed0a47ea51f3"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:valley-ridge-mx",
+      "createdAt": "2026-11-25T08:16:57.126Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934469,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.22449299999971117,
+          "current": 0.2818680000000313
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402942,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 99.91190499999993,
+              "observationMs": 0.11169500000005428,
+              "disposeMs": 0.0030339999998432177
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 88.98592899999994,
+              "observationMs": 0.12515499999972235,
+              "disposeMs": 0.0037649999999302963
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "d2415f54a22db2ef4c0897d9434eef85739ac3c3375dc6c91638f1b9fb095356",
+              "current": "d2415f54a22db2ef4c0897d9434eef85739ac3c3375dc6c91638f1b9fb095356"
+            },
+            "inputChecksums": {
+              "baseline": "376fafbeb5cc6d3c8547f02764aa619e3dce7eca9b6f292aee5512fe950d7584",
+              "current": "376fafbeb5cc6d3c8547f02764aa619e3dce7eca9b6f292aee5512fe950d7584"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": true,
+                "capacity": "unbounded-existing-policy",
+                "residentCells": 183,
+                "residentSegmentSlots": 5669,
+                "maximumCellSegments": 84
+              },
+              "current": {
+                "enabled": true,
+                "capacity": "unbounded-existing-policy",
+                "residentCells": 183,
+                "residentSegmentSlots": 5669,
+                "maximumCellSegments": 84
+              }
+            }
+          },
+          "comparisonMs": 0.022072999999636522
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 66472,
+          "actualCandidateChecks": 7427,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 183,
+          "index": {
+            "enabled": true,
+            "capacity": "unbounded-existing-policy",
+            "residentCells": 183,
+            "residentSegmentSlots": 5597,
+            "maximumCellSegments": 59
+          },
+          "querySha256": "39eb7edc2829de352e6ad7a8038aadd105ffe22bf967a05995ddd8033f2dfc45"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 66472,
+          "actualCandidateChecks": 7427,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 183,
+          "index": {
+            "enabled": true,
+            "capacity": "unbounded-existing-policy",
+            "residentCells": 183,
+            "residentSegmentSlots": 5597,
+            "maximumCellSegments": 59
+          },
+          "querySha256": "39eb7edc2829de352e6ad7a8038aadd105ffe22bf967a05995ddd8033f2dfc45"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:kestrel-rx",
+      "createdAt": "2026-11-25T08:16:57.560Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934470,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.25452800000039133,
+          "current": 0.13357799999994313
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402943,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 81.34691799999973,
+              "observationMs": 0.11015399999996589,
+              "disposeMs": 0.0034949999999298598
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 85.50326600000017,
+              "observationMs": 0.12453400000003967,
+              "disposeMs": 0.004125999999814667
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "d88776ba274c36b0191b0291cda6fc5b7f04cdee6f5d1b2ef3fcbbe649631fec",
+              "current": "d88776ba274c36b0191b0291cda6fc5b7f04cdee6f5d1b2ef3fcbbe649631fec"
+            },
+            "inputChecksums": {
+              "baseline": "d5453e3dd93b163ce491c0b5a4e2776136f8aedbd3ccfe6b81aa6b064de88946",
+              "current": "d5453e3dd93b163ce491c0b5a4e2776136f8aedbd3ccfe6b81aa6b064de88946"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              }
+            }
+          },
+          "comparisonMs": 0.027430999999978667
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 59296,
+          "actualCandidateChecks": 59296,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "fdefb8759c2d612ab02ed46785512be611d89164bd7ceaeb50e7d2e345cc136b"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 59296,
+          "actualCandidateChecks": 59296,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "fdefb8759c2d612ab02ed46785512be611d89164bd7ceaeb50e7d2e345cc136b"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "warm:pinewood-stage",
+      "createdAt": "2026-11-25T08:16:58.051Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime the complete bounded 256-query road/shoulder working set, then repeatedly visit it.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934471,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.20300099999985832,
+          "current": 0.15322800000012649
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402944,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 115.84196799999972,
+              "observationMs": 0.11549099999956525,
+              "disposeMs": 0.003505000000131986
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 122.15428799999972,
+              "observationMs": 0.10314300000027288,
+              "disposeMs": 0.0036260000001675508
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "8201e0b7cb69af80458ec56141eff266e39a0ce69f2bf6540b73d65212e50da7",
+              "current": "8201e0b7cb69af80458ec56141eff266e39a0ce69f2bf6540b73d65212e50da7"
+            },
+            "inputChecksums": {
+              "baseline": "35940083af35a0da304f8e19f04b3ed42daeb9c53027f27196bcd2cebf7ff415",
+              "current": "35940083af35a0da304f8e19f04b3ed42daeb9c53027f27196bcd2cebf7ff415"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              }
+            }
+          },
+          "comparisonMs": 0.02178200000025754
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 16433,
+          "actualCandidateChecks": 16433,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "0ca6eb9810e137b1b6b30ad9570444d812d32ddb0589f3721b07bbb6a9ee2016"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 16433,
+          "actualCandidateChecks": 16433,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "0ca6eb9810e137b1b6b30ad9570444d812d32ddb0589f3721b07bbb6a9ee2016"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "cold-stream:aurel",
+      "createdAt": "2026-11-25T08:16:58.597Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Begin with an empty newly selected paved index, then visit 4096 distinct in-hash 4 m cells in the same order on every pass. The 2048-cell cap makes later passes evicting misses too; heights are omitted.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934472,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 4096,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 1.0202829999998357,
+          "current": 0.2347379999991972
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402945,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 14.433871000000181,
+              "observationMs": 1.3010089999997945,
+              "disposeMs": 0.0022229999995033722
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 10.673796000000038,
+              "observationMs": 1.2147009999998772,
+              "disposeMs": 0.002824000000146043
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "121fb39139ec83a66bfe36b3acbbe143b6994d4622969a5c82ec76e5f5717d1c",
+              "current": "121fb39139ec83a66bfe36b3acbbe143b6994d4622969a5c82ec76e5f5717d1c"
+            },
+            "inputChecksums": {
+              "baseline": "6bb6659fe56830b25285d87f96c9e431516882ac54ba1a245e06bb369a7c135a",
+              "current": "6bb6659fe56830b25285d87f96c9e431516882ac54ba1a245e06bb369a7c135a"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 98304,
+            "comparedOutputBytes": 425984,
+            "objectIsComparisons": 53248,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 2048,
+                "residentSegmentSlots": 32616,
+                "maximumCellSegments": 50
+              }
+            }
+          },
+          "comparisonMs": 0.129982999999811
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 8192,
+          "coarseCandidateChecks": 327948,
+          "actualCandidateChecks": 327948,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "8896548d51dee5b33703444d676cc41eaa690551ca1cda9124a0ccffccf4f224"
+        },
+        "current": {
+          "queries": 8192,
+          "coarseCandidateChecks": 327948,
+          "actualCandidateChecks": 133648,
+          "indexCalls": 8192,
+          "hits": 0,
+          "builds": 8192,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 2048,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 2048,
+            "residentSegmentSlots": 33730,
+            "maximumCellSegments": 52
+          },
+          "querySha256": "8896548d51dee5b33703444d676cc41eaa690551ca1cda9124a0ccffccf4f224"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "cold-stream:vellamar",
+      "createdAt": "2026-11-25T08:16:58.792Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Begin with an empty newly selected paved index, then visit 4096 distinct in-hash 4 m cells in the same order on every pass. The 2048-cell cap makes later passes evicting misses too; heights are omitted.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934473,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 4096,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.19402700000046025,
+          "current": 0.05649399999947491
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402946,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 6.598173000000315,
+              "observationMs": 0.5986080000002403,
+              "disposeMs": 0.003004000000146334
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 6.702628000000004,
+              "observationMs": 0.5929589999996097,
+              "disposeMs": 0.0024539999994885875
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "964be9b5f3b8c560b44716618c46a559434ef7b54dd23c38b287f5a8929d59e7",
+              "current": "964be9b5f3b8c560b44716618c46a559434ef7b54dd23c38b287f5a8929d59e7"
+            },
+            "inputChecksums": {
+              "baseline": "e4904d989890faea65e77178b7ae942758ecb10e0c9b5ebc21e25738df6ac55e",
+              "current": "e4904d989890faea65e77178b7ae942758ecb10e0c9b5ebc21e25738df6ac55e"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 98304,
+            "comparedOutputBytes": 425984,
+            "objectIsComparisons": 53248,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 2048,
+                "residentSegmentSlots": 25249,
+                "maximumCellSegments": 61
+              }
+            }
+          },
+          "comparisonMs": 0.10314299999936338
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 8192,
+          "coarseCandidateChecks": 252864,
+          "actualCandidateChecks": 252864,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "cde4fb59edcec5d688f740cc47f612b9b549d6d69cd2378d11523aac62c55727"
+        },
+        "current": {
+          "queries": 8192,
+          "coarseCandidateChecks": 252864,
+          "actualCandidateChecks": 101980,
+          "indexCalls": 8192,
+          "hits": 0,
+          "builds": 8192,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 2048,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 2048,
+            "residentSegmentSlots": 25473,
+            "maximumCellSegments": 74
+          },
+          "querySha256": "cde4fb59edcec5d688f740cc47f612b9b549d6d69cd2378d11523aac62c55727"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "cold-stream:speedbowl",
+      "createdAt": "2026-11-25T08:16:58.961Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Begin with an empty newly selected paved index, then visit 4096 distinct in-hash 4 m cells in the same order on every pass. The 2048-cell cap makes later passes evicting misses too; heights are omitted.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934474,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 4096,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.22242000000005646,
+          "current": 0.06113100000038685
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402947,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 8.843323000000055,
+              "observationMs": 0.5792579999997542,
+              "disposeMs": 0.002343999999538937
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 5.4808359999997265,
+              "observationMs": 0.770752999999786,
+              "disposeMs": 0.0036860000000160653
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "4251e9da3d7b923b51e7c1c48046abbd2d0c119de6dd6e21d91d4b5b9c3ef8e4",
+              "current": "4251e9da3d7b923b51e7c1c48046abbd2d0c119de6dd6e21d91d4b5b9c3ef8e4"
+            },
+            "inputChecksums": {
+              "baseline": "47d56f6a7b352ec305d84945a8d57f2c1825cc6a4c654ab3689d94ffba3a8df1",
+              "current": "47d56f6a7b352ec305d84945a8d57f2c1825cc6a4c654ab3689d94ffba3a8df1"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 98304,
+            "comparedOutputBytes": 425984,
+            "objectIsComparisons": 53248,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 2048,
+                "residentSegmentSlots": 25086,
+                "maximumCellSegments": 22
+              }
+            }
+          },
+          "comparisonMs": 0.10561700000016572
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 8192,
+          "coarseCandidateChecks": 244984,
+          "actualCandidateChecks": 244984,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "d310a5ebddac344aa4e9eb91310471a4493d09f098e1af53c9ea28a335e3487f"
+        },
+        "current": {
+          "queries": 8192,
+          "coarseCandidateChecks": 244984,
+          "actualCandidateChecks": 99404,
+          "indexCalls": 8192,
+          "hits": 0,
+          "builds": 8192,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 2048,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 2048,
+            "residentSegmentSlots": 24645,
+            "maximumCellSegments": 23
+          },
+          "querySha256": "d310a5ebddac344aa4e9eb91310471a4493d09f098e1af53c9ea28a335e3487f"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "cold-stream:figure-eight",
+      "createdAt": "2026-11-25T08:16:59.136Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Begin with an empty newly selected paved index, then visit 4096 distinct in-hash 4 m cells in the same order on every pass. The 2048-cell cap makes later passes evicting misses too; heights are omitted.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934475,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 4096,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.24520299999949202,
+          "current": 0.05782599999929516
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402948,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 7.073398000000452,
+              "observationMs": 0.5597800000005009,
+              "disposeMs": 0.002343000000109896
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 11.425420999999915,
+              "observationMs": 0.625597000000198,
+              "disposeMs": 0.0025340000001961016
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "c6fd191168d44ed0ed9acc91624549203cb6b57658b4f341ef79311ab82cce70",
+              "current": "c6fd191168d44ed0ed9acc91624549203cb6b57658b4f341ef79311ab82cce70"
+            },
+            "inputChecksums": {
+              "baseline": "7e62d485a2a14902df2a660ec13a88e7d7d3381d5c16835d7f125ed6a4d725ad",
+              "current": "7e62d485a2a14902df2a660ec13a88e7d7d3381d5c16835d7f125ed6a4d725ad"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 98304,
+            "comparedOutputBytes": 425984,
+            "objectIsComparisons": 53248,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 2048,
+                "residentSegmentSlots": 41065,
+                "maximumCellSegments": 58
+              }
+            }
+          },
+          "comparisonMs": 0.20205999999961932
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 8192,
+          "coarseCandidateChecks": 429884,
+          "actualCandidateChecks": 429884,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "dd5af575b1eb552f4edb9f8b709b3f00db70ef0e4168ce1c7fba28a2bc818941"
+        },
+        "current": {
+          "queries": 8192,
+          "coarseCandidateChecks": 429884,
+          "actualCandidateChecks": 165342,
+          "indexCalls": 8192,
+          "hits": 0,
+          "builds": 8192,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 2048,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 2048,
+            "residentSegmentSlots": 41394,
+            "maximumCellSegments": 58
+          },
+          "querySha256": "dd5af575b1eb552f4edb9f8b709b3f00db70ef0e4168ce1c7fba28a2bc818941"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "outside-hash:aurel",
+      "createdAt": "2026-11-25T08:16:59.318Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Visit 128 positions outside the existing coarse hash; the original all-segment fallback remains in use.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934476,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 128,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.2479880000000776,
+          "current": 0.05968899999970745
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402949,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 4.192817000000105,
+              "observationMs": 0.07633299999997689,
+              "disposeMs": 0.0027840000002470333
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 4.330200000000332,
+              "observationMs": 0.05642299999999523,
+              "disposeMs": 0.0015520000006290502
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "639bded9faddcc9e935fb1551fece9f55ec1fbe229a7033fbcd3535d647fd573",
+              "current": "639bded9faddcc9e935fb1551fece9f55ec1fbe229a7033fbcd3535d647fd573"
+            },
+            "inputChecksums": {
+              "baseline": "fbcc090e8875b78bd64f0bf4aba5739f90f5b28e9e1891d7505132ce0e08cff6",
+              "current": "fbcc090e8875b78bd64f0bf4aba5739f90f5b28e9e1891d7505132ce0e08cff6"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 3072,
+            "comparedOutputBytes": 13312,
+            "objectIsComparisons": 1664,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              }
+            }
+          },
+          "comparisonMs": 0.011347000000569096
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 128,
+          "coarseCandidateChecks": 196608,
+          "actualCandidateChecks": 196608,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 128,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "d4fa240d74e3818621f82bb3fa86d86363680277cb4c91fe94a70536e1ee1445"
+        },
+        "current": {
+          "queries": 128,
+          "coarseCandidateChecks": 196608,
+          "actualCandidateChecks": 196608,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 128,
+          "peakCells": 0,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "d4fa240d74e3818621f82bb3fa86d86363680277cb4c91fe94a70536e1ee1445"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "unproved-height:figure-eight",
+      "createdAt": "2026-11-25T08:16:59.454Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Actual Track.nearest calls plus copying lateral and every TrackPoint number into a preallocated Float64 output. Prime 256 in-hash locations at an unproved height of 10000 m; candidate selection must retain the original coarse bucket.",
+        "setupWork": "Construct the actual Track, generate seeded queries from its unchanged geometry, allocate input/output buffers, and perform declared priming before timing. Compare every output with Object.is afterward.",
+        "allocationScope": "No fixture allocation occurs in run(). Actual nearest/index allocations, including cold candidate arrays, Map insertion/eviction and normal VM collection, remain timed.",
+        "limitations": "CPU query workload with output-copy overhead, not an entire physics update, native browser, heap profile, GPU or FPS measurement. The cold stream deliberately exceeds the cache cap and is not representative of a bounded live-car working set."
+      },
+      "configuration": {
+        "seed": 2047934477,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 256,
+        "unit": "nearest query",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.21187400000053458,
+          "current": 0.06418499999927008
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402950,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 6.929795000000013,
+              "observationMs": 0.09493100000054255,
+              "disposeMs": 0.0021729999998569838
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 7.132204999999885,
+              "observationMs": 0.09760499999993044,
+              "disposeMs": 0.0025340000001961016
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "008ee4129c5eefedcbb69a9571117d29720864d5a3705fdd403272d7d2297a04",
+              "current": "008ee4129c5eefedcbb69a9571117d29720864d5a3705fdd403272d7d2297a04"
+            },
+            "inputChecksums": {
+              "baseline": "9c21fd38dfd40af5e594823403b9178d47169b4988a950aba897b7a6c8fcacd8",
+              "current": "9c21fd38dfd40af5e594823403b9178d47169b4988a950aba897b7a6c8fcacd8"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 6144,
+            "comparedOutputBytes": 26624,
+            "objectIsComparisons": 3328,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": {
+                "enabled": false,
+                "capacity": null,
+                "residentCells": 0,
+                "residentSegmentSlots": 0,
+                "maximumCellSegments": 0
+              },
+              "current": {
+                "enabled": true,
+                "capacity": 2048,
+                "residentCells": 227,
+                "residentSegmentSlots": 2830,
+                "maximumCellSegments": 19
+              }
+            }
+          },
+          "comparisonMs": 0.01417100000071514
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "queries": 256,
+          "coarseCandidateChecks": 19522,
+          "actualCandidateChecks": 19522,
+          "indexCalls": 0,
+          "hits": 0,
+          "builds": 0,
+          "layerFallbacks": 0,
+          "outsideHashQueries": 0,
+          "peakCells": 0,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          },
+          "querySha256": "94d3a4dc590c1054cea7f1b4502176ca8a743821c383724daf729f58b7e014dc"
+        },
+        "current": {
+          "queries": 256,
+          "coarseCandidateChecks": 19522,
+          "actualCandidateChecks": 19522,
+          "indexCalls": 256,
+          "hits": 256,
+          "builds": 0,
+          "layerFallbacks": 256,
+          "outsideHashQueries": 0,
+          "peakCells": 224,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 224,
+            "residentSegmentSlots": 2790,
+            "maximumCellSegments": 18
+          },
+          "querySha256": "94d3a4dc590c1054cea7f1b4502176ca8a743821c383724daf729f58b7e014dc"
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "construction:aurel",
+      "createdAt": "2026-11-25T08:16:59.607Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Construct eight independent actual Tracks and retain them until observation (one in smoke mode). Modules/JIT are warmed by the paired warmup phase; this is not cold-process startup.",
+        "setupWork": "Resolve the actual unchanged circuit definition and allocate the reference array before timing. Observe all sampled ribbon numbers and public initial climate grids afterward.",
+        "allocationScope": "Every allocation and initialization performed by the actual Track constructor is timed. Geometry/observation serialization and release of fixture references are outside timing.",
+        "limitations": "Integrated Track creation includes the new surface coefficient/depression storage as well as the empty lane index. It cannot isolate lane-index constructor cost or establish process startup, peak heap, GPU time, or game FPS."
+      },
+      "configuration": {
+        "seed": 2047934478,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 1,
+        "unit": "Track construction",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.32924800000000687,
+          "current": 0.07277800000065326
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402951,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.15611100000023725,
+              "observationMs": 8.225124999999935,
+              "disposeMs": 0.026569000000563392
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.007881999999881373,
+              "observationMs": 1.5176609999998618,
+              "disposeMs": 0.0038560000002689776
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "dcdcafac9a1a09719ee08f6e1b2650a45aa42a4a9ee2e92c29a520899c1b086e",
+              "current": "dcdcafac9a1a09719ee08f6e1b2650a45aa42a4a9ee2e92c29a520899c1b086e"
+            },
+            "inputChecksums": {
+              "baseline": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "current": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 0,
+            "comparedOutputBytes": 352448,
+            "objectIsComparisons": 44056,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": [
+                {
+                  "enabled": false,
+                  "capacity": null,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ],
+              "current": [
+                {
+                  "enabled": true,
+                  "capacity": 2048,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ]
+            }
+          },
+          "comparisonMs": 0.8290490000008504
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        },
+        "current": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "construction:vellamar",
+      "createdAt": "2026-11-25T08:16:59.735Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Construct eight independent actual Tracks and retain them until observation (one in smoke mode). Modules/JIT are warmed by the paired warmup phase; this is not cold-process startup.",
+        "setupWork": "Resolve the actual unchanged circuit definition and allocate the reference array before timing. Observe all sampled ribbon numbers and public initial climate grids afterward.",
+        "allocationScope": "Every allocation and initialization performed by the actual Track constructor is timed. Geometry/observation serialization and release of fixture references are outside timing.",
+        "limitations": "Integrated Track creation includes the new surface coefficient/depression storage as well as the empty lane index. It cannot isolate lane-index constructor cost or establish process startup, peak heap, GPU time, or game FPS."
+      },
+      "configuration": {
+        "seed": 2047934479,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 1,
+        "unit": "Track construction",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.42618099999981496,
+          "current": 0.06163100000048871
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402952,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.004687000000558328,
+              "observationMs": 2.0112120000003415,
+              "disposeMs": 0.005538000000342436
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.003153999999994994,
+              "observationMs": 2.0529939999996714,
+              "disposeMs": 0.004116000000067288
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "ea42ca5e9be96014b24b13d0772628ac5fad8f24cac3f9ce04bb505d09e6c95e",
+              "current": "ea42ca5e9be96014b24b13d0772628ac5fad8f24cac3f9ce04bb505d09e6c95e"
+            },
+            "inputChecksums": {
+              "baseline": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "current": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 0,
+            "comparedOutputBytes": 352448,
+            "objectIsComparisons": 44056,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": [
+                {
+                  "enabled": false,
+                  "capacity": null,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ],
+              "current": [
+                {
+                  "enabled": true,
+                  "capacity": 2048,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ]
+            }
+          },
+          "comparisonMs": 0.2333859999998822
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        },
+        "current": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "construction:speedbowl",
+      "createdAt": "2026-11-25T08:16:59.854Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Construct eight independent actual Tracks and retain them until observation (one in smoke mode). Modules/JIT are warmed by the paired warmup phase; this is not cold-process startup.",
+        "setupWork": "Resolve the actual unchanged circuit definition and allocate the reference array before timing. Observe all sampled ribbon numbers and public initial climate grids afterward.",
+        "allocationScope": "Every allocation and initialization performed by the actual Track constructor is timed. Geometry/observation serialization and release of fixture references are outside timing.",
+        "limitations": "Integrated Track creation includes the new surface coefficient/depression storage as well as the empty lane index. It cannot isolate lane-index constructor cost or establish process startup, peak heap, GPU time, or game FPS."
+      },
+      "configuration": {
+        "seed": 2047934480,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 1,
+        "unit": "Track construction",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.21159400000033202,
+          "current": 0.06298400000014226
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402953,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.004606999999850814,
+              "observationMs": 2.921911999999793,
+              "disposeMs": 0.007581999999274558
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.002793999999994412,
+              "observationMs": 2.694456000000173,
+              "disposeMs": 0.0036549999995258986
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "65438225a61949779c13307317a70c80ecc7e9715658de0a68952cbbf3e1125f",
+              "current": "65438225a61949779c13307317a70c80ecc7e9715658de0a68952cbbf3e1125f"
+            },
+            "inputChecksums": {
+              "baseline": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "current": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 0,
+            "comparedOutputBytes": 352448,
+            "objectIsComparisons": 44056,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": [
+                {
+                  "enabled": false,
+                  "capacity": null,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ],
+              "current": [
+                {
+                  "enabled": true,
+                  "capacity": 2048,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ]
+            }
+          },
+          "comparisonMs": 0.545219000000543
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        },
+        "current": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        }
+      }
+    },
+    {
+      "schema": "engine-advancement-paired/1",
+      "name": "construction:figure-eight",
+      "createdAt": "2026-11-25T08:16:59.988Z",
+      "purpose": "smoke",
+      "scope": {
+        "timedWork": "Construct eight independent actual Tracks and retain them until observation (one in smoke mode). Modules/JIT are warmed by the paired warmup phase; this is not cold-process startup.",
+        "setupWork": "Resolve the actual unchanged circuit definition and allocate the reference array before timing. Observe all sampled ribbon numbers and public initial climate grids afterward.",
+        "allocationScope": "Every allocation and initialization performed by the actual Track constructor is timed. Geometry/observation serialization and release of fixture references are outside timing.",
+        "limitations": "Integrated Track creation includes the new surface coefficient/depression storage as well as the empty lane index. It cannot isolate lane-index constructor cost or establish process startup, peak heap, GPU time, or game FPS."
+      },
+      "configuration": {
+        "seed": 2047934481,
+        "generator": "mulberry32",
+        "warmupPairs": 0,
+        "samplePairs": 1,
+        "iterations": 1,
+        "unitsPerIteration": 1,
+        "unit": "Track construction",
+        "moduleLifetime": "reuse"
+      },
+      "preparation": {
+        "initialImportMs": {
+          "baseline": 0.3845599999995102,
+          "current": 0.06732000000010885
+        },
+        "note": "Build/import/fixture allocation/observation/comparison/disposal and report I/O are outside run(). Allocations performed by run() remain inside its timing."
+      },
+      "stableSources": true,
+      "equivalence": {
+        "passed": true,
+        "checkedPairs": 1
+      },
+      "timing": {
+        "validForComparison": false,
+        "reason": "Smoke only; no workload durations collected.",
+        "medianMs": null,
+        "medianMsPerUnit": null
+      },
+      "warmups": [],
+      "samples": [
+        {
+          "pair": 0,
+          "seed": 407402954,
+          "order": [
+            "baseline",
+            "current"
+          ],
+          "baseline": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.004896999999800755,
+              "observationMs": 1.424431999999797,
+              "disposeMs": 0.003815999999460473
+            }
+          },
+          "current": {
+            "elapsedMs": null,
+            "msPerUnit": null,
+            "outsideTiming": {
+              "moduleLoadMs": 0,
+              "fixtureSetupMs": 0.002132999999957974,
+              "observationMs": 1.2271190000001297,
+              "disposeMs": 0.002013000000260945
+            }
+          },
+          "equivalence": {
+            "equal": true,
+            "checksums": {
+              "baseline": "c01da694c5fe8aff68bd6374e16fe8c31e4b288338dfd534bc1d3d6ce37f492c",
+              "current": "c01da694c5fe8aff68bd6374e16fe8c31e4b288338dfd534bc1d3d6ce37f492c"
+            },
+            "inputChecksums": {
+              "baseline": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "current": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "identicalInputBytes": true,
+            "comparedInputBytes": 0,
+            "comparedOutputBytes": 352448,
+            "objectIsComparisons": 44056,
+            "differences": 0,
+            "firstDifference": null,
+            "nonfiniteOutputs": {
+              "baseline": 0,
+              "current": 0
+            },
+            "finalCache": {
+              "baseline": [
+                {
+                  "enabled": false,
+                  "capacity": null,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ],
+              "current": [
+                {
+                  "enabled": true,
+                  "capacity": 2048,
+                  "residentCells": 0,
+                  "residentSegmentSlots": 0,
+                  "maximumCellSegments": 0
+                }
+              ]
+            }
+          },
+          "comparisonMs": 0.45408299999962765
+        }
+      ],
+      "sourceManifestRef": "sourceManifest",
+      "structuralProbe": {
+        "baseline": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": false,
+            "capacity": null,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        },
+        "current": {
+          "kind": "construction",
+          "points": 1537,
+          "index": {
+            "enabled": true,
+            "capacity": 2048,
+            "residentCells": 0,
+            "residentSegmentSlots": 0,
+            "maximumCellSegments": 0
+          }
+        }
+      }
+    }
+  ],
+  "runtime": {
+    "node": "v24.22.3",
+    "versions": {
+      "node": "24.22.3",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.9",
+      "brotli": "1.2.1",
+      "cldr": "48.0",
+      "icu": "78.3",
+      "llhttp": "9.4.4",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "3.5.9",
+      "simdjson": "4.6.11",
+      "simdutf": "6.4.0",
+      "sqlite": "3.54.1",
+      "tz": "2026e",
+      "undici": "7.30.2",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.63",
+      "zlib": "1.3.2.1-motley-285e94b",
+      "zstd": "1.5.7"
+    },
+    "execArgv": [
+      "--no-warnings",
+      "--experimental-transform-types"
+    ],
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "6.18.57",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "host": "4f398b69b6a5",
+    "pid": 2
+  },
+  "concurrency": {
+    "exclusiveCompute": false,
+    "cooperativeLock": null,
+    "limitation": "A cooperative lock cannot detect unrelated CPU/GPU work; the timing coordinator must arrange exclusivity."
+  },
+  "evidenceFiles": {
+    "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/benchmark-support.mjs": {
+      "bytes": 17172,
+      "sha256": "dd913599e80387a2e9f8e34364e5bd57b5a2845e9d330966430183eafe2d7522"
+    },
+    "/tmp/aeebac160835-engine/Experiment-3/scripts/engine-advancement/measure-lanes.mjs": {
+      "bytes": 22441,
+      "sha256": "b1fe5bf8c925fe1a687443e9d4fe8d6ecbf83e5215db556dae5c1141cf685577"
+    }
+  },
+  "stableSources": true,
+  "equivalencePassed": true,
+  "summary": [
+    {
+      "case": "warm:aurel",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:vellamar",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:speedbowl",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:figure-eight",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:poggio-alto",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:valley-ridge-mx",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:kestrel-rx",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "warm:pinewood-stage",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "cold-stream:aurel",
+      "comparedPairs": 1,
+      "objectIsComparisons": 53248,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "cold-stream:vellamar",
+      "comparedPairs": 1,
+      "objectIsComparisons": 53248,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "cold-stream:speedbowl",
+      "comparedPairs": 1,
+      "objectIsComparisons": 53248,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "cold-stream:figure-eight",
+      "comparedPairs": 1,
+      "objectIsComparisons": 53248,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "outside-hash:aurel",
+      "comparedPairs": 1,
+      "objectIsComparisons": 1664,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "unproved-height:figure-eight",
+      "comparedPairs": 1,
+      "objectIsComparisons": 3328,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "construction:aurel",
+      "comparedPairs": 1,
+      "objectIsComparisons": 44056,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "construction:vellamar",
+      "comparedPairs": 1,
+      "objectIsComparisons": 44056,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "construction:speedbowl",
+      "comparedPairs": 1,
+      "objectIsComparisons": 44056,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    },
+    {
+      "case": "construction:figure-eight",
+      "comparedPairs": 1,
+      "objectIsComparisons": 44056,
+      "medianMsPerUnit": null,
+      "baselineOverCurrent": null
+    }
+  ]
+}

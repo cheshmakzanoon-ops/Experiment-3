@@ -1,8 +1,11 @@
 # W06B — native retained-page acceptance
 
-Assignment 32/60. Native fixture authoring is complete. **Native execution is
-pending the coordinator's exact-commit browser workflow.** No local browser was
-launched and no successful cache admission is claimed in this report.
+Assignment 32/60. The first exact-commit browser run proved a trusted native
+BFCache restoration of the same document and worker, then failed an invalid
+timestamp-uniqueness assertion. That fixture assertion has been replaced with
+direct native request/delivery ownership accounting. **The corrected complete
+case is pending native CI; its second restoration and terminal reload are not
+yet proved.** No local browser was launched.
 
 ## Acceptance boundary
 
@@ -16,8 +19,11 @@ all of these assertions:
   UUIDs. The server receives no second document request during either Back.
 - The actual host remains paused with its original session generation. Its page
   epoch advances once per departure, and each restored clock starts at zero.
-- There is one pending host RAF and one native input interval. Recorded peak
-  ownership and callbacks sharing a native RAF timestamp also remain one.
+- There is one pending host RAF and one native input interval; recorded peak
+  ownership also remains one. Each native request can enter the presentation
+  boundary at most once. Duplicate or untracked deliveries, calls without a
+  request, and frames belonging to cancelled or stale owners must remain zero.
+  The pending native handle must match the host's current handle and epoch.
 - The worker confirms the pause through the real ordered snapshot/receipt
   protocol. Its tick, step count and input-message count remain unchanged during
   a separate 150 ms observation while paused after restoration.
@@ -48,7 +54,15 @@ the fixture; lifecycle policy is not rewritten as a reference implementation.
 The browser fixture imports the real `InputController`, `InputPump`,
 `PauseHandshake`, `LiveFrameClock` and shared GPU gate. Timers and RAF callbacks
 delegate to the native browser without changing their clocks, delays or
-callback cadence; wrappers only count owned handles. The host uses a native
+callback cadence; wrappers only observe owned handles and delivery identities.
+Each RAF record includes a monotonic sequence, native request ID, request epoch
+and generation, cancellation state, delivery state and frame-call count.
+Requested minus cancelled minus live-delivered minus pending requests must
+balance to zero. Direct startup calls are counted separately and also required
+to be zero, rather than being silently omitted. A bounded 96-event trace and
+the first eight repeated-timestamp pairs retain request/delivery details and
+native observation times; repeated timestamps are diagnostics, not callback
+identities. The host uses a native
 WebGL2 canvas and real shared completion lease. Its small presentation boundary
 clears a solid pixel instead of constructing a game scene.
 
@@ -126,6 +140,48 @@ pause receipts, handle counts, worker input/step observations, pixels, exception
 and cache rejection diagnostics. The existing focused workflow includes these
 files through its `engine-native-*` globs.
 
+## First exact-commit native result and correction
+
+The coordinator's run **45573448610** tested commit
+**9922926e786c35e84810efc8b15e75bcfaba5372**. The original evidence remains in
+`validation/engine-9922926.zip`; extracted attachments are
+`validation/checkpoint4-artifact/history-1-departure.json` and
+`validation/checkpoint4-artifact/history-1-admission.json` in the coordinator's
+workspace. These files record the following observations:
+
+| Observation                              | Before departure | First restored document |
+| ---------------------------------------- | ---------------- | ----------------------- |
+| Page epoch                               | 0                | 1                       |
+| Presentation frames at attachment        | 81               | 85                      |
+| Peak pending RAF handles                 | 1                | 1                       |
+| Peak input intervals                     | 1                | 1                       |
+| Peak callbacks sharing a timestamp       | **2**            | **2**                   |
+| Renderer reset count                     | 0                | 1                       |
+| Renderer disposals / worker terminations | 0 / 0            | 0 / 0                   |
+
+The trusted native `pageshow` had `persisted: true`, the original document and
+worker UUIDs were retained, and the HTTP document request count remained one.
+CDP independently recorded `BackForwardCacheRestore` and no cache failure.
+The worker stayed paused, and the restored WebGL context produced the expected
+green pixel without context loss or GL errors before the assertion failed.
+
+The failing value was already two before navigation, at epoch zero with no
+renderer reset. The evidence therefore rules out restoration as the origin of
+this recorded timestamp repeat. The original instrumentation did not capture
+the actual repeated values or request IDs, so it cannot establish their precise
+browser cause or prove individual request ownership. Treating a timestamp as
+a unique callback ID was an unsupported inference; raising the allowed count
+to two would retain that mistake.
+
+The correction keeps the raw timestamp statistic and adds direct per-request
+identity, cancellation, delivery and frame-call evidence. Assertions still
+require one pending owner and one input interval, and now explicitly reject
+duplicate deliveries, unscheduled frames and frames from cancelled or prior
+epoch/generation owners. No production behavior, native cadence, browser launch
+flag, BFCache admission criterion or input assertion changed. This run did not
+reach the second history cycle or the terminal reload, so those claims await
+the corrected exact-commit workflow.
+
 ## Local verification
 
 - Both browser fixture graphs bundled through the installed esbuild with the
@@ -141,7 +197,14 @@ files through its `engine-native-*` globs.
 - Scoped ESLint passed for the three TypeScript files. Prettier passed for those
   files and this report.
 
+The checks above describe the originally published raw-CDP fixture. For the
+narrow request-accounting correction, both browser graphs bundled again without
+warnings (426,247 fixture bytes and 1,081,146 worker bytes), scoped ESLint passed,
+and Playwright discovery again listed exactly one case. Prettier and the scoped
+diff whitespace check passed. No semantic compiler was rerun locally during
+the coordinator's constrained-memory work; the exact-commit pipeline owns that
+check and native execution of the corrected case.
+
 There was no full repository typecheck/build, npm lifecycle hook, Git mutation,
-browser-policy bypass or performance measurement. The coordinator will append
-the exact-commit CI result; these local preparation checks do not establish
-native cache admission.
+browser-policy bypass or performance measurement. Local preparation checks do
+not establish native execution of the corrected case.

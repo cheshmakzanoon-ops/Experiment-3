@@ -215,31 +215,31 @@
     "name": "w06a_native_network",
     "kind": "native browser verification",
     "status": "complete",
-    "native_validation": "pending CI"
+    "native_validation": "passed at 9922926, CI 45573448610 (one native case)"
   },
   {
     "number": 32,
     "wave": 6,
     "name": "w06b_native_page_history",
     "kind": "native browser verification",
-    "status": "complete",
-    "native_validation": "pending CI"
+    "status": "native correction ready",
+    "native_validation": "first strict restore admitted at992; direct request/epoch ownership correction prepared, full rerun pending"
   },
   {
     "number": 33,
     "wave": 6,
     "name": "w06c_native_gpu_advancement",
     "kind": "native browser verification",
-    "status": "complete",
-    "native_validation": "pending CI"
+    "status": "native diagnostic ready",
+    "native_validation": "upload passed; shared-fence pixel failure retained, detailed diagnostic prepared for next CI"
   },
   {
     "number": 34,
     "wave": 6,
     "name": "w06d_native_audio_advancement",
     "kind": "native browser verification",
-    "status": "complete",
-    "native_validation": "pending CI"
+    "status": "native diagnostic ready",
+    "native_validation": "exact native inputs plus bounded Float32 PCM contract and live context stage diagnostics ready; rerun pending"
   },
   {
     "number": 35,
@@ -247,27 +247,62 @@
     "name": "w06e_native_records",
     "kind": "native browser verification",
     "status": "complete",
-    "native_validation": "pending CI"
+    "native_validation": "passed at 9922926, CI 45573448610 (two native cases)"
   },
   {
     "number": 36,
     "wave": 6,
     "name": "w06f_native_device_ownership",
     "kind": "native browser verification",
-    "status": "running"
+    "status": "complete",
+    "native_validation": "pending CI"
   },
   {
     "number": 37,
     "wave": 7,
     "name": "w07a_lane_measurement",
     "kind": "measurement",
-    "status": "running"
+    "status": "complete",
+    "measurement_validation": "18 cases / 216 pairs / 124425216 exact numeric comparisons at aaaf500; full raw timings and regressions retained"
   },
   {
     "number": 38,
     "wave": 7,
     "name": "w07b_surface_measurement",
     "kind": "measurement",
-    "status": "running"
+    "status": "complete",
+    "measurement_validation": "seven cases / 84 pairs exact at aaaf500; all raw timings, consistent gains and penalties retained"
+  },
+  {
+    "number": 39,
+    "wave": 7,
+    "name": "w07c_network_measurement",
+    "kind": "measurement",
+    "status": "preparing",
+    "measurement_validation": "resumed untimed preparation; timing still needs reservation"
+  },
+  {
+    "number": 40,
+    "wave": 7,
+    "name": "w07d_audio_measurement",
+    "kind": "measurement",
+    "status": "preparation paused",
+    "measurement_validation": "no timing authorized or run"
+  },
+  {
+    "number": 41,
+    "wave": 7,
+    "name": "w07e_attribute_measurement",
+    "kind": "measurement",
+    "status": "preparation paused",
+    "measurement_validation": "no timing authorized or run"
+  },
+  {
+    "number": 42,
+    "wave": 7,
+    "name": "w07f_simulation_measurement",
+    "kind": "measurement",
+    "status": "preparing",
+    "measurement_validation": "untimed preflight only; timing needs root reservation"
   }
 ]

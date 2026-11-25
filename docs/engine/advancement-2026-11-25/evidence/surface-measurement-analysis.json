@@ -1,0 +1,960 @@
+{
+  "schema": "engine-advancement-surfaces-analysis/1",
+  "createdAt": "2026-11-25T08:42:53.002Z",
+  "sourceReport": {
+    "path": "docs/engine/advancement-2026-11-25/evidence/surface-measurement.json",
+    "bytes": 241907,
+    "sha256": "f1e0566a4c8ecfe89af46491a2c8638eeaad0e27d3f78905cd8faa262c254a79",
+    "baselineCommit": "350119e8ec0606e8c5de5b3ab80df41104025679",
+    "currentCommit": "aaaf5001a9e13e3e6839fc7ecada7b542a4005bc"
+  },
+  "method": {
+    "rerun": false,
+    "outliersRemoved": false,
+    "medianDefinition": "Ordinary median across all nine samples; even-sized order groups use arithmetic mean of two middle values.",
+    "timeChangeDefinition": "100 * (current elapsed / baseline elapsed - 1); negative means less current time.",
+    "pairedDifferenceDefinition": "current elapsed minus baseline elapsed within each AB/BA pair.",
+    "madDefinition": "Median absolute deviation from each reported median; descriptive spread only.",
+    "qualification": "One sequential shared-process session, fixed case order, identical deterministic fixtures. Nine pairs are not nine independent machine/browser runs; no confidence interval or formal significance claim."
+  },
+  "pairedChecks": 84,
+  "comparedBytesAcrossPairedBoundaries": 46892928,
+  "cases": [
+    {
+      "name": "surface/clear-default",
+      "units": 128,
+      "unit": "3584-cell fixed surface tick",
+      "medianMs": {
+        "baseline": 42.626474000000144,
+        "current": 47.44647499999974
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.3330193281250011,
+        "current": 0.37067558593749794
+      },
+      "differenceOfMediansMs": 4.820000999999593,
+      "changeOfMediansPercent": 11.307529212947752,
+      "pairedDifferenceMs": {
+        "minimum": -5.1795460000003,
+        "median": 1.2155030000003535,
+        "maximum": 38.21630499999992,
+        "medianAbsoluteDeviation": 1.2378899999998794
+      },
+      "pairedTimeChangePercent": {
+        "minimum": -9.842176743706876,
+        "median": 2.886707198580618,
+        "maximum": 92.06205948911501,
+        "medianAbsoluteDeviation": 2.413445079156795
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 41.511459999999715,
+          "median": 42.626474000000144,
+          "maximum": 71.2399690000002,
+          "medianAbsoluteDeviation": 1.1150140000004285
+        },
+        "current": {
+          "minimum": 42.41016200000013,
+          "median": 47.44647499999974,
+          "maximum": 79.72776499999964,
+          "medianAbsoluteDeviation": 4.124068999999508
+        }
+      },
+      "fasterCurrentPairs": 1,
+      "slowerCurrentPairs": 8,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 5,
+          "medianTimeChangePercent": 5.300152277737413
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 3,
+          "medianTimeChangePercent": 1.9667500951322303
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 3.049011000000064,
+        "current": 2.781224999999722
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 44.38776600000028,
+          "currentMs": 47.85289299999977,
+          "differenceMs": 3.465126999999484,
+          "timeChangePercent": 7.806491094864887
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 52.62602100000004,
+          "currentMs": 47.44647499999974,
+          "differenceMs": -5.1795460000003,
+          "timeChangePercent": -9.842176743706876
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 46.28910399999995,
+          "currentMs": 48.742497000000185,
+          "differenceMs": 2.453393000000233,
+          "timeChangePercent": 5.300152277737413
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 42.047415,
+          "currentMs": 43.17293400000017,
+          "differenceMs": 1.1255190000001676,
+          "timeChangePercent": 2.676785243516555
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 42.626474000000144,
+          "currentMs": 43.352150000000165,
+          "differenceMs": 0.7256760000000213,
+          "timeChangePercent": 1.7024068188234764
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 41.88380199999983,
+          "currentMs": 42.41016200000013,
+          "differenceMs": 0.5263600000002953,
+          "timeChangePercent": 1.2567149467479055
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 42.106902999999875,
+          "currentMs": 43.32240600000023,
+          "differenceMs": 1.2155030000003535,
+          "timeChangePercent": 2.886707198580618
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 71.2399690000002,
+          "currentMs": 78.04286700000011,
+          "differenceMs": 6.802897999999914,
+          "timeChangePercent": 9.549271420934913
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 41.511459999999715,
+          "currentMs": 79.72776499999964,
+          "differenceMs": 38.21630499999992,
+          "timeChangePercent": 92.06205948911501
+        }
+      ]
+    },
+    {
+      "name": "surface/rain-steady",
+      "units": 128,
+      "unit": "3584-cell fixed surface tick",
+      "medianMs": {
+        "baseline": 79.55688100000043,
+        "current": 49.48396199999934
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.6215381328125034,
+        "current": 0.3865934531249948
+      },
+      "differenceOfMediansMs": -30.072919000001093,
+      "changeOfMediansPercent": -37.8005253876166,
+      "pairedDifferenceMs": {
+        "minimum": -33.60257300000012,
+        "median": -30.573622000000796,
+        "maximum": -26.867016999999578,
+        "medianAbsoluteDeviation": 1.9647029999996448
+      },
+      "pairedTimeChangePercent": {
+        "minimum": -40.89944778001071,
+        "median": -38.40754331768531,
+        "maximum": -34.74723147822173,
+        "medianAbsoluteDeviation": 1.2554982187176762
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 77.32131699999991,
+          "median": 79.55688100000043,
+          "maximum": 83.93495200000052,
+          "medianAbsoluteDeviation": 0.8208870000007664
+        },
+        "current": {
+          "minimum": 47.01855599999999,
+          "median": 49.48396199999934,
+          "maximum": 51.1218800000006,
+          "medianAbsoluteDeviation": 0.8484170000010636
+        }
+      },
+      "fasterCurrentPairs": 9,
+      "slowerCurrentPairs": 0,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 0,
+          "medianTimeChangePercent": -38.97506056639659
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 0,
+          "medianTimeChangePercent": -37.74169726492873
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 2.9896429999998873,
+        "current": 3.4157449999993332
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 79.60317000000032,
+          "currentMs": 49.02954799999952,
+          "differenceMs": -30.573622000000796,
+          "timeChangePercent": -38.40754331768531
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 79.68637799999942,
+          "currentMs": 49.141513999999916,
+          "differenceMs": -30.544863999999507,
+          "timeChangePercent": -38.33134943088984
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 79.27274899999975,
+          "currentMs": 47.94531999999981,
+          "differenceMs": -31.32742899999994,
+          "timeChangePercent": -39.518534925539214
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 78.73599399999966,
+          "currentMs": 49.48396199999934,
+          "differenceMs": -29.252032000000327,
+          "timeChangePercent": -37.15204509896763
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 83.77211099999931,
+          "currentMs": 51.1218800000006,
+          "differenceMs": -32.65023099999871,
+          "timeChangePercent": -38.97506056639659
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 78.67295999999988,
+          "currentMs": 50.147414999999455,
+          "differenceMs": -28.52554500000042,
+          "timeChangePercent": -36.258385346122054
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 79.55688100000043,
+          "currentMs": 47.01855599999999,
+          "differenceMs": -32.53832500000044,
+          "timeChangePercent": -40.89944778001071
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 83.93495200000052,
+          "currentMs": 50.3323790000004,
+          "differenceMs": -33.60257300000012,
+          "timeChangePercent": -40.03406471239765
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 77.32131699999991,
+          "currentMs": 50.45430000000033,
+          "differenceMs": -26.867016999999578,
+          "timeChangePercent": -34.74723147822173
+        }
+      ]
+    },
+    {
+      "name": "surface/storm-exposed",
+      "units": 128,
+      "unit": "3584-cell fixed surface tick",
+      "medianMs": {
+        "baseline": 83.64493099999981,
+        "current": 89.7328379999999
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.6534760234374986,
+        "current": 0.7010377968749992
+      },
+      "differenceOfMediansMs": 6.0879070000000866,
+      "changeOfMediansPercent": 7.278273682836911,
+      "pairedDifferenceMs": {
+        "minimum": -7.846553999999742,
+        "median": 5.3001490000006015,
+        "maximum": 10.648137999999562,
+        "medianAbsoluteDeviation": 2.9767729999994117
+      },
+      "pairedTimeChangePercent": {
+        "minimum": -7.86310985643357,
+        "median": 6.525309696651105,
+        "maximum": 13.46422000715628,
+        "medianAbsoluteDeviation": 3.5478548808030705
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 78.90845799999988,
+          "median": 83.64493099999981,
+          "maximum": 101.09921000000031,
+          "medianAbsoluteDeviation": 4.560230999999476
+        },
+        "current": {
+          "minimum": 85.98075299999982,
+          "median": 89.7328379999999,
+          "maximum": 106.25198,
+          "medianAbsoluteDeviation": 3.0399569999999585
+        }
+      },
+      "fasterCurrentPairs": 2,
+      "slowerCurrentPairs": 7,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 5,
+          "medianTimeChangePercent": 6.525309696651105
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 2,
+          "medianTimeChangePercent": 3.3421910972196107
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 2.897095000000263,
+        "current": 3.9000230000001466
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 78.90845799999988,
+          "currentMs": 86.18714,
+          "differenceMs": 7.278682000000117,
+          "timeChangePercent": 9.224210160082125
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 79.08470000000034,
+          "currentMs": 89.7328379999999,
+          "differenceMs": 10.648137999999562,
+          "timeChangePercent": 13.46422000715628
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 101.09921000000031,
+          "currentMs": 106.25198,
+          "differenceMs": 5.152769999999691,
+          "timeChangePercent": 5.096746057659285
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 99.78944899999988,
+          "currentMs": 91.94289500000014,
+          "differenceMs": -7.846553999999742,
+          "timeChangePercent": -7.86310985643357
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 81.22448199999963,
+          "currentMs": 86.52463100000023,
+          "differenceMs": 5.3001490000006015,
+          "timeChangePercent": 6.525309696651105
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 88.99665600000026,
+          "currentMs": 85.98075299999982,
+          "differenceMs": -3.015903000000435,
+          "timeChangePercent": -3.3887823830149544
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 83.64493099999981,
+          "currentMs": 92.77279499999986,
+          "differenceMs": 9.127864000000045,
+          "timeChangePercent": 10.912632589774107
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 82.1680409999999,
+          "currentMs": 90.44496299999992,
+          "differenceMs": 8.276922000000013,
+          "timeChangePercent": 10.073164577454175
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 84.44226299999991,
+          "currentMs": 88.48917299999994,
+          "differenceMs": 4.046910000000025,
+          "timeChangePercent": 4.792517225645687
+        }
+      ]
+    },
+    {
+      "name": "surface/mutable-weather",
+      "units": 176,
+      "unit": "3584-cell fixed surface tick",
+      "medianMs": {
+        "baseline": 111.67741500000011,
+        "current": 84.07458800000131
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.6345307670454552,
+        "current": 0.4776965227272802
+      },
+      "differenceOfMediansMs": -27.602826999998797,
+      "changeOfMediansPercent": -24.71657049010202,
+      "pairedDifferenceMs": {
+        "minimum": -33.84122699999716,
+        "median": -27.03167399999984,
+        "maximum": 11.737197000000378,
+        "medianAbsoluteDeviation": 4.911280000000261
+      },
+      "pairedTimeChangePercent": {
+        "minimum": -29.518426427647494,
+        "median": -24.616654445926912,
+        "maximum": 8.881646961601742,
+        "medianAbsoluteDeviation": 2.738725028150249
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 106.95749099999921,
+          "median": 111.67741500000011,
+          "maximum": 132.15113200000087,
+          "medianAbsoluteDeviation": 4.057907000000341
+        },
+        "current": {
+          "minimum": 79.92581699999937,
+          "median": 84.07458800000131,
+          "maximum": 143.88832900000125,
+          "medianAbsoluteDeviation": 4.148771000001943
+        }
+      },
+      "fasterCurrentPairs": 8,
+      "slowerCurrentPairs": 1,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 1,
+          "medianTimeChangePercent": -24.616654445926912
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 0,
+          "medianTimeChangePercent": -21.89857011361689
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 2.4355820000000676,
+        "current": 2.9764629999990575
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 132.15113200000087,
+          "currentMs": 143.88832900000125,
+          "differenceMs": 11.737197000000378,
+          "timeChangePercent": 8.881646961601742
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 123.91030299999875,
+          "currentMs": 91.62270999999964,
+          "differenceMs": -32.287592999999106,
+          "timeChangePercent": -26.057230285361687
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 107.61950799999977,
+          "currentMs": 84.07458800000131,
+          "differenceMs": -23.544919999998456,
+          "timeChangePercent": -21.877929417776663
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 119.41572900000028,
+          "currentMs": 97.2953350000007,
+          "differenceMs": -22.12039399999958,
+          "timeChangePercent": -18.5238529172313
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 111.67741500000011,
+          "currentMs": 83.21854900000108,
+          "differenceMs": -28.458865999999034,
+          "timeChangePercent": -25.483098798444615
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 109.7397920000003,
+          "currentMs": 90.45428100000026,
+          "differenceMs": -19.285511000000042,
+          "timeChangePercent": -17.573854158571745
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 109.96742900000027,
+          "currentMs": 82.89712700000018,
+          "differenceMs": -27.070302000000083,
+          "timeChangePercent": -24.616654445926912
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 106.95749099999921,
+          "currentMs": 79.92581699999937,
+          "differenceMs": -27.03167399999984,
+          "timeChangePercent": -25.27328731000248
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 114.6444139999985,
+          "currentMs": 80.80318700000134,
+          "differenceMs": -33.84122699999716,
+          "timeChangePercent": -29.518426427647494
+        }
+      ]
+    },
+    {
+      "name": "surface/snow-thaw",
+      "units": 128,
+      "unit": "3584-cell fixed surface tick",
+      "medianMs": {
+        "baseline": 41.769782000001214,
+        "current": 42.439093999999386
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.3263264218750095,
+        "current": 0.3315554218749952
+      },
+      "differenceOfMediansMs": 0.6693119999981718,
+      "changeOfMediansPercent": 1.6023832731474341,
+      "pairedDifferenceMs": {
+        "minimum": -7.852694000001065,
+        "median": 0.21851500000047963,
+        "maximum": 2.823726999999053,
+        "medianAbsoluteDeviation": 1.6591610000014043
+      },
+      "pairedTimeChangePercent": {
+        "minimum": -15.614266885880046,
+        "median": 0.5438941075781578,
+        "maximum": 6.638040405829049,
+        "medianAbsoluteDeviation": 3.8952728978567386
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 40.17601900000045,
+          "median": 41.769782000001214,
+          "maximum": 50.29178800000045,
+          "medianAbsoluteDeviation": 1.197265000002517
+        },
+        "current": {
+          "minimum": 40.39453400000093,
+          "median": 42.439093999999386,
+          "maximum": 45.36228999999912,
+          "medianAbsoluteDeviation": 0.6569639999997889
+        }
+      },
+      "fasterCurrentPairs": 4,
+      "slowerCurrentPairs": 5,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 4,
+          "medianTimeChangePercent": 3.1041651115081503
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 1,
+          "medianTimeChangePercent": -1.9283526599782053
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 3.9799410000014177,
+        "current": 4.5010029999994
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 50.29178800000045,
+          "currentMs": 42.439093999999386,
+          "differenceMs": -7.852694000001065,
+          "timeChangePercent": -15.614266885880046
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 41.01400099999955,
+          "currentMs": 42.83468100000027,
+          "differenceMs": 1.8206800000007206,
+          "timeChangePercent": 4.439167005434896
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 41.769782000001214,
+          "currentMs": 43.06638499999826,
+          "differenceMs": 1.2966029999970488,
+          "timeChangePercent": 3.1041651115081503
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 43.52096900000106,
+          "currentMs": 42.080323000000135,
+          "differenceMs": -1.4406460000009247,
+          "timeChangePercent": -3.310234199980455
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 40.5725169999987,
+          "currentMs": 43.14412000000084,
+          "differenceMs": 2.571603000002142,
+          "timeChangePercent": 6.3382880583973344
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 41.139228,
+          "currentMs": 40.91441399999894,
+          "differenceMs": -0.22481400000106078,
+          "timeChangePercent": -0.5464711199759553
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 42.53856300000007,
+          "currentMs": 45.36228999999912,
+          "differenceMs": 2.823726999999053,
+          "timeChangePercent": 6.638040405829049
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 44.173125000001164,
+          "currentMs": 41.7821299999996,
+          "differenceMs": -2.390995000001567,
+          "timeChangePercent": -5.412782093187896
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 40.17601900000045,
+          "currentMs": 40.39453400000093,
+          "differenceMs": 0.21851500000047963,
+          "timeChangePercent": 0.5438941075781578
+        }
+      ]
+    },
+    {
+      "name": "surface/rain-first-tick",
+      "units": 32,
+      "unit": "3584-cell fixed surface tick",
+      "medianMs": {
+        "baseline": 20.989400999998907,
+        "current": 23.428257000001395
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.6559187812499658,
+        "current": 0.7321330312500436
+      },
+      "differenceOfMediansMs": 2.438856000002488,
+      "changeOfMediansPercent": 11.619464509742873,
+      "pairedDifferenceMs": {
+        "minimum": 1.2558420000004844,
+        "median": 3.389275000001362,
+        "maximum": 7.605896000000939,
+        "medianAbsoluteDeviation": 1.8988350000017817
+      },
+      "pairedTimeChangePercent": {
+        "minimum": 5.751858608492166,
+        "median": 16.913409074379903,
+        "maximum": 41.02655607721466,
+        "medianAbsoluteDeviation": 10.214133007384318
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 18.538957999999184,
+          "median": 20.989400999998907,
+          "maximum": 22.247777000000497,
+          "medianAbsoluteDeviation": 0.9504189999988739
+        },
+        "current": {
+          "minimum": 22.260173000000577,
+          "median": 23.428257000001395,
+          "maximum": 26.36193699999967,
+          "medianAbsoluteDeviation": 0.6413530000008905
+        }
+      },
+      "fasterCurrentPairs": 0,
+      "slowerCurrentPairs": 9,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 5,
+          "medianTimeChangePercent": 16.913409074379903
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 4,
+          "medianTimeChangePercent": 13.294334767936512
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 55.75058100000024,
+        "current": 61.32876700000088
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 21.83367299999918,
+          "currentMs": 23.089514999999665,
+          "differenceMs": 1.2558420000004844,
+          "timeChangePercent": 5.751858608492166
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 21.759283000001233,
+          "currentMs": 23.028213999999934,
+          "differenceMs": 1.2689309999987017,
+          "timeChangePercent": 5.831676530879393
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 20.038982000000033,
+          "currentMs": 23.428257000001395,
+          "differenceMs": 3.389275000001362,
+          "timeChangePercent": 16.913409074379903
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 22.247777000000497,
+          "currentMs": 23.738217000000077,
+          "differenceMs": 1.4904399999995803,
+          "timeChangePercent": 6.699276066995585
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 19.007062000000587,
+          "currentMs": 26.36193699999967,
+          "differenceMs": 7.354874999999083,
+          "timeChangePercent": 38.69548591991154
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 18.538957999999184,
+          "currentMs": 26.144854000000123,
+          "differenceMs": 7.605896000000939,
+          "timeChangePercent": 41.02655607721466
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 20.989400999998907,
+          "currentMs": 22.786904000000504,
+          "differenceMs": 1.7975030000015977,
+          "timeChangePercent": 8.563860397929846
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 18.56725799999913,
+          "currentMs": 22.260173000000577,
+          "differenceMs": 3.692915000001449,
+          "timeChangePercent": 19.889393468877437
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 21.582147999999506,
+          "currentMs": 25.56188800000018,
+          "differenceMs": 3.9797400000006746,
+          "timeChangePercent": 18.4399625097593
+        }
+      ]
+    },
+    {
+      "name": "surface/thermal-variable-dt",
+      "units": 128,
+      "unit": "3584-column solver step",
+      "medianMs": {
+        "baseline": 61.962375999999495,
+        "current": 73.95213200000035
+      },
+      "medianMsPerUnit": {
+        "baseline": 0.48408106249999605,
+        "current": 0.5777510312500027
+      },
+      "differenceOfMediansMs": 11.989756000000853,
+      "changeOfMediansPercent": 19.350058493562216,
+      "pairedDifferenceMs": {
+        "minimum": -12.207594000001336,
+        "median": 12.008735000001252,
+        "maximum": 17.081264000000374,
+        "medianAbsoluteDeviation": 2.484825000001365
+      },
+      "pairedTimeChangePercent": {
+        "minimum": -14.168561770961407,
+        "median": 20.572832311598233,
+        "maximum": 27.412706139369792,
+        "medianAbsoluteDeviation": 4.467507587375131
+      },
+      "elapsedMs": {
+        "baseline": {
+          "minimum": 58.37181199999941,
+          "median": 61.962375999999495,
+          "maximum": 86.15972600000168,
+          "medianAbsoluteDeviation": 0.9720999999990454
+        },
+        "current": {
+          "minimum": 70.38054700000066,
+          "median": 73.95213200000035,
+          "maximum": 79.39274800000021,
+          "medianAbsoluteDeviation": 2.4658460000009654
+        }
+      },
+      "fasterCurrentPairs": 2,
+      "slowerCurrentPairs": 7,
+      "orderGroups": {
+        "AB": {
+          "pairs": 5,
+          "slowerCurrentPairs": 4,
+          "medianTimeChangePercent": 20.572832311598233
+        },
+        "BA": {
+          "pairs": 4,
+          "slowerCurrentPairs": 3,
+          "medianTimeChangePercent": 18.89586850684506
+        }
+      },
+      "fixtureSetupMedianMs": {
+        "baseline": 3.9547230000007403,
+        "current": 4.754678999999669
+      },
+      "rawSamples": [
+        {
+          "pair": 0,
+          "order": "AB",
+          "baselineMs": 58.37181199999941,
+          "currentMs": 70.38054700000066,
+          "differenceMs": 12.008735000001252,
+          "timeChangePercent": 20.572832311598233
+        },
+        {
+          "pair": 1,
+          "order": "BA",
+          "baselineMs": 60.99027600000045,
+          "currentMs": 70.81295800000044,
+          "differenceMs": 9.822681999999986,
+          "timeChangePercent": 16.105324724223102
+        },
+        {
+          "pair": 2,
+          "order": "AB",
+          "baselineMs": 61.962375999999495,
+          "currentMs": 71.48628599999938,
+          "differenceMs": 9.523909999999887,
+          "timeChangePercent": 15.370472559025107
+        },
+        {
+          "pair": 3,
+          "order": "BA",
+          "baselineMs": 63.52623399999902,
+          "currentMs": 78.08778300000085,
+          "differenceMs": 14.561549000001833,
+          "timeChangePercent": 22.9221033313608
+        },
+        {
+          "pair": 4,
+          "order": "AB",
+          "baselineMs": 62.31148399999984,
+          "currentMs": 79.39274800000021,
+          "differenceMs": 17.081264000000374,
+          "timeChangePercent": 27.412706139369792
+        },
+        {
+          "pair": 5,
+          "order": "BA",
+          "baselineMs": 61.184361999999965,
+          "currentMs": 74.45305499999995,
+          "differenceMs": 13.268692999999985,
+          "timeChangePercent": 21.686412289467015
+        },
+        {
+          "pair": 6,
+          "order": "AB",
+          "baselineMs": 86.15972600000168,
+          "currentMs": 73.95213200000035,
+          "differenceMs": -12.207594000001336,
+          "timeChangePercent": -14.168561770961407
+        },
+        {
+          "pair": 7,
+          "order": "BA",
+          "baselineMs": 73.04045100000076,
+          "currentMs": 72.09671200000048,
+          "differenceMs": -0.9437390000002779,
+          "timeChangePercent": -1.2920771806300468
+        },
+        {
+          "pair": 8,
+          "order": "AB",
+          "baselineMs": 60.99992899999961,
+          "currentMs": 74.29106499999943,
+          "differenceMs": 13.291135999999824,
+          "timeChangePercent": 21.78877290168635
+        }
+      ]
+    }
+  ],
+  "scheduleLimitations": {
+    "mutableWeather": "Of 176 timed surface endpoints, 130 occur at or after the final keyframe at 24 seconds; shelter/drainage/traffic staging continues. The result is not sustained continuously changing weather.",
+    "snowThaw": "Of 128 timed surface endpoints, 118 occur at or after the final keyframe at 6 seconds. The result includes a short thaw transition followed by mostly settled weather.",
+    "coldSampleDuration": "Every cold first-tick bank sample is shorter than the aspirational 50 ms lower bound; all 32 ticks and every raw sample remain reported."
+  }
+}

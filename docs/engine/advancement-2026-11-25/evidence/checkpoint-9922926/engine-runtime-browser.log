@@ -1,0 +1,258 @@
+Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+
+Running 45 tests using 1 worker
+
+[browser-progress] START  >  > engine-native-audio-advancement.spec.ts > native engine PCM remains byte-exact against original source through cold and warm caches
+  ✘   1 e2e/engine-native-audio-advancement.spec.ts:106:1 › native engine PCM remains byte-exact against original source through cold and warm caches (922ms)
+[browser-failure]  >  > engine-native-audio-advancement.spec.ts > native engine PCM remains byte-exact against original source through cold and warm caches
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 0
+Received: 23419
+    at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-audio-advancement.spec.ts:130:35
+[browser-progress] START  >  > engine-native-audio-advancement.spec.ts > native menu contexts release old cues and pending resumes without closing their replacement
+  ✘   2 e2e/engine-native-audio-advancement.spec.ts:164:1 › native menu contexts release old cues and pending resumes without closing their replacement (10.6s)
+[browser-failure]  >  > engine-native-audio-advancement.spec.ts > native menu contexts release old cues and pending resumes without closing their replacement
+Error: page.evaluate: Error: Native audio operation timed out
+    at <anonymous>:6241:26
+    at <anonymous>:6241:26
+    at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-audio-advancement.spec.ts:169:29
+[browser-progress] START  >  > engine-native-audio.spec.ts > native offline audio renders the complete low-rate schedule and releases ended voices
+  ✓   3 e2e/engine-native-audio.spec.ts:38:1 › native offline audio renders the complete low-rate schedule and releases ended voices (849ms)
+[browser-progress] START  >  > engine-native-audio.spec.ts > native audio reset cancels old future sound and filter automation before a new timeline
+  ✓   4 e2e/engine-native-audio.spec.ts:72:1 › native audio reset cancels old future sound and filter automation before a new timeline (362ms)
+[browser-progress] START  >  > engine-native-audio.spec.ts > native audio disposal silences scheduled voices and permanently closes the graph
+  ✓   5 e2e/engine-native-audio.spec.ts:105:1 › native audio disposal silences scheduled voices and permanently closes the graph (324ms)
+[browser-progress] START  >  > engine-native-channels.spec.ts > native engineering credit bounds copied samples while real circuit physics advances
+  ✓   6 e2e/engine-native-channels.spec.ts:49:1 › native engineering credit bounds copied samples while real circuit physics advances (2.3s)
+[browser-progress] START  >  > engine-native-channels.spec.ts > native motocross diagnostics accepts the real declared dirt contacts
+  ✓   7 e2e/engine-native-channels.spec.ts:79:1 › native motocross diagnostics accepts the real declared dirt contacts (1.7s)
+[browser-progress] START  >  > engine-native-channels.spec.ts > native Festival status credit preserves ordered delivery and bounds prolonged host stalls
+  ✓   8 e2e/engine-native-channels.spec.ts:104:1 › native Festival status credit preserves ordered delivery and bounds prolonged host stalls (2.7s)
+[browser-progress] START  >  > engine-native-channels.spec.ts > native circuit failure ignores queued revival and retires old diagnostic credit before fresh init
+  ✓   9 e2e/engine-native-channels.spec.ts:165:1 › native circuit failure ignores queued revival and retires old diagnostic credit before fresh init (2.0s)
+[browser-progress] START  >  > engine-native-channels.spec.ts > native Festival separates recoverable validation from terminal post-mutation failure
+  ✓  10 e2e/engine-native-channels.spec.ts:189:1 › native Festival separates recoverable validation from terminal post-mutation failure (2.4s)
+[browser-progress] START  >  > engine-native-gpu-advancement.spec.ts > native Three uploads latest coalesced bytes and resumes narrow updates after a full upload
+  ✓  11 e2e/engine-native-gpu-advancement.spec.ts:36:1 › native Three uploads latest coalesced bytes and resumes narrow updates after a full upload (424ms)
+[browser-progress] START  >  > engine-native-gpu-advancement.spec.ts > native shared fence ownership survives borrower handoff and releases each sync once
+  ✘  12 e2e/engine-native-gpu-advancement.spec.ts:95:1 › native shared fence ownership survives borrower handoff and releases each sync once (552ms)
+[browser-failure]  >  > engine-native-gpu-advancement.spec.ts > native shared fence ownership survives borrower handoff and releases each sync once
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 0
+Received: 64
+    at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-gpu-advancement.spec.ts:148:34
+[browser-progress] START  >  > engine-native-input.spec.ts > trusted keyboard edges retain order through the production pump and actual circuit worker
+  ✓  13 e2e/engine-native-input.spec.ts:105:1 › trusted keyboard edges retain order through the production pump and actual circuit worker (2.1s)
+[browser-progress] START  >  > engine-native-input.spec.ts > native focus loss clears both queued owners and a held repeat cannot create a resumed shift
+  ✓  14 e2e/engine-native-input.spec.ts:150:1 › native focus loss clears both queued owners and a held repeat cannot create a resumed shift (2.0s)
+[browser-progress] START  >  > engine-native-input.spec.ts > native widget ownership and repeated keydowns do not manufacture shift intent
+  ✓  15 e2e/engine-native-input.spec.ts:194:1 › native widget ownership and repeated keydowns do not manufacture shift intent (2.2s)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native replay range round trips retain exact endpoints and pause/restart ownership
+  ✓  16 e2e/engine-native-lifecycle.spec.ts:39:1 › native replay range round trips retain exact endpoints and pause/restart ownership (873ms)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native replay caches isolate sessions and release only their owned pages
+  ✓  17 e2e/engine-native-lifecycle.spec.ts:69:1 › native replay caches isolate sessions and release only their owned pages (814ms)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native replay disposal rejects pending work and closes a late database open
+  ✓  18 e2e/engine-native-lifecycle.spec.ts:93:1 › native replay disposal rejects pending work and closes a late database open (887ms)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native save clone failure rolls back both primary and backup before recovery
+  ✓  19 e2e/engine-native-lifecycle.spec.ts:107:1 › native save clone failure rolls back both primary and backup before recovery (761ms)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native save connection retries after a database versionchange
+  ✓  20 e2e/engine-native-lifecycle.spec.ts:124:1 › native save connection retries after a database versionchange (784ms)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native mirror adapter publishes only committed reads and atomic batches
+  ✓  21 e2e/engine-native-lifecycle.spec.ts:133:1 › native mirror adapter publishes only committed reads and atomic batches (803ms)
+[browser-progress] START  >  > engine-native-lifecycle.spec.ts > native worker transfers preserve bounded frame capacity across repeated reuse
+  ✓  22 e2e/engine-native-lifecycle.spec.ts:155:1 › native worker transfers preserve bounded frame capacity across repeated reuse (925ms)
+[browser-progress] START  >  > engine-native-network-advancement.spec.ts > native transfers preserve snapshot recipients, input accounting and corrected playback
+  ✓  23 e2e/engine-native-network-advancement.spec.ts:36:1 › native transfers preserve snapshot recipients, input accounting and corrected playback (1.8s)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native preview remains audible through the stopped race master
+  ✓  24 e2e/engine-native-preview.spec.ts:89:1 › native preview remains audible through the stopped race master (899ms)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native mute cancels future menu preview tones and permits a fresh preview
+  ✓  25 e2e/engine-native-preview.spec.ts:116:3 › native mute cancels future menu preview tones and permits a fresh preview (969ms)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native stop cancels future menu preview tones and permits a fresh preview
+  ✓  26 e2e/engine-native-preview.spec.ts:116:3 › native stop cancels future menu preview tones and permits a fresh preview (922ms)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native blur cancels future menu preview tones and permits a fresh preview
+  ✓  27 e2e/engine-native-preview.spec.ts:116:3 › native blur cancels future menu preview tones and permits a fresh preview (952ms)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native blur cancels future paused preview tones and permits a fresh preview
+  ✓  28 e2e/engine-native-preview.spec.ts:116:3 › native blur cancels future paused preview tones and permits a fresh preview (891ms)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native pending preview cancellation renders silence and fresh replacement is byte-identical
+  ✓  29 e2e/engine-native-preview.spec.ts:153:1 › native pending preview cancellation renders silence and fresh replacement is byte-identical (1.1s)
+[browser-progress] START  >  > engine-native-preview.spec.ts > native suspended-context resume cannot revive a muted then unmuted old request
+  ✓  30 e2e/engine-native-preview.spec.ts:180:1 › native suspended-context resume cannot revive a muted then unmuted old request (960ms)
+[browser-progress] START  >  > engine-native-recording.spec.ts > native IndexedDB branch retains the selected Float32 pose at tick 40
+  ✓  31 e2e/engine-native-recording.spec.ts:69:3 › native IndexedDB branch retains the selected Float32 pose at tick 40 (1.7s)
+[browser-progress] START  >  > engine-native-recording.spec.ts > native IndexedDB branch retains the selected Float32 pose at tick 136
+  ✓  32 e2e/engine-native-recording.spec.ts:69:3 › native IndexedDB branch retains the selected Float32 pose at tick 136 (1.9s)
+[browser-progress] START  >  > engine-native-recording.spec.ts > native IndexedDB branch retains the selected Float32 pose at tick 160
+  ✓  33 e2e/engine-native-recording.spec.ts:69:3 › native IndexedDB branch retains the selected Float32 pose at tick 160 (2.1s)
+[browser-progress] START  >  > engine-native-recording.spec.ts > native CSV worker transfers a wrapped snapshot while its recorder keeps writing
+  ✓  34 e2e/engine-native-recording.spec.ts:116:1 › native CSV worker transfers a wrapped snapshot while its recorder keeps writing (1.2s)
+[browser-progress] START  >  > engine-native-recording.spec.ts > native CSV cancellation, replacement and validation failure retain one result owner
+[browser-progress] 1s  >  > engine-native-recording.spec.ts > native CSV cancellation, replacement and validation failure retain one result owner / Add script tag
+  ✓  35 e2e/engine-native-recording.spec.ts:146:1 › native CSV cancellation, replacement and validation failure retain one result owner (1.1s)
+[browser-progress] START  >  > engine-native-records-advancement.spec.ts > native IndexedDB preserves reversal bytes and first crossing through a real page reload
+▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+
+    src/rendering/assets/third-party.ts:110:16:
+      110 │   const base = (import.meta as { env?: { BASE_URL?: string } }).e...
+          ╵                 ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+  ✓  36 e2e/engine-native-records-advancement.spec.ts:77:1 › native IndexedDB preserves reversal bytes and first crossing through a real page reload (1.8s)
+[browser-progress] START  >  > engine-native-records-advancement.spec.ts > native capture and CSV workers preserve the closing gap through ring wrap and chunk transfer
+  ✓  37 e2e/engine-native-records-advancement.spec.ts:151:1 › native capture and CSV workers preserve the closing gap through ring wrap and chunk transfer (1.1s)
+[browser-progress] START  >  > engine-native-resources.spec.ts > native texture registration batches shared groups without changing pixels or ownership
+  ✓  38 e2e/engine-native-resources.spec.ts:68:1 › native texture registration batches shared groups without changing pixels or ownership (1.1s)
+[browser-progress] START  >  > engine-native-resources.spec.ts > native Festival resource cycles release GPU allocations and preserve the borrowed backend
+  ✓  39 e2e/engine-native-resources.spec.ts:112:1 › native Festival resource cycles release GPU allocations and preserve the borrowed backend (1.1s)
+[browser-progress] START  >  > engine-native-resources.spec.ts > native circuit teardown restores mixed sources after imported listener failure
+  ✓  40 e2e/engine-native-resources.spec.ts:143:3 › native circuit teardown restores mixed sources after imported listener failure (651ms)
+[browser-progress] START  >  > engine-native-resources.spec.ts > native circuit teardown restores mixed sources after generated listener failure
+  ✓  41 e2e/engine-native-resources.spec.ts:143:3 › native circuit teardown restores mixed sources after generated listener failure (593ms)
+[browser-progress] START  >  > engine-native-workers.spec.ts > actual circuit worker bounds native stalled transfers and orders rewind after its surface ACK
+  ✓  42 e2e/engine-native-workers.spec.ts:53:1 › actual circuit worker bounds native stalled transfers and orders rewind after its surface ACK (4.4s)
+[browser-progress] START  >  > engine-native-workers.spec.ts > actual Festival worker retains native frame capacity across event field growth and shrink
+  ✓  43 e2e/engine-native-workers.spec.ts:131:1 › actual Festival worker retains native frame capacity across event field growth and shrink (2.3s)
+[browser-progress] START  >  > replay-state.spec.ts > recorded playback has exclusive modal, seek, audio and focus ownership
+[browser-progress] 15s  >  > replay-state.spec.ts > recorded playback has exclusive modal, seek, audio and focus ownership / Expect "toBeVisible"
+[browser-progress] 45s  >  > replay-state.spec.ts > recorded playback has exclusive modal, seek, audio and focus ownership / Expect "not toBeVisible"
+[browser-progress] 75s  >  > replay-state.spec.ts > recorded playback has exclusive modal, seek, audio and focus ownership / Expect "toMatch"
+[browser-progress] 105s  >  > replay-state.spec.ts > recorded playback has exclusive modal, seek, audio and focus ownership / Evaluate
+[browser-progress] 135s  >  > replay-state.spec.ts > recorded playback has exclusive modal, seek, audio and focus ownership / Evaluate
+  ✓  44 e2e/replay-state.spec.ts:5:1 › recorded playback has exclusive modal, seek, audio and focus ownership (2.5m)
+[browser-progress] START  >  > engine-native-page-history.spec.ts > native Back restores the same paused engine owners twice; terminal reload releases them
+  ✘  45 e2e/engine-native-page-history.spec.ts:282:1 › native Back restores the same paused engine owners twice; terminal reload releases them (2.9s)
+[browser-failure]  >  > engine-native-page-history.spec.ts > native Back restores the same paused engine owners twice; terminal reload releases them
+Error: expect(received).toMatchObject(expected)
+
+- Expected  - 1
++ Received  + 1
+
+@@ -1,7 +1,7 @@
+  Object {
+-   "maxCallbacksAtOneTimestamp": 1,
++   "maxCallbacksAtOneTimestamp": 2,
+    "maxInputIntervals": 1,
+    "maxPendingFrames": 1,
+    "rendererDisposals": 0,
+    "rendererResets": 1,
+    "workerTerminations": 0,
+    at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-page-history.spec.ts:407:35
+
+
+  1) e2e/engine-native-audio-advancement.spec.ts:106:1 › native engine PCM remains byte-exact against original source through cold and warm caches
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 23419
+
+      128 |   ]);
+      129 |   for (const item of report.cases) {
+    > 130 |     expect(item.differingSamples).toBe(0);
+          |                                   ^
+      131 |     expect(item.differingBytes).toBe(0);
+      132 |     expect(item.maxDifference).toBe(0);
+      133 |     expect(item.current.digest).toBe(item.baseline.digest);
+        at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-audio-advancement.spec.ts:130:35
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/engine-native-audio-advanc-851b6-hrough-cold-and-warm-caches/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/engine-native-audio-advanc-851b6-hrough-cold-and-warm-caches/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/engine-native-audio-advanc-851b6-hrough-cold-and-warm-caches/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/engine-native-audio-advanc-851b6-hrough-cold-and-warm-caches/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) e2e/engine-native-audio-advancement.spec.ts:164:1 › native menu contexts release old cues and pending resumes without closing their replacement
+
+    Error: page.evaluate: Error: Native audio operation timed out
+        at <anonymous>:6241:26
+        at <anonymous>:6241:26
+        at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-audio-advancement.spec.ts:169:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/engine-native-audio-advanc-0fd93-t-closing-their-replacement/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/engine-native-audio-advanc-0fd93-t-closing-their-replacement/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/engine-native-audio-advanc-0fd93-t-closing-their-replacement/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/engine-native-audio-advanc-0fd93-t-closing-their-replacement/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) e2e/engine-native-gpu-advancement.spec.ts:95:1 › native shared fence ownership survives borrower handoff and releases each sync once
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 64
+
+      146 |   expect(report.red.bytes).toBe(256);
+      147 |   expect(report.green.bytes).toBe(256);
+    > 148 |   expect(report.red.differences).toBe(0);
+          |                                  ^
+      149 |   expect(report.green.differences).toBe(0);
+      150 |   expect(report.red.sha256).not.toBe(report.green.sha256);
+      151 |   expect(report.submittedFences).toEqual(
+        at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-gpu-advancement.spec.ts:148:34
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/engine-native-gpu-advancem-8364a-and-releases-each-sync-once/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/engine-native-gpu-advancem-8364a-and-releases-each-sync-once/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/engine-native-gpu-advancem-8364a-and-releases-each-sync-once/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) e2e/engine-native-page-history.spec.ts:282:1 › native Back restores the same paused engine owners twice; terminal reload releases them
+
+    Error: expect(received).toMatchObject(expected)
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -1,7 +1,7 @@
+      Object {
+    -   "maxCallbacksAtOneTimestamp": 1,
+    +   "maxCallbacksAtOneTimestamp": 2,
+        "maxInputIntervals": 1,
+        "maxPendingFrames": 1,
+        "rendererDisposals": 0,
+        "rendererResets": 1,
+        "workerTerminations": 0,
+
+      405 |     expect(presentation.contextLost).toBe(false);
+      406 |     expect(presentation.glError).toBe(0);
+    > 407 |     expect(presentation.counters).toMatchObject({
+          |                                   ^
+      408 |       maxPendingFrames: 1,
+      409 |       maxCallbacksAtOneTimestamp: 1,
+      410 |       maxInputIntervals: 1,
+        at /home/runner/work/Experiment-3/Experiment-3/e2e/engine-native-page-history.spec.ts:407:35
+
+    Error Context: test-results/engine-native-page-history-39875-rminal-reload-releases-them/error-context.md
+
+  4 failed
+    e2e/engine-native-audio-advancement.spec.ts:106:1 › native engine PCM remains byte-exact against original source through cold and warm caches
+    e2e/engine-native-audio-advancement.spec.ts:164:1 › native menu contexts release old cues and pending resumes without closing their replacement
+    e2e/engine-native-gpu-advancement.spec.ts:95:1 › native shared fence ownership survives borrower handoff and releases each sync once
+    e2e/engine-native-page-history.spec.ts:282:1 › native Back restores the same paused engine owners twice; terminal reload releases them
+  41 passed (4.0m)
+(node:5135) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
