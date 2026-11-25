@@ -34,6 +34,12 @@ Distinct worker assignments actually started are listed below. Planned assignmen
 | 28 | 5 | `w05d_festival_integration` | complete |
 | 29 | 5 | `w05e_audio_input_integration` | complete |
 | 30 | 5 | `w05f_texture_renderer_integration` | complete |
+| 31 | 6 | `w06a_native_audio` | complete |
+| 32 | 6 | `w06b_native_input` | complete |
+| 33 | 6 | `w06c_native_worker_channels` | complete |
+| 34 | 6 | `w06d_native_gpu_resources` | complete |
+| 35 | 6 | `w06e_native_storage_export` | complete |
+| 36 | 6 | `w06f_ci_replay_gate` | complete |
 
 ## Programme
 

@@ -349,15 +349,27 @@ describe('actual worker clock ownership', () => {
       expect(h.clock().budgetDroppedSeconds).toBeGreaterThan(0);
       pause(true);
       const completedBeforeFailure = h.time.completed;
+      const validFrame = h.latestFrame();
+      const framesBeforeFailure = h.messages.filter((message) => message.type === 'frame').length;
       pause(false);
       h.time.failNext = true;
       advance(800);
       expect(h.time.completed).toBe(completedBeforeFailure);
       expect(h.clock().interruptedSeconds).toBeGreaterThan(0);
       expect(h.messages.filter((message) => message.type === 'error')).toHaveLength(1);
-      pause(true);
+      // A terminal worker cannot publish or resume through queued pause
+      // commands. Its clock still accounts for the interrupted final batch;
+      // only a fresh init may replace the last valid published diagnostics.
+      h.send({ type: 'pause', value: true });
+      h.send({ type: 'pause', value: false });
+      previous = h.time.now;
+      check();
       advance(960_000, true);
       expect(h.time.completed).toBe(completedBeforeFailure);
+      expect(h.messages.filter((message) => message.type === 'frame')).toHaveLength(
+        framesBeforeFailure,
+      );
+      expect(h.latestFrame().buffer).toBe(validFrame.buffer);
       console.log(
         'CLOCK_ACCOUNTING_WORKER',
         JSON.stringify({
