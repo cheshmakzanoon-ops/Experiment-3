@@ -1,0 +1,108 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+ ❯ tests/engine-network-adversarial.test.ts (7 tests | 6 failed) 2782ms
+   × server callback ownership at publication boundaries > does not schedule a countdown after a grid transport callback ends the session 75ms
+     → expected [ 60000 ] to deeply equal []
+   × server callback ownership at publication boundaries > abandons finalization when a final snapshot send callback ends the session 448ms
+     → expected false to be true // Object.is equality
+   × server callback ownership at publication boundaries > abandons finalization when a final event send callback ends the session 313ms
+     → expected false to be true // Object.is equality
+   × server callback ownership at publication boundaries > abandons finalization when a final failed-send close callback ends the session 302ms
+     → expected false to be true // Object.is equality
+   × server callback ownership at publication boundaries > retains already-published results without scheduling new work after their send ends the session 519ms
+     → expected [ 60000 ] to deeply equal []
+   × server callback ownership at publication boundaries > isolates a result-chunk send failure and finishes delivery to a healthy client 223ms
+     → expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+   ✓ replays archived shift levels across AI handoff and a rear-brake tag change  902ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/engine-network-adversarial.test.ts > server callback ownership at publication boundaries > does not schedule a countdown after a grid transport callback ends the session
+AssertionError: expected [ 60000 ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   60000,
++ ]
+
+ ❯ tests/engine-network-adversarial.test.ts:56:35
+     54|       expect(first.client.state).toBe('closed');
+     55|       expect(second.client.state).toBe('closed');
+     56|       expect(schedules.scheduled).toEqual([]);
+       |                                   ^
+     57|       expect(f.loop.pending).toBe(0);
+     58|       f.loop.runUntil(70000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/engine-network-adversarial.test.ts > server callback ownership at publication boundaries > abandons finalization when a final snapshot send callback ends the session
+ FAIL  tests/engine-network-adversarial.test.ts > server callback ownership at publication boundaries > abandons finalization when a final event send callback ends the session
+ FAIL  tests/engine-network-adversarial.test.ts > server callback ownership at publication boundaries > abandons finalization when a final failed-send close callback ends the session
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/engine-network-adversarial.test.ts:132:42
+    130|         ]);
+    131|         expect(f.server.world?.tick).toBe(7);
+    132|         expect(f.server.record === null).toBe(true);
+       |                                          ^
+    133|         expect(f.server.results === null).toBe(true);
+    134|         expect(observer.client.results).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/engine-network-adversarial.test.ts > server callback ownership at publication boundaries > retains already-published results without scheduling new work after their send ends the session
+AssertionError: expected [ 60000 ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   60000,
++ ]
+
+ ❯ tests/engine-network-adversarial.test.ts:193:35
+    191|       expect(second.client.state).toBe('closed');
+    192|       expect(verifyRecord(f.server.record)).toMatchObject({ ok: true, …
+    193|       expect(schedules.scheduled).toEqual([]);
+       |                                   ^
+    194|       expect(f.loop.pending).toBe(0);
+    195|       f.loop.runUntil(70000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/engine-network-adversarial.test.ts > server callback ownership at publication boundaries > isolates a result-chunk send failure and finishes delivery to a healthy client
+AssertionError: expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+
+- Expected: 
+undefined
+
++ Received: 
+"TypeError: Cannot read properties of null (reading 'closed')"
+
+ ❯ tests/engine-network-adversarial.test.ts:238:48
+    236|     });
+    237|     try {
+    238|       expect(() => f.loop.runUntil(10000)).not.toThrow();
+       |                                                ^
+    239|       expect(f.server.stats.transportErrors.map(({ error }) => error))…
+    240|       expect(f.server.playerByCar(bad.client.car)?.connected).toBe(fal…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 1 passed (7)
+   Start at  20:30:38
+   Duration  4.88s (transform 1.15s, setup 0ms, collect 1.85s, tests 2.78s, environment 0ms, prepare 73ms)
+

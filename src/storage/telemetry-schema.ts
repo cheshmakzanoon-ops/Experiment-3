@@ -204,7 +204,7 @@ export function packTelemetry(frame: Float32Array, out: Float32Array, offset: nu
 export function telemetryCsv(values: Float32Array, count: number): Blob {
   if (!Number.isSafeInteger(count) || count < 0 || count * TELEMETRY_STRIDE !== values.length)
     throw new Error('Invalid telemetry export shape');
-  const chunks: string[] = [CHANNELS.join(',') + '\n'];
+  const chunks: BlobPart[] = [CHANNELS.join(',') + '\n'];
   for (let start = 0; start < count; start += 500) {
     const rows: string[] = [];
     for (let row = start; row < Math.min(count, start + 500); row++) {
@@ -217,7 +217,8 @@ export function telemetryCsv(values: Float32Array, count: number): Blob {
       }
       rows.push(columns.join(','));
     }
-    chunks.push(rows.join('\n') + '\n');
+    // Materialize completed groups so their CSV strings need not stay live.
+    chunks.push(new Blob([rows.join('\n') + '\n']));
   }
   return new Blob(chunks, { type: 'text/csv;charset=utf-8' });
 }

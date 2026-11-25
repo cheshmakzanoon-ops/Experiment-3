@@ -1,0 +1,54 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+···xx·
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/engine-worker-session-adversarial.test.ts > Festival gamepad exit during its frame callback > returns from the cockpit frame after the real HUD clicks exit
+AssertionError: expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+
+- Expected: 
+undefined
+
++ Received: 
+"TypeError: Cannot read properties of null (reading 'road')"
+
+ ❯ tests/engine-worker-session-adversarial.test.ts:303:46
+    301|     const h = await runningFixture(mode, true);
+    302|     try {
+    303|       expect(() => h.session.frame(100)).not.toThrow();
+       |                                              ^
+    304|       expect(h.dom.button.click).toHaveBeenCalledOnce();
+    305|       expect(h.host.exit).toHaveBeenCalledOnce();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/engine-worker-session-adversarial.test.ts > Festival gamepad exit during its frame callback > returns from the chase frame after the real HUD clicks exit
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ tests/engine-worker-session-adversarial.test.ts:312:39
+    310|       expect(h.tiles.terminate).toHaveBeenCalledOnce();
+    311|       expect(h.navigation.update).not.toHaveBeenCalled();
+    312|       expect(h.navigation.detach).not.toHaveBeenCalled();
+       |                                       ^
+    313|       expect(h.host.audio.update).not.toHaveBeenCalled();
+    314|       h.session.frame(116);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+   Start at  20:41:50
+   Duration  5.89s (transform 1.38s, setup 0ms, collect 2.73s, tests 2.73s, environment 0ms, prepare 100ms)
+

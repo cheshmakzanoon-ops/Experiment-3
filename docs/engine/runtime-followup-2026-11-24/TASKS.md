@@ -46,9 +46,15 @@ Distinct worker assignments actually started are listed below. Planned assignmen
 | 40 | 7 | `w07d_telemetry_measurement` | complete |
 | 41 | 7 | `w07e_simulation_evidence` | complete |
 | 42 | 7 | `w07f_texture_measurement` | complete |
-| 43 | 8 | `w08a_network_review` | running |
-| 44 | 8 | `w08b_worker_session_review` | running |
-| 45 | 8 | `w08c_storage_memory_review` | running |
+| 43 | 8 | `w08a_network_review` | complete |
+| 44 | 8 | `w08b_worker_session_review` | complete |
+| 45 | 8 | `w08c_storage_memory_review` | complete |
+| 46 | 8 | `w08d_input_audio_review` | complete |
+| 47 | 8 | `w08e_resource_review` | complete |
+| 48 | 8 | `w08f_physics_review` | complete |
+| 49 | 9 | `w09a_consolidated_units` | running |
+| 50 | 9 | `w09b_static_build_gate` | running |
+| 51 | 9 | `w09c_native_final_gate` | running |
 
 ## Programme
 

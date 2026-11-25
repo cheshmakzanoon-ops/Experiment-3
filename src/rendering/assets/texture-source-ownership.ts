@@ -23,7 +23,16 @@ export function markSharedTextureSource(texture: T.Texture) {
 export function disposeSceneTexture(texture: T.Texture) {
   const source = texture.source,
     image: unknown = texture.image;
-  texture.dispose();
+  let failed = false;
+  let failure: unknown;
+  try {
+    texture.dispose();
+  } catch (error) {
+    failed = true;
+    failure = error;
+  }
+  // Decoded storage is a separate owned resource. A GPU-disposal listener
+  // failure must not strand it, or revoke a shared cache's borrowed pixels.
   if (
     typeof ImageBitmap !== 'undefined' &&
     image instanceof ImageBitmap &&
@@ -32,6 +41,11 @@ export function disposeSceneTexture(texture: T.Texture) {
     !closedImages.has(image)
   ) {
     closedImages.add(image);
-    image.close();
+    try {
+      image.close();
+    } catch (error) {
+      if (!failed) throw error;
+    }
   }
+  if (failed) throw failure;
 }

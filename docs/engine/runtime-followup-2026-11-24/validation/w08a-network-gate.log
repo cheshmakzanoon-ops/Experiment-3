@@ -1,0 +1,48 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+ ✓ tests/net-resilience.test.ts (16 tests) 11724ms
+   ✓ resilience (WP54) > takes a lost driver over with the AI and hands the car back on rejoin  2752ms
+   ✓ resilience (WP54) > holds a car with the AI during an input gap shorter than the timeout, then hands it back  622ms
+   ✓ resilience (WP54) > refuses a rejoin after the window and classifies a ghost behind running cars  846ms
+   ✓ resilience (WP54) > tolerates heavy loss, duplication and reordering without breaking authority  1357ms
+   ✓ resilience (WP54) > rejects non-finite samples at the client; the server only ever applies in-range controls  425ms
+   ✓ resilience (WP54) > monitors the server tick budget  362ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > drives at 200 and 300 ms RTT: the first lead comes from the keep-alive round trip  898ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a driver rejoining over a 300 ms link gets the car back  474ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a lead that starts too short grows from negative slack (latency rises at the start)  480ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a driver whose client restarts during the countdown rejoins and races  690ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > session tokens are independent CSPRNG values and cannot take a live car  1050ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a late rejoin receives the whole event history in size-limited chunks  407ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > sends a classification larger than one message as lap-time chunks  591ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > strikes and kicks a client flooding commands outside the windows; its queue stays empty  761ms
+ ✓ tests/engine-network-shift.test.ts (18 tests) 5116ms
+   ✓ network command shift edges > applies a 1-tick command once through the real manual GP gearbox, including missing slots  312ms
+   ✓ network command shift edges > discards a pending shift on AI takeover and requires a new first edge after handback  362ms
+   ✓ shift journal compatibility > uses explicit shift tags and reproduces a live record exactly  574ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 0  555ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 4  560ms
+   ✓ shift edges across real client and server delivery > clears rejected samples while retaining levels and allows later identical shift pulses  487ms
+   ✓ shift edges across real client and server delivery > does not revive a disconnected driver's shift while waiting for a rejoin command  379ms
+ ✓ tests/engine-network-composition.test.ts (6 tests) 3316ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 54 fails (close failure: false)  724ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 54 fails (close failure: true)  484ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 60 fails (close failure: false)  440ms
+   ✓ network composition at the completed physics boundary > keeps the final record verifiable after snapshot 60 fails (close failure: true)  471ms
+   ✓ network composition at the completed physics boundary > preserves future-entry and order rejection instead of filtering unrelated corruption  426ms
+   ✓ codec, command edges and shared snapshots through impaired real peers > preserves accepted shifts and quantized inputs through loss, reordering and an AI handoff  769ms
+ ✓ tests/engine-network-adversarial.test.ts (7 tests) 2244ms
+   ✓ server callback ownership at publication boundaries > retains already-published results without scheduling new work after their send ends the session  531ms
+   ✓ replays archived shift levels across AI handoff and a rear-brake tag change  665ms
+ ✓ tests/engine-server-snapshot-lifetime.test.ts (10 tests) 1104ms
+   ✓ active peer failure isolation > keeps a healthy client and future ticks running after a failing timeout close  427ms
+ ✓ tests/engine-network-integration.test.ts (11 tests) 830ms
+ ✓ tests/net-lifecycle.test.ts (5 tests) 2498ms
+   ✓ session lifecycle with content-version agreement (WP51) > runs lobby → grid → race → results → teardown and delivers the record digest  1011ms
+   ✓ session lifecycle with content-version agreement (WP51) > starts the grid when the only unready member leaves, is kicked or times out  1205ms
+
+ Test Files  7 passed (7)
+      Tests  73 passed (73)
+   Start at  20:32:59
+   Duration  33.30s (transform 1.24s, setup 0ms, collect 5.12s, tests 26.83s, environment 1ms, prepare 380ms)
+

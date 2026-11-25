@@ -110,25 +110,40 @@ export class TextureBudget {
         for (const value of Object.values(material))
           if (value instanceof T.Texture) textures.add(value);
     });
+    let failed = false;
+    let failure: unknown;
     for (const texture of textures) {
-      this.imported.unregister(texture);
-      if (texture instanceof T.DataTexture) this.detailData.delete(texture);
-      if (texture instanceof T.CanvasTexture) {
-        const asset = this.assets.get(texture);
-        if (!asset) continue;
-        texture.dispose();
-        texture.source = asset.source.original;
-        texture.needsUpdate = true;
-        this.assets.delete(texture);
-        asset.textures.delete(texture);
-        if (!asset.textures.size) {
-          this.groups.delete(asset);
-          this.sources.delete(asset.owned);
-          asset.source.groups.delete(`${asset.scale}:${asset.cpuReadback}`);
-          if (!asset.source.groups.size) this.sources.delete(asset.source.original);
+      try {
+        this.imported.unregister(texture);
+        if (texture instanceof T.DataTexture) this.detailData.delete(texture);
+        if (texture instanceof T.CanvasTexture) {
+          const asset = this.assets.get(texture);
+          if (!asset) continue;
+          // Retire this wrapper before a disposal listener can close the budget
+          // or resize its still-live siblings. Keep the old source for release.
+          this.assets.delete(texture);
+          asset.textures.delete(texture);
+          if (!asset.textures.size) {
+            this.groups.delete(asset);
+            this.sources.delete(asset.owned);
+            asset.source.groups.delete(`${asset.scale}:${asset.cpuReadback}`);
+            if (!asset.source.groups.size) this.sources.delete(asset.source.original);
+          }
+          try {
+            texture.dispose();
+          } finally {
+            texture.source = asset.source.original;
+            texture.needsUpdate = true;
+          }
+        }
+      } catch (error) {
+        if (!failed) {
+          failed = true;
+          failure = error;
         }
       }
     }
+    if (failed) throw failure;
   }
   /** Repaint every budget copy of an authored canvas, preserving each claim. */
   refresh(texture: T.Texture) {

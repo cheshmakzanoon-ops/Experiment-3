@@ -234,6 +234,9 @@ export class RaceServer {
     // longer owns the right to construct a world or schedule more work.
     return this.phase === phase;
   }
+  private ownsWorld(world: AuthoritativeWorld, phase: SessionPhase) {
+    return this.world === world && this.phase === phase;
+  }
   /** Take ownership of a new connection. */
   accept(transport: Transport) {
     if (this.phase === 'teardown') {
@@ -601,8 +604,11 @@ export class RaceServer {
       serverTick: 0,
       startInMs: this.timeouts.gridCountdownMs,
     };
-    for (const p of this.players.values())
+    // Transport callbacks can end this grid while its announcement is sent.
+    for (const p of this.players.values()) {
       if (p.connection && p.car !== null) this.send(p.connection, { ...this.grid, car: p.car });
+      if (!this.ownsWorld(world, 'grid')) return;
+    }
     this.raceStartsAt = this.loop.now + this.timeouts.gridCountdownMs;
     this.loop.after(this.timeouts.gridCountdownMs, () => this.beginRace());
   }
@@ -816,8 +822,9 @@ export class RaceServer {
     const world = this.world as AuthoritativeWorld;
     this.stopTicks?.();
     this.stopTicks = null;
-    if (!this.setPhase('results')) return;
+    if (!this.setPhase('results') || this.world !== world) return;
     if (this.pendingEvents.length) this.snapshot();
+    if (!this.ownsWorld(world, 'results')) return;
     this.record = createRecord(world);
     const running: ResultEntry[] = [],
       ghosts: ResultEntry[] = [];
@@ -852,8 +859,17 @@ export class RaceServer {
       progressDisputes: world.audit.disputes(),
     };
     const messages = this.resultMessages(this.results);
-    for (const p of this.players.values())
-      if (p.connection) for (const message of messages) this.send(p.connection, message);
+    for (const p of this.players.values()) {
+      const connection = p.connection;
+      if (!connection) continue;
+      for (const message of messages) {
+        this.send(connection, message);
+        // A failed send retires this recipient; a callback may retire the
+        // whole session. Neither owns the remaining chunks or a new timer.
+        if (!this.ownsWorld(world, 'results')) return;
+        if (p.connection !== connection) break;
+      }
+    }
     this.loop.after(this.timeouts.resultsLingerMs, () => this.teardown());
   }
   /** Results → teardown: close every connection and stop all timers. */

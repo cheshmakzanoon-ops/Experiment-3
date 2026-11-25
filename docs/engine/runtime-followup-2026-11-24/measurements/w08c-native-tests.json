@@ -1,0 +1,158 @@
+{
+  "config": {
+    "configFile": "/tmp/engine-c71f32882729/w08c-native.config.mts",
+    "rootDir": "/tmp/engine-c71f32882729/repo/e2e",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/tmp/engine-c71f32882729/repo/docs/engine/runtime-followup-2026-11-24/measurements/w08c-native-tests.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/tmp/engine-c71f32882729/w08c-native-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/tmp/engine-c71f32882729/repo/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/engine-native-recording\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "engine-native-recording.spec.ts",
+      "file": "engine-native-recording.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "native CSV worker transfers a wrapped snapshot while its recorder keeps writing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 827,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-25T03:47:13.729Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "native-telemetry-snapshot-transfer.json",
+                      "contentType": "application/json",
+                      "body": "ewogICJyb3dzIjogNjAwLAogICJjb2x1bW5zIjogMjI4LAogICJieXRlTGVuZ3RoIjogNTQ3MjAwLAogICJkZXRhY2hlZCI6IHRydWUsCiAgInNuYXBzaG90RGlmZmVyZW5jZXMiOiAwLAogICJjb250aW51aW5nRGlmZmVyZW5jZXMiOiAwLAogICJjb250aW51aW5nQnl0ZXMiOiA1NDcyMDAsCiAgImV4YWN0Q3N2IjogdHJ1ZSwKICAiY3N2Qnl0ZXMiOiAxMjY4MTM4LAogICJjc3ZTaGEyNTYiOiAiMTIwZTIyYThlMTRjOGVmZTRmMmZmNzdiN2U5NTJmMzNhYmI4YzhmMzNlMjA5YzA5YjBmY2IzNDkzYmJlNTI5OCIsCiAgInJvd0NvdW50IjogNjAwLAogICJoZWFkZXJNYXRjaGVzIjogdHJ1ZSwKICAibGFzdFJvd01hdGNoZXMiOiB0cnVlLAogICJtaW1lIjogInRleHQvY3N2O2NoYXJzZXQ9dXRmLTgiLAogICJ0ZXJtaW5hdGlvbnMiOiAxLAogICJ1bmlxdWVUZXJtaW5hdGlvbnMiOiAxCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4e2b7ae723eadae56fb7-cae3af48c0ef7cbb7e3e",
+          "file": "engine-native-recording.spec.ts",
+          "line": 112,
+          "column": 1
+        },
+        {
+          "title": "native CSV cancellation, replacement and validation failure retain one result owner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 681,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-25T03:47:14.757Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "native-telemetry-worker-ownership.json",
+                      "contentType": "application/json",
+                      "body": "ewogICJmaXJzdERldGFjaGVkIjogdHJ1ZSwKICAic2Vjb25kRGV0YWNoZWQiOiB0cnVlLAogICJjYW5jZWxsZWREZXRhY2hlZCI6IHRydWUsCiAgImludmFsaWREZXRhY2hlZCI6IHRydWUsCiAgInJlY292ZXJlZERldGFjaGVkIjogdHJ1ZSwKICAicmV0aXJlZE1lc3NhZ2UiOiAiVGVsZW1ldHJ5IGV4cG9ydCBjYW5jZWxsZWQiLAogICJjYW5jZWxsZWRNZXNzYWdlIjogIlRlbGVtZXRyeSBleHBvcnQgY2FuY2VsbGVkIiwKICAiaW52YWxpZE1lc3NhZ2UiOiAiSW52YWxpZCB0ZWxlbWV0cnkgZXhwb3J0IHNoYXBlIiwKICAic3RhbGVTdWNjZXNzIjogZmFsc2UsCiAgInJlcGxhY2VtZW50RXhhY3QiOiB0cnVlLAogICJyZXBsYWNlbWVudFJvd3MiOiA2MDAsCiAgInJlY292ZXJlZEV4YWN0IjogdHJ1ZSwKICAidGVybWluYXRpb25zIjogNSwKICAidW5pcXVlVGVybWluYXRpb25zIjogNQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4e2b7ae723eadae56fb7-e43887a36bb875c15f39",
+          "file": "engine-native-recording.spec.ts",
+          "line": 139,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-25T03:47:13.152Z",
+    "duration": 2347.689,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

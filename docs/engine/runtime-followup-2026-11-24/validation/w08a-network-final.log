@@ -1,0 +1,15 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+ ✓ tests/engine-network-adversarial.test.ts (9 tests) 3195ms
+   ✓ server callback ownership at publication boundaries > a previously scheduled results deadline cannot revive a terminal server  428ms
+   ✓ server callback ownership at publication boundaries > abandons finalization when a final event send callback ends the session  303ms
+   ✓ server callback ownership at publication boundaries > abandons finalization when a final failed-send close callback ends the session  382ms
+   ✓ server callback ownership at publication boundaries > retains already-published results without scheduling new work after their send ends the session  548ms
+   ✓ replays archived shift levels across AI handoff and a rear-brake tag change  893ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  20:34:59
+   Duration  5.32s (transform 1.05s, setup 0ms, collect 1.82s, tests 3.19s, environment 0ms, prepare 80ms)
+

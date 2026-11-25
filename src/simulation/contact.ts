@@ -56,6 +56,9 @@ export class TrackContactMesh {
     readonly track: Track,
     readonly rows = 8192,
   ) {
+    // Scalar stores cannot detect a truncated allocation from fractional rows.
+    if (!Number.isInteger(rows) || rows < 1)
+      throw new RangeError('Contact mesh rows must be a positive integer');
     const p = { ...track.points[0] };
     this.ownershipPoint = { ...p };
     const bands = BANDS,

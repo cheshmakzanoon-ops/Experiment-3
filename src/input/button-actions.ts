@@ -133,7 +133,7 @@ export class ControllerActions {
       this.held.fill(0);
       return;
     }
-    let dispatched = false;
+    let selected: ButtonAction | null = null;
     for (let index = 0; index < this.held.length; index++) {
       const value = pad.buttons[index];
       const down = !!value && Number.isFinite(value.value) && value.pressed;
@@ -143,7 +143,7 @@ export class ControllerActions {
         baseline ||
         !edge ||
         context === 'off' ||
-        dispatched ||
+        selected ||
         index === mapping.shiftUpButton ||
         index === mapping.shiftDownButton ||
         index === mapping.rearBrakeButton ||
@@ -161,8 +161,10 @@ export class ControllerActions {
         (context === 'replay' && !['pause', 'camera', 'replay', 'mute', 'debug'].includes(action))
       )
         continue;
-      dispatched = true; // One UI transition per sample; other held presses are consumed.
-      emit(action);
+      selected = action;
     }
+    // Observe the complete sample before an action can reenter, change device
+    // ownership or throw. Other held presses must stay consumed in every case.
+    if (selected) emit(selected);
   }
 }

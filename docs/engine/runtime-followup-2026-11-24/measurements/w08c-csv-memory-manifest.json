@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-11-25T03:51:41.326445+00:00",
+  "baselineRef": "f4d41b0c00fa7b69f35ba1b1f48b67541e3749b6",
+  "changedProductionSources": [
+    "src/storage/telemetry-schema.ts"
+  ],
+  "files": [
+    {
+      "path": "src/storage/telemetry-schema.ts",
+      "bytes": 6266,
+      "sha256": "ed5e98ae1cc8728ed8b5ad8209ab594351cc613c7b5708c35b0b9d86da342894"
+    },
+    {
+      "path": "tests/engine-telemetry-chunk-storage.test.ts",
+      "bytes": 5545,
+      "sha256": "80bde647194a3e503c98936a121c6b6ace284d0f377ca4999faf6b94adee02f7"
+    },
+    {
+      "path": "scripts/bench/engine-followup-csv-memory.mjs",
+      "bytes": 16763,
+      "sha256": "5abfcfe203dfb0960a99aa0f8a42276576b5b5103d24bdde06bec0b1a794824a"
+    },
+    {
+      "path": "scripts/bench/engine-followup-csv-memory.runner.mjs",
+      "bytes": 6329,
+      "sha256": "e43d0bd59a8e1df29638a842398640a6125db1a9aa89bdee85976294edacc284"
+    },
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w08c-csv-memory-raw.json",
+      "bytes": 163548,
+      "sha256": "bbbd409c70cc1557a29c856a619acf95820bdab71d1a7f1fbf4d5daab6251f24"
+    },
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w08c-unit-baseline.json",
+      "bytes": 7804,
+      "sha256": "5c153ec3dfea671c66847ef4621d63d5e9ff706b0fb835daef8d5fb412b50a1e"
+    },
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w08c-unit-current.json",
+      "bytes": 29193,
+      "sha256": "befd34a99510d3b4ef8eb771dd17ea8ae18362bd10f384998af7b6c2b9a2fd38"
+    },
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w08c-native-tests.json",
+      "bytes": 5538,
+      "sha256": "cf708bb6e63cd2cd6f69e7ef9db490482cb348bfe743e53943f624e709c990d1"
+    },
+    {
+      "path": "docs/engine/runtime-followup-2026-11-24/measurements/w08c-csv-memory.md",
+      "bytes": 14807,
+      "sha256": "c0246598cacad47283eca28dfd2d4f5f26df8209a6a520ab709dd7f6f791cd78"
+    }
+  ],
+  "timedBundles": [
+    {
+      "role": "baseline",
+      "kind": "node",
+      "filename": "baseline-csv-memory-node.bundle.mjs",
+      "sha256": "205c0c79fa274cf3200ca25ae8d3e3a0f4783735101128a2fc003237982226ce",
+      "bytes": 166042
+    },
+    {
+      "role": "baseline",
+      "kind": "worker",
+      "filename": "baseline-csv-memory-worker.bundle.js",
+      "sha256": "82fe953441f5fecfea264d7fe85c1be3be2fc90985205e118f18f13d5f4d41bb",
+      "bytes": 147467
+    },
+    {
+      "role": "baseline",
+      "kind": "browser",
+      "filename": "baseline-csv-memory-browser.bundle.js",
+      "sha256": "a9a2fa66badcb151fb1dd45bc1fc70d60beb5cbbc7aad5d2ad420ddab61222d3",
+      "bytes": 331708
+    },
+    {
+      "role": "current",
+      "kind": "node",
+      "filename": "current-csv-memory-node.bundle.mjs",
+      "sha256": "4e19b37c08c498ac4e5a9a24cffc55a34e4377c7fdd608fed9a11507e923a3d0",
+      "bytes": 166054
+    },
+    {
+      "role": "current",
+      "kind": "worker",
+      "filename": "current-csv-memory-worker.bundle.js",
+      "sha256": "e0f6fa4ddfa7d1e51cdce8dd14896e7c08979716b9a1f1bed09ed22ccbb28cb2",
+      "bytes": 147479
+    },
+    {
+      "role": "current",
+      "kind": "browser",
+      "filename": "current-csv-memory-browser.bundle.js",
+      "sha256": "89d02f92c3a9b74a60263245160230ecf2ae5fcab00777df996baa370fdd7124",
+      "bytes": 331732
+    }
+  ],
+  "harnessAtMeasurement": [
+    {
+      "path": "scripts/bench/engine-followup-csv-memory.mjs",
+      "sha256": "5abfcfe203dfb0960a99aa0f8a42276576b5b5103d24bdde06bec0b1a794824a",
+      "bytes": 16763
+    },
+    {
+      "path": "scripts/bench/engine-followup-csv-memory.runner.mjs",
+      "sha256": "e43d0bd59a8e1df29638a842398640a6125db1a9aa89bdee85976294edacc284",
+      "bytes": 6329
+    },
+    {
+      "path": "scripts/bench/engine-followup-telemetry.fixture.mjs",
+      "sha256": "b572ad1fd4e983610e700ad366428770d81cb9ed765abe1ca6e37bca415e90c5",
+      "bytes": 3407
+    },
+    {
+      "path": "scripts/bench/engine-followup-telemetry.browser.mjs",
+      "sha256": "d2891041d6ad31117cef0f9204c842b4c6e8f90ae3e3b577f2919de746d392fc",
+      "bytes": 4426
+    }
+  ],
+  "archive": {
+    "path": "docs/engine/runtime-followup-2026-11-24/measurements/w08c-csv-memory-timed-bundles.tar.gz",
+    "bytes": 300444,
+    "sha256": "788659384f4dcfab17540dd6479666629db1323b37011abd3d39d20cfa77178b",
+    "contains": "Only the exact six executed Node/browser/worker bundles, verified against the raw measurement hashes."
+  },
+  "priorEvidenceUnchanged": {
+    "w07d-telemetry-raw.json": "e79bca89e6202d32488e0c2d2f96c06b03ed306aba993726dca209cb2dd7421d",
+    "w07d-telemetry-browser.json": "80bb81c1bc1e6f3ca05b440ed583b2d3f71b6d30f0d080f460e7e7658c1ba046",
+    "w07d-telemetry-manifest.json": "70a4913205e84f6be6464c8128ed063e6cfec1ad9a0af6f3560f704cb451fd33"
+  },
+  "sourceHashesStillMatchMeasuredBytes": true,
+  "validation": {
+    "baselineUnitTests": {
+      "passed": 20,
+      "failed": 1,
+      "expectedFailure": "completed CSV retained as strings"
+    },
+    "currentUnitTests": {
+      "passed": 87,
+      "failed": 0,
+      "files": 4
+    },
+    "nativeCsvLifecycleTests": {
+      "passed": 2,
+      "failed": 0,
+      "retries": 0
+    },
+    "defaultNodeTimingPairs": 5,
+    "defaultNodeObservedExports": 2,
+    "defaultBrowserPairs": 3,
+    "defaultExportsComparedExactly": 18,
+    "defaultCsvBytes": 115038761,
+    "defaultCsvSha256": "cfc38f4dd65c878d824866c817e65511b1287161c525e3c8cafaed9bf7ad0d9b",
+    "differingCsvBytes": 0,
+    "scopedEslintExitCode": 0,
+    "gitDiffCheckExitCode": 0,
+    "maximumRecorderCapacityRows": 54000,
+    "maximumExportRows": 54000,
+    "configuredMaximum216000RowsAllocated": false,
+    "peakBrowserMemoryMeasured": false,
+    "computeAndBrowserLeasesReleased": true,
+    "optionalRepeatedMeasurements": 0
+  }
+}

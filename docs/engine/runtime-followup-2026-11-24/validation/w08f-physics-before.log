@@ -1,0 +1,76 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+ ❯ tests/engine-physics-adversarial.test.ts (13 tests | 9 failed) 24ms
+   × contact mesh row domain > rejects an incomplete or empty ribbon for 0.4 rows 7ms
+     → expected function to throw an error, but it didn't
+   × contact mesh row domain > rejects an incomplete or empty ribbon for 1.4 rows 1ms
+     → expected function to throw an error, but it didn't
+   × contact mesh row domain > rejects an incomplete or empty ribbon for 7.4 rows 2ms
+     → expected function to throw an error, but it didn't
+   × contact mesh row domain > rejects an incomplete or empty ribbon for 0 rows 7ms
+     → expected a thrown error to be RangeError: Contact mesh rows must be a p…
+   × contact mesh row domain > rejects an incomplete or empty ribbon for -0 rows 2ms
+     → expected a thrown error to be RangeError: Contact mesh rows must be a p…
+   × contact mesh row domain > rejects an incomplete or empty ribbon for -1 rows 1ms
+     → expected a thrown error to be RangeError: Contact mesh rows must be a p…
+   × contact mesh row domain > rejects an incomplete or empty ribbon for NaN rows 1ms
+     → expected a thrown error to be RangeError: Contact mesh rows must be a p…
+   × contact mesh row domain > rejects an incomplete or empty ribbon for Infinity rows 1ms
+     → expected a thrown error to be RangeError: Contact mesh rows must be a p…
+   × contact mesh row domain > rejects an incomplete or empty ribbon for -Infinity rows 1ms
+     → expected a thrown error to be RangeError: Contact mesh rows must be a p…
+   ✓ road-frame normal ownership > accepts its own normal vector as a normal with the same exact result as a copy 1ms
+   ✓ road-frame normal ownership > accepts its own axle vector as a normal with the same exact result as a copy 0ms
+   ✓ road-frame normal ownership > accepts its own forward vector as a normal with the same exact result as a copy 0ms
+   ✓ road-frame normal ownership > accepts its own lateral vector as a normal with the same exact result as a copy 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for 0.4 rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for 1.4 rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for 7.4 rows
+AssertionError: expected function to throw an error, but it didn't
+ ❯ tests/engine-physics-adversarial.test.ts:16:55
+     14|     'rejects an incomplete or empty ribbon for %s rows',
+     15|     (rows) => {
+     16|       expect(() => new TrackContactMesh(track, rows)).toThrowError(
+       |                                                       ^
+     17|         new RangeError('Contact mesh rows must be a positive integer'),
+     18|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for 0 rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for -0 rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for -1 rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for NaN rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for Infinity rows
+ FAIL  tests/engine-physics-adversarial.test.ts > contact mesh row domain > rejects an incomplete or empty ribbon for -Infinity rows
+AssertionError: expected a thrown error to be RangeError: Contact mesh rows must be a p…
+
+- Expected
++ Received
+
+- RangeError {
+-   "message": "Contact mesh rows must be a positive integer",
++ Error {
++   "message": "BVH requires nonempty triangle geometry",
+  }
+
+ ❯ tests/engine-physics-adversarial.test.ts:16:55
+     14|     'rejects an incomplete or empty ribbon for %s rows',
+     15|     (rows) => {
+     16|       expect(() => new TrackContactMesh(track, rows)).toThrowError(
+       |                                                       ^
+     17|         new RangeError('Contact mesh rows must be a positive integer'),
+     18|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 4 passed (13)
+   Start at  20:58:33
+   Duration  1.48s (transform 507ms, setup 0ms, collect 1.19s, tests 24ms, environment 0ms, prepare 71ms)
+

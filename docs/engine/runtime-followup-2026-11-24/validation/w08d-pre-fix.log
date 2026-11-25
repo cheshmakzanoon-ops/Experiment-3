@@ -1,0 +1,128 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+ ❯ tests/engine-input-audio-adversarial.test.ts (7 tests | 6 failed) 33ms
+   × controller action callbacks own complete button observations > consumes simultaneous held actions before a host callback polls actions reentrantly 10ms
+     → expected [ [ 'camera' ], [ 'pause' ] ] to deeply equal [ [ 'camera' ] ]
+   × controller action callbacks own complete button observations > does not turn a simultaneous held action into a deferred command after a callback throws 2ms
+     → expected [ [ 'camera' ], [ 'pause' ] ] to deeply equal [ [ 'camera' ] ]
+   × controller action callbacks own complete button observations > preserves a replacement device baseline acquired during an action callback 1ms
+     → expected [ [ 'camera' ], [ 'pause' ] ] to deeply equal [ [ 'camera' ] ]
+   × preview activation refusal does not retain audible intent > does not arm a preview after a rejected live resume for a later unrelated unlock gesture 11ms
+     → expected [ { kind: 'set', value: 800, …(1) } ] to deeply equal []
+   × preview activation refusal does not retain audible intent > does not arm a preview after a thrown live resume for a later unrelated unlock gesture 3ms
+     → expected [ { kind: 'set', value: 800, …(1) } ] to deeply equal []
+   × preview activation refusal does not retain audible intent > does not arm a preview after a timed out live resume for a later unrelated unlock gesture 3ms
+     → expected [ { kind: 'set', value: 800, …(1) } ] to deeply equal []
+   ✓ preview activation refusal does not retain audible intent > still schedules offline previews before a suspended rendering context starts 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/engine-input-audio-adversarial.test.ts > controller action callbacks own complete button observations > consumes simultaneous held actions before a host callback polls actions reentrantly
+AssertionError: expected [ [ 'camera' ], [ 'pause' ] ] to deeply equal [ [ 'camera' ] ]
+
+- Expected
++ Received
+
+  [
+    [
+      "camera",
+    ],
++   [
++     "pause",
++   ],
+  ]
+
+ ❯ tests/engine-input-audio-adversarial.test.ts:81:33
+     79|     f.pad.buttons[f.settings.mapping.shiftUpButton] = button(true);
+     80|     expect(f.input.update(1 / 60).shift).toBe(1);
+     81|     expect(f.action.mock.calls).toEqual([['camera']]);
+       |                                 ^
+     82|     // Reading controls has not acknowledged the one driving edge.
+     83|     expect(f.input.update(1 / 60).shift).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/engine-input-audio-adversarial.test.ts > controller action callbacks own complete button observations > does not turn a simultaneous held action into a deferred command after a callback throws
+AssertionError: expected [ [ 'camera' ], [ 'pause' ] ] to deeply equal [ [ 'camera' ] ]
+
+- Expected
++ Received
+
+  [
+    [
+      "camera",
+    ],
++   [
++     "pause",
++   ],
+  ]
+
+ ❯ tests/engine-input-audio-adversarial.test.ts:106:33
+    104|     f.input.pollActions('paused');
+    105|     f.input.pollActions('driving');
+    106|     expect(f.action.mock.calls).toEqual([['camera']]);
+       |                                 ^
+    107|     f.pad.buttons[f.settings.mapping.buttonActions.pause] = button();
+    108|     f.input.pollActions('paused');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/engine-input-audio-adversarial.test.ts > controller action callbacks own complete button observations > preserves a replacement device baseline acquired during an action callback
+AssertionError: expected [ [ 'camera' ], [ 'pause' ] ] to deeply equal [ [ 'camera' ] ]
+
+- Expected
++ Received
+
+  [
+    [
+      "camera",
+    ],
++   [
++     "pause",
++   ],
+  ]
+
+ ❯ tests/engine-input-audio-adversarial.test.ts:129:33
+    127|     expect(f.input.update(1 / 60).shift).toBe(0);
+    128|     f.input.pollActions('paused');
+    129|     expect(f.action.mock.calls).toEqual([['camera']]);
+       |                                 ^
+    130|     f.input.setEnabled(true);
+    131|     expect(f.input.update(1 / 60).shift).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/engine-input-audio-adversarial.test.ts > preview activation refusal does not retain audible intent > does not arm a preview after a rejected live resume for a later unrelated unlock gesture
+ FAIL  tests/engine-input-audio-adversarial.test.ts > preview activation refusal does not retain audible intent > does not arm a preview after a thrown live resume for a later unrelated unlock gesture
+ FAIL  tests/engine-input-audio-adversarial.test.ts > preview activation refusal does not retain audible intent > does not arm a preview after a timed out live resume for a later unrelated unlock gesture
+AssertionError: expected [ { kind: 'set', value: 800, …(1) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "kind": "set",
++     "time": 0.25,
++     "value": 800,
++   },
++ ]
+
+ ❯ tests/engine-input-audio-adversarial.test.ts:164:36
+    162|       await preview;
+    163|       expect(context.state).toBe('suspended');
+    164|       expect(centerTones(context)).toEqual([]);
+       |                                    ^
+    165| 
+    166|       // The real AudioUnlock listener retries on an ordinary gesture.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 1 passed (7)
+   Start at  20:47:59
+   Duration  1.76s (transform 741ms, setup 0ms, collect 1.42s, tests 33ms, environment 0ms, prepare 83ms)
+

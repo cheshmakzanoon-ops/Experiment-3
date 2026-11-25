@@ -1,0 +1,192 @@
+
+ RUN  v3.2.4 /tmp/engine-c71f32882729/repo
+
+ ❯ tests/engine-resource-adversarial.test.ts (10 tests | 7 failed) 38ms
+   × resource release under actual Three disposal callbacks > removes a throwing generated wrapper and the remaining root while its shared sibling stays live 15ms
+     → expected [ Source{ isSource: true, …(5) } ] to deeply equal [ Array(2) ]
+   × resource release under actual Three disposal callbacks > removes a throwing imported wrapper and the remaining root while its shared sibling stays live 5ms
+     → expected [ Source{ isSource: true, …(5) } ] to deeply equal [ Array(2) ]
+   × resource release under actual Three disposal callbacks > does not release the same generated wrapper again when its removal callback closes the budget 4ms
+     → expected [ Array(2) ] to deeply equal [ Source{ isSource: true, …(5) } ]
+   × resource release under actual Three disposal callbacks > does not release the same imported wrapper again when its removal callback closes the budget 3ms
+     → expected [ Array(2) ] to deeply equal [ Source{ isSource: true, …(5) } ]
+   ✓ resource release under actual Three disposal callbacks > can close a partially acquired generated registration and reuse the budget afterward 2ms
+   ✓ resource release under actual Three disposal callbacks > can close a partially acquired imported registration and reuse the budget afterward 1ms
+   × resource release under actual Three disposal callbacks > finishes decoded-image ownership after a texture listener throws (shared=false) 1ms
+     → expected "spy" to be called 1 times, but got 0 times
+   ✓ resource release under actual Three disposal callbacks > finishes decoded-image ownership after a texture listener throws (shared=true) 1ms
+   × resource release under actual Three disposal callbacks > releases a planting after budget removal fails and retains that first failure (later failure=false) 4ms
+     → expected Source{ isSource: true, id: 38, …(4) } to be Source{ isSource: true, id: 37, …(4) } // Object.is equality
+   × resource release under actual Three disposal callbacks > releases a planting after budget removal fails and retains that first failure (later failure=true) 2ms
+     → expected Source{ isSource: true, id: 40, …(4) } to be Source{ isSource: true, id: 39, …(4) } // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > removes a throwing generated wrapper and the remaining root while its shared sibling stays live
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > removes a throwing imported wrapper and the remaining root while its shared sibling stays live
+AssertionError: expected [ Source{ isSource: true, …(5) } ] to deeply equal [ Array(2) ]
+
+- Expected
++ Received
+
+@@ -13,22 +13,6 @@
+      "dataReady": true,
+      "isSource": true,
+      "uuid": "63890b98-8510-4c98-88e7-2da4dad42351",
+      "version": 2,
+    },
+-   Source {
+-     "data": Canvas {
+-       "context": {
+-         "clearRect": [Function clearRect],
+-         "drawImage": [Function drawImage],
+-         "getImageData": [Function getImageData],
+-         "putImageData": [Function putImageData],
+-       },
+-       "height": 4,
+-       "width": 8,
+-     },
+-     "dataReady": true,
+-     "isSource": true,
+-     "uuid": "6ff006cd-2152-428c-a46f-15d3e89eef2b",
+-     "version": 1,
+-   },
+  ]
+
+ ❯ tests/engine-resource-adversarial.test.ts:102:24
+    100| 
+    101|       expect(thrown(() => budget.unregister(removed))).toEqual({ threw…
+    102|       expect(releases).toEqual(owned);
+       |                        ^
+    103|       expect([first.source, second.source]).toEqual(originals);
+    104|       expect(sibling.source).toBe(owned[0]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > does not release the same generated wrapper again when its removal callback closes the budget
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > does not release the same imported wrapper again when its removal callback closes the budget
+AssertionError: expected [ Array(2) ] to deeply equal [ Source{ isSource: true, …(5) } ]
+
+- Expected
++ Received
+
+@@ -13,6 +13,22 @@
+      "dataReady": true,
+      "isSource": true,
+      "uuid": "f898cc15-59b8-488a-8c6b-023955e84b98",
+      "version": 2,
+    },
++   Source {
++     "data": Canvas {
++       "context": {
++         "clearRect": [Function clearRect],
++         "drawImage": [Function drawImage],
++         "getImageData": [Function getImageData],
++         "putImageData": [Function putImageData],
++       },
++       "height": 4,
++       "width": 8,
++     },
++     "dataReady": true,
++     "isSource": true,
++     "uuid": "f898cc15-59b8-488a-8c6b-023955e84b98",
++     "version": 2,
++   },
+  ]
+
+ ❯ tests/engine-resource-adversarial.test.ts:150:24
+    148| 
+    149|       budget.unregister(scene(first));
+    150|       expect(releases).toEqual([owned]);
+       |                        ^
+    151|       expect(siblingRelease).toHaveBeenCalledOnce();
+    152|       expect([first.source, sibling.source]).toEqual([original, origin…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > finishes decoded-image ownership after a texture listener throws (shared=false)
+AssertionError: expected "spy" to be called 1 times, but got 0 times
+ ❯ tests/engine-resource-adversarial.test.ts:207:27
+    205| 
+    206|       expect(thrown(() => disposeSceneTexture(first))).toEqual({ threw…
+    207|       expect(image.close).toHaveBeenCalledTimes(shared ? 0 : 1);
+       |                           ^
+    208|       disposeSceneTexture(alias);
+    209|       expect(image.close).toHaveBeenCalledTimes(shared ? 0 : 1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > releases a planting after budget removal fails and retains that first failure (later failure=false)
+AssertionError: expected Source{ isSource: true, id: 38, …(4) } to be Source{ isSource: true, id: 37, …(4) } // Object.is equality
+
+- Expected
++ Received
+
+@@ -4,13 +4,13 @@
+        "clearRect": [Function clearRect],
+        "drawImage": [Function drawImage],
+        "getImageData": [Function getImageData],
+        "putImageData": [Function putImageData],
+      },
+-     "height": 16,
+-     "width": 32,
++     "height": 4,
++     "width": 8,
+    },
+    "dataReady": true,
+    "isSource": true,
+-   "uuid": "a81a690f-5839-4671-a7c6-d12a4218cb7a",
++   "uuid": "30eb0168-c9bb-419d-aa5c-b8e0c712391e",
+    "version": 1,
+  }
+
+ ❯ tests/engine-resource-adversarial.test.ts:250:26
+    248| 
+    249|       expect(thrown(() => owner.releasePlanting(planting))).toEqual({ …
+    250|       expect(map.source).toBe(original);
+       |                          ^
+    251|       expect(releases).toEqual([owned, original]);
+    252|       expect(planting.disposed).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/engine-resource-adversarial.test.ts > resource release under actual Three disposal callbacks > releases a planting after budget removal fails and retains that first failure (later failure=true)
+AssertionError: expected Source{ isSource: true, id: 40, …(4) } to be Source{ isSource: true, id: 39, …(4) } // Object.is equality
+
+- Expected
++ Received
+
+@@ -4,13 +4,13 @@
+        "clearRect": [Function clearRect],
+        "drawImage": [Function drawImage],
+        "getImageData": [Function getImageData],
+        "putImageData": [Function putImageData],
+      },
+-     "height": 16,
+-     "width": 32,
++     "height": 4,
++     "width": 8,
+    },
+    "dataReady": true,
+    "isSource": true,
+-   "uuid": "3501b186-c868-4174-974d-84199664ae26",
++   "uuid": "0b1940ef-6ef8-4066-b4cd-b01354dbf5df",
+    "version": 1,
+  }
+
+ ❯ tests/engine-resource-adversarial.test.ts:250:26
+    248| 
+    249|       expect(thrown(() => owner.releasePlanting(planting))).toEqual({ …
+    250|       expect(map.source).toBe(original);
+       |                          ^
+    251|       expect(releases).toEqual([owned, original]);
+    252|       expect(planting.disposed).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 3 passed (10)
+   Start at  20:51:27
+   Duration  6.83s (transform 4.60s, setup 0ms, collect 6.48s, tests 38ms, environment 0ms, prepare 85ms)
+

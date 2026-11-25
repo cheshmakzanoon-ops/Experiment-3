@@ -705,6 +705,9 @@ export class FestivalSession {
         renderer.guidance.cue,
         renderer.driftCue,
       );
+      // Gamepad polling can activate EXIT FESTIVAL during HUD update. Its
+      // callback has already released this session's renderer, status and HUD.
+      if (this.disposed) return;
       const pane = renderer.mode === 'cockpit' && !renderer.photo
         ? renderer.cars.bodies.cabinOf(0)?.navigationPane ?? null : null;
       if (pane) {

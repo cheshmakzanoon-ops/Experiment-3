@@ -81,6 +81,10 @@ export class RacingAudio {
     if (this.context !== ctx || this.generation !== generation) return;
     if (!ctx || !this.previewSynth || this.muted || ctx.currentTime - this.lastPreview < 0.8)
       return;
+    // Startup bounds autoplay waits and contains resume refusals. A preview
+    // that still cannot run must not arm tones for an unrelated later gesture.
+    // Offline graphs intentionally schedule before rendering starts.
+    if (isLive(ctx) && ctx.state !== 'running') return;
     this.lastPreview = ctx.currentTime;
     const p = validateDrivingAudio(settings),
       invert = p.invertStereo ? -1 : 1;

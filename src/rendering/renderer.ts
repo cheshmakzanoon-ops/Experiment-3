@@ -1607,8 +1607,22 @@ export class RacingRenderer {
   }
   private releasePlanting(planting: CircuitPlanting) {
     if (planting.disposed) return;
-    this.textures.unregister(planting.root);
-    disposeCircuitPlanting(planting);
+    let failed = false;
+    let failure: unknown;
+    try {
+      this.textures.unregister(planting.root);
+    } catch (error) {
+      failed = true;
+      failure = error;
+    }
+    // Unregister restores map sources before reporting listener failures.
+    // The detached tier still needs its own independent release attempt.
+    try {
+      disposeCircuitPlanting(planting);
+    } catch (error) {
+      if (!failed) throw error;
+    }
+    if (failed) throw failure;
   }
   private invalidatePlanting() {
     this.farShadowBaked = null;

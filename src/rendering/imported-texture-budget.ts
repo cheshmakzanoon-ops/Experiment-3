@@ -81,18 +81,23 @@ export class ImportedTextureBudget {
     if (!this.registered.delete(texture)) return;
     const asset = this.sources.get(texture.source);
     if (!asset) return;
-    texture.dispose();
-    texture.source = asset.original;
-    if (asset.coverage) {
-      texture.mipmaps = [];
-      texture.generateMipmaps = true;
-    }
-    texture.needsUpdate = true;
+    // A disposal listener may close the whole budget. Remove this wrapper from
+    // every ownership index before invoking it, while preserving its old source.
     asset.textures.delete(texture);
     if (!asset.textures.size) {
       this.sources.delete(asset.original);
       this.sources.delete(asset.owned);
       this.assets.delete(asset);
+    }
+    try {
+      texture.dispose();
+    } finally {
+      texture.source = asset.original;
+      if (asset.coverage) {
+        texture.mipmaps = [];
+        texture.generateMipmaps = true;
+      }
+      texture.needsUpdate = true;
     }
   }
 
