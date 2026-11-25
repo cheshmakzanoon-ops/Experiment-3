@@ -22,6 +22,7 @@ class SaveTransaction {
     put: this.put,
     get: (key: string) => this.request(structuredClone(this.data.get(key))),
     getAllKeys: () => this.request([...this.data.keys()]),
+    openCursor: () => this.cursor(),
   }));
 
   constructor(private readonly data: Map<string, unknown>) {}
@@ -32,13 +33,39 @@ class SaveTransaction {
     return request;
   }
 
+  private cursor() {
+    const entries = [...this.data].sort(([left], [right]) =>
+      left < right ? -1 : left > right ? 1 : 0,
+    );
+    let index = 0;
+    const request = this.request(null);
+    const advance = () => {
+      const entry = entries[index++];
+      request.result = entry
+        ? {
+            key: entry[0],
+            value: structuredClone(entry[1]),
+            continue: () => {
+              advance();
+              this.reads.push(request);
+            },
+          }
+        : null;
+    };
+    advance();
+    return request;
+  }
+
   succeedReads() {
-    for (const request of this.reads.splice(0)) request.onsuccess?.();
+    // Requests admitted by a success callback, including cursor continuation
+    // and the revision read, must settle before transaction completion.
+    while (!this.aborted && this.reads.length) this.reads.shift()!.onsuccess?.();
   }
 
   complete() {
     if (this.aborted) throw new Error('Cannot commit an aborted transaction');
     this.succeedReads();
+    if (this.aborted) return;
     for (const [key, value] of this.pending) this.data.set(key, value);
     this.oncomplete?.();
   }
@@ -50,22 +77,54 @@ class SaveTransaction {
   }
 }
 
-function storage(initial: Record<string, unknown> = {}, desktop = true, delayedOpen = false) {
+function storage(
+  initial: Record<string, unknown> = {},
+  desktop = true,
+  delayedOpen = false,
+  loadFailure?: Error,
+) {
   const data = new Map(Object.entries(structuredClone(initial)));
+  // Model an independent legacy file copy. It has no completion certificate:
+  // populated equal revisions must load and compare their actual contents.
+  const fileData = new Map(Object.entries(structuredClone(initial)));
+  let fileRevision = Number(fileData.get(REVISION_KEY) ?? 0);
+  fileData.delete(REVISION_KEY);
+  const fileSnapshot = () => ({
+    revision: fileRevision,
+    entries: structuredClone(Object.fromEntries(fileData)),
+  });
+  const legacyLoad = vi.fn(async () => {
+    if (loadFailure) throw loadFailure;
+    return fileSnapshot();
+  });
   const writes: SaveTransaction[] = [];
   const mirrored: { key: string; value: unknown; revision: number }[] = [];
-  const bridge = {
-    saves: {
-      info: async () => ({
-        revision: data.get(REVISION_KEY) ?? 0,
-        keys: [...data.keys()].filter((key) => key !== REVISION_KEY),
-      }),
-      put: async (key: string, value: unknown, revision: number) => {
-        mirrored.push({ key, value: structuredClone(value), revision });
-        return revision;
-      },
+  const saves: MotoboundDesktop['saves'] = {
+    info: async () => ({
+      revision: fileRevision,
+      keys: [...fileData.keys()],
+      savedAt: 0,
+      source: fileData.size ? 'primary' : 'empty',
+      path: 'in-memory-test-mirror',
+    }),
+    load: legacyLoad,
+    put: async (key, value, revision) => {
+      const captured = structuredClone(value);
+      mirrored.push({ key, value: captured, revision });
+      fileData.set(key, structuredClone(captured));
+      fileRevision = revision;
+      return revision;
     },
-  } as unknown as MotoboundDesktop;
+    seed: async (entries, revision) => {
+      const captured = structuredClone(entries);
+      fileData.clear();
+      for (const [key, value] of Object.entries(captured)) fileData.set(key, value);
+      fileRevision = revision;
+      return true;
+    },
+    flush: async () => true,
+  };
+  const bridge = { saves } as unknown as MotoboundDesktop;
   const mirror = desktop ? DesktopMirror.forBridge(bridge) : null;
   vi.spyOn(DesktopMirror, 'detect').mockReturnValue(mirror);
   const db = {
@@ -93,7 +152,7 @@ function storage(initial: Record<string, unknown> = {}, desktop = true, delayedO
       return request;
     }),
   });
-  return { store: new SaveStore(), data, writes, mirrored, mirror, open };
+  return { store: new SaveStore(), data, writes, mirrored, mirror, open, legacyLoad, fileSnapshot };
 }
 
 function observe(promise: Promise<void>) {
@@ -119,13 +178,14 @@ describe('SaveStore and desktop mirror commit payload ownership', () => {
   it.each(['write', 'writeWithBackup'] as const)(
     '%s mirrors the committed private snapshot after caller mutation',
     async (method) => {
-      const { store, writes, data, mirrored } = storage({
+      const { store, writes, data, mirrored, legacyLoad } = storage({
         profile: { laps: 3 },
         [REVISION_KEY]: 7,
       });
       const value = { profile: { laps: 4 }, options: ['wet', 'manual'] };
       const saving = observe(store[method]('profile', value));
       const tx = await queued(writes);
+      expect(legacyLoad).toHaveBeenCalledTimes(1);
       value.profile.laps = 99;
       value.options.splice(0, 2, 'changed');
       tx.complete();
@@ -254,4 +314,24 @@ describe('SaveStore and desktop mirror commit payload ownership', () => {
       expect(mirrored).toEqual([]);
     },
   );
+
+  it('keeps later writes local when the legacy snapshot cannot be loaded', async () => {
+    const loadFailure = new Error('Legacy snapshot unavailable');
+    const { store, writes, data, mirrored, legacyLoad, fileSnapshot } = storage(
+      { profile: { lap: 3 }, [REVISION_KEY]: 7 },
+      true,
+      false,
+      loadFailure,
+    );
+    const saving = observe(store.write('profile', { lap: 4 }));
+    const tx = await queued(writes);
+    expect(legacyLoad).toHaveBeenCalledTimes(1);
+    expect(mirrored).toEqual([]);
+    tx.complete();
+    expect(await saving).toEqual({ error: null });
+    expect(data.get('profile')).toEqual({ lap: 4 });
+    expect(data.get(REVISION_KEY)).toBe(8);
+    expect(mirrored).toEqual([]);
+    expect(fileSnapshot()).toEqual({ revision: 7, entries: { profile: { lap: 3 } } });
+  });
 });

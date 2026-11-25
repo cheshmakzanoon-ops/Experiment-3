@@ -23,7 +23,11 @@ let nextInterval = 0,
   now = 0,
   stepCostMs = 0,
   bootstrapIntervals = 0;
-let current: Simulation;
+const observation: { simulation?: Simulation } = {};
+function current(): Simulation {
+  if (!observation.simulation) throw new Error('Worker has not written a simulation frame');
+  return observation.simulation;
+}
 let stepFailure: Error | null = null;
 const steps: { simulation: Simulation; dt: number }[] = [];
 const originalWrite = Simulation.prototype.writeFrame,
@@ -62,9 +66,9 @@ function frame(simulation: Simulation) {
   return values;
 }
 function expectState(expected: Simulation) {
-  expect(Buffer.from(frame(current).buffer).equals(Buffer.from(frame(expected).buffer))).toBe(true);
-  expect(current.cars[0].body.position).toEqual(expected.cars[0].body.position);
-  expect(current.cars[0].body.velocity).toEqual(expected.cars[0].body.velocity);
+  expect(Buffer.from(frame(current()).buffer).equals(Buffer.from(frame(expected).buffer))).toBe(true);
+  expect(current().cars[0].body.position).toEqual(expected.cars[0].body.position);
+  expect(current().cars[0].body.velocity).toEqual(expected.cars[0].body.velocity);
 }
 function onlyTimer() {
   expect(active.size).toBe(1);
@@ -77,7 +81,7 @@ beforeAll(async () => {
     this: Simulation,
     ...args
   ) {
-    current = this;
+    observation.simulation = this;
     return originalWrite.apply(this, args);
   });
   vi.spyOn(Simulation.prototype, 'step').mockImplementation(function (this: Simulation, dt) {
@@ -123,7 +127,7 @@ beforeEach(() => {
   now += 1000;
   send({ type: 'init', options });
   expect(errors()).toEqual([]);
-  expect(current.tick).toBe(0);
+  expect(current().tick).toBe(0);
   expect(active.size).toBe(0);
 });
 afterAll(() => {
@@ -141,7 +145,7 @@ describe('actual circuit worker interval ownership', () => {
     expect(callbackCount).toBe(callbacksBefore);
     expect(nextInterval).toBe(issuedBefore);
     expect(messages).toHaveLength(messagesBefore);
-    expect(current.tick).toBe(0);
+    expect(current().tick).toBe(0);
     send({ type: 'input', input: { ...controls(), throttle: 0.2 } });
     send({ type: 'engineering', enabled: true });
     expect(messages.at(-1)?.type).toBe('engineering');
@@ -168,7 +172,7 @@ describe('actual circuit worker interval ownership', () => {
         originalStep.call(expected, 1 / 120);
         expectedTicks++;
       }
-      expect(current.tick).toBe(target);
+      expect(current().tick).toBe(target);
       expect(onlyTimer()).toBe(handle);
       expectState(expected);
     }
@@ -184,7 +188,7 @@ describe('actual circuit worker interval ownership', () => {
   it('excludes a long pause while retaining the active fractional tick and fresh-input watchdog grace', () => {
     resume();
     advance(6);
-    expect(current.tick).toBe(0);
+    expect(current().tick).toBe(0);
     pause();
     const callbacksBefore = callbackCount;
     advance(90000);
@@ -192,11 +196,11 @@ describe('actual circuit worker interval ownership', () => {
     resume();
     send({ type: 'input', input: { ...controls(), throttle: 0.3 } });
     advance(2);
-    expect(current.tick).toBe(0);
+    expect(current().tick).toBe(0);
     advance(1);
-    expect(current.tick).toBe(1);
-    expect(current.cars[0].input.throttle).toBe(0.3);
-    expect(current.cars[0].input.brake).toBe(0);
+    expect(current().tick).toBe(1);
+    expect(current().cars[0].input.throttle).toBe(0.3);
+    expect(current().cars[0].input.brake).toBe(0);
     pause();
     expect(new Float32Array(frames().at(-1)!.buffer)[H.DROPPED]).toBe(0);
     const expected = new Simulation(options);
@@ -215,18 +219,18 @@ describe('actual circuit worker interval ownership', () => {
     resume();
     const successor = onlyTimer();
     expect(successor).not.toBe(retired);
-    const tick = current.tick,
+    const tick = current().tick,
       publications = messages.length;
     now += 20;
     stale();
-    expect(current.tick).toBe(tick);
+    expect(current().tick).toBe(tick);
     expect(messages).toHaveLength(publications);
     expect(onlyTimer()).toBe(successor);
     advance(1);
-    expect(current.tick).toBeGreaterThan(tick);
+    expect(current().tick).toBeGreaterThan(tick);
     send({ type: 'init', options });
     expect(active.size).toBe(0);
-    const fresh = current;
+    const fresh = current();
     callbacks.get(successor)!();
     expect(fresh.tick).toBe(0);
     resume();
@@ -244,9 +248,9 @@ describe('actual circuit worker interval ownership', () => {
     resume();
     send({ type: 'input', input: { ...controls(), throttle: 0.15 } });
     advance(100);
-    expect(current.tick).toBe(12);
+    expect(current().tick).toBe(12);
     pause();
-    const original = current;
+    const original = current();
     send({ type: 'flashback', tick: 6 });
     const handle = onlyTimer();
     const before = steps.length;
@@ -255,7 +259,7 @@ describe('actual circuit worker interval ownership', () => {
     stepCostMs = 5;
     advance(4);
     expect(steps.length - before).toBe(2);
-    expect(current).toBe(original);
+    expect(current()).toBe(original);
     expect(onlyTimer()).toBe(handle);
     advance(4);
     expect(steps.length - before).toBe(4);
@@ -263,8 +267,8 @@ describe('actual circuit worker interval ownership', () => {
     advance(4);
     stepCostMs = 0;
     expect(steps.length - before).toBe(6);
-    expect(current).not.toBe(original);
-    expect(current.tick).toBe(6);
+    expect(current()).not.toBe(original);
+    expect(current().tick).toBe(6);
     expect(messages.filter((message) => message.type === 'flashback')).toHaveLength(1);
     expect(active.size).toBe(0);
     const callbacksBefore = callbackCount;
@@ -282,10 +286,10 @@ describe('actual circuit worker interval ownership', () => {
     const retired = onlyTimer();
     stepFailure = new Error('Failure after one completed physics tick');
     advance(100);
-    expect(current.tick).toBe(1);
+    expect(current().tick).toBe(1);
     expect(errors()).toHaveLength(1);
     expect(active.size).toBe(0);
-    const old = current,
+    const old = current(),
       publications = messages.length,
       callbacksBefore = callbackCount;
     resume();
@@ -298,11 +302,11 @@ describe('actual circuit worker interval ownership', () => {
     expect(messages).toHaveLength(publications);
     expect(active.size).toBe(0);
     send({ type: 'init', options });
-    expect(current).not.toBe(old);
+    expect(current()).not.toBe(old);
     expect(active.size).toBe(0);
     resume();
     advance(20);
-    expect(current.tick).toBe(2);
+    expect(current().tick).toBe(2);
     expect(onlyTimer()).not.toBe(retired);
   });
 
@@ -316,11 +320,11 @@ describe('actual circuit worker interval ownership', () => {
     }
     const held = surfaces();
     expect(held).toHaveLength(SURFACE_TRANSPORT_MAX_PACKETS);
-    expect(current.tick).toBe(7200);
+    expect(current().tick).toBe(7200);
     send({ type: 'init', options });
     resume();
     advance(100);
-    expect(current.tick).toBe(12);
+    expect(current().tick).toBe(12);
     send({ type: 'flashback', tick: 6 });
     advance(4);
     expect(active.size).toBe(0);
@@ -335,14 +339,14 @@ describe('actual circuit worker interval ownership', () => {
     expect(messages.slice(completionStart).map((message) => message.type)).toEqual([
       'flashback', 'surface', 'frame',
     ]);
-    expect(current.tick).toBe(6);
+    expect(current().tick).toBe(6);
     const handle = onlyTimer();
     ack(held[0]);
     expect(onlyTimer()).toBe(handle);
     advance(4);
-    expect(current.tick).toBe(6);
+    expect(current().tick).toBe(6);
     advance(5);
-    expect(current.tick).toBe(7);
+    expect(current().tick).toBe(7);
     pause();
     expect(new Float32Array(frames().at(-1)!.buffer)[H.DROPPED]).toBe(0);
     expect(active.size).toBe(0);

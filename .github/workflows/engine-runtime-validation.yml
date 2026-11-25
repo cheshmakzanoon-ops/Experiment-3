@@ -6,6 +6,7 @@ on:
       - 'src/core/**'
       - 'src/workers/**'
       - 'src/storage/**'
+      - 'src/desktop/**'
       - 'src/input/**'
       - 'src/ui/**'
       - 'src/audio/**'
@@ -41,6 +42,8 @@ on:
       - 'scripts/browser-backend-setup.ts'
       - 'scripts/source-stability.ts'
       - 'scripts/engine-runtime-probes/**'
+      - 'eslint.config.js'
+      - 'desktop/src/save-mirror.cjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.ts'
@@ -76,8 +79,16 @@ jobs:
           git rev-parse HEAD > "$RUNNER_TEMP/engine-source-commit.txt"
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/engine-source-tree.txt"
           sha256sum package-lock.json > "$RUNNER_TEMP/engine-package-lock.sha256"
+          sha256sum desktop/src/save-mirror.cjs > "$RUNNER_TEMP/engine-desktop-service.sha256"
       - name: Install locked dependencies without source changes
         run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Lint source and test harnesses without changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- \
+            node node_modules/eslint/bin/eslint.js src tests e2e scripts \
+            2>&1 | tee "$RUNNER_TEMP/engine-runtime-lint.log"
       - name: Verify focused engine unit contracts
         shell: bash
         env:
@@ -124,12 +135,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sha256sum --check "$RUNNER_TEMP/engine-desktop-service.sha256"
           node --experimental-transform-types scripts/source-stability.ts -- \
             xvfb-run -a -s '-screen 0 1920x1080x24' \
             node node_modules/@playwright/test/cli.js test \
             e2e/engine-native-*.spec.ts e2e/replay-state.spec.ts \
             --workers=1 --retries=0 --forbid-only \
             2>&1 | tee "$RUNNER_TEMP/engine-runtime-browser.log"
+          sha256sum --check "$RUNNER_TEMP/engine-desktop-service.sha256"
       - name: Preserve runtime evidence including failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -146,6 +159,8 @@ jobs:
             ${{ runner.temp }}/engine-source-commit.txt
             ${{ runner.temp }}/engine-source-tree.txt
             ${{ runner.temp }}/engine-package-lock.sha256
+            ${{ runner.temp }}/engine-desktop-service.sha256
+            ${{ runner.temp }}/engine-runtime-lint.log
             ${{ runner.temp }}/engine-runtime-unit.log
             ${{ runner.temp }}/engine-runtime-build.log
             ${{ runner.temp }}/engine-runtime-probes.log
