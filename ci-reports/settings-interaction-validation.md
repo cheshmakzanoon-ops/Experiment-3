@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45522566586
-- commit: `85ae215329` · Fix engine rewind clocks, bounded ghosts and discrete network input
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45529183776
+- commit: `25a837597d` · Reduce engine allocations and close texture, GPU and audio lifetimes
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-25T01:01:13Z · updated: 2026-11-25T01:06:54Z
+- started: 2026-11-25T01:54:52Z · updated: 2026-11-25T02:20:15Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | failure | 5 | Original menu regression and transition ownership, without forced clicks or retries |
-| qa | skipped | 0 |  |
+| settings | success | 5 |  |
+| qa | failure | 15 | Review-tool specs of the settings and menu regression, on the QA build |
