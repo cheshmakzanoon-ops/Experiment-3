@@ -18,7 +18,7 @@ const connections = new Set<IDBDatabase>();
 const transactions: TransactionWitness[] = [];
 const witnesses = new WeakMap<IDBTransaction, TransactionWitness>();
 IDBDatabase.prototype.transaction = function (...args) {
-  const transaction = nativeTransaction.apply(this, args);
+  const transaction = Reflect.apply(nativeTransaction, this, args) as IDBTransaction;
   if (this.name === databaseName && transaction.objectStoreNames.contains('saved')) {
     connections.add(this);
     const witness: TransactionWitness = { mode: transaction.mode, writes: [], events: [] };

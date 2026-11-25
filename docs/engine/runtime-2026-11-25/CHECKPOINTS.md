@@ -23,3 +23,13 @@ Publication used a tree identical to the reviewed local commit, parent `6484ff3`
 Commit `c5016905c52da6b87aa400f00b841af7d948ab57` passed focused hosted workflow [45623758794](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45623758794): 1,014 tests in 75 files, complete TypeScript/build, and 47 native browser tests (3.6 minutes). No retries.
 
 A later local six-file integration attempt passed the 16 lane-cache cases then exited 137 from shared-memory pressure; it is not counted as a complete pass. Individual focused agent results and the next hosted source gate are tracked separately.
+
+## acd525f hosted acceptance
+
+Commit `acd525fc148c1378c90cfb23dddee9dd53e4d52c` passed [workflow 45625750491](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45625750491): 1,103 tests in 81 files, full TypeScript/build, and 47 native tests (4.0 minutes).
+
+## 04b7a6e validation and environment recovery
+
+[Workflow 45627137718](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45627137718) passed 1,114 tests in 82 files, then rejected the new IndexedDB fixture's overloaded native transaction `apply` call (TS2345). The correction uses typed reflective delegation, preserving every native argument. Browser tests were skipped by that failed gate; they are not counted as passed.
+
+The shared execution environment disconnected after this commit was pushed. Root continued through the GitHub connector with reviewed, isolated Git trees, expected-head non-forced ref updates, and hosted execution. Agent reports distinguish completed local evidence from unexecuted candidates. Protected content remains outside the permitted write paths.
