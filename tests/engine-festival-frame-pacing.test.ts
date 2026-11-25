@@ -8,7 +8,10 @@ import { recordFestivalBest, type FestivalSave } from '../src/session/festival-s
 import { SessionLifetime } from '../src/session/session-lifetime.ts';
 import { controls } from '../src/simulation/config.ts';
 import { isRace, type FestivalEvent } from '../src/simulation/open-world/festival-events.ts';
-import { festivalDefaultVehicle, type FestivalStatus } from '../src/simulation/open-world/session.ts';
+import {
+  festivalDefaultVehicle,
+  type FestivalStatus,
+} from '../src/simulation/open-world/session.ts';
 import { CAR_STRIDE, F, H, HEADER, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleAt } from '../src/simulation/vehicles.ts';
 import { FestivalStatusObserver } from '../src/steam/hooks.ts';
@@ -19,11 +22,16 @@ import type { FromOpenWorld, ToOpenWorld } from '../src/workers/open-world-proto
 // constructor, pause/page lifecycle and failure/disposal paths. The real live
 // clock, presented-frame sampler and control owner sit between observable GPU,
 // transport and DOM boundaries; no test reimplements its cadence decision.
-const source = ts.createSourceFile('free-roam.ts',
+const source = ts.createSourceFile(
+  'free-roam.ts',
   readFileSync(new URL('../src/session/free-roam.ts', import.meta.url), 'utf8'),
-  ts.ScriptTarget.Latest, true);
-const declaration = source.statements.find((node): node is ts.ClassDeclaration =>
-  ts.isClassDeclaration(node) && node.name?.text === 'FestivalSession')!;
+  ts.ScriptTarget.Latest,
+  true,
+);
+const declaration = source.statements.find(
+  (node): node is ts.ClassDeclaration =>
+    ts.isClassDeclaration(node) && node.name?.text === 'FestivalSession',
+)!;
 const compiled = ts.transpileModule(declaration.getText(source).replace(/^export\s+/, ''), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
 }).outputText;
@@ -59,7 +67,8 @@ interface Session {
 }
 
 function snapshot(time: number, x = time * 12) {
-  const frame = new Float32Array(HEADER + CAR_STRIDE), o = carBase(0);
+  const frame = new Float32Array(HEADER + CAR_STRIDE),
+    o = carBase(0);
   frame[H.CARS] = 1;
   frame[H.TIME] = time;
   frame[H.TICK] = Math.round(time * 120);
@@ -90,8 +99,12 @@ function renderer() {
     photo: false,
     lighting: 'day' as const,
     reducedMotion: false,
-    changeCamera: vi.fn(() => { view.mode = view.mode === 'cockpit' ? 'chase' : 'cockpit'; }),
-    setPhoto: vi.fn((value: boolean) => { view.photo = value; }),
+    changeCamera: vi.fn(() => {
+      view.mode = view.mode === 'cockpit' ? 'chase' : 'cockpit';
+    }),
+    setPhoto: vi.fn((value: boolean) => {
+      view.photo = value;
+    }),
     centreLook: vi.fn(),
     moveCockpitLook: vi.fn(),
     resize: vi.fn(),
@@ -111,10 +124,17 @@ function renderer() {
 
 function menus() {
   const hud = {
-    menuOpen: false, mapOpen: false, cardOpen: false, resultsOpen: false,
+    menuOpen: false,
+    mapOpen: false,
+    cardOpen: false,
+    resultsOpen: false,
     minimap: {},
-    showMenu: vi.fn((open: boolean) => { hud.menuOpen = open; }),
-    showMap: vi.fn((open: boolean) => { hud.mapOpen = open; }),
+    showMenu: vi.fn((open: boolean) => {
+      hud.menuOpen = open;
+    }),
+    showMap: vi.fn((open: boolean) => {
+      hud.mapOpen = open;
+    }),
     showPhoto: vi.fn(),
     hideResults: vi.fn(),
     update: vi.fn(),
@@ -124,13 +144,19 @@ function menus() {
 }
 
 let now = 0;
-const sessions: Session[] = [], controlOwners: FestivalControls[] = [];
+const sessions: Session[] = [],
+  controlOwners: FestivalControls[] = [];
 beforeEach(() => {
   vi.spyOn(performance, 'now').mockImplementation(() => now);
   vi.stubGlobal('window', new EventTarget());
-  vi.stubGlobal('document', Object.assign(new EventTarget(), {
-    hidden: false, pointerLockElement: null, exitPointerLock: vi.fn(),
-  }));
+  vi.stubGlobal(
+    'document',
+    Object.assign(new EventTarget(), {
+      hidden: false,
+      pointerLockElement: null,
+      exitPointerLock: vi.fn(),
+    }),
+  );
   now = 0;
 });
 afterEach(() => {
@@ -141,16 +167,26 @@ afterEach(() => {
 });
 
 function fixture(options: { paused?: boolean; photo?: boolean } = {}) {
-  const view = renderer(), hud = menus();
-  const worker = { postMessage: vi.fn(), terminate: vi.fn(),
-    onmessage: null, onerror: null, onmessageerror: null };
+  const view = renderer(),
+    hud = menus();
+  const worker = {
+    postMessage: vi.fn(),
+    terminate: vi.fn(),
+    onmessage: null,
+    onerror: null,
+    onmessageerror: null,
+  };
   const tiles = { terminate: vi.fn(), onerror: null, onmessageerror: null };
   const audio: { time: number; x: number; playing: boolean }[] = [];
   const host = {
     canvas: Object.assign(new EventTarget(), { height: 720 }),
     quality: 'low',
     reducedMotion: false,
-    loading: vi.fn(), loaded: vi.fn(), toast: vi.fn(), exit: vi.fn(), driving: vi.fn(),
+    loading: vi.fn(),
+    loaded: vi.fn(),
+    toast: vi.fn(),
+    exit: vi.fn(),
+    driving: vi.fn(),
     audio: {
       stop: vi.fn(),
       update: vi.fn((frame: Float32Array, _cockpit: boolean, playing: boolean) => {
@@ -159,14 +195,35 @@ function fixture(options: { paused?: boolean; photo?: boolean } = {}) {
     },
   };
   const bindings = {
-    OpenWorldWorker: function () { return worker; },
-    TileWorker: function () { return tiles; },
-    LiveFrameClock, FestivalStatusObserver, emitGameEvent: () => {}, festivalDefaultVehicle,
-    carBase, F, H, R, RACE_BASE, controls, isRace, recordFestivalBest, vehicleAt, minimapHeading,
+    OpenWorldWorker: function () {
+      return worker;
+    },
+    TileWorker: function () {
+      return tiles;
+    },
+    LiveFrameClock,
+    FestivalStatusObserver,
+    emitGameEvent: () => {},
+    festivalDefaultVehicle,
+    carBase,
+    F,
+    H,
+    R,
+    RACE_BASE,
+    controls,
+    isRace,
+    recordFestivalBest,
+    vehicleAt,
+    minimapHeading,
   };
-  const Constructor = new Function(...Object.keys(bindings), `${compiled}; return FestivalSession;`)(
-    ...Object.values(bindings),
-  ) as new (host: object, save: null, lifetime: SessionLifetime) => Session;
+  const Constructor = new Function(
+    ...Object.keys(bindings),
+    `${compiled}; return FestivalSession;`,
+  )(...Object.values(bindings)) as new (
+    host: object,
+    save: null,
+    lifetime: SessionLifetime,
+  ) => Session;
   const session = new Constructor(host, null, new SessionLifetime('Festival session closed'));
   sessions.push(session);
   session.renderer = view;
@@ -180,7 +237,9 @@ function fixture(options: { paused?: boolean; photo?: boolean } = {}) {
     pause: (value) => session.post({ type: 'pause', value }),
     driving: host.driving,
     menuState: () => festivalMenuState(session.status, session.save, 'day'),
-    card: () => null, start: vi.fn(), continue: vi.fn(),
+    card: () => null,
+    start: vi.fn(),
+    continue: vi.fn(),
   });
   controlOwners.push(owner);
   session.controls = owner;
@@ -191,15 +250,34 @@ function fixture(options: { paused?: boolean; photo?: boolean } = {}) {
   const sample = vi.spyOn(session.liveFrames, 'sample');
   const feed = (wall: number, time: number, x = time * 12) => {
     now = wall;
-    const frame = snapshot(time, x), auxiliary = new Float32Array([0, time]);
+    const frame = snapshot(time, x),
+      auxiliary = new Float32Array([0, time]);
     session.receive({ type: 'frame', buffer: frame.buffer, traffic: auxiliary.buffer });
     return { frame, auxiliary };
   };
   const initial = feed(0, 0);
   // Startup has already submitted its warm-up view before the host exposes RAF.
   view.presented.sample(initial.frame, initial.frame, 1);
-  const at = (time: number) => { now = time; session.frame(time); };
-  return { session, view, hud, owner, sync, sample, riders, traffic, host, worker, tiles, audio, at, feed };
+  const at = (time: number) => {
+    now = time;
+    session.frame(time);
+  };
+  return {
+    session,
+    view,
+    hud,
+    owner,
+    sync,
+    sample,
+    riders,
+    traffic,
+    host,
+    worker,
+    tiles,
+    audio,
+    at,
+    feed,
+  };
 }
 
 describe('Festival GPU admission and idle cadence', () => {
@@ -209,7 +287,7 @@ describe('Festival GPU admission and idle cadence', () => {
     { name: 'photo', paused: true, photo: true, draws: 15 },
   ])('services all 60 callbacks with $draws submitted $name draws', ({ paused, photo, draws }) => {
     const h = fixture({ paused, photo });
-    for (let i = 0; i < 60; i++) h.at(i * 1000 / 60);
+    for (let i = 0; i < 60; i++) h.at((i * 1000) / 60);
     expect(h.view.draw).toHaveBeenCalledTimes(draws);
     expect(h.view.canSubmitFrame).toHaveBeenCalledTimes(60);
     expect(h.sample).toHaveBeenCalledTimes(draws);
@@ -218,52 +296,58 @@ describe('Festival GPU admission and idle cadence', () => {
     expect(h.hud.update).toHaveBeenCalledTimes(60);
     expect(h.sync).toHaveBeenCalledTimes(60);
     expect(h.host.audio.update).toHaveBeenCalledTimes(60);
-    expect(h.view.cars.navigation.update.mock.calls.length +
-      h.view.cars.navigation.detach.mock.calls.length).toBe(draws);
+    expect(
+      h.view.cars.navigation.update.mock.calls.length +
+        h.view.cars.navigation.detach.mock.calls.length,
+    ).toBe(draws);
     if (paused) expect(h.audio.every((sample) => !sample.playing)).toBe(true);
     if (draws === 15)
-      for (const submitted of h.view.submissions.slice(1)) expect(submitted.dt).toBeCloseTo(1 / 15, 12);
+      for (const submitted of h.view.submissions.slice(1))
+        expect(submitted.dt).toBeCloseTo(1 / 15, 12);
   });
 
-  it.each([false, true])('keeps all 60 service callbacks while a busy GPU admits zero draws (paused=%s)', (paused) => {
-    const h = fixture({ paused });
-    h.view.canSubmitFrame.mockReturnValue(false);
-    for (let i = 0; i < 60; i++) {
-      h.feed(i * 1000 / 60, i / 60);
-      h.at(i * 1000 / 60);
-    }
-    expect(h.view.canSubmitFrame).toHaveBeenCalledTimes(60);
-    expect(h.view.draw).not.toHaveBeenCalled();
-    expect(h.sample).not.toHaveBeenCalled();
-    expect(h.riders.update).not.toHaveBeenCalled();
-    expect(h.traffic.update).not.toHaveBeenCalled();
-    expect(h.view.cars.navigation.update).not.toHaveBeenCalled();
-    expect(h.hud.update).toHaveBeenCalledTimes(60);
-    expect(h.sync).toHaveBeenCalledTimes(60);
-    expect(h.host.audio.update).toHaveBeenCalledTimes(60);
-    expect(h.audio.every((sample) => sample.time === 0 && sample.x === 0)).toBe(true);
-  });
+  it.each([false, true])(
+    'keeps all 60 service callbacks while a busy GPU admits zero draws (paused=%s)',
+    (paused) => {
+      const h = fixture({ paused });
+      h.view.canSubmitFrame.mockReturnValue(false);
+      for (let i = 0; i < 60; i++) {
+        h.feed((i * 1000) / 60, i / 60);
+        h.at((i * 1000) / 60);
+      }
+      expect(h.view.canSubmitFrame).toHaveBeenCalledTimes(60);
+      expect(h.view.draw).not.toHaveBeenCalled();
+      expect(h.sample).not.toHaveBeenCalled();
+      expect(h.riders.update).not.toHaveBeenCalled();
+      expect(h.traffic.update).not.toHaveBeenCalled();
+      expect(h.view.cars.navigation.update).not.toHaveBeenCalled();
+      expect(h.hud.update).toHaveBeenCalledTimes(60);
+      expect(h.sync).toHaveBeenCalledTimes(60);
+      expect(h.host.audio.update).toHaveBeenCalledTimes(60);
+      expect(h.audio.every((sample) => sample.time === 0 && sample.x === 0)).toBe(true);
+    },
+  );
 
   it('retains elapsed wall time and the real sampled pair/traffic through GPU deferrals', () => {
     const h = fixture();
     h.at(0);
     h.view.canSubmitFrame.mockReturnValue(false);
     for (let i = 1; i <= 3; i++) {
-      const received = h.feed(i * 1000 / 60, i / 60);
+      const received = h.feed((i * 1000) / 60, i / 60);
       // Recycling the original transferables cannot alter retained live poses.
       received.frame.fill(999);
       received.auxiliary.fill(999);
-      h.at(i * 1000 / 60);
+      h.at((i * 1000) / 60);
     }
     expect(h.session.lastTime).toBe(0);
     expect(h.view.submissions).toHaveLength(1);
     expect(h.audio.at(-1)?.time).toBe(0);
     h.view.canSubmitFrame.mockReturnValue(true);
-    h.at(4 * 1000 / 60);
+    h.at((4 * 1000) / 60);
     const [a, b, alpha, dt] = h.view.draw.mock.calls.at(-1)!;
     expect(dt).toBeCloseTo(4 / 60, 12);
     expect(h.view.submissions.at(-1)?.time).toBeCloseTo(2 / 60, 6);
-    expect(h.view.submissions.at(-1)?.x).toBeCloseTo(12 * 2 / 60, 6);
+    expect(h.view.submissions.at(-1)?.x).toBeCloseTo((12 * 2) / 60, 6);
     expect(h.riders.update.mock.calls.at(-1)?.slice(0, 3)).toEqual([a, b, alpha]);
     const [trafficA, trafficB, trafficAlpha, , trafficTime] = h.traffic.update.mock.calls.at(-1)!;
     expect(trafficA[1]).toBe(a[H.TIME]);
@@ -355,35 +439,41 @@ describe('Festival GPU admission and idle cadence', () => {
     expect(h.view.draw).toHaveBeenCalledTimes(3);
   });
 
-  it.each(['camera', 'photo', 'reduced motion'] as const)('retains %s invalidation until GPU admission', (change) => {
-    const h = fixture({ paused: true });
-    h.at(0);
-    if (change === 'camera') h.session.action('camera');
-    else if (change === 'photo') h.session.setPhoto(true);
-    else h.session.setReducedMotion(true);
-    h.view.canSubmitFrame.mockReturnValue(false);
-    h.at(1);
-    expect(h.view.draw).toHaveBeenCalledOnce();
-    h.view.canSubmitFrame.mockReturnValue(true);
-    h.at(2);
-    expect(h.view.draw).toHaveBeenCalledTimes(2);
-    h.at(3);
-    expect(h.view.draw).toHaveBeenCalledTimes(2);
-  });
+  it.each(['camera', 'photo', 'reduced motion'] as const)(
+    'retains %s invalidation until GPU admission',
+    (change) => {
+      const h = fixture({ paused: true });
+      h.at(0);
+      if (change === 'camera') h.session.action('camera');
+      else if (change === 'photo') h.session.setPhoto(true);
+      else h.session.setReducedMotion(true);
+      h.view.canSubmitFrame.mockReturnValue(false);
+      h.at(1);
+      expect(h.view.draw).toHaveBeenCalledOnce();
+      h.view.canSubmitFrame.mockReturnValue(true);
+      h.at(2);
+      expect(h.view.draw).toHaveBeenCalledTimes(2);
+      h.at(3);
+      expect(h.view.draw).toHaveBeenCalledTimes(2);
+    },
+  );
 
-  it.each(['pointermove', 'wheel'])('allows an active photo %s to request the next GPU-permitted draw', (type) => {
-    const h = fixture({ photo: true });
-    h.at(0);
-    const event = Object.assign(new Event(type), { buttons: 1 });
-    h.host.canvas.dispatchEvent(event);
-    h.view.canSubmitFrame.mockReturnValue(false);
-    h.at(1);
-    h.view.canSubmitFrame.mockReturnValue(true);
-    h.at(2);
-    expect(h.view.draw).toHaveBeenCalledTimes(2);
-    h.at(3);
-    expect(h.view.draw).toHaveBeenCalledTimes(2);
-  });
+  it.each(['pointermove', 'wheel'])(
+    'allows an active photo %s to request the next GPU-permitted draw',
+    (type) => {
+      const h = fixture({ photo: true });
+      h.at(0);
+      const event = Object.assign(new Event(type), { buttons: 1 });
+      h.host.canvas.dispatchEvent(event);
+      h.view.canSubmitFrame.mockReturnValue(false);
+      h.at(1);
+      h.view.canSubmitFrame.mockReturnValue(true);
+      h.at(2);
+      expect(h.view.draw).toHaveBeenCalledTimes(2);
+      h.at(3);
+      expect(h.view.draw).toHaveBeenCalledTimes(2);
+    },
+  );
 });
 
 describe('Festival deferred-frame lifetime ownership', () => {
@@ -441,30 +531,35 @@ describe('Festival deferred-frame lifetime ownership', () => {
     expect(h.view.submissions.at(-1)?.dt).toBeCloseTo(0.016, 12);
   });
 
-  it.each([true, false])('honors HUD exit with GPU readiness=%s before visiting released children', (ready) => {
-    const h = fixture();
-    h.view.canSubmitFrame.mockReturnValue(ready);
-    h.hud.update.mockImplementationOnce(() => h.session.dispose());
-    h.at(0);
-    expect(h.session.disposed).toBe(true);
-    expect(h.view.dispose).toHaveBeenCalledOnce();
-    expect(h.worker.terminate).toHaveBeenCalledOnce();
-    expect(h.tiles.terminate).toHaveBeenCalledOnce();
-    expect(h.sync).not.toHaveBeenCalled();
-    expect(h.view.cars.navigation.update).not.toHaveBeenCalled();
-    expect(h.host.audio.update).not.toHaveBeenCalled();
-    h.at(16);
-    expect(h.hud.update).toHaveBeenCalledOnce();
-    expect(h.view.draw).toHaveBeenCalledTimes(ready ? 1 : 0);
-  });
+  it.each([true, false])(
+    'honors HUD exit with GPU readiness=%s before visiting released children',
+    (ready) => {
+      const h = fixture();
+      h.view.canSubmitFrame.mockReturnValue(ready);
+      h.hud.update.mockImplementationOnce(() => h.session.dispose());
+      h.at(0);
+      expect(h.session.disposed).toBe(true);
+      expect(h.view.dispose).toHaveBeenCalledOnce();
+      expect(h.worker.terminate).toHaveBeenCalledOnce();
+      expect(h.tiles.terminate).toHaveBeenCalledOnce();
+      expect(h.sync).not.toHaveBeenCalled();
+      expect(h.view.cars.navigation.update).not.toHaveBeenCalled();
+      expect(h.host.audio.update).not.toHaveBeenCalled();
+      h.at(16);
+      expect(h.hud.update).toHaveBeenCalledOnce();
+      expect(h.view.draw).toHaveBeenCalledTimes(ready ? 1 : 0);
+    },
+  );
 
   it('stops after actual HUD-triggered travel and starts its return with a fresh clock', async () => {
     const h = fixture();
-    h.session.events = [{ spec: { id: 'coast', name: 'Coast', kind: 'sprint' },
-      marker: { x: 1, z: 2 } }] as FestivalEvent[];
+    h.session.events = [
+      { spec: { id: 'coast', name: 'Coast', kind: 'sprint' }, marker: { x: 1, z: 2 } },
+    ] as FestivalEvent[];
     h.at(100);
     h.view.canSubmitFrame.mockReturnValue(false);
-    let travelling: Promise<void> | undefined, controlsAfterTravel = 0;
+    let travelling: Promise<void> | undefined,
+      controlsAfterTravel = 0;
     h.hud.update.mockImplementationOnce(() => {
       travelling = h.session.travel('coast');
       controlsAfterTravel = h.sync.mock.calls.length;
@@ -533,7 +628,9 @@ describe('Festival deferred-frame lifetime ownership', () => {
 
   it('rejects a replaced control owner even if the session itself remains live', () => {
     const h = fixture();
-    h.hud.update.mockImplementationOnce(() => { h.session.controls = null; });
+    h.hud.update.mockImplementationOnce(() => {
+      h.session.controls = null;
+    });
     h.at(0);
     expect(h.session.disposed).toBe(false);
     expect(h.sync).not.toHaveBeenCalled();
@@ -541,25 +638,38 @@ describe('Festival deferred-frame lifetime ownership', () => {
     expect(h.host.audio.update).not.toHaveBeenCalled();
   });
 
-  it.each(['readiness', 'submission'] as const)('releases the session on a failed GPU %s ownership check', (stage) => {
-    const h = fixture({ paused: true });
-    const error = new Error(`GPU ${stage} failed`);
-    if (stage === 'readiness') h.view.canSubmitFrame.mockImplementationOnce(() => { throw error; });
-    else h.view.draw.mockImplementationOnce(() => { throw error; });
-    h.at(0);
-    expect(h.session.disposed).toBe(true);
-    expect(h.host.toast).toHaveBeenCalledWith(`Festival error: ${error.message}`);
-    expect(h.host.exit).toHaveBeenCalledOnce();
-    expect(h.view.dispose).toHaveBeenCalledOnce();
-    expect(h.worker.terminate).toHaveBeenCalledOnce();
-    expect(h.hud.update).not.toHaveBeenCalled();
-    expect(h.host.audio.update).not.toHaveBeenCalled();
-  });
+  it.each(['readiness', 'submission'] as const)(
+    'releases the session on a failed GPU %s ownership check',
+    (stage) => {
+      const h = fixture({ paused: true });
+      const error = new Error(`GPU ${stage} failed`);
+      if (stage === 'readiness')
+        h.view.canSubmitFrame.mockImplementationOnce(() => {
+          throw error;
+        });
+      else
+        h.view.draw.mockImplementationOnce(() => {
+          throw error;
+        });
+      h.at(0);
+      expect(h.session.disposed).toBe(true);
+      expect(h.host.toast).toHaveBeenCalledWith(`Festival error: ${error.message}`);
+      expect(h.host.exit).toHaveBeenCalledOnce();
+      expect(h.view.dispose).toHaveBeenCalledOnce();
+      expect(h.worker.terminate).toHaveBeenCalledOnce();
+      expect(h.hud.update).not.toHaveBeenCalled();
+      expect(h.host.audio.update).not.toHaveBeenCalled();
+    },
+  );
 
   it('still propagates an error reporter failure after the failed GPU owner has been released', () => {
     const h = fixture();
-    h.view.canSubmitFrame.mockImplementationOnce(() => { throw new Error('GPU wait failed'); });
-    h.host.toast.mockImplementationOnce(() => { throw new Error('Toast failed'); });
+    h.view.canSubmitFrame.mockImplementationOnce(() => {
+      throw new Error('GPU wait failed');
+    });
+    h.host.toast.mockImplementationOnce(() => {
+      throw new Error('Toast failed');
+    });
     expect(() => h.at(0)).toThrow('Toast failed');
     expect(h.session.disposed).toBe(true);
     expect(h.host.exit).toHaveBeenCalledOnce();

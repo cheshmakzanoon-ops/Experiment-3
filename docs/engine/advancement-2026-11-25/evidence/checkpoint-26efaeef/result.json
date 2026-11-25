@@ -1,0 +1,77 @@
+{
+  "commit": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+  "tree": "0067cdfd51fb6b9cdecfa9cc1632f8ec19879b50",
+  "workflowRun": 45590533223,
+  "jobId": 139123267349,
+  "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45590533223",
+  "conclusion": "failure",
+  "artifactId": 15011470835,
+  "archiveBytes": 6953,
+  "archiveSha256": "ca08d8a1980c3f505b45b63988e592e15917b8c2bd3f8023280d6f3ac03de7a0",
+  "packageLockSha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+  "unitTests": 914,
+  "unitFiles": 70,
+  "unitDurationSeconds": 204.42,
+  "fullTypeScriptCheck": "failed",
+  "productionBuild": "not run after compiler failure",
+  "nativeBrowserStep": "skipped",
+  "nativeCasesExecuted": 0,
+  "builtProductIdentity": null,
+  "browserBackendIdentity": null,
+  "physicalHardwareValidated": false,
+  "failures": [
+    {
+      "stage": "full TypeScript check",
+      "file": "tests/engine-ui-opening-review.test.ts",
+      "line": 63,
+      "column": 14,
+      "code": "TS2352",
+      "observed": "Direct conversion of the controlled Object.assign fixture to Interface lacks structural overlap; TypeScript requests an explicit unknown conversion.",
+      "productionBehaviorFailureEstablished": false
+    }
+  ],
+  "notes": [
+    "The workflow joins full tsc and Vite build with &&. The compiler failed before Vite could run.",
+    "All native preparation and native browser steps were skipped. No native outcome or renderer identity is inferred from the earlier6cb checkpoint.",
+    "The artifact contains source/tree/lock receipts and unit/compiler logs only; no built identity or browser attachment exists for this run.",
+    "Log copies strip ANSI escapes and trailing whitespace; original ZIP identity and raw log SHA-256 are retained."
+  ],
+  "files": [
+    {
+      "path": "engine-source-commit.txt",
+      "bytes": 41,
+      "sha256": "06335e6ab1806b4a4c3d706521d7094a31aead94f294e8f73cbce6850a3a616d",
+      "rawSha256": "06335e6ab1806b4a4c3d706521d7094a31aead94f294e8f73cbce6850a3a616d"
+    },
+    {
+      "path": "engine-source-tree.txt",
+      "bytes": 41,
+      "sha256": "41213a20d96a04bbbda64a8d0e886b314664d12498d09e35baed0c33a57ab425",
+      "rawSha256": "41213a20d96a04bbbda64a8d0e886b314664d12498d09e35baed0c33a57ab425"
+    },
+    {
+      "path": "engine-package-lock.sha256",
+      "bytes": 84,
+      "sha256": "c90128ae90874d85d2e41b65ad38d2056801a273b5f1ff924a25ba68ef9f6ee8",
+      "rawSha256": "c90128ae90874d85d2e41b65ad38d2056801a273b5f1ff924a25ba68ef9f6ee8"
+    },
+    {
+      "path": "engine-runtime-unit.log",
+      "bytes": 18889,
+      "sha256": "7a34183278c7e13fa9feed1a84e23426780d9c981dd911965afd4edbeea5bfc8",
+      "rawSha256": "141c55fb16a3ea04ab073f269b486f9c2072d0c8abafb54d6625eb9c7e4f02e4"
+    },
+    {
+      "path": "engine-runtime-build.log",
+      "bytes": 954,
+      "sha256": "f91b712e60f5b4cba1f112107cdbc15b78ca696f0694597bcb795d2f71e56799",
+      "rawSha256": "f91b712e60f5b4cba1f112107cdbc15b78ca696f0694597bcb795d2f71e56799"
+    },
+    {
+      "path": "workflow-job.json",
+      "bytes": 3927,
+      "sha256": "061fe3fa85a31ec7e4c9ff3123d39c049b0b43c8ffd6a517cdc903f014f57a7d",
+      "rawSha256": "061fe3fa85a31ec7e4c9ff3123d39c049b0b43c8ffd6a517cdc903f014f57a7d"
+    }
+  ]
+}

@@ -10,29 +10,62 @@ import { InputPump } from '../src/input/pump.ts';
 import type { FestivalHost, FestivalStartOptions } from '../src/session/free-roam.ts';
 import { SessionStartOwner } from '../src/session/session-start-owner.ts';
 import { WorkerReadiness } from '../src/session/worker-readiness.ts';
-import { controls, DEFAULT_OPTIONS, type Controls, type SessionOptions } from '../src/simulation/config.ts';
+import {
+  controls,
+  DEFAULT_OPTIONS,
+  type Controls,
+  type SessionOptions,
+} from '../src/simulation/config.ts';
 import { CAR_STRIDE, HEADER, H } from '../src/simulation/protocol.ts';
 import { DEFAULT_SETTINGS, type Settings } from '../src/storage/data.ts';
 import { gameEvents } from '../src/steam/events.ts';
 import { emitSessionStarted } from '../src/steam/hooks.ts';
-import { PauseHandshake, type ClientMessage, type WorkerMessage } from '../src/workers/diagnostics.ts';
+import {
+  PauseHandshake,
+  type ClientMessage,
+  type WorkerMessage,
+} from '../src/workers/diagnostics.ts';
 
 /** Run complete production admission, preparation, recovery and input dispatch.
  * Only the two lazy module imports are replaced. The real session/readiness
  * owners and settings transaction retain their asynchronous ordering. */
 function productionHost() {
   const source = ts.createSourceFile(
-    'main.ts', readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8'),
-    ts.ScriptTarget.Latest, true,
+    'main.ts',
+    readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8'),
+    ts.ScriptTarget.Latest,
+    true,
   );
   const owner = source.statements.find(
-    (node): node is ts.ClassDeclaration => ts.isClassDeclaration(node) && node.name?.text === 'GameApp',
+    (node): node is ts.ClassDeclaration =>
+      ts.isClassDeclaration(node) && node.name?.text === 'GameApp',
   )!;
   const names = [
-    'disposed', 'errorStopped', 'pageWaiters', 'generation', 'rendererBuild', 'circuitStartup', 'initTimeout',
-    'worker', 'workerPause', 'current', 'previous', 'savingSettings',
-    'festivalOwner', 'festival', 'festivalStarting', 'startFestival', 'exitFestival',
-    'start', 'switchCircuit', 'post', 'accept', 'prepareTimeTrial', 'applySettings', 'fail', 'dispose',
+    'disposed',
+    'errorStopped',
+    'pageWaiters',
+    'generation',
+    'rendererBuild',
+    'circuitStartup',
+    'initTimeout',
+    'worker',
+    'workerPause',
+    'current',
+    'previous',
+    'savingSettings',
+    'festivalOwner',
+    'festival',
+    'festivalStarting',
+    'startFestival',
+    'exitFestival',
+    'start',
+    'switchCircuit',
+    'post',
+    'accept',
+    'prepareTimeTrial',
+    'applySettings',
+    'fail',
+    'dispose',
   ];
   const members = names.map((name) => {
     const member = owner.members.find((node) => node.name?.getText(source) === name);
@@ -41,8 +74,12 @@ function productionHost() {
   });
   const pumps: ts.BinaryExpression[] = [];
   function findPump(node: ts.Node) {
-    if (ts.isBinaryExpression(node) && node.left.getText(source) === 'this.inputPump' &&
-      ts.isNewExpression(node.right)) pumps.push(node);
+    if (
+      ts.isBinaryExpression(node) &&
+      node.left.getText(source) === 'this.inputPump' &&
+      ts.isNewExpression(node.right)
+    )
+      pumps.push(node);
     ts.forEachChild(node, findPump);
   }
   findPump(owner);
@@ -52,21 +89,37 @@ function productionHost() {
     `class Host { ${members.join('\n')} install() { ${pumps[0].getText(source)}; } }`,
     {
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
-      transformers: { before: [(context) => {
-        const visit: ts.Visitor = (node) => {
-          if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
-            const path = node.arguments[0];
-            if (!ts.isStringLiteral(path)) throw new Error('Expected a literal module boundary');
-            const loader = path.text === './session/free-roam.ts' ? 'loadFestivalModule'
-              : path.text === './workers/physics.worker.ts?worker&inline' ? 'loadPhysicsWorker' : null;
-            if (!loader) throw new Error(`Unexpected startup import: ${path.text}`);
-            imports.push(loader);
-            return ts.factory.createCallExpression(ts.factory.createIdentifier(loader), undefined, []);
-          }
-          return ts.visitEachChild(node, visit, context);
-        };
-        return (node) => ts.visitNode(node, visit) as ts.SourceFile;
-      }] },
+      transformers: {
+        before: [
+          (context) => {
+            const visit: ts.Visitor = (node) => {
+              if (
+                ts.isCallExpression(node) &&
+                node.expression.kind === ts.SyntaxKind.ImportKeyword
+              ) {
+                const path = node.arguments[0];
+                if (!ts.isStringLiteral(path))
+                  throw new Error('Expected a literal module boundary');
+                const loader =
+                  path.text === './session/free-roam.ts'
+                    ? 'loadFestivalModule'
+                    : path.text === './workers/physics.worker.ts?worker&inline'
+                      ? 'loadPhysicsWorker'
+                      : null;
+                if (!loader) throw new Error(`Unexpected startup import: ${path.text}`);
+                imports.push(loader);
+                return ts.factory.createCallExpression(
+                  ts.factory.createIdentifier(loader),
+                  undefined,
+                  [],
+                );
+              }
+              return ts.visitEachChild(node, visit, context);
+            };
+            return (node) => ts.visitNode(node, visit) as ts.SourceFile;
+          },
+        ],
+      },
     },
   ).outputText;
   expect(imports.sort()).toEqual(['loadFestivalModule', 'loadPhysicsWorker']);
@@ -77,7 +130,10 @@ const code = productionHost();
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (error: unknown) => void;
-  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
+  const promise = new Promise<T>((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
   return { promise, resolve, reject };
 }
 async function flush() {
@@ -92,7 +148,9 @@ class CircuitWorker {
   frame() {
     const frame = new Float32Array(HEADER + CAR_STRIDE);
     frame[H.CARS] = 1;
-    this.onmessage?.({ data: { type: 'frame', buffer: frame.buffer } } as MessageEvent<WorkerMessage>);
+    this.onmessage?.({
+      data: { type: 'frame', buffer: frame.buffer },
+    } as MessageEvent<WorkerMessage>);
   }
 }
 class Festival {
@@ -131,40 +189,77 @@ const unsubscribeEvents: (() => void)[] = [];
 function fixture() {
   const workers: CircuitWorker[] = [];
   class PhysicsWorker extends CircuitWorker {
-    constructor() { super(); workers.push(this); }
+    constructor() {
+      super();
+      workers.push(this);
+    }
   }
   const loadPhysicsWorker = vi.fn(async () => ({ default: PhysicsWorker }));
   const festival = new Festival();
   const preparing = deferred<Festival>();
-  const createFestival = vi.fn((_host: FestivalHost, _options: FestivalStartOptions) => preparing.promise);
+  const createFestival = vi.fn(
+    (_host: FestivalHost, _options: FestivalStartOptions) => preparing.promise,
+  );
   const module = { FestivalSession: { start: createFestival }, FESTIVAL_SAVE_KEY: 'festival' };
   const imported = deferred<typeof module>();
   const loadFestivalModule = vi.fn(() => imported.promise);
   const screen = { hidden: true, setAttribute: vi.fn() };
   const document = {
-    hidden: false, activeElement: { blur: vi.fn() }, querySelector: () => null,
+    hidden: false,
+    activeElement: { blur: vi.fn() },
+    querySelector: () => null,
     getElementById: () => ({}),
     documentElement: { style: { setProperty: vi.fn() }, dataset: {} },
   };
   const dependencies = {
-    WorkerReadiness, SessionStartOwner, PauseHandshake, InputPump, H,
-    loadPhysicsWorker, loadFestivalModule, graphicsSettingsChanged, runSettingsChange, yieldBrowserTask,
-    demoSessionLock: () => null, t: (value: string) => value,
+    WorkerReadiness,
+    SessionStartOwner,
+    PauseHandshake,
+    InputPump,
+    H,
+    loadPhysicsWorker,
+    loadFestivalModule,
+    graphicsSettingsChanged,
+    runSettingsChange,
+    yieldBrowserTask,
+    demoSessionLock: () => null,
+    t: (value: string) => value,
     circuitDefinition: (id = 'aurel') => ({ id, name: id }),
-    gpGridForVehicles: () => false, validateOptions: (options: SessionOptions) => options,
-    resolveLighting: () => 'day', sessionLight: () => 'day', systemReducedMotion: () => false,
-    rulesetFor: () => ({ service: { pitStops: false } }), racingSession: () => false,
-    rumbleFrom: () => ({ weak: 0, strong: 0 }), emitSessionStarted: vi.fn(emitSessionStarted),
-    SessionReplay: Replay, TelemetryRecorder: class {},
+    gpGridForVehicles: () => false,
+    validateOptions: (options: SessionOptions) => options,
+    resolveLighting: () => 'day',
+    sessionLight: () => 'day',
+    systemReducedMotion: () => false,
+    rulesetFor: () => ({ service: { pitStops: false } }),
+    racingSession: () => false,
+    rumbleFrom: () => ({ weak: 0, strong: 0 }),
+    emitSessionStarted: vi.fn(emitSessionStarted),
+    SessionReplay: Replay,
+    TelemetryRecorder: class {},
     Track: class {
       cold = false;
-      water = new Float32Array(1); rubber = new Float32Array(1); marbles = new Float32Array(1);
-      constructor(_weather: string, _ghost: boolean, _length: unknown, public circuit: { id: string }) {}
+      water = new Float32Array(1);
+      rubber = new Float32Array(1);
+      marbles = new Float32Array(1);
+      constructor(
+        _weather: string,
+        _ghost: boolean,
+        _length: unknown,
+        public circuit: { id: string },
+      ) {}
     },
-    document, window: { setTimeout, removeEventListener: vi.fn() }, clearTimeout,
-    requestAnimationFrame: (callback: (time: number) => void) => { callback(0); return 1; },
-    cancelAnimationFrame: vi.fn(), console: { error: vi.fn(), warn: vi.fn() },
-    navigator: { languages: ['en'] }, currentLocale: () => 'en', resolveLocale: () => 'en',
+    document,
+    window: { setTimeout, removeEventListener: vi.fn() },
+    clearTimeout,
+    requestAnimationFrame: (callback: (time: number) => void) => {
+      callback(0);
+      return 1;
+    },
+    cancelAnimationFrame: vi.fn(),
+    console: { error: vi.fn(), warn: vi.fn() },
+    navigator: { languages: ['en'] },
+    currentLocale: () => 'en',
+    resolveLocale: () => 'en',
     applyHudScale: vi.fn(),
   };
   const host = new Function(...Object.keys(dependencies), `${code}; return new Host();`)(
@@ -174,62 +269,137 @@ function fixture() {
   const renderer = () => {
     const gl = { disposed: false };
     return {
-      renderer: gl, lighting: 'day', canPrepareGrid: () => true,
-      dispose: vi.fn(() => { gl.disposed = true; }),
-      gridPerformance: { reset: vi.fn() }, setPhoto: vi.fn(), reset: vi.fn(), circuit: {},
-      prepare: vi.fn(async () => true), prepareQuality: vi.fn(async () => true),
-      setQuality: vi.fn(), setLivery: vi.fn(), setGhost: vi.fn(), changeCamera: vi.fn(),
+      renderer: gl,
+      lighting: 'day',
+      canPrepareGrid: () => true,
+      dispose: vi.fn(() => {
+        gl.disposed = true;
+      }),
+      gridPerformance: { reset: vi.fn() },
+      setPhoto: vi.fn(),
+      reset: vi.fn(),
+      circuit: {},
+      prepare: vi.fn(async () => true),
+      prepareQuality: vi.fn(async () => true),
+      setQuality: vi.fn(),
+      setLivery: vi.fn(),
+      setGhost: vi.fn(),
+      changeCamera: vi.fn(),
     };
   };
   const app = Object.assign(host, {
-    state: 'menu', canvas: {}, renderer: renderer(), track: { circuit: { id: 'aurel' } },
+    state: 'menu',
+    canvas: {},
+    renderer: renderer(),
+    track: { circuit: { id: 'aurel' } },
     settings: { ...structuredClone(DEFAULT_SETTINGS), quickStart: true },
-    team: { livery: {} }, lightChoice: 'auto',
-    meetings: { sessionStarting: vi.fn() }, gridClock: { reset: vi.fn() },
-    programme: { start: vi.fn(), stop: vi.fn(), observe: vi.fn() }, photoStudio: { close: vi.fn() },
+    team: { livery: {} },
+    lightChoice: 'auto',
+    meetings: { sessionStarting: vi.fn() },
+    gridClock: { reset: vi.fn() },
+    programme: { start: vi.fn(), stop: vi.fn(), observe: vi.fn() },
+    photoStudio: { close: vi.fn() },
     career: {
-      begin: vi.fn(), beginFestival: vi.fn(), endFestival: vi.fn(), sessionSetup: () => null,
-      observe: vi.fn(), attackFinished: () => null,
+      begin: vi.fn(),
+      beginFestival: vi.fn(),
+      endFestival: vi.fn(),
+      sessionSetup: () => null,
+      observe: vi.fn(),
+      attackFinished: () => null,
     },
-    radio: { reset: vi.fn(), observe: () => null }, radioCaption: { show: vi.fn() },
+    radio: { reset: vi.fn(), observe: () => null },
+    radioCaption: { show: vi.fn() },
     ui: {
       dispose: vi.fn(),
-      toast: vi.fn(), error: vi.fn(), loading: vi.fn(() => { screen.hidden = false; }),
-      loadingSession: vi.fn(), loadingScene: vi.fn(), closeModal: vi.fn(), showMode: vi.fn(),
-      ready: vi.fn(() => { screen.hidden = true; }), observePractice: vi.fn(), applyBindings: vi.fn(),
-      get: vi.fn(() => screen), modal: { open: false }, telemetryModal: { close: vi.fn(), open: false },
+      toast: vi.fn(),
+      error: vi.fn(),
+      loading: vi.fn(() => {
+        screen.hidden = false;
+      }),
+      loadingSession: vi.fn(),
+      loadingScene: vi.fn(),
+      closeModal: vi.fn(),
+      showMode: vi.fn(),
+      ready: vi.fn(() => {
+        screen.hidden = true;
+      }),
+      observePractice: vi.fn(),
+      applyBindings: vi.fn(),
+      get: vi.fn(() => screen),
+      modal: { open: false },
+      telemetryModal: { close: vi.fn(), open: false },
     },
     input: {
-      setEnabled: vi.fn(), activePad: () => null, dispose: vi.fn(),
-      pollActions: vi.fn(), update: vi.fn(() => ({ ...controls(), throttle: 0.5 })),
+      setEnabled: vi.fn(),
+      activePad: () => null,
+      dispose: vi.fn(),
+      pollActions: vi.fn(),
+      update: vi.fn(() => ({ ...controls(), throttle: 0.5 })),
     },
     audio: {
-      start: vi.fn(async () => {}), stop: vi.fn(), dispose: vi.fn(async () => {}),
-      update: vi.fn(), configureDriving: vi.fn(), locked: false,
+      start: vi.fn(async () => {}),
+      stop: vi.fn(),
+      dispose: vi.fn(async () => {}),
+      update: vi.fn(),
+      configureDriving: vi.fn(),
+      locked: false,
     },
-    applyLight: vi.fn(), applyMotion: vi.fn(), applyAudio: vi.fn(), applyCommunication: vi.fn(),
-    buildRenderer: vi.fn(async (): Promise<boolean> => { app.renderer = renderer(); return true; }),
-    store: { write: vi.fn(async () => {}) }, action: vi.fn(), previewSelectedMachine: vi.fn(),
+    applyLight: vi.fn(),
+    applyMotion: vi.fn(),
+    applyAudio: vi.fn(),
+    applyCommunication: vi.fn(),
+    buildRenderer: vi.fn(async (): Promise<boolean> => {
+      app.renderer = renderer();
+      return true;
+    }),
+    store: { write: vi.fn(async () => {}) },
+    action: vi.fn(),
+    previewSelectedMachine: vi.fn(),
     selectedMachinePreview: vi.fn(() => new Float32Array(HEADER + CAR_STRIDE)),
-    exporter: { cancel: vi.fn() }, liveFrames: { reset: vi.fn(), observe: vi.fn(), setPaused: vi.fn() },
+    exporter: { cancel: vi.fn() },
+    liveFrames: { reset: vi.fn(), observe: vi.fn(), setPaused: vi.fn() },
     records: { prepare: vi.fn(async () => {}), observe: vi.fn(), trial: null },
     referenceSession: { ...own(), interrupt: vi.fn(), beginSession: () => null },
-    observeSession: vi.fn(), pause: vi.fn(), openRaceBriefing: vi.fn(),
-    rumble: { stop: vi.fn(), update: vi.fn() }, sessionReview: { stop: vi.fn() },
-    tabEvidence: { ...own(), observe: vi.fn() }, performanceCapture: { interrupt: vi.fn() },
-    interruptReview: vi.fn(), beginDemoClock: vi.fn(), endDemoClock: vi.fn(),
-    reviewVideo: own(), menuFrames: own(), menuPreviewReceipt: { ...own(), request: vi.fn() },
+    observeSession: vi.fn(),
+    pause: vi.fn(),
+    openRaceBriefing: vi.fn(),
+    rumble: { stop: vi.fn(), update: vi.fn() },
+    sessionReview: { stop: vi.fn() },
+    tabEvidence: { ...own(), observe: vi.fn() },
+    performanceCapture: { interrupt: vi.fn() },
+    interruptReview: vi.fn(),
+    beginDemoClock: vi.fn(),
+    endDemoClock: vi.fn(),
+    reviewVideo: own(),
+    menuFrames: own(),
+    menuPreviewReceipt: { ...own(), request: vi.fn() },
     uiSounds: own(),
   });
   const switchCircuit = vi.spyOn(app, 'switchCircuit');
   app.install();
   app.inputPump.start();
   hosts.push(app);
-  const circuitOptions = { ...DEFAULT_OPTIONS, circuit: 'vellamar' as const, mode: 'practice' as const, opponents: 0 };
+  const circuitOptions = {
+    ...DEFAULT_OPTIONS,
+    circuit: 'vellamar' as const,
+    mode: 'practice' as const,
+    opponents: 0,
+  };
   const festivalOptions = { ...DEFAULT_OPTIONS, mode: 'festival' as SessionOptions['mode'] };
   return {
-    app, workers, imported, preparing, module, festival, createFestival, screen, switchCircuit,
-    loadPhysicsWorker, loadFestivalModule, document, emitted: dependencies.emitSessionStarted,
+    app,
+    workers,
+    imported,
+    preparing,
+    module,
+    festival,
+    createFestival,
+    screen,
+    switchCircuit,
+    loadPhysicsWorker,
+    loadFestivalModule,
+    document,
+    emitted: dependencies.emitSessionStarted,
     // Match the production UI caller's terminal error handler.
     circuit: () => app.start(circuitOptions).catch((error) => app.fail(error)),
     festivalStart: () => app.startFestival(festivalOptions).catch((error) => app.fail(error)),
@@ -260,7 +430,8 @@ afterEach(() => {
 
 describe('cross-mode renderer startup admission', () => {
   it('claims Festival before its lazy import and rejects circuit/duplicate submits through readiness', async () => {
-    const h = fixture(), original = h.app.renderer;
+    const h = fixture(),
+      original = h.app.renderer;
     const pending = h.festivalStart();
     expect(h.app.festivalStarting).toBe(true);
     expect(h.app.state).toBe('loading');
@@ -295,8 +466,10 @@ describe('cross-mode renderer startup admission', () => {
   });
 
   it.each(['audio', 'module', 'renderer', 'records'] as const)(
-    'rejects Festival while circuit %s preparation owns the renderer', async (stage) => {
-      const h = fixture(), held = deferred<never>();
+    'rejects Festival while circuit %s preparation owns the renderer',
+    async (stage) => {
+      const h = fixture(),
+        held = deferred<never>();
       if (stage === 'audio') h.app.audio.start.mockReturnValueOnce(held.promise);
       if (stage === 'module') h.loadPhysicsWorker.mockReturnValueOnce(held.promise);
       if (stage === 'renderer') {
@@ -328,13 +501,16 @@ describe('cross-mode renderer startup admission', () => {
   );
 
   it('keeps circuit input exclusive after startup and admits Festival after return to the paddock', async () => {
-    const h = fixture(), pending = h.circuit();
+    const h = fixture(),
+      pending = h.circuit();
     await h.finishCircuit();
     await pending;
     expect(h.app.state).toBe('driving');
     await h.festivalStart();
     expect(h.loadFestivalModule).not.toHaveBeenCalled();
-    expect(h.workers[0].postMessage.mock.calls.some(([message]) => message.type === 'input')).toBe(true);
+    expect(h.workers[0].postMessage.mock.calls.some(([message]) => message.type === 'input')).toBe(
+      true,
+    );
     // The normal menu action parks the previous circuit worker and disables input.
     h.app.state = 'menu';
     h.app.input.setEnabled(false);
@@ -351,7 +527,9 @@ describe('cross-mode renderer startup admission', () => {
 
 describe('startup and settings renderer ownership', () => {
   it('rejects both modes throughout quality preparation and durable saving, then permits startup', async () => {
-    const h = fixture(), prepared = deferred<boolean>(), saved = deferred<void>();
+    const h = fixture(),
+      prepared = deferred<boolean>(),
+      saved = deferred<void>();
     h.app.renderer.prepareQuality.mockReturnValue(prepared.promise);
     h.app.store.write.mockReturnValue(saved.promise);
     const settings = { ...h.app.settings, quality: 'low' as const };
@@ -381,8 +559,10 @@ describe('startup and settings renderer ownership', () => {
   });
 
   it.each(['festival', 'circuit'] as const)(
-    'rejects a settings submission after %s admission', async (mode) => {
-      const h = fixture(), pending = mode === 'festival' ? h.festivalStart() : h.circuit();
+    'rejects a settings submission after %s admission',
+    async (mode) => {
+      const h = fixture(),
+        pending = mode === 'festival' ? h.festivalStart() : h.circuit();
       const settings = { ...h.app.settings, quality: 'low' as const };
       await h.app.applySettings(settings);
       expect(h.app.savingSettings).toBe(false);
@@ -401,15 +581,20 @@ describe('startup and settings renderer ownership', () => {
 
 describe('Festival startup recovery and cancellation', () => {
   it.each(['import', 'prepare', 'ready'] as const)(
-    'restores the menu after %s failure and admits the next circuit launch', async (stage) => {
-      const h = fixture(), error = new Error(`${stage} failure`), pending = h.festivalStart();
+    'restores the menu after %s failure and admits the next circuit launch',
+    async (stage) => {
+      const h = fixture(),
+        error = new Error(`${stage} failure`),
+        pending = h.festivalStart();
       if (stage === 'import') h.imported.reject(error);
       else {
         h.imported.resolve(h.module);
         await flush();
         if (stage === 'prepare') h.preparing.reject(error);
         else {
-          h.app.beginDemoClock.mockImplementationOnce(() => { throw error; });
+          h.app.beginDemoClock.mockImplementationOnce(() => {
+            throw error;
+          });
           h.preparing.resolve(h.festival);
         }
       }
@@ -432,8 +617,10 @@ describe('Festival startup recovery and cancellation', () => {
   );
 
   it.each(['resolve', 'reject'] as const)(
-    'lets circuit startup replace a cancelled import and ignores its late %s', async (outcome) => {
-      const h = fixture(), pending = h.festivalStart();
+    'lets circuit startup replace a cancelled import and ignores its late %s',
+    async (outcome) => {
+      const h = fixture(),
+        pending = h.festivalStart();
       h.app.exitFestival();
       expect(h.app.state).toBe('menu');
       expect(h.screen.hidden).toBe(true);
@@ -452,7 +639,8 @@ describe('Festival startup recovery and cancellation', () => {
   );
 
   it('revokes stale preparation callbacks before a new Festival takes ownership', async () => {
-    const h = fixture(), pending = h.festivalStart();
+    const h = fixture(),
+      pending = h.festivalStart();
     h.imported.resolve(h.module);
     await flush();
     const [oldHost, oldOptions] = h.createFestival.mock.calls[0];
@@ -484,8 +672,11 @@ describe('Festival startup recovery and cancellation', () => {
   });
 
   it('keeps failed renderer restoration terminal instead of reporting a recovered start', async () => {
-    const h = fixture(), recoveryError = new Error('renderer restoration failed');
-    h.app.renderer.setQuality.mockImplementation(() => { throw recoveryError; });
+    const h = fixture(),
+      recoveryError = new Error('renderer restoration failed');
+    h.app.renderer.setQuality.mockImplementation(() => {
+      throw recoveryError;
+    });
     const pending = h.festivalStart();
     h.imported.reject(new Error('module failed'));
     await pending;
@@ -497,8 +688,10 @@ describe('Festival startup recovery and cancellation', () => {
   });
 
   it.each(['fail', 'dispose'] as const)(
-    'keeps %s terminal while a cancelled Festival import rejects later', async (terminal) => {
-      const h = fixture(), pending = h.festivalStart();
+    'keeps %s terminal while a cancelled Festival import rejects later',
+    async (terminal) => {
+      const h = fixture(),
+        pending = h.festivalStart();
       if (terminal === 'fail') h.app.fail(new Error('context lost'));
       else h.app.dispose();
       h.imported.reject(new Error('late import'));
@@ -512,32 +705,37 @@ describe('Festival startup recovery and cancellation', () => {
   );
 });
 
-
 describe('final startup callbacks retain their original host owner', () => {
   it.each(['fail', 'dispose'] as const)(
     'does not activate circuit input after a session-start subscriber calls %s',
     async (terminal) => {
       const h = fixture();
       let inputCallsAtRevocation = -1;
-      unsubscribeEvents.push(gameEvents.on('session.started', (event) => {
-        if (event.kind !== 'circuit') return;
-        if (terminal === 'fail') h.app.fail(new Error('Subscriber revoked the host'));
-        else h.app.dispose();
-        inputCallsAtRevocation = h.app.input.setEnabled.mock.calls.length;
-      }));
+      unsubscribeEvents.push(
+        gameEvents.on('session.started', (event) => {
+          if (event.kind !== 'circuit') return;
+          if (terminal === 'fail') h.app.fail(new Error('Subscriber revoked the host'));
+          else h.app.dispose();
+          inputCallsAtRevocation = h.app.input.setEnabled.mock.calls.length;
+        }),
+      );
       const pending = h.circuit();
       await h.finishCircuit();
       await pending;
       expect(h.emitted).toHaveBeenCalledOnce();
       expect(inputCallsAtRevocation).toBeGreaterThan(0);
       expect(h.app.input.setEnabled).toHaveBeenCalledTimes(inputCallsAtRevocation);
-      expect(h.workers[0].postMessage.mock.calls.some(([message]) =>
-        message.type === 'pause' && !message.value)).toBe(false);
+      expect(
+        h.workers[0].postMessage.mock.calls.some(
+          ([message]) => message.type === 'pause' && !message.value,
+        ),
+      ).toBe(false);
     },
   );
 
   it('does not release the departed worker after a session-start subscriber replaces the circuit', async () => {
-    const h = fixture(), held = deferred<void>();
+    const h = fixture(),
+      held = deferred<void>();
     let replacement: Promise<void> | null = null;
     let inputCallsAtReplacement = -1;
     const unsubscribe = gameEvents.on('session.started', (event) => {
@@ -555,8 +753,11 @@ describe('final startup callbacks retain their original host owner', () => {
     expect(h.app.state).toBe('loading');
     expect(h.app.circuitStartup?.pending).toBe(true);
     expect(h.app.input.setEnabled).toHaveBeenCalledTimes(inputCallsAtReplacement);
-    expect(h.workers[0].postMessage.mock.calls.some(([message]) =>
-      message.type === 'pause' && !message.value)).toBe(false);
+    expect(
+      h.workers[0].postMessage.mock.calls.some(
+        ([message]) => message.type === 'pause' && !message.value,
+      ),
+    ).toBe(false);
     h.app.dispose();
     await replacement;
     held.resolve();
@@ -569,8 +770,11 @@ describe('final startup callbacks retain their original host owner', () => {
     await h.finishCircuit();
     await pending;
     expect(h.app.disposed).toBe(true);
-    expect(h.workers[0].postMessage.mock.calls.some(([message]) =>
-      message.type === 'pause' && !message.value)).toBe(false);
+    expect(
+      h.workers[0].postMessage.mock.calls.some(
+        ([message]) => message.type === 'pause' && !message.value,
+      ),
+    ).toBe(false);
   });
 
   it.each(['exit', 'dispose'] as const)(

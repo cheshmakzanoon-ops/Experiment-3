@@ -75,7 +75,7 @@ function openingFixture(
     bindingCapture: null,
     deviceCalibration: null,
     modal,
-  }) as Interface;
+  }) as unknown as Interface;
   const owner = ui as unknown as ModalOwner;
   // Explicitly release a leaked test binding if the pre-fix implementation
   // publishes one after disposal. Repeated Interface.dispose alone cannot.

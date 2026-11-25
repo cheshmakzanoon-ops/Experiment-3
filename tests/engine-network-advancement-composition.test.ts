@@ -120,8 +120,7 @@ export function runLiveComposition(seed: number) {
         if (previous) {
           const elapsed = (view.now - previous.at) / TICK_MS;
           const advance = remote.tick - previous.remote;
-          playback.bounded &&=
-            advance >= 0.75 * elapsed - 1e-6 && advance <= 1.25 * elapsed + 1e-6;
+          playback.bounded &&= advance >= 0.75 * elapsed - 1e-6 && advance <= 1.25 * elapsed + 1e-6;
           if (raw < previous.raw - 1e-6) playback.rawRewinds++;
         }
         playback.frames++;
@@ -182,7 +181,11 @@ export function runLiveComposition(seed: number) {
         }
         if (synchronousJoin && direction === 'up' && channel === 'reliable') {
           const decoded = decodeClientMessage(data, channel);
-          if (decoded.ok && decoded.value.type === 'control' && decoded.value.control.kind === 'join') {
+          if (
+            decoded.ok &&
+            decoded.value.type === 'control' &&
+            decoded.value.control.kind === 'join'
+          ) {
             pair.server.onMessage!(data, channel);
             return;
           }
@@ -211,17 +214,31 @@ export function runLiveComposition(seed: number) {
   const initial = [0, 1, 2].map((driver) => connect(driver));
   f.loop.at(500, () => {
     Object.assign(initial[2].pair.link.client.conditions, {
-      jitterMs: 6, loss: 0.12, duplicate: 0.3, reorder: 0.2,
+      jitterMs: 6,
+      loss: 0.12,
+      duplicate: 0.3,
+      reorder: 0.2,
     });
     Object.assign(initial[2].pair.link.server.conditions, {
-      jitterMs: 6, loss: 0.06, duplicate: 0.2, reorder: 0.15,
+      jitterMs: 6,
+      loss: 0.06,
+      duplicate: 0.2,
+      reorder: 0.15,
     });
   });
-  f.loop.at(1300, () => { initial[0].pair.link.server.conditions.latencyMs = 200; });
-  f.loop.at(2200, () => { initial[1].pair.link.client.conditions.loss = 1; });
+  f.loop.at(1300, () => {
+    initial[0].pair.link.server.conditions.latencyMs = 200;
+  });
+  f.loop.at(2200, () => {
+    initial[1].pair.link.client.conditions.loss = 1;
+  });
   f.loop.at(2550, () => {
     Object.assign(initial[1].pair.link.client.conditions, {
-      latencyMs: 90, jitterMs: 9, loss: 0.05, duplicate: 0.2, reorder: 0.25,
+      latencyMs: 90,
+      jitterMs: 9,
+      loss: 0.05,
+      duplicate: 0.2,
+      reorder: 0.25,
     });
   });
   f.loop.at(3600, () => {
@@ -229,7 +246,11 @@ export function runLiveComposition(seed: number) {
   });
   f.loop.at(4250, () => {
     Object.assign(initial[0].pair.link.server.conditions, {
-      latencyMs: 20, jitterMs: 12, loss: 0.08, duplicate: 0.2, reorder: 0.15,
+      latencyMs: 20,
+      jitterMs: 12,
+      loss: 0.08,
+      duplicate: 0.2,
+      reorder: 0.15,
     });
   });
   f.loop.at(5200, () => {
@@ -323,7 +344,9 @@ describe('network advancement composition through live peers', () => {
       expect(new Set(result.boundaries.map(({ recipients }) => recipients))).toEqual(
         new Set([0, 1, 2, 3]),
       );
-      const quietTicks = new Set(result.boundaries.filter((b) => b.recipients === 0).map((b) => b.tick));
+      const quietTicks = new Set(
+        result.boundaries.filter((b) => b.recipients === 0).map((b) => b.tick),
+      );
       expect(quietTicks.size).toBeGreaterThan(3);
       const allHeaders = result.peers.flatMap((peer) => peer.headers);
       expect(allHeaders.some((header) => quietTicks.has(header.tick))).toBe(false);
@@ -337,7 +360,9 @@ describe('network advancement composition through live peers', () => {
         expect(peer.playback.bounded).toBe(true);
         expect(peer.playback.rawTargetErrors).toBe(0);
         const sent = new Set(peer.inputs.map((packet) => packet.sentAt));
-        const sequences = new Set(peer.inputs.flatMap((packet) => packet.commands.map((c) => c.seq)));
+        const sequences = new Set(
+          peer.inputs.flatMap((packet) => packet.commands.map((c) => c.seq)),
+        );
         for (const header of peer.headers) {
           expect(header.full).toEqual([peer.car]);
           if (header.echo) expect(sent.has(header.echo)).toBe(true);
@@ -349,18 +374,28 @@ describe('network advancement composition through live peers', () => {
       expect(first.playback.correcting).toBeGreaterThan(20);
       expect(first.commandState.duplicateSnapshots).toBeGreaterThan(0);
       expect(first.headers.filter((s) => s.tick === result.transitionTick)).toHaveLength(2);
-      expect(result.peers.find((peer) => peer.key === '1:0')!.headers.every(
-        (s) => s.tick !== result.transitionTick,
-      )).toBe(true);
+      expect(
+        result.peers
+          .find((peer) => peer.key === '1:0')!
+          .headers.every((s) => s.tick !== result.transitionTick),
+      ).toBe(true);
       const replacement = result.peers.find((peer) => peer.key === '1:1')!;
       expect(replacement.headers[0]).toMatchObject({
-        tick: result.transitionTick, ackSeq: -1, echo: 0, slack: 127, missing: 0,
+        tick: result.transitionTick,
+        ackSeq: -1,
+        echo: 0,
+        slack: 127,
+        missing: 0,
       });
       expect(replacement.commandState.ackSeq).toBeGreaterThan(0);
       expect(result.server.inputs.every((stats) => stats.duplicates > 0)).toBe(true);
-      expect(result.peers.some((peer) => peer.inputs.some((packet) => packet.commands.length === 12))).toBe(true);
+      expect(
+        result.peers.some((peer) => peer.inputs.some((packet) => packet.commands.length === 12)),
+      ).toBe(true);
       expect(result.wire.filter((packet) => packet.corrupted)).toHaveLength(1);
-      expect(new Set(result.wire.map((packet) => packet.data.buffer)).size).toBe(result.wire.length);
+      expect(new Set(result.wire.map((packet) => packet.data.buffer)).size).toBe(
+        result.wire.length,
+      );
       for (const packet of result.wire) {
         if (!packet.corrupted) expect(packet.data).toEqual(packet.retained);
       }

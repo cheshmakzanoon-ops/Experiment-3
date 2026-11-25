@@ -146,3 +146,39 @@ software backend; it does not identify a specific driver/compiler defect or
 certify hardware rendering. All source identities, logs, original failed
 assertions and the six-path matrix are retained under
 `evidence/checkpoint-6cb1c88/`.
+
+## Reviewed runtime repairs and expanded unit acceptance
+
+`26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1` publishes all wave-eight
+repairs: exact tiny-distance ghost endpoints, the measured twelve-recipient
+snapshot threshold, bounded deferred range merging, modal-operation ownership,
+and startup cancellation checks after synchronous public events and focus. It
+also publishes the strict test-only vec4 shared-GPU witness, retains the
+always-visible material diagnostics, and expands the focused workflow with
+three supplementary compatibility suites and the missing UI trigger.
+
+The [exact-source workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45590533223)
+passed **914 tests in all 70 selected files**, then failed its full TypeScript
+check with TS2352 in the controlled Interface test fixture. The chained Vite
+build did not run, and all native steps were skipped. Earlier native passes
+are not substituted for this candidate. The full failure and exact source
+identities are retained under `evidence/checkpoint-26efaeef/`.
+
+The coordinator's single local consolidated attempt was killed after partial
+output, without a final test summary. Its 104 recorded input hashes stayed
+unchanged; the incomplete attempt is retained separately in W09A. Complete unit
+acceptance comes from the inspected CI artifact.
+
+A follow-up compiler repair adds the explicit `unknown` bridge at that deliberate
+constructor-free fixture boundary. Before/after emitted JavaScript is identical;
+all seven fixture regressions, scoped lint and formatting pass. Full semantic
+checking, the production build and revised native witness still require the
+corrected-source workflow.
+
+The single reserved range follow-up at this source passed all 624 paired
+equivalence checks and all producer publications. It retains every upload-byte
+saving. Sixteen disjoint marks still cost approximately 0.229 microseconds more
+per helper batch, or 0.333 microseconds more for the overlapping complete
+recording-upload scope, than the original append-only helper. The two scopes
+must not be added. W08E preserves all 52 rows and the unfavorable comparisons;
+this is no claim of universal speedup, native GPU duration, or game-wide FPS.

@@ -1,0 +1,58 @@
+
+ RUN  v3.2.4 /tmp/aeebac160835-engine/Experiment-3
+
+ ✓ tests/engine-flashback-disabled-history.test.ts (14 tests) 59026ms
+   ✓ flashback eligibility and actual worker retention > time-trial retains no journal over 36,000 varying samples and matches all baseline inputs and recordings  28598ms
+   ✓ flashback eligibility and actual worker retention > qualifying retains no journal over 36,000 varying samples and matches all baseline inputs and recordings  23818ms
+   ✓ flashback eligibility and actual worker retention > time-trial preserves shift, pit, AI handback, pause and watchdog application without history  412ms
+   ✓ flashback eligibility and actual worker retention > qualifying preserves shift, pit, AI handback, pause and watchdog application without history  409ms
+   ✓ flashback eligibility and actual worker retention > race keeps history from tick zero and rewinds the actual command timeline beyond 30 seconds  1894ms
+   ✓ flashback eligibility and actual worker retention > endurance keeps history from tick zero and rewinds the actual command timeline beyond 30 seconds  1766ms
+   ✓ flashback eligibility and actual worker retention > practice keeps history from tick zero and rewinds the actual command timeline beyond 30 seconds  1705ms
+ ✓ tests/engine-flashback-state.test.ts (10 tests) 6782ms
+   ✓ engine flashback state and control ownership > gpr1 reconstructs control handback, hidden state, continuation and a new branch  1786ms
+   ✓ engine flashback state and control ownership > sbk1000 reconstructs control handback, hidden state, continuation and a new branch  1302ms
+   ✓ engine flashback state and control ownership > mx450 reconstructs control handback, hidden state, continuation and a new branch  1147ms
+   ✓ engine flashback state and control ownership > sc7 reconstructs control handback, hidden state, continuation and a new branch  1991ms
+   ✓ engine flashback state and control ownership > replays repeated shift edges consumed by the actual motorcycle gearbox  552ms
+ ✓ tests/engine-recording-composition.test.ts (7 tests) 5831ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'last frame of a sealed page' in replay and telemetry  814ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'first frame of a sealed page' in replay and telemetry  621ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'first frame of the open page' in replay and telemetry  602ms
+   ✓ production recording streams across a recreated timeline > retains the selected 'downward-rounded frame' in replay and telemetry  586ms
+   ✓ saves only the complete human lap after real simulation automation hands back control  2981ms
+ ✓ tests/surface-channel-backpressure.test.ts (15 tests) 5764ms
+   ✓ real circuit worker surface backpressure > keeps every normal 60-tick surface and frozen field through the actual host ACK path  1346ms
+   ✓ real circuit worker surface backpressure > bounds every unacknowledged byte and allocation, then restores the exact paused latest state  2211ms
+   ✓ real circuit worker surface backpressure > retains all terrain deltas and bounds init and flashback rebases across old ACK ownership  1851ms
+ ✓ tests/engine-network-shift.test.ts (18 tests) 5393ms
+   ✓ network command shift edges > applies a 1-tick command once through the real manual GP gearbox, including missing slots  449ms
+   ✓ network command shift edges > discards a pending shift on AI takeover and requires a new first edge after handback  352ms
+   ✓ shift journal compatibility > uses explicit shift tags and reproduces a live record exactly  537ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 0  516ms
+   ✓ shift journal compatibility > preserves persistent shift semantics of archived control tag 4  535ms
+   ✓ shift edges across real client and server delivery > clears rejected samples while retaining levels and allows later identical shift pulses  548ms
+   ✓ shift edges across real client and server delivery > does not revive a disconnected driver's shift while waiting for a rejoin command  436ms
+ ✓ tests/circuit-frame-transport.test.ts (5 tests) 4225ms
+   ✓ circuit snapshot transport > rejects duplicate returns without publishing detached or aliased storage (transfer=false)  833ms
+   ✓ circuit snapshot transport > rejects duplicate returns without publishing detached or aliased storage (transfer=true)  720ms
+   ✓ circuit snapshot transport > keeps write failures terminal until reinitialization restores the complete frame pool  916ms
+   ✓ circuit snapshot transport > keeps post failures terminal until reinitialization restores the complete frame pool  805ms
+   ✓ circuit snapshot transport > delivers the exact flashback frame while all ordinary snapshots are held  949ms
+ ✓ tests/engine-festival-command-errors.test.ts (16 tests) 3860ms
+   ✓ Festival command error boundaries > rejects 'start' before changing an active event  928ms
+   ✓ Festival command error boundaries > starts cleanly only after a fresh initialization following a fatal command  353ms
+ ✓ tests/engine-snapshot-batch-encoding.test.ts (18 tests) 2898ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 4 recipients over varied boundaries  337ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 11 recipients over varied boundaries  952ms
+   ✓ shared snapshot car serialization > matches complete reference packets for 12 recipients over varied boundaries  998ms
+ ✓ tests/engine-festival-status-backpressure.test.ts (16 tests) 3347ms
+   ✓ lossless Festival status backpressure > bounds copied statuses and stops stepping until an owned receipt returns  891ms
+   ✓ lossless Festival status backpressure > rejects commands and init before mutation, while still neutralizing pause input  343ms
+   ✓ lossless Festival status backpressure > retains old receipt ownership across init without resetting the queue allowance  548ms
+   ✓ lossless Festival status backpressure > keeps normal 10 Hz cadence and command status-before-receipt when consumed  320ms
+   ✓ lossless Festival status backpressure > allows outstanding acknowledgements after fatal execution but never resumes the failed world  482ms
+   ✓ lossless Festival status backpressure > releases only the failed publication credit when status transport throws  481ms
+ ✓ tests/engine-surface-lane-integration.test.ts (3 tests) 3017ms
+   ✓ surface coefficients composed with lane ownership > keeps interleaved warm tracks exact through weather, exposure, drainage and traffic changes  1934ms
+   ✓ surface coefficients composed with lane ownership > reconstructs wet surface history and pending traffic heat when rewinding between surface ticks  878ms

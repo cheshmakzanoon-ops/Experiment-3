@@ -1,0 +1,1291 @@
+{
+  "schemaVersion": 1,
+  "commit": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+  "tree": "0067cdfd51fb6b9cdecfa9cc1632f8ec19879b50",
+  "originalBaseline": "350119e8ec0606e8c5de5b3ab80df41104025679",
+  "runtime": "v24.22.3",
+  "vitestVersion": "3.2.4",
+  "selectionSha256": "87b33765d1d495165dee308d7cfbddbffde31b2b5d76b8aaf446fb98fe489e5b",
+  "selectedFiles": [
+    "tests/circuit-frame-transport.test.ts",
+    "tests/circuit-preparation-lifetime.test.ts",
+    "tests/circuit-startup-settlement.test.ts",
+    "tests/engine-advancement-records.test.ts",
+    "tests/engine-attribute-range-coalescing.test.ts",
+    "tests/engine-audio-advancement-composition.test.ts",
+    "tests/engine-audio-input-composition.test.ts",
+    "tests/engine-audio-preview-cancellation.test.ts",
+    "tests/engine-bvh-scalar-bounds.test.ts",
+    "tests/engine-circuit-worker-terminal.test.ts",
+    "tests/engine-clock-accounting.test.ts",
+    "tests/engine-clock-transfer-integration.test.ts",
+    "tests/engine-contact-construction.test.ts",
+    "tests/engine-contact-math-allocation.test.ts",
+    "tests/engine-control-quantization.test.ts",
+    "tests/engine-controller-shift-order.test.ts",
+    "tests/engine-cross-mode-startup.test.ts",
+    "tests/engine-device-lifecycle-composition.test.ts",
+    "tests/engine-diagnostics-backpressure.test.ts",
+    "tests/engine-export-host-ownership.test.ts",
+    "tests/engine-festival-command-errors.test.ts",
+    "tests/engine-festival-composition.test.ts",
+    "tests/engine-festival-frame-pacing.test.ts",
+    "tests/engine-festival-status-backpressure.test.ts",
+    "tests/engine-flashback-disabled-history.test.ts",
+    "tests/engine-flashback-state.test.ts",
+    "tests/engine-ghost-bounds.test.ts",
+    "tests/engine-ghost-first-passage.test.ts",
+    "tests/engine-graphics-advancement-composition.test.ts",
+    "tests/engine-host-failure-cleanup.test.ts",
+    "tests/engine-input-audio-adversarial.test.ts",
+    "tests/engine-input-encoder-capacity.test.ts",
+    "tests/engine-loudness-coefficients.test.ts",
+    "tests/engine-loudness-sine-basis.test.ts",
+    "tests/engine-loudness.test.ts",
+    "tests/engine-menu-gamepad-lifecycle.test.ts",
+    "tests/engine-network-advancement-composition.test.ts",
+    "tests/engine-network-adversarial.test.ts",
+    "tests/engine-network-clock-drift.test.ts",
+    "tests/engine-network-composition.test.ts",
+    "tests/engine-network-integration.test.ts",
+    "tests/engine-network-shift.test.ts",
+    "tests/engine-page-lifecycle.test.ts",
+    "tests/engine-paved-lane-index.test.ts",
+    "tests/engine-persistence-integration.test.ts",
+    "tests/engine-physics-adversarial.test.ts",
+    "tests/engine-physics-invariants.test.ts",
+    "tests/engine-record-boundaries-review.test.ts",
+    "tests/engine-recording-composition.test.ts",
+    "tests/engine-renderer-exclusive-release.test.ts",
+    "tests/engine-renderer-texture-composition.test.ts",
+    "tests/engine-resource-adversarial.test.ts",
+    "tests/engine-resource-integration.test.ts",
+    "tests/engine-server-snapshot-lifetime.test.ts",
+    "tests/engine-session-settlement.test.ts",
+    "tests/engine-shared-gpu-ownership.test.ts",
+    "tests/engine-snapshot-batch-encoding.test.ts",
+    "tests/engine-surface-coefficients.test.ts",
+    "tests/engine-surface-lane-integration.test.ts",
+    "tests/engine-telemetry-chunk-storage.test.ts",
+    "tests/engine-telemetry-lap-gap.test.ts",
+    "tests/engine-telemetry-time-ring.test.ts",
+    "tests/engine-texture-budget-registration.test.ts",
+    "tests/engine-transfer-transport-accounting.test.ts",
+    "tests/engine-ui-opening-review.test.ts",
+    "tests/engine-worker-session-adversarial.test.ts",
+    "tests/festival-ground-height.test.ts",
+    "tests/festival-renderer-loader-lifecycle.test.ts",
+    "tests/festival-session-lifecycle.test.ts",
+    "tests/surface-channel-backpressure.test.ts"
+  ],
+  "selectedFileCount": 70,
+  "changedProductionFileCount": 25,
+  "inventoryScope": "Selected tests, every changed production file relative to the original baseline, named configs/workflow and shared helper files; complete tracked source cleanliness separately checked before and after. Not a transitive asset manifest.",
+  "before": [
+    {
+      "path": ".github/workflows/engine-runtime-validation.yml",
+      "bytes": 5410,
+      "sha256": "f2fbbcf7076a3d11a209a578a9685926d1cdf346e2c635e90eb326aa80e725f6"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 119733,
+      "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+    },
+    {
+      "path": "package.json",
+      "bytes": 5246,
+      "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+    },
+    {
+      "path": "scripts/source-stability.ts",
+      "bytes": 3430,
+      "sha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    },
+    {
+      "path": "src/audio/engine-loudness.ts",
+      "bytes": 9601,
+      "sha256": "19537125a0247ded5d1afb0992d5f9a7b4fcb4da318ec430f7ef3db045866c89"
+    },
+    {
+      "path": "src/audio/ui-sounds.ts",
+      "bytes": 14477,
+      "sha256": "b69e685b36692b58e5a307eeb674966665fe89e2180ea052664fc9f8bbc4b668"
+    },
+    {
+      "path": "src/core/flashback.ts",
+      "bytes": 7255,
+      "sha256": "9f9e9802beb8a0cd9685b522de0a1681b8259947673886084d8190bbd55c7f2f"
+    },
+    {
+      "path": "src/core/ghost-lap.ts",
+      "bytes": 13775,
+      "sha256": "aaeb9a4fe04fa3e2ddb2ebc00fdc7e16bbca536583160bd0c914221d6d2e194c"
+    },
+    {
+      "path": "src/input/controller.ts",
+      "bytes": 17449,
+      "sha256": "bf7e80a240d8acdbaea4e1f55462d8ea8d466f6544aafb6b21a38c61f6016423"
+    },
+    {
+      "path": "src/main.ts",
+      "bytes": 165612,
+      "sha256": "d4131727c5cea898728eee4d87a4bf512295e056b0cfa69f73fafb2905b78537"
+    },
+    {
+      "path": "src/net/client.ts",
+      "bytes": 20756,
+      "sha256": "7bb4fdd1ff32ab74cc65c8b93382ad0d22b39a02c04be802451e28c3a1a5b319"
+    },
+    {
+      "path": "src/net/codec.ts",
+      "bytes": 8086,
+      "sha256": "3b1e8185691a6c9e63fbacfdfb59af2e691aed8e255c7d645c92c708da97a79a"
+    },
+    {
+      "path": "src/net/interpolation.ts",
+      "bytes": 7477,
+      "sha256": "1c8110321d901625581aecb7c97afd4aa05a6e618ad22df71563327c5d345984"
+    },
+    {
+      "path": "src/net/server.ts",
+      "bytes": 37181,
+      "sha256": "4651dd030c86f285b7d0f0444d1bdb94db21ba346bce1ef3d04060e577132fc1"
+    },
+    {
+      "path": "src/net/snapshot.ts",
+      "bytes": 6055,
+      "sha256": "5bb5c19c1ed830a3f89dc553c1a7333c4d7dcc6f5a353ac2909f0193cd136b61"
+    },
+    {
+      "path": "src/rendering/attribute-ranges.ts",
+      "bytes": 3477,
+      "sha256": "91d17b1851b62667ee67c849f45821220677213846f92ab72fa3b31a7ea179a0"
+    },
+    {
+      "path": "src/rendering/open-world/festival-renderer.ts",
+      "bytes": 53175,
+      "sha256": "b652cdf41dc6be51458b343fbc7fa6b9ec80454aefcb411d30ce420b05c0cb7c"
+    },
+    {
+      "path": "src/rendering/renderer.ts",
+      "bytes": 162546,
+      "sha256": "24bcc9265f3b91aa939a7048666e5051449581deb9ae7686bf66bfca1a0de1a2"
+    },
+    {
+      "path": "src/rendering/shared-gpu-frame-gate.ts",
+      "bytes": 1640,
+      "sha256": "c37515ff8ffd9b5f68e2cd7620bd0682a2f52f660b6714377a20457fc50aa428"
+    },
+    {
+      "path": "src/session/free-roam.ts",
+      "bytes": 35402,
+      "sha256": "d35273af2f9cf742747619c092fb073afda0ff35c7840ed089cf2de8fe0cfa7f"
+    },
+    {
+      "path": "src/simulation/surface-thermal.ts",
+      "bytes": 11858,
+      "sha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12"
+    },
+    {
+      "path": "src/simulation/track.ts",
+      "bytes": 32242,
+      "sha256": "11c4f225e953670d86a75660a128a944a38c4105ccf08e00e52b2d0ed6453bc5"
+    },
+    {
+      "path": "src/simulation/weather.ts",
+      "bytes": 37921,
+      "sha256": "71da8aa301efa348cc373f560f17cb8a18cde32c9085cdc8f8dbb613dba57088"
+    },
+    {
+      "path": "src/storage/telemetry-plots.ts",
+      "bytes": 14758,
+      "sha256": "7f64415025beff630682ddc426495b2061fcb8dec1c20cb3d98dfbdcffd44dbf"
+    },
+    {
+      "path": "src/ui/credits.ts",
+      "bytes": 7831,
+      "sha256": "8de208a5feef2cee3e4b678355c5533aa12882039ed936c7f570332f318c1a1f"
+    },
+    {
+      "path": "src/ui/flashback.ts",
+      "bytes": 1723,
+      "sha256": "06040029989711f19e5d8005356947d3e1fc616345dd259b823dc8f41e14f70b"
+    },
+    {
+      "path": "src/ui/interface.ts",
+      "bytes": 98720,
+      "sha256": "4c88c868c77766aa1aba55e05a32b020f6dcac99066e613dd8ec7764435784e3"
+    },
+    {
+      "path": "src/ui/menu-gamepad.ts",
+      "bytes": 15428,
+      "sha256": "a329d42a8f00324de4c5e6ad64d822f913a351c61ca638999a78144f30a189f9"
+    },
+    {
+      "path": "src/workers/physics.worker.ts",
+      "bytes": 11072,
+      "sha256": "48a76fc57ad47aad7d6b1771d4f9f46ed337694929994b7a87e18a93a94bd317"
+    },
+    {
+      "path": "tests/circuit-frame-transport.test.ts",
+      "bytes": 7421,
+      "sha256": "208dcae24fc75e2db3860c4b419f0511cb2ca6cdb65cf394004124f5f031e7b7"
+    },
+    {
+      "path": "tests/circuit-preparation-lifetime.test.ts",
+      "bytes": 12208,
+      "sha256": "dc833d06b052f9343653590db7396f58717e87722a288482575fa46d00519e4e"
+    },
+    {
+      "path": "tests/circuit-startup-settlement.test.ts",
+      "bytes": 25469,
+      "sha256": "65cf372b70eacad9eff37876bca3087ce2d66887a3afc047ffd0e1107591ef41"
+    },
+    {
+      "path": "tests/engine-advancement-records.test.ts",
+      "bytes": 15802,
+      "sha256": "ec2142deecc9050c9583c11c6f45aee6f8846aae37092dcb56b15293c7881eb3"
+    },
+    {
+      "path": "tests/engine-attribute-range-coalescing.test.ts",
+      "bytes": 20510,
+      "sha256": "747384caa283e99a3730f59104fc5b21cfd526444412ed7b2a2266547799c5bd"
+    },
+    {
+      "path": "tests/engine-audio-advancement-composition.test.ts",
+      "bytes": 9752,
+      "sha256": "607cf3109ff2f514fb7b32c7a8fda3a9c43b1e9a346e97087da054b9e70126e7"
+    },
+    {
+      "path": "tests/engine-audio-input-composition.test.ts",
+      "bytes": 14009,
+      "sha256": "1b079655d65a9c3012852e3a2b28f281fbf778d101d4fda8ebe8a3a80b6d2b34"
+    },
+    {
+      "path": "tests/engine-audio-preview-cancellation.test.ts",
+      "bytes": 9318,
+      "sha256": "3455ae384916d8349a9cb7762cb7660baf30d6a74e426922b84fafb0f03dd78e"
+    },
+    {
+      "path": "tests/engine-bvh-scalar-bounds.test.ts",
+      "bytes": 9059,
+      "sha256": "d44dce1e3842ed421504caf86abb0a6c7a3293aba50b0f418eaee972816bc496"
+    },
+    {
+      "path": "tests/engine-circuit-worker-terminal.test.ts",
+      "bytes": 12813,
+      "sha256": "abdb863c34eab3c840e415e93d18811b4b5e72fea438fd103b4eb77319cbca13"
+    },
+    {
+      "path": "tests/engine-clock-accounting.test.ts",
+      "bytes": 15069,
+      "sha256": "b1b12501a766759023cf5b575b58f5bce8f25027f38373b693f122c6469523d4"
+    },
+    {
+      "path": "tests/engine-clock-transfer-integration.test.ts",
+      "bytes": 6603,
+      "sha256": "6d8bbce9581f87f6e60580b174a4a2e78aa18458e75d4595224cf1149cde6d0d"
+    },
+    {
+      "path": "tests/engine-contact-construction.test.ts",
+      "bytes": 6862,
+      "sha256": "9c4ab408bc59f5ac25bd0f2813018b099b741f86a99b42982486614262417028"
+    },
+    {
+      "path": "tests/engine-contact-math-allocation.test.ts",
+      "bytes": 6573,
+      "sha256": "659f8ec1601527a43828c39faa0d90d1819eca20a3cf04b6f912b326ad9ca9c0"
+    },
+    {
+      "path": "tests/engine-control-quantization.test.ts",
+      "bytes": 6807,
+      "sha256": "c998fa783c737eb775a9bbc1f193b4cdad9e77432a6440ac30a9fde5cfa70f03"
+    },
+    {
+      "path": "tests/engine-controller-shift-order.test.ts",
+      "bytes": 9860,
+      "sha256": "2d4dd1b7eb3d0067f1552d6d0acd42c7e7b48f747fa8fb23982fbecc6d0afee9"
+    },
+    {
+      "path": "tests/engine-cross-mode-startup.test.ts",
+      "bytes": 26540,
+      "sha256": "af8f2d0d89b4fad418facc4e5ebbf770515cf5f108bfa873e44c85aa60080cfe"
+    },
+    {
+      "path": "tests/engine-device-lifecycle-composition.test.ts",
+      "bytes": 13817,
+      "sha256": "5e1bfc3fa4bced1290bc71754c8fac39b17a851a0f2c342d4fd422e1fbca178f"
+    },
+    {
+      "path": "tests/engine-diagnostics-backpressure.test.ts",
+      "bytes": 15095,
+      "sha256": "7d6c24373265b20beb3db82a9f2f75b82036b2d9dc3ee621ef91724c75f5af27"
+    },
+    {
+      "path": "tests/engine-export-host-ownership.test.ts",
+      "bytes": 9430,
+      "sha256": "4a4b735f519b54561cfbe5ccc13c4141bb672060de634690633c2fd18ce4bc4f"
+    },
+    {
+      "path": "tests/engine-festival-command-errors.test.ts",
+      "bytes": 8452,
+      "sha256": "bbc74aea91c62c49a022627cc300d0cf3fa93b57b8f6a855206f42c55e622be7"
+    },
+    {
+      "path": "tests/engine-festival-composition.test.ts",
+      "bytes": 15406,
+      "sha256": "d3097e7499338bca8eac6ab9af9397736b8790f663fdffa82ba9341a3be0207e"
+    },
+    {
+      "path": "tests/engine-festival-frame-pacing.test.ts",
+      "bytes": 23956,
+      "sha256": "2fd045571fda70f7854a7f1e2664a20bf752905f1871c5014bb0eccf88fd6606"
+    },
+    {
+      "path": "tests/engine-festival-status-backpressure.test.ts",
+      "bytes": 14951,
+      "sha256": "4c4baae67d555aa6e1b1ace502280c2879223856b110872ada283a2c8c6d3e0a"
+    },
+    {
+      "path": "tests/engine-flashback-disabled-history.test.ts",
+      "bytes": 15452,
+      "sha256": "b807c313c4f8e16ca87907d8040f42e77bc59f80443a282ae346141dce20042e"
+    },
+    {
+      "path": "tests/engine-flashback-state.test.ts",
+      "bytes": 10604,
+      "sha256": "1d3ba9441a3064e5c2ec5f30fbbea2fa900019c4c853e8ee144467f75a72fa7d"
+    },
+    {
+      "path": "tests/engine-ghost-bounds.test.ts",
+      "bytes": 11983,
+      "sha256": "647261ff6d756b585f81ff1a7694dbbcb76bb1656222967253606098cdbb1178"
+    },
+    {
+      "path": "tests/engine-ghost-first-passage.test.ts",
+      "bytes": 10464,
+      "sha256": "448fb7eeb38b5c629cb8674f4398b24aefd0f431d521198254f5f372d0458260"
+    },
+    {
+      "path": "tests/engine-graphics-advancement-composition.test.ts",
+      "bytes": 16531,
+      "sha256": "12d3b0591b7cdf59779f5ebffbb312b3b248443e6e687656884bd2127a5f0af6"
+    },
+    {
+      "path": "tests/engine-host-failure-cleanup.test.ts",
+      "bytes": 8700,
+      "sha256": "d101a8f4f7e4195223bb92c837f63bc09e008728c92319742d068d9a0ef4deab"
+    },
+    {
+      "path": "tests/engine-input-audio-adversarial.test.ts",
+      "bytes": 8173,
+      "sha256": "03fb47af76fe7423118a0093a9bf11c32ea9af6fb603eb798ce0fb29e8721b0c"
+    },
+    {
+      "path": "tests/engine-input-encoder-capacity.test.ts",
+      "bytes": 7889,
+      "sha256": "7c26c785d563873475302e03f7e1c5275e59028081f797a1cc3891f82785084a"
+    },
+    {
+      "path": "tests/engine-loudness-coefficients.test.ts",
+      "bytes": 18369,
+      "sha256": "07f2211db3fc04da2a817b0317204fdaf288b4f77e01df23b4e289adca6f61c0"
+    },
+    {
+      "path": "tests/engine-loudness-sine-basis.test.ts",
+      "bytes": 10345,
+      "sha256": "06ec11e8c097315343e7e1a52d566613208ac512e4e979a01e7f3540d460bb02"
+    },
+    {
+      "path": "tests/engine-loudness.test.ts",
+      "bytes": 9650,
+      "sha256": "1aa0b06a0a3bb0740cb027ac0f35a99b061192bbe2a4f984727c54a8d6382bf5"
+    },
+    {
+      "path": "tests/engine-menu-gamepad-lifecycle.test.ts",
+      "bytes": 33465,
+      "sha256": "c0912b06ed951a130695d47543657fc9d5289afff34778dad01d675d67082cc9"
+    },
+    {
+      "path": "tests/engine-network-advancement-composition.test.ts",
+      "bytes": 14881,
+      "sha256": "7be3dee9bbfea5531709a20a645cc06a7d8b023db63e7dd09caec50ceca0072b"
+    },
+    {
+      "path": "tests/engine-network-adversarial.test.ts",
+      "bytes": 13329,
+      "sha256": "75c959adcf60ade4bfe215cd553d42b81f93f7b52bb8be69c06818cf393df72d"
+    },
+    {
+      "path": "tests/engine-network-clock-drift.test.ts",
+      "bytes": 17768,
+      "sha256": "11df9045452a50c9cd5f669ce90e186cbee00671174ee0348fe74aa968ff39a5"
+    },
+    {
+      "path": "tests/engine-network-composition.test.ts",
+      "bytes": 10726,
+      "sha256": "ca5aac8e214bf2ee0b775bd4d632f5691388da758b281c56476d9b91c3ec2c39"
+    },
+    {
+      "path": "tests/engine-network-integration.test.ts",
+      "bytes": 12215,
+      "sha256": "a7c284855cbccb89d966e380593585047448628d1596f39481252842c94de04c"
+    },
+    {
+      "path": "tests/engine-network-shift.test.ts",
+      "bytes": 14990,
+      "sha256": "6c4d6c2d51e160cc6ddaee300e2d797f75ab3364fdf8c4f7bb1a1a1c103d632e"
+    },
+    {
+      "path": "tests/engine-page-lifecycle.test.ts",
+      "bytes": 39161,
+      "sha256": "2c3e62fe5f460d4f542a6f9fea2fa7153d9a9263266716cc8bad2f09fc92814b"
+    },
+    {
+      "path": "tests/engine-paved-lane-index.test.ts",
+      "bytes": 8459,
+      "sha256": "2cc39ba941aaf76aece6f61be9c7fd9a59dc25864aeb6c6c632ed78f92c36052"
+    },
+    {
+      "path": "tests/engine-persistence-integration.test.ts",
+      "bytes": 9171,
+      "sha256": "b483c1ddfb90b34d2b6c715ad663843041182a222d88257d099d6d59fb205967"
+    },
+    {
+      "path": "tests/engine-physics-adversarial.test.ts",
+      "bytes": 1678,
+      "sha256": "1165c098e36d912a189e6ff2b7cca81fd30172c9cfb8a6a8ed2e54c6e2fd100a"
+    },
+    {
+      "path": "tests/engine-physics-invariants.test.ts",
+      "bytes": 11503,
+      "sha256": "672a37ba69a3d2e06d499ff2d483b468a49f1ff9dfcee8dd84dbb79318d8eb66"
+    },
+    {
+      "path": "tests/engine-record-boundaries-review.test.ts",
+      "bytes": 3158,
+      "sha256": "6de5d5534f0a3f563abed25f24c1a291f8c4a00a4f745dd5a4dfd90c8c49b645"
+    },
+    {
+      "path": "tests/engine-recording-composition.test.ts",
+      "bytes": 11619,
+      "sha256": "667ea6ddf7d976c135149a4185e5ff1d11042a22466beff6befbf6bf4a1dfd2f"
+    },
+    {
+      "path": "tests/engine-renderer-exclusive-release.test.ts",
+      "bytes": 9582,
+      "sha256": "5ccfa0c527572e962fc3428b986ba64653d759f158dabab165fc4eda0d4df883"
+    },
+    {
+      "path": "tests/engine-renderer-texture-composition.test.ts",
+      "bytes": 9505,
+      "sha256": "7136946fc543aaaff1e11858ce1a75c48afc8f2372e9513268d8da355d510740"
+    },
+    {
+      "path": "tests/engine-resource-adversarial.test.ts",
+      "bytes": 9388,
+      "sha256": "ff2ce98448e0d538cc3ba7d112878322a929c668862774b4a111b68af3ac8e7d"
+    },
+    {
+      "path": "tests/engine-resource-integration.test.ts",
+      "bytes": 20285,
+      "sha256": "0160edd8bef470206d7212d2df0ee494795f5951bc70d3e9e3c74326165f9278"
+    },
+    {
+      "path": "tests/engine-server-snapshot-lifetime.test.ts",
+      "bytes": 17741,
+      "sha256": "9a2d38b709e8471ab7735fceb967a0e0f0f306c2e4a4a8832a9001e0ff6fd09b"
+    },
+    {
+      "path": "tests/engine-session-settlement.test.ts",
+      "bytes": 5199,
+      "sha256": "007a82c8022fb09072848dc3b10b169fb424ecaacdc6bf499f6009adad94d101"
+    },
+    {
+      "path": "tests/engine-shared-gpu-ownership.test.ts",
+      "bytes": 30681,
+      "sha256": "df9873b091dcfb93d46caf443e763ef86a6ca30de7dcd360d1da933cc45e3c12"
+    },
+    {
+      "path": "tests/engine-snapshot-batch-encoding.test.ts",
+      "bytes": 21169,
+      "sha256": "8ae35ee42dececf0f1625c1e63c92c3558142f62de6437d8b8d6c1333e78500c"
+    },
+    {
+      "path": "tests/engine-surface-coefficients.test.ts",
+      "bytes": 8323,
+      "sha256": "aa463f2512c62526047dff7ac728d9565b287333af7d02f9e8c4ef6e19409a2a"
+    },
+    {
+      "path": "tests/engine-surface-lane-integration.test.ts",
+      "bytes": 11652,
+      "sha256": "2af8df748d62c25a55556c094389763daabb651a50e9c6d4cad62ab642cd30e8"
+    },
+    {
+      "path": "tests/engine-telemetry-chunk-storage.test.ts",
+      "bytes": 5545,
+      "sha256": "80bde647194a3e503c98936a121c6b6ace284d0f377ca4999faf6b94adee02f7"
+    },
+    {
+      "path": "tests/engine-telemetry-lap-gap.test.ts",
+      "bytes": 3968,
+      "sha256": "bfca7353a16c680e3c9fe4adc75939e70830e5ce6301f9893b5addba3764936b"
+    },
+    {
+      "path": "tests/engine-telemetry-time-ring.test.ts",
+      "bytes": 6440,
+      "sha256": "34be14cee287106ddb30114b3b3efc177b6ac65cf525a92ce80fa6b4a3e4fa3c"
+    },
+    {
+      "path": "tests/engine-texture-budget-registration.test.ts",
+      "bytes": 8153,
+      "sha256": "deca55d39e497e41f0a5e2f8f5ef63be29f2c3ea5bcee443a2cbc86cada41ddc"
+    },
+    {
+      "path": "tests/engine-transfer-transport-accounting.test.ts",
+      "bytes": 4129,
+      "sha256": "3ca6ca5267d04a8fa6ba52093eaedea8b09c32eaee9f44eed02d6e3e2ec949b0"
+    },
+    {
+      "path": "tests/engine-ui-opening-review.test.ts",
+      "bytes": 6397,
+      "sha256": "87c03d2af0fa05505a21faaa7f1fafdbc5f1284f28ef4e7e01d491bb8338ab2f"
+    },
+    {
+      "path": "tests/engine-worker-session-adversarial.test.ts",
+      "bytes": 16251,
+      "sha256": "22a071f51d978bf1bfd24a51d194b105b8369793af5a046c672c7453b21e2fe5"
+    },
+    {
+      "path": "tests/fake-audio.ts",
+      "bytes": 3655,
+      "sha256": "aa91562332b655a4cee94608fbeb4b79a74d1464ec803413cfaa8b49b4778027"
+    },
+    {
+      "path": "tests/festival-ground-height.test.ts",
+      "bytes": 15417,
+      "sha256": "9f2667fc3787d03c962c7e9f9b4be7665259c488616c7708c4fcff9d63a20f77"
+    },
+    {
+      "path": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "bytes": 10498,
+      "sha256": "ecd4b481154a6be5668787e232caf35f81eaac2af024c069939834c4a319f811"
+    },
+    {
+      "path": "tests/festival-session-lifecycle.test.ts",
+      "bytes": 25578,
+      "sha256": "f15dd7cb75513247d7a45edb5fd3b1ea42e311c0e09073e56dca558e11589d70"
+    },
+    {
+      "path": "tests/net-helpers.ts",
+      "bytes": 2787,
+      "sha256": "74ae3817927cbcc22c7c88bf579033966fab81532d47f98d6205c472d69e81a8"
+    },
+    {
+      "path": "tests/surface-channel-backpressure.test.ts",
+      "bytes": 26466,
+      "sha256": "a39de39d1171dd25a7406cfbac26bbcdb0a168f532bd5f2715f4e024cc9fece9"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 460,
+      "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+    },
+    {
+      "path": "vite.config.ts",
+      "bytes": 9667,
+      "sha256": "7cabe11545e6bca2cb6de84e4a2d0779011605573b7c99bbf8ae43f8417af629"
+    },
+    {
+      "path": "vitest.config.ts",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "tests/circuit-frame-transport.test.ts",
+    "tests/circuit-preparation-lifetime.test.ts",
+    "tests/circuit-startup-settlement.test.ts",
+    "tests/engine-advancement-records.test.ts",
+    "tests/engine-attribute-range-coalescing.test.ts",
+    "tests/engine-audio-advancement-composition.test.ts",
+    "tests/engine-audio-input-composition.test.ts",
+    "tests/engine-audio-preview-cancellation.test.ts",
+    "tests/engine-bvh-scalar-bounds.test.ts",
+    "tests/engine-circuit-worker-terminal.test.ts",
+    "tests/engine-clock-accounting.test.ts",
+    "tests/engine-clock-transfer-integration.test.ts",
+    "tests/engine-contact-construction.test.ts",
+    "tests/engine-contact-math-allocation.test.ts",
+    "tests/engine-control-quantization.test.ts",
+    "tests/engine-controller-shift-order.test.ts",
+    "tests/engine-cross-mode-startup.test.ts",
+    "tests/engine-device-lifecycle-composition.test.ts",
+    "tests/engine-diagnostics-backpressure.test.ts",
+    "tests/engine-export-host-ownership.test.ts",
+    "tests/engine-festival-command-errors.test.ts",
+    "tests/engine-festival-composition.test.ts",
+    "tests/engine-festival-frame-pacing.test.ts",
+    "tests/engine-festival-status-backpressure.test.ts",
+    "tests/engine-flashback-disabled-history.test.ts",
+    "tests/engine-flashback-state.test.ts",
+    "tests/engine-ghost-bounds.test.ts",
+    "tests/engine-ghost-first-passage.test.ts",
+    "tests/engine-graphics-advancement-composition.test.ts",
+    "tests/engine-host-failure-cleanup.test.ts",
+    "tests/engine-input-audio-adversarial.test.ts",
+    "tests/engine-input-encoder-capacity.test.ts",
+    "tests/engine-loudness-coefficients.test.ts",
+    "tests/engine-loudness-sine-basis.test.ts",
+    "tests/engine-loudness.test.ts",
+    "tests/engine-menu-gamepad-lifecycle.test.ts",
+    "tests/engine-network-advancement-composition.test.ts",
+    "tests/engine-network-adversarial.test.ts",
+    "tests/engine-network-clock-drift.test.ts",
+    "tests/engine-network-composition.test.ts",
+    "tests/engine-network-integration.test.ts",
+    "tests/engine-network-shift.test.ts",
+    "tests/engine-page-lifecycle.test.ts",
+    "tests/engine-paved-lane-index.test.ts",
+    "tests/engine-persistence-integration.test.ts",
+    "tests/engine-physics-adversarial.test.ts",
+    "tests/engine-physics-invariants.test.ts",
+    "tests/engine-record-boundaries-review.test.ts",
+    "tests/engine-recording-composition.test.ts",
+    "tests/engine-renderer-exclusive-release.test.ts",
+    "tests/engine-renderer-texture-composition.test.ts",
+    "tests/engine-resource-adversarial.test.ts",
+    "tests/engine-resource-integration.test.ts",
+    "tests/engine-server-snapshot-lifetime.test.ts",
+    "tests/engine-session-settlement.test.ts",
+    "tests/engine-shared-gpu-ownership.test.ts",
+    "tests/engine-snapshot-batch-encoding.test.ts",
+    "tests/engine-surface-coefficients.test.ts",
+    "tests/engine-surface-lane-integration.test.ts",
+    "tests/engine-telemetry-chunk-storage.test.ts",
+    "tests/engine-telemetry-lap-gap.test.ts",
+    "tests/engine-telemetry-time-ring.test.ts",
+    "tests/engine-texture-budget-registration.test.ts",
+    "tests/engine-transfer-transport-accounting.test.ts",
+    "tests/engine-ui-opening-review.test.ts",
+    "tests/engine-worker-session-adversarial.test.ts",
+    "tests/festival-ground-height.test.ts",
+    "tests/festival-renderer-loader-lifecycle.test.ts",
+    "tests/festival-session-lifecycle.test.ts",
+    "tests/surface-channel-backpressure.test.ts",
+    "--pool=threads",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--allowOnly=false",
+    "--retry=0",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/tmp/aeebac160835-engine/validation/w09a-unit-26efaeef.vitest.json"
+  ],
+  "environment": {
+    "NODE_OPTIONS": "--max-old-space-size=1024",
+    "ENGINE_ATTRIBUTE_RANGE_BENCH": null
+  },
+  "sourceBefore": {
+    "head": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+    "changedTrackedPaths": [],
+    "untrackedPaths": []
+  },
+  "status": "failed-or-incomplete",
+  "startedUtc": "2026-11-25T10:02:08Z",
+  "durationSeconds": 113.54906073299935,
+  "finishedUtc": "2026-11-25T10:04:01Z",
+  "exitCode": -9,
+  "signal": 9,
+  "after": [
+    {
+      "path": ".github/workflows/engine-runtime-validation.yml",
+      "bytes": 5410,
+      "sha256": "f2fbbcf7076a3d11a209a578a9685926d1cdf346e2c635e90eb326aa80e725f6"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 119733,
+      "sha256": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf"
+    },
+    {
+      "path": "package.json",
+      "bytes": 5246,
+      "sha256": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436"
+    },
+    {
+      "path": "scripts/source-stability.ts",
+      "bytes": 3430,
+      "sha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    },
+    {
+      "path": "src/audio/engine-loudness.ts",
+      "bytes": 9601,
+      "sha256": "19537125a0247ded5d1afb0992d5f9a7b4fcb4da318ec430f7ef3db045866c89"
+    },
+    {
+      "path": "src/audio/ui-sounds.ts",
+      "bytes": 14477,
+      "sha256": "b69e685b36692b58e5a307eeb674966665fe89e2180ea052664fc9f8bbc4b668"
+    },
+    {
+      "path": "src/core/flashback.ts",
+      "bytes": 7255,
+      "sha256": "9f9e9802beb8a0cd9685b522de0a1681b8259947673886084d8190bbd55c7f2f"
+    },
+    {
+      "path": "src/core/ghost-lap.ts",
+      "bytes": 13775,
+      "sha256": "aaeb9a4fe04fa3e2ddb2ebc00fdc7e16bbca536583160bd0c914221d6d2e194c"
+    },
+    {
+      "path": "src/input/controller.ts",
+      "bytes": 17449,
+      "sha256": "bf7e80a240d8acdbaea4e1f55462d8ea8d466f6544aafb6b21a38c61f6016423"
+    },
+    {
+      "path": "src/main.ts",
+      "bytes": 165612,
+      "sha256": "d4131727c5cea898728eee4d87a4bf512295e056b0cfa69f73fafb2905b78537"
+    },
+    {
+      "path": "src/net/client.ts",
+      "bytes": 20756,
+      "sha256": "7bb4fdd1ff32ab74cc65c8b93382ad0d22b39a02c04be802451e28c3a1a5b319"
+    },
+    {
+      "path": "src/net/codec.ts",
+      "bytes": 8086,
+      "sha256": "3b1e8185691a6c9e63fbacfdfb59af2e691aed8e255c7d645c92c708da97a79a"
+    },
+    {
+      "path": "src/net/interpolation.ts",
+      "bytes": 7477,
+      "sha256": "1c8110321d901625581aecb7c97afd4aa05a6e618ad22df71563327c5d345984"
+    },
+    {
+      "path": "src/net/server.ts",
+      "bytes": 37181,
+      "sha256": "4651dd030c86f285b7d0f0444d1bdb94db21ba346bce1ef3d04060e577132fc1"
+    },
+    {
+      "path": "src/net/snapshot.ts",
+      "bytes": 6055,
+      "sha256": "5bb5c19c1ed830a3f89dc553c1a7333c4d7dcc6f5a353ac2909f0193cd136b61"
+    },
+    {
+      "path": "src/rendering/attribute-ranges.ts",
+      "bytes": 3477,
+      "sha256": "91d17b1851b62667ee67c849f45821220677213846f92ab72fa3b31a7ea179a0"
+    },
+    {
+      "path": "src/rendering/open-world/festival-renderer.ts",
+      "bytes": 53175,
+      "sha256": "b652cdf41dc6be51458b343fbc7fa6b9ec80454aefcb411d30ce420b05c0cb7c"
+    },
+    {
+      "path": "src/rendering/renderer.ts",
+      "bytes": 162546,
+      "sha256": "24bcc9265f3b91aa939a7048666e5051449581deb9ae7686bf66bfca1a0de1a2"
+    },
+    {
+      "path": "src/rendering/shared-gpu-frame-gate.ts",
+      "bytes": 1640,
+      "sha256": "c37515ff8ffd9b5f68e2cd7620bd0682a2f52f660b6714377a20457fc50aa428"
+    },
+    {
+      "path": "src/session/free-roam.ts",
+      "bytes": 35402,
+      "sha256": "d35273af2f9cf742747619c092fb073afda0ff35c7840ed089cf2de8fe0cfa7f"
+    },
+    {
+      "path": "src/simulation/surface-thermal.ts",
+      "bytes": 11858,
+      "sha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12"
+    },
+    {
+      "path": "src/simulation/track.ts",
+      "bytes": 32242,
+      "sha256": "11c4f225e953670d86a75660a128a944a38c4105ccf08e00e52b2d0ed6453bc5"
+    },
+    {
+      "path": "src/simulation/weather.ts",
+      "bytes": 37921,
+      "sha256": "71da8aa301efa348cc373f560f17cb8a18cde32c9085cdc8f8dbb613dba57088"
+    },
+    {
+      "path": "src/storage/telemetry-plots.ts",
+      "bytes": 14758,
+      "sha256": "7f64415025beff630682ddc426495b2061fcb8dec1c20cb3d98dfbdcffd44dbf"
+    },
+    {
+      "path": "src/ui/credits.ts",
+      "bytes": 7831,
+      "sha256": "8de208a5feef2cee3e4b678355c5533aa12882039ed936c7f570332f318c1a1f"
+    },
+    {
+      "path": "src/ui/flashback.ts",
+      "bytes": 1723,
+      "sha256": "06040029989711f19e5d8005356947d3e1fc616345dd259b823dc8f41e14f70b"
+    },
+    {
+      "path": "src/ui/interface.ts",
+      "bytes": 98720,
+      "sha256": "4c88c868c77766aa1aba55e05a32b020f6dcac99066e613dd8ec7764435784e3"
+    },
+    {
+      "path": "src/ui/menu-gamepad.ts",
+      "bytes": 15428,
+      "sha256": "a329d42a8f00324de4c5e6ad64d822f913a351c61ca638999a78144f30a189f9"
+    },
+    {
+      "path": "src/workers/physics.worker.ts",
+      "bytes": 11072,
+      "sha256": "48a76fc57ad47aad7d6b1771d4f9f46ed337694929994b7a87e18a93a94bd317"
+    },
+    {
+      "path": "tests/circuit-frame-transport.test.ts",
+      "bytes": 7421,
+      "sha256": "208dcae24fc75e2db3860c4b419f0511cb2ca6cdb65cf394004124f5f031e7b7"
+    },
+    {
+      "path": "tests/circuit-preparation-lifetime.test.ts",
+      "bytes": 12208,
+      "sha256": "dc833d06b052f9343653590db7396f58717e87722a288482575fa46d00519e4e"
+    },
+    {
+      "path": "tests/circuit-startup-settlement.test.ts",
+      "bytes": 25469,
+      "sha256": "65cf372b70eacad9eff37876bca3087ce2d66887a3afc047ffd0e1107591ef41"
+    },
+    {
+      "path": "tests/engine-advancement-records.test.ts",
+      "bytes": 15802,
+      "sha256": "ec2142deecc9050c9583c11c6f45aee6f8846aae37092dcb56b15293c7881eb3"
+    },
+    {
+      "path": "tests/engine-attribute-range-coalescing.test.ts",
+      "bytes": 20510,
+      "sha256": "747384caa283e99a3730f59104fc5b21cfd526444412ed7b2a2266547799c5bd"
+    },
+    {
+      "path": "tests/engine-audio-advancement-composition.test.ts",
+      "bytes": 9752,
+      "sha256": "607cf3109ff2f514fb7b32c7a8fda3a9c43b1e9a346e97087da054b9e70126e7"
+    },
+    {
+      "path": "tests/engine-audio-input-composition.test.ts",
+      "bytes": 14009,
+      "sha256": "1b079655d65a9c3012852e3a2b28f281fbf778d101d4fda8ebe8a3a80b6d2b34"
+    },
+    {
+      "path": "tests/engine-audio-preview-cancellation.test.ts",
+      "bytes": 9318,
+      "sha256": "3455ae384916d8349a9cb7762cb7660baf30d6a74e426922b84fafb0f03dd78e"
+    },
+    {
+      "path": "tests/engine-bvh-scalar-bounds.test.ts",
+      "bytes": 9059,
+      "sha256": "d44dce1e3842ed421504caf86abb0a6c7a3293aba50b0f418eaee972816bc496"
+    },
+    {
+      "path": "tests/engine-circuit-worker-terminal.test.ts",
+      "bytes": 12813,
+      "sha256": "abdb863c34eab3c840e415e93d18811b4b5e72fea438fd103b4eb77319cbca13"
+    },
+    {
+      "path": "tests/engine-clock-accounting.test.ts",
+      "bytes": 15069,
+      "sha256": "b1b12501a766759023cf5b575b58f5bce8f25027f38373b693f122c6469523d4"
+    },
+    {
+      "path": "tests/engine-clock-transfer-integration.test.ts",
+      "bytes": 6603,
+      "sha256": "6d8bbce9581f87f6e60580b174a4a2e78aa18458e75d4595224cf1149cde6d0d"
+    },
+    {
+      "path": "tests/engine-contact-construction.test.ts",
+      "bytes": 6862,
+      "sha256": "9c4ab408bc59f5ac25bd0f2813018b099b741f86a99b42982486614262417028"
+    },
+    {
+      "path": "tests/engine-contact-math-allocation.test.ts",
+      "bytes": 6573,
+      "sha256": "659f8ec1601527a43828c39faa0d90d1819eca20a3cf04b6f912b326ad9ca9c0"
+    },
+    {
+      "path": "tests/engine-control-quantization.test.ts",
+      "bytes": 6807,
+      "sha256": "c998fa783c737eb775a9bbc1f193b4cdad9e77432a6440ac30a9fde5cfa70f03"
+    },
+    {
+      "path": "tests/engine-controller-shift-order.test.ts",
+      "bytes": 9860,
+      "sha256": "2d4dd1b7eb3d0067f1552d6d0acd42c7e7b48f747fa8fb23982fbecc6d0afee9"
+    },
+    {
+      "path": "tests/engine-cross-mode-startup.test.ts",
+      "bytes": 26540,
+      "sha256": "af8f2d0d89b4fad418facc4e5ebbf770515cf5f108bfa873e44c85aa60080cfe"
+    },
+    {
+      "path": "tests/engine-device-lifecycle-composition.test.ts",
+      "bytes": 13817,
+      "sha256": "5e1bfc3fa4bced1290bc71754c8fac39b17a851a0f2c342d4fd422e1fbca178f"
+    },
+    {
+      "path": "tests/engine-diagnostics-backpressure.test.ts",
+      "bytes": 15095,
+      "sha256": "7d6c24373265b20beb3db82a9f2f75b82036b2d9dc3ee621ef91724c75f5af27"
+    },
+    {
+      "path": "tests/engine-export-host-ownership.test.ts",
+      "bytes": 9430,
+      "sha256": "4a4b735f519b54561cfbe5ccc13c4141bb672060de634690633c2fd18ce4bc4f"
+    },
+    {
+      "path": "tests/engine-festival-command-errors.test.ts",
+      "bytes": 8452,
+      "sha256": "bbc74aea91c62c49a022627cc300d0cf3fa93b57b8f6a855206f42c55e622be7"
+    },
+    {
+      "path": "tests/engine-festival-composition.test.ts",
+      "bytes": 15406,
+      "sha256": "d3097e7499338bca8eac6ab9af9397736b8790f663fdffa82ba9341a3be0207e"
+    },
+    {
+      "path": "tests/engine-festival-frame-pacing.test.ts",
+      "bytes": 23956,
+      "sha256": "2fd045571fda70f7854a7f1e2664a20bf752905f1871c5014bb0eccf88fd6606"
+    },
+    {
+      "path": "tests/engine-festival-status-backpressure.test.ts",
+      "bytes": 14951,
+      "sha256": "4c4baae67d555aa6e1b1ace502280c2879223856b110872ada283a2c8c6d3e0a"
+    },
+    {
+      "path": "tests/engine-flashback-disabled-history.test.ts",
+      "bytes": 15452,
+      "sha256": "b807c313c4f8e16ca87907d8040f42e77bc59f80443a282ae346141dce20042e"
+    },
+    {
+      "path": "tests/engine-flashback-state.test.ts",
+      "bytes": 10604,
+      "sha256": "1d3ba9441a3064e5c2ec5f30fbbea2fa900019c4c853e8ee144467f75a72fa7d"
+    },
+    {
+      "path": "tests/engine-ghost-bounds.test.ts",
+      "bytes": 11983,
+      "sha256": "647261ff6d756b585f81ff1a7694dbbcb76bb1656222967253606098cdbb1178"
+    },
+    {
+      "path": "tests/engine-ghost-first-passage.test.ts",
+      "bytes": 10464,
+      "sha256": "448fb7eeb38b5c629cb8674f4398b24aefd0f431d521198254f5f372d0458260"
+    },
+    {
+      "path": "tests/engine-graphics-advancement-composition.test.ts",
+      "bytes": 16531,
+      "sha256": "12d3b0591b7cdf59779f5ebffbb312b3b248443e6e687656884bd2127a5f0af6"
+    },
+    {
+      "path": "tests/engine-host-failure-cleanup.test.ts",
+      "bytes": 8700,
+      "sha256": "d101a8f4f7e4195223bb92c837f63bc09e008728c92319742d068d9a0ef4deab"
+    },
+    {
+      "path": "tests/engine-input-audio-adversarial.test.ts",
+      "bytes": 8173,
+      "sha256": "03fb47af76fe7423118a0093a9bf11c32ea9af6fb603eb798ce0fb29e8721b0c"
+    },
+    {
+      "path": "tests/engine-input-encoder-capacity.test.ts",
+      "bytes": 7889,
+      "sha256": "7c26c785d563873475302e03f7e1c5275e59028081f797a1cc3891f82785084a"
+    },
+    {
+      "path": "tests/engine-loudness-coefficients.test.ts",
+      "bytes": 18369,
+      "sha256": "07f2211db3fc04da2a817b0317204fdaf288b4f77e01df23b4e289adca6f61c0"
+    },
+    {
+      "path": "tests/engine-loudness-sine-basis.test.ts",
+      "bytes": 10345,
+      "sha256": "06ec11e8c097315343e7e1a52d566613208ac512e4e979a01e7f3540d460bb02"
+    },
+    {
+      "path": "tests/engine-loudness.test.ts",
+      "bytes": 9650,
+      "sha256": "1aa0b06a0a3bb0740cb027ac0f35a99b061192bbe2a4f984727c54a8d6382bf5"
+    },
+    {
+      "path": "tests/engine-menu-gamepad-lifecycle.test.ts",
+      "bytes": 33465,
+      "sha256": "c0912b06ed951a130695d47543657fc9d5289afff34778dad01d675d67082cc9"
+    },
+    {
+      "path": "tests/engine-network-advancement-composition.test.ts",
+      "bytes": 14881,
+      "sha256": "7be3dee9bbfea5531709a20a645cc06a7d8b023db63e7dd09caec50ceca0072b"
+    },
+    {
+      "path": "tests/engine-network-adversarial.test.ts",
+      "bytes": 13329,
+      "sha256": "75c959adcf60ade4bfe215cd553d42b81f93f7b52bb8be69c06818cf393df72d"
+    },
+    {
+      "path": "tests/engine-network-clock-drift.test.ts",
+      "bytes": 17768,
+      "sha256": "11df9045452a50c9cd5f669ce90e186cbee00671174ee0348fe74aa968ff39a5"
+    },
+    {
+      "path": "tests/engine-network-composition.test.ts",
+      "bytes": 10726,
+      "sha256": "ca5aac8e214bf2ee0b775bd4d632f5691388da758b281c56476d9b91c3ec2c39"
+    },
+    {
+      "path": "tests/engine-network-integration.test.ts",
+      "bytes": 12215,
+      "sha256": "a7c284855cbccb89d966e380593585047448628d1596f39481252842c94de04c"
+    },
+    {
+      "path": "tests/engine-network-shift.test.ts",
+      "bytes": 14990,
+      "sha256": "6c4d6c2d51e160cc6ddaee300e2d797f75ab3364fdf8c4f7bb1a1a1c103d632e"
+    },
+    {
+      "path": "tests/engine-page-lifecycle.test.ts",
+      "bytes": 39161,
+      "sha256": "2c3e62fe5f460d4f542a6f9fea2fa7153d9a9263266716cc8bad2f09fc92814b"
+    },
+    {
+      "path": "tests/engine-paved-lane-index.test.ts",
+      "bytes": 8459,
+      "sha256": "2cc39ba941aaf76aece6f61be9c7fd9a59dc25864aeb6c6c632ed78f92c36052"
+    },
+    {
+      "path": "tests/engine-persistence-integration.test.ts",
+      "bytes": 9171,
+      "sha256": "b483c1ddfb90b34d2b6c715ad663843041182a222d88257d099d6d59fb205967"
+    },
+    {
+      "path": "tests/engine-physics-adversarial.test.ts",
+      "bytes": 1678,
+      "sha256": "1165c098e36d912a189e6ff2b7cca81fd30172c9cfb8a6a8ed2e54c6e2fd100a"
+    },
+    {
+      "path": "tests/engine-physics-invariants.test.ts",
+      "bytes": 11503,
+      "sha256": "672a37ba69a3d2e06d499ff2d483b468a49f1ff9dfcee8dd84dbb79318d8eb66"
+    },
+    {
+      "path": "tests/engine-record-boundaries-review.test.ts",
+      "bytes": 3158,
+      "sha256": "6de5d5534f0a3f563abed25f24c1a291f8c4a00a4f745dd5a4dfd90c8c49b645"
+    },
+    {
+      "path": "tests/engine-recording-composition.test.ts",
+      "bytes": 11619,
+      "sha256": "667ea6ddf7d976c135149a4185e5ff1d11042a22466beff6befbf6bf4a1dfd2f"
+    },
+    {
+      "path": "tests/engine-renderer-exclusive-release.test.ts",
+      "bytes": 9582,
+      "sha256": "5ccfa0c527572e962fc3428b986ba64653d759f158dabab165fc4eda0d4df883"
+    },
+    {
+      "path": "tests/engine-renderer-texture-composition.test.ts",
+      "bytes": 9505,
+      "sha256": "7136946fc543aaaff1e11858ce1a75c48afc8f2372e9513268d8da355d510740"
+    },
+    {
+      "path": "tests/engine-resource-adversarial.test.ts",
+      "bytes": 9388,
+      "sha256": "ff2ce98448e0d538cc3ba7d112878322a929c668862774b4a111b68af3ac8e7d"
+    },
+    {
+      "path": "tests/engine-resource-integration.test.ts",
+      "bytes": 20285,
+      "sha256": "0160edd8bef470206d7212d2df0ee494795f5951bc70d3e9e3c74326165f9278"
+    },
+    {
+      "path": "tests/engine-server-snapshot-lifetime.test.ts",
+      "bytes": 17741,
+      "sha256": "9a2d38b709e8471ab7735fceb967a0e0f0f306c2e4a4a8832a9001e0ff6fd09b"
+    },
+    {
+      "path": "tests/engine-session-settlement.test.ts",
+      "bytes": 5199,
+      "sha256": "007a82c8022fb09072848dc3b10b169fb424ecaacdc6bf499f6009adad94d101"
+    },
+    {
+      "path": "tests/engine-shared-gpu-ownership.test.ts",
+      "bytes": 30681,
+      "sha256": "df9873b091dcfb93d46caf443e763ef86a6ca30de7dcd360d1da933cc45e3c12"
+    },
+    {
+      "path": "tests/engine-snapshot-batch-encoding.test.ts",
+      "bytes": 21169,
+      "sha256": "8ae35ee42dececf0f1625c1e63c92c3558142f62de6437d8b8d6c1333e78500c"
+    },
+    {
+      "path": "tests/engine-surface-coefficients.test.ts",
+      "bytes": 8323,
+      "sha256": "aa463f2512c62526047dff7ac728d9565b287333af7d02f9e8c4ef6e19409a2a"
+    },
+    {
+      "path": "tests/engine-surface-lane-integration.test.ts",
+      "bytes": 11652,
+      "sha256": "2af8df748d62c25a55556c094389763daabb651a50e9c6d4cad62ab642cd30e8"
+    },
+    {
+      "path": "tests/engine-telemetry-chunk-storage.test.ts",
+      "bytes": 5545,
+      "sha256": "80bde647194a3e503c98936a121c6b6ace284d0f377ca4999faf6b94adee02f7"
+    },
+    {
+      "path": "tests/engine-telemetry-lap-gap.test.ts",
+      "bytes": 3968,
+      "sha256": "bfca7353a16c680e3c9fe4adc75939e70830e5ce6301f9893b5addba3764936b"
+    },
+    {
+      "path": "tests/engine-telemetry-time-ring.test.ts",
+      "bytes": 6440,
+      "sha256": "34be14cee287106ddb30114b3b3efc177b6ac65cf525a92ce80fa6b4a3e4fa3c"
+    },
+    {
+      "path": "tests/engine-texture-budget-registration.test.ts",
+      "bytes": 8153,
+      "sha256": "deca55d39e497e41f0a5e2f8f5ef63be29f2c3ea5bcee443a2cbc86cada41ddc"
+    },
+    {
+      "path": "tests/engine-transfer-transport-accounting.test.ts",
+      "bytes": 4129,
+      "sha256": "3ca6ca5267d04a8fa6ba52093eaedea8b09c32eaee9f44eed02d6e3e2ec949b0"
+    },
+    {
+      "path": "tests/engine-ui-opening-review.test.ts",
+      "bytes": 6397,
+      "sha256": "87c03d2af0fa05505a21faaa7f1fafdbc5f1284f28ef4e7e01d491bb8338ab2f"
+    },
+    {
+      "path": "tests/engine-worker-session-adversarial.test.ts",
+      "bytes": 16251,
+      "sha256": "22a071f51d978bf1bfd24a51d194b105b8369793af5a046c672c7453b21e2fe5"
+    },
+    {
+      "path": "tests/fake-audio.ts",
+      "bytes": 3655,
+      "sha256": "aa91562332b655a4cee94608fbeb4b79a74d1464ec803413cfaa8b49b4778027"
+    },
+    {
+      "path": "tests/festival-ground-height.test.ts",
+      "bytes": 15417,
+      "sha256": "9f2667fc3787d03c962c7e9f9b4be7665259c488616c7708c4fcff9d63a20f77"
+    },
+    {
+      "path": "tests/festival-renderer-loader-lifecycle.test.ts",
+      "bytes": 10498,
+      "sha256": "ecd4b481154a6be5668787e232caf35f81eaac2af024c069939834c4a319f811"
+    },
+    {
+      "path": "tests/festival-session-lifecycle.test.ts",
+      "bytes": 25578,
+      "sha256": "f15dd7cb75513247d7a45edb5fd3b1ea42e311c0e09073e56dca558e11589d70"
+    },
+    {
+      "path": "tests/net-helpers.ts",
+      "bytes": 2787,
+      "sha256": "74ae3817927cbcc22c7c88bf579033966fab81532d47f98d6205c472d69e81a8"
+    },
+    {
+      "path": "tests/surface-channel-backpressure.test.ts",
+      "bytes": 26466,
+      "sha256": "a39de39d1171dd25a7406cfbac26bbcdb0a168f532bd5f2715f4e024cc9fece9"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 460,
+      "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9"
+    },
+    {
+      "path": "vite.config.ts",
+      "bytes": 9667,
+      "sha256": "7cabe11545e6bca2cb6de84e4a2d0779011605573b7c99bbf8ae43f8417af629"
+    },
+    {
+      "path": "vitest.config.ts",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad"
+    }
+  ],
+  "sourceAfter": {
+    "head": "26efaeefdf5a39b1d28cec4f8fb6bca1c97bf7e1",
+    "changedTrackedPaths": [],
+    "untrackedPaths": []
+  },
+  "sourceStable": true,
+  "logSha256": "f2a3468b51be8c62fec606dbf9496f17a8e0c26ef5887357f9fc1f8a88dae194",
+  "logBytes": 6937,
+  "vitestSummary": null,
+  "completedFileSummaries": [
+    {
+      "path": "tests/engine-flashback-disabled-history.test.ts",
+      "tests": 14,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-flashback-state.test.ts",
+      "tests": 10,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-recording-composition.test.ts",
+      "tests": 7,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/surface-channel-backpressure.test.ts",
+      "tests": 15,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-network-shift.test.ts",
+      "tests": 18,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/circuit-frame-transport.test.ts",
+      "tests": 5,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-festival-command-errors.test.ts",
+      "tests": 16,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-snapshot-batch-encoding.test.ts",
+      "tests": 18,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-festival-status-backpressure.test.ts",
+      "tests": 16,
+      "status": "passed per local log"
+    },
+    {
+      "path": "tests/engine-surface-lane-integration.test.ts",
+      "tests": 3,
+      "status": "passed per local log"
+    }
+  ],
+  "partialCompletedFileCount": 10,
+  "partialCompletedTestCount": 122,
+  "interpretation": "Incomplete local attempt: SIGKILL before final Vitest summary or machine report. Completed per-file pass lines are partial observations only; no full selection acceptance and no root cause for the signal is established.",
+  "logArchive": "w09-unit-local-26efaeef.log"
+}
