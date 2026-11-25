@@ -1,0 +1,240 @@
+{
+  "assignment": 59,
+  "observed_utc": "2026-11-25T20:41:26.585791+00:00",
+  "method": "Read-only Git/index inspection, current-file SHA-1/SHA-256 comparisons, independent inverse-edit checks, input-manifest and raw-result reconciliation; no test or build execution",
+  "scope": {
+    "candidate_tree": "b7f379a7aaea0f807b5623b2c981190c6d1a3a17",
+    "parent": "f3b39eb8e1b02fc0677086819fc384b6ceacefc2",
+    "index_entries": 10467,
+    "index_exact": true,
+    "diff_check_exit": 0,
+    "staged_paths": 59,
+    "categories": {
+      "benchmarks": 4,
+      "runtime": 18,
+      "tests": 37
+    },
+    "modes": {
+      "100644": 59
+    },
+    "bytes": 934755,
+    "inventory_digest": "a336f6f8b6750b9965a0a78ad39b24aa9f9956a1833b0f29b9091aaffd32feef",
+    "protected_files": 1772,
+    "protected_bytes": 264155763,
+    "protected_all_modes_blob_sha1_sha256_match": true,
+    "only_authorized_new_files_in_protected_roots": true,
+    "bike_inverse_sha256": "775c708bd852f503d5129c5674ecb41e2348956260aa2e62900ad2c638427b29",
+    "ai_inverse_sha256": "9ba826f4d2b0c42d5f98e175ed58a3bdb47a6bae739d29d9a63e6619f2b3b440",
+    "preserved_regions": [
+      {
+        "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "bytes": 658,
+        "sha256": "8d7e711ad59a006013714b05c8f6790eb67850ff6adf727d3501c6267756cb0e"
+      },
+      {
+        "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "bytes": 2201,
+        "sha256": "d5270842be74e67486250c62abd43d6f89458668efd66fde187b699a337b6999"
+      },
+      {
+        "path": "src/simulation/offroad/mx-ground-physics.ts",
+        "bytes": 4550,
+        "sha256": "843e58dc015418aa0c647cc03a57f70a9001d9ba7ab1107607cd4a47a3f31e77"
+      },
+      {
+        "path": "src/simulation/protocol.ts",
+        "bytes": 1082,
+        "sha256": "5356a7313e9272395223fed3f70fa279bc544cc8b4c00b1ba675b5d0ae715c33"
+      }
+    ]
+  },
+  "validation": {
+    "observed_utc": "2026-11-25T20:41:26.585791+00:00",
+    "input_checks": {
+      "A49": {
+        "files": 2710,
+        "hash_mismatches": 0,
+        "candidate_blob_mismatches": 0,
+        "outside_git": [
+          "node_modules/three/src/renderers/shaders/ShaderChunk/lights_fragment_begin.glsl.js",
+          "node_modules/three/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js"
+        ]
+      },
+      "A50": {
+        "files": 1734,
+        "hash_mismatches": 0,
+        "candidate_blob_mismatches": 0,
+        "outside_git": []
+      },
+      "final_type_lint": {
+        "files": 2835,
+        "hash_mismatches": 0,
+        "candidate_blob_mismatches": 0,
+        "outside_git": [
+          "browser-backend.json"
+        ]
+      },
+      "A54": {
+        "files": 1132,
+        "hash_mismatches": 0,
+        "candidate_blob_mismatches": 0,
+        "outside_git": []
+      },
+      "A52": {
+        "files": 1131,
+        "hash_mismatches": 0,
+        "candidate_blob_mismatches": 0,
+        "outside_git": []
+      }
+    },
+    "source_files": 1126,
+    "source_sha256": "5fea93841ed0da6949fe1dc2858c57f38b53595279222ab1550f74bfb6131096",
+    "fingerprint_files": 1129,
+    "build_identity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "d32aa557b2619b63883312be75df7735fb8ede13b801bf5315e642b2664c88bf",
+      "variant": "product",
+      "edition": "full"
+    },
+    "dist_files": 266,
+    "dist_bytes": 135946574,
+    "intervening_gate_change": [
+      "tests/motocross-riding.test.ts"
+    ],
+    "static_gates": {
+      "root-final-gates": [
+        {
+          "name": "typecheck",
+          "command": [
+            "node",
+            "--max-old-space-size=5120",
+            "node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "started_utc": "2026-11-25T19:39:55.155775+00:00",
+          "elapsed_seconds": 39.797100117999435,
+          "exit_code": 0
+        },
+        {
+          "name": "lint",
+          "command": [
+            "node",
+            "node_modules/eslint/bin/eslint.js",
+            "src",
+            "tests",
+            "e2e",
+            "scripts"
+          ],
+          "started_utc": "2026-11-25T19:40:34.952979+00:00",
+          "elapsed_seconds": 47.54113282599974,
+          "exit_code": 0
+        }
+      ],
+      "root-final-oracle-gates": [
+        {
+          "name": "typecheck",
+          "command": [
+            "node",
+            "--max-old-space-size=5120",
+            "node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "started_utc": "2026-11-25T19:44:46.728916+00:00",
+          "elapsed_seconds": 72.48754938599996,
+          "exit_code": 0
+        },
+        {
+          "name": "lint",
+          "command": [
+            "node",
+            "node_modules/eslint/bin/eslint.js",
+            "tests/motocross-riding.test.ts"
+          ],
+          "started_utc": "2026-11-25T19:45:59.216580+00:00",
+          "elapsed_seconds": 2.6571603960001084,
+          "exit_code": 0
+        }
+      ]
+    },
+    "product_build_exit": 0,
+    "units": {
+      "files": 165,
+      "statuses": {
+        "passed": 1836
+      },
+      "all_changed_tests_selected": true,
+      "changed_tests": 37,
+      "raw_sha256": "c54ffca868e2f153423f08247a4e5b886a2e21f24987b634a2705cdda5e41c73"
+    },
+    "races": {
+      "cases": 8,
+      "classified": 96,
+      "retirements": 0,
+      "rider_laps": 192,
+      "crashes": 9,
+      "max_rider_crashes": 1
+    },
+    "calibration_hold": {
+      "clean": 17,
+      "bottomed": 3
+    },
+    "cadence": {
+      "recordings": 8,
+      "matrices": 93936,
+      "scalars": 79344,
+      "rig_poses": 36192,
+      "max_difference": 0
+    },
+    "native": {
+      "earlier_completed_status": "failed",
+      "earlier_captures": 10,
+      "diagnostic_terminal_command_receipt_exists": false,
+      "accepted": false,
+      "cause_proven": false,
+      "snapshot_utc": "2026-11-25T20:41:26.585791+00:00"
+    }
+  },
+  "remote": {
+    "observed_utc": "2026-11-25T20:36:26Z",
+    "commit": "39d9d497880e92801a7d77de6af2639b4186bfcc",
+    "commit_tree": "b7f379a7aaea0f807b5623b2c981190c6d1a3a17",
+    "parents": [
+      "f3b39eb8e1b02fc0677086819fc384b6ceacefc2"
+    ],
+    "commit_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/39d9d497880e92801a7d77de6af2639b4186bfcc",
+    "main_ref": "refs/heads/main",
+    "main_sha": "f3b39eb8e1b02fc0677086819fc384b6ceacefc2",
+    "main_still_unpublished": true,
+    "tree_sha": "b7f379a7aaea0f807b5623b2c981190c6d1a3a17",
+    "tree_root_entries": 31,
+    "tree_truncated": false,
+    "read_only_requests": 3
+  },
+  "findings": [],
+  "publication_scope_and_identity_passed": true,
+  "final_native_accepted": false,
+  "source_index_or_ref_mutations": false,
+  "qualification": "Development-content preflight only. The terminal native diagnostic failed and remains an open acceptance limitation. Root retains publication responsibility. This is not release/deployment certification or a whole-CI-green claim.",
+  "terminal_native_observation": {
+    "observed_utc": "2026-11-25T20:44:17.636262+00:00",
+    "finished_utc": "2026-11-25T20:42:04.355387+00:00",
+    "exit_code": 1,
+    "elapsed_seconds": 1205.0982023750003,
+    "test_status": "timedOut",
+    "original_timeout_ms": 1200000,
+    "retry": 0,
+    "failure": "locator.click: Target crashed at APPLY & SAVE",
+    "low_selected_but_not_applied": true,
+    "venue_or_gameplay_captures": 0,
+    "gpu_process_exit_code_9_events": 2,
+    "input_files": 1734,
+    "built_files": 266,
+    "input_and_build_manifests_unchanged": true,
+    "cause_proven": false,
+    "final_native_accepted": false,
+    "command_receipt_sha256": "f558582052e1b63531ea625339c0e6ccbee8c886fecf259e9655f92dfc7ceae3",
+    "summary_sha256": "372b1b04658268936730f3bdb3f30619048b303300db10b2bec45eae16db1df9"
+  },
+  "final_native_status": "failed; open acceptance limitation"
+}

@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "assignment": 50,
+  "recorded_utc": "2026-11-25T20:45:58.236154+00:00",
+  "result": {
+    "production_build": "passed",
+    "final_native_acceptance": "failed",
+    "final_native_acceptance_passed": false,
+    "cause": "unproven",
+    "additional_runs_after_authorized_diagnostic": 0
+  },
+  "working_tree_build_identity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "d32aa557b2619b63883312be75df7735fb8ede13b801bf5315e642b2664c88bf",
+    "variant": "product",
+    "edition": "full"
+  },
+  "build": {
+    "command": [
+      "node_modules/.bin/vite",
+      "build"
+    ],
+    "started_utc": "2026-11-25T19:43:17.685728+00:00",
+    "finished_utc": "2026-11-25T19:43:42.380227+00:00",
+    "elapsed_seconds": 24.694512370000666,
+    "exit_code": 0,
+    "generation_hooks_used": false,
+    "build_manifest": "test-results/a50-final-native/dist-manifest.json"
+  },
+  "frozen_inputs": {
+    "count": 1734,
+    "source_file_count": 1126,
+    "input_sha256": "1cbc70336eaaf00b0559a14a7de7b1af09a9ab4589701059b1656b1ffb4afb41",
+    "source_sha256": "a91d8e12d2a2f97a8576fcdfe27f71f2f74eed2e08b8d8c926336e8384173d21",
+    "before_after_changed_inputs": [],
+    "unchanged_through_both_completed_invocations": true,
+    "manifest": "test-results/a50-final-native/diagnostic-attempt-3/journey-after.json"
+  },
+  "frozen_build": {
+    "file_count": 266,
+    "bytes": 135946574,
+    "sha256": "fc510344f8e170443957e50410878a25e507f7e765ea92778ecd12dad06fa772",
+    "before_after_identical": true,
+    "manifest": "test-results/a50-final-native/diagnostic-attempt-3/dist-after-journey.json"
+  },
+  "attempts": [
+    {
+      "sequence": 1,
+      "status": "incomplete executor interruption",
+      "exit_code": null,
+      "assertion_result_available": false,
+      "receipt": "test-results/a50-final-native/interrupted-attempt-1/interruption.json"
+    },
+    {
+      "sequence": 2,
+      "command": [
+        "node_modules/.bin/playwright",
+        "test",
+        "e2e/45-motocross-gameplay.spec.ts",
+        "--config",
+        "playwright.motocross.config.ts"
+      ],
+      "started_utc": "2026-11-25T19:51:30.508740+00:00",
+      "finished_utc": "2026-11-25T19:57:23.558649+00:00",
+      "elapsed_seconds": 353.0499227979999,
+      "exit_code": 1,
+      "test_status": "failed",
+      "test_duration_ms": 345498,
+      "playwright_retry": 0,
+      "failure": "page.evaluate: Target crashed after Arena chase screenshot attachment, before camera switch",
+      "actual_gameplay_screenshots": 10,
+      "completed_venue_reports": [
+        "valley-ridge-mx / mx450"
+      ],
+      "arena_completed_stages": [
+        "menu",
+        "eight-rider gate",
+        "manual rider-weight/throttle checks",
+        "explicit AI course progress/flight/touchdown",
+        "checked chase image"
+      ],
+      "arena_uncompleted_stages": [
+        "cockpit",
+        "pause",
+        "paddock return"
+      ],
+      "receipt": "test-results/a50-final-native/journey-command.json",
+      "analysis": "test-results/a50-final-native/crash-analysis.json",
+      "screenshots": "test-results/a50-final-native/screenshots.json"
+    },
+    {
+      "sequence": 3,
+      "command": [
+        "node_modules/.bin/playwright",
+        "test",
+        "e2e/45-motocross-gameplay.spec.ts",
+        "--config",
+        "playwright.motocross.config.ts"
+      ],
+      "started_utc": "2026-11-25T20:21:59.257192+00:00",
+      "finished_utc": "2026-11-25T20:42:04.355387+00:00",
+      "elapsed_seconds": 1205.0982023750003,
+      "exit_code": 1,
+      "test_status": "timedOut",
+      "test_duration_ms": 1200671,
+      "playwright_retry": 0,
+      "test_timeout_ms": 1200000,
+      "errors": [
+        "Test timeout of 1200000ms exceeded.",
+        "locator.click: Target crashed"
+      ],
+      "failure_action": "APPLY & SAVE: waiting for button to be visible, enabled and stable",
+      "apply_action_started_trace_ms": 26054.253,
+      "page_closed_trace_ms": 37569.419,
+      "quality_requested": "low",
+      "quality_selected_in_form": "low",
+      "quality_successfully_applied": false,
+      "venue_entry_reached": false,
+      "actual_gameplay_screenshots": 0,
+      "complete_venue_reports": 0,
+      "environment": {
+        "PLAYWRIGHT_BROWSERS_PATH": "/workspace/scratch/e91efca799c8/pw-browsers",
+        "APEX_BROWSER_BACKEND": "swiftshader",
+        "APEX_MOTOCROSS_JOURNEY_QUALITY": "low",
+        "APEX_MOTOCROSS_JOURNEY_PROGRESS": "1",
+        "DEBUG": "pw:browser",
+        "CHROMIUM_PATH": null,
+        "APEX_MOTOCROSS_XVFB_CAPTURE": null
+      },
+      "receipt": "test-results/a50-final-native/diagnostic-attempt-3/journey-command.json",
+      "analysis": "test-results/a50-final-native/diagnostic-attempt-3/diagnostic-analysis.json",
+      "trace_receipt": "test-results/a50-final-native/diagnostic-attempt-3/terminal-trace-receipt.json"
+    }
+  ],
+  "gpu_diagnostics": {
+    "backend": {
+      "requested": "swiftshader",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "vendor": "Google Inc. (Google)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "pixel": [
+        64,
+        128,
+        191,
+        255
+      ],
+      "error": 0,
+      "softwareRendererDetected": true,
+      "physicalHardwareValidated": false
+    },
+    "gpu_process_exit_count": 2,
+    "gpu_process_exit_codes": [
+      9,
+      9
+    ],
+    "raw_gpu_exit_records": [
+      "pw:browser [pid=147][err] [1125/132236.844057:ERROR:content/browser/gpu/gpu_process_host.cc:964] GPU process exited unexpectedly: exit_code=9 +27ms",
+      "pw:browser [pid=147][err] [1125/132309.714601:ERROR:content/browser/gpu/gpu_process_host.cc:964] GPU process exited unexpectedly: exit_code=9 +33s"
+    ],
+    "gpu_reinitializations": 2,
+    "browser_parent_teardown": {
+      "exit_code": 0,
+      "signal": null,
+      "scope": "Normal parent browser cleanup after the failed test; does not make acceptance pass"
+    },
+    "stderr_log": "test-results/a50-final-native/diagnostic-attempt-3/journey.log"
+  },
+  "resource_observations": {
+    "count": 123,
+    "periodic_cadence_seconds": 10,
+    "minimum_mem_available_kib": 846240,
+    "minimum_mem_available_utc": "2026-11-25T20:22:29.334751+00:00",
+    "minimum_sampled_workspace_free_bytes": 251514880,
+    "before_after_resources": [
+      "test-results/a50-final-native/diagnostic-attempt-3/resources-before.json",
+      "test-results/a50-final-native/diagnostic-attempt-3/resources-after.json"
+    ],
+    "global_oom_kill_observed_later": 7,
+    "pre_run_oom_counter_available": false,
+    "kernel_log_available": false,
+    "cgroup_memory_and_pressure_counters_available": false,
+    "limitations": "Sampled host memory and namespace-visible RSS do not identify every peak or allocation owner; process RSS sums can double-count shared pages."
+  },
+  "disk_housekeeping_during_same_invocation": [
+    {
+      "utc": "2026-11-25T20:24:39.392449+00:00",
+      "action": "remove only task-created clean baseline worktree after completed comparisons",
+      "workspace_free_before_bytes": 250236928,
+      "workspace_free_after_bytes": 1102667776,
+      "receipt": "test-results/a50-final-native/diagnostic-attempt-3/coordinator-baseline-worktree-cleanup.json",
+      "after_gpu_exits": true,
+      "test_relaunched_or_retargeted": false,
+      "source_and_dist_preserved": true
+    },
+    {
+      "utc": "2026-11-25T20:33:18.344062+00:00",
+      "action": "remove only unused task-local full Chromium download; preserve executing headless shell",
+      "workspace_free_before_bytes": 367386624,
+      "workspace_free_after_bytes": 989806592,
+      "receipt": "test-results/a50-final-native/diagnostic-attempt-3/coordinator-unused-browser-download-cleanup.json",
+      "after_gpu_exits": true,
+      "test_relaunched_or_retargeted": false,
+      "source_and_dist_preserved": true
+    }
+  ],
+  "causation_statement": "The recorded GPU exits and sampled memory/disk conditions do not establish OOM, disk exhaustion, a driver defect, or a physics defect as the cause. No baseline or PID association exists for the later global oom_kill counter. Both cleanup events occurred after the GPU exits and do not prove causation or recovery.",
+  "shutdown": {
+    "confirmed": true,
+    "browser_and_preview_processes_ended": true,
+    "playwright_process_ended": true,
+    "observer_thread_ended": true,
+    "wrapper_exit_code": 1,
+    "preview_port_4197_open": false,
+    "after_process_snapshot": "test-results/a50-final-native/diagnostic-attempt-3/resources-after.json",
+    "browser_exit_records": [
+      "2026-11-25T20:22:01.538Z pw:browser [pid=76] <process did exit: exitCode=0, signal=null>",
+      "pw:browser [pid=147] <process did exit: exitCode=0, signal=null> +30ms"
+    ],
+    "terminal_receipt": "test-results/a50-final-native/diagnostic-attempt-3/terminal-trace-receipt.json"
+  },
+  "earlier_evidence_preservation": {
+    "files": 88,
+    "changed_files": [],
+    "manifest": "test-results/a50-final-native/preserved-failure-manifest.json"
+  },
+  "assertions_deadlines_source_and_config_changed": false,
+  "rebuild_for_diagnostic": false,
+  "scope_limits": [
+    "Attempt 2 manual controls and explicitly enabled AI flight are separate evidence.",
+    "Attempt 3 selected Low but did not successfully apply settings or enter motocross.",
+    "Software SwiftShader evidence does not certify physical-GPU FPS, High/Ultra rendering, continuous perceived fluidity, all four machine/venue browser combinations, or real-bike calibration.",
+    "Other source, physics, race, replay, calibration and cadence gates are owned by their separate assignments."
+  ],
+  "full_receipts_root": "test-results/a50-final-native",
+  "identity_note": "The recorded build ran before subsequent publication. Its actual commit:null identity is retained and is not relabeled as a postcommit build."
+}

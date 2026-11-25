@@ -1,0 +1,789 @@
+{
+  "assignment": 53,
+  "audit_utc": "2026-11-25T20:16:58.511762+00:00",
+  "method": "Read-only rehash of recorded worktree/dist files, exact manifest comparisons, read-only git tree/index inspection, and SHA-256 of streamed candidate Git blobs. No build, test, lint, staging, commit, ref mutation, or model generation.",
+  "observed_head": "f3b39eb8e1b02fc0677086819fc384b6ceacefc2",
+  "baseline": "b527a7e01ea247f0233a2ec4f2850639bafbd887",
+  "parent_commit": "f3b39eb8e1b02fc0677086819fc384b6ceacefc2",
+  "base_tree": "83200f67ef13ed9a0d253fa84d18dfc5a31aa5c5",
+  "candidate_index_tree": "b7f379a7aaea0f807b5623b2c981190c6d1a3a17",
+  "candidate_git_entries": 10467,
+  "candidate_equals_observed_index": true,
+  "task_source_commit": null,
+  "build_identity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "d32aa557b2619b63883312be75df7735fb8ede13b801bf5315e642b2664c88bf",
+    "variant": "product",
+    "edition": "full"
+  },
+  "candidate_build_fingerprint": "d32aa557b2619b63883312be75df7735fb8ede13b801bf5315e642b2664c88bf",
+  "fingerprint_input_files": 1129,
+  "a50_inputs": {
+    "files": 1734,
+    "aggregate_python_path_order": "1cbc70336eaaf00b0559a14a7de7b1af09a9ab4589701059b1656b1ffb4afb41",
+    "src_files": 1126,
+    "src_aggregate_python_path_order": "a91d8e12d2a2f97a8576fcdfe27f71f2f74eed2e08b8d8c926336e8384173d21",
+    "src_aggregate_string_order": "5fea93841ed0da6949fe1dc2858c57f38b53595279222ab1550f74bfb6131096",
+    "captured_path_set_complete": true,
+    "build_and_journey_before_after_equal": true
+  },
+  "dist": {
+    "files": 266,
+    "bytes": 135946574,
+    "aggregate_python_path_order": "fc510344f8e170443957e50410878a25e507f7e765ea92778ecd12dad06fa772",
+    "current_and_after_journey_equal": true
+  },
+  "a49": {
+    "inputs": 2710,
+    "inputs_aggregate_string_order": "f985b369dd9bf56a9165a5134e3952dbba3a4fc22a8ed983b664bbc920c2fc0e",
+    "source": {
+      "files": 1126,
+      "sha256": "5fea93841ed0da6949fe1dc2858c57f38b53595279222ab1550f74bfb6131096"
+    },
+    "selected_tests": {
+      "files": 165,
+      "sha256": "b305e9790821c0849fc910046857d35c646a8be40f6cff56385eb07349270d14"
+    },
+    "files": 165,
+    "cases": 1836,
+    "passed": 1836,
+    "failed": 0,
+    "other": 0,
+    "exit_code": 0,
+    "started_utc": "2026-11-25T19:50:37.449235+00:00",
+    "ended_utc": "2026-11-25T20:05:07.608150+00:00",
+    "elapsed_seconds": 870.1588936049993,
+    "source_matches_a50_per_path": true,
+    "inputs_unchanged": true
+  },
+  "root_gates": {
+    "full": {
+      "results": [
+        {
+          "name": "typecheck",
+          "command": [
+            "node",
+            "--max-old-space-size=5120",
+            "node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "started_utc": "2026-11-25T19:39:55.155775+00:00",
+          "elapsed_seconds": 39.797100117999435,
+          "exit_code": 0
+        },
+        {
+          "name": "lint",
+          "command": [
+            "node",
+            "node_modules/eslint/bin/eslint.js",
+            "src",
+            "tests",
+            "e2e",
+            "scripts"
+          ],
+          "started_utc": "2026-11-25T19:40:34.952979+00:00",
+          "elapsed_seconds": 47.54113282599974,
+          "exit_code": 0
+        }
+      ],
+      "inputs": 2835,
+      "inputs_unchanged": true,
+      "changed_inputs": []
+    },
+    "final_oracle": {
+      "results": [
+        {
+          "name": "typecheck",
+          "command": [
+            "node",
+            "--max-old-space-size=5120",
+            "node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "started_utc": "2026-11-25T19:44:46.728916+00:00",
+          "elapsed_seconds": 72.48754938599996,
+          "exit_code": 0
+        },
+        {
+          "name": "lint",
+          "command": [
+            "node",
+            "node_modules/eslint/bin/eslint.js",
+            "tests/motocross-riding.test.ts"
+          ],
+          "started_utc": "2026-11-25T19:45:59.216580+00:00",
+          "elapsed_seconds": 2.6571603960001084,
+          "exit_code": 0
+        }
+      ],
+      "inputs": 2835,
+      "inputs_unchanged": true,
+      "changed_inputs": []
+    },
+    "delta_paths": [
+      "tests/motocross-riding.test.ts"
+    ],
+    "full_aggregate_string_order": "5ed874c3354616fb110dd7c739359c92a785a416a36940cd300f232e4bcd5cbc",
+    "final_oracle_aggregate_string_order": "df825498bb092d3467b9461028e40c50339c14909f0b84fa9b62e96ee2e8fdec",
+    "riding_test_before": "4ab8ec013b0a940c8595391d724ad8003a1f120ec2d815be253ae955bcdbaa00",
+    "riding_test_final": "f1d51d886210baadd8a85dd5b3828178b4954efca4a85b9108a91080c980f468"
+  },
+  "a51": {
+    "protected_files": 1772,
+    "protected_bytes": 264155763,
+    "protected_rows_sha256": "49a448d918d0db165240c05976fadfaa4b50ff42aea633d30fc308b7696c42fd",
+    "runtime_rows_sha256": "35a15a118f35fcd42f701eba881296ec640faa38f35c37a72113066f6a5bcf2e",
+    "protected_candidate_modes_and_blobs_match_baseline": true,
+    "scope_caveat": "Source/model protection is not a claim of identical non-MX behavior. A30 found two MX-on-road initial placement telemetry changes plus optional foot metadata; its nine exact scenario traces were measured before subsequent MX-only fixes. This audit does not rerun gameplay."
+  },
+  "publication": {
+    "paths": 59,
+    "bytes": 934755,
+    "runtime_paths": 18,
+    "test_paths": 37,
+    "benchmark_paths": 4,
+    "changed_paths_equal_inventory_and_staged_metadata": true,
+    "staged_modes_and_blob_ids_equal_metadata": true,
+    "publication_path_hashes": {
+      "scripts/bench/motocross-display-cadence.ts": "c3d0062d35bd6110199f966766d086e6f12ff91a160fb7b8ab1d62bc2d85b705",
+      "scripts/bench/motocross-player-dynamics.ts": "db0a432f1b1824b43095b446107a63112b9f0e8181781b2cdc940a1244f710eb",
+      "scripts/bench/motocross-scope-isolation.ts": "81f516a9ba94eeb09ad15ce74f1ffd73a28509641f61910b11443d798fb5b5a7",
+      "scripts/bench/motocross-spring-work.ts": "fa70b6b020218d65b79c747242f2cd9057396351b00dd294d3cbd9bb403e8b83",
+      "src/core/session-identity.ts": "9c2873cd5420281e2d117242bb3a068a5e02be900543a590b6c5514d996d42d5",
+      "src/rendering/bike.ts": "63363c3e43e471398a55267188a791a81bfb9c58fba7a85eb5d51cc59aeae748",
+      "src/rendering/frame-state.ts": "3f3a05f7d07df1c02eacd9d8f6817edeee1005ae0a39161ae7f65c7ef8b5c2ec",
+      "src/rendering/offroad/chase-camera.ts": "248bfb44b7f083fc6abc1389e0af9fafcda13db96f0e97c23c70312949a36917",
+      "src/rendering/offroad/mx-foot-pose.ts": "2bc6a16ba88d105f452e0f73231977f67fc5f3ff7b8bb57cad4ff845e287edb1",
+      "src/rendering/offroad/mx-machine-pose.ts": "361ad30ee2e7ae5a3c0202ae471c7423f0e0db14bf98639d390364d83403dc9e",
+      "src/rendering/offroad/mx-rider-pose.ts": "5d8e0e8b5f967d4c3dffaa19d44aa23a92baeef4eac7edf97c9909d914259668",
+      "src/rendering/snapshot-interpolation.ts": "b89dd3f952ac470279beb21884eb58cdf96c1f69a038cf14524285df0743d612",
+      "src/simulation/offroad/ai.ts": "c6b3279324d8f52c3d29208e466fb61862d63b800b4c89539f5515ebb3ec1a0e",
+      "src/simulation/offroad/air-drag.ts": "f9b4ffcfe58372c08fb2dabfacdea4a94dfe63902a6232b6889e7dbc6384846d",
+      "src/simulation/offroad/contact-impulse.ts": "7c33205a27a5e271ffc1569ca2785aac234e5f4165aa6fe1f920c783fdd685e6",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "e04318b7e4c6075d42a6c65cc04664a19e5425e20e50f49a1b1ad4f37084ea17",
+      "src/simulation/offroad/mx-gear-stroke.ts": "b2d6e6f437835bc52e9f55c43a6ee9e073e552314f6b9ae82d3d06adbbd5f91f",
+      "src/simulation/offroad/mx-ground-physics.ts": "f63a9f4389c27e191a8cd638774e7d5f2f35e60fd557d2285a9bdbbaab982c4d",
+      "src/simulation/offroad/mx-rider-posture.ts": "75974e3b93c60cb9f6574b99e8f6bf99280d76a625b5e44fcb06aa171795b6d6",
+      "src/simulation/offroad/rider-weight.ts": "5027085c4bb2b192d89a0368d56ca9296b34ed5130e936db0741eed30304ad96",
+      "src/simulation/protocol.ts": "eb17339446450136412f774ae2a38babcc45e7a3b2cafab638f70bf809047e0a",
+      "src/simulation/wheel-contact-state.ts": "a2e64a4b27d4d0d11c86697836e6487a616691a35bf8976cf866c60072a4077d",
+      "tests/motocross-air-drag.test.ts": "1af97f2545defc68fa37ea527fe0cf6db990c54fc583ce45b3c9e13bdf3bf0cb",
+      "tests/motocross-ballistic-timing.test.ts": "6300d40039ee9077d14ad54253bd231206fed8e5c1a9e50de07f887abcfd9d10",
+      "tests/motocross-body-transport.test.ts": "4817deb6d90228fef212d94e424dc3e18b2545631f4823719f059f6d6ac700a8",
+      "tests/motocross-camera-flight-origin.test.ts": "4f28295c2246ac79e9dbbb646dc6d0f067461aac2d04c9f4293553f554c4163b",
+      "tests/motocross-camera-motion-ramp.test.ts": "72a91abe7dfbac0a1e57fc8946289e8ab0d0fc5020842cea15f1c492640b9244",
+      "tests/motocross-camera-ramp.test.ts": "eb9c160eaa4eea46c9929722594380ae960d5b978c9136bbd919753d8313404a",
+      "tests/motocross-collision.test.ts": "79633e0b9f15025a2df0fe9292ace1a46038534501ffae3654e04855fcfd2b71",
+      "tests/motocross-contact-reset.test.ts": "231091b1c993d75bcb7f0327a3efe838ca332d921ae9adb69bb7f3bbe2a9ffe9",
+      "tests/motocross-contact-time-coherence.test.ts": "d72ff2eb23860efe58ee20e877cd83536ee7ad3ceb8f86b7fdc61d161d40243d",
+      "tests/motocross-contact-traction.test.ts": "b1164f229b06b52e9b8b1f20398d1c7e02db9a02c2fa7209cf0337efe9b2c958",
+      "tests/motocross-control-animation.test.ts": "d0b4536f360f0be7dcc3a5646727b26c4a8f6641b48d49ada7aec97f07fe74c0",
+      "tests/motocross-coupled-stops.test.ts": "4abe5041e84fe3ba048a5be873279e6cfdd182bf08fda3787bd40327bae2b4ed",
+      "tests/motocross-dynamic-suspension.test.ts": "1382e10b46d403b8ba5d208015983b1c8ed13111d6ccb78367afabdf8edb3207",
+      "tests/motocross-dynamics-replay.test.ts": "13a306ecbdc3a9e797eace449f53f0664b70a85232237e535576d37b87d8e23f",
+      "tests/motocross-foot-boundary.test.ts": "e69b8a8ed6a21468f730bf14bc8eb437e08b9155ac75414e0961897f085407e0",
+      "tests/motocross-foot-reconstruction.test.ts": "70a4d217607ea6e6ebc6c7e2764eea8ae9c691a7c36853e62bc8ab1c26b2ba65",
+      "tests/motocross-ground-passivity.test.ts": "9ba4a298e91241d43d0e9b85541a13138f00b00927ec11fae4dcf5d9e460916e",
+      "tests/motocross-hard-stop-integration.test.ts": "0d746a093c3c2a0ea98f46a3754a9b737cf7780b63fec52255e96521b316c496",
+      "tests/motocross-interrupted-shift-contact.test.ts": "5206cc50b3d6f60bbe32ca348e4f149277d1b47c5cd07ea46a025e80f2ad29b6",
+      "tests/motocross-joint-reversal.test.ts": "2d0c2f724ae2bd20f133ec310cf860aba14b0f1136b95eb262b9b9ddf8467683",
+      "tests/motocross-landing-observability.test.ts": "902757b3e337c52386c4568ca3d2cb7676e745cbffdcbd37fd413b56ebd66a46",
+      "tests/motocross-landing-prediction.test.ts": "c14c0b93cf40ed4f20a174d5126da9250a9c09d92e8bdc51c00a45b895d51dab",
+      "tests/motocross-live-pose-coherence.test.ts": "4816049da122be1d3cb43e8f9b872e0d059c721263699f01361cfeb831e6eb06",
+      "tests/motocross-machine-animation.test.ts": "21e2a94c436375e34f623070e36df3f71bb8541b516025f71b06783fa09e6f88",
+      "tests/motocross-motion-boundary.test.ts": "64f7bb33545a2a60946fc06f880329dbeff9a8991af04cb716fdcaf4901cffa9",
+      "tests/motocross-player-dynamics.test.ts": "2759f5f1537e2b119de31ca7baced665f8dbefb43a1499b90e0c1f1aad4d81e1",
+      "tests/motocross-posture-dynamics.test.ts": "8624ee36996dc4cd53b7f8878d081141eb081bc81a09b8ec3bce7302147ce39f",
+      "tests/motocross-posture-transport.test.ts": "5207e38abae19fda0730dccda6540c60affed3e641c78d8869425f0a2d2760b8",
+      "tests/motocross-rider-blending.test.ts": "7d3ddcf7ab1871322b22b866a7e900d2ecbf8cb157a229f7367bedb6434d7d66",
+      "tests/motocross-riding.test.ts": "f1d51d886210baadd8a85dd5b3828178b4954efca4a85b9108a91080c980f468",
+      "tests/motocross-shift-continuity.test.ts": "e4c7278808c3d16f94ed8ba7b647097b2eada28401e88230645f0518bfb2daf4",
+      "tests/motocross-shift-extrema.test.ts": "ce3f5ed0edc32e806509f2e34878d0f4f69f6cb562b2e32b85932e3a3a7cdecf",
+      "tests/motocross-shoulder-load-continuity.test.ts": "b8b414421d97c59e005723fb81f8ae4f756ae859a277efb79f01acfdf3754c21",
+      "tests/motocross-supported-convergence.test.ts": "2001116a772ad6fdfa1a014d065f8bcf2098a3e10b7562e9cc6b044909122138",
+      "tests/motocross-wheel-pickup.test.ts": "941e2688b1b2d1c2e466e50bec76b3eb2a505ea2871f2cb0751f2caf15493fc5",
+      "tests/session-identity.test.ts": "b67a9f6ecf288638e5b44d58e2205a6353cfa048a6cd683fe26709fb43f07b2c",
+      "tests/wheel-contact-recording.test.ts": "81b0aa15de2f84b18c57d278235554d8f25f10ee46eb5c3116ffd20d9ec184f7"
+    }
+  },
+  "current_file_checks": {
+    "a50_inputs": {
+      "files": 1734,
+      "mismatch": []
+    },
+    "a49_inputs": {
+      "files": 2710,
+      "mismatch": []
+    },
+    "root_final_oracle_inputs": {
+      "files": 2835,
+      "mismatch": []
+    },
+    "a51_protected": {
+      "files": 1772,
+      "mismatch": []
+    },
+    "a51_runtime": {
+      "files": 18,
+      "mismatch": []
+    },
+    "publication_paths": {
+      "files": 59,
+      "mismatch": []
+    }
+  },
+  "candidate_blob_checks": {
+    "a50_inputs": {
+      "tracked_files_checked": 1734,
+      "outside_git_tree": [],
+      "mismatch": []
+    },
+    "a49_inputs": {
+      "tracked_files_checked": 2708,
+      "outside_git_tree": [
+        "node_modules/three/src/renderers/shaders/ShaderChunk/lights_fragment_begin.glsl.js",
+        "node_modules/three/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js"
+      ],
+      "mismatch": []
+    },
+    "root_final_oracle_inputs": {
+      "tracked_files_checked": 2834,
+      "outside_git_tree": [
+        "browser-backend.json"
+      ],
+      "mismatch": []
+    },
+    "a51_protected": {
+      "tracked_files_checked": 1772,
+      "outside_git_tree": [],
+      "mismatch": []
+    },
+    "a51_runtime": {
+      "tracked_files_checked": 18,
+      "outside_git_tree": [],
+      "mismatch": []
+    },
+    "publication_paths": {
+      "tracked_files_checked": 59,
+      "outside_git_tree": [],
+      "mismatch": []
+    }
+  },
+  "critical_sha256": {
+    "vite.config.ts": "7cabe11545e6bca2cb6de84e4a2d0779011605573b7c99bbf8ae43f8417af629",
+    "package-lock.json": "610c1768c440c202a4e37f62d22467d4cbbddc44a5962e82bb256dcfb8627edf",
+    "package.json": "8b869eba1bd88baa34bf8544e4cf955e055806a2ea6e63d747f62168ad6e9436",
+    "index.html": "6247c948ffbaa20365a8727e0c91f4ad28500af65193b6daf8c81a785e1442a8",
+    "tsconfig.json": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9",
+    "eslint.config.js": "956ed25a88a217e85ac11629a119ad551de49c3721f3020510d648725fb000c8",
+    "scripts/vite-lazy-data.ts": "26592cad5d22c00586f18abe1462299bfccfd33003a6b3a83d2569aaa6fae404",
+    "scripts/ip-guard.mjs": "169ee313b1e7c127817302dff7025ff9cb21a2213ba24560cb2e27f554ef60e7",
+    "scripts/ip-denylist.mjs": "44ccbba8ade1babe878802953afb9ed709917c6343b63a365ff8b54c066cd8a2",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "e04318b7e4c6075d42a6c65cc04664a19e5425e20e50f49a1b1ad4f37084ea17",
+    "src/simulation/offroad/ai.ts": "c6b3279324d8f52c3d29208e466fb61862d63b800b4c89539f5515ebb3ec1a0e",
+    "src/simulation/offroad/mx-gear-stroke.ts": "b2d6e6f437835bc52e9f55c43a6ee9e073e552314f6b9ae82d3d06adbbd5f91f",
+    "src/rendering/offroad/chase-camera.ts": "248bfb44b7f083fc6abc1389e0af9fafcda13db96f0e97c23c70312949a36917",
+    "src/rendering/offroad/mx-machine-pose.ts": "361ad30ee2e7ae5a3c0202ae471c7423f0e0db14bf98639d390364d83403dc9e",
+    "src/rendering/bike.ts": "63363c3e43e471398a55267188a791a81bfb9c58fba7a85eb5d51cc59aeae748",
+    "tests/motocross-riding.test.ts": "f1d51d886210baadd8a85dd5b3828178b4954efca4a85b9108a91080c980f468",
+    "e2e/45-motocross-gameplay.spec.ts": "2a3ba790d17211402c41a212e0f98dd8e8225bf4956ff9d1ef0e06fdb7099be1",
+    "playwright.motocross.config.ts": "0102ddaa005afe284d49d3a49e4ac6bcd57e2f889fa40d6c1ce90400bff60734"
+  },
+  "receipt_sha256": {
+    "test-results/a50-final-native/build-identity.json": "13ccb05a514564f59db5c2c406dba604024911b9f2ba0ad5db4cc5789661f1fc",
+    "test-results/a50-final-native/build-before.json": "1da2af968cfd79d3b6721f3b09e52637eb363e7dc378c248dc22081970b00290",
+    "test-results/a50-final-native/build-after.json": "4840b19d1dd9dbeeb293ddbcef9e4d2b9877febacaf28ab366549c3d7cd05a7b",
+    "test-results/a50-final-native/build-command.json": "ffc11a9a887636cb38ccf7f635ff621a3156c309f8f42ad5a6bc0d33939db57b",
+    "test-results/a50-final-native/dist-manifest.json": "31f0cc6d0cfe9c2e15413e85a39b1a3cbd0c36c3f19db30fa28c34a2817e37fe",
+    "test-results/a50-final-native/dist-after-journey.json": "31f0cc6d0cfe9c2e15413e85a39b1a3cbd0c36c3f19db30fa28c34a2817e37fe",
+    "test-results/a50-final-native/journey-command.json": "d80912f17a878ba404ec7a28af19c21a3811a0a908dfc1f7ab5627e8c738d817",
+    "test-results/a50-final-native/summary.json": "f7c00dc74c85bb9ff01bf011de60600ce5cc6c31752cbc34f5c32fcb6341a7af",
+    "test-results/a50-final-native/crash-analysis.json": "bbcaf785058323ba8bb5d0d1ca99408c7f4f65b0ab33b172c3dd75c755049616",
+    "test-results/root-final-gates/receipt.json": "84ba6b9651b656107584ce3628bec83432bb8089b178502421911120ec04b0ab",
+    "test-results/root-final-gates/inputs-before.json": "a5cc0b8099db8d61eb0fdd59b7373a2a09ed2c418acbde9481a4cf82437d37bc",
+    "test-results/root-final-gates/inputs-after.json": "a5cc0b8099db8d61eb0fdd59b7373a2a09ed2c418acbde9481a4cf82437d37bc",
+    "test-results/root-final-oracle-gates/receipt.json": "b6110f425b0fe3dfa45ffe0ebaa1f57cef3c78662f1e4cd989f41b4e13c035db",
+    "test-results/root-final-oracle-gates/inputs-before.json": "8843c7097ca9b30c272c23579dd084a5e19c9a40a0b62c6ca90a1c2279ecb869",
+    "test-results/root-final-oracle-gates/inputs-after.json": "8843c7097ca9b30c272c23579dd084a5e19c9a40a0b62c6ca90a1c2279ecb869",
+    "/workspace/scratch/e91efca799c8/validation/final-units-a49/before.json": "aa104f9ef52fabe795277904cca99a51b0886bf9fc1ba8247119a2044d1d6b3f",
+    "/workspace/scratch/e91efca799c8/validation/final-units-a49/after.json": "d3541a614f45126d890ae52e175d6e1ddc4cc5dcd457a460534e426c87b2e0ef",
+    "/workspace/scratch/e91efca799c8/validation/final-units-a49/receipt.json": "95f23a3f0fac880d04cd9c0fb07ad96d3287f4e275639ff559be5fa8f1ed29d4",
+    "/workspace/scratch/e91efca799c8/validation/final-units-a49/summary.json": "4f4d4854acb989f190f1327a1d9a5f4c080fbba4a2da9072b3f61374ad8434ed",
+    "/workspace/scratch/e91efca799c8/validation/final-units-a49/selection-final.json": "e3185313203e22a5774a009a7ff7ef5f6f4fe273de2baa2796d2a4a630778a92",
+    "docs/engine/motocross-dynamics-2026-11-25/evidence/51-protected-scope.json": "c950ac1b4d5dc38707451ff8aeeed470b5f58b7515785a64abc9443bec228b4b",
+    "test-results/publication/source-inventory.json": "16025bf2af4a9dba6c0d1e404d4fce01597e2e54f6f903c9e3e6e48d53948dee",
+    "test-results/publication/staged-source-metadata.json": "de56cbfa5e342c0a139ab442e5473a1c98c004460576962821dd818caf8d5df7"
+  },
+  "native_status_at_audit": {
+    "build_exit_code": 0,
+    "completed_journey_exit_code": 1,
+    "screenshots": 10,
+    "failure": "page.evaluate: Target crashed",
+    "cause": "undetermined",
+    "acceptance": "pending after completed failing attempt",
+    "diagnostic_attempt_3_exists": false
+  },
+  "pending_final_reconciliation": [
+    "A52 complete eight-race matrix and calibration receipts",
+    "A50 isolated diagnostic result",
+    "actual published code commit and final documentation commit"
+  ],
+  "limits": [
+    "Vite content fingerprint excludes public, tests, most scripts, package.json, dependency installation bytes, and environment.",
+    "A50 input enumeration excludes scripts/ip-denylist.mjs imported by ip-guard; unchanged bytes are independently covered by root/A49 manifests and A51 baseline protection.",
+    "The installed dependency tree is not fully content-addressed by these receipts; package-lock and tool version metadata are captured.",
+    "This is precommit working-tree acceptance; neither commit:null nor retained output is to be relabeled as a future commit build.",
+    "Selected unit acceptance is not complete-repository CI; native final acceptance remains pending."
+  ],
+  "remote_tree_receipts": {
+    "observed_utc": "2026-11-25T20:20:38.561283+00:00",
+    "method": "Checked coordinator local GitHub create-tree receipt chain and path union; no independent live remote ref query.",
+    "batches": 6,
+    "path_count": 59,
+    "continuous_chain": true,
+    "final_tree": "b7f379a7aaea0f807b5623b2c981190c6d1a3a17",
+    "branch_updated_in_receipts": false,
+    "receipt_sha256": {
+      "test-results/publication/source-tree-batch-0.json": "d864105cd27f40e198a0a70b9789c6a711d33ad3ed7f62733c0b955c689f45ad",
+      "test-results/publication/source-tree-batch-1.json": "dcb50d813fb449620418da73ca32ada9964788ada44018d38a74c720aa63e323",
+      "test-results/publication/source-tree-batch-2.json": "76771dcccdd95ecc15ddab7e8fe5f93efc3eb53a1c5aaad29a98f41df7be305d",
+      "test-results/publication/source-tree-batch-3.json": "102b10ff7419f4d10a145c9db748247c740e9a16babe9bcba94ed214fc7380dc",
+      "test-results/publication/source-tree-batch-4.json": "234da1457c27e13ff4fdb558f5f1483a7d59839b4dc556f0c84d0e0cdeb4f8f0",
+      "test-results/publication/source-tree-batch-5.json": "44e5dd468e22cca8e62a288876412ac6508e31add17d02280b8cd4d97f1329b5"
+    }
+  },
+  "later_grid_receipt_observation": {
+    "observed_utc": "2026-11-25T20:20:38.561642+00:00",
+    "path": "/workspace/scratch/e91efca799c8/validation/a52-final-races/attempt-02/grid/receipt.json",
+    "sha256": "37c7cfc2cb8bcc33b652b8137ee53f50c29104cd2bc63b88699e7ef155fdcbfd",
+    "receipt": {
+      "mode": "grid",
+      "startedAt": "2026-11-25T20:13:55.890657+00:00",
+      "cwd": "/workspace/scratch/e91efca799c8/validation/a52-final-races/attempt-02/grid",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "/workspace/scratch/e91efca799c8/motobound-engine/scripts/offroad-races.ts",
+        "--mx-full-grid"
+      ],
+      "nodeVersion": "v24.22.3",
+      "offroadRaceFilterPresentBeforeRemoval": false,
+      "offroadRaceFilterEffective": null,
+      "inputCount": 1131,
+      "inputsBeforeSha256": "f365d1f69d7932707bb109522fbb6cf0e9d46b26f7a93f4965e0f904003ba6ab",
+      "finishedAt": "2026-11-25T20:18:33.308455+00:00",
+      "wallSeconds": 277.4178113170019,
+      "exitCode": 0,
+      "inputsAfterSha256": "f365d1f69d7932707bb109522fbb6cf0e9d46b26f7a93f4965e0f904003ba6ab",
+      "inputsUnchanged": true,
+      "reportPath": "/workspace/scratch/e91efca799c8/validation/a52-final-races/attempt-02/grid/test-results/motocross-full-grid.json",
+      "reportExists": true,
+      "reportSha256": "6c01d0ea8d27e04635f218be687b3c95cbd22e8e7bc12e703f8651fa31564cfa",
+      "failures": [],
+      "passed": true,
+      "raceCount": 8,
+      "races": [
+        {
+          "race": "valley-ridge-mx clear seed 60704",
+          "circuit": "valley-ridge-mx",
+          "weather": "clear",
+          "seed": 60704,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 201.41,
+          "wallSeconds": 29.4,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "totalCrashes": 2,
+          "worstRiderCrashes": 1,
+          "longestStopSeconds": 9.33,
+          "crashesPerRiderLap": 0.083,
+          "crashBound": 0.5,
+          "holeshot": 9,
+          "terrain": {
+            "cells": 50138,
+            "deepest": 0.03659113496541977,
+            "sequence": 4031504,
+            "wetness": 0,
+            "hash": "c81c6869"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "valley-ridge-mx clear seed 60705",
+          "circuit": "valley-ridge-mx",
+          "weather": "clear",
+          "seed": 60705,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 204.61,
+          "wallSeconds": 28.3,
+          "crashes": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "totalCrashes": 1,
+          "worstRiderCrashes": 1,
+          "longestStopSeconds": 9.83,
+          "crashesPerRiderLap": 0.042,
+          "crashBound": 0.5,
+          "holeshot": 9,
+          "terrain": {
+            "cells": 54354,
+            "deepest": 0.03588130325078964,
+            "sequence": 4104056,
+            "wetness": 0,
+            "hash": "9b8951b9"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "valley-ridge-mx rain seed 60709",
+          "circuit": "valley-ridge-mx",
+          "weather": "rain",
+          "seed": 60709,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 502.87,
+          "wallSeconds": 64.2,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "totalCrashes": 1,
+          "worstRiderCrashes": 1,
+          "longestStopSeconds": 13.66,
+          "crashesPerRiderLap": 0.042,
+          "crashBound": 0.5,
+          "holeshot": 8,
+          "terrain": {
+            "cells": 59100,
+            "deepest": 0.04654368758201599,
+            "sequence": 10672216,
+            "wetness": 0.6,
+            "hash": "c26dd4e5"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "valley-ridge-mx rain seed 60710",
+          "circuit": "valley-ridge-mx",
+          "weather": "rain",
+          "seed": 60710,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 474.52,
+          "wallSeconds": 59.6,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1
+          ],
+          "totalCrashes": 3,
+          "worstRiderCrashes": 1,
+          "longestStopSeconds": 13.37,
+          "crashesPerRiderLap": 0.125,
+          "crashBound": 0.5,
+          "holeshot": 8,
+          "terrain": {
+            "cells": 58973,
+            "deepest": 0.04438411816954613,
+            "sequence": 10034872,
+            "wetness": 0.6,
+            "hash": "dee593ac"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "arena-nord-sx clear seed 60724",
+          "circuit": "arena-nord-sx",
+          "weather": "clear",
+          "seed": 60724,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 228.85,
+          "wallSeconds": 24.7,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "totalCrashes": 1,
+          "worstRiderCrashes": 1,
+          "longestStopSeconds": 10.21,
+          "crashesPerRiderLap": 0.042,
+          "crashBound": 0.75,
+          "holeshot": 9,
+          "terrain": {
+            "cells": 35919,
+            "deepest": 0.011339734308421612,
+            "sequence": 4558864,
+            "wetness": 0,
+            "hash": "52241718"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "arena-nord-sx clear seed 60725",
+          "circuit": "arena-nord-sx",
+          "weather": "clear",
+          "seed": 60725,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 207.95,
+          "wallSeconds": 21.9,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "totalCrashes": 0,
+          "worstRiderCrashes": 0,
+          "longestStopSeconds": 14.6,
+          "crashesPerRiderLap": 0,
+          "crashBound": 0.75,
+          "holeshot": 9,
+          "terrain": {
+            "cells": 34818,
+            "deepest": 0.01139200758188963,
+            "sequence": 4114736,
+            "wetness": 0,
+            "hash": "1f2315a4"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "arena-nord-sx rain seed 60729",
+          "circuit": "arena-nord-sx",
+          "weather": "rain",
+          "seed": 60729,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 219.58,
+          "wallSeconds": 23.5,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "totalCrashes": 1,
+          "worstRiderCrashes": 1,
+          "longestStopSeconds": 10.75,
+          "crashesPerRiderLap": 0.042,
+          "crashBound": 0.75,
+          "holeshot": 9,
+          "terrain": {
+            "cells": 34978,
+            "deepest": 0.011338712647557259,
+            "sequence": 4393728,
+            "wetness": 0,
+            "hash": "e5782e4f"
+          },
+          "passed": true,
+          "failures": []
+        },
+        {
+          "race": "arena-nord-sx rain seed 60730",
+          "circuit": "arena-nord-sx",
+          "weather": "rain",
+          "seed": 60730,
+          "laps": 2,
+          "entrants": 12,
+          "classified": 12,
+          "retired": [],
+          "raceSeconds": 235.95,
+          "wallSeconds": 24.2,
+          "crashes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "totalCrashes": 0,
+          "worstRiderCrashes": 0,
+          "longestStopSeconds": 10.69,
+          "crashesPerRiderLap": 0,
+          "crashBound": 0.75,
+          "holeshot": 9,
+          "terrain": {
+            "cells": 34395,
+            "deepest": 0.011369501240551472,
+            "sequence": 4652664,
+            "wetness": 0,
+            "hash": "66cf883a"
+          },
+          "passed": true,
+          "failures": []
+        }
+      ]
+    },
+    "scope": "Command receipt inspected after original audit snapshot; A52 owns full race/calibration interpretation. Calibration and native final acceptance remain pending."
+  },
+  "pending_after_later_grid_receipt": [
+    "A52 final calibration receipt",
+    "A50 isolated native diagnostic result",
+    "Actual published code commit and final documentation commit"
+  ],
+  "later_calibration_receipt_observation": {
+    "observed_utc": "2026-11-25T20:21:54.214473+00:00",
+    "path": "/workspace/scratch/e91efca799c8/validation/a52-final-races/attempt-02/calibration/receipt.json",
+    "sha256": "963b86b8c296eefeaccdf5e9427993653d3aef93fe2fe564ef6f9dd9135ea608",
+    "receipt": {
+      "mode": "calibration",
+      "startedAt": "2026-11-25T20:18:40.475033+00:00",
+      "cwd": "/workspace/scratch/e91efca799c8/validation/a52-final-races/attempt-02/calibration",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "/workspace/scratch/e91efca799c8/motobound-engine/scripts/offroad-calibration.ts"
+      ],
+      "nodeVersion": "v24.22.3",
+      "offroadRaceFilterPresentBeforeRemoval": false,
+      "offroadRaceFilterEffective": null,
+      "inputCount": 1131,
+      "inputsBeforeSha256": "f365d1f69d7932707bb109522fbb6cf0e9d46b26f7a93f4965e0f904003ba6ab",
+      "finishedAt": "2026-11-25T20:18:43.732420+00:00",
+      "wallSeconds": 3.25739923799847,
+      "exitCode": 0,
+      "inputsAfterSha256": "f365d1f69d7932707bb109522fbb6cf0e9d46b26f7a93f4965e0f904003ba6ab",
+      "inputsUnchanged": true,
+      "reportPath": "/workspace/scratch/e91efca799c8/validation/a52-final-races/attempt-02/calibration/docs/offroad-calibration.json",
+      "reportExists": true,
+      "reportSha256": "962d469bfd818dbd2dd7fbc5b5e08df6a2bd463ecc614cf2e7892ea294bdd18a",
+      "failures": [],
+      "passed": true,
+      "jumpCount": 20,
+      "sixty": [
+        {
+          "machine": "mx450",
+          "seconds": 4.52916666666673,
+          "band": [
+            3.6,
+            5
+          ],
+          "crashes": 0
+        },
+        {
+          "machine": "mx250",
+          "seconds": 4.495833333333398,
+          "band": [
+            3.7,
+            5.2
+          ],
+          "crashes": 0
+        },
+        {
+          "machine": "sm450",
+          "seconds": 4.425000000000069,
+          "band": [
+            3.8,
+            5.6
+          ],
+          "crashes": 0
+        }
+      ]
+    },
+    "scope": "Completed command receipt inspected after original audit snapshot; A52 owns detailed scenario interpretation."
+  },
+  "pending_after_later_a52_receipts": [
+    "A50 isolated native diagnostic result",
+    "Actual published code commit and final documentation commit"
+  ]
+}
