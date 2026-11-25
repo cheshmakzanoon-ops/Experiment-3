@@ -1,255 +1,281 @@
-### owner-qa (2) (job 138979731319)
+### owner-qa (2) (job 138983002417)
 --- error digest (first 120 matching lines) ---
-608:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:54.8793210Z ##[error]The operation was canceled.
+620:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:47:33.9837315Z   ✘   3 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames (5.2m)
+624:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:47:33.9841762Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+638:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:53:18.5137858Z   ✘   4 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames (5.2m)
+642:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:53:18.5143465Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+661:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:59:40.3863895Z   ✘   6 e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change (3.6m)
+662:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:59:40.3894529Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+716:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:20:43.7964409Z   ✘  10 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day (10.2m)
+720:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:20:43.7969078Z Error: cdpSession.detach: Target page, context or browser has been closed
+748:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7483031Z Error: cdpSession.detach: Target page, context or browser has been closed
+751:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7486701Z   ✘  11 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night (10.2m)
+754:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8060927Z   1) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+758:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8062849Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+777:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8074191Z   2) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+781:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8075955Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+800:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8084429Z   3) e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change 
+802:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8085334Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+807:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8086476Z       92 |   expect(report.state).toBe('complete');
+808:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8086949Z       93 |   expect(report.summary.elapsedMs).toBeGreaterThanOrEqual(30000);
+809:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8087429Z     > 94 |   expect(report.rows.length).toBeGreaterThan(5);
+811:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8088187Z       95 |   expect(report.summary.averageDrawCalls).toBeGreaterThan(0);
+812:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8088671Z       96 |   expect(report.summary.visualAccepted).toBe(false);
+813:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8089129Z       97 |   expect(report.context.source).toMatch(/^[a-f0-9]{64}$/);
+826:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8094994Z   4) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ────────
+830:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8096268Z     Error: cdpSession.detach: Target page, context or browser has been closed
+852:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8105120Z   5) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ────
+856:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8106157Z     Error: cdpSession.detach: Target page, context or browser has been closed
+887:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:09.3156406Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7157432Z libxfixes3 set to manually installed.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7157777Z libxkbcommon0 is already the newest version (1.6.0-1build1).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7158154Z libxkbcommon0 set to manually installed.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7158505Z libxrandr2 is already the newest version (2:1.5.2-2build1).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7158854Z libxrandr2 set to manually installed.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7159203Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7159671Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7160157Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7160550Z libfontconfig1 set to manually installed.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7160986Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7161348Z libfreetype6 set to manually installed.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7161690Z fonts-liberation is already the newest version (1:2.1.5-3).
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7162092Z fonts-liberation set to manually installed.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7162469Z The following additional packages will be installed:
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7162938Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7163306Z Recommended packages:
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.7163580Z   fonts-ipafont-mincho fonts-tlwg-loma
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.9963526Z The following NEW packages will be installed:
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.9964348Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.9976656Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.9977661Z   xfonts-utils
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.9982434Z The following packages will be upgraded:
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:19.9989034Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.0165176Z 4 upgraded, 9 newly installed, 0 to remove and 70 not upgraded.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.0165921Z Need to get 32.1 MB of archives.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.0166610Z After this operation, 79.7 MB of additional disk space will be used.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.0167170Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.1157985Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.1884958Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.2397114Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.2624958Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.2940147Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.3519874Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.3680708Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.3857735Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.4057697Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.4791833Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.5027392Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.5162773Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:20.5337488Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.4770714Z Fetched 32.1 MB in 1s (60.3 MB/s)
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.5852489Z Selecting previously unselected package fonts-ipafont-gothic.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7638248Z (Reading database ... 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7638714Z (Reading database ... 5%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7639231Z (Reading database ... 10%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7639537Z (Reading database ... 15%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7639927Z (Reading database ... 20%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7640175Z (Reading database ... 25%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7640406Z (Reading database ... 30%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7640713Z (Reading database ... 35%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7640975Z (Reading database ... 40%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7641232Z (Reading database ... 45%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.7641474Z (Reading database ... 50%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:21.9085297Z (Reading database ... 55%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:22.4250648Z (Reading database ... 60%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:22.5971526Z (Reading database ... 65%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:22.7629949Z (Reading database ... 70%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:22.8770204Z (Reading database ... 75%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:23.1215084Z (Reading database ... 80%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:24.4598306Z (Reading database ... 85%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:25.9168043Z (Reading database ... 90%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.3343414Z (Reading database ... 95%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.3344516Z (Reading database ... 100%
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.3345642Z (Reading database ... 216720 files and directories currently installed.)
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.3388416Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.3467372Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.5451396Z Selecting previously unselected package fonts-freefont-ttf.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.5555490Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.5561413Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.6307174Z Selecting previously unselected package fonts-tlwg-loma-otf.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.6413604Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.6417926Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.6599666Z Selecting previously unselected package fonts-unifont.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.6704031Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.6709553Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.7720826Z Selecting previously unselected package fonts-wqy-zenhei.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.7825692Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:27.7909426Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.2122222Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.2244771Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.2938051Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.2960677Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.3257676Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.3272915Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.3582074Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.3597734Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.5126036Z Selecting previously unselected package xfonts-encodings.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.5237369Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.5240936Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.5437532Z Selecting previously unselected package xfonts-utils.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.5543167Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.5546780Z Unpacking xfonts-utils (1:7.7+6build3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.7435178Z Selecting previously unselected package xfonts-cyrillic.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.7540053Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.7545150Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.7755204Z Selecting previously unselected package xfonts-scalable.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.7859024Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.7863810Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8146952Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8162765Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8172487Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8224255Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8301416Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8312454Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8324208Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8335185Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8378832Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8388347Z Setting up fonts-unifont (1:15.1.01-1build1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8399197Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8410708Z Setting up xfonts-utils (1:7.7+6build3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8439178Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8691730Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:28.8890416Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:34.4815419Z Processing triggers for man-db (2.12.0-4build2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:34.4840426Z Not building database; man-db/auto-update is not 'true'.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:34.4851186Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4373415Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4374569Z Running kernel seems to be up-to-date.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4375074Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4375237Z No services need to be restarted.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4375392Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4375553Z No containers need to be restarted.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4376148Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4376308Z No user sessions are running outdated binaries.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4376761Z 
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:35.4377018Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:36.4147050Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:36.6239673Z |                                                                                |   0% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:36.8829501Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.0200729Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.1487335Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.2857026Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.4094452Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.5475856Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.6672035Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.7995304Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:37.9368355Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:38.0531877Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:40.7917663Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:40.7919197Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:40.9978702Z |                                                                                |   0% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.0518938Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.0769920Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1151676Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1160439Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1167376Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1308511Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1384613Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1425375Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1462167Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1558484Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1947490Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.1949333Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.4051540Z |                                                                                |   0% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.6194139Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.7446797Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.8327861Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.9019297Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:41.9821788Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:42.0635861Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:42.1266888Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:42.2071942Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:42.2997510Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:42.3699226Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-owner-qa (2)	Run npx playwright install --with-deps chromium	2026-11-25T04:34:43.8459439Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	﻿2026-11-25T04:34:43.9049237Z ##[group]Run npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=2/4
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9051419Z ^[[36;1mnpm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=2/4^[[0m
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9078071Z shell: /usr/bin/bash -e {0}
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9078432Z env:
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9078757Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9079056Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9079361Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9079614Z ##[endgroup]
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9780693Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9781428Z > apex-formula-laboratory@0.1.0 test:e2e
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9783202Z > playwright test e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=2/4
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:43.9784343Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:47.1284590Z Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:50.1143321Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:50.1144548Z Running 11 tests using 1 worker, shard 2 of 4
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:50.1144920Z 
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:34:50.6213805Z [browser-progress] START  >  > 14-phase27e.spec.ts > reference comparison UI requires a real capture and explicit reviewer without hiding original routes
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:02.2022026Z   ✓   1 e2e/14-phase27e.spec.ts:60:1 › reference comparison UI requires a real capture and explicit reviewer without hiding original routes (11.5s)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:02.2078597Z [browser-progress] START  >  > 14-phase27e.spec.ts > optional review video uses the real browser encoder and reports unsupported encoders explicitly
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:13.0227196Z   ✓   2 e2e/14-phase27e.spec.ts:113:1 › optional review video uses the real browser encoder and reports unsupported encoders explicitly (10.8s)
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:13.0237076Z [browser-progress] START  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:20.1213474Z [browser-progress] 7s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Create page
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:50.1498764Z [browser-progress] 37s  >  > 14-phase27e.spec.ts > full production renderer feeds real review metrics in wet day frames / Evaluate
-owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T04:35:54.8793210Z ##[error]The operation was canceled.
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-25T04:35:54.8938592Z ##[group]Run actions/upload-artifact@v4
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8939032Z with:
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8939327Z   name: owner-qa-2-of-4
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8939851Z   path: test-results/
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:25:52.1814659Z [browser-progress] 308s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Expect "toBe"
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:26:22.1959372Z [browser-progress] 338s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:26:52.2257192Z [browser-progress] 368s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:27:22.2589153Z [browser-progress] 398s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:27:52.2844464Z [browser-progress] 428s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="modalClose"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:28:22.3024715Z [browser-progress] 458s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'PHOTO STUDIO', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:28:52.3200230Z [browser-progress] 488s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'PHOTO STUDIO', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:29:22.3432705Z [browser-progress] 518s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'PHOTO STUDIO', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:29:52.3476418Z [browser-progress] 548s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:30:22.3787311Z [browser-progress] 578s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:30:52.3804452Z [browser-progress] 608s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Fixture "context"
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7478711Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7480095Z ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7481154Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7483031Z Error: cdpSession.detach: Target page, context or browser has been closed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7484133Z     at capture (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:27:19)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7485205Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:101:7
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.7486701Z   ✘  11 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night (10.2m)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8043208Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8049187Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8060927Z   1) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8061499Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8061861Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8062263Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8062849Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8063221Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8063397Z       145 |     const errors = await load(page);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8063935Z       146 |     await page.setViewportSize({ width: 960, height: 540 });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8064433Z     > 147 |     const result = await page.evaluate(
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8064810Z           |                               ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8065119Z       148 |       (night) =>
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8066052Z       149 |         (window as unknown as { Phase27E: typeof Fixture }).Phase27E.reviewRendererProbe(night),
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8066687Z       150 |       night,
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8067302Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8067914Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8068748Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8069621Z     test-results/14-phase27e-full-productio-65883-w-metrics-in-wet-day-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8070453Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8070646Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8071342Z         npx playwright show-trace test-results/14-phase27e-full-productio-65883-w-metrics-in-wet-day-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8071922Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8072863Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8073226Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8074191Z   2) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8075251Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8075501Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8075736Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8075955Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8076289Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8076448Z       145 |     const errors = await load(page);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8076927Z       146 |     await page.setViewportSize({ width: 960, height: 540 });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8077398Z     > 147 |     const result = await page.evaluate(
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8077764Z           |                               ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8078101Z       148 |       (night) =>
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8078660Z       149 |         (window as unknown as { Phase27E: typeof Fixture }).Phase27E.reviewRendererProbe(night),
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8079146Z       150 |       night,
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8079586Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8079937Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8080360Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8081194Z     test-results/14-phase27e-full-productio-5c4c3-metrics-in-wet-night-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8081667Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8081781Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8082230Z         npx playwright show-trace test-results/14-phase27e-full-productio-5c4c3-metrics-in-wet-night-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8082956Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8083332Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8083885Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8084429Z   3) e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8084896Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8085334Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8085741Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8085871Z     Expected: > ^[[32m5^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8086161Z     Received:   ^[[31m4^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8086309Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8086476Z       92 |   expect(report.state).toBe('complete');
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8086949Z       93 |   expect(report.summary.elapsedMs).toBeGreaterThanOrEqual(30000);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8087429Z     > 94 |   expect(report.rows.length).toBeGreaterThan(5);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8087782Z          |                              ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8088187Z       95 |   expect(report.summary.averageDrawCalls).toBeGreaterThan(0);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8088671Z       96 |   expect(report.summary.visualAccepted).toBe(false);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8089129Z       97 |   expect(report.context.source).toMatch(/^[a-f0-9]{64}$/);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8089693Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/15-review-journey.spec.ts:94:30
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8090049Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8090496Z     Error Context: test-results/15-review-journey-live-rev-1258a-s-on-a-real-viewport-change/error-context.md
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8090962Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8091363Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8092046Z     test-results/15-review-journey-live-rev-1258a-s-on-a-real-viewport-change/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8092835Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8092969Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8093409Z         npx playwright show-trace test-results/15-review-journey-live-rev-1258a-s-on-a-real-viewport-change/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8093892Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8094275Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8094584Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8094994Z   4) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8095363Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8095559Z     ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8095767Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8096268Z     Error: cdpSession.detach: Target page, context or browser has been closed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8096591Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8096946Z       25 |     await info.attach(name, { body: Buffer.from(shot.data, 'base64'), contentType: 'image/png' });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8097431Z       26 |   } finally {
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8097706Z     > 27 |     await session.detach();
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8098001Z          |                   ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8098244Z       28 |   }
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8098445Z       29 | }
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8098699Z       30 | for (const scenario of scenarios) {
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8099232Z         at capture (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:27:19)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8100033Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:101:7
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8100361Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8100775Z     Error Context: test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/error-context.md
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8101235Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8101646Z     attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8102312Z     test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8103044Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8103154Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8103590Z         npx playwright show-trace test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8104060Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8104416Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8104717Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8105120Z   5) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8105488Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8105677Z     ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8105891Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8106157Z     Error: cdpSession.detach: Target page, context or browser has been closed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8106477Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8106827Z       25 |     await info.attach(name, { body: Buffer.from(shot.data, 'base64'), contentType: 'image/png' });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8107302Z       26 |   } finally {
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8107579Z     > 27 |     await session.detach();
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8107876Z          |                   ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8108114Z       28 |   }
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8108322Z       29 | }
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8108575Z       30 | for (const scenario of scenarios) {
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8109099Z         at capture (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:27:19)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8109740Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:101:7
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8110058Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8110476Z     Error Context: test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/error-context.md
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8110928Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8111340Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8112196Z     test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8113004Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8113126Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8113581Z         npx playwright show-trace test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8114054Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8114456Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8114749Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8114975Z   Slow test file: e2e/15-review-journey.spec.ts (6.2m)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8115799Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8116288Z   5 failed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8116869Z     e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8117710Z     e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8118622Z     e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8119488Z     e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ─────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8120246Z     e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ─────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:08.8120701Z   6 passed (49.9m)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-25T05:31:09.3156406Z ##[error]Process completed with exit code 1.
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-25T05:31:09.3254478Z ##[group]Run actions/upload-artifact@v4
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3254805Z with:
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3255009Z   name: owner-qa-2-of-4
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3255410Z   path: test-results/
 owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
 owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
 owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
 owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8940456Z   retention-days: 7
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8940750Z   if-no-files-found: warn
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8941124Z   compression-level: 6
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8941436Z   overwrite: false
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8941855Z   include-hidden-files: false
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8942202Z env:
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8942478Z   APEX_BROWSER_BACKEND: swiftshader
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8942878Z   MOTOBOUND_SUPPLIED_PLAYER: 1
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8943282Z   MOTOBOUND_REVIEW_TOOLS: 1
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:54.8943618Z ##[endgroup]
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2408922Z (node:3431) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2427246Z (Use `node --trace-deprecation ...` to show where the warning was created)
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2777603Z Multiple search paths detected. Calculating the least common ancestor of all paths
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2779622Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2780445Z With the provided path, there will be 2 files uploaded
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2781151Z Artifact name is valid!
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.2781524Z Root directory input is valid!
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.8038021Z Beginning upload of artifact content to blob storage
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:55.8474017Z (node:3431) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.1850417Z Uploaded bytes 1016
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.2827804Z Finished uploading artifact content to blob storage!
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.2857521Z SHA256 digest of uploaded artifact zip is 703bbd2724a157800ce6599ee0afaef4191ee5f0464fec26e289065bf82a3f35
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.2886744Z Finalizing artifact upload
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.6778598Z Artifact owner-qa-2-of-4.zip successfully finalized. Artifact ID 14992131675
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.6819184Z Artifact owner-qa-2-of-4 has been successfully uploaded! Final size is 1016 bytes. Artifact ID is 14992131675
-owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T04:35:56.6837130Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45546801825/artifacts/14992131675
-owner-qa (2)	Post Run actions/checkout@v4	﻿2026-11-25T04:35:56.7153326Z Post job cleanup.
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9037825Z [command]/usr/bin/git version
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9107298Z git version 2.56.1
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9357615Z Temporarily overriding HOME='/home/runner/work/_temp/81017daf-beb6-41f9-b503-024e1cf08751' before making global git config changes
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9387444Z Adding repository directory to the temporary git global config as a safe directory
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9427588Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9528060Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:56.9697374Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:57.0217721Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:57.0274010Z http.https://github.com/.extraheader
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:57.0407309Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:57.0467823Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:57.1147257Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T04:35:57.1247855Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-owner-qa (2)	Complete job	﻿2026-11-25T04:35:57.2241077Z Cleaning up orphan processes
-owner-qa (2)	Complete job	2026-11-25T04:35:57.2819070Z Terminate orphan process: pid (3171) (npm run test:e2)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.2856947Z Terminate orphan process: pid (3182) (sh)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.2892116Z Terminate orphan process: pid (3183) (node)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3101573Z Terminate orphan process: pid (3199) (sh)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3196155Z Terminate orphan process: pid (3200) (npm run preview --port 4173)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3224172Z Terminate orphan process: pid (3211) (sh)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3249754Z Terminate orphan process: pid (3212) (node)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3279309Z Terminate orphan process: pid (3220) (esbuild)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3310185Z Terminate orphan process: pid (3305) (node)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3338486Z Terminate orphan process: pid (3318) (headless_shell)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3378961Z Terminate orphan process: pid (3373) (esbuild)
-owner-qa (2)	Complete job	2026-11-25T04:35:57.3504966Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3255856Z   retention-days: 7
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3256075Z   if-no-files-found: warn
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3256312Z   compression-level: 6
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3256538Z   overwrite: false
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3256752Z   include-hidden-files: false
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3256986Z env:
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3257183Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3257454Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3257705Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.3257935Z ##[endgroup]
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5194876Z (node:4496) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5195884Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5427621Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5430830Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5431994Z With the provided path, there will be 55 files uploaded
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5438231Z Artifact name is valid!
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:09.5440028Z Root directory input is valid!
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:10.0865527Z Beginning upload of artifact content to blob storage
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:10.3787702Z (node:4496) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:11.3962696Z Uploaded bytes 8388608
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:11.5463533Z Uploaded bytes 16777216
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:11.7241336Z Uploaded bytes 25165824
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:11.8823133Z Uploaded bytes 33554432
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:11.9948228Z Uploaded bytes 41943040
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:12.2213577Z Uploaded bytes 50331648
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:12.3085182Z Uploaded bytes 58720256
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:12.6391384Z Uploaded bytes 67108864
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:12.8816015Z Uploaded bytes 75497472
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:13.0785500Z Uploaded bytes 83886080
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:13.3511940Z Uploaded bytes 92274688
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:13.6045799Z Uploaded bytes 100663296
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:13.9251760Z Uploaded bytes 109051904
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:14.1505558Z Uploaded bytes 117440512
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:14.4021957Z Uploaded bytes 125829120
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:14.6564968Z Uploaded bytes 134217728
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:14.8361188Z Uploaded bytes 142606336
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:15.1646504Z Uploaded bytes 150994944
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:15.4380884Z Uploaded bytes 159383552
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:15.6283680Z Uploaded bytes 167772160
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:16.0158264Z Uploaded bytes 176160768
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:16.0783197Z Uploaded bytes 184549376
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:16.3775386Z Uploaded bytes 192937984
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:16.5953371Z Uploaded bytes 201326592
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:16.8472748Z Uploaded bytes 209715200
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:17.1275654Z Uploaded bytes 218103808
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:17.4218397Z Uploaded bytes 226492416
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:17.8010186Z Uploaded bytes 234881024
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:17.9402989Z Uploaded bytes 243269632
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:18.2344508Z Uploaded bytes 251658240
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:18.5463606Z Uploaded bytes 260046848
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:18.7716160Z Uploaded bytes 268435456
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:19.1442884Z Uploaded bytes 276824064
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:19.4154213Z Uploaded bytes 285212672
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:19.7716110Z Uploaded bytes 293601280
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:20.0273724Z Uploaded bytes 301989888
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:20.2432822Z Uploaded bytes 310378496
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:20.5410050Z Uploaded bytes 318767104
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:20.7875240Z Uploaded bytes 327155712
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:21.0402625Z Uploaded bytes 335544320
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:21.3840485Z Uploaded bytes 343932928
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:21.6916745Z Uploaded bytes 352321536
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:21.9209760Z Uploaded bytes 360710144
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.0971789Z Uploaded bytes 369098752
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.3696081Z Uploaded bytes 377487360
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.6191420Z Uploaded bytes 385875968
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.7500907Z Uploaded bytes 387701037
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.8361439Z Finished uploading artifact content to blob storage!
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.8364729Z SHA256 digest of uploaded artifact zip is 44af2dd30d4e8bc32e320fbeb6712617fbaf35843913b6b5a64c14953354001d
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:22.8367272Z Finalizing artifact upload
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:23.3824196Z Artifact owner-qa-2-of-4.zip successfully finalized. Artifact ID 14995165816
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:23.3825511Z Artifact owner-qa-2-of-4 has been successfully uploaded! Final size is 387701037 bytes. Artifact ID is 14995165816
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-25T05:31:23.3833070Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45547850446/artifacts/14995165816
+owner-qa (2)	Post Run actions/checkout@v4	﻿2026-11-25T05:31:23.4168445Z Post job cleanup.
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5133464Z [command]/usr/bin/git version
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5184974Z git version 2.56.1
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5230370Z Temporarily overriding HOME='/home/runner/work/_temp/eea9936b-cbcc-418f-b08b-53d42dfd02d5' before making global git config changes
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5232173Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5238120Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5294892Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5345064Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5707397Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5750812Z http.https://github.com/.extraheader
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5769023Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.5821931Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.6174516Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-25T05:31:23.6221781Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (2)	Complete job	﻿2026-11-25T05:31:23.6747548Z Cleaning up orphan processes
+owner-qa (2)	Complete job	2026-11-25T05:31:23.7274960Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
