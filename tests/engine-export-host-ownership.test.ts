@@ -105,6 +105,7 @@ function fixture(locked: string | null = null) {
     loadFestivalModule: load,
     demoSessionLock: () => locked,
     crypto: { randomUUID: () => 'session-id' },
+    resolveLighting: () => 'day',
     t: (text: string) => text,
     console: { error: vi.fn() },
   };
@@ -115,6 +116,7 @@ function fixture(locked: string | null = null) {
     generation: 7,
     disposed: false,
     errorStopped: false,
+    state: 'menu',
     exporting: false,
     telemetry: new TelemetryRecorder(1),
     exporter: new TelemetryExport(),
@@ -135,7 +137,7 @@ function fixture(locked: string | null = null) {
     input: { setEnabled: vi.fn() },
     rumble: { stop: vi.fn() },
     audio: { stop: vi.fn() },
-    ui: { toast, error },
+    ui: { toast, error, showMode: vi.fn(), loading: vi.fn(), loadingScene: vi.fn() },
   });
   cleanups.push(() => {
     host.exporter.cancel();

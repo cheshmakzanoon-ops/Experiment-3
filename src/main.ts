@@ -1004,6 +1004,9 @@ export class GameApp {
       this.errorStopped ||
       this.festival ||
       this.festivalStarting ||
+      this.circuitStartup ||
+      this.savingSettings ||
+      (this.state !== 'menu' && this.state !== 'results') ||
       !this.renderer ||
       !this.canvas
     )
@@ -1015,15 +1018,26 @@ export class GameApp {
     }
     const renderer = this.renderer;
     const canvas = this.canvas;
+    const circuitState = this.state;
+    let restored = false;
     // Each festival session has its own identity: results carry run ids
     // under it, and the career pays each run once.
     const session = crypto.randomUUID();
     await this.festivalOwner.start({
       load: () => {
+        // The owner is acquired synchronously, before the lazy module fetch.
+        // Its circuit backdrop stays idle and cannot be replaced or prepared.
+        this.state = 'loading';
+        this.input.setEnabled(false);
+        this.ui.showMode('loading');
+        this.ui.loading('Building the Solvane festival region…');
         // The Festival now owns startup; retire any circuit CSV still in flight.
         this.exporter.cancel();
         // The festival opens in the player's LIGHT choice (AUTO is daylight there).
         this.applyLight(null, false);
+        this.ui.loadingScene(options, {
+          night: resolveLighting(this.lightChoice, false, renderer.lighting) === 'night',
+        });
         this.career.beginFestival({
           career: !!career,
           loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null,
@@ -1031,10 +1045,6 @@ export class GameApp {
         return import('./session/free-roam.ts');
       },
       create: ({ FestivalSession, FESTIVAL_SAVE_KEY }, startup) => {
-        this.ui.showMode('loading');
-        this.ui.loadingScene(options, {
-          night: resolveLighting(this.lightChoice, false, renderer.lighting) === 'night',
-        });
         return FestivalSession.start(
           {
             canvas,
@@ -1090,6 +1100,8 @@ export class GameApp {
         );
       },
       ready: (festival) => {
+        // Festival owns frame/input dispatch; retain the parked circuit's state.
+        this.state = circuitState;
         this.input.setEnabled(festival.drivingInputEnabled);
         // The launch button may remain focused after its screen is hidden.
         // Widgets retain their keys, so release it only when driving takes over.
@@ -1097,7 +1109,15 @@ export class GameApp {
         this.beginDemoClock();
         emitSessionStarted(options, 'festival');
       },
-      failed: () => this.exitFestival(),
+      failed: () => {
+        this.exitFestival();
+        restored = !this.disposed && !this.errorStopped;
+      },
+    }).catch((error: unknown) => {
+      // A failed import/start is recoverable only after shared presentation was
+      // restored. Failed cleanup and terminal host errors still reach fail().
+      if (!restored || this.disposed || this.errorStopped) throw error;
+      this.ui.toast(error instanceof Error ? error.message : String(error));
     });
   }
   /** Steam demo: the coast visit is timed (src/release/demo.ts). Nothing happens in the full game. */
@@ -1195,7 +1215,7 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
-    if (this.disposed || this.errorStopped) return;
+    if (this.disposed || this.errorStopped || this.festival || this.festivalStarting) return;
     // Steam demo: whichever door the session came through (paddock form, CONTINUE, career,
     // Wildcard board, meeting), content outside the slice stops here.
     const locked = demoSessionLock(options, career?.event?.key ?? null);
@@ -3446,7 +3466,16 @@ export class GameApp {
     return setupContext(inSession, this.options.vehicles, this.career.sessionSetup());
   }
   private async applySettings(settings: Settings) {
-    if (this.savingSettings || this.disposed || this.errorStopped) return;
+    if (
+      this.savingSettings ||
+      this.disposed ||
+      this.errorStopped ||
+      this.circuitStartup ||
+      this.state === 'loading' ||
+      this.festival ||
+      this.festivalStarting
+    )
+      return;
     const form = document.querySelector<HTMLFormElement>('#settingsForm');
     const submit = form?.querySelector<HTMLButtonElement>('[type="submit"]');
     const renderer = this.renderer;

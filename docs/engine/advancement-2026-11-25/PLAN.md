@@ -15,7 +15,9 @@ not run. The final scope check compares all changed paths with this baseline.
 ## Execution and acceptance
 
 The requested sixty distinct agent assignments are organized as ten waves of six.
-Three workers run alongside the coordinator, so each wave uses two batches.
+Three workers run alongside the coordinator, so each wave uses groups of at most
+three. Independent work may begin while the last assignment in the preceding
+wave finishes; ownership of each production file is handed over sequentially.
 The coordinator owns integration, Git commits and non-force publication to `main`.
 Workers have explicit file ownership; audit and verification assignments are
 identified separately from implementation work. Only actually started assignments
@@ -51,3 +53,9 @@ Optimizations preserve output and ordering unless an intentional engine contract
 change is documented. Existing unrelated failures remain visible. Native-browser,
 software-renderer and physical-hardware evidence are distinguished. No physical
 hardware result is claimed from this environment.
+
+The local Chromium capability check is blocked before browser startup by the
+execution environment's socket policy. Native-browser acceptance therefore runs
+in the repository's existing GitHub engine workflow, with its normal backend
+identity and evidence capture. Local deterministic fixtures are not labeled as
+native-browser results.

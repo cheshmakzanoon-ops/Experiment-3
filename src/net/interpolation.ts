@@ -32,6 +32,37 @@ export class ServerClock {
   }
 }
 
+/** Remote presentation follows the arrival clock minus its jitter-buffer delay.
+ * That target can step in either direction when a clock anchor expires or a
+ * faster snapshot arrives. Correct at most a quarter tick per elapsed tick:
+ * playback stays between 0.75x and 1.25x, so it cannot rewind or freeze, and a
+ * fixed target offset is recovered in at most four times its duration.
+ * This is deliberately separate from the raw clock used to schedule inputs. */
+export class PresentationClock {
+  private localMs: number | null = null;
+  private tick = 0;
+  reset() {
+    this.localMs = null;
+    this.tick = 0;
+  }
+  sample(localMs: number, targetTick: number) {
+    // A view before the first snapshot must not seed the clock with -Infinity.
+    if (!Number.isFinite(targetTick)) return targetTick;
+    if (this.localMs === null) {
+      this.localMs = localMs;
+      this.tick = targetTick;
+      return this.tick;
+    }
+    const elapsed = Math.max(0, localMs - this.localMs) / TICK_MS,
+      predicted = this.tick + elapsed,
+      budget = elapsed * 0.25;
+    // Repeated reads at one instant cannot spend more correction budget.
+    this.localMs = Math.max(this.localMs, localMs);
+    this.tick = predicted + Math.max(-budget, Math.min(budget, targetTick - predicted));
+    return this.tick;
+  }
+}
+
 /** Copy the scalar wire-state contract, including accessor-backed callers,
  * without retaining unrelated caller-owned properties. */
 function copyRemoteState(state: CarNetState): CarNetState {
@@ -179,8 +210,8 @@ function slerp(a: Pose, b: Pose, u: number) {
 
 /** Adaptive interpolation delay (jitter buffer): two snapshot intervals, so
  * one lost snapshot is bridged by interpolation, plus twice the measured
- * arrival jitter. The delay moves by at most half a tick per update, so the
- * remote clock never visibly jumps. */
+ * arrival jitter. Its target delay moves by at most half a tick per update;
+ * PresentationClock separately bounds the resulting remote playback rate. */
 export class JitterBuffer {
   delayTicks = 2 * TICKS_PER_SNAPSHOT;
   update(clock: ServerClock) {

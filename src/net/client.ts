@@ -16,7 +16,7 @@ import {
 import type { EventLoop } from './event-loop.ts';
 import { joinIdentity, identityMismatch } from './identity.ts';
 import { CLIENT_COMMAND_HISTORY_TICKS, ClientCommandLog, sanitizeControls } from './input.ts';
-import { JitterBuffer, RemoteCarTrack, ServerClock } from './interpolation.ts';
+import { JitterBuffer, PresentationClock, RemoteCarTrack, ServerClock } from './interpolation.ts';
 import type { GridEntry, LobbyView, RaceEvent, RaceResults, ServerControl } from './messages.ts';
 import { LocalCarPredictor, type Pose, type PredictorOptions } from './prediction.ts';
 import { MetricSamples, type SampleStats } from './metric-samples.ts';
@@ -126,6 +126,7 @@ export class RaceClient {
   readonly commands: ClientCommandLog;
   readonly clock = new ServerClock();
   readonly jitter = new JitterBuffer();
+  private readonly presentation = new PresentationClock();
   readonly predictor: LocalCarPredictor;
   readonly remotes = new Map<number, RemoteCarTrack>();
   private readonly metricSamples = new MetricSamples<ClientMetric>([
@@ -386,6 +387,7 @@ export class RaceClient {
     }
     this.state = message.events ? 'race' : 'grid';
     this.stopRaceTimers();
+    this.presentation.reset();
     const loop = this.config.loop;
     this.timers = [
       loop.every(1000 / CADENCE.inputSampleHz, () => this.sample()),
@@ -517,7 +519,10 @@ export class RaceClient {
               kind: 'predicted' as const,
             }
           : null,
-      renderTick = this.clock.arrivalTick(now) - this.jitter.delayTicks,
+      renderTick = this.presentation.sample(
+        now,
+        this.clock.arrivalTick(now) - this.jitter.delayTicks,
+      ),
       remotes: RenderedCar[] = [];
     for (const [car, track] of this.remotes) {
       const sample = track.sample(renderTick);
