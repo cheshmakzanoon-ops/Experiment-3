@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "sourceCommit": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+  "sourceTree": "cf9fded4f2bd81567858d5d1e19f873ebd293754",
+  "baseline": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+  "workflowRun": 45647350422,
+  "job": 139321807542,
+  "runAttempt": 1,
+  "lint": "passed",
+  "units": {
+    "passed": 1351,
+    "failed": 0,
+    "files": 95,
+    "retries": 0
+  },
+  "baselineProbes": [
+    {
+      "probe": "codec",
+      "status": "passed",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249"
+    },
+    {
+      "probe": "lane-cache-actual-git-baseline",
+      "status": "passed",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249"
+    },
+    {
+      "probe": "server-input-queue",
+      "status": "passed",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249"
+    },
+    {
+      "probe": "radio",
+      "status": "passed",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249"
+    },
+    {
+      "probe": "whole-simulation-composition",
+      "status": "pass",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249"
+    },
+    {
+      "probe": "surface-thermal",
+      "status": "passed",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249"
+    }
+  ],
+  "typecheck": "passed",
+  "viteBuild": "passed",
+  "native": {
+    "passed": 60,
+    "failed": 0,
+    "workers": 1,
+    "retries": 0,
+    "reportedDuration": "3.0m",
+    "backend": "Mesa llvmpipe software rendering"
+  },
+  "desktopServiceDigestChecks": {
+    "beforeNative": "OK",
+    "afterNative": "OK"
+  },
+  "artifact": {
+    "id": 15039007572,
+    "bytes": 1388869,
+    "sha256": "1b4cdb12aa288b6874957d75bf9960ba59a0740e6df55d3cf74ae2a053fcfaf3",
+    "metadataSource": "Actual upload log; independent reviewer also checked artifact API. ZIP was not downloaded or inspected."
+  },
+  "evidence": {
+    "log": "hosted-job.log",
+    "logNormalization": "ANSI escapes and line-leading timestamps removed; other command/output text retained",
+    "normalizedLogCharacters": 200174,
+    "probes": "probes.json"
+  },
+  "limitations": [
+    "Focused engine gate, not a complete repository-wide green result",
+    "Historical target modules substituted into the same candidate dependency graph",
+    "Native desktop composition uses real IndexedDB/file service through a Playwright binding, not Electron IPC",
+    "Offline native audio and software graphics do not establish hardware FPS, power or physical-device behavior",
+    "Full Simulation differential covers one simulated second per weather preset"
+  ]
+}

@@ -1,0 +1,3861 @@
+[
+  {
+    "probe": "codec",
+    "schemaVersion": 1,
+    "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "status": "passed",
+    "scope": "Codec encoding only; all dependencies except bytes.ts and codec.ts use the candidate checkout.",
+    "provenance": {
+      "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+      "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+      "candidateTrackedState": "clean",
+      "candidateTrackedChanges": [],
+      "candidateTrackedStatusScope": [
+        "src",
+        "scripts/engine-runtime-probes",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json"
+      ],
+      "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+      "nodeVersion": "v22.23.5",
+      "esbuildVersion": "0.25.12",
+      "entrySha256": "6eaa98a7e9a739b303615bf7784f3960a7a7d271a563c75defe477c002535e8a",
+      "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+      "files": [
+        {
+          "path": "src/net/bytes.ts",
+          "baselineSha256": "bf2235040d7700183705c94c3e8810eb25702247c8ba7fbde70edc60da8c323d",
+          "candidateSha256": "39273b9303322f7156cc0d1141f644ad6cd616f8b98394c2344575cc6dfcfdd0",
+          "baselineBytes": 5757,
+          "candidateBytes": 6469
+        },
+        {
+          "path": "src/net/codec.ts",
+          "baselineSha256": "3b1e8185691a6c9e63fbacfdfb59af2e691aed8e255c7d645c92c708da97a79a",
+          "candidateSha256": "ec7cd132cae7622d2e713eab15e035d88f58f3c90bccd8c939de8f8be3197a18",
+          "baselineBytes": 8086,
+          "candidateBytes": 8388
+        }
+      ],
+      "bundles": {
+        "baselineSha256": "03b7a6df44b7f41ad1d26981b4fefb3fcd940bfabaa34a25e48546e39aafcfee",
+        "candidateSha256": "472fcca80381cba5f58c530ff2824a4eabe4a8ea69134078f0c5dd5dca8d1e4c"
+      }
+    },
+    "correctness": {
+      "inputCases": 51,
+      "ordinarySnapshotCases": 396,
+      "preparedBoundaries": 96,
+      "preparedRecipients": 1584,
+      "inputCountRange": [
+        0,
+        16
+      ],
+      "snapshotCountRange": [
+        0,
+        32
+      ],
+      "fullPatterns": [
+        "none",
+        "last",
+        "alternating",
+        "all"
+      ],
+      "seeds": 3,
+      "reference": "Actual baseline encodeInput/encodeSnapshot; prepared outputs also match baseline ordinary encoding.",
+      "ownership": "Exact backing lengths, retained packets, source independence, peer independence, whole-buffer transfer, writer reuse."
+    },
+    "timings": {
+      "elapsedMs": 637.12535,
+      "warmupPairs": 3,
+      "measuredPairs": 7,
+      "timer": "performance.now(), sequential alternating order within each pair",
+      "includes": "Encoding, prepared-car work once per prepared boundary, and output checksum reads.",
+      "excludes": "Bundling, fixtures, assertions, ownership checks, copy/backing instrumentation.",
+      "workBound": "8000 input packets, 600 ordinary boundaries, or 180 prepared boundaries per sample; no adaptive expansion.",
+      "timingPassCriteria": null,
+      "results": [
+        {
+          "name": "input-2",
+          "iterationsPerSample": 8000,
+          "packetsPerIteration": 1,
+          "warmups": [
+            {
+              "index": 0,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 7.612483000000111,
+              "candidateMs": 11.074210999999877,
+              "candidateOverBaseline": 1.4547436099364315,
+              "checksum": 984000
+            },
+            {
+              "index": 1,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 10.852934000000005,
+              "candidateMs": 3.956870000000208,
+              "candidateOverBaseline": 0.3645898887803249,
+              "checksum": 984000
+            },
+            {
+              "index": 2,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.0254580000000715,
+              "candidateMs": 2.7928479999998217,
+              "candidateOverBaseline": 0.9231157728845536,
+              "checksum": 984000
+            }
+          ],
+          "pairs": [
+            {
+              "index": 3,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.732363000000078,
+              "candidateMs": 2.916881999999987,
+              "candidateOverBaseline": 0.6163690317078253,
+              "checksum": 984000
+            },
+            {
+              "index": 4,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 2.8499249999999847,
+              "candidateMs": 2.784840000000031,
+              "candidateOverBaseline": 0.9771625569094085,
+              "checksum": 984000
+            },
+            {
+              "index": 5,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.988247000000001,
+              "candidateMs": 3.1237270000001445,
+              "candidateOverBaseline": 0.6262173865889448,
+              "checksum": 984000
+            },
+            {
+              "index": 6,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.3120870000000195,
+              "candidateMs": 3.0814399999999296,
+              "candidateOverBaseline": 0.9303620345721327,
+              "checksum": 984000
+            },
+            {
+              "index": 7,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.8831149999998615,
+              "candidateMs": 3.339568999999983,
+              "candidateOverBaseline": 0.6839013621428285,
+              "checksum": 984000
+            },
+            {
+              "index": 8,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.201994999999897,
+              "candidateMs": 3.0044209999998657,
+              "candidateOverBaseline": 0.938296593217654,
+              "checksum": 984000
+            },
+            {
+              "index": 9,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 12.91158100000007,
+              "candidateMs": 3.255909999999858,
+              "candidateOverBaseline": 0.2521697381598613,
+              "checksum": 984000
+            }
+          ],
+          "baselineMedianMs": 4.732363000000078,
+          "candidateMedianMs": 3.0814399999999296,
+          "medianPairedRatio": 0.6839013621428285,
+          "ratioOfMedians": 0.6511419348008339
+        },
+        {
+          "name": "input-4",
+          "iterationsPerSample": 8000,
+          "packetsPerIteration": 1,
+          "warmups": [
+            {
+              "index": 0,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 3.7319829999999,
+              "candidateMs": 3.9723569999998745,
+              "candidateOverBaseline": 1.064409189430922,
+              "checksum": 2496000
+            },
+            {
+              "index": 1,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 4.969769999999926,
+              "candidateMs": 4.194866999999931,
+              "candidateOverBaseline": 0.8440766876535521,
+              "checksum": 2496000
+            },
+            {
+              "index": 2,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.180976000000101,
+              "candidateMs": 4.138654000000088,
+              "candidateOverBaseline": 0.9898774831522563,
+              "checksum": 2496000
+            }
+          ],
+          "pairs": [
+            {
+              "index": 3,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 6.04340000000002,
+              "candidateMs": 4.301676999999927,
+              "candidateOverBaseline": 0.7117974980970833,
+              "checksum": 2496000
+            },
+            {
+              "index": 4,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.189847999999984,
+              "candidateMs": 4.1202529999998205,
+              "candidateOverBaseline": 0.9833896122245572,
+              "checksum": 2496000
+            },
+            {
+              "index": 5,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 12.305756999999858,
+              "candidateMs": 4.338973000000124,
+              "candidateOverBaseline": 0.352596999924521,
+              "checksum": 2496000
+            },
+            {
+              "index": 6,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.926193000000012,
+              "candidateMs": 4.289498999999978,
+              "candidateOverBaseline": 0.8707533383283943,
+              "checksum": 2496000
+            },
+            {
+              "index": 7,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 7.393751000000066,
+              "candidateMs": 4.410820000000058,
+              "candidateOverBaseline": 0.5965605279377164,
+              "checksum": 2496000
+            },
+            {
+              "index": 8,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 12.092316999999866,
+              "candidateMs": 4.080935999999838,
+              "candidateOverBaseline": 0.33748172496634704,
+              "checksum": 2496000
+            },
+            {
+              "index": 9,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 5.204408999999941,
+              "candidateMs": 4.4366090000000895,
+              "candidateOverBaseline": 0.8524712412110845,
+              "checksum": 2496000
+            }
+          ],
+          "baselineMedianMs": 6.04340000000002,
+          "candidateMedianMs": 4.301676999999927,
+          "medianPairedRatio": 0.7117974980970833,
+          "ratioOfMedians": 0.7117974980970833
+        },
+        {
+          "name": "input-12",
+          "iterationsPerSample": 8000,
+          "packetsPerIteration": 1,
+          "warmups": [
+            {
+              "index": 0,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 11.438377000000173,
+              "candidateMs": 26.53421400000002,
+              "candidateOverBaseline": 2.3197534055749007,
+              "checksum": 3104000
+            },
+            {
+              "index": 1,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 8.538635999999997,
+              "candidateMs": 8.580714000000171,
+              "candidateOverBaseline": 1.0049279533640003,
+              "checksum": 3104000
+            },
+            {
+              "index": 2,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 9.42215299999998,
+              "candidateMs": 15.117442999999867,
+              "candidateOverBaseline": 1.6044573888791551,
+              "checksum": 3104000
+            }
+          ],
+          "pairs": [
+            {
+              "index": 3,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 8.434420000000046,
+              "candidateMs": 7.255566000000044,
+              "candidateOverBaseline": 0.8602329502206442,
+              "checksum": 3104000
+            },
+            {
+              "index": 4,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 8.244366000000127,
+              "candidateMs": 14.460935999999947,
+              "candidateOverBaseline": 1.7540385761621602,
+              "checksum": 3104000
+            },
+            {
+              "index": 5,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 14.557096000000001,
+              "candidateMs": 14.861957999999959,
+              "candidateOverBaseline": 1.0209425011691864,
+              "checksum": 3104000
+            },
+            {
+              "index": 6,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 9.02626599999985,
+              "candidateMs": 14.582750000000033,
+              "candidateOverBaseline": 1.6155905443070562,
+              "checksum": 3104000
+            },
+            {
+              "index": 7,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 9.954281000000037,
+              "candidateMs": 14.685621000000083,
+              "candidateOverBaseline": 1.4753070563308417,
+              "checksum": 3104000
+            },
+            {
+              "index": 8,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 8.857749000000013,
+              "candidateMs": 14.915789000000132,
+              "candidateOverBaseline": 1.6839254532952006,
+              "checksum": 3104000
+            },
+            {
+              "index": 9,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 15.965103,
+              "candidateMs": 14.660812999999962,
+              "candidateOverBaseline": 0.918303690242397,
+              "checksum": 3104000
+            }
+          ],
+          "baselineMedianMs": 9.02626599999985,
+          "candidateMedianMs": 14.660812999999962,
+          "medianPairedRatio": 1.4753070563308417,
+          "ratioOfMedians": 1.6242389710208192
+        },
+        {
+          "name": "snapshot-12-cars-2-ordinary",
+          "iterationsPerSample": 600,
+          "packetsPerIteration": 2,
+          "warmups": [
+            {
+              "index": 0,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 5.264093000000003,
+              "candidateMs": 8.083992999999964,
+              "candidateOverBaseline": 1.535685824699518,
+              "checksum": 906600
+            },
+            {
+              "index": 1,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 7.299535999999989,
+              "candidateMs": 7.102812000000085,
+              "candidateOverBaseline": 0.9730497938499236,
+              "checksum": 906600
+            },
+            {
+              "index": 2,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 9.511475000000019,
+              "candidateMs": 5.935919000000013,
+              "candidateOverBaseline": 0.6240797562943708,
+              "checksum": 906600
+            }
+          ],
+          "pairs": [
+            {
+              "index": 3,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 8.696129000000155,
+              "candidateMs": 3.4760200000000623,
+              "candidateOverBaseline": 0.3997203813328896,
+              "checksum": 906600
+            },
+            {
+              "index": 4,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 3.6046630000000732,
+              "candidateMs": 3.329204000000118,
+              "candidateOverBaseline": 0.9235825928804025,
+              "checksum": 906600
+            },
+            {
+              "index": 5,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.4764000000000124,
+              "candidateMs": 3.1754620000001523,
+              "candidateOverBaseline": 0.9134340121965657,
+              "checksum": 906600
+            },
+            {
+              "index": 6,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 3.9810379999998986,
+              "candidateMs": 3.3184929999999895,
+              "candidateOverBaseline": 0.833574811393429,
+              "checksum": 906600
+            },
+            {
+              "index": 7,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 12.561620000000175,
+              "candidateMs": 6.704098000000158,
+              "candidateOverBaseline": 0.5336969276255821,
+              "checksum": 906600
+            },
+            {
+              "index": 8,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 3.45594200000005,
+              "candidateMs": 3.2520769999996446,
+              "candidateOverBaseline": 0.9410102947328391,
+              "checksum": 906600
+            },
+            {
+              "index": 9,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.387169999999969,
+              "candidateMs": 3.170513000000028,
+              "candidateOverBaseline": 0.9360359828411496,
+              "checksum": 906600
+            }
+          ],
+          "baselineMedianMs": 3.6046630000000732,
+          "candidateMedianMs": 3.3184929999999895,
+          "medianPairedRatio": 0.9134340121965657,
+          "ratioOfMedians": 0.9206111639284787
+        },
+        {
+          "name": "snapshot-12-cars-12-prepared",
+          "iterationsPerSample": 180,
+          "packetsPerIteration": 12,
+          "warmups": [
+            {
+              "index": 0,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.198120000000017,
+              "candidateMs": 4.6834789999998065,
+              "candidateOverBaseline": 1.4644475504358128,
+              "checksum": 1654560
+            },
+            {
+              "index": 1,
+              "phase": "warmup",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 2.894412999999986,
+              "candidateMs": 3.872429999999895,
+              "candidateOverBaseline": 1.3378982197771754,
+              "checksum": 1654560
+            },
+            {
+              "index": 2,
+              "phase": "warmup",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 4.200035999999727,
+              "candidateMs": 5.277894000000288,
+              "candidateOverBaseline": 1.2566306574516577,
+              "checksum": 1654560
+            }
+          ],
+          "pairs": [
+            {
+              "index": 3,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 2.7191319999997177,
+              "candidateMs": 2.143257000000176,
+              "candidateOverBaseline": 0.7882136652433198,
+              "checksum": 1654560
+            },
+            {
+              "index": 4,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 3.8318139999996674,
+              "candidateMs": 2.5216949999999088,
+              "candidateOverBaseline": 0.6580943125110268,
+              "checksum": 1654560
+            },
+            {
+              "index": 5,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 2.6224750000001222,
+              "candidateMs": 1.8841220000003887,
+              "candidateOverBaseline": 0.7184518441549684,
+              "checksum": 1654560
+            },
+            {
+              "index": 6,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 5.2833700000001045,
+              "candidateMs": 6.66135499999973,
+              "candidateOverBaseline": 1.2608155400813494,
+              "checksum": 1654560
+            },
+            {
+              "index": 7,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 2.6619300000002113,
+              "candidateMs": 2.82052799999974,
+              "candidateOverBaseline": 1.0595800791153471,
+              "checksum": 1654560
+            },
+            {
+              "index": 8,
+              "phase": "measured",
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baselineMs": 2.4450839999999516,
+              "candidateMs": 1.8504510000002483,
+              "candidateOverBaseline": 0.7568046741953589,
+              "checksum": 1654560
+            },
+            {
+              "index": 9,
+              "phase": "measured",
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "baselineMs": 4.8238320000000385,
+              "candidateMs": 1.9507180000000517,
+              "candidateOverBaseline": 0.40439177815480226,
+              "checksum": 1654560
+            }
+          ],
+          "baselineMedianMs": 2.7191319999997177,
+          "candidateMedianMs": 2.143257000000176,
+          "medianPairedRatio": 0.7568046741953589,
+          "ratioOfMedians": 0.7882136652433198
+        }
+      ]
+    },
+    "copyCounts": {
+      "method": "Constructor proxy plus Uint8Array slice/set hooks; deduplicated nonempty backing identities and byte capacities.",
+      "exclusions": "Scalar DataView writes, zero-byte buffers, module initialization, JavaScript objects, transport copies, and engine heap/GC.",
+      "sharedEmptyReset": "Allocated once at module initialization before the hooks; never a per-packet nonempty backing.",
+      "results": [
+        {
+          "name": "input-2",
+          "unit": "one packet",
+          "runs": [
+            {
+              "seed": 0,
+              "packetLengths": [
+                36
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 72,
+                "sliceBytes": 36,
+                "setBytes": 0,
+                "copiedBytes": 36
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 36,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 1,
+              "packetLengths": [
+                36
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 72,
+                "sliceBytes": 36,
+                "setBytes": 0,
+                "copiedBytes": 36
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 36,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 2,
+              "packetLengths": [
+                36
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 72,
+                "sliceBytes": 36,
+                "setBytes": 0,
+                "copiedBytes": 36
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 36,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "input-4",
+          "unit": "one packet",
+          "runs": [
+            {
+              "seed": 0,
+              "packetLengths": [
+                54
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 108,
+                "sliceBytes": 54,
+                "setBytes": 0,
+                "copiedBytes": 54
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 54,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 1,
+              "packetLengths": [
+                54
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 108,
+                "sliceBytes": 54,
+                "setBytes": 0,
+                "copiedBytes": 54
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 54,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 2,
+              "packetLengths": [
+                54
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 108,
+                "sliceBytes": 54,
+                "setBytes": 0,
+                "copiedBytes": 54
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 54,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "input-12",
+          "unit": "one packet",
+          "runs": [
+            {
+              "seed": 0,
+              "packetLengths": [
+                126
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 252,
+                "sliceBytes": 126,
+                "setBytes": 0,
+                "copiedBytes": 126
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 126,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 1,
+              "packetLengths": [
+                126
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 252,
+                "sliceBytes": 126,
+                "setBytes": 0,
+                "copiedBytes": 126
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 126,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 2,
+              "packetLengths": [
+                126
+              ],
+              "baseline": {
+                "nonemptyBackings": 2,
+                "backingBytes": 252,
+                "sliceBytes": 126,
+                "setBytes": 0,
+                "copiedBytes": 126
+              },
+              "candidate": {
+                "nonemptyBackings": 1,
+                "backingBytes": 126,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "snapshot-12-cars-2-ordinary",
+          "unit": "one recipient boundary",
+          "runs": [
+            {
+              "seed": 0,
+              "packetLengths": [
+                503,
+                503
+              ],
+              "baseline": {
+                "nonemptyBackings": 4,
+                "backingBytes": 2318,
+                "sliceBytes": 1006,
+                "setBytes": 0,
+                "copiedBytes": 1006
+              },
+              "candidate": {
+                "nonemptyBackings": 2,
+                "backingBytes": 1006,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 1,
+              "packetLengths": [
+                503,
+                503
+              ],
+              "baseline": {
+                "nonemptyBackings": 4,
+                "backingBytes": 2318,
+                "sliceBytes": 1006,
+                "setBytes": 0,
+                "copiedBytes": 1006
+              },
+              "candidate": {
+                "nonemptyBackings": 2,
+                "backingBytes": 1006,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            },
+            {
+              "seed": 2,
+              "packetLengths": [
+                503,
+                503
+              ],
+              "baseline": {
+                "nonemptyBackings": 4,
+                "backingBytes": 2318,
+                "sliceBytes": 1006,
+                "setBytes": 0,
+                "copiedBytes": 1006
+              },
+              "candidate": {
+                "nonemptyBackings": 2,
+                "backingBytes": 1006,
+                "sliceBytes": 0,
+                "setBytes": 0,
+                "copiedBytes": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "snapshot-12-cars-12-prepared",
+          "unit": "one recipient boundary",
+          "runs": [
+            {
+              "seed": 0,
+              "packetLengths": [
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503
+              ],
+              "baseline": {
+                "nonemptyBackings": 27,
+                "backingBytes": 13764,
+                "sliceBytes": 6648,
+                "setBytes": 6228,
+                "copiedBytes": 12876
+              },
+              "candidate": {
+                "nonemptyBackings": 14,
+                "backingBytes": 7116,
+                "sliceBytes": 0,
+                "setBytes": 6228,
+                "copiedBytes": 6228
+              }
+            },
+            {
+              "seed": 1,
+              "packetLengths": [
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503
+              ],
+              "baseline": {
+                "nonemptyBackings": 27,
+                "backingBytes": 13764,
+                "sliceBytes": 6648,
+                "setBytes": 6228,
+                "copiedBytes": 12876
+              },
+              "candidate": {
+                "nonemptyBackings": 14,
+                "backingBytes": 7116,
+                "sliceBytes": 0,
+                "setBytes": 6228,
+                "copiedBytes": 6228
+              }
+            },
+            {
+              "seed": 2,
+              "packetLengths": [
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503,
+                503
+              ],
+              "baseline": {
+                "nonemptyBackings": 27,
+                "backingBytes": 13764,
+                "sliceBytes": 6648,
+                "setBytes": 6228,
+                "copiedBytes": 12876
+              },
+              "candidate": {
+                "nonemptyBackings": 14,
+                "backingBytes": 7116,
+                "sliceBytes": 0,
+                "setBytes": 6228,
+                "copiedBytes": 6228
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "statusMeaning": "Exact-byte, ownership, and deterministic copy/backing assertions passed; timing is descriptive only.",
+    "runtime": {
+      "node": "v22.23.5",
+      "v8": "12.4.254.21-node.57",
+      "platform": "linux",
+      "arch": "x64"
+    }
+  },
+  {
+    "probe": "lane-cache-actual-git-baseline",
+    "status": "passed",
+    "baselineCommit": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "provenance": {
+      "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+      "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+      "candidateTrackedState": "clean",
+      "candidateTrackedChanges": [],
+      "candidateTrackedStatusScope": [
+        "src",
+        "scripts/engine-runtime-probes",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json"
+      ],
+      "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+      "nodeVersion": "v22.23.5",
+      "esbuildVersion": "0.25.12",
+      "entrySha256": "13eda1ce90d5496526d5400d7c02875ad4a7f339ed7742f5de79eb7db12a12e4",
+      "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+      "files": [
+        {
+          "path": "src/simulation/track-lane-index.ts",
+          "baselineSha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+          "candidateSha256": "bc5410b509594274522d87c88cea8af6688a3cf60c3cc500691234a80b58a50b",
+          "baselineBytes": 2784,
+          "candidateBytes": 3553
+        }
+      ],
+      "bundles": {
+        "baselineSha256": "baecaa15d231bb5c56b4ada8359196d11c11ef8462ec8d7139036d7c26b74a7a",
+        "candidateSha256": "350ab6afbc443d433d912e3b01f108a708fba814429ef7eefa744e54fc846cc6"
+      }
+    },
+    "baselineReplacementPaths": [
+      "src/simulation/track-lane-index.ts"
+    ],
+    "comparisonScope": "Only TrackLaneIndex source differs; both bundles execute actual candidate-tree Track.nearest and geometry.",
+    "primaryTrace": {
+      "venue": "aurel",
+      "capacity": 2048,
+      "nearestComparisons": 8195,
+      "primaryNearestComparisons": 8192,
+      "explicitOldestHitComparisons": 3,
+      "exactScalarComparisons": 106535,
+      "primaryExactScalarComparisons": 106496,
+      "candidateArrayComparisons": 8195,
+      "candidateRecordComparisons": 8195,
+      "fallbackIdentityComparisons": 8195,
+      "coarseFallbackReads": 2340,
+      "prunedCandidateReads": 5599,
+      "queriesWithoutCoarseCell": 0,
+      "negativeCoordinateQueries": 8195,
+      "negativeCoordinateLaneQueries": 8195,
+      "finiteHeightQueries": 3513,
+      "nonfiniteHeightQueries": 3510,
+      "omittedHeightQueries": 1172,
+      "cacheMisses": {
+        "baseline": 8192,
+        "candidate": 8192
+      },
+      "cacheHits": {
+        "baseline": 3,
+        "candidate": 3
+      },
+      "maximumResidentCells": {
+        "baseline": 2048,
+        "candidate": 2048
+      },
+      "maximumFifoKeyReferences": 2048,
+      "fifoCheckpoints": 8,
+      "instrumentation": {
+        "baseline": {
+          "freshMapKeysIterators": 6144,
+          "deleteCalls": 6144,
+          "successfulEvictions": 6144
+        },
+        "candidate": {
+          "freshMapKeysIterators": 0,
+          "deleteCalls": 6144,
+          "successfulEvictions": 6144
+        }
+      },
+      "finalResidentCells": {
+        "baseline": 2048,
+        "candidate": 2048
+      },
+      "finalFifoKeyReferences": 2048,
+      "outputSha256": {
+        "baseline": "878e33f23e7eae1dd7cf2893dc295202034b8e63b187798f0f6001a7fde869ae",
+        "candidate": "878e33f23e7eae1dd7cf2893dc295202034b8e63b187798f0f6001a7fde869ae"
+      },
+      "outputEncoding": "query order; Float64LE lateral then s,x,y,z,tx,tz,nx,nz,curvature,width,bank,gradient",
+      "distinctLaneCells": 4096,
+      "primaryCycles": 2
+    },
+    "boundaryTraces": [
+      {
+        "venue": "overpass",
+        "capacity": 2,
+        "nearestComparisons": 425,
+        "primaryNearestComparisons": 0,
+        "explicitOldestHitComparisons": 0,
+        "exactScalarComparisons": 5525,
+        "primaryExactScalarComparisons": 0,
+        "candidateArrayComparisons": 425,
+        "candidateRecordComparisons": 425,
+        "fallbackIdentityComparisons": 425,
+        "coarseFallbackReads": 156,
+        "prunedCandidateReads": 269,
+        "queriesWithoutCoarseCell": 0,
+        "negativeCoordinateQueries": 362,
+        "negativeCoordinateLaneQueries": 362,
+        "finiteHeightQueries": 257,
+        "nonfiniteHeightQueries": 126,
+        "omittedHeightQueries": 42,
+        "cacheMisses": {
+          "baseline": 31,
+          "candidate": 31
+        },
+        "cacheHits": {
+          "baseline": 394,
+          "candidate": 394
+        },
+        "maximumResidentCells": {
+          "baseline": 2,
+          "candidate": 2
+        },
+        "maximumFifoKeyReferences": 2,
+        "fifoCheckpoints": 43,
+        "instrumentation": {
+          "baseline": {
+            "freshMapKeysIterators": 29,
+            "deleteCalls": 29,
+            "successfulEvictions": 29
+          },
+          "candidate": {
+            "freshMapKeysIterators": 0,
+            "deleteCalls": 29,
+            "successfulEvictions": 29
+          }
+        },
+        "finalResidentCells": {
+          "baseline": 2,
+          "candidate": 2
+        },
+        "finalFifoKeyReferences": 2,
+        "outputSha256": {
+          "baseline": "1979660826afbbf04af99357fc1c358f817dd1e64910245d07a4e5698cec30d6",
+          "candidate": "1979660826afbbf04af99357fc1c358f817dd1e64910245d07a4e5698cec30d6"
+        },
+        "outputEncoding": "query order; Float64LE lateral then s,x,y,z,tx,tz,nx,nz,curvature,width,bank,gradient"
+      },
+      {
+        "venue": "speedbowl",
+        "capacity": 2,
+        "nearestComparisons": 425,
+        "primaryNearestComparisons": 0,
+        "explicitOldestHitComparisons": 0,
+        "exactScalarComparisons": 5525,
+        "primaryExactScalarComparisons": 0,
+        "candidateArrayComparisons": 3,
+        "candidateRecordComparisons": 3,
+        "fallbackIdentityComparisons": 3,
+        "coarseFallbackReads": 0,
+        "prunedCandidateReads": 3,
+        "queriesWithoutCoarseCell": 422,
+        "negativeCoordinateQueries": 363,
+        "negativeCoordinateLaneQueries": 3,
+        "finiteHeightQueries": 257,
+        "nonfiniteHeightQueries": 126,
+        "omittedHeightQueries": 42,
+        "cacheMisses": {
+          "baseline": 3,
+          "candidate": 3
+        },
+        "cacheHits": {
+          "baseline": 0,
+          "candidate": 0
+        },
+        "maximumResidentCells": {
+          "baseline": 2,
+          "candidate": 2
+        },
+        "maximumFifoKeyReferences": 2,
+        "fifoCheckpoints": 43,
+        "instrumentation": {
+          "baseline": {
+            "freshMapKeysIterators": 1,
+            "deleteCalls": 1,
+            "successfulEvictions": 1
+          },
+          "candidate": {
+            "freshMapKeysIterators": 0,
+            "deleteCalls": 1,
+            "successfulEvictions": 1
+          }
+        },
+        "finalResidentCells": {
+          "baseline": 2,
+          "candidate": 2
+        },
+        "finalFifoKeyReferences": 2,
+        "outputSha256": {
+          "baseline": "a7cc6fe2dd6746fba8247c4be39972ea59a2f54e1465b847b8ad2d61f6b4bee2",
+          "candidate": "a7cc6fe2dd6746fba8247c4be39972ea59a2f54e1465b847b8ad2d61f6b4bee2"
+        },
+        "outputEncoding": "query order; Float64LE lateral then s,x,y,z,tx,tz,nx,nz,curvature,width,bank,gradient"
+      }
+    ],
+    "totals": {
+      "nearestComparisons": 9045,
+      "exactScalarComparisons": 117585
+    },
+    "memoryTradeoff": {
+      "additionalFifoKeyReferenceBound": 2048,
+      "observedMaximumFifoKeyReferences": 2048,
+      "storage": "One lazily grown array of resident-key references plus cursor; evicted slots are overwritten.",
+      "heapBytesMeasured": false
+    },
+    "measurement": "Exact-output and structural operation counts only; no clock, FPS, GC or heap-byte result."
+  },
+  {
+    "schemaVersion": 1,
+    "probe": "server-input-queue",
+    "status": "passed",
+    "provenance": {
+      "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+      "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+      "candidateTrackedState": "clean",
+      "candidateTrackedChanges": [],
+      "candidateTrackedStatusScope": [
+        "src",
+        "scripts/engine-runtime-probes",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json"
+      ],
+      "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+      "nodeVersion": "v22.23.5",
+      "esbuildVersion": "0.25.12",
+      "entrySha256": "a323c218d2e47cd5bd5c2000f592c33fdb0c61b54cb28b2b5f568f19e77003f7",
+      "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+      "files": [
+        {
+          "path": "src/net/input.ts",
+          "baselineSha256": "1aa7212dc76a5f0d0de10b694ede0f15c68a701368e2cddc1998c765ce061d30",
+          "candidateSha256": "8d7fb2adf7a1d164916eb7632b8a833a23667c135855eac95cbbd6c8e56b50be",
+          "baselineBytes": 16951,
+          "candidateBytes": 17629
+        }
+      ],
+      "bundles": {
+        "baselineSha256": "db38801ea58336124c05a08ce160a8d66a367eb6cd383b6c32730ee3d85bdd6b",
+        "candidateSha256": "789566ab1b6a8b51edc26a83c326ea6b3def5db181d30d23328d0a946c8a0d51"
+      }
+    },
+    "methodology": {
+      "baseline": "actual git-show input.ts at BASELINE; other imports resolve from candidate checkout",
+      "compatibility": "every return, control reference, public ACK/depth/remembered/stats; explicit slack/reset calls",
+      "counts": "instance-only pending Map instrumentation; no seen/ACK Map counts",
+      "expiryBudget": "each instrumented take permits at most twice its starting pending depth in iteration visits plus delete calls",
+      "timing": "fresh uninstrumented queue replay including construction, dispatch and checksum; excludes bundling, assertions, hashes and counters",
+      "clock": "node:perf_hooks.performance.now",
+      "warmupBatchesPerVariant": 2,
+      "pairedSamples": 7,
+      "traceSeeds": [
+        17,
+        305441741,
+        4275878552
+      ],
+      "generatedStepsPerSeed": 1200,
+      "timingThreshold": null,
+      "scope": "queue workloads only; no whole-engine, network latency, frame rate, allocation or GC claim"
+    },
+    "comparisons": [
+      {
+        "name": "dense-sequential",
+        "seed": null,
+        "generatedSteps": null,
+        "operationCount": 251,
+        "methods": {
+          "accept": 1,
+          "take": 248,
+          "slack": 2
+        },
+        "traceSha256": "0913beb339639d334ebc777a0660eac172ef3bc262338e23c32aa8b133841020",
+        "observationsSha256": "1064d5248f71bb7215757ab1649256516681f50ca27154c162269a9f0616c154",
+        "deliveredSlots": 248,
+        "firstEdges": 31,
+        "missingSlots": 0,
+        "controlReferenceChecks": 248,
+        "maximumDepth": 248,
+        "maximumRemembered": 0,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 30,
+          "stats": {
+            "packets": 1,
+            "commands": 31,
+            "duplicates": 0,
+            "late": 0,
+            "lateTicks": 0,
+            "rejected": 0,
+            "missingTicks": 0,
+            "appliedTicks": 248
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 248,
+            "keyVisits": 30876,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 248,
+            "hasCalls": 248,
+            "setCalls": 248,
+            "deleteCalls": 248,
+            "iterationVisits": 30876,
+            "expiryWork": 31124,
+            "largestTakeExpiryWork": 249
+          },
+          "candidate": {
+            "keyIteratorCalls": 0,
+            "keyVisits": 0,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 248,
+            "hasCalls": 248,
+            "setCalls": 248,
+            "deleteCalls": 248,
+            "iterationVisits": 0,
+            "expiryWork": 248,
+            "largestTakeExpiryWork": 1
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "reordered-late",
+        "seed": null,
+        "generatedSteps": null,
+        "operationCount": 25,
+        "methods": {
+          "accept": 6,
+          "take": 15,
+          "slack": 4
+        },
+        "traceSha256": "7c0952e0f10ddd3b06e578e70040c89ca4d9f664651a6b0584d1bf1f1632a6c1",
+        "observationsSha256": "5bc2c522eca950c646f2150ac2b320ecc7a0aebc80f8f73db06fb5f749d8bb3f",
+        "deliveredSlots": 11,
+        "firstEdges": 3,
+        "missingSlots": 4,
+        "controlReferenceChecks": 11,
+        "maximumDepth": 12,
+        "maximumRemembered": 1,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 6,
+          "stats": {
+            "packets": 6,
+            "commands": 6,
+            "duplicates": 2,
+            "late": 1,
+            "lateTicks": 5,
+            "rejected": 1,
+            "missingTicks": 0,
+            "appliedTicks": 11
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 15,
+            "keyVisits": 73,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 15,
+            "hasCalls": 23,
+            "setCalls": 17,
+            "deleteCalls": 17,
+            "iterationVisits": 73,
+            "expiryWork": 90,
+            "largestTakeExpiryWork": 13
+          },
+          "candidate": {
+            "keyIteratorCalls": 1,
+            "keyVisits": 2,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 15,
+            "hasCalls": 23,
+            "setCalls": 17,
+            "deleteCalls": 17,
+            "iterationVisits": 2,
+            "expiryWork": 19,
+            "largestTakeExpiryWork": 4
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "backward-take-and-admission",
+        "seed": null,
+        "generatedSteps": null,
+        "operationCount": 14,
+        "methods": {
+          "accept": 3,
+          "take": 9,
+          "slack": 2
+        },
+        "traceSha256": "060fbcaccbd0570443dfe91fe836ebb31fde84e3fd7145590fd3ccf1ef9d1f3b",
+        "observationsSha256": "1b599a996027ba91138c0079749ae41122c4a9c0e034e61c1afa68d7f7aa6c4e",
+        "deliveredSlots": 5,
+        "firstEdges": 1,
+        "missingSlots": 4,
+        "controlReferenceChecks": 5,
+        "maximumDepth": 11,
+        "maximumRemembered": 0,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 2,
+          "stats": {
+            "packets": 3,
+            "commands": 3,
+            "duplicates": 0,
+            "late": 0,
+            "lateTicks": 0,
+            "rejected": 0,
+            "missingTicks": 0,
+            "appliedTicks": 5
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 9,
+            "keyVisits": 55,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 9,
+            "hasCalls": 18,
+            "setCalls": 18,
+            "deleteCalls": 18,
+            "iterationVisits": 55,
+            "expiryWork": 73,
+            "largestTakeExpiryWork": 16
+          },
+          "candidate": {
+            "keyIteratorCalls": 1,
+            "keyVisits": 8,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 9,
+            "hasCalls": 18,
+            "setCalls": 18,
+            "deleteCalls": 18,
+            "iterationVisits": 8,
+            "expiryWork": 26,
+            "largestTakeExpiryWork": 16
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "large-sparse-jumps",
+        "seed": null,
+        "generatedSteps": null,
+        "operationCount": 11,
+        "methods": {
+          "accept": 4,
+          "take": 5,
+          "slack": 2
+        },
+        "traceSha256": "b29537dadc340171502ff2a36ec09ebb0dbfdd9c39e914283aea8ceb889e1fc5",
+        "observationsSha256": "9edd2b11557bc219da882f168d8d5153c9b1e34a6e80a99e4bf796713322770d",
+        "deliveredSlots": 3,
+        "firstEdges": 3,
+        "missingSlots": 2,
+        "controlReferenceChecks": 3,
+        "maximumDepth": 3,
+        "maximumRemembered": 0,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 3,
+          "stats": {
+            "packets": 4,
+            "commands": 4,
+            "duplicates": 0,
+            "late": 0,
+            "lateTicks": 0,
+            "rejected": 0,
+            "missingTicks": 0,
+            "appliedTicks": 3
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 5,
+            "keyVisits": 7,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 5,
+            "hasCalls": 4,
+            "setCalls": 4,
+            "deleteCalls": 4,
+            "iterationVisits": 7,
+            "expiryWork": 11,
+            "largestTakeExpiryWork": 5
+          },
+          "candidate": {
+            "keyIteratorCalls": 2,
+            "keyVisits": 4,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 5,
+            "hasCalls": 4,
+            "setCalls": 4,
+            "deleteCalls": 4,
+            "iterationVisits": 4,
+            "expiryWork": 8,
+            "largestTakeExpiryWork": 5
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "wire-endpoints",
+        "seed": null,
+        "generatedSteps": null,
+        "operationCount": 11,
+        "methods": {
+          "accept": 2,
+          "take": 7,
+          "slack": 2
+        },
+        "traceSha256": "bd94fa271f21b5347fe3c7cf6dade018c4e1f9cf435e3d4d6216b0d5b9d243db",
+        "observationsSha256": "290ddbd8e5bc28c931f583ae6551861bc500c97ad8af05ae85076af7e49e3b82",
+        "deliveredSlots": 4,
+        "firstEdges": 2,
+        "missingSlots": 3,
+        "controlReferenceChecks": 4,
+        "maximumDepth": 12,
+        "maximumRemembered": 0,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 4294967294,
+          "stats": {
+            "packets": 2,
+            "commands": 4,
+            "duplicates": 0,
+            "late": 0,
+            "lateTicks": 0,
+            "rejected": 5,
+            "missingTicks": 0,
+            "appliedTicks": 4
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 7,
+            "keyVisits": 40,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 7,
+            "hasCalls": 13,
+            "setCalls": 12,
+            "deleteCalls": 12,
+            "iterationVisits": 40,
+            "expiryWork": 52,
+            "largestTakeExpiryWork": 15
+          },
+          "candidate": {
+            "keyIteratorCalls": 0,
+            "keyVisits": 0,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 7,
+            "hasCalls": 13,
+            "setCalls": 12,
+            "deleteCalls": 12,
+            "iterationVisits": 0,
+            "expiryWork": 12,
+            "largestTakeExpiryWork": 7
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "seeded-11",
+        "seed": 17,
+        "generatedSteps": 1200,
+        "operationCount": 1203,
+        "methods": {
+          "accept": 608,
+          "take": 471,
+          "slack": 124
+        },
+        "traceSha256": "5d4b3ec43550d1777099dbed715f1232ebc43b7b27a0a3e2bd2ebafe62c1fc43",
+        "observationsSha256": "55bbdceeb379763a50f36bbbf4b04973556c0263c6132ea942dd7881e4c1fb92",
+        "deliveredSlots": 101,
+        "firstEdges": 18,
+        "missingSlots": 370,
+        "controlReferenceChecks": 101,
+        "maximumDepth": 64,
+        "maximumRemembered": 54,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 2133,
+          "stats": {
+            "packets": 608,
+            "commands": 258,
+            "duplicates": 1457,
+            "late": 47,
+            "lateTicks": 226,
+            "rejected": 83,
+            "missingTicks": 0,
+            "appliedTicks": 101
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 471,
+            "keyVisits": 8359,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 471,
+            "hasCalls": 939,
+            "setCalls": 552,
+            "deleteCalls": 552,
+            "iterationVisits": 8359,
+            "expiryWork": 8911,
+            "largestTakeExpiryWork": 100
+          },
+          "candidate": {
+            "keyIteratorCalls": 19,
+            "keyVisits": 213,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 471,
+            "hasCalls": 939,
+            "setCalls": 552,
+            "deleteCalls": 1027,
+            "iterationVisits": 213,
+            "expiryWork": 1240,
+            "largestTakeExpiryWork": 100
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "seeded-1234abcd",
+        "seed": 305441741,
+        "generatedSteps": 1200,
+        "operationCount": 1203,
+        "methods": {
+          "accept": 607,
+          "take": 478,
+          "slack": 118
+        },
+        "traceSha256": "48f7d45d36dd9d9683d343531944eb1e83135b5fedef41a0f92dec72ab59620c",
+        "observationsSha256": "f88c878a963fb8f969d2bb24a0a94c649ab6b536c30bc78a5a943f2851ad3ef8",
+        "deliveredSlots": 125,
+        "firstEdges": 26,
+        "missingSlots": 353,
+        "controlReferenceChecks": 125,
+        "maximumDepth": 73,
+        "maximumRemembered": 80,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 2143,
+          "stats": {
+            "packets": 607,
+            "commands": 352,
+            "duplicates": 1426,
+            "late": 75,
+            "lateTicks": 325,
+            "rejected": 118,
+            "missingTicks": 0,
+            "appliedTicks": 125
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 478,
+            "keyVisits": 6805,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 478,
+            "hasCalls": 1286,
+            "setCalls": 577,
+            "deleteCalls": 577,
+            "iterationVisits": 6805,
+            "expiryWork": 7382,
+            "largestTakeExpiryWork": 106
+          },
+          "candidate": {
+            "keyIteratorCalls": 25,
+            "keyVisits": 170,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 478,
+            "hasCalls": 1286,
+            "setCalls": 577,
+            "deleteCalls": 838,
+            "iterationVisits": 170,
+            "expiryWork": 1008,
+            "largestTakeExpiryWork": 106
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      },
+      {
+        "name": "seeded-fedcba98",
+        "seed": 4275878552,
+        "generatedSteps": 1200,
+        "operationCount": 1203,
+        "methods": {
+          "accept": 591,
+          "take": 483,
+          "slack": 129
+        },
+        "traceSha256": "c3b1a336dff1469616f29db7d547ccb8d511200cf215b26d4fea88efeaac2dc4",
+        "observationsSha256": "fa8f57b335a9346276fcf525fba3272d5a6bed5b82b479f477daeab1537a0bcb",
+        "deliveredSlots": 226,
+        "firstEdges": 38,
+        "missingSlots": 257,
+        "controlReferenceChecks": 226,
+        "maximumDepth": 151,
+        "maximumRemembered": 355,
+        "finalState": {
+          "depth": 0,
+          "remembered": 0,
+          "contiguousSeq": 1212,
+          "stats": {
+            "packets": 591,
+            "commands": 887,
+            "duplicates": 300,
+            "late": 162,
+            "lateTicks": 789,
+            "rejected": 562,
+            "missingTicks": 0,
+            "appliedTicks": 226
+          }
+        },
+        "pendingMapOperations": {
+          "baseline": {
+            "keyIteratorCalls": 483,
+            "keyVisits": 34106,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 483,
+            "hasCalls": 3206,
+            "setCalls": 1415,
+            "deleteCalls": 1415,
+            "iterationVisits": 34106,
+            "expiryWork": 35521,
+            "largestTakeExpiryWork": 241
+          },
+          "candidate": {
+            "keyIteratorCalls": 13,
+            "keyVisits": 892,
+            "entryIteratorCalls": 0,
+            "entryVisits": 0,
+            "valueIteratorCalls": 0,
+            "valueVisits": 0,
+            "defaultIteratorCalls": 0,
+            "defaultIteratorVisits": 0,
+            "forEachCalls": 0,
+            "forEachVisits": 0,
+            "getCalls": 483,
+            "hasCalls": 3206,
+            "setCalls": 1415,
+            "deleteCalls": 1805,
+            "iterationVisits": 892,
+            "expiryWork": 2697,
+            "largestTakeExpiryWork": 241
+          }
+        },
+        "instrumentationParity": true,
+        "compatible": true
+      }
+    ],
+    "timings": [
+      {
+        "name": "dense-sequential",
+        "replaysPerBatch": 16,
+        "operationsPerBatch": 4016,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 5.169698000000153,
+            "candidateMs": 0.3662010000000464,
+            "checksum": 1899521312
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 4.605599999999868,
+            "candidateMs": 0.3653620000000046,
+            "checksum": 1899521312
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 4.325305000000071,
+            "candidateMs": 0.37393699999984165,
+            "checksum": 1899521312
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.8950199999999313,
+            "candidateMs": 0.35423199999991084,
+            "checksum": 1899521312
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.7848840000001474,
+            "candidateMs": 0.36777600000004895,
+            "checksum": 1899521312
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 3.864700999999968,
+            "candidateMs": 0.3370549999999639,
+            "checksum": 1899521312
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 3.6450660000000425,
+            "candidateMs": 0.35778899999991154,
+            "checksum": 1899521312
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.22781662500000266,
+          "median": 0.2434387499999957,
+          "max": 0.32310612500000957
+        },
+        "candidateMsPerReplay": {
+          "min": 0.021065937499997744,
+          "median": 0.02283512500000029,
+          "max": 0.023371062499990103
+        },
+        "baselineOverCandidateMedianRatio": 10.660714578965196
+      },
+      {
+        "name": "reordered-late",
+        "replaysPerBatch": 64,
+        "operationsPerBatch": 1600,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.16421100000002298,
+            "candidateMs": 0.13304100000004837,
+            "checksum": 2678652928
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.16635100000007697,
+            "candidateMs": 0.13012699999990218,
+            "checksum": 2678652928
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.1642749999998614,
+            "candidateMs": 0.15063800000007177,
+            "checksum": 2678652928
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.16480899999987741,
+            "candidateMs": 0.1304450000000088,
+            "checksum": 2678652928
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.16412900000000263,
+            "candidateMs": 0.12827100000004066,
+            "checksum": 2678652928
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.28862599999979466,
+            "candidateMs": 0.17658400000004804,
+            "checksum": 2678652928
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.23989499999993313,
+            "candidateMs": 0.13486399999987952,
+            "checksum": 2678652928
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.002564515625000041,
+          "median": 0.0025751406249980846,
+          "max": 0.0045097812499967915
+        },
+        "candidateMsPerReplay": {
+          "min": 0.0020042343750006353,
+          "median": 0.002078765625000756,
+          "max": 0.0027591250000007506
+        },
+        "baselineOverCandidateMedianRatio": 1.2387835328945025
+      },
+      {
+        "name": "backward-take-and-admission",
+        "replaysPerBatch": 64,
+        "operationsPerBatch": 896,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.11855000000014115,
+            "candidateMs": 0.0991119999998773,
+            "checksum": 12272640
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.1189959999999246,
+            "candidateMs": 0.09703300000001036,
+            "checksum": 12272640
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.11930500000016764,
+            "candidateMs": 0.09695299999998497,
+            "checksum": 12272640
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.12098600000012993,
+            "candidateMs": 0.12346800000000258,
+            "checksum": 12272640
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.12399500000014996,
+            "candidateMs": 0.0977060000000165,
+            "checksum": 12272640
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.12041299999987132,
+            "candidateMs": 0.09770400000002155,
+            "checksum": 12272640
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.1197669999999107,
+            "candidateMs": 0.09696999999982836,
+            "checksum": 12272640
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.0018523437500022055,
+          "median": 0.0018713593749986046,
+          "max": 0.001937421875002343
+        },
+        "candidateMsPerReplay": {
+          "min": 0.0015148906249997651,
+          "median": 0.0015266250000003367,
+          "max": 0.0019291875000000402
+        },
+        "baselineOverCandidateMedianRatio": 1.225814705640345
+      },
+      {
+        "name": "large-sparse-jumps",
+        "replaysPerBatch": 64,
+        "operationsPerBatch": 704,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.058604000000059386,
+            "candidateMs": 0.05678400000010697,
+            "checksum": 3181649792
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.05826999999999316,
+            "candidateMs": 0.05612999999993917,
+            "checksum": 3181649792
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.05829900000003363,
+            "candidateMs": 0.055890999999974156,
+            "checksum": 3181649792
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.058172999999897,
+            "candidateMs": 0.05622199999993427,
+            "checksum": 3181649792
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.057334999999966385,
+            "candidateMs": 0.05720300000007228,
+            "checksum": 3181649792
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.058070000000043365,
+            "candidateMs": 0.055439999999862266,
+            "checksum": 3181649792
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.0584440000000086,
+            "candidateMs": 0.07420000000001892,
+            "checksum": 3181649792
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.0008958593749994748,
+          "median": 0.0009104687499998931,
+          "max": 0.0009156875000009279
+        },
+        "candidateMsPerReplay": {
+          "min": 0.0008662499999978479,
+          "median": 0.000878468749998973,
+          "max": 0.0011593750000002956
+        },
+        "baselineOverCandidateMedianRatio": 1.0364270214517677
+      },
+      {
+        "name": "wire-endpoints",
+        "replaysPerBatch": 64,
+        "operationsPerBatch": 704,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.12416600000005928,
+            "candidateMs": 0.10050299999988965,
+            "checksum": 3686464960
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.12393599999995786,
+            "candidateMs": 0.09883599999989201,
+            "checksum": 3686464960
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.14452200000005178,
+            "candidateMs": 0.100257000000056,
+            "checksum": 3686464960
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.13270199999988108,
+            "candidateMs": 0.09928800000011506,
+            "checksum": 3686464960
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.11999300000002222,
+            "candidateMs": 0.09829599999989114,
+            "checksum": 3686464960
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.12179100000003018,
+            "candidateMs": 0.09873500000003332,
+            "checksum": 3686464960
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.11976400000003196,
+            "candidateMs": 0.12112699999988763,
+            "checksum": 3686464960
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.0018713125000004993,
+          "median": 0.0019364999999993415,
+          "max": 0.002258156250000809
+        },
+        "candidateMsPerReplay": {
+          "min": 0.001535874999998299,
+          "median": 0.0015513750000017978,
+          "max": 0.0018926093749982442
+        },
+        "baselineOverCandidateMedianRatio": 1.2482475223573264
+      },
+      {
+        "name": "seeded-11",
+        "replaysPerBatch": 3,
+        "operationsPerBatch": 3609,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.56259799999998,
+            "candidateMs": 0.9614520000000084,
+            "checksum": 3796248545
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 1.1111960000000636,
+            "candidateMs": 0.9197940000001381,
+            "checksum": 3796248545
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.0981740000001992,
+            "candidateMs": 0.9682960000000094,
+            "checksum": 3796248545
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 1.1252750000001015,
+            "candidateMs": 0.8888520000000426,
+            "checksum": 3796248545
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.4377979999999297,
+            "candidateMs": 0.947311000000127,
+            "checksum": 3796248545
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 1.1269360000001143,
+            "candidateMs": 0.9334919999998874,
+            "checksum": 3796248545
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.0624470000000201,
+            "candidateMs": 0.9545729999999821,
+            "checksum": 3796248545
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.3541490000000067,
+          "median": 0.3750916666667005,
+          "max": 0.5208659999999933
+        },
+        "candidateMsPerReplay": {
+          "min": 0.2962840000000142,
+          "median": 0.3157703333333757,
+          "max": 0.32276533333333646
+        },
+        "baselineOverCandidateMedianRatio": 1.1878622754300865
+      },
+      {
+        "name": "seeded-1234abcd",
+        "replaysPerBatch": 3,
+        "operationsPerBatch": 3609,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.9637230000000727,
+            "candidateMs": 0.8313000000000557,
+            "checksum": 2152342557
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.9837039999999888,
+            "candidateMs": 0.9659449999999197,
+            "checksum": 2152342557
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.9627459999999246,
+            "candidateMs": 0.8475459999999657,
+            "checksum": 2152342557
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.9849080000001322,
+            "candidateMs": 0.7573769999999058,
+            "checksum": 2152342557
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.9888339999999971,
+            "candidateMs": 0.8406539999998586,
+            "checksum": 2152342557
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 0.9707899999998517,
+            "candidateMs": 0.7780990000001111,
+            "checksum": 2152342557
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 0.9415480000000116,
+            "candidateMs": 0.8362259999998969,
+            "checksum": 2152342557
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.3138493333333372,
+          "median": 0.32359666666661724,
+          "max": 0.32961133333333237
+        },
+        "candidateMsPerReplay": {
+          "min": 0.2524589999999686,
+          "median": 0.27874199999996563,
+          "max": 0.3219816666666399
+        },
+        "baselineOverCandidateMedianRatio": 1.1609182206723678
+      },
+      {
+        "name": "seeded-fedcba98",
+        "replaysPerBatch": 3,
+        "operationsPerBatch": 3609,
+        "samples": [
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.9992530000001807,
+            "candidateMs": 1.109175999999934,
+            "checksum": 4087501802
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 1.8539780000000974,
+            "candidateMs": 1.0554080000001704,
+            "checksum": 4087501802
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.925275000000056,
+            "candidateMs": 1.1005369999998038,
+            "checksum": 4087501802
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 1.817352000000028,
+            "candidateMs": 1.1080020000001696,
+            "checksum": 4087501802
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.8054720000000088,
+            "candidateMs": 1.2486970000002202,
+            "checksum": 4087501802
+          },
+          {
+            "order": [
+              "candidate",
+              "baseline"
+            ],
+            "baselineMs": 1.8132010000001628,
+            "candidateMs": 1.0696320000001833,
+            "checksum": 4087501802
+          },
+          {
+            "order": [
+              "baseline",
+              "candidate"
+            ],
+            "baselineMs": 1.7553589999999986,
+            "candidateMs": 1.0960549999999785,
+            "checksum": 4087501802
+          }
+        ],
+        "baselineMsPerReplay": {
+          "min": 0.5851196666666661,
+          "median": 0.6057840000000093,
+          "max": 0.6664176666667269
+        },
+        "candidateMsPerReplay": {
+          "min": 0.3518026666667235,
+          "median": 0.3668456666666013,
+          "max": 0.41623233333340676
+        },
+        "baselineOverCandidateMedianRatio": 1.6513320315449203
+      }
+    ]
+  },
+  {
+    "probe": "radio",
+    "status": "passed",
+    "provenance": {
+      "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+      "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+      "candidateTrackedState": "clean",
+      "candidateTrackedChanges": [],
+      "candidateTrackedStatusScope": [
+        "src",
+        "scripts/engine-runtime-probes",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json"
+      ],
+      "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+      "nodeVersion": "v22.23.5",
+      "esbuildVersion": "0.25.12",
+      "entrySha256": "02906612b87481e79d6a2745a4d77615e91bc51210c01ff21027f74b9080d038",
+      "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+      "files": [
+        {
+          "path": "src/core/radio.ts",
+          "baselineSha256": "6a23e0d89a143f7d5f6cf14ac948b916cca611d348ecabd150262293ef0dc73f",
+          "candidateSha256": "f11f7710b19fd9c87cf56efdeffddc065b7ec5a3b36bcbd0f4f2dd75257af4d1",
+          "baselineBytes": 6982,
+          "candidateBytes": 7820
+        }
+      ],
+      "bundles": {
+        "baselineSha256": "8c31b9151cb46c7e4adc3a9ce78ae7b703a0e87698a825413cf8d9b8bbdc01e5",
+        "candidateSha256": "0c5a03e07469cdaf2d643eaeb40edf1b4a3c22a9ac28bcdf9d8796b1cd39b8bf"
+      }
+    },
+    "equivalence": {
+      "equal": true,
+      "seed": 631619806,
+      "scenarios": 47,
+      "observationsPerVariant": 1620,
+      "cases": [
+        {
+          "name": "virtual-safety-car/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "60b4eba501ca2a063ebccd1f978e30d27059537aca7af46afe40bc2bcf23b56f"
+        },
+        {
+          "name": "deployed-safety-car/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "78b9c80ea978dee6d0e5e0fb3b1d014d3f751092bf1c3926981b18be55a574a6"
+        },
+        {
+          "name": "safety-car-in-this-lap/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "00c09afa0928cae89aebfe9cdcd5213e10ddff4f2f68399dfcb369cd99cdc828"
+        },
+        {
+          "name": "yellow-rounded-sequence/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "90cb56a27886ab2be402a7d342e6cc2c327b087c5abaa09a2744d953dd046baa"
+        },
+        {
+          "name": "double-yellow/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "230416ec3218b5f8fb8b005d0e297cff26f4b8ec164a22be99db43267cb45042"
+        },
+        {
+          "name": "blue-flag/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "00dd06ff2912a6b15a700afff53f717905c2dc099642778e0f17dab8c2f88cb7"
+        },
+        {
+          "name": "penalty-rounding/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "415a482ebb7dcca3291501323f81761c27fd06afe453abec5e4df9fd9b26e13d"
+        },
+        {
+          "name": "warning-rounding/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "80fe91cbf810c8a3f0b217308189fffe9a799624f238cf7f3ac067a972ad667e"
+        },
+        {
+          "name": "pit-entry/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "184950e274aef2e22e94a0f5599a16f67973026f755689115828330a0f6e7c97"
+        },
+        {
+          "name": "final-lap/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "5aba559e4718e65f4bdb0798f543611f9cccb15bd15e98eb4860f0eb15d34689"
+        },
+        {
+          "name": "fuel-crossing/fresh",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "76e5d85a5907145922016db9e5d17a20e2b9007943cc82469fa892c58930bac8"
+        },
+        {
+          "name": "virtual-safety-car/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "60b4eba501ca2a063ebccd1f978e30d27059537aca7af46afe40bc2bcf23b56f"
+        },
+        {
+          "name": "deployed-safety-car/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "78b9c80ea978dee6d0e5e0fb3b1d014d3f751092bf1c3926981b18be55a574a6"
+        },
+        {
+          "name": "safety-car-in-this-lap/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "00c09afa0928cae89aebfe9cdcd5213e10ddff4f2f68399dfcb369cd99cdc828"
+        },
+        {
+          "name": "yellow-rounded-sequence/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "90cb56a27886ab2be402a7d342e6cc2c327b087c5abaa09a2744d953dd046baa"
+        },
+        {
+          "name": "double-yellow/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "230416ec3218b5f8fb8b005d0e297cff26f4b8ec164a22be99db43267cb45042"
+        },
+        {
+          "name": "blue-flag/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "00dd06ff2912a6b15a700afff53f717905c2dc099642778e0f17dab8c2f88cb7"
+        },
+        {
+          "name": "penalty-rounding/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "415a482ebb7dcca3291501323f81761c27fd06afe453abec5e4df9fd9b26e13d"
+        },
+        {
+          "name": "warning-rounding/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "80fe91cbf810c8a3f0b217308189fffe9a799624f238cf7f3ac067a972ad667e"
+        },
+        {
+          "name": "pit-entry/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "184950e274aef2e22e94a0f5599a16f67973026f755689115828330a0f6e7c97"
+        },
+        {
+          "name": "final-lap/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "5aba559e4718e65f4bdb0798f543611f9cccb15bd15e98eb4860f0eb15d34689"
+        },
+        {
+          "name": "fuel-crossing/reused",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "76e5d85a5907145922016db9e5d17a20e2b9007943cc82469fa892c58930bac8"
+        },
+        {
+          "name": "virtual-safety-car/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "60b4eba501ca2a063ebccd1f978e30d27059537aca7af46afe40bc2bcf23b56f"
+        },
+        {
+          "name": "deployed-safety-car/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "78b9c80ea978dee6d0e5e0fb3b1d014d3f751092bf1c3926981b18be55a574a6"
+        },
+        {
+          "name": "safety-car-in-this-lap/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "00c09afa0928cae89aebfe9cdcd5213e10ddff4f2f68399dfcb369cd99cdc828"
+        },
+        {
+          "name": "yellow-rounded-sequence/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "90cb56a27886ab2be402a7d342e6cc2c327b087c5abaa09a2744d953dd046baa"
+        },
+        {
+          "name": "double-yellow/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "230416ec3218b5f8fb8b005d0e297cff26f4b8ec164a22be99db43267cb45042"
+        },
+        {
+          "name": "blue-flag/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "00dd06ff2912a6b15a700afff53f717905c2dc099642778e0f17dab8c2f88cb7"
+        },
+        {
+          "name": "penalty-rounding/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "415a482ebb7dcca3291501323f81761c27fd06afe453abec5e4df9fd9b26e13d"
+        },
+        {
+          "name": "warning-rounding/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "80fe91cbf810c8a3f0b217308189fffe9a799624f238cf7f3ac067a972ad667e"
+        },
+        {
+          "name": "pit-entry/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "184950e274aef2e22e94a0f5599a16f67973026f755689115828330a0f6e7c97"
+        },
+        {
+          "name": "final-lap/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "5aba559e4718e65f4bdb0798f543611f9cccb15bd15e98eb4860f0eb15d34689"
+        },
+        {
+          "name": "fuel-crossing/transferred",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "76e5d85a5907145922016db9e5d17a20e2b9007943cc82469fa892c58930bac8"
+        },
+        {
+          "name": "simultaneous-offers-order-hold-and-expiry",
+          "operations": 8,
+          "observations": 2,
+          "postOffers": 7,
+          "nonNullCaptionSamples": 6,
+          "streamSha256": "b8511b908d7bfec7a979b5a8a3f8f8cd1b57141637e223bb0b04ecb2607101ec"
+        },
+        {
+          "name": "first-frame-and-changing-car-counts",
+          "operations": 6,
+          "observations": 6,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "142b3a1311c40077fbdf3ff138409c032d69e1db50928d6e109626c4e94133e5"
+        },
+        {
+          "name": "overwrite-and-detach-previous-source",
+          "operations": 4,
+          "observations": 2,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "0fa38f9a4bcc416200442a65f5a7bddd29f9c9961ebd48cde965e4bb5d8511fc"
+        },
+        {
+          "name": "engineer-muted-race-control-retained",
+          "operations": 4,
+          "observations": 3,
+          "postOffers": 4,
+          "nonNullCaptionSamples": 1,
+          "streamSha256": "749df98d7fdf8160f439e49d933caead6466bcbe2c99916e465cb10d450ad445"
+        },
+        {
+          "name": "cooldown-survives-expiry-and-rewind-exact-boundary",
+          "operations": 9,
+          "observations": 0,
+          "postOffers": 4,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "3beb9736888bb189a943c9b0ccb9e5467ec3f9b9b09ec8b7a1ce964cdc666aaa"
+        },
+        {
+          "name": "custom-cooldown-exact-boundary",
+          "operations": 9,
+          "observations": 0,
+          "postOffers": 4,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "5f1759d484460a73bba725518604d9e851556c93cb1958cb4a51b49e958b3395"
+        },
+        {
+          "name": "reset-clears-caption-queue-history-and-comparison",
+          "operations": 10,
+          "observations": 3,
+          "postOffers": 4,
+          "nonNullCaptionSamples": 4,
+          "streamSha256": "de6d0e5d8db3edf00f051c2fc8936e6525a6e02027309fcd936aff2b539408f8"
+        },
+        {
+          "name": "urgent-interruption-and-stale-queued-message",
+          "operations": 6,
+          "observations": 0,
+          "postOffers": 3,
+          "nonNullCaptionSamples": 4,
+          "streamSha256": "bad808c064b0620878ed87abfbbfd6faabea587e7d719a3e2015470c91cc0cf2"
+        },
+        {
+          "name": "queued-key-replacement-preserves-equal-priority-order",
+          "operations": 6,
+          "observations": 0,
+          "postOffers": 3,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "26cd8fd69ba6a1350f3479353576b08d8ed8c08398e0c15d9c1c402ecb16a7a7"
+        },
+        {
+          "name": "expiry-equality-is-inclusive",
+          "operations": 4,
+          "observations": 0,
+          "postOffers": 1,
+          "nonNullCaptionSamples": 2,
+          "streamSha256": "517616f3c4dd4a89ec2630027b576513db5d96343a8b02acbe8720a72a17701c"
+        },
+        {
+          "name": "single-lap-finish-does-not-offer-final-lap-or-fuel",
+          "operations": 2,
+          "observations": 2,
+          "postOffers": 0,
+          "nonNullCaptionSamples": 0,
+          "streamSha256": "62e24646fa726bb512f01679fe6adf8b8d127e24382ac2b1184b4558160e5df0"
+        },
+        {
+          "name": "seeded-mixed-events-rewinds-count-changes-and-resets/fresh",
+          "operations": 563,
+          "observations": 512,
+          "postOffers": 1206,
+          "nonNullCaptionSamples": 551,
+          "streamSha256": "c129270658e796fb472b6f4c8c21346429ae5dcbcaa174032f9654469d55240c"
+        },
+        {
+          "name": "seeded-mixed-events-rewinds-count-changes-and-resets/reused",
+          "operations": 563,
+          "observations": 512,
+          "postOffers": 1206,
+          "nonNullCaptionSamples": 551,
+          "streamSha256": "c129270658e796fb472b6f4c8c21346429ae5dcbcaa174032f9654469d55240c"
+        },
+        {
+          "name": "seeded-mixed-events-rewinds-count-changes-and-resets/transferred",
+          "operations": 563,
+          "observations": 512,
+          "postOffers": 1206,
+          "nonNullCaptionSamples": 551,
+          "streamSha256": "c129270658e796fb472b6f4c8c21346429ae5dcbcaa174032f9654469d55240c"
+        }
+      ]
+    },
+    "copyCounts": {
+      "measurement": "Float32Array.slice calls and returned bytes during synchronous observe calls",
+      "observationsPerCasePerVariant": 600,
+      "cases": [
+        {
+          "cars": 1,
+          "baseline": {
+            "observations": 600,
+            "frameBytes": 1420,
+            "sliceCalls": 600,
+            "sliceCopiedBytes": 852000,
+            "fullFrameSliceCalls": 600,
+            "fullFrameCopiedBytes": 852000
+          },
+          "candidate": {
+            "observations": 600,
+            "frameBytes": 1420,
+            "sliceCalls": 0,
+            "sliceCopiedBytes": 0,
+            "fullFrameSliceCalls": 0,
+            "fullFrameCopiedBytes": 0
+          }
+        },
+        {
+          "cars": 24,
+          "baseline": {
+            "observations": 600,
+            "frameBytes": 31872,
+            "sliceCalls": 600,
+            "sliceCopiedBytes": 19123200,
+            "fullFrameSliceCalls": 600,
+            "fullFrameCopiedBytes": 19123200
+          },
+          "candidate": {
+            "observations": 600,
+            "frameBytes": 31872,
+            "sliceCalls": 0,
+            "sliceCopiedBytes": 0,
+            "fullFrameSliceCalls": 0,
+            "fullFrameCopiedBytes": 0
+          }
+        },
+        {
+          "cars": 32,
+          "baseline": {
+            "observations": 600,
+            "frameBytes": 42464,
+            "sliceCalls": 600,
+            "sliceCopiedBytes": 25478400,
+            "fullFrameSliceCalls": 600,
+            "fullFrameCopiedBytes": 25478400
+          },
+          "candidate": {
+            "observations": 600,
+            "frameBytes": 42464,
+            "sliceCalls": 0,
+            "sliceCopiedBytes": 0,
+            "fullFrameSliceCalls": 0,
+            "fullFrameCopiedBytes": 0
+          }
+        }
+      ]
+    },
+    "limitations": [
+      "Only src/core/radio.ts is replaced by baseline source; dependencies use the same candidate checkout.",
+      "Copy counters cover Float32Array.slice, not all allocations, retained heap, garbage collection, or elapsed time.",
+      "No whole-game or FPS improvement is measured or claimed."
+    ]
+  },
+  {
+    "probe": "whole-simulation-composition",
+    "status": "pass",
+    "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "scope": "Two historical modules composed inside the current real Simulation dependency graph.",
+    "provenance": {
+      "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+      "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+      "candidateTrackedState": "clean",
+      "candidateTrackedChanges": [],
+      "candidateTrackedStatusScope": [
+        "src",
+        "scripts/engine-runtime-probes",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json"
+      ],
+      "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+      "nodeVersion": "v22.23.5",
+      "esbuildVersion": "0.25.12",
+      "entrySha256": "daf3090461e30d69e9f9f080d2c827d3a88301b817e0d88de9e910eb73c344da",
+      "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+      "files": [
+        {
+          "path": "src/simulation/track-lane-index.ts",
+          "baselineSha256": "070a1ecefbc1a0740092ccd57b462845d22d52c6064e51c767f1af4bf9df7b54",
+          "candidateSha256": "bc5410b509594274522d87c88cea8af6688a3cf60c3cc500691234a80b58a50b",
+          "baselineBytes": 2784,
+          "candidateBytes": 3553
+        },
+        {
+          "path": "src/simulation/surface-thermal.ts",
+          "baselineSha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12",
+          "candidateSha256": "ed694932bf4a2e26ba992032e6af4c82d0ea6fb89523a3ca4717ad8525919ce0",
+          "baselineBytes": 11858,
+          "candidateBytes": 11966
+        }
+      ],
+      "bundles": {
+        "baselineSha256": "3cc66455cb5988d936f37814a41f2d7cefb78bde6c8582c88d2f67591a66ddf6",
+        "candidateSha256": "50b04929a6422f931b84b53103c7302ddfe893ca4d22119b768bc093819d8eca"
+      }
+    },
+    "workload": {
+      "cases": 3,
+      "carsPerVariant": 3,
+      "ticksPerVariantPerCase": 120,
+      "simulatedSecondsPerVariantPerCase": 1,
+      "frameComparisons": 363,
+      "frameWordsCompared": 369171,
+      "surfaceComparisons": 27,
+      "raceComparisons": 363
+    },
+    "comparison": {
+      "frames": "Every Float32 frame byte, including header, all car blocks and diagnostic defaults.",
+      "surfaces": "Every byte of all eight public surface arrays at each selected checkpoint.",
+      "race": "Exact unrounded race clocks, lap timing/progress, order and classification state.",
+      "diagnosticArguments": {
+        "stepMs": 0,
+        "dropped": 0
+      },
+      "outputNormalization": "none"
+    },
+    "cases": [
+      {
+        "name": "clear-human-ai",
+        "weather": "clear",
+        "compound": "medium",
+        "seed": 73021,
+        "circuit": "aurel",
+        "mode": "practice",
+        "cars": 3,
+        "ticks": 120,
+        "dt": 0.008333333333333333,
+        "inputSha256": "35933c3a8e7a37b21e771c2fd7252d3933159e1bf32aafa89163b392daf8b86d",
+        "counts": {
+          "frameComparisons": 121,
+          "frameWordsCompared": 123057,
+          "frameBytesCompared": 492228,
+          "raceComparisons": 121,
+          "surfaceComparisons": 9,
+          "surfaceValuesCompared": 230400,
+          "surfaceBytesCompared": 907776,
+          "humanTicks": 104,
+          "playerAiTicks": 16
+        },
+        "frameSha256": {
+          "baseline": "e7270b724cc77b54bd1bbc4dfeeab7654d108d03ee55090b8ad66867808bac5a",
+          "candidate": "e7270b724cc77b54bd1bbc4dfeeab7654d108d03ee55090b8ad66867808bac5a"
+        },
+        "raceSha256": {
+          "baseline": "2fb7229d4697ea6c8d20843d71c7cc2b62ae810446c06ef67e99fc6f1aad32ac",
+          "candidate": "2fb7229d4697ea6c8d20843d71c7cc2b62ae810446c06ef67e99fc6f1aad32ac"
+        },
+        "orderedSurfaceCheckpointDigestsSha256": {
+          "baseline": "b7ccd1ac4454451d41f254b98f4894a7c61eb75691baff5b80b83777a74889f9",
+          "candidate": "b7ccd1ac4454451d41f254b98f4894a7c61eb75691baff5b80b83777a74889f9"
+        },
+        "surfaceArrays": [
+          "water",
+          "rubber",
+          "marbles",
+          "frozen",
+          "temperature",
+          "substrateTemperature",
+          "drainage",
+          "sheltered"
+        ],
+        "surfaceCheckpoints": [
+          {
+            "tick": 0,
+            "baselineSha256": "ee5d68698cf2da4515a0ce931fb3c2052cde60eb2604c12e95069842d9a94baf",
+            "candidateSha256": "ee5d68698cf2da4515a0ce931fb3c2052cde60eb2604c12e95069842d9a94baf"
+          },
+          {
+            "tick": 1,
+            "baselineSha256": "c9857418f5475c8a5866bedb6d44d82cdc3940edd4f70daab544d77ff38d6ccc",
+            "candidateSha256": "c9857418f5475c8a5866bedb6d44d82cdc3940edd4f70daab544d77ff38d6ccc"
+          },
+          {
+            "tick": 29,
+            "baselineSha256": "8172c40ac4de763fceea05923495cf43cbff03f8d3167780233687db8e812c3a",
+            "candidateSha256": "8172c40ac4de763fceea05923495cf43cbff03f8d3167780233687db8e812c3a"
+          },
+          {
+            "tick": 59,
+            "baselineSha256": "a3ed01f1614dceb2bb646e2e1597e43ea23c0d0897d7cb7738cb25830ac737cf",
+            "candidateSha256": "a3ed01f1614dceb2bb646e2e1597e43ea23c0d0897d7cb7738cb25830ac737cf"
+          },
+          {
+            "tick": 60,
+            "baselineSha256": "747ac9f82f8203eb12e0fc4d89eefc0d2e14a53fe79afbd1b66494c5da3f0e93",
+            "candidateSha256": "747ac9f82f8203eb12e0fc4d89eefc0d2e14a53fe79afbd1b66494c5da3f0e93"
+          },
+          {
+            "tick": 61,
+            "baselineSha256": "3ec33a420db5d4b8c043d691bb758171ed09241670694d4d83a17dbd3da759e1",
+            "candidateSha256": "3ec33a420db5d4b8c043d691bb758171ed09241670694d4d83a17dbd3da759e1"
+          },
+          {
+            "tick": 89,
+            "baselineSha256": "dad83b42df090ba1ecf96c54723e9a9a35eddb771cd69173ace370d0b9f6f072",
+            "candidateSha256": "dad83b42df090ba1ecf96c54723e9a9a35eddb771cd69173ace370d0b9f6f072"
+          },
+          {
+            "tick": 119,
+            "baselineSha256": "e53f75e08fb45c6979f8f7a4af5a0576b2e819d819a86921431c6cfe1a716ce8",
+            "candidateSha256": "e53f75e08fb45c6979f8f7a4af5a0576b2e819d819a86921431c6cfe1a716ce8"
+          },
+          {
+            "tick": 120,
+            "baselineSha256": "a9044d55ee5033941acf9a5ef437760c8d7573678cf1e581e4f8e35ef90d0303",
+            "candidateSha256": "a9044d55ee5033941acf9a5ef437760c8d7573678cf1e581e4f8e35ef90d0303"
+          }
+        ],
+        "exercised": {
+          "surfaceSteps": [
+            2,
+            2
+          ],
+          "loadedPavedSlipWorkTicks": [
+            120,
+            120
+          ],
+          "maximumSpeed": [
+            7.661399972169799,
+            7.661399972169799
+          ],
+          "laneResidentCells": [
+            12,
+            12
+          ],
+          "opponentAiUpdatesPerVariant": 240
+        },
+        "finalRace": {
+          "time": 6.907441297872041,
+          "raceTime": 1.0000000000000497,
+          "greenAt": 5.9074412978719915,
+          "phase": 2,
+          "flag": "GREEN",
+          "order": [
+            1,
+            0,
+            2
+          ],
+          "completedLaps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "rain-human-ai",
+        "weather": "rain",
+        "compound": "intermediate",
+        "seed": 2505,
+        "circuit": "aurel",
+        "mode": "practice",
+        "cars": 3,
+        "ticks": 120,
+        "dt": 0.008333333333333333,
+        "inputSha256": "35933c3a8e7a37b21e771c2fd7252d3933159e1bf32aafa89163b392daf8b86d",
+        "counts": {
+          "frameComparisons": 121,
+          "frameWordsCompared": 123057,
+          "frameBytesCompared": 492228,
+          "raceComparisons": 121,
+          "surfaceComparisons": 9,
+          "surfaceValuesCompared": 230400,
+          "surfaceBytesCompared": 907776,
+          "humanTicks": 104,
+          "playerAiTicks": 16
+        },
+        "frameSha256": {
+          "baseline": "44a6414594e70ebebf13cf92b12d23528ed5a956f95ea3529a3f6ee7c6bfb728",
+          "candidate": "44a6414594e70ebebf13cf92b12d23528ed5a956f95ea3529a3f6ee7c6bfb728"
+        },
+        "raceSha256": {
+          "baseline": "704872f19b31c855b318e6812e26984097b43f787ad270cd5f77ea2e2f9f9ab7",
+          "candidate": "704872f19b31c855b318e6812e26984097b43f787ad270cd5f77ea2e2f9f9ab7"
+        },
+        "orderedSurfaceCheckpointDigestsSha256": {
+          "baseline": "504315a451be9e031e180cb9de4fee577cdca8bc731041bf364e5bb48bda4ab2",
+          "candidate": "504315a451be9e031e180cb9de4fee577cdca8bc731041bf364e5bb48bda4ab2"
+        },
+        "surfaceArrays": [
+          "water",
+          "rubber",
+          "marbles",
+          "frozen",
+          "temperature",
+          "substrateTemperature",
+          "drainage",
+          "sheltered"
+        ],
+        "surfaceCheckpoints": [
+          {
+            "tick": 0,
+            "baselineSha256": "0173bd1ff8b103f15d0db308dbc27cb6a8503e1864b6f9ee0c08b053b48b3562",
+            "candidateSha256": "0173bd1ff8b103f15d0db308dbc27cb6a8503e1864b6f9ee0c08b053b48b3562"
+          },
+          {
+            "tick": 1,
+            "baselineSha256": "f55d0ba51ebdf86bdd13166fe991afd787d1361a8fb0374a70641957dd0133cc",
+            "candidateSha256": "f55d0ba51ebdf86bdd13166fe991afd787d1361a8fb0374a70641957dd0133cc"
+          },
+          {
+            "tick": 29,
+            "baselineSha256": "9914d5f50649e6550a359e54c85566896e076b6bb15d486f0edd8e71fbae6506",
+            "candidateSha256": "9914d5f50649e6550a359e54c85566896e076b6bb15d486f0edd8e71fbae6506"
+          },
+          {
+            "tick": 59,
+            "baselineSha256": "c5ac792234599799a8ab1b0385a6ba01a073e314a69528deeec55ef8db4d904f",
+            "candidateSha256": "c5ac792234599799a8ab1b0385a6ba01a073e314a69528deeec55ef8db4d904f"
+          },
+          {
+            "tick": 60,
+            "baselineSha256": "9841ccb65ee67210283ed3ba8f051b1a99069bdc62f130802bc6985b44fa6dbe",
+            "candidateSha256": "9841ccb65ee67210283ed3ba8f051b1a99069bdc62f130802bc6985b44fa6dbe"
+          },
+          {
+            "tick": 61,
+            "baselineSha256": "09f24e9679789ad6d1c8648bc3b469227c7941a7241fa82f582f177222f0485b",
+            "candidateSha256": "09f24e9679789ad6d1c8648bc3b469227c7941a7241fa82f582f177222f0485b"
+          },
+          {
+            "tick": 89,
+            "baselineSha256": "0ed77732b761b46aa351c5730f1f2f7eb0cf7e7bc80cd0452f5af73b082c5d48",
+            "candidateSha256": "0ed77732b761b46aa351c5730f1f2f7eb0cf7e7bc80cd0452f5af73b082c5d48"
+          },
+          {
+            "tick": 119,
+            "baselineSha256": "91ddf7aae252fd95ba20e76059b6ee0f01e582f8c42d5562b312656ffc97d122",
+            "candidateSha256": "91ddf7aae252fd95ba20e76059b6ee0f01e582f8c42d5562b312656ffc97d122"
+          },
+          {
+            "tick": 120,
+            "baselineSha256": "33ce4873a9ac7397d0f667793f6627f9f7de299e0a7a2bdd4c74b269f987e73b",
+            "candidateSha256": "33ce4873a9ac7397d0f667793f6627f9f7de299e0a7a2bdd4c74b269f987e73b"
+          }
+        ],
+        "exercised": {
+          "surfaceSteps": [
+            2,
+            2
+          ],
+          "loadedPavedSlipWorkTicks": [
+            120,
+            120
+          ],
+          "maximumSpeed": [
+            5.282667468221448,
+            5.282667468221448
+          ],
+          "laneResidentCells": [
+            11,
+            11
+          ],
+          "opponentAiUpdatesPerVariant": 240
+        },
+        "finalRace": {
+          "time": 6.733978483756122,
+          "raceTime": 1.0000000000000497,
+          "greenAt": 5.733978483756072,
+          "phase": 2,
+          "flag": "GREEN",
+          "order": [
+            1,
+            0,
+            2
+          ],
+          "completedLaps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "storm-human-ai",
+        "weather": "storm",
+        "compound": "wet",
+        "seed": 9173,
+        "circuit": "aurel",
+        "mode": "practice",
+        "cars": 3,
+        "ticks": 120,
+        "dt": 0.008333333333333333,
+        "inputSha256": "35933c3a8e7a37b21e771c2fd7252d3933159e1bf32aafa89163b392daf8b86d",
+        "counts": {
+          "frameComparisons": 121,
+          "frameWordsCompared": 123057,
+          "frameBytesCompared": 492228,
+          "raceComparisons": 121,
+          "surfaceComparisons": 9,
+          "surfaceValuesCompared": 230400,
+          "surfaceBytesCompared": 907776,
+          "humanTicks": 104,
+          "playerAiTicks": 16
+        },
+        "frameSha256": {
+          "baseline": "e869eb340ce561cbcb408f058c00ab2390ef9cca3c52b0d679d15f9b3ddc2463",
+          "candidate": "e869eb340ce561cbcb408f058c00ab2390ef9cca3c52b0d679d15f9b3ddc2463"
+        },
+        "raceSha256": {
+          "baseline": "7d168b726c4724129fad12b2586fbf591ebebd7db7419534a381aac15d3a100f",
+          "candidate": "7d168b726c4724129fad12b2586fbf591ebebd7db7419534a381aac15d3a100f"
+        },
+        "orderedSurfaceCheckpointDigestsSha256": {
+          "baseline": "de4f48a4367a042099494bb343423da48e83332ba7823cb479d511913050e622",
+          "candidate": "de4f48a4367a042099494bb343423da48e83332ba7823cb479d511913050e622"
+        },
+        "surfaceArrays": [
+          "water",
+          "rubber",
+          "marbles",
+          "frozen",
+          "temperature",
+          "substrateTemperature",
+          "drainage",
+          "sheltered"
+        ],
+        "surfaceCheckpoints": [
+          {
+            "tick": 0,
+            "baselineSha256": "3e551aa17d45747218154b58a5dbe409641db34cc3880fabc21da6cd24b47f2a",
+            "candidateSha256": "3e551aa17d45747218154b58a5dbe409641db34cc3880fabc21da6cd24b47f2a"
+          },
+          {
+            "tick": 1,
+            "baselineSha256": "65dea3cf7d9233130b80482b22a92b2cc0c877f99144ff5f2e321bc4ca0b0a6a",
+            "candidateSha256": "65dea3cf7d9233130b80482b22a92b2cc0c877f99144ff5f2e321bc4ca0b0a6a"
+          },
+          {
+            "tick": 29,
+            "baselineSha256": "995430da1be02115426564af922cffd4e6accf61632010da1154c4cda9944f5c",
+            "candidateSha256": "995430da1be02115426564af922cffd4e6accf61632010da1154c4cda9944f5c"
+          },
+          {
+            "tick": 59,
+            "baselineSha256": "b7bc1797ef4f0627a054c097d1c4340e85f0711fad9259f55b176a914841565d",
+            "candidateSha256": "b7bc1797ef4f0627a054c097d1c4340e85f0711fad9259f55b176a914841565d"
+          },
+          {
+            "tick": 60,
+            "baselineSha256": "d26036166ec969d194e3330cfc32e74b64d26e46e1a508ab3123f263e8b132e0",
+            "candidateSha256": "d26036166ec969d194e3330cfc32e74b64d26e46e1a508ab3123f263e8b132e0"
+          },
+          {
+            "tick": 61,
+            "baselineSha256": "c1f7142eadac828aa800e535bb8deab3c6579b5bb51a6ad6b751fbab90a5b27c",
+            "candidateSha256": "c1f7142eadac828aa800e535bb8deab3c6579b5bb51a6ad6b751fbab90a5b27c"
+          },
+          {
+            "tick": 89,
+            "baselineSha256": "324f6e45d492917a1f85effca9b41f0a0d83a21123da1f27d6686a1b9714d03e",
+            "candidateSha256": "324f6e45d492917a1f85effca9b41f0a0d83a21123da1f27d6686a1b9714d03e"
+          },
+          {
+            "tick": 119,
+            "baselineSha256": "990079bf07e7acf7ca6e588f4f0e288091482b8da4cbd3e1927d73b6905d068d",
+            "candidateSha256": "990079bf07e7acf7ca6e588f4f0e288091482b8da4cbd3e1927d73b6905d068d"
+          },
+          {
+            "tick": 120,
+            "baselineSha256": "c8bae3242ec88d8d35f6394eeec8844b3ffaf303a33015082079898d21c79ac5",
+            "candidateSha256": "c8bae3242ec88d8d35f6394eeec8844b3ffaf303a33015082079898d21c79ac5"
+          }
+        ],
+        "exercised": {
+          "surfaceSteps": [
+            2,
+            2
+          ],
+          "loadedPavedSlipWorkTicks": [
+            120,
+            120
+          ],
+          "maximumSpeed": [
+            5.331972150335673,
+            5.331972150335673
+          ],
+          "laneResidentCells": [
+            11,
+            11
+          ],
+          "opponentAiUpdatesPerVariant": 240
+        },
+        "finalRace": {
+          "time": 7.089258790947547,
+          "raceTime": 1.0000000000000497,
+          "greenAt": 6.089258790947497,
+          "phase": 2,
+          "flag": "GREEN",
+          "order": [
+            1,
+            0,
+            2
+          ],
+          "completedLaps": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "probe": "surface-thermal",
+    "baseline": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+    "provenance": {
+      "baselineRef": "dda5b3e410477a9c89474cdbdcd1d9c87c24b8bc",
+      "candidateHead": "394913934d3c6c9cfbe5ba5251beb7ebe68ee249",
+      "candidateSource": "working-tree bytes, declared targets checked unchanged during bundling",
+      "candidateTrackedState": "clean",
+      "candidateTrackedChanges": [],
+      "candidateTrackedStatusScope": [
+        "src",
+        "scripts/engine-runtime-probes",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json"
+      ],
+      "candidateStatusPolicy": "Tracked changes only; untracked files are excluded from this status claim",
+      "nodeVersion": "v22.23.5",
+      "esbuildVersion": "0.25.12",
+      "entrySha256": "12a49525378301668aa362b77e3f50d544eeac8b69d8c0d1f1b875448e2d2332",
+      "scope": "Only listed production files use the baseline ref; all other dependencies use the candidate checkout.",
+      "files": [
+        {
+          "path": "src/simulation/surface-thermal.ts",
+          "baselineSha256": "9af1582d816e0600512c550d3dbed465f08425b903691e6230d05e54b2bf5c12",
+          "candidateSha256": "ed694932bf4a2e26ba992032e6af4c82d0ea6fb89523a3ca4717ad8525919ce0",
+          "baselineBytes": 11858,
+          "candidateBytes": 11966
+        }
+      ],
+      "bundles": {
+        "baselineSha256": "1740dd0c1a749bb3c0ddd4246c326e6bd76447b21f11ae5a7d504f02c8ce35ed",
+        "candidateSha256": "dbebd52cf1ed61c0e636966a1ca42b629f4e9cad61d7956954a3415c8316e5cc"
+      }
+    },
+    "status": "passed",
+    "comparison": {
+      "directScalars": "finite and Object.is exact",
+      "trackSurfaceArrays": "finite Float32 values and all bytes equal",
+      "weatherAndClock": "finite and Object.is exact",
+      "operationCounts": "separate fresh-instance pass; real method wrappers restored in finally"
+    },
+    "exactness": {
+      "defaultColumns": {
+        "preparations": 12,
+        "cellSlots": 128,
+        "passesPerPreparation": 2,
+        "columns": 3084,
+        "scalarComparisons": 12336,
+        "verifiedCachedWetRevisits": 896,
+        "standaloneRainfallRestorations": 12
+      },
+      "mutableParameters": {
+        "matrixParameters": [
+          "surfaceCapacity",
+          "substrateCapacity",
+          "conduction",
+          "deepConductance"
+        ],
+        "columns": 20,
+        "scalarComparisons": 80,
+        "editsAfterPreparation": 4
+      },
+      "track": {
+        "presets": [
+          {
+            "preset": "clear",
+            "initialStateCompared": true,
+            "updates": 4,
+            "cellsPerUpdate": 3584,
+            "arrayNames": [
+              "temperature",
+              "substrateTemperature",
+              "water",
+              "rubber",
+              "marbles",
+              "frozen"
+            ],
+            "bytesCompared": 344064,
+            "weatherClockFields": [
+              "ambient",
+              "cloud",
+              "rain",
+              "windX",
+              "windZ",
+              "visibility",
+              "dust",
+              "gust",
+              "moisture",
+              "fogCover",
+              "surfaceClock"
+            ],
+            "scalarComparisons": 44
+          },
+          {
+            "preset": "rain",
+            "initialStateCompared": true,
+            "updates": 4,
+            "cellsPerUpdate": 3584,
+            "arrayNames": [
+              "temperature",
+              "substrateTemperature",
+              "water",
+              "rubber",
+              "marbles",
+              "frozen"
+            ],
+            "bytesCompared": 344064,
+            "weatherClockFields": [
+              "ambient",
+              "cloud",
+              "rain",
+              "windX",
+              "windZ",
+              "visibility",
+              "dust",
+              "gust",
+              "moisture",
+              "fogCover",
+              "surfaceClock"
+            ],
+            "scalarComparisons": 44
+          },
+          {
+            "preset": "storm",
+            "initialStateCompared": true,
+            "updates": 4,
+            "cellsPerUpdate": 3584,
+            "arrayNames": [
+              "temperature",
+              "substrateTemperature",
+              "water",
+              "rubber",
+              "marbles",
+              "frozen"
+            ],
+            "bytesCompared": 344064,
+            "weatherClockFields": [
+              "ambient",
+              "cloud",
+              "rain",
+              "windX",
+              "windZ",
+              "visibility",
+              "dust",
+              "gust",
+              "moisture",
+              "fogCover",
+              "surfaceClock"
+            ],
+            "scalarComparisons": 44
+          }
+        ],
+        "postUpdateBytesCompared": 1032192,
+        "postUpdateWeatherClockScalarComparisons": 132
+      }
+    },
+    "operations": {
+      "method": "SurfaceThermalStep.prototype.refreshMatrixInputs",
+      "defaultColumns": {
+        "baseline": {
+          "prepare": 12,
+          "prepareMatrix": 3096,
+          "refreshMatrixInputs": 1822,
+          "advanceWet": 3072,
+          "advance": 12
+        },
+        "candidate": {
+          "prepare": 12,
+          "prepareMatrix": 3096,
+          "refreshMatrixInputs": 12,
+          "advanceWet": 3072,
+          "advance": 12
+        }
+      },
+      "mutableParameters": {
+        "baseline": {
+          "prepare": 4,
+          "prepareMatrix": 24,
+          "refreshMatrixInputs": 24,
+          "advanceWet": 20,
+          "advance": 0
+        },
+        "candidate": {
+          "prepare": 4,
+          "prepareMatrix": 24,
+          "refreshMatrixInputs": 24,
+          "advanceWet": 20,
+          "advance": 0
+        }
+      },
+      "track": [
+        {
+          "preset": "clear",
+          "updates": 4,
+          "baseline": {
+            "prepare": 8,
+            "prepareMatrix": 14344,
+            "refreshMatrixInputs": 10,
+            "advanceWet": 14336,
+            "advance": 0
+          },
+          "candidate": {
+            "prepare": 8,
+            "prepareMatrix": 14344,
+            "refreshMatrixInputs": 8,
+            "advanceWet": 14336,
+            "advance": 0
+          }
+        },
+        {
+          "preset": "rain",
+          "updates": 4,
+          "baseline": {
+            "prepare": 8,
+            "prepareMatrix": 14344,
+            "refreshMatrixInputs": 14349,
+            "advanceWet": 14336,
+            "advance": 0
+          },
+          "candidate": {
+            "prepare": 8,
+            "prepareMatrix": 14344,
+            "refreshMatrixInputs": 8,
+            "advanceWet": 14336,
+            "advance": 0
+          }
+        },
+        {
+          "preset": "storm",
+          "updates": 4,
+          "baseline": {
+            "prepare": 8,
+            "prepareMatrix": 14344,
+            "refreshMatrixInputs": 14349,
+            "advanceWet": 14336,
+            "advance": 0
+          },
+          "candidate": {
+            "prepare": 8,
+            "prepareMatrix": 14344,
+            "refreshMatrixInputs": 8,
+            "advanceWet": 14336,
+            "advance": 0
+          }
+        }
+      ]
+    },
+    "limits": [
+      "Only the thermal module is historical; all other dependencies are the candidate checkout.",
+      "Track coverage is four half-second updates for each of clear, rain and storm.",
+      "Variable timestep and mutable-parameter cases are direct-solver coverage.",
+      "Counts are operation evidence; no elapsed-time, Simulation, browser, native or FPS claim."
+    ]
+  }
+]
