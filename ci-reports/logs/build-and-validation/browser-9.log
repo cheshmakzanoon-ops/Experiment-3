@@ -1,257 +1,255 @@
-### browser (9) (job 138975752730)
+### browser (9) (job 138979731461)
 --- error digest (first 120 matching lines) ---
-797:browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5981944Z   ✘   1 e2e/02-wheel-fidelity.spec.ts:7:1 › actual wheel geometry follows recorded alignment without deforming rigid parts at any LOD (12.0s)
-799:browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5985754Z Error: page.evaluate: Error: Expected four visible reduced wheel pivots
-816:browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:26:48.6276159Z ##[error]The operation was canceled.
+493:browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:52.8213119Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.5517127Z Preparing to unpack .../10-libgs10_10.02.1~dfsg1-0ubuntu7.10_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.5526416Z Unpacking libgs10:amd64 (10.02.1~dfsg1-0ubuntu7.10) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.6614686Z Selecting previously unselected package ghostscript.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.6759511Z Preparing to unpack .../11-ghostscript_10.02.1~dfsg1-0ubuntu7.10_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.6768507Z Unpacking ghostscript (10.02.1~dfsg1-0ubuntu7.10) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.7116177Z Selecting previously unselected package imagemagick-6.q16.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.7264992Z Preparing to unpack .../12-imagemagick-6.q16_8%3a6.9.12.98+dfsg1-5.2build2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.7273794Z Unpacking imagemagick-6.q16 (8:6.9.12.98+dfsg1-5.2build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.7703145Z Selecting previously unselected package imagemagick.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.7847798Z Preparing to unpack .../13-imagemagick_8%3a6.9.12.98+dfsg1-5.2build2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.7855846Z Unpacking imagemagick (8:6.9.12.98+dfsg1-5.2build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8094835Z Selecting previously unselected package libdecor-0-0:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8238490Z Preparing to unpack .../14-libdecor-0-0_0.2.2-1build2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8246826Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8486460Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8633522Z Preparing to unpack .../15-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8642835Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.8899602Z Selecting previously unselected package libdjvulibre-text.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9045104Z Preparing to unpack .../16-libdjvulibre-text_3.5.28-2ubuntu0.24.04.2_all.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9053519Z Unpacking libdjvulibre-text (3.5.28-2ubuntu0.24.04.2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9326548Z Selecting previously unselected package libdjvulibre21:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9471135Z Preparing to unpack .../17-libdjvulibre21_3.5.28-2ubuntu0.24.04.2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9480866Z Unpacking libdjvulibre21:amd64 (3.5.28-2ubuntu0.24.04.2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9805794Z Selecting previously unselected package libegl-mesa0:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9952687Z Preparing to unpack .../18-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:01.9960783Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.0214461Z Selecting previously unselected package libimath-3-1-29t64:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.0359049Z Preparing to unpack .../19-libimath-3-1-29t64_3.1.9-3.1ubuntu2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.0365749Z Unpacking libimath-3-1-29t64:amd64 (3.1.9-3.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.0638269Z Selecting previously unselected package libjxr0t64:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.0784127Z Preparing to unpack .../20-libjxr0t64_1.2~git20170615.f752187-5.1ubuntu2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.0792154Z Unpacking libjxr0t64:amd64 (1.2~git20170615.f752187-5.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.1056309Z Selecting previously unselected package libjxr-tools.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.1199976Z Preparing to unpack .../21-libjxr-tools_1.2~git20170615.f752187-5.1ubuntu2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.1207388Z Unpacking libjxr-tools (1.2~git20170615.f752187-5.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.1457431Z Selecting previously unselected package libopenexr-3-1-30:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.1603055Z Preparing to unpack .../22-libopenexr-3-1-30_3.1.5-5.1build3_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.1609881Z Unpacking libopenexr-3-1-30:amd64 (3.1.5-5.1build3) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2037372Z Selecting previously unselected package libwmflite-0.2-7:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2182792Z Preparing to unpack .../23-libwmflite-0.2-7_0.2.13-1.1build3_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2190895Z Unpacking libwmflite-0.2-7:amd64 (0.2.13-1.1build3) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2437507Z Selecting previously unselected package libmagickcore-6.q16-7-extra:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2579751Z Preparing to unpack .../24-libmagickcore-6.q16-7-extra_8%3a6.9.12.98+dfsg1-5.2build2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2586791Z Unpacking libmagickcore-6.q16-7-extra:amd64 (8:6.9.12.98+dfsg1-5.2build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.2863588Z Selecting previously unselected package libnetpbm11t64:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3007385Z Preparing to unpack .../25-libnetpbm11t64_2%3a11.05.02-1.1build1_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3015014Z Unpacking libnetpbm11t64:amd64 (2:11.05.02-1.1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3254925Z Selecting previously unselected package libpaper-utils.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3402129Z Preparing to unpack .../26-libpaper-utils_1.1.29build1_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3408595Z Unpacking libpaper-utils (1.1.29build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3660075Z Selecting previously unselected package libxcb-xkb1:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3803680Z Preparing to unpack .../27-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.3810379Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4054425Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4197931Z Preparing to unpack .../28-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4205726Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4432566Z Selecting previously unselected package libegl1:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4574623Z Preparing to unpack .../29-libegl1_1.7.0-1build1_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4581925Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4826292Z Selecting previously unselected package libgles2:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.4968955Z Preparing to unpack .../30-libgles2_1.7.0-1build1_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5009227Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5242893Z Selecting previously unselected package mesa-utils-bin:amd64.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5387154Z Preparing to unpack .../31-mesa-utils-bin_9.0.0-2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5393528Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5684488Z Selecting previously unselected package netpbm.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5831448Z Preparing to unpack .../32-netpbm_2%3a11.05.02-1.1build1_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.5838900Z Unpacking netpbm (2:11.05.02-1.1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.7622456Z Selecting previously unselected package mesa-utils.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.7769936Z Preparing to unpack .../33-mesa-utils_9.0.0-2_amd64.deb ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.7780068Z Unpacking mesa-utils (9.0.0-2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.8445564Z Setting up libpaper1:amd64 (1.1.29build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.9985387Z 
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:02.9986166Z Creating config file /etc/papersize with new version
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.0556615Z Setting up fonts-noto-mono (20201225-2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.0579793Z Setting up libwmflite-0.2-7:amd64 (0.2.13-1.1build3) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.0597361Z Setting up libijs-0.35:amd64 (0.35-15.1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.0614557Z Setting up libgs-common (10.02.1~dfsg1-0ubuntu7.10) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.0639666Z Setting up libpaper-utils (1.1.29build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.0659134Z Setting up fonts-urw-base35 (20200910-8) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2088814Z Setting up libnetpbm11t64:amd64 (2:11.05.02-1.1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2107036Z Setting up poppler-data (0.4.12-1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2204073Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2223323Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2242673Z Setting up libgles2:amd64 (1.7.0-1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2261748Z Setting up libjxr0t64:amd64 (1.2~git20170615.f752187-5.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2279046Z Setting up libjbig2dec0:amd64 (0.20-1ubuntu0.24.04.1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2297257Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2316684Z Setting up libimath-3-1-29t64:amd64 (3.1.9-3.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2334636Z Setting up libidn12:amd64 (1.42-1ubuntu0.1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2351227Z Setting up netpbm (2:11.05.02-1.1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2371691Z Setting up imagemagick-6.q16 (8:6.9.12.98+dfsg1-5.2build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2446923Z update-alternatives: using /usr/bin/compare-im6.q16 to provide /usr/bin/compare (compare) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2493712Z update-alternatives: using /usr/bin/compare-im6.q16 to provide /usr/bin/compare-im6 (compare-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2550251Z update-alternatives: using /usr/bin/animate-im6.q16 to provide /usr/bin/animate (animate) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2597478Z update-alternatives: using /usr/bin/animate-im6.q16 to provide /usr/bin/animate-im6 (animate-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2654991Z update-alternatives: using /usr/bin/convert-im6.q16 to provide /usr/bin/convert (convert) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2700857Z update-alternatives: using /usr/bin/convert-im6.q16 to provide /usr/bin/convert-im6 (convert-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2758563Z update-alternatives: using /usr/bin/composite-im6.q16 to provide /usr/bin/composite (composite) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2805210Z update-alternatives: using /usr/bin/composite-im6.q16 to provide /usr/bin/composite-im6 (composite-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2862342Z update-alternatives: using /usr/bin/conjure-im6.q16 to provide /usr/bin/conjure (conjure) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2907680Z update-alternatives: using /usr/bin/conjure-im6.q16 to provide /usr/bin/conjure-im6 (conjure-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.2964539Z update-alternatives: using /usr/bin/import-im6.q16 to provide /usr/bin/import (import) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3010374Z update-alternatives: using /usr/bin/import-im6.q16 to provide /usr/bin/import-im6 (import-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3067581Z update-alternatives: using /usr/bin/identify-im6.q16 to provide /usr/bin/identify (identify) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3113721Z update-alternatives: using /usr/bin/identify-im6.q16 to provide /usr/bin/identify-im6 (identify-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3170156Z update-alternatives: using /usr/bin/stream-im6.q16 to provide /usr/bin/stream (stream) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3216692Z update-alternatives: using /usr/bin/stream-im6.q16 to provide /usr/bin/stream-im6 (stream-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3274720Z update-alternatives: using /usr/bin/display-im6.q16 to provide /usr/bin/display (display) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3322816Z update-alternatives: using /usr/bin/display-im6.q16 to provide /usr/bin/display-im6 (display-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3409989Z update-alternatives: using /usr/bin/montage-im6.q16 to provide /usr/bin/montage (montage) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3464845Z update-alternatives: using /usr/bin/montage-im6.q16 to provide /usr/bin/montage-im6 (montage-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3527639Z update-alternatives: using /usr/bin/mogrify-im6.q16 to provide /usr/bin/mogrify (mogrify) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3576065Z update-alternatives: using /usr/bin/mogrify-im6.q16 to provide /usr/bin/mogrify-im6 (mogrify-im6) in auto mode
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3593426Z Setting up libegl1:amd64 (1.7.0-1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3610533Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3627237Z Setting up fonts-droid-fallback (1:6.0.1r16-1.1build1) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3839502Z Setting up libdjvulibre-text (3.5.28-2ubuntu0.24.04.2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3856971Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3875512Z Setting up libgs10-common (10.02.1~dfsg1-0ubuntu7.10) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3892512Z Setting up libjxr-tools (1.2~git20170615.f752187-5.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3911528Z Setting up libdjvulibre21:amd64 (3.5.28-2ubuntu0.24.04.2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3928444Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3949369Z Setting up libopenexr-3-1-30:amd64 (3.1.5-5.1build3) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3968969Z Setting up imagemagick (8:6.9.12.98+dfsg1-5.2build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.3987029Z Setting up libmagickcore-6.q16-7-extra:amd64 (8:6.9.12.98+dfsg1-5.2build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.4004739Z Setting up libgs10:amd64 (10.02.1~dfsg1-0ubuntu7.10) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.4023524Z Setting up ghostscript (10.02.1~dfsg1-0ubuntu7.10) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.4093872Z Setting up mesa-utils (9.0.0-2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.4118879Z Processing triggers for hicolor-icon-theme (0.17-2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.5054576Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.5204836Z Processing triggers for man-db (2.12.0-4build2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.5223323Z Not building database; man-db/auto-update is not 'true'.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:03.5237633Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2687506Z 
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2688376Z Running kernel seems to be up-to-date.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2688910Z 
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2689212Z No services need to be restarted.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2689512Z 
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2689710Z No containers need to be restarted.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2689977Z 
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2690223Z No user sessions are running outdated binaries.
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2690525Z 
-browser (9)	Install Mesa software graphics and virtual display	2026-11-25T04:25:04.2690914Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	﻿2026-11-25T04:25:05.3686819Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3687438Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16^[[0m
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3707332Z shell: /usr/bin/bash -e {0}
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3707591Z env:
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3707798Z   APEX_BROWSER_BACKEND: mesa
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3708060Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3708529Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3708787Z   GALLIUM_DRIVER: llvmpipe
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:05.3709016Z ##[endgroup]
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:06.2126441Z 
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:06.2127161Z > apex-formula-laboratory@0.1.0 test:e2e:shard
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:06.2127811Z > node --experimental-strip-types scripts/run-browser-shard.ts 9/16
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:06.2128171Z 
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:18.0776843Z Verified 27 of 434 cases for shard 9/16; no omissions or duplicate assignments.
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:21.3742793Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:24.0661849Z 
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:24.0662604Z Running 27 tests using 1 worker
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:24.0663036Z 
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:24.8008168Z [browser-progress] START  >  > 02-wheel-fidelity.spec.ts > actual wheel geometry follows recorded alignment without deforming rigid parts at any LOD
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5981944Z   ✘   1 e2e/02-wheel-fidelity.spec.ts:7:1 › actual wheel geometry follows recorded alignment without deforming rigid parts at any LOD (12.0s)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5984457Z [browser-failure]  >  > 02-wheel-fidelity.spec.ts > actual wheel geometry follows recorded alignment without deforming rigid parts at any LOD
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5985754Z Error: page.evaluate: Error: Expected four visible reduced wheel pivots
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5986685Z     at visibleReducedWheelPivots (<anonymous>:27694:13)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5987491Z     at Module.verifyWheelFidelity (<anonymous>:60968:25)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5988233Z     at eval (eval at evaluate (:291:30), <anonymous>:1:26)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5988973Z     at UtilityScript.evaluate (<anonymous>:293:16)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5989733Z     at UtilityScript.<anonymous> (<anonymous>:1:44)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5990484Z     at visibleReducedWheelPivots (<anonymous>:27694:13)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5991826Z     at Module.verifyWheelFidelity (<anonymous>:60968:25)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5992624Z     at eval (eval at evaluate (:291:30), <anonymous>:1:26)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5993356Z     at UtilityScript.evaluate (<anonymous>:293:16)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5994017Z     at UtilityScript.<anonymous> (<anonymous>:1:44)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:37.5994570Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/02-wheel-fidelity.spec.ts:35:33
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:38.3678029Z [browser-progress] START  >  > 10-aero-surface.spec.ts > original aero surfaces: production car studio review
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:50.7550756Z   ✓   2 e2e/10-aero-surface.spec.ts:7:1 › original aero surfaces: production car studio review (12.1s)
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:50.7650724Z [browser-progress] START  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic three-quarter whole-car inspection
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:25:54.0693207Z [browser-progress] 3s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic three-quarter whole-car inspection / Expect "toBeVisible"
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:26:24.0985262Z [browser-progress] 33s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic three-quarter whole-car inspection / Expect "toBeVisible"
-browser (9)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16	2026-11-25T04:26:48.6276159Z ##[error]The operation was canceled.
-browser (9)	Browser screenshots and diagnostics	﻿2026-11-25T04:26:48.6341843Z ##[group]Run actions/upload-artifact@v4
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6342199Z with:
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6342415Z   name: browser-validation-9-of-16
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6342944Z   path: test-results/
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.3032806Z Reading package lists...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.3321011Z Reading package lists...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.6151935Z Building dependency tree...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.6158212Z Reading state information...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7878296Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7878968Z libasound2t64 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7879586Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7880170Z libatk-bridge2.0-0t64 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7880939Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7881539Z libatk1.0-0t64 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7882058Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7882557Z libatspi2.0-0t64 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7883040Z libcairo2 is already the newest version (1.18.0-3build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7883551Z libcairo2 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7884057Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7885251Z libcups2t64 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7885757Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7886234Z libdbus-1-3 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7886753Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7887323Z libdrm2 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7887837Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7888347Z libglib2.0-0t64 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7888871Z libnspr4 is already the newest version (2:4.35-1.1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7889339Z libnspr4 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7889824Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7890269Z libnss3 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7890904Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7891430Z libpango-1.0-0 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7891921Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7892399Z libx11-6 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7892875Z libxcb1 is already the newest version (1.15-1ubuntu2).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7893301Z libxcb1 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7893778Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7894255Z libxcomposite1 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7894700Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7895130Z libxdamage1 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7895444Z libxext6 is already the newest version (2:1.3.4-1build2).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7895745Z libxext6 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7896069Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7896571Z libxfixes3 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7896900Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7897336Z libxkbcommon0 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7897762Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7898070Z libxrandr2 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7898397Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7898822Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7899269Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7899697Z libfontconfig1 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7900043Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7900547Z libfreetype6 set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7900910Z fonts-liberation is already the newest version (1:2.1.5-3).
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7901351Z fonts-liberation set to manually installed.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7901808Z The following additional packages will be installed:
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7902389Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7902889Z Recommended packages:
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.7903219Z   fonts-ipafont-mincho fonts-tlwg-loma
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8183787Z The following NEW packages will be installed:
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8184610Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8194276Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8194760Z   xfonts-utils
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8199711Z The following packages will be upgraded:
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8205598Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8410652Z 4 upgraded, 9 newly installed, 0 to remove and 73 not upgraded.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8411268Z Need to get 32.1 MB of archives.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8411836Z After this operation, 79.7 MB of additional disk space will be used.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.8412480Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.9247237Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:38.9604263Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.0067722Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.0183016Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.0596060Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.1220989Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.1317088Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.1445764Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.1558784Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.2300709Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.2664693Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.2820316Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.3004854Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.5604054Z Fetched 32.1 MB in 0s (67.2 MB/s)
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.5822184Z Selecting previously unselected package fonts-ipafont-gothic.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6026070Z (Reading database ... 
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6026627Z (Reading database ... 5%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6026971Z (Reading database ... 10%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6027276Z (Reading database ... 15%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6031233Z (Reading database ... 20%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6031574Z (Reading database ... 25%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6031890Z (Reading database ... 30%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6032187Z (Reading database ... 35%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6032397Z (Reading database ... 40%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6032621Z (Reading database ... 45%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6032829Z (Reading database ... 50%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.6075257Z (Reading database ... 55%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.7244798Z (Reading database ... 60%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:39.9263780Z (Reading database ... 65%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:40.1293623Z (Reading database ... 70%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:40.3156485Z (Reading database ... 75%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:40.4294577Z (Reading database ... 80%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:40.6546468Z (Reading database ... 85%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:40.8783614Z (Reading database ... 90%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.0320102Z (Reading database ... 95%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.0320798Z (Reading database ... 100%
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.0321207Z (Reading database ... 217092 files and directories currently installed.)
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.0364174Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.0531995Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.3000974Z Selecting previously unselected package fonts-freefont-ttf.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.3127853Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.3160972Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.4263504Z Selecting previously unselected package fonts-tlwg-loma-otf.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.4388860Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.4396998Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.4607474Z Selecting previously unselected package fonts-unifont.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.4734582Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.4741670Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.6645192Z Selecting previously unselected package fonts-wqy-zenhei.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.6772641Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:41.6878177Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.1704643Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.1845696Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.2328875Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.2355867Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.2733250Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.2751681Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.3113847Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.3135188Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.6614848Z Selecting previously unselected package xfonts-encodings.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.6791723Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.6811283Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.7100841Z Selecting previously unselected package xfonts-utils.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.7224733Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.7232812Z Unpacking xfonts-utils (1:7.7+6build3) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.7565726Z Selecting previously unselected package xfonts-cyrillic.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.7695046Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.7702555Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8019446Z Selecting previously unselected package xfonts-scalable.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8149103Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8156411Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8689707Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8708407Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8724143Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8788098Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8887971Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8903406Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8918950Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8934693Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.8992698Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.9006008Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.9022246Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.9039524Z Setting up xfonts-utils (1:7.7+6build3) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.9074810Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.9328562Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:42.9568816Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.0985364Z Processing triggers for man-db (2.12.0-4build2) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.1011893Z Not building database; man-db/auto-update is not 'true'.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.1025199Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7245056Z 
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7245723Z Running kernel seems to be up-to-date.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7246004Z 
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7246137Z No services need to be restarted.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7246300Z 
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7246726Z No containers need to be restarted.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7246881Z 
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7247027Z No user sessions are running outdated binaries.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7247202Z 
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:43.7247433Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:44.8804373Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.0373631Z |                                                                                |   0% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.1962542Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.3964595Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.5255184Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.7074335Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.8451397Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:45.9766351Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:46.1576290Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:46.2979517Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:46.4167823Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:46.5424051Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.1527440Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.1529141Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.2868892Z |                                                                                |   0% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3067761Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3163196Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3220613Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3248429Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3269796Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3317436Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3350506Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3364568Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3381626Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3393249Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3833587Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.3835738Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.5468534Z |                                                                                |   0% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.7450706Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:49.9713290Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:50.1487111Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:50.4165604Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:50.6061242Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:50.7663295Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:50.9329218Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:51.1198608Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:51.2965402Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:51.4247647Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:52.7343094Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
+browser (9)	Run npx playwright install --with-deps chromium	2026-11-25T04:35:52.8213119Z ##[error]The operation was canceled.
+browser (9)	Browser screenshots and diagnostics	﻿2026-11-25T04:35:52.8287989Z ##[group]Run actions/upload-artifact@v4
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8288364Z with:
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8288629Z   name: browser-validation-9-of-16
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8289258Z   path: test-results/
 browser (9)	Browser screenshots and diagnostics	playwright-report/
 browser (9)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (9)	Browser screenshots and diagnostics	browser-backend.json
 browser (9)	Browser screenshots and diagnostics	browser-progress.json
 browser (9)	Browser screenshots and diagnostics	
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6343486Z   retention-days: 7
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6343703Z   if-no-files-found: warn
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6360746Z   compression-level: 6
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6361384Z   overwrite: false
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6361794Z   include-hidden-files: false
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6362209Z env:
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6362525Z   APEX_BROWSER_BACKEND: mesa
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6362895Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6363163Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6363414Z   GALLIUM_DRIVER: llvmpipe
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.6363654Z ##[endgroup]
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8286085Z (node:4534) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8344930Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8633836Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8638032Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8639560Z With the provided path, there will be 5 files uploaded
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8641235Z Artifact name is valid!
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:48.8642053Z Root directory input is valid!
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:49.2922215Z Beginning upload of artifact content to blob storage
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:49.3917322Z (node:4534) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.0415581Z Uploaded bytes 1143248
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.1155706Z Finished uploading artifact content to blob storage!
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.1157174Z SHA256 digest of uploaded artifact zip is 233c7ae48c432b3ab3137af059faf402ffb7e32eaa130dda2357963d31d142b6
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.1158232Z Finalizing artifact upload
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.5312861Z Artifact browser-validation-9-of-16.zip successfully finalized. Artifact ID 14990999843
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.5330856Z Artifact browser-validation-9-of-16 has been successfully uploaded! Final size is 1143248 bytes. Artifact ID is 14990999843
-browser (9)	Browser screenshots and diagnostics	2026-11-25T04:26:50.5333355Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45544501716/artifacts/14990999843
-browser (9)	Post Run actions/checkout@v4	﻿2026-11-25T04:26:50.5546603Z Post job cleanup.
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6629851Z [command]/usr/bin/git version
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6642719Z git version 2.56.1
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6690639Z Temporarily overriding HOME='/home/runner/work/_temp/81d12532-fc03-4e4c-8cbf-248f513e720b' before making global git config changes
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6692854Z Adding repository directory to the temporary git global config as a safe directory
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6697716Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6753771Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.6809169Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.7266654Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.7334513Z http.https://github.com/.extraheader
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.7337909Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.7382859Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.7906611Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (9)	Post Run actions/checkout@v4	2026-11-25T04:26:50.7916227Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (9)	Complete job	﻿2026-11-25T04:26:50.8496336Z Cleaning up orphan processes
-browser (9)	Complete job	2026-11-25T04:26:50.8989823Z Terminate orphan process: pid (4005) (xvfb-run)
-browser (9)	Complete job	2026-11-25T04:26:50.9035160Z Terminate orphan process: pid (4015) (Xvfb)
-browser (9)	Complete job	2026-11-25T04:26:50.9067032Z Terminate orphan process: pid (4019) (npm run test:e2)
-browser (9)	Complete job	2026-11-25T04:26:50.9102986Z Terminate orphan process: pid (4030) (sh)
-browser (9)	Complete job	2026-11-25T04:26:50.9148991Z Terminate orphan process: pid (4031) (node)
-browser (9)	Complete job	2026-11-25T04:26:50.9202080Z Terminate orphan process: pid (4064) (node)
-browser (9)	Complete job	2026-11-25T04:26:50.9244481Z Terminate orphan process: pid (4080) (sh)
-browser (9)	Complete job	2026-11-25T04:26:50.9288925Z Terminate orphan process: pid (4081) (npm run preview --port 4173)
-browser (9)	Complete job	2026-11-25T04:26:50.9337916Z Terminate orphan process: pid (4092) (sh)
-browser (9)	Complete job	2026-11-25T04:26:50.9414308Z Terminate orphan process: pid (4093) (node)
-browser (9)	Complete job	2026-11-25T04:26:50.9490230Z Terminate orphan process: pid (4102) (esbuild)
-browser (9)	Complete job	2026-11-25T04:26:50.9636608Z Terminate orphan process: pid (4365) (node)
-browser (9)	Complete job	2026-11-25T04:26:50.9776848Z Terminate orphan process: pid (4380) (chrome_crashpad_handler)
-browser (9)	Complete job	2026-11-25T04:26:50.9850013Z Terminate orphan process: pid (4382) (chrome_crashpad_handler)
-browser (9)	Complete job	2026-11-25T04:26:50.9959671Z Terminate orphan process: pid (4473) (esbuild)
-browser (9)	Complete job	2026-11-25T04:26:51.0102455Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8289935Z   retention-days: 7
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8290208Z   if-no-files-found: warn
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8290642Z   compression-level: 6
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8290908Z   overwrite: false
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8291178Z   include-hidden-files: false
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8291460Z env:
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8291672Z   APEX_BROWSER_BACKEND: mesa
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8291936Z   APEX_MOTOCROSS_XVFB_CAPTURE: 1
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8292254Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8292566Z   GALLIUM_DRIVER: llvmpipe
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.8292856Z ##[endgroup]
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.9730801Z (node:3118) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.9731654Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.9775387Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.9804295Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (9)	Browser screenshots and diagnostics	2026-11-25T04:35:52.9822883Z ##[warning]No files were found with the provided path: test-results/
+browser (9)	Browser screenshots and diagnostics	playwright-report/
+browser (9)	Browser screenshots and diagnostics	browser-shard-plan.json
+browser (9)	Browser screenshots and diagnostics	browser-backend.json
+browser (9)	Browser screenshots and diagnostics	browser-progress.json. No artifacts will be uploaded.
+browser (9)	Post Run actions/checkout@v4	﻿2026-11-25T04:35:53.0198941Z Post job cleanup.
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.0964862Z [command]/usr/bin/git version
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1006295Z git version 2.56.1
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1040010Z Temporarily overriding HOME='/home/runner/work/_temp/89241c7f-18cf-4700-9022-8151f95e17c3' before making global git config changes
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1040975Z Adding repository directory to the temporary git global config as a safe directory
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1045287Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1307941Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1333446Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1731735Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1753654Z http.https://github.com/.extraheader
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1780746Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.1873896Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.2130143Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (9)	Post Run actions/checkout@v4	2026-11-25T04:35:53.2165646Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (9)	Complete job	﻿2026-11-25T04:35:53.2555693Z Cleaning up orphan processes
+browser (9)	Complete job	2026-11-25T04:35:53.2813087Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
