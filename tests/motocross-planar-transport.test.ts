@@ -235,9 +235,10 @@ describe('public motocross planar transport', () => {
           original = d.step.bind(d);
         let coreX = NaN, coreZ = NaN;
         const spy = vi.spyOn(d, 'step').mockImplementation((...args) => {
-          original(...args);
+          const result = original(...args);
           coreX = d.x;
           coreZ = d.z;
+          return result;
         });
         try { bike.step(DT, terrain.track); } finally { spy.mockRestore(); }
         expect(motion(bike).playerMotocross).toBe(false);

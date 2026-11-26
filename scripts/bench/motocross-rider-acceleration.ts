@@ -206,7 +206,14 @@ function brakeReversal(definition: VehicleDefinition, hz: number, direction: num
     stroke.step(direction, dt);
   }
   bike.input.riderLean = -direction;
-  const trace = [];
+  const trace: {
+    p: number;
+    v: number;
+    displacement: number;
+    pose: number;
+    rate: number;
+    legacy: number;
+  }[] = [];
   for (let n = 0; n < Math.round(0.6 * hz); n++) {
     bike.step(dt, track);
     stroke.step(-direction, dt);
