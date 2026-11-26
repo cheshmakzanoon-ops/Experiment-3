@@ -1,0 +1,259 @@
+### browser (night) (job 139608474913)
+--- error digest (first 120 matching lines) ---
+245:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9870638Z ##[error]scripts/bench/motocross-rider-acceleration.ts(209,9): error TS7034: Variable 'trace' implicitly has type 'any[]' in some locations where its type cannot be determined.
+246:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9877719Z ##[error]scripts/bench/motocross-rider-acceleration.ts(229,58): error TS7005: Variable 'trace' implicitly has an 'any[]' type.
+247:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9879429Z ##[error]scripts/bench/motocross-rider-acceleration.ts(242,62): error TS7005: Variable 'trace' implicitly has an 'any[]' type.
+248:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9881302Z ##[error]tests/motocross-planar-transport.test.ts(237,60): error TS2345: Argument of type '(input: BikeInput, dt: number) => void' is not assignable to parameter of type 'NormalizedProcedure<(input: BikeInput, dt: number) => BikeState>'.
+252:browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:56.7370799Z ##[error]Process completed with exit code 2.
+
+--- last 250 lines ---
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3312548Z   fetch-depth: 1
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3313308Z   fetch-tags: false
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3314088Z   show-progress: true
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3314868Z   lfs: false
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3315619Z   submodules: false
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3316630Z   set-safe-directory: true
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3317548Z   allow-unsafe-pr-checkout: false
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3318685Z env:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3319376Z   DEBUG: pw:browser
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3320175Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3321076Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3322035Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:53.3322852Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.2413067Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.2414337Z ##[group]Getting Git version info
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.2414825Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.2415404Z [command]/usr/bin/git version
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5324255Z git version 2.56.1
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5339409Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5352071Z Temporarily overriding HOME='/home/runner/work/_temp/8a2fb1bb-0e5c-4898-b737-1476c1f05265' before making global git config changes
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5353124Z Adding repository directory to the temporary git global config as a safe directory
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5356807Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5731440Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5734343Z ##[group]Initializing the repository
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5737755Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5872163Z hint: Using 'master' as the name for the initial branch. This default branch name
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5872844Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5873523Z hint: to use in all of your new repositories, which will suppress this warning,
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5873939Z hint: call:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5874182Z hint:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5874559Z hint: 	git config --global init.defaultBranch <name>
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5874875Z hint:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5875233Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5875724Z hint: 'development'. The just-created branch can be renamed via this command:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5876262Z hint:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5876567Z hint: 	git branch -m <name>
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5876866Z hint:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5877231Z hint: Disable this message with "git config set advice.defaultBranchName false"
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5880433Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5887714Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5930546Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5931087Z ##[group]Disabling automatic garbage collection
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5932967Z [command]/usr/bin/git config --local gc.auto 0
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5955059Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5955503Z ##[group]Setting up auth
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5959527Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.5985081Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.9919542Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:57.9943625Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:58.0092582Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:58.0115961Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:58.0261193Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:58.0287552Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:58.0288191Z ##[group]Fetching the repository
+browser (night)	Run actions/checkout@v4	2026-11-26T00:34:58.0299965Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +2904ea226590e4f9c75b7e4aecf544c7b7f8fb15:refs/remotes/origin/main
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6845436Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6846603Z  * [new ref]         2904ea226590e4f9c75b7e4aecf544c7b7f8fb15 -> origin/main
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6850111Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6850738Z ##[group]Determining the checkout info
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6852341Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6858031Z [command]/usr/bin/git sparse-checkout disable
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6931471Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6955714Z ##[group]Checking out the ref
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:10.6958375Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.7317522Z Updating files:  48% (5191/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.7400449Z Updating files:  49% (5245/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.7768300Z Updating files:  50% (5352/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.7883867Z Updating files:  51% (5459/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.7924115Z Updating files:  52% (5566/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8108718Z Updating files:  53% (5673/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8229923Z Updating files:  54% (5780/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8324403Z Updating files:  55% (5887/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8379521Z Updating files:  56% (5994/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8436325Z Updating files:  57% (6101/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8503225Z Updating files:  58% (6208/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8546234Z Updating files:  59% (6315/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8650609Z Updating files:  60% (6422/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8792829Z Updating files:  61% (6529/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8862564Z Updating files:  62% (6636/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.8998819Z Updating files:  63% (6743/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.9183100Z Updating files:  64% (6850/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.9408171Z Updating files:  65% (6957/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:11.9816631Z Updating files:  66% (7064/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.0041924Z Updating files:  67% (7172/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.0242045Z Updating files:  68% (7279/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.0592910Z Updating files:  69% (7386/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.0817456Z Updating files:  70% (7493/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.0870992Z Updating files:  71% (7600/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.0922922Z Updating files:  72% (7707/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.1103410Z Updating files:  73% (7814/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.1696537Z Updating files:  74% (7921/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.3447329Z Updating files:  75% (8028/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6115407Z Updating files:  76% (8135/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6215972Z Updating files:  77% (8242/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6295138Z Updating files:  78% (8349/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6344191Z Updating files:  79% (8456/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6657772Z Updating files:  80% (8563/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6811173Z Updating files:  81% (8670/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.6978693Z Updating files:  82% (8777/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7027382Z Updating files:  83% (8884/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7064078Z Updating files:  84% (8991/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7086779Z Updating files:  84% (9056/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7226963Z Updating files:  85% (9098/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7287036Z Updating files:  86% (9205/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7342286Z Updating files:  87% (9312/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7396034Z Updating files:  88% (9419/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7452809Z Updating files:  89% (9526/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7502267Z Updating files:  90% (9633/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7554112Z Updating files:  91% (9740/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7605044Z Updating files:  92% (9847/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7647018Z Updating files:  93% (9954/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7692928Z Updating files:  94% (10061/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7747168Z Updating files:  95% (10168/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7796868Z Updating files:  96% (10275/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7843296Z Updating files:  97% (10382/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7888213Z Updating files:  98% (10489/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7936811Z Updating files:  99% (10596/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7937274Z Updating files: 100% (10703/10703)
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.7937587Z Updating files: 100% (10703/10703), done.
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8023319Z Switched to a new branch 'main'
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8032150Z branch 'main' set up to track 'origin/main'.
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8098051Z ##[endgroup]
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8142513Z [command]/usr/bin/git log -1 --format=%H
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8163174Z 2904ea226590e4f9c75b7e4aecf544c7b7f8fb15
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8187668Z ##[group]Removing auth
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8188206Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8197567Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8362555Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8384601Z http.https://github.com/.extraheader
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8389418Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8411627Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8565682Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8586776Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (night)	Run actions/checkout@v4	2026-11-26T00:35:12.8735447Z ##[endgroup]
+browser (night)	Run actions/setup-node@v4	﻿2026-11-26T00:35:12.8924826Z ##[group]Run actions/setup-node@v4
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8925095Z with:
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8925315Z   node-version: 22
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8925529Z   cache: npm
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8925745Z   always-auth: false
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8925973Z   check-latest: false
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8928210Z   token: ***
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8928431Z env:
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8928626Z   DEBUG: pw:browser
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8928864Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8929202Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8929458Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:12.8929705Z ##[endgroup]
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:13.1807581Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:13.1818163Z (node:2229) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:13.1819037Z ##[group]Environment details
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:13.1819378Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:17.9832875Z node: v22.23.5
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:17.9833342Z npm: 10.9.9
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:17.9833551Z yarn: 1.22.22
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:17.9834487Z ##[endgroup]
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:17.9846022Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:18.4146368Z /home/runner/.npm
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:18.6874007Z Cache hit for: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:18.6953563Z (node:2229) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:20.0109977Z Received 0 of 34424064 (0.0%), 0.0 MBs/sec
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:20.7156827Z Received 34424064 of 34424064 (100.0%), 19.3 MBs/sec
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:20.7157358Z Cache Size: ~33 MB (34424064 B)
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:20.7174085Z [command]/usr/bin/tar -xf /home/runner/work/_temp/0bd9b674-dbf4-4b16-9c8d-bccb2993c811/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:20.7543825Z Cache restored successfully
+browser (night)	Run actions/setup-node@v4	2026-11-26T00:35:20.7554628Z Cache restored from key: node-cache-Linux-x64-npm-a596512e216edf970f8e80f8fcceba306377506472168d02d7cc67ffc02f6543
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-26T00:35:20.7695109Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:20.7695873Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3631523Z shell: /usr/bin/bash -e {0}
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3632432Z env:
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3632681Z   DEBUG: pw:browser
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3632935Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3633247Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3633498Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:21.3633757Z ##[endgroup]
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:25.0965140Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:25.3468790Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:25.3469707Z added 194 packages in 3s
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:26.0241966Z (node:2280) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-26T00:35:26.0242888Z (Use `node --trace-warnings ...` to show where the warning was created)
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	﻿2026-11-26T00:35:26.0357071Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm run build
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0357679Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm run build^[[0m
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0380085Z shell: /usr/bin/bash -e {0}
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0380353Z env:
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0380559Z   DEBUG: pw:browser
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0380864Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0381117Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0381376Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.0381611Z ##[endgroup]
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8106262Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8107450Z > apex-formula-laboratory@0.1.0 prebuild
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8108116Z > npm run generate:player-lods -- --owner-only
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8108378Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8774803Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8775764Z > apex-formula-laboratory@0.1.0 generate:player-lods
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8776976Z > node --experimental-strip-types scripts/build-player-lods.mjs --owner-only
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.8777420Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.9462671Z Player LODs skipped: product build (an owner QA build, npm run build:qa, generates them).
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.9536842Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.9537655Z > apex-formula-laboratory@0.1.0 build
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.9538099Z > tsc --noEmit && vite build
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:26.9538419Z 
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9870638Z ##[error]scripts/bench/motocross-rider-acceleration.ts(209,9): error TS7034: Variable 'trace' implicitly has type 'any[]' in some locations where its type cannot be determined.
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9877719Z ##[error]scripts/bench/motocross-rider-acceleration.ts(229,58): error TS7005: Variable 'trace' implicitly has an 'any[]' type.
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9879429Z ##[error]scripts/bench/motocross-rider-acceleration.ts(242,62): error TS7005: Variable 'trace' implicitly has an 'any[]' type.
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9881302Z ##[error]tests/motocross-planar-transport.test.ts(237,60): error TS2345: Argument of type '(input: BikeInput, dt: number) => void' is not assignable to parameter of type 'NormalizedProcedure<(input: BikeInput, dt: number) => BikeState>'.
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:55.9882512Z   Type 'void' is not assignable to type 'BikeState'.
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:56.7293856Z (node:2315) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:56.7294991Z (Use `node --trace-warnings ...` to show where the warning was created)
+browser (night)	Run node --experimental-transform-types scripts/source-stability.ts -- npm run build	2026-11-26T00:35:56.7370799Z ##[error]Process completed with exit code 2.
+browser (night)	Run actions/upload-artifact@v4	﻿2026-11-26T00:35:56.7458456Z ##[group]Run actions/upload-artifact@v4
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7458788Z with:
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7459044Z   name: scenery-shadow-night
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7459417Z   path: test-results/
+browser (night)	Run actions/upload-artifact@v4	playwright-report/
+browser (night)	Run actions/upload-artifact@v4	browser-backend.json
+browser (night)	Run actions/upload-artifact@v4	browser-progress.json
+browser (night)	Run actions/upload-artifact@v4	
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7459808Z   retention-days: 14
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7460070Z   if-no-files-found: warn
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7460313Z   compression-level: 6
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7460566Z   overwrite: false
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7460817Z   include-hidden-files: false
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7461095Z env:
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7461305Z   DEBUG: pw:browser
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7461532Z   APEX_BROWSER_BACKEND: mesa
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7461806Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7462053Z   GALLIUM_DRIVER: llvmpipe
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.7462329Z ##[endgroup]
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.8679076Z (node:2369) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.8679761Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.8720475Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.8723899Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (night)	Run actions/upload-artifact@v4	2026-11-26T00:35:56.8741169Z ##[warning]No files were found with the provided path: test-results/
+browser (night)	Run actions/upload-artifact@v4	playwright-report/
+browser (night)	Run actions/upload-artifact@v4	browser-backend.json
+browser (night)	Run actions/upload-artifact@v4	browser-progress.json. No artifacts will be uploaded.
+browser (night)	Post Run actions/checkout@v4	﻿2026-11-26T00:35:56.8874762Z Post job cleanup.
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9550979Z [command]/usr/bin/git version
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9585582Z git version 2.56.1
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9615775Z Temporarily overriding HOME='/home/runner/work/_temp/94f79424-1bea-4fb3-bfca-3a7fa5efdb22' before making global git config changes
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9616614Z Adding repository directory to the temporary git global config as a safe directory
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9620639Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9649690Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9674402Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9858719Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:56.9893656Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:57.0079004Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (night)	Post Run actions/checkout@v4	2026-11-26T00:35:57.0100264Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (night)	Complete job	﻿2026-11-26T00:35:57.0386008Z Cleaning up orphan processes
+browser (night)	Complete job	2026-11-26T00:35:57.0638994Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

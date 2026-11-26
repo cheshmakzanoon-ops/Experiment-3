@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45697808821
-- commit: `39d9d49788` · fix(motocross): improve contact dynamics and continuous recorded motion
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-25T20:44:19Z · updated: 2026-11-25T20:51:31Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45729738907
+- commit: `2904ea2265` · docs(motocross): record ten-wave engine research and acceptance evidence
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-26T00:34:46Z · updated: 2026-11-26T00:36:03Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 7 |  |
-| browser (day) | success | 7 |  |
-| browser (sunset) | success | 7 |  |
+| browser (day) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (sunset) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (night) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
