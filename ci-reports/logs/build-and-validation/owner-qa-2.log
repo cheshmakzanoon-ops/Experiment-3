@@ -1,0 +1,282 @@
+### owner-qa (2) (job 139613650406)
+--- error digest (first 120 matching lines) ---
+615:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T00:55:27.3080850Z   ✘   3 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames (5.4m)
+618:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T00:55:27.3122051Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+633:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:01:24.7312627Z   ✘   4 e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames (5.4m)
+637:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:01:24.7316179Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+652:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:06:28.6951534Z   ✘   6 e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change (3.0m)
+654:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:06:28.6957698Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+705:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:24:56.5908565Z   ✘  10 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day (10.2m)
+707:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:24:56.5910114Z Error: cdpSession.detach: Target page, context or browser has been closed
+732:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4061110Z   ✘  11 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night (10.3m)
+736:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4063391Z Error: page.evaluate: Target page, context or browser has been closed
+741:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4639010Z   1) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+745:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4640428Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+764:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4650226Z   2) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+768:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4651565Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+787:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4661317Z   3) e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change 
+789:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4662442Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+794:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4664069Z       92 |   expect(report.state).toBe('complete');
+795:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4664673Z       93 |   expect(report.summary.elapsedMs).toBeGreaterThanOrEqual(30000);
+796:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4665280Z     > 94 |   expect(report.rows.length).toBeGreaterThan(5);
+798:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4666241Z       95 |   expect(report.summary.averageDrawCalls).toBeGreaterThan(0);
+799:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4666824Z       96 |   expect(report.summary.visualAccepted).toBe(false);
+800:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4667406Z       97 |   expect(report.context.source).toMatch(/^[a-f0-9]{64}$/);
+813:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4674958Z   4) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ────────
+817:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4676251Z     Error: cdpSession.detach: Target page, context or browser has been closed
+839:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4687071Z   5) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ────
+843:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4695808Z     Error: page.evaluate: Target page, context or browser has been closed
+850:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4699102Z       43 |     await expect(page.locator('#menu')).toBeVisible({ timeout: 120000 });
+870:owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.8450663Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:29:13.1060411Z [browser-progress] 256s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:29:43.1359920Z [browser-progress] 286s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="lighting:night"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:30:13.1590143Z [browser-progress] 316s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="modalClose"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:30:43.1889183Z [browser-progress] 346s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click locator('#modal [data-action="modalClose"]')
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:31:13.1951403Z [browser-progress] 376s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:31:43.2110748Z [browser-progress] 406s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:32:13.2439887Z [browser-progress] 436s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:32:43.2557377Z [browser-progress] 466s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:33:13.2857707Z [browser-progress] 496s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:33:43.2896859Z [browser-progress] 526s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:34:13.3136110Z [browser-progress] 556s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'CLEAN FRAME', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:34:43.3270272Z [browser-progress] 586s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Click getByRole('button', { name: 'RETURN / ESC', exact: true })
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:13.3379796Z [browser-progress] 616s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night / Fixture "context"
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4061110Z   ✘  11 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night (10.3m)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4061896Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4062398Z ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4062878Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on vellamar in rain/night
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4063391Z Error: page.evaluate: Target page, context or browser has been closed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4063852Z     at read (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:41:29)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4064383Z     at Object.generator (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:114:42)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4625470Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4630268Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4639010Z   1) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4639613Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4639912Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4640174Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4640428Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4640743Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4640923Z       145 |     const errors = await load(page);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4641461Z       146 |     await page.setViewportSize({ width: 960, height: 540 });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4641994Z     > 147 |     const result = await page.evaluate(
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4642411Z           |                               ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4642735Z       148 |       (night) =>
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4643359Z       149 |         (window as unknown as { Phase27E: typeof Fixture }).Phase27E.reviewRendererProbe(night),
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4643946Z       150 |       night,
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4644856Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4645275Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4645867Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4646742Z     test-results/14-phase27e-full-productio-65883-w-metrics-in-wet-day-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4647321Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4647461Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4648017Z         npx playwright show-trace test-results/14-phase27e-full-productio-65883-w-metrics-in-wet-day-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4648781Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4649264Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4649632Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4650226Z   2) e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4650782Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4651062Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4651324Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4651565Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4651857Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4652031Z       145 |     const errors = await load(page);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4652557Z       146 |     await page.setViewportSize({ width: 960, height: 540 });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4653077Z     > 147 |     const result = await page.evaluate(
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4653473Z           |                               ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4653806Z       148 |       (night) =>
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4654427Z       149 |         (window as unknown as { Phase27E: typeof Fixture }).Phase27E.reviewRendererProbe(night),
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4655006Z       150 |       night,
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4655504Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/14-phase27e.spec.ts:147:31
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4655908Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4656480Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4657347Z     test-results/14-phase27e-full-productio-5c4c3-metrics-in-wet-night-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4658144Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4658516Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4659087Z         npx playwright show-trace test-results/14-phase27e-full-productio-5c4c3-metrics-in-wet-night-frames/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4659743Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4660258Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4660624Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4661317Z   3) e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4661877Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4662442Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4662906Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4663096Z     Expected: > ^[[32m5^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4663457Z     Received:   ^[[31m5^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4663647Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4664069Z       92 |   expect(report.state).toBe('complete');
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4664673Z       93 |   expect(report.summary.elapsedMs).toBeGreaterThanOrEqual(30000);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4665280Z     > 94 |   expect(report.rows.length).toBeGreaterThan(5);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4665728Z          |                              ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4666241Z       95 |   expect(report.summary.averageDrawCalls).toBeGreaterThan(0);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4666824Z       96 |   expect(report.summary.visualAccepted).toBe(false);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4667406Z       97 |   expect(report.context.source).toMatch(/^[a-f0-9]{64}$/);
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4668100Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/15-review-journey.spec.ts:94:30
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4669075Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4669641Z     Error Context: test-results/15-review-journey-live-rev-1258a-s-on-a-real-viewport-change/error-context.md
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4670222Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4670796Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4671685Z     test-results/15-review-journey-live-rev-1258a-s-on-a-real-viewport-change/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4672283Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4672416Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4672980Z         npx playwright show-trace test-results/15-review-journey-live-rev-1258a-s-on-a-real-viewport-change/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4673571Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4674056Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4674424Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4674958Z   4) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4675400Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4675651Z     ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4675915Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4676251Z     Error: cdpSession.detach: Target page, context or browser has been closed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4676625Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4677059Z       25 |     await info.attach(name, { body: Buffer.from(shot.data, 'base64'), contentType: 'image/png' });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4677689Z       26 |   } finally {
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4678037Z     > 27 |     await session.detach();
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4678646Z          |                   ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4678943Z       28 |   }
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4679188Z       29 | }
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4679495Z       30 | for (const scenario of scenarios) {
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4680145Z         at capture (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:27:19)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4680918Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:120:5
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4681307Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4681841Z     Error Context: test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/error-context.md
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4682378Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4682910Z     attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4683759Z     test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4684563Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4684723Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4685198Z         npx playwright show-trace test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4685719Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4686177Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4686537Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4687071Z   5) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4687535Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4687763Z     ^[[31mTest timeout of 600000ms exceeded.^[[39m
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4688025Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4695808Z     Error: page.evaluate: Target page, context or browser has been closed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4696198Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4696493Z       39 |       if (message.type() === 'error') errors.push(message.text());
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4697144Z       40 |     });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4697609Z     > 41 |     const read = () => page.evaluate(() => window.apexDiagnostics());
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4698094Z          |                             ^
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4698575Z       42 |     await page.goto('/');
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4699102Z       43 |     await expect(page.locator('#menu')).toBeVisible({ timeout: 120000 });
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4699821Z       44 |     await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4700588Z         at read (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:41:29)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4701438Z         at Object.generator (/home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:114:42)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4702014Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4702565Z     attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4703375Z     test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4703939Z     Usage:
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4704080Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4704591Z         npx playwright show-trace test-results/53-a61-rival-A61-full-grid-1c2f8-n-on-vellamar-in-rain-night/trace.zip
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4705153Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4705599Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4705943Z 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4706049Z   5 failed
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4706708Z     e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet day frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4707716Z     e2e/14-phase27e.spec.ts:142:3 › full production renderer feeds real review metrics in wet night frames 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4729025Z     e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change 
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4730065Z     e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ─────────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4731204Z     e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on vellamar in rain/night ─────
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.4731724Z   6 passed (46.2m)
+owner-qa (2)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:35:20.8450663Z ##[error]Process completed with exit code 1.
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-26T01:35:20.8519660Z ##[group]Run actions/upload-artifact@v4
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8519914Z with:
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8520083Z   name: owner-qa-2-of-4
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8520411Z   path: test-results/
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8520749Z   retention-days: 7
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8520926Z   if-no-files-found: warn
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8521122Z   compression-level: 6
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8521304Z   overwrite: false
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8521479Z   include-hidden-files: false
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8521673Z env:
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8521852Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8522077Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8522278Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.8522644Z ##[endgroup]
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.9946874Z (node:4247) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:20.9947595Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.0094391Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.0096820Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.0097594Z With the provided path, there will be 59 files uploaded
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.0102671Z Artifact name is valid!
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.0103045Z Root directory input is valid!
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.2920781Z Beginning upload of artifact content to blob storage
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.5383112Z (node:4247) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:21.9862582Z Uploaded bytes 8388608
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:22.1684927Z Uploaded bytes 16777216
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:22.2615019Z Uploaded bytes 25165824
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:22.3657688Z Uploaded bytes 33554432
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:22.5520064Z Uploaded bytes 41943040
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:22.7916185Z Uploaded bytes 50331648
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:23.0168848Z Uploaded bytes 58720256
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:23.2168009Z Uploaded bytes 67108864
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:23.4529086Z Uploaded bytes 75497472
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:23.6286556Z Uploaded bytes 83886080
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:23.8256209Z Uploaded bytes 92274688
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:24.0638743Z Uploaded bytes 100663296
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:24.2770388Z Uploaded bytes 109051904
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:24.4949408Z Uploaded bytes 117440512
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:24.7191121Z Uploaded bytes 125829120
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:24.9402461Z Uploaded bytes 134217728
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:25.1756721Z Uploaded bytes 142606336
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:25.4753199Z Uploaded bytes 150994944
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:25.6426398Z Uploaded bytes 159383552
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:25.8779762Z Uploaded bytes 167772160
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:26.1369054Z Uploaded bytes 176160768
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:26.3455461Z Uploaded bytes 184549376
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:26.5589573Z Uploaded bytes 192937984
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:26.8655246Z Uploaded bytes 201326592
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:27.2774578Z Uploaded bytes 209715200
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:27.5203492Z Uploaded bytes 218103808
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:27.9227842Z Uploaded bytes 226492416
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:28.1128599Z Uploaded bytes 234881024
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:28.1404707Z Uploaded bytes 243269632
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:28.3367305Z Uploaded bytes 251658240
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:28.5635073Z Uploaded bytes 260046848
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:28.7577545Z Uploaded bytes 268435456
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:28.9487441Z Uploaded bytes 276824064
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:29.2138305Z Uploaded bytes 285212672
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:29.4439149Z Uploaded bytes 293601280
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:29.8013379Z Uploaded bytes 301989888
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:29.8903303Z Uploaded bytes 310378496
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:30.0313967Z Uploaded bytes 318767104
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:30.2273828Z Uploaded bytes 327155712
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:30.4213532Z Uploaded bytes 335544320
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:30.6345494Z Uploaded bytes 343932928
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:30.8284694Z Uploaded bytes 352321536
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:31.0495244Z Uploaded bytes 360710144
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:31.1065250Z Uploaded bytes 369098752
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:31.3154406Z Uploaded bytes 377487360
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:31.7089020Z Uploaded bytes 385875968
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:32.0938816Z Uploaded bytes 394264576
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:33.2075723Z Uploaded bytes 402653184
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.3139143Z Uploaded bytes 408850667
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.3571491Z Finished uploading artifact content to blob storage!
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.3573768Z SHA256 digest of uploaded artifact zip is 55429cad4430396376275efe1955e853431f9f15c171a27036f08646d95933ca
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.3575633Z Finalizing artifact upload
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.7531562Z Artifact owner-qa-2-of-4.zip successfully finalized. Artifact ID 15078629378
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.7533127Z Artifact owner-qa-2-of-4 has been successfully uploaded! Final size is 408850667 bytes. Artifact ID is 15078629378
+owner-qa (2)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:35:34.7538908Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/artifacts/15078629378
+owner-qa (2)	Post Run actions/checkout@v4	﻿2026-11-26T01:35:34.7807464Z Post job cleanup.
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8534795Z [command]/usr/bin/git version
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8575809Z git version 2.56.1
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8606867Z Temporarily overriding HOME='/home/runner/work/_temp/003c8df3-40eb-451c-821a-f6a9d75fd3ab' before making global git config changes
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8608115Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8611427Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8645761Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8684933Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8916451Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8940795Z http.https://github.com/.extraheader
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8950525Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.8982121Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.9219972Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (2)	Post Run actions/checkout@v4	2026-11-26T01:35:34.9266920Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (2)	Complete job	﻿2026-11-26T01:35:34.9654953Z Cleaning up orphan processes
+owner-qa (2)	Complete job	2026-11-26T01:35:34.9974946Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

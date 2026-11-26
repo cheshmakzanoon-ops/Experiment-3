@@ -1,0 +1,273 @@
+### owner-qa (1) (job 139613650331)
+--- error digest (first 120 matching lines) ---
+593:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T00:54:54.9197210Z   ✘   1 e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload (5.2m)
+597:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T00:54:54.9201140Z Error: expect.toContainText: Test timeout of 300000ms exceeded.
+654:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6715828Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+660:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6717800Z - Timeout 90000ms exceeded while waiting on the predicate
+662:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6719166Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.2m)
+685:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7886110Z Error: locator.fill: Test timeout of 300000ms exceeded.
+694:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7892983Z   ✘  10 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.2m)
+699:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1058117Z   1) e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
+703:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1059628Z     Error: expect.toContainText: Test timeout of 300000ms exceeded.
+707:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1061190Z     > 43 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
+710:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1062234Z       45 |   expect(edited.team.livery).toEqual({
+722:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1066759Z   2) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards › Expect "poll toBe" 
+724:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1068078Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+730:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069533Z     - Timeout 90000ms exceeded while waiting on the predicate
+732:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069950Z       158 |   expect((await diag(page)).state).toBe('menu');
+736:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1071555Z       161 |   expect((await diag(page)).options).toMatchObject({
+751:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1093280Z   3) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
+755:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1094294Z     Error: locator.fill: Test timeout of 300000ms exceeded.
+789:owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.3565238Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:00:25.1058497Z [browser-progress] 20s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:00:55.1109408Z [browser-progress] 50s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:01:25.1400344Z [browser-progress] 80s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:01:55.1410762Z [browser-progress] 110s  >  > 07-reference-tools.spec.ts > covered menu redraws once on resize and resumes after closing without freezing photo mode / Expect "toBeGreaterThan"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:02:15.9478707Z   ✓   5 e2e/07-reference-tools.spec.ts:254:1 › covered menu redraws once on resize and resumes after closing without freezing photo mode (2.2m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:02:15.9588059Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:02:25.1508631Z [browser-progress] 9s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Create context
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:02:55.1773688Z [browser-progress] 39s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:03:25.1983937Z [browser-progress] 69s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toHaveValue"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:03:55.2056411Z [browser-progress] 99s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Press "Escape"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:04:25.2260925Z [browser-progress] 129s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Click getByRole('button', { name: 'REFERENCE REVIEW', exact: true })
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:04:55.2298283Z [browser-progress] 159s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:05:25.2308354Z [browser-progress] 189s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:05:55.2290791Z [browser-progress] 219s  >  > 08-reference-implementation.spec.ts > reference continuation: native showroom and grid views preserve the held simulation / Press "Escape"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:06:21.7938714Z   ✓   6 e2e/08-reference-implementation.spec.ts:43:1 › reference continuation: native showroom and grid views preserve the held simulation (4.1m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:06:21.7987874Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:06:25.2338296Z [browser-progress] 3s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Create context
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:06:55.2332123Z [browser-progress] 33s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Create page
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:07:25.2638822Z [browser-progress] 63s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:07:55.2875001Z [browser-progress] 93s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:08:25.2999029Z [browser-progress] 124s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Evaluate
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:08:55.3283778Z [browser-progress] 154s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Evaluate
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:09:25.3538587Z [browser-progress] 184s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Screenshot
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:09:55.3558077Z [browser-progress] 214s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:10:25.3553969Z [browser-progress] 244s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:10:55.3578319Z [browser-progress] 274s  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:11:16.2104204Z   ✓   7 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical (4.9m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:11:16.2128389Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:11:25.3668326Z [browser-progress] 9s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Create context
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:11:55.3658764Z [browser-progress] 39s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:12:25.3770131Z [browser-progress] 69s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:12:55.4069008Z [browser-progress] 99s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:start"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:13:25.4219410Z [browser-progress] 129s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Click locator('[data-action="academy:confirm"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:13:55.4244618Z [browser-progress] 159s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:14:25.4240620Z [browser-progress] 189s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:14:55.4260729Z [browser-progress] 219s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:25.4264701Z [browser-progress] 249s  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards / Fixture "context"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6714417Z [browser-failure]  >  > 08-reference-implementation.spec.ts > reference continuation: explicit programme replacement, live chevrons and no replay awards
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6715828Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6716563Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6716754Z Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6717128Z Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6717427Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6717507Z Call Log:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6717800Z - Timeout 90000ms exceeded while waiting on the predicate
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6718320Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:41.6719166Z   ✘   8 e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards (4.2m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:42.0937931Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:15:55.4438174Z [browser-progress] 13s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:16:25.4417961Z [browser-progress] 43s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBeGreaterThan"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:16:55.4475493Z [browser-progress] 73s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Evaluate
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:17:25.4472481Z [browser-progress] 103s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Expect "toBe"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:17:55.4632144Z [browser-progress] 133s  >  > 09-reference-depth.spec.ts > reference depth: survey, focus and headquarters render without advancing the held scene / Screenshot
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:18:10.2688994Z   ✓   9 e2e/09-reference-depth.spec.ts:16:1 › reference depth: survey, focus and headquarters render without advancing the held scene (2.5m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:18:10.2731879Z [browser-progress] START  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:18:25.4789739Z [browser-progress] 15s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Create context
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:18:55.4898774Z [browser-progress] 45s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Expect "toBeVisible"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:19:25.4990821Z [browser-progress] 75s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:19:55.5300771Z [browser-progress] 105s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="slot"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:20:25.5522249Z [browser-progress] 135s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:20:55.5628527Z [browser-progress] 165s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "NORTH" locator('[data-decal="text"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:21:25.5925882Z [browser-progress] 195s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "NORTH" locator('[data-decal="text"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:21:55.6194605Z [browser-progress] 225s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Select option locator('[data-decal="side"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:22:25.6349848Z [browser-progress] 255s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Check locator('[data-decal="enabled"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:22:55.6428981Z [browser-progress] 285s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fill "SOUTH" locator('[data-decal="text"]')
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:25.6438719Z [browser-progress] 315s  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload / Fixture "browser"
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7882945Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7884533Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7885379Z [browser-failure]  >  > 09-reference-depth.spec.ts > reference depth: independent decals and audio options survive the real application reload
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7886110Z Error: locator.fill: Test timeout of 300000ms exceeded.
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7886703Z Call log:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7887164Z ^[[2m  - waiting for locator('[data-decal="text"]')^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7887880Z ^[[2m    - locator resolved to <input maxlength="14" value="VOLTEX" data-decal="text" aria-label="Decal wordmark"/>^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7888390Z ^[[2m    - fill("SOUTH")^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7888740Z ^[[2m  - attempting fill action^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7889161Z ^[[2m    - waiting for element to be visible, enabled and editable^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7889396Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7889667Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:74:47
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:30.7892983Z   ✘  10 e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload (5.2m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:31.3010183Z [browser-progress] START  >  > 14-phase27e.spec.ts > actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.0063658Z   ✓  11 e2e/14-phase27e.spec.ts:31:1 › actual rear-signal uniforms tint nearby spray and freeze/rewind without mutating its pool (10.6s)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1042366Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1056815Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1058117Z   1) e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1058574Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1058998Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1059217Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1059628Z     Error: expect.toContainText: Test timeout of 300000ms exceeded.
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1059987Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1060212Z       41 |   await page.locator('#liveryPattern').selectOption('split');
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1060701Z       42 |   await page.getByRole('button', { name: 'SAVE LIVERY', exact: true }).click();
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1061190Z     > 43 |   await expect(page.locator('#photoStatus')).toContainText('Livery saved');
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1061597Z          |                                              ^
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1061907Z       44 |   const edited = await diag(page);
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1062234Z       45 |   expect(edited.team.livery).toEqual({
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1062590Z       46 |     primary: '#2266bb',
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1062991Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/07-reference-tools.spec.ts:43:46
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1063295Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1063615Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1064182Z     test-results/07-reference-tools-referen-56b5f--quality-changes-and-reload/trace.zip
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1064583Z     Usage:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1064701Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1065029Z         npx playwright show-trace test-results/07-reference-tools-referen-56b5f--quality-changes-and-reload/trace.zip
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1065411Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1065712Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1065961Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1066759Z   2) e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards › Expect "poll toBe" 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1067674Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1068078Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1068492Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1068639Z     Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1068991Z     Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069136Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069246Z     Call Log:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069533Z     - Timeout 90000ms exceeded while waiting on the predicate
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069781Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1069950Z       158 |   expect((await diag(page)).state).toBe('menu');
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1070313Z       159 |   await page.locator('[data-action="academy:confirm"]').click();
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1070852Z     > 160 |   await expect.poll(async () => (await diag(page)).state, { timeout: 90000 }).toBe('driving');
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1071238Z           |   ^
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1071555Z       161 |   expect((await diag(page)).options).toMatchObject({
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1071894Z       162 |     mode: 'practice',
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1072145Z       163 |     opponents: 0,
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1072570Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/08-reference-implementation.spec.ts:160:3
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1072880Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1073197Z     Error Context: test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/error-context.md
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1073537Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1073889Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1074409Z     test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1074824Z     Usage:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1074950Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1075264Z         npx playwright show-trace test-results/08-reference-implementatio-a90ef-evrons-and-no-replay-awards/trace.zip
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1075632Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1075932Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1076178Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1093280Z   3) e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1093706Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1093886Z     ^[[31mTest timeout of 300000ms exceeded.^[[39m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1094105Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1094294Z     Error: locator.fill: Test timeout of 300000ms exceeded.
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1094585Z     Call log:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1094958Z     ^[[2m  - waiting for locator('[data-decal="text"]')^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1095522Z     ^[[2m    - locator resolved to <input maxlength="14" value="VOLTEX" data-decal="text" aria-label="Decal wordmark"/>^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1095974Z     ^[[2m    - fill("SOUTH")^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1096557Z     ^[[2m  - attempting fill action^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1097116Z     ^[[2m    - waiting for element to be visible, enabled and editable^[[22m
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1097586Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1097591Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1097797Z       72 |     await page.locator('[data-decal="slot"]').selectOption(id);
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1098191Z       73 |     await page.locator('[data-decal="enabled"]').check();
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1098554Z     > 74 |     await page.locator('[data-decal="text"]').fill(text);
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1098931Z          |                                               ^
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1099288Z       75 |     await page.locator('[data-decal="side"]').selectOption(side);
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1099619Z       76 |   }
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1099912Z       77 |   await page.locator('#saveLivery').click();
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1100368Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/09-reference-depth.spec.ts:74:47
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1100665Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1100975Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1101559Z     test-results/09-reference-depth-referen-bdc79-the-real-application-reload/trace.zip
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1102016Z     Usage:
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1102154Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1102563Z         npx playwright show-trace test-results/09-reference-depth-referen-bdc79-the-real-application-reload/trace.zip
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1102959Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1103273Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1103540Z 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1103718Z   Slow test file: e2e/08-reference-implementation.spec.ts (13.2m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1104133Z   Slow test file: e2e/09-reference-depth.spec.ts (7.7m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1104604Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1104981Z   3 failed
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1105562Z     e2e/07-reference-tools.spec.ts:20:1 › reference tools: actual livery pixels persist through save, quality changes and reload 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1106666Z     e2e/08-reference-implementation.spec.ts:148:1 › reference continuation: explicit programme replacement, live chevrons and no replay awards 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1107662Z     e2e/09-reference-depth.spec.ts:61:1 › reference depth: independent decals and audio options survive the real application reload 
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.1108330Z   8 passed (34.4m)
+owner-qa (1)	Owner-only and review-tool specs, plus the owner half of the dual-mode specs	2026-11-26T01:23:42.3565238Z ##[error]Process completed with exit code 1.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	﻿2026-11-26T01:23:42.3739454Z ##[group]Run actions/upload-artifact@v4
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3739718Z with:
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3739877Z   name: owner-qa-1-of-4
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3740174Z   path: test-results/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	playwright-report/
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-backend.json
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	browser-progress.json
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3740487Z   retention-days: 7
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3740664Z   if-no-files-found: warn
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3740839Z   compression-level: 6
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3740998Z   overwrite: false
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3741170Z   include-hidden-files: false
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3741345Z env:
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3741514Z   APEX_BROWSER_BACKEND: swiftshader
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3741705Z   MOTOBOUND_SUPPLIED_PLAYER: 1
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3741883Z   MOTOBOUND_REVIEW_TOOLS: 1
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.3742040Z ##[endgroup]
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.4997134Z (node:4081) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.4998035Z (Use `node --trace-deprecation ...` to show where the warning was created)
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.5116631Z Multiple search paths detected. Calculating the least common ancestor of all paths
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.5118385Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.5119160Z With the provided path, there will be 40 files uploaded
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.5119732Z Artifact name is valid!
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.5120048Z Root directory input is valid!
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:42.9380540Z Beginning upload of artifact content to blob storage
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:43.1613287Z (node:4081) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.2906540Z Uploaded bytes 8388608
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.5403258Z Uploaded bytes 16777216
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.5925413Z Uploaded bytes 25165824
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.7566935Z Uploaded bytes 33554432
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.8915278Z Uploaded bytes 41943040
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.9210277Z Uploaded bytes 50331648
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:44.9629542Z Uploaded bytes 58720256
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:45.1616358Z Uploaded bytes 67108864
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:45.3749273Z Uploaded bytes 75497472
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:45.5734436Z Uploaded bytes 83886080
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:45.8692786Z Uploaded bytes 92274688
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:46.0559380Z Uploaded bytes 100663296
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:46.3268970Z Uploaded bytes 109051904
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:46.5011921Z Uploaded bytes 117440512
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:46.7379486Z Uploaded bytes 125829120
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:46.9830284Z Uploaded bytes 134217728
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:47.1938786Z Uploaded bytes 142606336
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:47.4463911Z Uploaded bytes 150994944
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:47.6604242Z Uploaded bytes 159383552
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:47.9762939Z Uploaded bytes 167772160
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:48.1297999Z Uploaded bytes 176160768
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:48.3626624Z Uploaded bytes 184549376
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:48.6245110Z Uploaded bytes 192937984
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:48.8635630Z Uploaded bytes 201326592
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:49.0253728Z Uploaded bytes 209715200
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:49.3202595Z Uploaded bytes 218103808
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:49.4266032Z Uploaded bytes 218860721
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:49.5227167Z Finished uploading artifact content to blob storage!
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:49.5228026Z SHA256 digest of uploaded artifact zip is 797ec4917fbaadeb8b780366423660e6fe4f4ecf9904911d346f234d5b0ac4c9
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:49.5228978Z Finalizing artifact upload
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:50.0622084Z Artifact owner-qa-1-of-4.zip successfully finalized. Artifact ID 15077923710
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:50.0623103Z Artifact owner-qa-1-of-4 has been successfully uploaded! Final size is 218860721 bytes. Artifact ID is 15077923710
+owner-qa (1)	Owner QA screenshots and measurements (test results only, never the build)	2026-11-26T01:23:50.0630705Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/artifacts/15077923710
+owner-qa (1)	Post Run actions/checkout@v4	﻿2026-11-26T01:23:50.0842815Z Post job cleanup.
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1537287Z [command]/usr/bin/git version
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1558319Z git version 2.56.1
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1586132Z Temporarily overriding HOME='/home/runner/work/_temp/1b839f09-5e36-4812-8c5f-ae3240683197' before making global git config changes
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1588253Z Adding repository directory to the temporary git global config as a safe directory
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1590537Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1622192Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1649768Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1858914Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1885043Z http.https://github.com/.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1887003Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.1901943Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.2132963Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+owner-qa (1)	Post Run actions/checkout@v4	2026-11-26T01:23:50.2180291Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+owner-qa (1)	Complete job	﻿2026-11-26T01:23:50.2540449Z Cleaning up orphan processes
+owner-qa (1)	Complete job	2026-11-26T01:23:50.2861152Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
