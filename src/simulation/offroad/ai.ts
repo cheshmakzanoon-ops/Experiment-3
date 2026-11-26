@@ -93,6 +93,33 @@ export function motocrossJumpApproachSteer(
   return (1 - laneWeight) * lipSteer + laneWeight * laneSteer;
 }
 
+/** Whether the present travel direction keeps both tyre footprints in the
+ * unfaded surveyed face and landing. This is a steering handoff condition,
+ * not a clear veto: a supported berm exit can still acquire another safe
+ * trajectory, and the shoulder has its own lower terrain profile. */
+export function motocrossJumpCorridor(rider: DirtBikeVehicle, track: Track, jump: JumpSurvey) {
+  const d = rider.dynamics,
+    fx = Math.sin(d.heading), fz = Math.cos(d.heading),
+    speed = Math.max(0, d.speed * Math.cos(rider.groundPitch)),
+    vx = speed * fx + rider.slide * fz,
+    vz = speed * fz - rider.slide * fx;
+  for (const s of [jump.start, jump.takeoff,
+    jump.landing - jump.landingLength * 0.5, jump.landing,
+    jump.landing + jump.landingLength * 0.5]) {
+    const p = track.at(s, corridorPoint),
+      along = vx * p.tx + vz * p.tz;
+    if (along < 1 || fx * p.tx + fz * p.tz < Math.cos(HEADING_LIMIT)) return false;
+    const seconds = Math.max(0, ((p.x - d.x) * p.tx + (p.z - d.z) * p.tz) / along),
+      lateral = (d.x + vx * seconds - p.x) * p.nx + (d.z + vz * seconds - p.z) * p.nz,
+      across = fx * p.nx + fz * p.nz,
+      width = p.width + 0.4;
+    if (Math.abs(lateral + rider.bikeSpec.cgToFront * across) + rider.tires[0].construction.width * 0.5 > width ||
+        Math.abs(lateral - rider.bikeSpec.cgToRear * across) + rider.tires[2].construction.width * 0.5 > width)
+      return false;
+  }
+  return true;
+}
+
 /** Speed that still leaves a bike-length to a slow rider in the projected
  * path. Resolve the gap in the following rider's ground plane: adjacent
  * lanes and a rider receding round the hairpin remain free to race. */
@@ -127,7 +154,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private rutBias = 0;
   private biasTarget = 0;
   private lineClock = 0;
-  private plan: { jump: JumpSurvey; clear: boolean; locked: boolean } | null = null;
+  private plan: { jump: JumpSurvey; clear: boolean; locked: boolean; landedAt?: number } | null = null;
   private readonly lineBefore = trackPoint();
   private readonly lineHere = trackPoint();
   private readonly lineAfter = trackPoint();
@@ -501,18 +528,35 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       input.throttle = clamp(0.25 + 0.9 * e, 0, 1);
       input.brake = clamp(-0.35 * e, 0, 1);
     }
-    // Square to the lip and upright: from a few metres out the lean intent
-    // only aligns the heading with the face (the lateral is kept).
+    // Recover an actual shoulder footprint toward the held feature lane.
+    // Heading alone cannot recover a parallel approach on the fading profile.
     if (run < face + JUMP_LINE_LEAD + JUMP_LINE_BLEND) {
       track.at(c.s, squarePoint);
       const d = c.dynamics,
         error =
           mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) -
           Math.PI;
-      // Start standing the bike up on the run-up, not only on the face.
-      // Counter the existing lean/yaw tendency before it carries the flight
-      // sideways; airborne steering cannot repair a missed landing corridor.
-      input.steer = clamp(error * 2.2 - d.lean * 0.9 - d.leanRate * 0.12, -0.5, 0.5);
+      const lipSteer = clamp(error * 2.2 - d.lean * 0.9 - d.leanRate * 0.12, -0.5, 0.5),
+        across = Math.sin(d.heading) * squarePoint.nx + Math.cos(d.heading) * squarePoint.nz,
+        footprint = Math.max(
+          Math.abs(c.lateral + c.bikeSpec.cgToFront * across) + c.tires[0].construction.width * 0.5,
+          Math.abs(c.lateral - c.bikeSpec.cgToRear * across) + c.tires[2].construction.width * 0.5,
+        );
+      input.steer = lipSteer;
+      // Within the surveyed profile, retain the calibrated stand-up command.
+      // A crossing berm exit need not recenter before making a valid clear.
+      // The held feature lane is available only in ordinary line following.
+      // Passing/following traffic owns its chosen corridor; a shoulder
+      // recovery must not recenter across a lane the planner found unsafe.
+      if (this.decision === 'RACING LINE' && footprint > squarePoint.width + 0.4) {
+        const lane = this.steeringLineOffset(track, c.s),
+          correction = Math.atan2(lane - c.lateral, Math.max(13, 1.65 * c.speed)),
+          laneSteer = clamp((error + correction) * 2.4 - d.lean * 0.9 - d.leanRate * 0.16, -0.5, 0.5);
+        input.steer = motocrossJumpApproachSteer(
+          laneSteer, lipSteer, run - face, c.speed,
+          plan.locked && motocrossJumpCorridor(c, track, j),
+        );
+      }
     }
   }
   /** Lateral choice at the preview point: the terrain's line cost across a
@@ -681,18 +725,25 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       // A real clear may touch down before the surveyed gap ends. Keep
       // upstream race/traffic limits while its suspension settles instead
       // of abruptly commanding the walking target for a beached rider.
-      const landing = c.lastLanding;
+      const landing = c.lastLanding, plan = this.plan;
       if (
-        this.plan?.jump === inside &&
-        this.plan.clear &&
-        this.plan.locked &&
-        landing &&
-        course.jumpAt(landing.s) === inside &&
-        landing.airTime > LANDING_RULES.minimumAirTime &&
-        c.clock >= landing.time &&
-        c.clock - landing.time <= LANDING_RULES.settleSeconds
-      )
-        return desired;
+        plan?.jump === inside && plan.clear && plan.locked
+      ) {
+        // lastLanding can be replaced by a millisecond rebound while the
+        // original clear is still settling. Keep that first touchdown's
+        // deadline on its plan; subsequent hops must neither cancel the
+        // allowance early nor repeatedly extend it. A replacement plan has
+        // no inherited deadline, and upstream traffic/flag caps still win.
+        if (plan.landedAt === undefined && landing &&
+            course.jumpAt(landing.s) === inside &&
+            landing.airTime > LANDING_RULES.minimumAirTime &&
+            c.clock >= landing.time &&
+            c.clock - landing.time <= LANDING_RULES.settleSeconds)
+          plan.landedAt = landing.time;
+        if (plan.landedAt !== undefined && c.clock >= plan.landedAt &&
+            c.clock - plan.landedAt <= LANDING_RULES.settleSeconds)
+          return desired;
+      }
       this.plan = null;
       if (inside.forgiving) return desired;
       // Down in a gap: enough speed to roll up and over the next mound (its
@@ -774,7 +825,8 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   }
 }
 const previewPoint = trackPoint(),
-  squarePoint = trackPoint();
+  squarePoint = trackPoint(),
+  corridorPoint = trackPoint();
 /** Rally and rallycross AI on loose ground (WP40): corner and braking speeds
  * use the grip of the surface the line crosses ahead (asphalt to gravel, a
  * mud patch), crests are taken at a speed that keeps the car's flight inside

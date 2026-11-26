@@ -10,11 +10,12 @@ import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import { B, BIKE_BASE, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { levelMotocrossTrack } from './motocross-test-track.ts';
 
 const DT = 1 / 240;
 
-function flatBike(definition: VehicleDefinition, raw = false) {
-  const track = rigTrack('valley-ridge-mx'),
+function flatBike(definition: VehicleDefinition, raw = false, level = false) {
+  const track = level ? levelMotocrossTrack() : rigTrack('valley-ridge-mx'),
     bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, raw ? 'raw' : 'sport', definition);
   bike.place(track, 35);
   return { bike, track };
@@ -143,7 +144,13 @@ describe('motocross suspension contact traction', () => {
     (definition) => {
       const firstRotors = new Map<string, number>();
       const sample = (pedal: 'coast' | 'front' | 'rear') => {
-        const { bike, track } = flatBike(definition, true);
+        // Isolate free-front brake authority. On a real bank, braking also
+        // moves the rider and changes rear support, hence downhill force.
+        const { bike, track } = flatBike(definition, true, true);
+        // Hold a complete manual rearward stroke so automatic braking brace
+        // cannot introduce a separate, physically valid rear-load change.
+        bike.input.riderLean = -1;
+        for (let n = 0; n < 960; n++) bike.step(DT, track);
         bike.input.throttle = 1;
         // The production springs lift the front under acceleration. Only
         // controls have been written; no wheel load or pitch is fabricated.
@@ -153,11 +160,12 @@ describe('motocross suspension contact traction', () => {
         expect(bike.forceRear).toBeGreaterThan(0);
         expect(bike.pitch).toBeGreaterThan(0.1);
         Object.assign(bike.input, controls());
+        bike.input.riderLean = -1;
         bike.input.brake = Number(pedal === 'front');
         bike.input.clutch = Number(pedal === 'rear');
-        // The rear rotor has finite inertia. Test the ground response over
-        // four 240 Hz ticks, not an instantaneous kinematic wheel clamp.
-        for (let n = 0; n < 4; n++) {
+        // The rear rotor has finite inertia. Give the rear pedal 50 ms to
+        // cross from overspeed into braking without a kinematic wheel clamp.
+        for (let n = 0; n < 12; n++) {
           bike.step(DT, track);
           if (n === 0) firstRotors.set(pedal, bike.rearSpin);
           expect(bike.forceFront).toBe(0);
@@ -172,9 +180,8 @@ describe('motocross suspension contact traction', () => {
       // Torque acts immediately even while an overspeed tyre is still driving.
       expect(firstRotors.get('rear')!).toBeLessThan(firstRotors.get('coast')!);
       expect(front.dynamics.frontBrakeForce).toBe(0);
-      // The continuous automatic rider brace may change rear support by a
-      // floating-point-scale amount. The unloaded front supplies no brake
-      // force and cannot produce a measurable translation impulse.
+      // With identical rider pose and a level patch, the unloaded front
+      // supplies no brake force and cannot change chassis translation.
       expect(front.dynamics.speed).toBeCloseTo(coast.dynamics.speed, 8);
       expect(front.dynamics.x).toBeCloseTo(coast.dynamics.x, 8);
       expect(front.dynamics.z).toBeCloseTo(coast.dynamics.z, 8);

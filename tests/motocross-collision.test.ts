@@ -7,6 +7,7 @@ import { controls, DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/conf
 import { MX_250, MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigBike, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { factoryBikeSag } from '../src/simulation/offroad/suspension-geometry.ts';
 import { trackPoint } from '../src/simulation/track.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
@@ -21,6 +22,28 @@ function stadiumShoulder(lateral: number) {
   bike.body.orientation.yaw(bike.dynamics.heading);
   bike.body.velocity.set(p.tx * 6 - p.nx * 8, 0, p.tz * 6 - p.nz * 8);
   return { track, bike, p };
+}
+
+/** Observe the existing fall event before recovery replaces the riding
+ * pose. The CG projection about the loaded rear support is independent of
+ * the adapter's angle-threshold helper. This never moves the bike or rider. */
+function observeLoopOut(bike: DirtBikeVehicle) {
+  const model = bike as unknown as { loopOut(): void }, original = model.loopOut,
+    descriptor = Object.getOwnPropertyDescriptor(bike, 'loopOut'),
+    events: { frontLoad: number; rearLoad: number; pitchRate: number; cgAheadOfRear: number }[] = [];
+  model.loopOut = () => {
+    const spec = bike.bikeSpec, sag = factoryBikeSag(bike.definition),
+      heading = bike.dynamics.heading, normal = bike.contacts[2].normal,
+      slope = Math.atan(-(normal.x * Math.sin(heading) + normal.z * Math.cos(heading)) / normal.y),
+      relative = bike.pitch - Math.max(slope, bike.groundPitch);
+    events.push({ frontLoad: bike.forceFront, rearLoad: bike.forceRear, pitchRate: bike.pitchRate,
+      cgAheadOfRear: spec.cgToRear * Math.cos(relative) - (spec.cgHeight + sag.shock) * Math.sin(relative) });
+    original.call(bike);
+  };
+  return { events, restore() {
+    if (descriptor) Object.defineProperty(bike, 'loopOut', descriptor);
+    else Reflect.deleteProperty(bike, 'loopOut');
+  } };
 }
 
 describe('motocross collision and sprung vertical velocity', () => {
@@ -143,6 +166,41 @@ describe('motocross collision and sprung vertical velocity', () => {
 });
 
 describe('motocross barriers between adjacent stadium lanes', () => {
+  it.each(['raw', 'sport'] as const)('preserves the native median trajectory while observing %s fall geometry', assist => {
+    const track = rigTrack('arena-nord-sx'), p = track.at(36, trackPoint());
+    const create = () => {
+      const bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, assist, MX_450);
+      bike.placeFree(track, p.x - p.nx * 5, p.z - p.nz * 5, Math.atan2(-p.nx, -p.nz), 0);
+      bike.dynamics.speed = 10;
+      bike.gear = 2;
+      bike.input.throttle = 0.2;
+      return bike;
+    };
+    const capture = (bike: DirtBikeVehicle) => ({
+      state: bike.dynamics.state, crashes: bike.dynamics.crashes,
+      values: [bike.dynamics.x, bike.dynamics.z, bike.dynamics.heading, bike.dynamics.speed,
+        bike.cgY, bike.vy, bike.pitch, bike.pitchRate, bike.fuel, bike.slide,
+        bike.frontSpin, bike.rearSpin, bike.forceFront, bike.forceRear,
+        bike.body.position.x, bike.body.position.y, bike.body.position.z,
+        bike.body.velocity.x, bike.body.velocity.y, bike.body.velocity.z],
+    });
+    const observed = create(), ordinary = create(), tap = observeLoopOut(observed),
+      collision = new CollisionSolver(), states: ReturnType<typeof capture>[] = [];
+    try {
+      for (let tick = 0; tick < 5 * 240; tick++) {
+        observed.step(1 / 240, track);
+        collision.solve([observed], track);
+        states.push(capture(observed));
+      }
+    } finally { tap.restore(); }
+    expect(Object.hasOwn(observed, 'loopOut')).toBe(false);
+    for (let tick = 0; tick < 5 * 240; tick++) {
+      ordinary.step(1 / 240, track);
+      collision.solve([ordinary], track);
+      expect(capture(ordinary)).toEqual(states[tick]);
+    }
+  });
+
   it('does not push a bike across the median when its corner is nearest the next rhythm lane', () => {
     const { track, bike, p } = stadiumShoulder(-5.9),
       corner = new Vec3(-MX_450.halfExtents[0], 0, MX_450.halfExtents[2]),
@@ -216,26 +274,49 @@ describe('motocross barriers between adjacent stadium lanes', () => {
       bike.gear = 2;
       bike.input.throttle = 0.2;
       let highest = bike.cgY,
-        fastestVertical = 0;
-      for (let i = 0; i < 5 * 240; i++) {
-        bike.step(1 / 240, track);
-        collisions.solve([bike], track);
-        highest = Math.max(highest, bike.cgY);
-        fastestVertical = Math.max(fastestVertical, Math.abs(bike.vy));
-      }
+        fastestVertical = 0, throttleCut = 0, rearBrake = 0;
+      const observed = observeLoopOut(bike);
+      try {
+        for (let i = 0; i < 5 * 240; i++) {
+          bike.step(1 / 240, track);
+          collisions.solve([bike], track);
+          highest = Math.max(highest, bike.cgY);
+          fastestVertical = Math.max(fastestVertical, Math.abs(bike.vy));
+          throttleCut = Math.max(throttleCut, bike.input.throttle - bike.throttle);
+          rearBrake = Math.max(rearBrake, bike.rearBrake);
+        }
+      } finally { observed.restore(); }
       // Before the position correction, both aid settings gained ~29 m/s
       // vertically and reached 44–46 m from a 10 m/s ground approach.
       expect(highest).toBeLessThan(6);
       expect(fastestVertical).toBeLessThan(9);
-      // The bad approach still carries the normal crash/recovery cost.
-      expect(bike.dynamics.crashes).toBe(1);
-      expect(bike.crashCauses[0].cause).toMatch(/^crash-/);
+      // The corrected contact trajectory falls below the existing rolling-
+      // hop landing threshold. Held Raw throttle still drives the CG behind
+      // its rear support; Sport's actual wheelie controls prevent that fall.
+      if (assist === 'raw') {
+        expect(bike.dynamics.crashes).toBe(1);
+        expect(bike.crashCauses[0].cause).toBe('loop-out');
+        expect(observed.events).toHaveLength(1);
+        const event = observed.events[0];
+        expect(event.frontLoad).toBe(0);
+        expect(event.rearLoad).toBeGreaterThan(0);
+        expect(event.pitchRate).toBeGreaterThan(0);
+        expect(event.cgAheadOfRear).toBeLessThan(0);
+        expect(throttleCut).toBe(0);
+        expect(rearBrake).toBe(0);
+      } else {
+        expect(bike.dynamics.crashes).toBe(0);
+        expect(bike.riding).toBe(true);
+        expect(observed.events).toHaveLength(0);
+        expect(throttleCut).toBeGreaterThan(0);
+        expect(rearBrake).toBeGreaterThan(0);
+      }
       expect(bike.airborne || bike.retired).toBe(false);
       expect(bike.body.position.finite()).toBe(true);
     },
   );
 
-  it('reconstructs a projected median contact and its remaining stroke from logged inputs', () => {
+  it.each([false, true])('reconstructs a projected median contact and its remaining stroke from logged inputs (held throttle: %s)', held => {
     const options = {
       ...DEFAULT_OPTIONS,
       mode: 'practice' as const,
@@ -262,7 +343,7 @@ describe('motocross barriers between adjacent stadium lanes', () => {
     let rewindTick = 0,
       savedFrame: Float32Array | null = null;
     for (let n = 0; n < 5 / dt; n++) {
-      const input = { ...controls(), throttle: sim.tick < 48 ? 0.2 : 0 },
+      const input = { ...controls(), throttle: held || sim.tick < 48 ? 0.2 : 0 },
         previousY = bike.cgY;
       sim.setInput(input);
       log.input(sim.tick, input);
@@ -275,7 +356,9 @@ describe('motocross barriers between adjacent stadium lanes', () => {
       }
     }
     expect(rewindTick).toBeGreaterThan(0);
-    expect(bike.dynamics.crashes).toBe(1);
+    expect(bike.dynamics.crashes).toBe(held ? 1 : 0);
+    if (held) expect(bike.crashCauses[0].cause).toBe('loop-out');
+    else expect(bike.riding).toBe(true);
     const rewind = new Resimulation(options, log.entries, rewindTick);
     place(rewind.simulation);
     while (!rewind.run()) void 0;

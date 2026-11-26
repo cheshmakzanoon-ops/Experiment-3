@@ -13,6 +13,7 @@ import {
 import { surfaceSample } from '../src/simulation/track.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { rideMotocrossFlight } from './motocross-flight-controls.ts';
 
 beforeAll(() => {
   const context = new Proxy({}, {
@@ -190,6 +191,7 @@ it.each(cases)('$vehicle $circuit $feature carries the current pose into real jo
       const flew = bike.airborne;
       if (!flew) rideLine(bike, track, feature === 'jump' && bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 1
         ? Math.max(speed, bike.dynamics.speed) : speed);
+      else if (feature === 'jump') rideMotocrossFlight(bike);
       bike.step(dt, track);
       takeoffs += Number(!flew && bike.airborne);
       landings += Number(flew && !bike.airborne);
@@ -344,4 +346,67 @@ it.each(cases)('$vehicle $circuit $feature carries the current pose into real jo
   } finally {
     draw.dispose();
   }
+});
+
+/** Preserve the original animation fixture's physical outcome separately
+ * from its complete-riding pose contract. Every continuation starts at the
+ * same real 120 Hz airborne checkpoint and retains the launch controls. */
+function heldInputLanding(continuationHz: number) {
+  const sim = new Simulation({ ...DEFAULT_OPTIONS, circuit: 'valley-ridge-mx',
+    vehicles: ['mx450'], opponents: 0, ruleset: 'motocross-moto', mode: 'practice' });
+  const bike = sim.cars[0] as DirtBikeVehicle, track = sim.track;
+  const jump = offroadCourse(track.circuit)!.jumps.find(item => item.name === 'RIDGE TABLE')!;
+  const speed = 13.5;
+  bike.place(track, jump.start - 12);
+  bike.dynamics.speed = speed;
+  bike.gear = 3;
+  const approach = () => {
+    if (!bike.airborne) rideLine(bike, track,
+      bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 1
+        ? Math.max(speed, bike.dynamics.speed) : speed);
+  };
+  for (let tick = 0; tick < 6 * hz && !(bike.airborne && bike.airTime > 0.5); tick++) {
+    approach();
+    bike.step(dt, track);
+  }
+  expect(bike.airborne).toBe(true);
+  expect(bike.airTime).toBeGreaterThan(0.5);
+  const checkpoint = {
+    time: bike.clock, airTime: bike.airTime, x: bike.dynamics.x, z: bike.dynamics.z,
+    speed: bike.dynamics.speed, y: bike.cgY, vy: bike.vy, pitch: bike.pitch,
+    pitchRate: bike.pitchRate, heading: bike.heading, yaw: bike.airYaw,
+    yawRate: bike.airYawRate, slide: bike.slide, front: bike.frontSpin, rear: bike.rearSpin,
+    input: { ...bike.input },
+  };
+  // The adverse case has no front lever input: do not misdiagnose it as a
+  // held-brake crash or conceal it by changing the crash threshold.
+  expect(checkpoint.input.brake).toBe(0);
+  expect(checkpoint.input.throttle).toBeGreaterThan(0);
+  let landing: DirtBikeVehicle['lastLanding'] = null;
+  for (let tick = 0; tick < 3 * continuationHz && bike.riding; tick++) {
+    approach();
+    bike.step(1 / continuationHz, track);
+    if (!landing && (bike.lastLanding?.airTime ?? 0) > 0.5) landing = bike.lastLanding;
+  }
+  expect(landing).not.toBeNull();
+  return { continuationHz, checkpoint, landing: landing!, riding: bike.riding,
+    crashes: bike.dynamics.crashes, bottomLimit: bike.bikeSpec.offroad!.bottomOutSpeed };
+}
+
+it('retains the converged MX450 held-input flat crash while the animation driver controls its flight', () => {
+  const runs = [120, 240, 480, 960, 1920, 3840].map(heldInputLanding), fine = runs.at(-1)!;
+  for (const run of runs) {
+    expect(run.checkpoint).toEqual(fine.checkpoint);
+    expect(run.riding).toBe(false);
+    expect(run.crashes).toBe(1);
+    expect(run.landing.outcome).toBe('crash-flat');
+    expect(run.landing.bottomSpeed).toBeGreaterThan(run.bottomLimit);
+    expect(Math.abs(run.landing.normalSpeed - fine.landing.normalSpeed)).toBeLessThan(0.001);
+    expect(Math.abs(run.landing.bottomSpeed - fine.landing.bottomSpeed)).toBeLessThan(0.1);
+  }
+  expect(Math.abs(runs.at(-2)!.landing.bottomSpeed - fine.landing.bottomSpeed)).toBeLessThan(0.01);
+  if (process.env.MX_POSE_REPORT) console.info(JSON.stringify({
+    heldInputAdverse: runs.map(({ continuationHz, landing, bottomLimit, riding, crashes }) =>
+      ({ continuationHz, landing, bottomLimit, riding, crashes })),
+  }));
 });

@@ -410,8 +410,10 @@ describe('motocross AI rejoining', () => {
     bike.restart(sim.track, 'stranded');
     expect(bike.dynamics.state).toBe('remount');
     let previous = bike.s;
-    for (let i=0;i<6*120;i++) {
+    for (let i=0;i<Math.ceil(bike.remountBudgetSeconds*120)+8;i++) {
+      const { x, y, z } = bike.rider;
       sim.step(1/120);
+      expect(Math.hypot(bike.rider.x-x,bike.rider.y-y,bike.rider.z-z)).toBeLessThanOrEqual(4/120+1e-8);
       expect(Math.abs(bike.s-previous)).toBeLessThan(0.15);
       previous = bike.s;
       if (bike.riding) break;
@@ -438,8 +440,10 @@ describe('motocross AI rejoining', () => {
     bike.restart(sim.track);
     expect(bike.dynamics.state).toBe('remount');
     let previous = before, largestStep = 0;
-    for (let i = 0; i < 6 * 120; i++) {
+    for (let i = 0; i < Math.ceil(bike.remountBudgetSeconds * 120) + 8; i++) {
+      const { x, y, z } = bike.rider;
       sim.step(1 / 120);
+      expect(Math.hypot(bike.rider.x - x, bike.rider.y - y, bike.rider.z - z)).toBeLessThanOrEqual(4 / 120 + 1e-8);
       largestStep = Math.max(largestStep, Math.abs(bike.s - previous));
       previous = bike.s;
       if (bike.riding && bike.s >= jump.end) break;
@@ -467,8 +471,10 @@ describe('motocross AI rejoining', () => {
     bike.restart(sim.track, 'stranded');
     expect(bike.dynamics.state).toBe('remount');
     let last = bike.s, greatestStep = 0;
-    for (let i = 0; i < 6 * 120 && !bike.riding; i++) {
+    for (let i = 0; i < Math.ceil(bike.remountBudgetSeconds * 120) + 8 && !bike.riding; i++) {
+      const { x, y, z } = bike.rider;
       sim.step(1 / 120);
+      expect(Math.hypot(bike.rider.x - x, bike.rider.y - y, bike.rider.z - z)).toBeLessThanOrEqual(4 / 120 + 1e-8);
       greatestStep = Math.max(greatestStep, Math.abs(bike.s - last));
       last = bike.s;
     }
@@ -497,8 +503,10 @@ describe('motocross AI rejoining', () => {
     bike.restart(track);
     expect(bike.dynamics.state).toBe('remount');
     let previous = bike.s, greatestStep = 0;
-    for (let i = 0; i < 720; i++) {
+    for (let i = 0; i < Math.ceil(bike.remountBudgetSeconds * 120) + 8; i++) {
+      const { x, y, z } = bike.rider;
       bike.step(1 / 120, track);
+      expect(Math.hypot(bike.rider.x - x, bike.rider.y - y, bike.rider.z - z)).toBeLessThanOrEqual(4 / 120 + 1e-8);
       const delta = mod(bike.s - previous + track.length / 2, track.length) - track.length / 2;
       greatestStep = Math.max(greatestStep, Math.abs(delta));
       lap.update(bike.s, time += 1 / 120, false);
@@ -686,14 +694,21 @@ describe('motocross stationary drive effort', () => {
   it('starts a fresh drive-effort interval after an actual manual remount', () => {
     const { sim, bike, traffic, ai } = wetBeachedRider();
     let returnedAt = -1, firstPush = -1, sawRemount = false, effort = 0;
+    let restartX = 0, restartZ = 0, recoveryDistance = 0, recoveryDeadline = 0;
     for (let i = 0; i < 120 * 14; i++) {
-      if (i === 240) bike.restart(sim.track);
+      if (i === 240) {
+        restartX = bike.dynamics.x;
+        restartZ = bike.dynamics.z;
+        bike.restart(sim.track);
+        recoveryDeadline = bike.remountBudgetSeconds;
+      }
       const stationary = bike.riding && !bike.airborne && bike.speed < 0.5;
       traffic.place(sim.track, 355.4, -1.52);
       sim.step(1 / 120);
       if (i >= 240 && !bike.riding) sawRemount = true;
       if (sawRemount && returnedAt < 0 && bike.riding) {
         returnedAt = i / 120;
+        recoveryDistance = Math.hypot(bike.dynamics.x - restartX, bike.dynamics.z - restartZ);
         bike.place(sim.track, 315.4, -1.52);
       }
       if (returnedAt >= 0 && stationary && bike.aiTarget > 0.5 &&
@@ -704,8 +719,8 @@ describe('motocross stationary drive effort', () => {
       }
     }
     expect(sawRemount).toBe(true);
-    expect(returnedAt - 2).toBeGreaterThan(4.9);
-    expect(returnedAt - 2).toBeLessThan(5.1);
+    expect(returnedAt - 2).toBeGreaterThanOrEqual(recoveryDistance / 3);
+    expect(returnedAt - 2).toBeLessThanOrEqual(recoveryDeadline + 8 / 120);
     expect(firstPush - returnedAt).toBeGreaterThan(4);
     expect(firstPush - returnedAt).toBeLessThan(4.3);
     expect(effort).toBeGreaterThanOrEqual(3.9);

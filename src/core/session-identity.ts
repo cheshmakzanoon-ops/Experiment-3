@@ -97,8 +97,11 @@ import {
  * v39: motocross boot support applies a finite roll moment. Riders account
  * for uphill queue starts and recent falls on the approach to a triple.
  * v40: motocross coupled suspension stops, passive yaw-frame integration,
- * continuous automatic rider posture and synchronized suspension output. */
-export const SIMULATION_VERSION = 40;
+ * continuous automatic rider posture and synchronized suspension output.
+ * v41: ridden motocross preserves touchdown momentum, applies supported
+ * steering and the requested engine reserve, and aligns gate placement and
+ * recovery motion with the deterministic session state. */
+export const SIMULATION_VERSION = 41;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

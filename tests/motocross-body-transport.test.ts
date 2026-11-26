@@ -18,6 +18,7 @@ import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { writeWheelContact } from '../src/simulation/wheel-contact-state.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { ReplayRecorder } from '../src/storage/recorders.ts';
+import { levelMotocrossPatch } from './motocross-test-track.ts';
 
 const car = carBase(0), offroad = car + OFFROAD_BASE, body = offroad + O.BODY;
 const bodyRate = car + MX_POSTURE.BODY_RATE, bikeBlock = car + BIKE_BASE, DT = 1 / 240;
@@ -131,6 +132,9 @@ describe('recorded motocross body tangent', () => {
   it.each(['mx250', 'mx450'] as const)(
     '%s reconstructs real manual reversals and brake changes between 30 Hz snapshots', (vehicle) => {
       const sim = simulation(vehicle), bike = sim.cars[0] as DirtBikeVehicle;
+      // This case isolates a stationary posture trajectory. Bank support and
+      // its finite-precision force balance are covered by the cross-slope rig.
+      levelMotocrossPatch(sim.track);
       bike.place(sim.track, 35);
       sim.setInput({ ...controls(), brake: 1, riderLean: 1 });
       for (let tick = 0; tick < 5 / DT; tick++) sim.step(DT);

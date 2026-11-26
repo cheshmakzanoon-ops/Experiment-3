@@ -8,6 +8,7 @@ import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts'
 import { rideLine, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import { wheelPickupImpulse } from '../src/simulation/offroad/wheel-pickup.ts';
+import type { Track } from '../src/simulation/track.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
@@ -75,6 +76,118 @@ function land(run: ReturnType<typeof launch>, tapSeconds = 0.4, dt = DT) {
   expect(bike.lastLanding!.airTime).toBeGreaterThan(0.8);
   Object.assign(bike.input, controls());
   return run;
+}
+
+function pickupPhase(bike: DirtBikeVehicle) {
+  const { roadPitch: pitch } = bike as unknown as { roadPitch: number };
+  return { speed: bike.dynamics.speed, spin: bike.frontSpin, pitch };
+}
+
+type PickupInterval = {
+  time: number;
+  dt: number;
+  load: number;
+  gripLimit: number;
+  fx: number;
+  slipWork: number;
+  brakeWork: number;
+  before: ReturnType<typeof pickupPhase>;
+  contact: ReturnType<typeof pickupPhase>;
+  published: ReturnType<typeof pickupPhase>;
+};
+
+/** The brush advances against the incoming terrain chord. The subsequent
+ * writeBody samples a new chord and re-expresses speed while preserving
+ * horizontal momentum. Measure pickup before that coordinate change, at
+ * each complete physical interval (which need not be a public tick).
+ * These wrappers only observe; both inherited method descriptors are
+ * restored even when an assertion or the underlying step throws. */
+function observePickup(bike: DirtBikeVehicle, run: () => void) {
+  const model = bike as unknown as {
+      stepInterval(dt: number, track: Track, absorb: boolean): void;
+      writeBody(track: Track, dt: number): void;
+      mxFrontFx: number;
+      mxFrontSlipPower: number;
+      mxFrontBrakePower: number;
+    },
+    step = model.stepInterval, write = model.writeBody,
+    stepDescriptor = Object.getOwnPropertyDescriptor(bike, 'stepInterval'),
+    writeDescriptor = Object.getOwnPropertyDescriptor(bike, 'writeBody'),
+    intervals: PickupInterval[] = [];
+  let time = 0, contact: ReturnType<typeof pickupPhase> | undefined;
+  model.writeBody = (track, dt) => {
+    contact = pickupPhase(bike);
+    write.call(bike, track, dt);
+  };
+  model.stepInterval = (dt, track, absorb) => {
+    const before = pickupPhase(bike), load = bike.forceFront;
+    contact = undefined;
+    step.call(bike, dt, track, absorb);
+    if (!contact) throw new Error('No grounded force endpoint was observed');
+    time += dt;
+    intervals.push({ time, dt, load,
+      gripLimit: load * bike.dynamics.p.mu * (bike.dynamics.frontGrip ?? bike.dynamics.grip),
+      fx: model.mxFrontFx, slipWork: model.mxFrontSlipPower * dt,
+      brakeWork: model.mxFrontBrakePower * dt,
+      before, contact, published: pickupPhase(bike),
+    });
+  };
+  try {
+    run();
+  } finally {
+    if (stepDescriptor) Object.defineProperty(bike, 'stepInterval', stepDescriptor);
+    else Reflect.deleteProperty(bike, 'stepInterval');
+    if (writeDescriptor) Object.defineProperty(bike, 'writeBody', writeDescriptor);
+    else Reflect.deleteProperty(bike, 'writeBody');
+  }
+  return intervals;
+}
+
+function pickupTime(intervals: PickupInterval[], radius: number) {
+  return intervals.find(({ load, contact }) => load > 0 &&
+    Math.abs(contact.spin * radius - contact.speed) < 0.01)?.time ?? 0;
+}
+
+/** Independent impulse and energy accounts: no tyre response curve or
+ * suspension integration is reproduced here. During this neutral-control
+ * pickup, contact is the only source of front-rotor angular momentum. */
+function checkPickupWork(bike: DirtBikeVehicle, intervals: PickupInterval[]) {
+  const { radius, inertia } = bike.tires[0];
+  let rotorWork = 0, slipWork = 0, extractedLow = 0, extractedHigh = 0;
+  for (const { dt, load, gripLimit, fx, before, contact, published,
+    brakeWork, slipWork: heat } of intervals) {
+    expect(brakeWork).toBe(0);
+    expect(fx).toBeLessThanOrEqual(0);
+    expect(Math.abs(fx)).toBeLessThanOrEqual(gripLimit + 1e-8);
+    if (load === 0) {
+      expect(fx).toBe(0);
+      expect(contact.spin).toBe(before.spin);
+      expect(heat).toBe(0);
+    }
+    expect(inertia * (contact.spin - before.spin)).toBeCloseTo(-fx * radius * dt, 10);
+    expect(published.spin).toBe(contact.spin);
+    expect(published.speed * Math.cos(published.pitch)).toBeCloseTo(
+      contact.speed * Math.cos(contact.pitch), 10,
+    );
+    const work = 0.5 * inertia * (contact.spin ** 2 - before.spin ** 2),
+      impulse = -fx * dt,
+      low = impulse * Math.min(before.speed, contact.speed),
+      high = impulse * Math.max(before.speed, contact.speed);
+    expect(work).toBeGreaterThanOrEqual(0);
+    expect(work).toBeLessThanOrEqual(high + 1e-8);
+    expect(heat).toBeGreaterThanOrEqual(0);
+    rotorWork += work;
+    slipWork += heat;
+    extractedLow += low;
+    extractedHigh += high;
+  }
+  // Bound the chassis work by the measured endpoint velocities. The
+  // rotor's kinetic-energy gain plus actual slip heat must fit that work
+  // envelope; no rolling-speed assignment may create rotor energy for free.
+  expect(rotorWork).toBeGreaterThan(0);
+  expect(slipWork).toBeGreaterThan(0);
+  expect(rotorWork + slipWork).toBeGreaterThanOrEqual(extractedLow - 1e-8);
+  expect(rotorWork + slipWork).toBeLessThanOrEqual(extractedHigh + 1e-8);
 }
 
 describe('passive wheel contact impulse', () => {
@@ -188,25 +301,22 @@ describe('motocross wheel pickup on actual surveyed landings', () => {
       expect(bike.dynamics.speed).toBeGreaterThan(8);
       let unloaded = 0,
         pickup = 0,
-        largestStep = 0,
-        timeToRolling = 0;
-      for (let i = 0; i < 0.3 / DT; i++) {
-        const beforeSpin = bike.frontSpin,
-          previousLoad = bike.forceFront;
-        bike.step(DT, track);
-        if (previousLoad === 0 && bike.tires[0].slip > 0) {
-          expect(bike.frontSpin).toBe(beforeSpin);
-          unloaded++;
+        largestStep = 0;
+      const intervals = observePickup(bike, () => {
+        for (let i = 0; i < 0.3 / DT; i++) {
+          const beforeSpin = bike.frontSpin,
+            previousLoad = bike.forceFront;
+          bike.step(DT, track);
+          if (previousLoad === 0 && bike.tires[0].slip > 0) {
+            expect(bike.frontSpin).toBe(beforeSpin);
+            unloaded++;
+          }
+          if (bike.tires[0].fx < -1 && bike.tires[0].slip > 0) pickup++;
+          largestStep = Math.max(largestStep, Math.abs(bike.tires[0].omega - beforeSpin));
+          expect(bike.tires[0].omega).toBeGreaterThanOrEqual(0);
         }
-        if (bike.tires[0].fx < -1 && bike.tires[0].slip > 0) pickup++;
-        largestStep = Math.max(largestStep, Math.abs(bike.tires[0].omega - beforeSpin));
-        if (
-          !timeToRolling &&
-          Math.abs(bike.tires[0].omega * bike.tires[0].radius - bike.dynamics.speed) < 0.01
-        )
-          timeToRolling = (i + 1) * DT;
-        expect(bike.tires[0].omega).toBeGreaterThanOrEqual(0);
-      }
+      });
+      const timeToRolling = pickupTime(intervals, bike.tires[0].radius);
       // The 250's nose reaches this downslope sooner. The 450 supplies a
       // real rear-first contact window to test the unloaded front wheel.
       if (definition === MX_450) expect(unloaded).toBeGreaterThan(0);
@@ -214,10 +324,74 @@ describe('motocross wheel pickup on actual surveyed landings', () => {
       expect(largestStep).toBeLessThan(20);
       expect(timeToRolling).toBeGreaterThan(3 * DT);
       expect(timeToRolling).toBeLessThan(0.2);
+      checkPickupWork(bike, intervals);
       expect(bike.dynamics.crashes).toBe(0);
       expect(bike.riding).toBe(true);
     },
   );
+
+  it.each([MX_250, MX_450])(
+    '$id preserves pickup work and observation transparency as contact timing is refined',
+    (definition) => {
+      const times: number[] = [];
+      const snapshot = (bike: DirtBikeVehicle) => JSON.stringify({
+        clock: bike.clock,
+        motion: [bike.dynamics.x, bike.dynamics.z, bike.dynamics.speed, bike.heading,
+          bike.cgY, bike.vy, bike.pitch, bike.pitchRate, bike.slide,
+          bike.frontSpin, bike.rearSpin, bike.fork, bike.shock, bike.forceFront, bike.forceRear],
+        body: [bike.body.position, bike.body.velocity, bike.body.orientation, bike.body.omega],
+        tyres: bike.tires,
+        controls: bike.input,
+        state: [bike.airborne, bike.riding, bike.dynamics.crashes, bike.lastLanding],
+        rider: [bike.rider, bike.riderBody, bike.riderBodyRate],
+        powertrain: [bike.gear, bike.rpm, bike.shiftClock, bike.fuel],
+        motionRates: [bike.machineMotion?.forkRate, bike.machineMotion?.shockRate,
+          bike.machineMotion?.steerRate],
+      });
+      for (const dt of [DT, DT / 2, DT / 4]) {
+        const observed = land(launch(definition), 0.4, dt),
+          ordinary = land(launch(definition), 0.4, dt),
+          { bike, track } = observed;
+        const intervals = observePickup(bike, () => {
+          for (let tick = 0; tick < Math.round(0.3 / dt); tick++) {
+            bike.step(dt, track);
+            ordinary.bike.step(dt, ordinary.track);
+            expect(snapshot(bike)).toBe(snapshot(ordinary.bike));
+          }
+        });
+        expect(Object.hasOwn(bike, 'stepInterval')).toBe(false);
+        expect(Object.hasOwn(bike, 'writeBody')).toBe(false);
+        expect(intervals.reduce((sum, interval) => sum + interval.dt, 0)).toBeCloseTo(0.3, 12);
+        const time = pickupTime(intervals, bike.tires[0].radius);
+        expect(time).toBeGreaterThan(3 * DT);
+        expect(time).toBeLessThan(0.2);
+        times.push(time);
+        checkPickupWork(bike, intervals);
+        // The downslope keeps accelerating the rotor after initial pickup.
+        // A finite brush needs some shear to provide that real torque;
+        // entering the rolling band is an event, not an exact-speed clamp.
+        const last = intervals.at(-1)!;
+        expect(last.fx).toBeLessThan(0);
+        expect(last.contact.spin).toBeGreaterThan(last.before.spin);
+        expect(last.contact.speed - last.contact.spin * bike.tires[0].radius).toBeGreaterThan(0);
+        expect(bike.dynamics.crashes).toBe(0);
+        expect(bike.riding).toBe(true);
+      }
+      expect(Math.abs(times[2] - times[1])).toBeLessThan(Math.abs(times[1] - times[0]));
+    },
+  );
+
+  it('restores pickup observation methods after an interrupted diagnostic', () => {
+    const { bike, track } = land(launch(MX_250));
+    expect(() => observePickup(bike, () => {
+      bike.step(DT, track);
+      throw new Error('interrupted pickup observation');
+    })).toThrow('interrupted pickup observation');
+    expect(Object.hasOwn(bike, 'stepInterval')).toBe(false);
+    expect(Object.hasOwn(bike, 'writeBody')).toBe(false);
+    bike.step(DT, track);
+    expect(bike.riding).toBe(true);
+  });
 
   it.each(['sport', 'raw'] as const)(
     '%s preserves all airborne motion and changes ground exit only through bounded contact',

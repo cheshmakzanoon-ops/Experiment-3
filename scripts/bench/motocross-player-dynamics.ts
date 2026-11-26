@@ -59,7 +59,7 @@ function snapshot(bike: DirtBikeVehicle) {
     y: bike.cgY, vy: bike.vy, pitch: bike.pitch, pitchRate: bike.pitchRate,
     frontSpin: bike.frontSpin, rearSpin: bike.rearSpin,
     body: bike.riderBody, yaw: bike.airYaw, fork: bike.fork, shock: bike.shock,
-    airborne: bike.airborne, airTime: bike.airTime, riding: bike.riding,
+    airborne: bike.airborne, airTime: bike.airTime, riding: bike.riding, landings: bike.landings,
     frontLoad: bike.forceFront, rearLoad: bike.forceRear,
     discs: [bike.tires[0].discTemp, bike.tires[2].discTemp],
     mud: bike.mud,
@@ -87,25 +87,152 @@ function heat(bike: DirtBikeVehicle) {
   }, 0);
 }
 
+/** Diagnostic-only observation of the complete physical intervals selected
+ * by a public call. No state is injected and no additional solve is invoked.
+ * Restore the original property descriptor even if stepping/observation
+ * throws, so a benchmark does not leave an instrumented production vehicle.
+ *
+ * An implicit thermal step uses its own endpoint flux. Several such steps
+ * cannot be reconstructed using only the final flux times the public dt;
+ * likewise the existing drag-then-brake rotor update is not a semigroup.
+ * Observe those original contracts at their actual integration boundaries. */
+export function observePlayerStepIntervals(
+  bike: DirtBikeVehicle, track: Track, dt: number,
+  observe: (interval: { before: ReturnType<typeof snapshot>; after: ReturnType<typeof snapshot>;
+    previousHeat: number; dt: number; contacts: PlayerContactEvent[] }) => void,
+) {
+  const model = bike as unknown as {
+      stepInterval(dt: number, track: Track, absorb: boolean): void;
+      vertical(dt: number, boundary?: { front: boolean; rear: boolean; time: number }): void;
+    },
+    original = model.stepInterval,
+    vertical = model.vertical,
+    descriptor = Object.getOwnPropertyDescriptor(bike, 'stepInterval'),
+    verticalDescriptor = Object.getOwnPropertyDescriptor(bike, 'vertical');
+  let contacts: PlayerContactEvent[] = [];
+  model.vertical = (interval, boundary) => {
+    // The swept boundary supplies the physical first-contact pose before
+    // supported integration or a later ground interval can spin a tyre up.
+    if (boundary && bike.airborne) contacts.push({ ...snapshot(bike), ...boundary });
+    vertical.call(bike, interval, boundary);
+  };
+  model.stepInterval = (interval, surface, absorb) => {
+    const before = snapshot(bike), previousHeat = heat(bike);
+    contacts = [];
+    original.call(bike, interval, surface, absorb);
+    observe({ before, after: snapshot(bike), previousHeat, dt: interval, contacts });
+  };
+  try { bike.step(dt, track); }
+  finally {
+    if (descriptor) Object.defineProperty(bike, 'stepInterval', descriptor);
+    else Reflect.deleteProperty(bike, 'stepInterval');
+    if (verticalDescriptor) Object.defineProperty(bike, 'vertical', verticalDescriptor);
+    else Reflect.deleteProperty(bike, 'vertical');
+  }
+}
+
+type PlayerContactEvent = ReturnType<typeof snapshot> & { time: number; front: boolean; rear: boolean };
+type FrontPickup = { dt: number; load: number; before: number; after: number; fx: number;
+  brake: number; inertia: number; radius: number };
+
 function observer(bike: DirtBikeVehicle, track: Track, dt: number) {
   const hash = createHash('sha256'), issues = new Set<string>();
   const spec = bike.definition.bike!;
   const metrics = {
     steps: 0, playerSteps: 0, freeSteps: 0, recoverySteps: 0, oneAxleSteps: 0,
+    physicalIntervals: 0, freeIntervals: 0, recoveryIntervals: 0, refinedSteps: 0,
     maxFreeForce: 0, maxFreeSlipPower: 0, maxFreeMudPickup: 0,
     maxBallisticPositionError: 0, maxBallisticSpeedError: 0, maxFrontRotorError: 0,
-    maxFrontAirWorkErrorJ: 0, maxRearAirWorkErrorJ: 0, rearAirWorkChecks: 0,
+    maxFrontAirWorkErrorJ: 0, maxRearAirWorkErrorJ: 0, rearAirWorkChecks: 0, rearAirWorkIntervals: 0,
     minRotorSourceJ: 0, maxPassiveHeatGainJ: 0,
+    maxPublicSlipWorkErrorJ: 0,
     totalRotorWorkJ: [0, 0], freeRotorWorkJ: [0, 0], slipWorkJ: 0,
     minFrontSpin: Infinity, minRearSpin: Infinity, maxFork: 0, maxShock: 0,
     maxTemperatureC: 0, maxContactWaterMm: 0, minBody: 1, maxBody: -1, maxYaw: 0,
     maxBodyRate: 0,
   };
   function step() {
-    const before = snapshot(bike), previousHeat = heat(bike);
-    bike.step(dt, track);
-    const d = bike.dynamics, after = snapshot(bike), work = rotorWork(bike, track, before.discs, dt);
+    const before = snapshot(bike), work = [0, 0], contacts: PlayerContactEvent[] = [],
+      frontPickups: FrontPickup[] = [];
+    let intervals = 0, free = 0, rearChecks = 0, recovery = 0, intervalSlipWork = 0;
+    observePlayerStepIntervals(bike, track, dt, ({ before: start, after: end, previousHeat, dt: h,
+      contacts: events }) => {
+      const d = bike.dynamics, source = rotorWork(bike, track, start.discs, h);
+      contacts.push(...events);
+      if (!start.airborne && start.riding && start.frontLoad > 0 && end.frontSpin > start.frontSpin)
+        frontPickups.push({ dt: h, load: start.frontLoad, before: start.frontSpin,
+          after: end.frontSpin, fx: bike.tires[0].fx, brake: bike.brake,
+          inertia: bike.tires[0].inertia, radius: bike.tires[0].radius });
+      intervals++;
+      metrics.physicalIntervals++;
+      intervalSlipWork += bike.tires.reduce((sum, tire) => sum + tire.energy * h, 0);
+      source.forEach((joules, i) => {
+        work[i] += joules;
+        metrics.minRotorSourceJ = Math.min(metrics.minRotorSourceJ, joules);
+      });
+      // Airborne endpoints do not certify uninterrupted flight if contact
+      // and rebound occurred inside the interval. Its event counter does.
+      if (start.airborne && end.airborne && start.riding && end.riding &&
+          start.landings === end.landings) {
+        free++;
+        metrics.freeIntervals++;
+        // At departure the public speed scalar may still describe the
+        // sloped approach. World velocity already carries its horizontal
+        // component. Each free physical interval must retain exact travel.
+        const drag = d.p.drag / d.mass,
+          speed = start.planarSpeed / (1 + drag * start.planarSpeed * h),
+          distance = Math.log1p(drag * start.planarSpeed * h) / drag,
+          x = start.x + Math.sin(start.heading) * distance + Math.cos(start.heading) * start.slide * h,
+          z = start.z + Math.cos(start.heading) * distance - Math.sin(start.heading) * start.slide * h,
+          y = start.y + start.vy * h - 0.5 * G * h * h;
+        metrics.maxBallisticPositionError = Math.max(metrics.maxBallisticPositionError,
+          Math.abs(bike.cgY - y), Math.abs(d.x - x), Math.abs(d.z - z));
+        metrics.maxBallisticSpeedError = Math.max(metrics.maxBallisticSpeedError, Math.abs(d.speed - speed));
+        const coastingFront = start.frontSpin * Math.exp(-0.4 * h),
+          front = Math.max(0, coastingFront - bike.brake * bike.air.spinBrake * 0.7 * h),
+          // The same physical front rotor reaches the ground and takes off;
+          // its live inertia also governs the independent pickup impulse.
+          frontWork = 0.5 * bike.tires[0].inertia *
+            (coastingFront ** 2 - bike.frontSpin ** 2);
+        metrics.maxFrontRotorError = Math.max(metrics.maxFrontRotorError, Math.abs(bike.frontSpin - front));
+        metrics.maxFrontAirWorkErrorJ = Math.max(metrics.maxFrontAirWorkErrorJ, Math.abs(source[0] - frontWork));
+        // Every script uses mutually exclusive rear drive/brake commands.
+        // Friction receives its share of actual kinetic-energy loss; the
+        // existing bearing resistance receives the rest.
+        if (bike.rearBrake === 0 || bike.throttle === 0) {
+          const brakeDeceleration = bike.rearBrake * bike.air.spinBrake,
+            rearWork = brakeDeceleration === 0 ? 0 :
+              0.5 * bike.air.spinInertia * (start.rearSpin ** 2 - bike.rearSpin ** 2) *
+                brakeDeceleration / (brakeDeceleration + 2);
+          rearChecks++;
+          metrics.rearAirWorkIntervals++;
+          metrics.maxRearAirWorkErrorJ = Math.max(metrics.maxRearAirWorkErrorJ, Math.abs(source[1] - rearWork));
+        }
+        metrics.maxFreeForce = Math.max(metrics.maxFreeForce, bike.forceFront, bike.forceRear,
+          Math.abs(d.driveForce), Math.abs(d.frontBrakeForce), Math.abs(d.rearBrakeForce),
+          ...bike.tires.flatMap(tire => [Math.abs(tire.fx), Math.abs(tire.fy), tire.load]));
+        metrics.maxFreeSlipPower = Math.max(metrics.maxFreeSlipPower, ...bike.tires.map(tire => tire.energy));
+        metrics.maxFreeMudPickup = Math.max(metrics.maxFreeMudPickup, bike.mud - start.mud);
+        source.forEach((joules, i) => { metrics.freeRotorWorkJ[i] += joules; });
+      }
+      if (!start.riding && !end.riding) {
+        recovery++;
+        metrics.recoveryIntervals++;
+        metrics.maxPassiveHeatGainJ = Math.max(metrics.maxPassiveHeatGainJ, heat(bike) - previousHeat);
+        if (bike.tires.some(tire => tire.fx !== 0 || tire.fy !== 0 || tire.energy !== 0))
+          issues.add('recovery invented tyre contact work');
+      }
+    });
+    const d = bike.dynamics, after = snapshot(bike);
     metrics.steps++;
+    metrics.refinedSteps += Number(intervals > 1);
+    // Keep public-call counts distinct from physical-interval counts. Only
+    // a call whose every interval was free is a complete free public step.
+    if (intervals > 0 && free === intervals) {
+      metrics.freeSteps++;
+      if (rearChecks === intervals) metrics.rearAirWorkChecks++;
+    }
+    if (intervals > 0 && recovery === intervals) metrics.recoverySteps++;
     if (d.p.independentRearBrake) metrics.playerSteps++;
     else issues.add('player control ownership was lost');
     metrics.oneAxleSteps += Number((bike.forceFront > 0) !== (bike.forceRear > 0));
@@ -151,54 +278,12 @@ function observer(bike: DirtBikeVehicle, track: Track, dt: number) {
     }
     work.forEach((joules, i) => {
       metrics.totalRotorWorkJ[i] += joules;
-      metrics.minRotorSourceJ = Math.min(metrics.minRotorSourceJ, joules);
     });
-    if (before.airborne && after.airborne && before.riding && after.riding) {
-      metrics.freeSteps++;
-      // At departure the public road-speed scalar still describes the
-      // sloped approach. The published world velocity already carries the
-      // actual horizontal launch component and avoids conflating the two.
-      const drag = d.p.drag / d.mass, speed = before.planarSpeed / (1 + drag * before.planarSpeed * dt);
-      const distance = Math.log1p(drag * before.planarSpeed * dt) / drag;
-      const x = before.x + Math.sin(before.heading) * distance + Math.cos(before.heading) * before.slide * dt;
-      const z = before.z + Math.cos(before.heading) * distance - Math.sin(before.heading) * before.slide * dt;
-      const y = before.y + before.vy * dt - 0.5 * G * dt * dt;
-      metrics.maxBallisticPositionError = Math.max(metrics.maxBallisticPositionError,
-        Math.abs(bike.cgY - y), Math.abs(d.x - x), Math.abs(d.z - z));
-      metrics.maxBallisticSpeedError = Math.max(metrics.maxBallisticSpeedError, Math.abs(d.speed - speed));
-      const coastingFront = before.frontSpin * Math.exp(-0.4 * dt);
-      const front = Math.max(0, coastingFront - bike.brake * bike.air.spinBrake * 0.7 * dt);
-      metrics.maxFrontRotorError = Math.max(metrics.maxFrontRotorError, Math.abs(bike.frontSpin - front));
-      const frontWork = 0.5 * bike.definition.spec.wheelInertia *
-        (coastingFront ** 2 - bike.frontSpin ** 2);
-      metrics.maxFrontAirWorkErrorJ = Math.max(metrics.maxFrontAirWorkErrorJ, Math.abs(work[0] - frontWork));
-      // Every script uses mutually exclusive rear drive/brake commands.
-      // With drive released, friction receives its share of the actual
-      // rotor kinetic-energy loss; bearing resistance receives the rest.
-      if (bike.rearBrake === 0 || bike.throttle === 0) {
-        const brakeDeceleration = bike.rearBrake * bike.air.spinBrake;
-        const rearWork = brakeDeceleration === 0 ? 0 :
-          0.5 * bike.air.spinInertia * (before.rearSpin ** 2 - bike.rearSpin ** 2) *
-          brakeDeceleration / (brakeDeceleration + 2);
-        metrics.rearAirWorkChecks++;
-        metrics.maxRearAirWorkErrorJ = Math.max(metrics.maxRearAirWorkErrorJ, Math.abs(work[1] - rearWork));
-      }
-      metrics.maxFreeForce = Math.max(metrics.maxFreeForce, bike.forceFront, bike.forceRear,
-        Math.abs(d.driveForce), Math.abs(d.frontBrakeForce), Math.abs(d.rearBrakeForce),
-        ...bike.tires.flatMap(tire => [Math.abs(tire.fx), Math.abs(tire.fy), tire.load]));
-      metrics.maxFreeSlipPower = Math.max(metrics.maxFreeSlipPower, ...bike.tires.map(tire => tire.energy));
-      metrics.maxFreeMudPickup = Math.max(metrics.maxFreeMudPickup, bike.mud - before.mud);
-      work.forEach((joules, i) => { metrics.freeRotorWorkJ[i] += joules; });
-    }
-    if (!before.riding && !after.riding) {
-      metrics.recoverySteps++;
-      metrics.maxPassiveHeatGainJ = Math.max(metrics.maxPassiveHeatGainJ, heat(bike) - previousHeat);
-      if (bike.tires.some(tire => tire.fx !== 0 || tire.fy !== 0 || tire.energy !== 0))
-        issues.add('recovery invented tyre contact work');
-    }
+    metrics.maxPublicSlipWorkErrorJ = Math.max(metrics.maxPublicSlipWorkErrorJ,
+      Math.abs(bike.tires.reduce((sum, tire) => sum + tire.energy * dt, 0) - intervalSlipWork));
     hash.update(new Uint8Array(new Float64Array(values).buffer));
     hash.update(`${d.state}/${Number(bike.airborne)}/${bike.landings}/${d.crashes}`);
-    return { before, after, work };
+    return { before, after, work, contacts, frontPickups };
   }
   function finish() {
     if (metrics.maxFreeForce !== 0 || metrics.maxFreeSlipPower !== 0 || metrics.maxFreeMudPickup > 0)
@@ -209,6 +294,8 @@ function observer(bike: DirtBikeVehicle, track: Track, dt: number) {
     if (metrics.maxFrontAirWorkErrorJ > 1e-7 || metrics.maxRearAirWorkErrorJ > 1e-7 ||
         metrics.minRotorSourceJ < -1e-7)
       issues.add('rotor work did not balance its finite thermal reservoir');
+    if (metrics.maxPublicSlipWorkErrorJ > 1e-7)
+      issues.add('public slip power did not recover physical interval work');
     if (metrics.maxPassiveHeatGainJ > 1e-6) issues.add('unsupported recovery created heat');
     return { ...metrics, violations: [...issues], traceSha256: hash.digest('hex') };
   }
@@ -249,6 +336,7 @@ export function runPlayerFlight(config: PlayerCase, scenario: AirScenario) {
   let departed = false, takeoffAt = 0, touchdownAt = 0, crashedAt = 0, remountedAt = 0;
   let record: LandingRecord | null = null, incoming: ReturnType<typeof incomingRecord> | null = null;
   let incomingStable = true, touchdown: ReturnType<typeof snapshot> | null = null;
+  let firstContact: PlayerContactEvent | null = null, touchdownPickups: FrontPickup[] = [];
   let after300ms: ReturnType<typeof snapshot> | null = null, remount: ReturnType<typeof snapshot> | null = null;
   let firstPickupSeconds: number | null = null, rollingSeconds: number | null = null;
   let stoppedFrontAirSteps = 0, stoppedRearAirSteps = 0, unloadedFrontAfterLanding = 0;
@@ -260,7 +348,7 @@ export function runPlayerFlight(config: PlayerCase, scenario: AirScenario) {
     else if (bike.airborne && departed) airControls(bike, scenario);
     else if (!bike.airborne) rideLine(bike, track,
       bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 1 ? Math.max(speed, bike.dynamics.speed) : speed);
-    const { before } = observed.step();
+    const { before, contacts, frontPickups } = observed.step();
     states.add(bike.dynamics.state);
     if (!before.airborne && bike.airborne && !departed &&
       bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 3) {
@@ -277,6 +365,8 @@ export function runPlayerFlight(config: PlayerCase, scenario: AirScenario) {
     if (departed && before.airborne && !bike.airborne && !record) {
       record = bike.lastLanding;
       if (record) incoming = incomingRecord(record);
+      firstContact = contacts.find(event => event.time === record?.time) ?? null;
+      touchdownPickups = frontPickups;
       touchdown = snapshot(bike);
       touchdownAt = bike.clock;
     }
@@ -312,7 +402,7 @@ export function runPlayerFlight(config: PlayerCase, scenario: AirScenario) {
   return {
     config, scenario, approach: { initialS: jump.start - 12, initialSpeed: speed, gear: 3 },
     departed, takeoffAt, touchdownAt, incomingStable, landing: record ? { ...record } : null,
-    touchdown, after300ms, remount, samples, stoppedFrontAirSteps, stoppedRearAirSteps,
+    touchdown, firstContact, touchdownPickups, after300ms, remount, samples, stoppedFrontAirSteps, stoppedRearAirSteps,
     firstPickupSeconds, rollingSeconds, unloadedFrontAfterLanding, bottomed, rebound,
     crashes: bike.dynamics.crashes, crashCauses: bike.crashCauses.slice(), states: [...states],
     recoverySeconds: remountedAt ? remountedAt - crashedAt : null,

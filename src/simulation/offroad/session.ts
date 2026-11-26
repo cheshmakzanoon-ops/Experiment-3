@@ -124,19 +124,12 @@ export class OffroadSession {
     }));
     this.route = this.buildRoute();
     if (this.format?.start === 'gate' && this.course.spec.gate) {
-      const slots = gateSlots(track, this.course, cars.length),
-        chosen = options.gates,
-        // A meeting's gate pick (every slot on this gate) stands; otherwise
-        // the riders pick in grid order here.
-        picks =
-          chosen && chosen.length === cars.length && chosen.every((s) => s < slots.lateral.length)
-            ? new Map(chosen.map((slot, id) => [id, slot]))
-            : pickGates(options.grid ?? cars.map((c) => c.id), slots.preference);
+      const { lateral, picks } = gateAssignments(track, this.course, cars, options);
       for (const c of cars) {
         const e = this.entrants[c.id];
         e.slot = picks.get(c.id)!;
         e.slotS = c.s;
-        e.slotLateral = slots.lateral[e.slot];
+        e.slotLateral = lateral[e.slot];
       }
     }
     if (this.format?.start === 'staggered')
@@ -167,16 +160,14 @@ export class OffroadSession {
       format = rulesetFor(options).format;
     if (!course || !format || !(options.mode === 'race' || options.mode === 'endurance')) return;
     if (format.start === 'gate' && course.spec.gate) {
-      const slots = gateSlots(track, course, cars.length),
-        order = options.grid ?? cars.map((c) => c.id),
-        picks = pickGates(order, slots.preference);
+      const { lateral, picks } = gateAssignments(track, course, cars, options);
       for (const c of cars) {
         const k = picks.get(c.id)!,
           reach =
             c instanceof BikeVehicle
               ? c.bikeSpec.cgToFront + c.bikeSpec.frontWheelRadius + 0.05
               : 2.4;
-        c.place(track, mod(course.spec.gate.s - reach, track.length), slots.lateral[k]);
+        c.place(track, mod(course.spec.gate.s - reach, track.length), lateral[k]);
       }
     } else if (format.start === 'staggered' && course.spec.stage) {
       // The first starter waits at the start control (the lights are its
@@ -541,6 +532,31 @@ export function gateSlots(track: Track, course: OffroadCourse, riders: number) {
   const inside = turn >= 0 ? 1 : -1,
     preference = lateral.map((_, k) => k).sort((a, b) => lateral[b] * inside - lateral[a] * inside);
   return { lateral, preference };
+}
+/** Placement and the gate wall must agree on every rider's slot. Accept a
+ * meeting's choices only as a complete set of distinct slots on this gate;
+ * otherwise keep the ordinary preference picks in grid order. */
+function gateAssignments(
+  track: Track,
+  course: OffroadCourse,
+  cars: readonly Vehicle[],
+  options: SessionOptions,
+) {
+  const slots = gateSlots(track, course, cars.length),
+    chosen = options.gates,
+    picks =
+      Array.isArray(chosen) &&
+      chosen.length === cars.length &&
+      new Set(chosen).size === cars.length &&
+      cars.every(
+        (c) =>
+          Number.isInteger(chosen[c.id]) &&
+          chosen[c.id] >= 0 &&
+          chosen[c.id] < slots.lateral.length,
+      )
+        ? new Map(cars.map((c) => [c.id, chosen[c.id]]))
+        : pickGates(options.grid ?? cars.map((c) => c.id), slots.preference);
+  return { lateral: slots.lateral, picks };
 }
 /** Snapshot off-road block (protocol O). Zeros on paved circuits for
  * machines without an off-road adapter. */

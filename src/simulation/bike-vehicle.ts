@@ -57,6 +57,10 @@ export const BIKE_RECOVERY = Object.freeze({
   /** A riding bike that cannot move under throttle this long is helped back. */
   stuckSeconds: 6,
 });
+/** A motocross rider remains beside a finite-speed push, then approaches
+ * the mounted root before control returns. These rates do not shorten a
+ * long course-feature recovery by moving either participant instantly. */
+const MX_REMOUNT = Object.freeze({ side: 0.55, turnRate: 1.6, riderTurnRate: 4, pickupSeconds: 1 });
 /** GP ride-by-wire: the throttle bodies follow a closing grip at a bounded
  * rate (per second; full to shut in 0.1 s), as a rider's roll-off and the
  * torque strategy do; opening is not limited here. An instant chop removes
@@ -136,6 +140,14 @@ export class BikeVehicle extends Vehicle {
   protected roadPitch = 0;
   protected groundY = 0;
   protected readonly remount = { x: 0, z: 0, heading: 0, active: false };
+  private mxRemountTrack: Track | null = null;
+  private mxRemountGathered = false;
+  private mxRemountBudget: number = BIKE_RECOVERY.maxPush;
+  /** Planned recovery limit, including the actual push distance and terrain
+   * height changes. The shared five-second road-bike timeout is unchanged. */
+  get remountBudgetSeconds() {
+    return this.mxRemountBudget;
+  }
   protected readonly written = { position: new Vec3(), velocity: new Vec3(), omega: new Vec3() };
   private readonly orientationKinematics = new OrientationKinematics();
   private writtenFallen = false;
@@ -848,7 +860,21 @@ export class BikeVehicle extends Vehicle {
         dz = this.rider.z - this.body.position.z;
       return dx * dx + dz * dz < 1.2 * 1.2;
     }
-    if (d.state === 'remount') return !this.remount.active || d.stateClock > BIKE_RECOVERY.maxPush;
+    if (d.state === 'remount') {
+      const pushed = !this.remount.active || d.stateClock > BIKE_RECOVERY.maxPush;
+      if (
+        this.definition.classId === 'motocross' &&
+        this.definition.tireFamily === 'knobby'
+      ) {
+        // Actual position and heading complete the handoff. In particular,
+        // neither a long push nor the beside-bike offset can be hidden by
+        // the first mounted snapshot copying the motorcycle's position.
+        this.remountSeatTarget(this.scratch);
+        const turn = mod(d.heading - this.riderHeading + Math.PI, TAU) - Math.PI;
+        return !this.remount.active && this.rider.distanceSq(this.scratch) < 1e-14 && Math.abs(turn) < 1e-9;
+      }
+      return pushed;
+    }
     return true;
   }
   /** Remount on the racing surface, inside its edge, facing the direction of travel. */
@@ -862,8 +888,82 @@ export class BikeVehicle extends Vehicle {
     this.remount.z = p.z + p.nz * side;
     this.remount.heading = Math.atan2(p.tx, p.tz);
     this.remount.active = true;
+    this.prepareMxRemount(track);
+  }
+  /** Adapter hook for the root that the first mounted snapshot will publish. */
+  protected remountSeatTarget(out: Vec3, _track?: Track, x = this.dynamics.x, z = this.dynamics.z, _heading = this.dynamics.heading) {
+    return out.set(x, this.body.position.y, z);
+  }
+  private mxBesideTarget(track: Track, out: Vec3, x = this.dynamics.x, z = this.dynamics.z, heading = this.dynamics.heading) {
+    out.set(x + Math.cos(heading) * MX_REMOUNT.side, 0, z - Math.sin(heading) * MX_REMOUNT.side);
+    track.sample(out.x, out.z, this.riderSurface, this.groundY);
+    out.y = this.riderSurface.height + MX_RECOVERY.uprightHeight;
+    return out;
+  }
+  /** The deadline is a sum of finite travel costs, not permission to skip
+   * any of them. Sample the push's height variation to include a rider's
+   * possible catch-up on a steep face as well as the final seat approach. */
+  protected prepareMxRemount(track: Track) {
+    if (this.definition.classId !== 'motocross' || this.definition.tireFamily !== 'knobby') return;
+    this.mxRemountTrack = track;
+    this.mxRemountGathered = false;
+    const d = this.dynamics, r = this.remount,
+      distance = Math.hypot(r.x - d.x, r.z - d.z),
+      turn = mod(r.heading - d.heading + Math.PI, TAU) - Math.PI,
+      riderTurn = mod(d.heading - this.riderHeading + Math.PI, TAU) - Math.PI;
+    this.mxBesideTarget(track, this.scratch);
+    const acquire = Math.max(Math.sqrt(this.rider.distanceSq(this.scratch)) / BIKE_RECOVERY.jogSpeed,
+      Math.abs(riderTurn) / MX_REMOUNT.riderTurnRate),
+      push = Math.max(distance / BIKE_RECOVERY.pushSpeed, Math.abs(turn) / MX_REMOUNT.turnRate),
+      samples = Math.max(1, Math.ceil(distance / 0.25), Math.ceil(Math.abs(turn) / 0.05));
+    let previousY = this.scratch.y, heightTravel = 0;
+    for (let i = 1; i <= samples; i++) {
+      const time = push * i / samples,
+        fraction = distance > 0 ? Math.min(1, BIKE_RECOVERY.pushSpeed * time / distance) : 1,
+        heading = d.heading + clamp(turn, -MX_REMOUNT.turnRate * time, MX_REMOUNT.turnRate * time);
+      this.mxBesideTarget(track, this.scratch, lerp(d.x, r.x, fraction), lerp(d.z, r.z, fraction), heading);
+      heightTravel += Math.abs(this.scratch.y - previousY);
+      previousY = this.scratch.y;
+    }
+    const sideX = this.scratch.x, sideY = this.scratch.y, sideZ = this.scratch.z;
+    this.remountSeatTarget(this.scratch, track, r.x, r.z, r.heading);
+    const mount = Math.hypot(this.scratch.x - sideX, this.scratch.y - sideY, this.scratch.z - sideZ) / BIKE_RECOVERY.jogSpeed;
+    this.mxRemountBudget = Math.max(BIKE_RECOVERY.maxPush,
+      1.5 + acquire + push + (heightTravel + MX_REMOUNT.side * Math.abs(turn)) / BIKE_RECOVERY.jogSpeed + mount);
+  }
+  private pushMxToRemount(dt: number) {
+    const d = this.dynamics, r = this.remount;
+    d.speed = 0;
+    if (!(dt > 0 && Number.isFinite(dt)) || !r.active) return;
+    if (!this.mxRemountGathered) {
+      if (!this.mxRemountTrack) return;
+      this.mxBesideTarget(this.mxRemountTrack, this.scratch);
+      const riderTurn = mod(d.heading - this.riderHeading + Math.PI, TAU) - Math.PI;
+      if (this.rider.distanceSq(this.scratch) > 1e-14 || Math.abs(riderTurn) > 1e-9) return;
+      this.mxRemountGathered = true;
+    }
+    const dx = r.x - d.x, dz = r.z - d.z,
+      distance = Math.hypot(dx, dz), step = BIKE_RECOVERY.pushSpeed * dt,
+      turn = mod(r.heading - d.heading + Math.PI, TAU) - Math.PI,
+      angularStep = MX_REMOUNT.turnRate * dt;
+    if (distance <= step) {
+      d.x = r.x;
+      d.z = r.z;
+    } else {
+      d.x += dx * step / distance;
+      d.z += dz * step / distance;
+    }
+    d.heading += clamp(turn, -angularStep, angularStep);
+    if (distance <= step && Math.abs(turn) <= angularStep) {
+      d.heading = r.heading;
+      r.active = false;
+    }
   }
   protected pushToRemount(dt: number) {
+    if (this.definition.classId === 'motocross' && this.definition.tireFamily === 'knobby') {
+      this.pushMxToRemount(dt);
+      return;
+    }
     const d = this.dynamics,
       r = this.remount;
     d.speed = 0;
@@ -952,11 +1052,34 @@ export class BikeVehicle extends Vehicle {
         0,
         this.body.position.z - Math.sin(h) * 0.55,
       );
-      r.x = approach(r.x, this.scratch.x, BIKE_RECOVERY.jogSpeed * dt);
-      r.z = approach(r.z, this.scratch.z, BIKE_RECOVERY.jogSpeed * dt);
+      if (this.definition.classId === 'motocross' && this.definition.tireFamily === 'knobby') {
+        if (!(dt > 0 && Number.isFinite(dt))) return;
+        if (!this.remount.active && d.stateClock >= MX_REMOUNT.pickupSeconds)
+          this.remountSeatTarget(this.scratch);
+        else this.mxBesideTarget(track, this.scratch);
+        // One vector bound covers gathering, terrain changes and the final
+        // move from beside the motorcycle to its actual mounted root.
+        const dx = this.scratch.x - r.x,
+          dy = this.scratch.y - r.y,
+          dz = this.scratch.z - r.z,
+          distance = Math.hypot(dx, dy, dz),
+          step = Math.min(distance, BIKE_RECOVERY.jogSpeed * dt);
+        if (distance > 0) {
+          r.x += (dx / distance) * step;
+          r.y += (dy / distance) * step;
+          r.z += (dz / distance) * step;
+        }
+        const turn = mod(h - this.riderHeading + Math.PI, TAU) - Math.PI;
+        this.riderHeading += clamp(turn, -MX_REMOUNT.riderTurnRate * dt, MX_REMOUNT.riderTurnRate * dt);
+        this.riderTumble = approach(this.riderTumble, 0, dt * 6);
+        return;
+      } else {
+        r.x = approach(r.x, this.scratch.x, BIKE_RECOVERY.jogSpeed * dt);
+        r.z = approach(r.z, this.scratch.z, BIKE_RECOVERY.jogSpeed * dt);
+        this.riderHeading = h;
+      }
       track.sample(r.x, r.z, s, r.y);
       r.y = s.height + 0.95;
-      this.riderHeading = h;
       this.riderTumble = approach(this.riderTumble, 0, dt * 6);
       return;
     }
@@ -1334,11 +1457,13 @@ export class BikeVehicle extends Vehicle {
     }
     this.stuckClock += dt;
     if (this.stuckClock < BIKE_RECOVERY.stuckSeconds) return false;
-    this.restart(track);
+    const motocross =
+      this.definition.classId === 'motocross' && this.definition.tireFamily === 'knobby';
+    this.restart(track, motocross ? 'stranded' : undefined);
     return true;
   }
   /** Marshal restart: the bike at rest and upright at its remount point. */
-  restart(track: Track) {
+  restart(track: Track, _reason?: 'rider' | 'stranded' | 'wrong-way') {
     const d = this.dynamics;
     this.planRemount(track);
     d.x = this.remount.x;

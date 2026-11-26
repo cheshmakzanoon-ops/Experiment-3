@@ -3,12 +3,32 @@ import {
   AIR_SCENARIOS, PLAYER_CASES, runPlayerAcceptance, type PlayerCase,
 } from '../scripts/bench/motocross-player-dynamics.ts';
 import { MX_250, MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
+import type { LandingRecord } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { LANDING_RULES } from '../src/simulation/offroad/riding-feedback.ts';
+import type { OffroadBikeSpec } from '../src/simulation/offroad/types.ts';
 
 let acceptance: ReturnType<typeof runPlayerAcceptance>;
 beforeAll(() => { acceptance = runPlayerAcceptance(); }, 60_000);
 const matches = (a: PlayerCase, b: PlayerCase) =>
   a.machine === b.machine && a.venue === b.venue && a.assist === b.assist;
+const caseIdentity = (run: { config: PlayerCase; scenario: string }) =>
+  `${run.config.machine}/${run.config.venue}/${run.config.assist}/${run.scenario}`;
+
+/** These prescribed long flights land outside the rough-section tolerance.
+ * Check both false-positive and false-negative verdicts against the unchanged
+ * physical limits, independently of the adapter's stateful judgment method. */
+function thresholdVerdict(landing: LandingRecord, limits: OffroadBikeSpec) {
+  const real = landing.airTime > LANDING_RULES.minimumAirTime &&
+    landing.takeoffSpeed > LANDING_RULES.rollingHopSpeed;
+  if (real && Math.abs(landing.yawError) > 1e-9 &&
+      Math.abs(landing.lateralSpeed) > LANDING_RULES.crossedCrashSpeed) return 'crash-side';
+  if (real && landing.pitchError < -limits.noseDownLimit &&
+      landing.normalSpeed > LANDING_RULES.noseDownNormalSpeed) return 'crash-front';
+  if (real && landing.pitchError > limits.noseUpLimit &&
+      landing.normalSpeed > LANDING_RULES.noseUpNormalSpeed) return 'crash-rear';
+  if (landing.bottomSpeed > limits.bottomOutSpeed) return 'crash-flat';
+  return landing.bottomSpeed > LANDING_RULES.bottomedShaftSpeed ? 'bottomed' : 'clean';
+}
 
 describe('combined player motocross approach, control and recovery acceptance', () => {
   it.each(PLAYER_CASES)('$machine $venue $assist settles its weight before independent ground braking', config => {
@@ -56,6 +76,7 @@ describe('combined player motocross approach, control and recovery acceptance', 
       expect(run.incomingStable).toBe(true);
       expect(run.landing).not.toBeNull();
       const landing = run.landing!;
+      expect(landing.outcome).toBe(thresholdVerdict(landing, definition.bike!.offroad!));
       expect(landing.airTime).toBeGreaterThan(0.8);
       expect(landing.distance).toBeGreaterThan(8);
       expect(landing.normalSpeed).toBeGreaterThan(0);
@@ -99,7 +120,26 @@ describe('combined player motocross approach, control and recovery acceptance', 
     expect(baseline.bottomed).toEqual([true, true]);
     expect(baseline.rebound).toEqual([true, true]);
     expect(front.stoppedFrontAirSteps).toBeGreaterThan(50);
-    expect(front.touchdown!.frontSpin).toBe(0);
+    // The swept event precedes any supported remainder of the public call.
+    // A locked rotor meets the soil at exactly zero; subsequent real tyre
+    // impulses may already pick it up before the public touchdown snapshot.
+    expect(front.firstContact).not.toBeNull();
+    expect(front.firstContact!.time).toBe(front.landing!.time);
+    expect(front.firstContact!.frontSpin).toBe(0);
+    if (front.touchdown!.frontSpin > 0) {
+      expect(front.touchdownPickups.length).toBeGreaterThan(0);
+      let gained = 0;
+      for (const pickup of front.touchdownPickups) {
+        expect(pickup.load).toBeGreaterThan(0);
+        expect(pickup.brake).toBe(0);
+        expect(pickup.fx).toBeLessThan(0);
+        const delta = pickup.after - pickup.before;
+        expect(pickup.inertia * delta)
+          .toBeCloseTo(-pickup.fx * pickup.radius * pickup.dt, 9);
+        gained += delta;
+      }
+      expect(front.touchdown!.frontSpin).toBeCloseTo(gained, 12);
+    } else expect(front.touchdownPickups).toEqual([]);
     expect(front.freeRotorWorkJ[0]).toBeGreaterThan(300);
     expect(rear.samples[1].rear).toBeLessThan(baseline.samples[1].rear - 30);
     expect(rear.freeRotorWorkJ[1]).toBeGreaterThan(500);
@@ -116,8 +156,10 @@ describe('combined player motocross approach, control and recovery acceptance', 
       expect(front.rollingSeconds).toBeLessThan(0.2);
     }
     expect(held.landing!.outcome).toBe(config.assist === 'raw' ? 'crash-side' : 'bottomed');
-    const frontVerdict = config.assist === 'raw' && config.venue === 'arena-nord-sx' ? 'crash-front' :
-      config.assist === 'raw' && config.machine === 'mx450' ? 'crash-flat' : 'bottomed';
+    // With horizontal momentum also preserved through the launch debounce,
+    // all actual Raw front-lock trajectories exceed the unchanged 7 m/s
+    // shaft limit while remaining inside the unchanged nose-down limit.
+    const frontVerdict = config.assist !== 'raw' ? 'bottomed' : 'crash-flat';
     expect(front.landing!.outcome).toBe(frontVerdict);
   });
 
@@ -135,8 +177,13 @@ describe('combined player motocross approach, control and recovery acceptance', 
       .toBeLessThan(dry.beforeBraking.speed - dry.final.speed);
   });
 
-  it('retains all seven adverse verdicts when the entire player trajectory is refined to 480 Hz', () => {
-    expect(acceptance.refinedAdverse).toHaveLength(7);
+  it('retains the intended adverse cases when the entire player trajectory is refined to 480 Hz', () => {
+    const expected = PLAYER_CASES.filter(config => config.assist === 'raw').flatMap(config =>
+      ['front-lock', 'held-whip'].map(scenario => caseIdentity({ config, scenario }))).sort();
+    // Check scenario/config identities, not merely a count that could hide
+    // one intended fall disappearing while an ordinary control case regresses.
+    expect(acceptance.flights.filter(run => run.crashes > 0).map(caseIdentity).sort()).toEqual(expected);
+    expect(acceptance.refinedAdverse.map(caseIdentity).sort()).toEqual(expected);
     for (const finer of acceptance.refinedAdverse) {
       const coarse = acceptance.flights.find(run => matches(run.config, finer.config) && run.scenario === finer.scenario)!;
       expect(finer.violations).toEqual([]);

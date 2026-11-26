@@ -7,6 +7,7 @@ import type { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicl
 import { rideLine, rigBike, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { jumpHoldSpeed } from '../src/simulation/offroad/jump-target.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
+import type { Track } from '../src/simulation/track.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 
 type FlightMode = 'player' | 'opponent' | 'riderless';
@@ -44,6 +45,30 @@ function expectUnsupported(bike: DirtBikeVehicle) {
   expect(bike.airborne).toBe(true);
   expect(bike.forceFront).toBe(0);
   expect(bike.forceRear).toBe(0);
+}
+
+/** Fuel is consumed by every complete physical interval. Observe those
+ * intervals without freezing fuel or replacing the production drag law;
+ * a public tick's last mass is not the mass of every earlier interval. */
+function observedFlightStep(bike: DirtBikeVehicle, track: Track, dt: number) {
+  const model = bike as unknown as {
+    stepInterval(dt: number, track: Track, absorb: boolean): void;
+  };
+  const original = model.stepInterval,
+    descriptor = Object.getOwnPropertyDescriptor(bike, 'stepInterval'),
+    intervals: { dt: number; mass: number; drag: number; speed: number; x: number; z: number }[] = [];
+  model.stepInterval = (part, surface, absorb) => {
+    original.call(bike, part, surface, absorb);
+    intervals.push({ dt: part, mass: bike.dynamics.mass, drag: bike.dynamics.p.drag,
+      speed: bike.dynamics.speed, x: bike.dynamics.x, z: bike.dynamics.z });
+  };
+  try {
+    bike.step(dt, track);
+  } finally {
+    if (descriptor) Object.defineProperty(bike, 'stepInterval', descriptor);
+    else Reflect.deleteProperty(bike, 'stepInterval');
+  }
+  return intervals;
 }
 
 describe('analytic quadratic airborne drag', () => {
@@ -118,7 +143,7 @@ describe('production motocross flight drag', () => {
       slide = bike.slide,
       sh = Math.sin(heading), ch = Math.cos(heading),
       y = bike.cgY, vy = bike.vy;
-    let elapsed = 0;
+    let elapsed = 0, maximumIntervals = 0, finalMassOracleError = 0;
     // Whip, rider and wheel inputs may rotate the chassis. They do not add
     // a horizontal centre-of-mass force or change its lateral air velocity.
     bike.input.steer = 0.55;
@@ -127,23 +152,64 @@ describe('production motocross flight drag', () => {
     for (let tick = 0; tick < 20; tick++)
       for (const dt of [1 / 120, 1 / 240, 1 / 480, 0.011, 0.009]) {
         const speed = bike.dynamics.speed, x = bike.dynamics.x, z = bike.dynamics.z;
-        bike.step(dt, track);
-        const drag = bike.dynamics.p.drag / bike.dynamics.mass,
-          factor = 1 + drag * speed * dt,
-          distance = Math.log1p(drag * speed * dt) / drag;
+        const intervals = observedFlightStep(bike, track, dt);
+        let expectedSpeed = speed, expectedX = x, expectedZ = z, physicalTime = 0;
+        for (const part of intervals) {
+          const drag = part.drag / part.mass,
+            factor = 1 + drag * expectedSpeed * part.dt,
+            distance = Math.log1p(drag * expectedSpeed * part.dt) / drag;
+          expectedSpeed /= factor;
+          expectedX += sh * distance + ch * slide * part.dt;
+          expectedZ += ch * distance - sh * slide * part.dt;
+          physicalTime += part.dt;
+          expect(part.speed).toBeCloseTo(expectedSpeed, 11);
+          expect(part.x).toBeCloseTo(expectedX, 10);
+          expect(part.z).toBeCloseTo(expectedZ, 10);
+        }
+        expect(physicalTime).toBeCloseTo(dt, 14);
+        maximumIntervals = Math.max(maximumIntervals, intervals.length);
+        const finalDrag = bike.dynamics.p.drag / bike.dynamics.mass;
+        finalMassOracleError = Math.max(finalMassOracleError,
+          Math.abs(bike.dynamics.speed - speed / (1 + finalDrag * speed * dt)));
         elapsed += dt;
         expectUnsupported(bike);
-        expect(bike.dynamics.speed).toBeCloseTo(speed / factor, 11);
+        expect(bike.dynamics.speed).toBeCloseTo(expectedSpeed, 11);
         expect(bike.dynamics.speed).toBeLessThanOrEqual(speed);
-        expect(bike.dynamics.x).toBeCloseTo(x + sh * distance + ch * slide * dt, 10);
-        expect(bike.dynamics.z).toBeCloseTo(z + ch * distance - sh * slide * dt, 10);
+        expect(bike.dynamics.x).toBeCloseTo(expectedX, 10);
+        expect(bike.dynamics.z).toBeCloseTo(expectedZ, 10);
         expect(bike.dynamics.heading).toBeCloseTo(heading, 12);
         expect(bike.slide).toBeCloseTo(slide, 12);
         expect(bike.cgY).toBeCloseTo(y + vy * elapsed - 0.5 * G * elapsed ** 2, 10);
         expect(bike.vy).toBeCloseTo(vy - G * elapsed, 10);
       }
     expect(bike.riding).toBe(mode !== 'riderless');
-    if (mode === 'player') expect(Math.abs(bike.airYaw)).toBeGreaterThan(0.1);
+    if (mode === 'player') {
+      expect(Math.abs(bike.airYaw)).toBeGreaterThan(0.1);
+      expect(maximumIntervals).toBeGreaterThan(1);
+      // The old whole-tick reconstruction is detectably wrong when fuel
+      // changes mass between refined intervals; the tolerance above stays.
+      expect(finalMassOracleError).toBeGreaterThan(5e-12);
+    }
+  });
+
+  it.each([MX_250, MX_450])('$id flight observation preserves every published state', definition => {
+    const observed = launch(definition), ordinary = launch(definition);
+    const values = (bike: DirtBikeVehicle) => [bike.dynamics.x, bike.dynamics.z, bike.dynamics.speed,
+      bike.dynamics.mass, bike.fuel, bike.cgY, bike.vy, bike.pitch, bike.pitchRate,
+      bike.frontSpin, bike.rearSpin, bike.airYaw, bike.airYawRate,
+      bike.body.position.x, bike.body.position.y, bike.body.position.z,
+      bike.body.velocity.x, bike.body.velocity.y, bike.body.velocity.z];
+    for (const { bike } of [observed, ordinary]) {
+      bike.input.steer = 0.55;
+      bike.input.riderLean = 0.7;
+      bike.input.throttle = 0.6;
+    }
+    for (let tick = 0; tick < 20; tick++) for (const dt of [1 / 120, 1 / 240, 1 / 480, 0.011, 0.009]) {
+      observedFlightStep(observed.bike, observed.track, dt);
+      ordinary.bike.step(dt, ordinary.track);
+      expect(values(observed.bike)).toEqual(values(ordinary.bike));
+      expect(Object.hasOwn(observed.bike, 'stepInterval')).toBe(false);
+    }
   });
 
   it.each([MX_250, MX_450].flatMap((definition) =>

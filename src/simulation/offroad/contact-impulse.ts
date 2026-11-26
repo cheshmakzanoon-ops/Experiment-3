@@ -48,6 +48,11 @@ export interface HardStopVelocity {
   yawRate?: number;
 }
 
+export interface HardStopImpulses {
+  front: number;
+  rear: number;
+}
+
 /** Resolve both unilateral stops together. A rear impulse must not close
  * the already-solved front contact again. A = J M⁻¹ Jᵀ is only 2×2, so its
  * zero-, one- and two-contact active sets can be solved without iterations.
@@ -61,11 +66,13 @@ export function coupledHardStopImpulses(
   front?: Readonly<HardStopContact>,
   rear?: Readonly<HardStopContact>,
   yawInertia = Infinity,
-) {
+  out?: HardStopImpulses,
+): HardStopImpulses {
   if (!(mass > 0 && Number.isFinite(mass) && pitchInertia > 0 && Number.isFinite(pitchInertia)) ||
       !(yawInertia > 0))
     throw new RangeError('Invalid motocross hard-stop mass/inertia');
-  const result = { front: 0, rear: 0 };
+  const result = out ?? { front: 0, rear: 0 };
+  result.front = result.rear = 0;
   if (!front && !rear) return result;
   const inverseMass = 1 / mass, inversePitch = 1 / pitchInertia, inverseYaw = 1 / yawInertia;
   const closing = (contact: Readonly<HardStopContact>) =>
@@ -130,6 +137,85 @@ export function coupledHardStopImpulses(
   }
   result.front = Math.max(0, (total + delta) * 0.5);
   result.rear = Math.max(0, (total - delta) * 0.5);
+  return result;
+}
+
+/** Direction whose horizontal velocity must remain nonnegative. The vector
+ * is normalized internally. A yawed final tyre frame uses
+ * { horizontal: cos(yaw), lateral: sin(yaw) } in the incoming travel frame. */
+export interface HardStopForwardAxis {
+  horizontal: number;
+  lateral?: number;
+}
+
+export interface BoundedHardStopImpulses extends HardStopImpulses {
+  /** Linear impulse along the normalized forward axis, in N s. */
+  forward: number;
+}
+
+/** Project the two bottomed stops and the no-reverse speed bound together.
+ * The default bound row is [1, 0, 0, 0, 0]; a supplied axis rotates that row
+ * within the horizontal plane. Apply `forward * axis / mass` along with the
+ * front/rear normal impulses, then store velocity in that same bounded frame.
+ * A later basis rotation requires a bound in its new actual storage frame.
+ *
+ * When the normal-only projection satisfies the bound it is already the
+ * three-constraint solution. Otherwise the bound is active: eliminate its
+ * velocity coordinate, solve the same two-contact problem in the remaining
+ * mass metric, and recover the bound reaction from horizontal momentum.
+ * This exhausts the active sets in fixed work without a sequential clamp. */
+export function boundedHardStopImpulses(
+  velocity: Readonly<HardStopVelocity>,
+  mass: number,
+  pitchInertia: number,
+  front?: Readonly<HardStopContact>,
+  rear?: Readonly<HardStopContact>,
+  yawInertia = Infinity,
+  forwardAxis?: Readonly<HardStopForwardAxis>,
+  out?: BoundedHardStopImpulses,
+): BoundedHardStopImpulses {
+  const x = forwardAxis?.horizontal ?? 1, z = forwardAxis?.lateral ?? 0;
+  const length = Math.hypot(x, z);
+  if (!(length > 0 && Number.isFinite(length)))
+    throw new RangeError('Invalid motocross forward-stop axis');
+  const bx = x / length, bz = z / length;
+  const result = out ?? { front: 0, rear: 0, forward: 0 };
+  result.forward = 0;
+  coupledHardStopImpulses(velocity, mass, pitchInertia, front, rear, yawInertia, result);
+  const incoming = bx * velocity.horizontal + bz * (velocity.lateral ?? 0);
+  const frontGrade = front ? bx * front.grade + bz * (front.crossGrade ?? 0) : 0;
+  const rearGrade = rear ? bx * rear.grade + bz * (rear.crossGrade ?? 0) : 0;
+  const normalMomentum = frontGrade * result.front + rearGrade * result.rear;
+  const speedTolerance = 64 * Number.EPSILON * Math.max(1,
+    Math.abs(bx * velocity.horizontal), Math.abs(bz * (velocity.lateral ?? 0)),
+    Math.abs(frontGrade * result.front / mass), Math.abs(rearGrade * result.rear / mass));
+  // A rounded zero must stay in its existing active set. If two rows become
+  // identical after removing forward motion, the reduced solve can choose a
+  // different nonunique axle split whose bound multiplier has the wrong sign.
+  // The tolerance is floating-point roundoff, independent of any timestep.
+  if (incoming - normalMomentum / mass >= -speedTolerance) return result;
+
+  const perpendicular = -bz * velocity.horizontal + bx * (velocity.lateral ?? 0);
+  // Setting grade to zero removes the bound-axis mobility as well as its
+  // incoming speed. The remaining lateral/vertical mass and inertias are
+  // unchanged because this is an orthogonal horizontal coordinate change.
+  coupledHardStopImpulses(
+    { horizontal: 0, lateral: perpendicular, vertical: velocity.vertical,
+      pitchRate: velocity.pitchRate, yawRate: velocity.yawRate },
+    mass, pitchInertia,
+    front ? { grade: 0, crossGrade: -bz * front.grade + bx * (front.crossGrade ?? 0),
+      lever: front.lever, yawArm: front.yawArm } : undefined,
+    rear ? { grade: 0, crossGrade: -bz * rear.grade + bx * (rear.crossGrade ?? 0),
+      lever: rear.lever, yawArm: rear.yawArm } : undefined,
+    yawInertia, result,
+  );
+  const constrainedMomentum = frontGrade * result.front + rearGrade * result.rear;
+  const reaction = constrainedMomentum - mass * incoming;
+  const tolerance = 64 * Number.EPSILON *
+    Math.max(1, Math.abs(constrainedMomentum), Math.abs(mass * incoming));
+  if (reaction < -tolerance)
+    throw new RangeError('Invalid motocross forward-stop active set');
+  result.forward = Math.max(0, reaction);
   return result;
 }
 

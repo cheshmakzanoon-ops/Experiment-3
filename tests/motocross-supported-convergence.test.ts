@@ -147,4 +147,44 @@ describe('motocross supported integration accuracy', () => {
       .toBeGreaterThan(100);
     expect([bike.cgY, bike.vy, bike.pitch, bike.pitchRate].every(Number.isFinite)).toBe(true);
   });
+
+  it.each([MX_250, MX_450].flatMap(definition => [
+    { compression: 0.2999, velocity: -0.05 },
+    { compression: 0.2999, velocity: -8 },
+    { compression: 0.3001, velocity: -8 },
+    { compression: 0.38, velocity: -25 },
+  ].map(initial => ({ definition, bike: definition.id, ...initial }))))(
+    '$bike resolves c=$compression m, v=$velocity m/s without runaway stop motion', ({
+      definition, compression, velocity,
+    }) => {
+      const bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'raw', definition),
+        track = new Plane(), dt = 1 / 120;
+      bike.placeFree(track, 0, 0, 0, 0);
+      bike.step(1 / 240, track);
+      const model = bike as unknown as Internals,
+        oracle = reference(definition, bike.dynamics.mass), spec = definition.bike!;
+      bike.pitch = Math.atan2(oracle.heights[0] - oracle.heights[1], spec.cgToFront + spec.cgToRear);
+      bike.cgY = oracle.heights[0] * Math.cos(bike.pitch) - spec.cgToFront * Math.sin(bike.pitch) - compression;
+      bike.vy = velocity;
+      bike.pitchRate = 0;
+      bike.standing = bike.riderBody = model.longitudinal = 0;
+      const initial: State = [bike.cgY, bike.vy, bike.pitch, bike.pitchRate],
+        incoming = oracle.forces(initial), fine = oracle.integrate(initial, dt, 16384),
+        finer = oracle.integrate(initial, dt, 32768), spy = vi.spyOn(model, 'spring');
+      try {
+        model.vertical(dt);
+        // Four force evaluations per supported interval, with at most
+        // sixteen intervals even when contact/full-travel roots split one.
+        expect(spy.mock.calls.length).toBeLessThanOrEqual(64);
+      } finally { spy.mockRestore(); }
+      expect(Math.abs(fine[1] - finer[1])).toBeLessThan(0.0001);
+      expect(Math.abs(bike.vy - finer[1])).toBeLessThan(0.1);
+      // The pathological stop keeps chassis-position error below 2 mm
+      // (under 0.7% of travel) while retaining the original work cap.
+      expect(Math.abs(bike.cgY - finer[0])).toBeLessThan(0.002);
+      expect(bike.forceFront).toBeCloseTo(incoming[0], 8);
+      expect(bike.forceRear).toBeCloseTo(incoming[1], 8);
+      expect([bike.cgY, bike.vy, bike.pitch, bike.pitchRate].every(Number.isFinite)).toBe(true);
+    },
+  );
 });

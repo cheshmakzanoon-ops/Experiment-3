@@ -7,6 +7,7 @@ import { rideLine, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { RiderWeight } from '../src/simulation/offroad/rider-weight.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
+import { levelMotocrossTrack } from './motocross-test-track.ts';
 
 const BLEND_EDGE = 0.15;
 const legacyPose = (automatic: number, manual: number) =>
@@ -17,7 +18,7 @@ const legacyPose = (automatic: number, manual: number) =>
  * automatic posture and manual stroke all advance through production code. */
 function brakeReversal(definition: VehicleDefinition, hz: number, direction: number) {
   const dt = 1 / hz,
-    track = rigTrack('valley-ridge-mx'),
+    track = levelMotocrossTrack(),
     bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'raw', definition),
     stroke = new RiderWeight();
   bike.place(track, 35);

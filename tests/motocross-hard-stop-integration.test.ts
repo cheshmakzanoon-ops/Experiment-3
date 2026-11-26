@@ -9,14 +9,16 @@ import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts'
 import { MX_250, MX_450, SM_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { factoryBikeSag } from '../src/simulation/offroad/suspension-geometry.ts';
-import { trackPoint, type SurfaceSample } from '../src/simulation/track.ts';
+import { trackPoint, type SurfaceSample, type Track } from '../src/simulation/track.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 
 const DT = 1 / 240;
 const solve = stops.coupledHardStopImpulses;
 const single = stops.hardStopImpulse;
+const boundedSolve = stops.boundedHardStopImpulses;
 type Arguments = Parameters<typeof solve>;
 type Internals = {
+  stepInterval(dt: number, track: Track, absorb: boolean): void;
   vertical(dt: number): void;
   spring(compression: number, front: boolean): number;
   flightSpeed: number;
@@ -59,11 +61,14 @@ function motion(bike: DirtBikeVehicle) {
 type Motion = ReturnType<typeof motion>;
 type Impact = {
   args: Arguments;
-  impulses: ReturnType<typeof solve>;
+  impulses: ReturnType<typeof solve> & { forward?: number };
+  forwardAxis?: stops.HardStopForwardAxis;
   before: Motion;
   after?: Motion;
   heading: number;
   rows: { gx: number; gz: number; pitch: number; yaw: number }[];
+  mass: { dynamics: number; body: number };
+  interval?: { dt: number; impacts: Impact[] };
 };
 
 /** Read the contact's world gradient and differentiate the actual free-wheel
@@ -90,12 +95,37 @@ function rows(bike: DirtBikeVehicle) {
  * torque, pitch damping and touchdown coordinate changes have not run. */
 function observe(bike: DirtBikeVehicle, reversed = false) {
   const state = internals(bike), spring = state.spring, impacts: Impact[] = [];
+  const intervals: { dt: number; impacts: Impact[] }[] = [], step = state.stepInterval;
+  let active: typeof intervals[number] | undefined;
   let pending: Impact | undefined;
+  const physical = vi.spyOn(state, 'stepInterval').mockImplementation((dt, track, absorb) => {
+    const parent = active;
+    active = { dt, impacts: [] };
+    intervals.push(active);
+    try { step.call(bike, dt, track, absorb); }
+    finally { active = parent; }
+  });
+  const record = (impact: Omit<Impact, 'mass' | 'interval'>) => {
+    pending = { ...impact, mass: { dynamics: bike.dynamics.mass, body: bike.body.mass }, interval: active };
+    impacts.push(pending);
+    active?.impacts.push(pending);
+  };
   const coupled = vi.spyOn(stops, 'coupledHardStopImpulses').mockImplementation((...args) => {
     const result = reversed ? solve(args[0], args[1], args[2], args[4], args[3], args[5]) : solve(...args);
     const impulses = reversed ? { front: result.rear, rear: result.front } : result;
-    pending = { args, impulses, before: motion(bike), rows: rows(bike), heading: bike.dynamics.heading };
-    impacts.push(pending);
+    record({ args, impulses, before: motion(bike), rows: rows(bike), heading: bike.dynamics.heading });
+    return impulses;
+  });
+  const bounded = vi.spyOn(stops, 'boundedHardStopImpulses').mockImplementation((...args) => {
+    const result = reversed
+      ? boundedSolve(args[0], args[1], args[2], args[4], args[3], args[5], args[6])
+      : boundedSolve(...args);
+    // The live consumer reuses its output record. Keep each observation's
+    // values independent of a subsequent impact overwriting that record.
+    const impulses = { front: reversed ? result.rear : result.front,
+      rear: reversed ? result.front : result.rear, forward: result.forward };
+    record({ args: [args[0], args[1], args[2], args[3], args[4], args[5]],
+      forwardAxis: args[6], impulses, before: motion(bike), rows: rows(bike), heading: bike.dynamics.heading });
     return impulses;
   });
   const legacy = vi.spyOn(stops, 'hardStopImpulse');
@@ -103,8 +133,8 @@ function observe(bike: DirtBikeVehicle, reversed = false) {
     if (pending && !pending.after) pending.after = motion(bike);
     return spring.call(state, compression, front);
   });
-  return { impacts, coupled, legacy, restore() {
-    coupled.mockRestore(); legacy.mockRestore(); springRead.mockRestore();
+  return { impacts, intervals, coupled, bounded, legacy, restore() {
+    physical.mockRestore(); coupled.mockRestore(); bounded.mockRestore(); legacy.mockRestore(); springRead.mockRestore();
   } };
 }
 
@@ -117,8 +147,10 @@ function certify(bike: DirtBikeVehicle, impact: Impact, player = true) {
   const { args: [velocity, mass, pitchInertia, front, rear, yawInertia = Infinity], before, after, impulses } = impact;
   expect(after).toBeDefined();
   const spec = bike.definition.bike!;
-  expect(mass).toBe(bike.dynamics.mass);
-  expect(mass).toBe(bike.body.mass);
+  // Fuel ages between complete physical intervals. Each impulse uses the
+  // body's mass at its own instant, not the final public tick's later mass.
+  expect(mass).toBe(impact.mass.dynamics);
+  expect(mass).toBe(impact.mass.body);
   expect(pitchInertia).toBe(bike.air.pitchInertia);
   expect(yawInertia).toBeCloseTo(Math.max(12, 0.42 * mass * (spec.cgToFront ** 2 + spec.cgToRear ** 2)), 12);
   for (const key of ['horizontal', 'vertical', 'pitchRate', 'lateral', 'yawRate'] as const)
@@ -149,6 +181,19 @@ function certify(bike: DirtBikeVehicle, impact: Impact, player = true) {
     delta.pitch += row.pitch * impulse;
     delta.yaw -= yaw * impulse;
     loss += 0.5 * impulse * closing(before);
+  }
+  if (impulses.forward !== undefined) {
+    const axis = impact.forwardAxis ?? { horizontal: 1, lateral: 0 },
+      length = Math.hypot(axis.horizontal, axis.lateral ?? 0),
+      bx = axis.horizontal / length, bz = (axis.lateral ?? 0) / length,
+      alongBefore = bx * before.horizontal + bz * before.lateral,
+      alongAfter = bx * after!.horizontal + bz * after!.lateral;
+    expect(impulses.forward).toBeGreaterThanOrEqual(0);
+    expect(alongAfter).toBeGreaterThanOrEqual(-2e-9);
+    expect(impulses.forward * alongAfter).toBeCloseTo(0, 5);
+    delta.x += (Math.sin(impact.heading) * bx + Math.cos(impact.heading) * bz) * impulses.forward;
+    delta.z += (Math.cos(impact.heading) * bx - Math.sin(impact.heading) * bz) * impulses.forward;
+    loss -= 0.5 * impulses.forward * alongBefore;
   }
   for (const key of ['x', 'vertical', 'z'] as const)
     expect(mass * (after![key] - before[key])).toBeCloseTo(delta[key], 8);
@@ -215,17 +260,56 @@ function fixture(
 afterEach(() => vi.restoreAllMocks());
 
 describe('the live motocross hard-stop consumer', () => {
-  it.each([MX_250, MX_450])('$id applies one physical impulse before compliant spring/gravity work', definition => {
+  it.each([MX_250, MX_450])('$id keeps physical outputs unchanged by the contact observer', definition => {
+    const capture = (bike: DirtBikeVehicle) => ({
+      motion: motion(bike), state: bike.dynamics.state, crashes: bike.dynamics.crashes,
+      values: [bike.cgY, bike.pitch, bike.fuel, bike.frontSpin, bike.rearSpin,
+        bike.forceFront, bike.forceRear, bike.fork, bike.shock,
+        bike.compressionFront, bike.compressionRear,
+        bike.body.position.x, bike.body.position.y, bike.body.position.z,
+        bike.body.velocity.x, bike.body.velocity.y, bike.body.velocity.z,
+        bike.body.omega.x, bike.body.omega.y, bike.body.omega.z],
+    });
+    for (const airborne of [false, true]) {
+      const observed = fixture(definition, scenarios[3], airborne),
+        ordinary = fixture(definition, scenarios[3], airborne), tap = observe(observed.bike),
+        states: ReturnType<typeof capture>[] = [];
+      try {
+        for (let tick = 0; tick < 48; tick++) {
+          observed.bike.step(DT, observed.track);
+          states.push(capture(observed.bike));
+        }
+        expect(tap.impacts.length).toBeGreaterThan(0);
+      } finally { tap.restore(); }
+      expect(Object.hasOwn(observed.bike, 'stepInterval')).toBe(false);
+      expect(Object.hasOwn(observed.bike, 'spring')).toBe(false);
+      for (let tick = 0; tick < 48; tick++) {
+        ordinary.bike.step(DT, ordinary.track);
+        expect(capture(ordinary.bike)).toEqual(states[tick]);
+      }
+    }
+  });
+
+  it.each([MX_250, MX_450])('$id applies each physical impulse before its compliant spring/gravity work', definition => {
     for (const scenario of scenarios) for (const airborne of [false, true]) {
       const { bike, track } = fixture(definition, scenario, airborne), tap = observe(bike);
       try {
         bike.step(DT, track);
-        expect(tap.impacts, `${scenario.name}, airborne=${airborne}`).toHaveLength(1);
+        // Rapid shaft motion refines one public tick into complete contact
+        // intervals. A later interval can meet the stop again after real
+        // spring/gravity work; it must not replay the first impulse.
+        expect(tap.intervals.reduce((sum, interval) => sum + interval.dt, 0)).toBeCloseTo(DT, 14);
+        expect(tap.intervals[0].impacts).toHaveLength(1);
+        for (const interval of tap.intervals) expect(interval.impacts.length).toBeLessThanOrEqual(1);
         const impact = tap.impacts[0];
         expect(Boolean(impact.args[3])).toBe(scenario.axle !== 'rear');
         expect(Boolean(impact.args[4])).toBe(scenario.axle !== 'front');
         expect(tap.legacy).not.toHaveBeenCalled();
         expect(certify(bike, impact)).toBeGreaterThan(0);
+        for (const subsequent of tap.impacts.slice(1)) {
+          expect(subsequent.interval).not.toBe(impact.interval);
+          certify(bike, subsequent);
+        }
         // The full tick includes real compliant force and gravity work;
         // its energy is deliberately not called an inelastic impact loss.
         expect(Math.abs(bike.vy - impact.after!.vertical)).toBeGreaterThan(G * DT);
@@ -266,9 +350,12 @@ describe('the live motocross hard-stop consumer', () => {
         internals(bike).vertical(0);
         if (separating) {
           expect(tap.impacts).toHaveLength(1);
-          expect(tap.impacts[0].impulses).toEqual({ front: 0, rear: 0 });
+          expect(tap.impacts[0].impulses).toEqual({ front: 0, rear: 0, forward: 0 });
           certify(bike, tap.impacts[0]);
-        } else expect(tap.coupled).not.toHaveBeenCalled();
+        } else {
+          expect(tap.coupled).not.toHaveBeenCalled();
+          expect(tap.bounded).not.toHaveBeenCalled();
+        }
         expect(tap.legacy).not.toHaveBeenCalled();
         expect(motion(bike)).toEqual(before);
       } finally { tap.restore(); }
@@ -342,12 +429,12 @@ describe('the live motocross hard-stop consumer', () => {
       for (const impact of tap.impacts.splice(0)) certify(bike, impact);
       collisions.solve([bike], track);
     }
-    expect(tap.coupled).toHaveBeenCalled();
+    expect(tap.bounded).toHaveBeenCalled();
     expect(tap.legacy).not.toHaveBeenCalled();
     expect(bike.body.position.finite()).toBe(true);
   });
 
-  it('does not add kinetic energy when the forward-only publication clips a backward stop result', () => {
+  it('keeps both contacts complementary and passive at the forward-only speed bound', () => {
     for (const definition of [MX_250, MX_450]) {
       const scenario = { ...scenarios[0], grade: 0.55 }, { bike } = fixture(definition, scenario), tap = observe(bike);
       bike.dynamics.speed = 1 / Math.cos(bike.groundPitch);
@@ -359,13 +446,16 @@ describe('the live motocross hard-stop consumer', () => {
         for (let repeat = 0; repeat < 8; repeat++) {
           internals(bike).vertical(0);
           const impact = tap.impacts[repeat], [, mass, inertia, , , iz = Infinity] = impact.args;
+          certify(bike, impact);
           expect(impact.after!.horizontal).toBeGreaterThanOrEqual(0);
           expect(energy(impact.after!, mass, inertia, iz))
             .toBeLessThanOrEqual(energy(impact.before, mass, inertia, iz) + 1e-8);
         }
-        // The scalar travel representation can need another stop solve
-        // after clipping backward motion. This test certifies passivity,
-        // not full contact closure across that documented publication limit.
+        // The speed bound now shares the contact active set. No repeated
+        // stop/clamp cycle is needed to remove a residual closing velocity.
+        for (const impact of tap.impacts.slice(1))
+          expect(impact.impulses.front + impact.impulses.rear + (impact.impulses.forward ?? 0))
+            .toBeLessThan(1e-8);
       } finally { tap.restore(); }
     }
   });

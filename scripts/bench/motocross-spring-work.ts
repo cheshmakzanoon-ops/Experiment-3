@@ -2,9 +2,11 @@
  *
  * Run: node --experimental-transform-types scripts/bench/motocross-spring-work.ts
  *
- * The optional counterfactual is made by importing a one-expression edit of
- * the adapter through a data URL. No production file is written. It is a
- * sensitivity experiment, not a validated implementation or replacement rig.
+ * The counterfactual imports a player-scoped geometric pitch-force edit of
+ * both supported stages and their compliance frequency through a data URL.
+ * No production file is written. It is a sensitivity experiment, not an
+ * accepted implementation or replacement rig. In particular, restoring this
+ * one force port does not redesign the other reduced-model support reactions.
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -198,10 +200,23 @@ function measure(bike: DirtBikeVehicle) {
 }
 
 async function counterfactual(source: string, url: URL) {
-  const from = '(FF * fa - FR * ra) * cos + pitchMoment + bodyShift + (this.airborne ? this.airTorque : 0)';
-  const to = 'FF * (fa * cos + HF * sin) + FR * (-ra * cos + HR * sin) + pitchMoment + bodyShift + (this.airborne ? this.airTorque : 0)';
-  assert.equal(source.split(from).length, 2, 'Adapter changed: review the counterfactual before running it');
-  const js = stripTypeScriptTypes(source.replace(from, to), { mode: 'transform' })
+  // A one-expression edit misses refined support stages. Keep the force
+  // Jacobian and the local stiffness frequency consistent in this trial,
+  // while retaining legacy AI and non-MX force laws exactly.
+  const edits = [
+    ['(FF * fa - FR * ra) * cos + pitchMoment + bodyShift + (this.airborne ? this.airTorque : 0)',
+      '(FF * fa - FR * ra) * cos + (this.playerMotocross ? (FF * HF + FR * HR) * sin : 0) + pitchMoment + bodyShift + (this.airborne ? this.airTorque : 0)'],
+    ['(stageFF * fa - stageFR * ra) * localCos + (supported',
+      '(stageFF * fa - stageFR * ra) * localCos + (this.playerMotocross ? (stageFF * HF + stageFR * HR) * localSin : 0) + (supported'],
+    ['Math.abs(fa * cos * (fa * cos + HF * sin))', '(fa * cos + HF * sin) ** 2'],
+    ['Math.abs(ra * cos * (-ra * cos + HR * sin))', '(-ra * cos + HR * sin) ** 2'],
+  ];
+  for (const [from, to] of edits) {
+    assert.equal(source.split(from).length, 2,
+      `Adapter changed: review the counterfactual before replacing ${from}`);
+    source = source.replace(from, to);
+  }
+  const js = stripTypeScriptTypes(source, { mode: 'transform' })
     .replace(/from (['"])(\.[^'"]+)\1/g, (_match, _quote: string, specifier: string) =>
       `from '${new URL(specifier, url).href}'`);
   const module = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
@@ -273,10 +288,10 @@ const sourceUrl = new URL('../../src/simulation/offroad/dirt-bike-vehicle.ts', i
 const source = readFileSync(sourceUrl, 'utf8');
 const Trial = await counterfactual(source, sourceUrl);
 const definitions = [MX_250, MX_450];
-const variants = [['production', DirtBikeVehicle], ['torque-only counterfactual', Trial]] as const;
+const variants = [['production', DirtBikeVehicle], ['player geometric-port counterfactual', Trial]] as const;
 const output = {
   adapterSha256: createHash('sha256').update(source).digest('hex'),
-  note: 'Offset/omission-work metrics use the omitted port evaluated along each trajectory; they are only actual equation residuals for production. The trial restores that port but changes no calibration, assists or static initialization.',
+  note: 'Offset/omission-work metrics use the omitted port evaluated along each trajectory; they are actual equation residuals for production and legacy AI. The trial restores that port in both player-MX support stages, with a matching compliance frequency, but changes no calibration, assists, other contact reactions or static initialization. It is a rejected sensitivity experiment, not an accepted physics fix.',
   virtualWork: definitions.map(perturbation),
   balanceDiagnostics: definitions.map(balanceDiagnostics),
   staticGrades: definitions.flatMap(definition => [-0.3, -0.12, 0, 0.12, 0.3]
@@ -287,5 +302,13 @@ const output = {
     (['valley-ridge-mx', 'arena-nord-sx'] as const).flatMap(venue => [false, true]
       .map(ai => ({ variant, ...jump(C, definition, venue, ai) }))))),
 };
+const productionAI = output.jumps.filter(row => row.variant === 'production' && row.controller === 'AI aids');
+const trialAI = output.jumps.filter(row => row.variant !== 'production' && row.controller === 'AI aids');
+assert.equal(productionAI.length, 4);
+assert.equal(trialAI.length, productionAI.length);
+for (let i = 0; i < productionAI.length; i++) {
+  assert.deepEqual({ ...trialAI[i], variant: 'production' }, productionAI[i],
+    'The player-scoped counterfactual must preserve each complete AI result');
+}
 console.log(JSON.stringify(output, (_key, value) =>
   typeof value === 'number' ? Number(value.toFixed(9)) : value, 2));

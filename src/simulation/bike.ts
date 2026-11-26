@@ -267,6 +267,16 @@ export class Bike {
   riderReady = true;
   /** Forces actually applied last step (N), and assist interventions 0..1. */
   driveForce = 0;
+  /** Gross engine command after rider aids, before rear-brake subtraction (N).
+   * Actuator adapters use this exact budget; intervention is display telemetry
+   * with a small-request deadband and cannot reconstruct every command. */
+  assistedDriveForce = 0;
+  /** Absolute rider-aid ceilings for gross brake actuators (N). These are
+   * separate from passive contact-force clipping and the low-speed body
+   * force gate. Infinity means no aid restriction. A rotor/contact solver
+   * applies each ceiling only while that wheel supports the chassis. */
+  frontBrakeAssistLimit = 0;
+  rearBrakeAssistLimit = 0;
   frontBrakeForce = 0;
   rearBrakeForce = 0;
   /** Share of rearBrakeForce dissipated by the drivetrain, not the brake disc. */
@@ -647,6 +657,8 @@ export class Bike {
   }
   step(input: BikeInput, dt: number) {
     if (!(dt > 0) || dt > 0.05) throw new Error('Invalid bike timestep');
+    this.assistedDriveForce = 0;
+    this.frontBrakeAssistLimit = this.rearBrakeAssistLimit = 0;
     if (this.state !== 'riding') return this.recover(dt);
     const a = this.assists,
       p = this.p,
@@ -891,6 +903,7 @@ export class Bike {
             ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight) - rearHeld,
         )
       : Infinity;
+    let frontBrakeLimit = liftLimit, rearBrakeLimit = Infinity;
     let brakeF = Math.min(liftLimit, p.frontBrake * front) * (v > 0.2 ? 1 : 0);
     // GP cornering ABS keeps each tyre the lateral force of the roll the
     // rider is asking for (trail braking trades stopping for turning), not
@@ -901,11 +914,12 @@ export class Bike {
       // Cornering ABS: the front stays inside its friction circle, and the
       // weight it takes off the rear leaves the rear its cornering load.
       const rearLatKeep = rearLatAbs / (0.85 * rearMu);
-      brakeF = Math.min(
-        brakeF,
+      const cornerLimit = Math.min(
         0.95 * Math.sqrt(Math.max(0, (frontMu * this.frontLoad) ** 2 - frontLatAbs ** 2)),
         Math.max(0, ((staticRear - rearLatKeep) * p.wheelbase) / p.cgHeight - rearHeld),
       );
+      frontBrakeLimit = Math.min(frontBrakeLimit, cornerLimit);
+      brakeF = Math.min(brakeF, cornerLimit);
     }
     let rearForce = drive - brakeR;
     let rearApplied = clamp(rearForce, -rearCapacity, rearCapacity);
@@ -935,6 +949,10 @@ export class Bike {
             ? remaining /
               (capacity * coupling + Math.sqrt(remaining + (coupling * rearLatAbs) ** 2))
             : 0;
+        // The aid bounds negative NET rear force. A rotor actuator still
+        // receives the opposing engine command, so its gross ceiling must
+        // include drive once instead of substituting net contact braking.
+        rearBrakeLimit = drive + limit;
         rearApplied = Math.max(rearApplied, -limit);
       }
       // Reducing rear braking also reduces front load. Bound the front
@@ -949,6 +967,7 @@ export class Bike {
           discriminant > 0
             ? (capacity * coupling + Math.sqrt(discriminant)) / (1 - coupling * coupling)
             : 0;
+        frontBrakeLimit = Math.min(frontBrakeLimit, limit);
         frontApplied = Math.max(frontApplied, -limit);
       }
     }
@@ -961,6 +980,8 @@ export class Bike {
         const scale = geometricBrakeLimit / totalBraking;
         frontApplied *= scale;
         if (rearApplied < 0) rearApplied *= scale;
+        frontBrakeLimit = Math.min(frontBrakeLimit, -frontApplied);
+        if (rearApplied < 0) rearBrakeLimit = Math.min(rearBrakeLimit, drive - rearApplied);
       }
     }
     if (p.currentDriveTraction && a.traction && rearApplied > 0) {
@@ -993,6 +1014,9 @@ export class Bike {
         }
       }
     }
+    this.assistedDriveForce = drive;
+    this.frontBrakeAssistLimit = frontBrakeLimit;
+    this.rearBrakeAssistLimit = rearBrakeLimit;
     this.rearSlip =
       a.abs && rearForce < 0 ? 0 : Math.max(0, Math.abs(rearForce) / Math.max(1, rearCapacity) - 1);
     this.driveForce = Math.max(0, rearApplied);
@@ -1189,6 +1213,9 @@ export class Bike {
     this.crashes++;
     this.motoGP?.reset(this.speed);
     this.driveForce =
+      this.assistedDriveForce =
+      this.frontBrakeAssistLimit =
+      this.rearBrakeAssistLimit =
       this.frontBrakeForce =
       this.rearBrakeForce =
       this.engineBrakeForce =

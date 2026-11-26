@@ -4,6 +4,7 @@ import { MxRecoveryPose } from '../src/rendering/offroad/motocross-recovery.ts';
 import { MX_BOOT_PEG } from '../src/rendering/offroad/motocross-rider-contact.ts';
 import { Rider } from '../src/rendering/rider.ts';
 import { BIKE_STATES } from '../src/simulation/bike.ts';
+import { BIKE_RECOVERY } from '../src/simulation/bike-vehicle.ts';
 import { B, BIKE_BASE, CAR_STRIDE, H, HEADER, MX_PUSH, carBase } from '../src/simulation/protocol.ts';
 import { rigBike, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { MX_PUSH_STRIDE } from '../src/simulation/offroad/rider-recovery.ts';
@@ -85,11 +86,13 @@ describe('motocross rider pushing the bike', () => {
     bike.step(1 / 240, track);
     bike.restart(track, 'wrong-way');
     const f = new Float32Array(HEADER + CAR_STRIDE);
-    let distance = 0, previousX = bike.rider.x, previousZ = bike.rider.z;
+    let distance = 0, previousX = bike.rider.x, previousY = bike.rider.y, previousZ = bike.rider.z;
     let maxSpeed = 0, lastPhase = 0;
-    for (let i = 0; i <= 6 * 240; i++) {
+    const deadline = bike.remountBudgetSeconds;
+    for (let i = 0; i <= Math.ceil(deadline * 240) + 8; i++) {
       bike.step(1 / 240, track);
       writeWheelContact(f, car, bike);
+      expect(Math.hypot(bike.rider.x - previousX, bike.rider.y - previousY, bike.rider.z - previousZ)).toBeLessThanOrEqual(BIKE_RECOVERY.jogSpeed / 240 + 1e-8);
       if (bike.dynamics.state !== 'remount') break;
       expect(f[car + MX_PUSH.RECORDED]).toBe(1);
       expect(f[car + MX_PUSH.PHASE]).toBeGreaterThanOrEqual(lastPhase);
@@ -97,10 +100,12 @@ describe('motocross rider pushing the bike', () => {
       maxSpeed = Math.max(maxSpeed, Math.hypot(f[car + MX_PUSH.VX], f[car + MX_PUSH.VZ]));
       distance += Math.hypot(bike.rider.x - previousX, bike.rider.z - previousZ);
       previousX = bike.rider.x;
+      previousY = bike.rider.y;
       previousZ = bike.rider.z;
     }
     expect(distance).toBeGreaterThan(10);
     expect(maxSpeed).toBeGreaterThan(2);
+    expect(maxSpeed).toBeLessThanOrEqual(BIKE_RECOVERY.jogSpeed + 1e-6);
     expect(lastPhase).toBeGreaterThan(4 * Math.PI);
     expect(bike.dynamics.state).toBe('riding');
     expect(Array.from(f.subarray(car + MX_PUSH.RECORDED, car + MX_PUSH.PHASE + 1))).toEqual([0, 0, 0, 0]);

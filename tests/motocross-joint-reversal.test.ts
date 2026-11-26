@@ -12,6 +12,7 @@ import {
 } from '../src/simulation/protocol.ts';
 import { vehicleAt, vehicleIndex } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { rideMotocrossFlight } from './motocross-flight-controls.ts';
 
 const car = carBase(0), dt = 1 / 30;
 const joints = [
@@ -163,6 +164,7 @@ it.each(traces)('$vehicle on $circuit $feature restores measured extrema within 
       if (!bike.airborne) rideLine(bike, track,
         feature === 'jump' && bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 1
           ? Math.max(speed, bike.dynamics.speed) : speed);
+      else if (feature === 'jump') rideMotocrossFlight(bike);
       bike.step(1 / 120, track);
     }
     const measured = sim.makeFrame();

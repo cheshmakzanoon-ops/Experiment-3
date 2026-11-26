@@ -11,6 +11,8 @@ import {
 } from '../src/simulation/protocol.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { rideMotocrossFlight } from './motocross-flight-controls.ts';
+import { levelMotocrossTrack } from './motocross-test-track.ts';
 
 const venues = [
   { circuit: 'valley-ridge-mx', jump: 'RIDGE TABLE', speed: 13.5 },
@@ -68,6 +70,7 @@ describe('live motocross suspension timestamps', () => {
       if (!bike.airborne) rideLine(bike, track,
         bike.s >= jump.start - 1 && bike.s <= jump.takeoff + 1
           ? Math.max(speed, bike.dynamics.speed) : speed);
+      else rideMotocrossFlight(bike);
       const previousFork = bike.fork, previousShock = bike.shock;
       bike.step(dt, track);
       expect(bike.riding).toBe(true);
@@ -121,7 +124,8 @@ describe('live motocross suspension timestamps', () => {
 
   it.each([MX_250, MX_450].flatMap(definition => [120, 240].map(hz => ({ definition, bike: definition.id, hz }))))(
     '$bike at $hz Hz evaluates the physical spring/damper on the incoming braking stroke', ({ definition, hz }) => {
-      const track = rigTrack('valley-ridge-mx');
+      // The one-dimensional force oracle excludes cross-bank/yaw motion.
+      const track = levelMotocrossTrack();
       const bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'raw', definition);
       const spec = definition.bike!, air = spec.offroad!, reference = factoryBikeSag(definition);
       bike.place(track, 35);

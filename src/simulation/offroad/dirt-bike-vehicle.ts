@@ -1,4 +1,4 @@
-import { approach, clamp, G, lerp, mod } from '../../core/math.ts';
+import { approach, clamp, G, lerp, mod, type Vec3 } from '../../core/math.ts';
 import { advanceWheelRotation } from '../wheel-rotation.ts';
 import { NOVICE } from '../bike.ts';
 import { BIKE_RECOVERY, BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
@@ -14,10 +14,12 @@ import { offroadCourse } from './venues.ts';
 import { rollSpeed, RUNUP_TRACTION_ACCELERATION } from './jump-target.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { exitsRhythmSection, LANDING_RULES } from './riding-feedback.ts';
-import { coupledHardStopImpulses, hardStopImpulse, landingNormalSpeed } from './contact-impulse.ts';
+import {
+  boundedHardStopImpulses, coupledHardStopImpulses, hardStopImpulse, landingNormalSpeed,
+} from './contact-impulse.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
-import { motocrossYawInertia, stepMotocrossGround } from './mx-ground-physics.ts';
+import { motocrossLateralGravity, motocrossYawInertia, stepMotocrossGround } from './mx-ground-physics.ts';
 import { MxGearStroke } from './mx-gear-stroke.ts';
 import { MxMachineMotion } from './mx-machine-motion.ts';
 import { MX_PUSH_STRIDE } from './rider-recovery.ts';
@@ -48,6 +50,11 @@ const DEEP_CONTACT = 0.12,
 const SUPPORT_STROKE_FRACTION = 1 / 6,
   SUPPORT_STOP_PHASE = 0.3,
   MAX_SUPPORT_STEPS = 16;
+/** Rapid shaft travel changes the tyre load and its pitch reaction together.
+ * Refine that complete contact update, not just the vertical spring solve.
+ * Ordinary settled running and every calibrated AI/non-MX step stay single. */
+const COUPLED_STROKE_FRACTION = 1 / 12,
+  MAX_COUPLED_STEPS = 8;
 /** Seconds the ridden motocross bike may hold a tyre past its friction
  * circle before it is a fall (Bike `gripFallGrace`). */
 const PLAYER_GRIP_GRACE = 0.4;
@@ -211,9 +218,13 @@ export class DirtBikeVehicle extends BikeVehicle {
   private rhythmDeparture = false;
   private rhythmLanding = false;
   private freeSteps = 0;
+  /** Counted launch debounce belongs to the public solver call, even when
+   * its rapidly changing contact state uses several physical intervals. */
+  private publicStepBoundary = true;
   /** A projected terrain overlap keeps its compliant stop until the stroke
    * releases; it must not refill stiff bump-stop travel on the next tick. */
   private projectedContact = false;
+  private readonly stopImpulses = { front: 0, rear: 0, forward: 0 };
   private bottomPeak = 0;
   private pendingLanding: LandingRecord | null = null;
   landingTarget = 0;
@@ -226,6 +237,9 @@ export class DirtBikeVehicle extends BikeVehicle {
   private wheelPickup = false;
   private pickupSpeed = 0;
   private playerMotocross = false;
+  /** Once integrated, a contact-model handoff is a change of speed units.
+   * Before then, placement rigs may still prescribe their initial speed. */
+  private contactModelLive = false;
   /** Course-scoped engine changes never alter supermoto or road sessions. */
   private motocrossCourse = false;
   private pickupFrontForce = 0;
@@ -287,11 +301,21 @@ export class DirtBikeVehicle extends BikeVehicle {
   private preload(front: boolean) {
     return front ? this.setup.frontPreload : this.setup.rearPreload;
   }
+  private playerMotocrossEligible(track: Track, ai = this.aiSteps > 0) {
+    const kind = offroadCourse(track.circuit)?.kind;
+    return !ai && (kind === 'motocross' || kind === 'supercross') &&
+      (this.definition.id === 'mx250' || this.definition.id === 'mx450');
+  }
   override place(track: Track, s: number, offset = 0) {
+    // The first contact sample precedes step(), including on a reused bike.
+    this.playerMotocross = this.playerMotocrossEligible(track);
+    this.contactModelLive = false;
     super.place(track, s, offset);
     this.settle();
   }
   override placeFree(track: Track, x: number, z: number, heading: number, groundY: number) {
+    this.playerMotocross = this.playerMotocrossEligible(track);
+    this.contactModelLive = false;
     super.placeFree(track, x, z, heading, groundY);
     this.settle();
   }
@@ -426,12 +450,18 @@ export class DirtBikeVehicle extends BikeVehicle {
     let ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
     const wheelRpm = (this.rearSpin * ratio * 30) / Math.PI;
     const roadRpm = ((this.dynamics.speed / spec.wheelRadius) * ratio * 30) / Math.PI;
-    if (this.autoShift) {
+    // Contact accuracy intervals integrate the shaft continuously, but the
+    // automatic rider keeps its original one decision per public call.
+    if (this.autoShift && this.publicStepBoundary) {
       // Wheelspin alone is not a full-speed upshift. A locked rotor
       // cannot demand a downshift that over-revs when traction returns.
       if (wheelRpm > spec.shiftRPM && roadRpm > 0.78 * spec.shiftRPM)
         this.shift(1);
-      else if (roadRpm < spec.downshiftRPM && this.gear > 1)
+      // A slow chassis also cannot demand a lower ratio while the actual
+      // driven shaft is still spinning above the downshift point. During
+      // landing pickup that transient request caused an ignition cut whose
+      // presence depended on which public call sampled the rotor mismatch.
+      else if (wheelRpm < spec.downshiftRPM && roadRpm < spec.downshiftRPM && this.gear > 1)
         this.shift(-1);
     }
     ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
@@ -453,6 +483,80 @@ export class DirtBikeVehicle extends BikeVehicle {
     return (torque * ratio * this.bikeSpec.drivelineEfficiency) / spec.wheelRadius;
   }
   override step(dt: number, track: Track) {
+    let divisions = 1;
+    if (dt > 0 && this.riding && this.playerMotocrossEligible(track)) {
+      const spec = this.bikeSpec, h = this.dynamics.heading,
+        sh = Math.sin(h), ch = Math.cos(h), co = Math.cos(this.pitch), si = Math.sin(this.pitch),
+        wheelHeading = h + this.airYaw,
+        speed = this.airborne ? this.flightSpeed : this.dynamics.speed * Math.cos(this.roadPitch),
+        yaw = this.airborne ? this.airYawRate : this.mxYawRate + this.yawKick;
+      const rate = (front: boolean) => {
+        const n = this.contacts[front ? 0 : 2].normal,
+          arm = front ? spec.cgToFront : -spec.cgToRear,
+          height = spec.cgHeight + (front ? this.referenceSag.fork : this.referenceSag.shock),
+          ny = Math.max(0.15, n.y),
+          along = -(n.x * sh + n.z * ch) / ny,
+          across = -(n.x * ch - n.z * sh) / ny,
+          rotation = -(n.x * Math.cos(wheelHeading) - n.z * Math.sin(wheelHeading)) * arm / ny;
+        return along * speed + across * this.slide + rotation * yaw -
+          this.vy - (arm * co + height * si) * this.pitchRate;
+      };
+      const cf = this.contacts[0].height -
+          (this.cgY + spec.cgToFront * si - (spec.cgHeight + this.referenceSag.fork) * co),
+        cr = this.contacts[2].height -
+          (this.cgY - spec.cgToRear * si - (spec.cgHeight + this.referenceSag.shock) * co),
+        rf = rate(true), rr = rate(false),
+        // First contact is still resolved by the swept tyre event. This
+        // inexpensive local forecast only chooses the bounded work budget.
+        near = !this.airborne || cf + Math.max(0, rf) * dt + 0.5 * G * dt * dt >= 0 ||
+          cr + Math.max(0, rr) * dt + 0.5 * G * dt * dt >= 0;
+      if (near) divisions = clamp(Math.ceil(dt * Math.max(
+        Math.abs(rf) / spec.forkTravel, Math.abs(rr) / spec.shockTravel,
+      ) / COUPLED_STROKE_FRACTION), 1, MAX_COUPLED_STEPS);
+    }
+    if (divisions === 1) {
+      this.stepInterval(dt, track, true);
+      return;
+    }
+    const fork = this.fork, shock = this.shock, steer = this.steer;
+    let frontFx = 0, frontFy = 0, frontPower = 0,
+      rearFx = 0, rearFy = 0, rearPower = 0, gLong = 0;
+    for (let part = 0; part < divisions; part++) {
+      this.stepInterval(dt / divisions, track, part === 0);
+      frontFx += this.tires[0].fx;
+      frontFy += this.tires[0].fy;
+      frontPower += this.tires[0].energy;
+      rearFx += this.tires[2].fx;
+      rearFy += this.tires[2].fy;
+      rearPower += this.tires[2].energy;
+      gLong += this.gLong;
+    }
+    // Equal physical intervals contribute equally to these public means.
+    // Slip telemetry is W (half per wheel alias); integrating it over the
+    // public dt must recover the work already consumed by the reservoirs.
+    // Private contact powers/forces and dynamics.longitudinal retain their
+    // final physical phase, as do support, wheel speeds and flexible modes.
+    this.tires[0].fx = this.tires[1].fx = frontFx / divisions;
+    this.tires[0].fy = this.tires[1].fy = frontFy / divisions;
+    this.tires[0].energy = this.tires[1].energy = frontPower / divisions;
+    this.tires[2].fx = this.tires[3].fx = rearFx / divisions;
+    this.tires[2].fy = this.tires[3].fy = rearFy / divisions;
+    this.tires[2].energy = this.tires[3].energy = rearPower / divisions;
+    this.gLong = gLong / divisions;
+    // Flexible modes evolve on every physical interval. Their published
+    // shaft/steer derivatives describe the two public snapshots instead.
+    if (this.machineMotion?.valid) {
+      this.machineMotion.forkRate = (this.fork - fork) / dt;
+      this.machineMotion.shockRate = (this.shock - shock) / dt;
+      this.machineMotion.steerRate = (this.steer - steer) / dt;
+    }
+  }
+  /** One complete physical interval. Collision impulses belong to the public
+   * call and are absorbed once; held controls continue through all intervals.
+   * The existing drive() consumes a shift edge once and ages its cut by dt.
+   * Fuel, heat, rider/machine motion and clocks likewise advance once per dt. */
+  private stepInterval(dt: number, track: Track, absorb: boolean) {
+    this.publicStepBoundary = absorb;
     this.lastTrack = track;
     this.clock += dt;
     const d = this.dynamics,
@@ -460,7 +564,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       spec = this.bikeSpec;
     this.debris.step(dt, track);
     const speedBeforeCollision = d.speed, rollRateBeforeCollision = d.leanRate;
-    this.absorbExternal(dt);
+    if (absorb) this.absorbExternal(dt);
     const externalSpeedImpulse = Math.abs(d.speed - speedBeforeCollision) > 0.05;
     const ai = this.aiSteps > 0;
     d.assists = ai ? NOVICE : this.riderAids;
@@ -503,9 +607,18 @@ export class DirtBikeVehicle extends BikeVehicle {
     }
     this.pickupFrontForce = this.pickupRearForce = 0;
     this.mxFrontBrakePower = this.mxRearBrakePower = undefined;
-    this.playerMotocross =
-      !ai &&
-      motocross && (this.definition.id === 'mx250' || this.definition.id === 'mx450');
+    const playerMotocross = this.playerMotocrossEligible(track, ai);
+    if (this.playerMotocross !== playerMotocross) {
+      const horizontal = this.contactModelLive && !this.airborne
+        ? d.speed * Math.cos(this.roadPitch) : undefined;
+      this.playerMotocross = playerMotocross;
+      // AI marks can begin after placement and expire after this very step.
+      // Use the selected step's convention before gravity or ground travel,
+      // and keep that same selection when writeBody samples its final pose.
+      this.sampleSuspensionContacts(track);
+      if (horizontal !== undefined) d.speed = horizontal / Math.cos(this.roadPitch);
+    }
+    this.contactModelLive ||= dt > 0;
     // Sport may share a front-lever stroke across both tyres, but the
     // player's rear pedal is a rear-only correction on a jump approach or
     // while covering a wheelie. AI keeps its surveyed linked-brake map.
@@ -587,7 +700,13 @@ export class DirtBikeVehicle extends BikeVehicle {
         z0 = d.z,
         initialSpeed = d.speed,
         initialHeading = d.heading,
-        initialSlide = this.slide;
+        initialSlide = this.slide,
+        // Launch recognition is debounced across public calls. Actual zero
+        // support already means free translation: the terrain chord beneath
+        // the bike cannot supply a grade force or constrain its momentum.
+        unloaded = mxGround && this.forceFront <= 0 && this.forceRear <= 0,
+        speedProjection = unloaded ? Math.cos(this.roadPitch) : 1,
+        groundSpeed = initialSpeed * speedProjection;
       if (this.playerMotocross && this.riding) {
         // The sprung chassis has already resolved these contact loads.
         // Supplying them before the core's force solve makes an unloaded
@@ -599,6 +718,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         d.frontLoad = this.forceFront;
         d.rearLoad = this.forceRear;
       }
+      // The brake aids budget engine drag and the rear pedal together.
+      // Raw and legacy paths retain their previous evaluation order.
+      const brakeEngine = mxGround && (d.assists.abs || d.assists.wheelie)
+        ? this.requestedEngineBraking(throttle) : undefined;
       d.step(
         {
           lean: this.input.steer,
@@ -607,6 +730,7 @@ export class DirtBikeVehicle extends BikeVehicle {
           rearBrake: rear,
           rider: hang,
           drive: force,
+          engineBrake: brakeEngine,
         },
         dt,
       );
@@ -616,10 +740,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       if (mxGround && d.state === 'riding') {
         const frontPedal = d.assists.combinedBrakes ? brake * 0.78 : brake;
         const rearPedal = d.assists.combinedBrakes ? Math.max(rear, brake * 0.3) : rear;
-        const engineBraking = this.requestedEngineBraking(throttle);
+        const engineBraking = brakeEngine ?? this.requestedEngineBraking(throttle);
         const contact = stepMotocrossGround(
           {
-            speed: initialSpeed,
+            speed: groundSpeed,
             lateralSpeed: initialSlide,
             yawRate: this.mxYawRate + this.yawKick,
             heading: initialHeading,
@@ -640,13 +764,28 @@ export class DirtBikeVehicle extends BikeVehicle {
             rearMu: d.p.mu * (d.rearGrip ?? d.grip),
             steer: d.steer,
             lean: d.lean,
-            driveTorque: force * spec.rearWheelRadius,
+            // Preserve the exact gross assisted command, including requests
+            // inside intervention telemetry's deadband. Net tyre force has
+            // already subtracted rear braking and is not an engine actuator.
+            driveTorque: d.assistedDriveForce * spec.rearWheelRadius,
+            driveTorqueLimited: true,
             frontBrakeTorque: frontPedal * d.p.frontBrake * spec.frontWheelRadius,
             rearBrakeTorque: (rearPedal * d.p.rearBrake + engineBraking) * spec.rearWheelRadius,
+            frontBrakeTorqueLimit: d.frontBrakeAssistLimit * spec.frontWheelRadius,
+            rearBrakeTorqueLimit: d.rearBrakeAssistLimit * spec.rearWheelRadius,
             rearEngineBrakeTorque: engineBraking * spec.rearWheelRadius,
-            drag: d.p.drag * d.dragScale * initialSpeed ** 2 +
-              (initialSpeed > 0.05 ? (d.p.rolling ?? 0) * d.mass * G : 0),
-            slope: G * d.slope,
+            // With both patches free, use horizontal speed and the flight
+            // drag coefficient. Rolling resistance and along-ground gravity
+            // require support; retaining them here adds a phantom impulse.
+            drag: d.p.drag * (unloaded ? 1 : d.dragScale) * groundSpeed ** 2 +
+              (!unloaded && initialSpeed > 0.05 ? (d.p.rolling ?? 0) * d.mass * G : 0),
+            slope: unloaded ? 0 : G * d.slope,
+            forwardProjection: unloaded ? 1 : Math.cos(this.roadPitch),
+            lateralGravity: motocrossLateralGravity(
+              initialHeading, d.mass,
+              this.forceFront, this.contacts[0].normal,
+              this.forceRear, this.contacts[2].normal,
+            ),
             tractionControl: d.assists.traction,
             abs: d.assists.abs,
           },
@@ -655,9 +794,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         // The roll controller compares two endpoint forces. Mixing its
         // geometric endpoint with an interval-mean tyre signal shifts the
         // phase on a crest or while the front wheel is picking back up.
-        const coreLateral = d.speed * d.speed * d.curvature;
+        const coreLateral = d.speed * d.speed * d.curvature,
+          resolvedLateral = contact.endLateralAcceleration + (contact.endLateralGravity ?? 0);
         d.leanRate += clamp(
-          ((coreLateral - contact.endLateralAcceleration) * Math.cos(d.lean) * dt) / spec.cgHeight,
+          ((coreLateral - resolvedLateral) * Math.cos(d.lean) * dt) / spec.cgHeight,
           -0.3, 0.3,
         );
         // The toppling moment about the contact line is made by the load the
@@ -667,7 +807,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         // free fall) exactly while its tyres cannot make cornering force.
         const carried = clamp((this.forceFront + this.forceRear) / (d.mass * G), 0, 1);
         d.leanRate -= ((1 - carried) * G * Math.sin(d.lean) * dt) / spec.cgHeight;
-        d.speed = contact.speed;
+        d.speed = contact.speed / speedProjection;
         d.x = x0 + contact.dx;
         d.z = z0 + contact.dz;
         d.heading = contact.heading;
@@ -687,12 +827,12 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.frontSpin = contact.frontOmega;
         this.rearSpin = contact.rearOmega;
         this.mxYawRate = contact.yawRate;
-        this.mxReferenceSpeed = contact.speed;
+        this.mxReferenceSpeed = contact.speed / speedProjection;
         this.mxFrontFx = contact.front.fx;
         this.mxRearFx = contact.rear.fx;
         this.mxFrontFy = contact.front.fy;
         this.mxRearFy = contact.rear.fy;
-        this.mxLateralAcceleration = contact.endLateralAcceleration;
+        this.mxLateralAcceleration = resolvedLateral;
         this.mxFrontSlipPower = contact.front.slipPower;
         this.mxRearSlipPower = contact.rear.slipPower;
         this.mxFrontBrakePower = contact.frontBrakePower;
@@ -717,14 +857,17 @@ export class DirtBikeVehicle extends BikeVehicle {
           d.z = z0 + ((d.z - z0) * d.speed) / coreSpeed;
         }
       }
-      // The core integrates horizontal travel at its speed; on a face that
-      // speed is along the ground, so the plan-view step is its cosine.
-      const c = Math.cos(this.roadPitch);
-      d.x = x0 + (d.x - x0) * c;
-      d.z = z0 + (d.z - z0) * c;
+      // The MX solver projects forward travel inside each yawed microstep;
+      // its sideways travel is already horizontal. The legacy core carries
+      // forward travel alone here, with its separate slide added below.
+      if (!mxGround || d.state !== 'riding') {
+        const c = Math.cos(this.roadPitch);
+        d.x = x0 + (d.x - x0) * c;
+        d.z = z0 + (d.z - z0) * c;
+      }
       if (d.state === 'riding') {
         // Bulldozing and rolling in loose soil beyond the tyre's own rolling.
-        const extra = Math.max(
+        const extra = unloaded ? 0 : Math.max(
           0,
           0.5 * (this.contacts[0].resistance + this.contacts[2].resistance) - (d.p.rolling ?? 0),
         );
@@ -761,7 +904,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         if (over > 0 && Math.sign(d.leanRate) === Math.sign(d.lean)) {
           d.leanRate *= Math.exp(-12 * dt);
           d.lean -= Math.sign(d.lean) * Math.min(over, 1.2 * dt);
-          d.speed = Math.max(0, d.speed - 1.5 * dt);
+          if (!unloaded) d.speed = Math.max(0, d.speed - 1.5 * dt);
         }
       }
       if (!mxGround) this.longitudinal =
@@ -771,7 +914,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.pickupFrontForce +
         this.pickupRearForce;
     }
-    if (this.pendingLanding) this.judgeLanding(this.pendingLanding);
+    // A touchdown formed during this public call must finish its first
+    // compression before the next public call judges pitch/crash severity.
+    // Internal contact refinement must not move that lifecycle boundary.
+    if (absorb && this.pendingLanding) this.judgeLanding(this.pendingLanding);
     if (was === 'riding' && d.state !== 'riding') {
       const landing = this.lastLanding,
         fromLanding =
@@ -823,6 +969,12 @@ export class DirtBikeVehicle extends BikeVehicle {
       // riding snapshot cannot resurrect the old flight's spin or verdict.
       this.writeBody(track, 0);
       this.settle();
+      if (this.definition.classId === 'motocross' && this.definition.tireFamily === 'knobby') {
+        // Publish the equilibrium just used by the rider's finite seat
+        // approach, including this first mounted snapshot's actual CG.
+        this.writeBody(track, 0);
+        this.rider.copy(this.body.position);
+      }
     } else this.writeBody(track, dt);
     this.updateSuspensionAndTyres(dt, track);
     if (this.machineMotion) {
@@ -843,6 +995,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.impact = Math.max(0, this.impact - dt * 2);
     this.bottom = Math.max(0, this.bottom - dt * 1.5);
     if (b.position.y < this.groundY - 6) this.retired = true;
+    this.publicStepBoundary = true;
     void spec;
   }
   private separateAtFall(cause: string) {
@@ -940,14 +1093,19 @@ export class DirtBikeVehicle extends BikeVehicle {
     ) / dt;
     this.rpm = clamp((this.rearSpin * ratio * 30) / Math.PI, spec.idleRPM, spec.limiterRPM);
     const spinTorque = (a.spinInertia * (this.rearSpin - previous)) / dt;
-    const frontCoast = this.frontSpin * Math.exp(-0.4 * dt);
+    // The ridden ground solver already uses this physical front rotor.
+    // Changing its inertia at takeoff invents brake heat and a larger pitch
+    // reaction without any matching angular momentum or energy transfer.
+    // Calibrated AI and other course/vehicle modes retain their legacy law.
+    const frontInertia = this.playerMotocross ? this.tires[0].inertia : spec.wheelInertia,
+      frontCoast = this.frontSpin * Math.exp(-0.4 * dt);
     this.frontSpin = Math.max(0, frontCoast - (ai ? 0 : brake * a.spinBrake * 0.7 * dt));
     this.mxFrontBrakePower =
-      0.5 * spec.wheelInertia * (frontCoast * frontCoast - this.frontSpin * this.frontSpin) / dt;
+      0.5 * frontInertia * (frontCoast * frontCoast - this.frontSpin * this.frontSpin) / dt;
     // Decelerating the front wheel also pitches the machine nose-down. The
     // player can use the normal brake, including the touch brake, in flight.
     // AI retains its surveyed rear-brake controller without a second pedal.
-    const frontBrakeTorque = (spec.wheelInertia * (this.frontSpin - frontCoast)) / dt;
+    const frontBrakeTorque = (frontInertia * (this.frontSpin - frontCoast)) / dt;
     // Forward body (+) pitches the bike nose-down.
     const bodyTorque = -this.automaticBody * a.bodyTorque;
     this.airTorque = spinTorque + frontBrakeTorque + bodyTorque;
@@ -1459,16 +1617,59 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (turn !== 0) {
       const velocity = landingTyreVelocity(planar, this.slide, turn);
       d.heading += turn;
-      d.speed = Math.max(0, velocity.forward / Math.cos(this.roadPitch));
+      // A continuing collision yaw can activate the forward-only storage
+      // bound after the touchdown solve. Retain that signed component until
+      // the current bottomed contacts can share its constraint below.
+      d.speed = this.projectedContact && velocity.forward < 0
+        ? velocity.forward / Math.cos(this.roadPitch)
+        : Math.max(0, velocity.forward / Math.cos(this.roadPitch));
       this.slide = velocity.lateral;
     }
-    const endPlanar = d.speed * Math.cos(this.roadPitch);
+    let endPlanar = d.speed * Math.cos(this.roadPitch);
     this.sampleSuspensionContacts(track);
+    if (endPlanar < 0 && this.projectedContact) endPlanar = this.boundFinalContactForward(endPlanar);
     // Sampling the final patch changes the along-slope coordinate basis,
     // not the resolved horizontal velocity. Keep the same world momentum
     // after the partial contact interval, including a continuing whip.
     d.speed = Math.max(0, endPlanar / Math.cos(this.roadPitch));
     return true;
+  }
+  /** The final tyre frame may have rotated into its forward-only bound.
+   * Project that new constraint together with the actual endpoint stops;
+   * a separate speed clamp could otherwise close an uphill contact again.
+   * Ordinary positive-forward landings never enter this rare boundary. */
+  private boundFinalContactForward(forward: number) {
+    const d = this.dynamics, spec = this.bikeSpec, m = d.mass,
+      sin = Math.sin(this.pitch), cos = Math.cos(this.pitch),
+      sh = Math.sin(d.heading), ch = Math.cos(d.heading),
+      iz = motocrossYawInertia(m, spec.cgToFront, spec.cgToRear);
+    const contact = (front: boolean) => {
+      const arm = front ? spec.cgToFront : -spec.cgToRear,
+        height = spec.cgHeight + (front ? this.referenceSag.fork : this.referenceSag.shock),
+        patch = this.contacts[front ? 0 : 2],
+        compression = patch.height - (this.cgY + arm * sin - height * cos);
+      if (compression < (front ? spec.forkTravel : spec.shockTravel)) return undefined;
+      const n = patch.normal, ny = Math.max(0.1, n.y),
+        crossGrade = -(n.x * ch - n.z * sh) / ny;
+      return { grade: -(n.x * sh + n.z * ch) / ny, crossGrade,
+        lever: arm * cos + height * sin, yawArm: arm * crossGrade };
+    };
+    const front = contact(true), rear = contact(false),
+      impulse = boundedHardStopImpulses({
+        horizontal: forward, lateral: this.slide, vertical: this.vy,
+        pitchRate: this.pitchRate, yawRate: this.mxYawRate,
+      }, m, this.air.pitchInertia, front, rear, iz, undefined, this.stopImpulses);
+    for (const [row, value] of [[front, impulse.front], [rear, impulse.rear]] as const) {
+      if (!row) continue;
+      forward -= row.grade * value / m;
+      this.slide -= row.crossGrade * value / m;
+      this.vy += value / m;
+      this.pitchRate += row.lever * value / this.air.pitchInertia;
+      this.mxYawRate -= row.yawArm * value / iz;
+    }
+    // A positive bound reaction means its complementary velocity is exactly
+    // zero; avoid leaving the subtraction's floating-point residue as creep.
+    return impulse.forward > 0 ? 0 : forward;
   }
   /** The 2-DOF sprung chassis over the two contact patches (heave + pitch).
    * Supported springs use semi-implicit integration; unsupported motocross
@@ -1571,10 +1772,22 @@ export class DirtBikeVehicle extends BikeVehicle {
       } : undefined;
       // Both bottomed wheels constrain the same body. Solve their impulses
       // together so the rear cannot close the front again through pitch.
-      const coupled = this.motocrossCourse ? coupledHardStopImpulses(
-        { horizontal: vh, vertical: this.vy, pitchRate: this.pitchRate, lateral: this.slide, yawRate },
-        m, a.pitchInertia, front, rear, iz,
+      const velocity = {
+        horizontal: vh, vertical: this.vy, pitchRate: this.pitchRate, lateral: this.slide, yawRate,
+      };
+      // The grounded state cannot store reverse speed. Include that bound
+      // in the same impact projection: an independent clamp would make an
+      // uphill stop close again. A landing stores speed in its yawed tyre
+      // frame, so constrain that final axis and retain signed intermediates.
+      const boundYaw = this.airborne ? this.airYaw : 0,
+        bx = Math.cos(boundYaw), bz = Math.sin(boundYaw);
+      const bounded = this.playerMotocross ? boundedHardStopImpulses(
+        velocity, m, a.pitchInertia, front, rear, iz,
+        { horizontal: bx, lateral: bz }, this.stopImpulses,
       ) : undefined;
+      const coupled = bounded ?? (this.motocrossCourse ? coupledHardStopImpulses(
+        velocity, m, a.pitchInertia, front, rear, iz,
+      ) : undefined);
       for (const [contact, solved] of [[front, coupled?.front], [rear, coupled?.rear]] as const) {
         if (!contact) continue;
         const { grade, crossGrade: across, lever, yawArm: arm } = contact;
@@ -1596,9 +1809,13 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.pitchRate += (lever * impulse) / a.pitchInertia;
         yawRate -= arm * impulse / iz;
       }
+      if (bounded) {
+        vh += bx * bounded.forward / m;
+        this.slide += bz * bounded.forward / m;
+      }
       if (this.airborne) this.airYawRate = yawRate;
       else if (this.playerMotocross) this.mxYawRate = yawRate;
-      if (this.airborne) this.flightSpeed = Math.max(0, vh);
+      if (this.airborne) this.flightSpeed = this.playerMotocross ? vh : Math.max(0, vh);
       else d.speed = Math.max(0, vh / Math.cos(this.roadPitch));
     }
     const vF = this.vy + (fa * cos + HF * sin) * this.pitchRate,
@@ -1611,7 +1828,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       rateR = slope(2) * vh + crossSlope(2) * this.slide + yawArm(2, -ra) * yawRate - vR;
     // A standing rider's legs soak part of every hit.
     const damping = 1 + 0.5 * this.standing;
-    const end = (c: number, rate: number, front: boolean) => {
+    const end = (c: number, rate: number, front: boolean, observed = true) => {
       if (c <= 0 && !(front ? boundary?.front : boundary?.rear)) return 0;
       c = Math.max(0, c);
       const T = front ? spec.forkTravel : spec.shockTravel,
@@ -1624,9 +1841,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       const damper = (C * rate * (rate < 0 ? 2.2 : 1)) / (1 + Math.abs(rate) / a.damperKnee);
       let f = this.spring(Math.min(c, T), front) + damper;
       if (c > T) {
-        // Bump stop: a stiff, lossy end of travel; record the bottoming.
+        // Bump stop: a stiff, lossy end of travel. Midpoint force previews
+        // are not visited physical states and must not publish an extremum.
         f += 40 * k * (c - T) + 6 * C * Math.max(0, rate);
-        this.bottomPeak = Math.max(this.bottomPeak, Math.max(0, rate));
+        if (observed) this.bottomPeak = Math.max(this.bottomPeak, Math.max(0, rate));
       }
       return Math.max(0, f);
     };
@@ -1657,8 +1875,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     // ordinary spring/damper forces and shifted rider weight take over.
     const freeRider = this.airborne && !contact,
       coupling = (spec.riderMass * RIDER_REACH * RIDER_AIR_LEVER) / a.pitchInertia;
+    const refineSupport = this.playerMotocross && contact && !this.projectedContact;
     let divisions = 1;
-    if (this.playerMotocross && contact && !this.projectedContact) {
+    if (refineSupport) {
       divisions = Math.ceil(dt * Math.max(
         Math.abs(rateF) / spec.forkTravel, Math.abs(rateR) / spec.shockTravel,
       ) / SUPPORT_STROKE_FRACTION);
@@ -1675,10 +1894,12 @@ export class DirtBikeVehicle extends BikeVehicle {
       }
       divisions = clamp(divisions, 1, MAX_SUPPORT_STEPS);
     }
-    const advance = dt / divisions;
+    const maxAdvance = dt / divisions,
+      stageLimit = refineSupport ? MAX_SUPPORT_STEPS : divisions;
+    let supportRemaining = dt, supportEvents = 0;
     let stageCF = cF, stageCR = cR, stageRF = rateF, stageRR = rateR,
       stageFF = FF, stageFR = FR, stageTorque = torque;
-    for (let stage = 0; stage < divisions; stage++) {
+    for (let stage = 0; stage < stageLimit && supportRemaining > 0; stage++) {
       if (stage > 0) {
         const localSin = Math.sin(this.pitch), localCos = Math.cos(this.pitch);
         stageCF = this.contacts[0].height - (this.cgY + fa * localSin - HF * localCos);
@@ -1694,25 +1915,94 @@ export class DirtBikeVehicle extends BikeVehicle {
           ? pitchMoment - this.riderBody * RIDER_REACH * spec.riderMass * G * localCos : 0) +
           (this.airborne ? this.airTorque : 0);
       }
+      let advance = stage === stageLimit - 1 ? supportRemaining : Math.min(maxAdvance, supportRemaining);
+      if (refineSupport && stage < stageLimit - 1) {
+        const acceleration = (stageFF + stageFR) / m - G,
+          angular = stageTorque / a.pitchInertia,
+          decay = (stageFF > 0 || stageFR > 0) ? 1.5 + 2.5 * this.standing : 0.3 + 0.5 * this.standing;
+        const compressionAt = (time: number, front: boolean) => {
+          const y = this.cgY + (this.vy + acceleration * time * 0.5) * time,
+            pitch = clamp(this.pitch +
+              (this.pitchRate + (angular - decay * this.pitchRate) * time * 0.5) * time, -1.2, 1.2),
+            arm = front ? fa : -ra, height = front ? HF : HR;
+          return this.contacts[front ? 0 : 2].height - (y + arm * Math.sin(pitch) - height * Math.cos(pitch));
+        };
+        let cut = advance, event = 0;
+        // Secondary tyre contact and full travel activate discontinuous
+        // damping. End the interval at that event before evaluating the
+        // new branch. Four event bits and sixteen bisections bound the work;
+        // this never recursively subdivides or changes the physical stop.
+        for (let eventIndex = 0; eventIndex < 4; eventIndex++) {
+          const front = (eventIndex & 1) === 0,
+            initial = front ? stageCF : stageCR,
+            threshold = eventIndex < 2 ? 0 : front ? spec.forkTravel : spec.shockTravel,
+            mask = 1 << eventIndex;
+          if ((supportEvents & mask) || initial >= threshold || compressionAt(advance, front) < threshold) continue;
+          let lo = 0, hi = advance;
+          for (let root = 0; root < 16; root++) {
+            const middle = (lo + hi) * 0.5;
+            if (compressionAt(middle, front) < threshold) lo = middle;
+            else hi = middle;
+          }
+          if (hi < cut) {
+            cut = hi;
+            event = mask;
+          }
+        }
+        if (event) {
+          supportEvents |= event;
+          advance = cut;
+        }
+      }
+      supportRemaining = Math.max(0, supportRemaining - advance);
       const supported = stageFF > 0 || stageFR > 0, heaveVelocity = this.vy;
-      this.vy += ((stageFF + stageFR) / m - G) * advance;
-      if (freeRider) this.pitchRate -= this.riderAirRate;
-      else this.riderAirRate = 0;
-      this.pitchRate += (stageTorque / a.pitchInertia) * advance;
-      // The same spring/damper and pitch laws are re-evaluated on the
-      // physical internal pose. The outer incoming FF/FR and compression
-      // channels remain distinct from the final displayed wheel travel.
-      this.pitchRate *= Math.exp(
-        -(supported ? 1.5 + 2.5 * this.standing : 0.3 + 0.5 * this.standing) * advance,
-      );
-      // Gravity follows its exact arc whenever neither spring carries load.
-      this.cgY += (this.motocrossCourse && !supported
-        ? heaveVelocity - 0.5 * G * advance : this.vy) * advance;
-      this.pitch = clamp(this.pitch + this.pitchRate * advance -
-        (freeRider ? coupling * this.riderWeight.displacement : 0), -1.2, 1.2);
-      if (freeRider) {
-        this.riderAirRate = -coupling * this.riderWeight.velocity;
-        this.pitchRate += this.riderAirRate;
+      if (this.playerMotocross && supported && !this.projectedContact) {
+        // Resolve both velocities and pose at second order on each smooth
+        // supported interval. The force law, reduced pitch arms and incoming
+        // FF/FR timestamp remain unchanged. Only actual states/crossings
+        // contribute to bottomPeak; the midpoint below is a force preview.
+        const initialY = this.cgY, initialPitch = this.pitch, initialRate = this.pitchRate,
+          alpha = stageTorque / a.pitchInertia,
+          decay = 1.5 + 2.5 * this.standing,
+          midY = initialY + heaveVelocity * advance * 0.5,
+          midVy = heaveVelocity + ((stageFF + stageFR) / m - G) * advance * 0.5,
+          midPitch = initialPitch + initialRate * advance * 0.5,
+          midRate = initialRate + (alpha - decay * initialRate) * advance * 0.5,
+          midSin = Math.sin(midPitch), midCos = Math.cos(midPitch),
+          midCF = this.contacts[0].height - (midY + fa * midSin - HF * midCos),
+          midCR = this.contacts[2].height - (midY - ra * midSin - HR * midCos),
+          midRF = slope(0) * vh + crossSlope(0) * this.slide + yawArm(0, fa) * yawRate -
+            midVy - (fa * midCos + HF * midSin) * midRate,
+          midRR = slope(2) * vh + crossSlope(2) * this.slide + yawArm(2, -ra) * yawRate -
+            midVy - (-ra * midCos + HR * midSin) * midRate,
+          midFF = midCF > 0 ? end(midCF, midRF, true, false) : 0,
+          midFR = midCR > 0 ? end(midCR, midRR, false, false) : 0,
+          midSupported = midFF > 0 || midFR > 0,
+          midTorque = (midFF * fa - midFR * ra) * midCos + (midSupported
+            ? pitchMoment - this.riderBody * RIDER_REACH * spec.riderMass * G * midCos : 0) +
+            (this.airborne ? this.airTorque : 0),
+          midDecay = midSupported ? decay : 0.3 + 0.5 * this.standing;
+        this.vy = heaveVelocity + ((midFF + midFR) / m - G) * advance;
+        this.pitchRate = initialRate + (midTorque / a.pitchInertia - midDecay * midRate) * advance;
+        this.cgY = initialY + midVy * advance;
+        this.pitch = clamp(initialPitch + midRate * advance, -1.2, 1.2);
+        this.riderAirRate = 0;
+      } else {
+        this.vy += ((stageFF + stageFR) / m - G) * advance;
+        if (freeRider) this.pitchRate -= this.riderAirRate;
+        else this.riderAirRate = 0;
+        this.pitchRate += (stageTorque / a.pitchInertia) * advance;
+        this.pitchRate *= Math.exp(
+          -(supported ? 1.5 + 2.5 * this.standing : 0.3 + 0.5 * this.standing) * advance,
+        );
+        this.cgY += (this.motocrossCourse && !supported
+          ? heaveVelocity - 0.5 * G * advance : this.vy) * advance;
+        this.pitch = clamp(this.pitch + this.pitchRate * advance -
+          (freeRider ? coupling * this.riderWeight.displacement : 0), -1.2, 1.2);
+        if (freeRider) {
+          this.riderAirRate = -coupling * this.riderWeight.velocity;
+          this.pitchRate += this.riderAirRate;
+        }
       }
       if (this.playerMotocross && supported) {
         const endSin = Math.sin(this.pitch), endCos = Math.cos(this.pitch);
@@ -1776,8 +2066,13 @@ export class DirtBikeVehicle extends BikeVehicle {
         const normal = this.playerMotocross
           ? landingNormalSpeed(incomingForward, incomingLateral, incomingVy, Math.tan(slopeAt), crossAt)
           : this.flightSpeed * Math.sin(slopeAt) - this.vy * Math.cos(slopeAt);
-        const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
-        d.speed = Math.max(0, along);
+        // Compliant contact retains sprung vertical velocity. Convert horizontal
+        // speed into grounded storage units without counting that velocity
+        // again. Any hard-stop impulse has already changed flightSpeed.
+        const along = this.playerMotocross
+          ? this.flightSpeed / Math.cos(this.roadPitch)
+          : this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
+        d.speed = this.playerMotocross ? along : Math.max(0, along);
         const yawError = this.airYaw;
         const touchdownYawRate = this.airYawRate;
         if (Math.abs(yawError) > 1e-9) {
@@ -1795,6 +2090,7 @@ export class DirtBikeVehicle extends BikeVehicle {
           this.slide = velocity.lateral;
           d.heading += yawError;
         }
+        d.speed = Math.max(0, d.speed);
         this.airYaw = this.airYawRate = 0;
         // The contact solver must absorb the *rotational* landing momentum
         // too. A whipped landing or a mid-corner hop cannot erase yaw rate
@@ -1835,8 +2131,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.settleTime = LANDING_RULES.settleSeconds;
       }
     } else if (!contact) {
-      // Leaving the ground: both wheels unloaded for a few substeps.
-      if (++this.freeSteps > 2 && looping(this.faceSlope)) this.loopOut();
+      // Leaving the ground: both wheels unloaded for a few public calls.
+      // Internal accuracy work must not spend this debounce repeatedly.
+      if (this.publicStepBoundary) this.freeSteps++;
+      if (this.freeSteps > 2 && looping(this.faceSlope)) this.loopOut();
       else if (this.freeSteps > 2) {
         this.airborne = true;
         this.airTime = 0;
@@ -1847,9 +2145,13 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.riderAirRate = -coupling * this.riderWeight.velocity;
         this.airYaw = 0;
         this.airYawRate = this.playerMotocross ? this.mxYawRate : 0;
-        // The last wheel leaves along its own face: that slope splits the
-        // speed into the plan-view flight speed (the springs gave vy).
-        this.flightSpeed = d.speed * Math.cos(Math.atan(this.faceSlope));
+        // The player already has physical horizontal momentum in vh and
+        // sprung vertical momentum in vy. Losing support changes storage
+        // units only; the last loaded patch must not split that speed again.
+        // Preserve the last-face conversion used by surveyed AI/supermoto.
+        this.flightSpeed = this.playerMotocross
+          ? vh : d.speed * Math.cos(Math.atan(this.faceSlope));
+        if (this.playerMotocross) d.speed = this.flightSpeed;
         this.takeoffSpeed = Math.hypot(this.flightSpeed, this.vy);
         this.takeoffX = d.x;
         this.takeoffZ = d.z;
@@ -2077,7 +2379,12 @@ export class DirtBikeVehicle extends BikeVehicle {
     rear.y = this.contacts[2].height;
     this.contactPoints[1].copy(front);
     this.contactPoints[3].copy(rear);
-    this.roadPitch = Math.asin(clamp((front.y - rear.y) / L, -0.6, 0.6));
+    // These patches are L apart horizontally, irrespective of chassis
+    // pitch. Their terrain chord is atan2(rise, run), not asin(rise / run).
+    // Keep the calibrated shared convention outside the player MX plant.
+    this.roadPitch = this.playerMotocross
+      ? Math.atan2(front.y - rear.y, L)
+      : Math.asin(clamp((front.y - rear.y) / L, -0.6, 0.6));
   }
   protected override writeBody(track: Track, dt: number) {
     this.lastTrack = track;
@@ -2086,7 +2393,18 @@ export class DirtBikeVehicle extends BikeVehicle {
       spec = this.bikeSpec,
       L = this.spec.wheelbase,
       front = this.contactPoints[0], rear = this.contactPoints[2];
+    // Sampling a new terrain chord only changes the coordinate convention.
+    // Keep the represented horizontal momentum (and the harness reference)
+    // continuous before vertical() resolves any real suspension impulse.
+    // Placement, flight, AI and the legacy road/supermoto paths keep theirs.
+    const previousProjection = this.playerMotocross && this.riding &&
+      !this.airborne && this.contactModelLive ? Math.cos(this.roadPitch) : undefined;
     this.sampleSuspensionContacts(track);
+    if (previousProjection !== undefined) {
+      const scale = previousProjection / Math.cos(this.roadPitch);
+      d.speed *= scale;
+      this.mxReferenceSpeed *= scale;
+    }
     // The collision solver may depenetrate body Y between physical steps.
     // Differentiate our last authoritative pose so that correction cannot
     // become a false vertical speed fed back into the next contact impulse.
@@ -2179,6 +2497,26 @@ export class DirtBikeVehicle extends BikeVehicle {
     super.restart(track);
     this.settle();
   }
+  protected override remountSeatTarget(out: Vec3, track?: Track, x = this.dynamics.x, z = this.dynamics.z, heading = this.dynamics.heading) {
+    const b = this.bikeSpec, L = this.spec.wheelbase,
+      mass = this.definition.spec.dryMass + this.fuel - this.lostMass,
+      front = this.springForceInverse(mass * G * b.cgToRear / L, true),
+      rear = this.springForceInverse(mass * G * b.cgToFront / L, false),
+      HF = b.cgHeight + this.referenceSag.fork,
+      HR = b.cgHeight + this.referenceSag.shock,
+      difference = HF - HR;
+    let frontHeight = this.contacts[0].height, rearHeight = this.contacts[2].height;
+    if (track) {
+      track.sample(x + Math.sin(heading) * b.cgToFront, z + Math.cos(heading) * b.cgToFront, this.probe, this.groundY);
+      frontHeight = this.probe.height;
+      track.sample(x - Math.sin(heading) * b.cgToRear, z - Math.cos(heading) * b.cgToRear, this.probe, this.groundY);
+      rearHeight = this.probe.height;
+    }
+    // The same two contact-gap equations as settlePose(), evaluated without
+    // changing suspension state or moving the rider during readiness checks.
+    const pitch = Math.asin(clamp((frontHeight - rearHeight - front + rear) / Math.hypot(L, difference), -0.6, 0.6)) + Math.atan2(difference, L);
+    return out.set(x, rearHeight + b.cgToRear * Math.sin(pitch) + HR * Math.cos(pitch) - rear, z);
+  }
   protected override updateRider(dt: number, track: Track) {
     const x = this.rider.x, z = this.rider.z;
     super.updateRider(dt, track);
@@ -2198,6 +2536,10 @@ export class DirtBikeVehicle extends BikeVehicle {
   }
 
   protected override pushToRemount(dt: number) {
+    if (this.definition.classId === 'motocross' && this.definition.tireFamily === 'knobby') {
+      super.pushToRemount(dt);
+      return;
+    }
     if (!(dt > 0) || !this.remount.active) return;
     const d = this.dynamics,
       distance = Math.hypot(this.remount.x - d.x, this.remount.z - d.z),
@@ -2234,5 +2576,6 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.remount.x = p.x + p.nx * side;
     this.remount.z = p.z + p.nz * side;
     this.remount.heading = Math.atan2(p.tx, p.tz);
+    this.prepareMxRemount(track);
   }
 }
