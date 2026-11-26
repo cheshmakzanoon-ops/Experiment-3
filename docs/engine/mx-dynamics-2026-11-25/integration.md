@@ -1,15 +1,22 @@
 # Integration findings and acceptance record
 
-The retained engine candidate is frozen at
+The engine and subsequent benchmark/test type correction are published on `main`.
+Their runtime source remains frozen at
 `4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790`.
 This register replaces the earlier wave-5 pending dispositions. Individual
 assignment reports remain checkpoint-specific evidence; their earlier pending
-labels do not override the later dispositions here. At the final pre-publication boundary,
-the final MX/offroad and disjoint shared-core unit sets, original race gates,
-unchanged default eleven-scenario matrix, types, lint and production build all
-pass locally. Independent source and oracle reviews, the publication manifest
-and exact-tree preflight pass. Main-branch publication remains pending;
-browser/GPU and new-source hosted-CI acceptance are not established.
+labels do not override the later dispositions here. The initial publication's
+MX/offroad and disjoint shared-core units, original race gates, unchanged default
+eleven-scenario matrix and production build pass locally. The earlier production
+and selected type projects missed two entry files: the four resulting hosted
+root-TypeScript diagnostics are corrected, with the affected 16-case test file,
+benchmark, strict dependency check and focused lint passing. Both complete local
+root-TypeScript attempts were resource-killed. Assignment 60 has verified the
+published content and, independently with root, confirmed that corrected hosted
+`validate` completed successfully at **00:47:55 UTC on 26 November**. Benchmark
+smoke completed successfully at 00:48:21 UTC. The overall Build and validation
+workflow is still unfinished with longer unit, race and browser work queued or
+running; no overall hosted-CI or browser/GPU pass is claimed.
 
 ## Provenance and source boundaries
 
@@ -28,10 +35,27 @@ changed only the new shoulder controller's traffic-priority condition in
 report edits after that boundary do not alter the source fingerprint, but their
 own hashes still belong in final test receipts.
 
-The local checkpoints in historical reports preserve experimental provenance.
-They are not the published GitHub API commit identities. Root owns publication,
-will retain the latest remote parent, and will verify the final remote tree;
-there is no claim here that publication has already happened.
+The actual published commits are:
+
+| Published change | Commit |
+| --- | --- |
+| Engine, tests and benchmarks | [`9b5fead87ae56902b138951e093c5f054b36d8a3`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/9b5fead87ae56902b138951e093c5f054b36d8a3) |
+| Initial engineering record | [`2904ea226590e4f9c75b7e4aecf544c7b7f8fb15`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/2904ea226590e4f9c75b7e4aecf544c7b7f8fb15) |
+| Benchmark/test type correction | [`b48249d2da1717e004f7f1c1b0f3501fa2c6739a`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/b48249d2da1717e004f7f1c1b0f3501fa2c6739a) |
+
+The [original publication manifest](evidence/final-publication-manifest.json)
+records the first 188 paths and expected trees. Its preparation-only status is
+preserved as historical provenance; it is not a manifest of the subsequent
+two-file correction or later report updates. Each published ref update used a
+fresh expected parent and `force: false`, retaining concurrent CI-report
+successors. Assignment 60 independently verified the initial 188-path content
+and the exact correction. Root's current local main at this handoff is `16247df…`,
+a CI-report successor; it is not substituted for the engine/correction identities.
+
+The local checkpoints in earlier reports preserve experimental provenance and
+remain distinct from these actual GitHub API commit identities. Publication and
+remote content verification have occurred; the corrected hosted `validate` job
+passes, while the ongoing overall workflow is bounded as described below.
 
 ## Retained production dispositions
 
@@ -134,11 +158,11 @@ universal visual-accuracy claim. [48](agents/48-animation-contract.md)
 
 ## Acceptance register
 
-### Evidence already complete on the final runtime
+### Completed evidence and its test-input boundaries
 
 | Gate | Result | Source / receipt |
 | --- | --- | --- |
-| Complete MX/offroad unit sweep | 155 distinct files, 1,736/1,736 tests pass; zero failures, skipped/pending or todo. All 1,556 observed inputs unchanged; no retry. | Final `4c041cb3…`, [46 final receipt](evidence/46-final-engine-units.json). |
+| Complete MX/offroad unit sweep | At initial publication: 155 distinct files, 1,736/1,736 tests pass; zero failures/skipped/pending/todo; all 1,556 inputs unchanged during that run; no retry. The later one-file correction passes its 16 cases again. | Runtime `4c041cb3…`, original test hashes in [46 receipt](evidence/46-final-engine-units.json); correction boundary in [58](evidence/58-root-types-correction.json). |
 | Unchanged default offroad race matrix | 11/11 scenarios pass locally; exit 0; 458.699 s; no failures or changed inputs; `OFFROAD_RACE` unset, no full-grid flag. | Final `4c041cb3…`, [receipt](evidence/final-default-offroad-receipt.json), [raw results](evidence/final-default-offroad-races.json). |
 | Eight original full-grid races | 8/8 pass; 96/96 finishers; no retirements; all riders inside the original one-crash limit. | Final `4c041cb3…`, [49](agents/49-wet-race-regression.md). |
 | Exact original Valley four-lap event | Pass; 386.67 s; 10/10 finishers; one total crash; 13.26 s maximum stop. | Final `4c041cb3…`, [49](agents/49-wet-race-regression.md). |
@@ -146,11 +170,12 @@ universal visual-accuracy claim. [48](agents/48-animation-contract.md)
 | Animation fixture gate | 53/53 across three suites, including the separately preserved adverse trajectory. | Final `4c041cb3…`, [48](agents/48-animation-contract.md); overlaps broad-unit coverage. |
 | Air-drag gate | 22/22 with unchanged precision and two observer comparisons. | Final `4c041cb3…`, [root receipt](evidence/root-air-drag.json). |
 | Immutable non-MX refresh | Five cases, 6,005 complete snapshots, 16,477,720 bytes; zero mismatches with only 39→41 identity normalization. | Final `4c041cb3…`, [final receipt](evidence/final-preservation.json), [snapshot evidence](evidence/final-non-mx-snapshots.json). |
-| Strict production and changed-code types | All required production/changed dependency groups pass; the earlier resource-blocked attempts remain recorded. | Final `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md). |
-| Direct production build | Vite success: 1,106 modules, 15.19 s. | Final `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md). |
+| Scoped strict types | Production and selected dependency-group projects pass at the original boundary. They omitted two entries later diagnosed by full-root hosted TypeScript; the corrected pair/imports now pass strict checking. | Runtime `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md), [58 correction](evidence/58-root-types-correction.json). |
+| Correction verification | 16/16 planar tests, complete three-variant acceleration benchmark, strict two-file/imported dependencies and focused lint all pass. No assertions or tolerances changed; no new test cases. | [58 receipt](evidence/58-root-types-correction.json), [59 independent addendum](agents/59-publication-preflight.md#post-publication-type-correction-addendum). |
+| Direct and hosted production builds | Original Vite build succeeds: 1,106 modules, 15.19 s. Corrected hosted `validate` also passes production and Steam demo/static builds, IP guards and committed-source preservation. | Runtime `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md), [successful hosted validate](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194664). |
 | Contact contract gate | 29/29 tests; original momentum/passivity/safety precision retained, with 2,592 selected physical states comparing exactly in observer checks. | Final `4c041cb3…`, [51](agents/51-contact-contracts.md); overlaps broad-unit coverage. |
-| Shared-core gate | 181/181 distinct tests in seven files, zero failures/skipped/todo. The 155-file MX/offroad set and these seven files have no path overlap; all 162 test hashes match their final receipts. | Final `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md), independently reconciled by [58](agents/58-acceptance-reconciliation.md). |
-| Changed-code lint | 62 files, no diagnostics; all 62 input hashes independently reconfirmed. | Final `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md), [58](agents/58-acceptance-reconciliation.md). |
+| Shared-core gate | 181/181 distinct tests in seven unchanged files, zero failures/skipped/todo. The 155-file MX/offroad set and these seven files have no path overlap. One MX test hash later changes; the seven shared files do not. | Runtime `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md), [58 source/count boundaries](agents/58-acceptance-reconciliation.md). |
+| Changed-code lint | Initial 62-file run has no diagnostics. At correction: 60 hashes unchanged; both edited files pass fresh focused lint. | Runtime `4c041cb3…`, [52](agents/52-tooling-runtime-cost.md), [58 correction](evidence/58-root-types-correction.json). |
 | Independent source and oracle reviews | No new concrete release blockers; two phase/frame documentation clarifications retained. | Final `4c041cb3…`, [55](agents/55-source-review.md), [56](agents/56-claims-oracle-review.md). |
 
 The maximum full-grid stop is **19.15 s against the unchanged 20 s bound**.
@@ -175,8 +200,10 @@ would double-count overlapping cases. The later completed sweep on frozen
 `4c041cb3…` passes **1,736/1,736 tests across 155 distinct files**, with every
 historically failing file passing. Its [final receipt](evidence/46-final-engine-units.json)
 is the acceptance record; the earlier 1,710/1,723 result remains historical.
-The separate shared-core receipt passes 181/181 in seven disjoint files. Targeted
-repair/observer reruns are never added to either full-suite count.
+The separate shared-core receipt passes 181/181 in seven disjoint files. The later
+type correction changes one of the 155 test files and reruns its 16 existing cases;
+the 1,736-case result remains tied to the initial publication's test hashes.
+Targeted repair/observer reruns are never added to either full-suite count.
 
 Assignment 47's calibration passes at `a153c34d…`: 20 jump holds (17 clean, three
 bottomed), 20 walking checks, 24 deliberate short/long gap probes and three standing
@@ -195,7 +222,7 @@ and 36 legitimate sparse entries. Only the allowed AI source changed afterward;
 assignment 59 independently refreshed the protected mode/blob checks and exact
 code-tree scope. [50](agents/50-preservation-audit.md), [59](agents/59-publication-preflight.md)
 
-### Hosted CI and pending final release work
+### Baseline hosted failures, corrected type coverage and pending acceptance
 
 Assignment 54 attributes the existing failed hosted workflow at
 `2578271913c264f5ffd6131afea30723df14b65b`; the later integrated main at
@@ -214,19 +241,66 @@ supermoto, rallycross and stage cases. This closes that local scenario-coverage
 gap without claiming hosted-workflow success or playable-site deployment.
 [Final default-matrix receipt](evidence/final-default-offroad-receipt.json)
 
-- Assignment 57's exact publication manifest and assignment 59's preflight pass,
-  including the protected-tree comparison. Root will regenerate the payloads after
-  final documentation edits. Source/claim reviews 55–56 and reconciliation 58 are complete.
-- Root will publish the authorized changes and record the actual API commit/tree
-  identities. Historical local checkpoints must not be substituted for those IDs.
-- Assignment 60 has been spawned and prepared the independent remote-verification
-  procedure. Its actual pushed commit/tree and hosted-check verification awaits
-  publication. All 60 distinct assignments are now spawned. Main publication is
-  authorized but is not yet recorded as complete.
+The first newly published
+[Build and validation run 45729738734](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45729738734)
+failed `validate` with **four TypeScript diagnostics in two files from this pass**.
+These are distinct from the baseline failures above. The original scoped projects
+did not cover every root `tsconfig.json` entry (`src`, `tests`, `e2e`, `scripts`,
+and root `*.ts`). The correction at `b48249d…` adds the explicit six-number-field
+row type to the acceleration benchmark and returns the original `BikeState`
+from the planar test spy after the same coordinate sampling. The benchmark's
+transpiled JavaScript is byte-identical; all test assertions, tolerances and
+invocation ordering remain unchanged.
+[58 correction/addendum](agents/58-acceptance-reconciliation.md#post-publication-addendum--complete-root-typescript-coverage),
+[59 independent review](agents/59-publication-preflight.md#post-publication-type-correction-addendum)
 
-The pre-publication main lookup records tree
-`5e9fea61ed17d0709a192e2106ef20e161788ffc` at `c9c94c7…`. It is a baseline observation,
-not the pending publication's tree or CI result.
+| Post-correction check | Observed result |
+| --- | --- |
+| Full root TypeScript, 2560 MiB | Resource-killed, subprocess exit −9 / shell equivalent 137 after 18.064 s; empty diagnostic log. |
+| One authorized full root retry, 2048 MiB | Resource-killed, exit −9 / 137 after 18.283 s; unchanged root configuration, empty diagnostic log. |
+| Strict corrected files and imported dependencies | Pass, exit 0; root compiler options inherited without relaxation. This is scoped coverage. |
+| Affected planar suite | 16/16 pass, zero failures/skipped/todo; replaces that file's prior result and adds no unique cases. |
+| Complete acceleration benchmark | Pass: three variants, 36 reversal traces, six flight traces, all original assertions retained. |
+| Corrected-file lint | Both edited paths pass. |
+| Corrected hosted `validate` job | **Success**, completed **00:47:55 UTC, 26 November**, on `b48249d…`; run **45730817858**, job **139612194664**. Root and assignment 60 independently observed full-root lint/content/types, production and Steam demo/static builds, IP guards and committed-source preservation pass. |
+| Other corrected-source hosted observations | Benchmark smoke **45730817869 succeeds at 00:48:21 UTC**; MX native-assets job succeeds. The overall Build and validation workflow remains unfinished, with longer unit, race and browser work queued or running. |
+
+The [correction receipt](evidence/58-root-types-correction.json) contains the exact
+commands, original/current hashes, logs and runtime-equivalence proof. Among the
+initial full-sweep's 1,556 inputs, **1,554 materialized inputs remain unchanged**,
+one tracked sparse fixture has matching Git content/mode, and one planar test has
+the corrected hash. The sparse path is
+`docs/production/motocross-reference-review-20261017.json`; its absence from the
+working tree is not deletion from Git. Among the earlier 62 lint inputs, 60 retain
+their hashes and the two changed files have fresh passing results. Runtime stays
+`4c041cb3…`; neither full-unit totals nor the original manifest are relabeled as
+new runs on the corrected test hash.
+
+Empty logs from the two killed full-root attempts did not establish type-check
+success or absence of further diagnostics. The later successful
+[hosted validate job](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194664)
+now supplies the full-root evidence and completes the production/Steam demo/static
+build, IP-guard and committed-source-preservation checks. Its completion at
+00:47:55 UTC was independently observed by root and assignment 60. The separate
+[Benchmark smoke workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817869)
+also succeeds at 00:48:21 UTC. The
+[overall Build and validation workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858)
+remains unfinished. These completed gates do not establish all CI, browser/GPU
+acceptance or playable-site deployment.
+
+All **60 distinct assignments are complete**, organized in ten waves of six.
+Assignments 57–59 completed the manifest, bounded correction and independent scope
+review. Assignment 60 verified the initial 188 published paths, exact two-file
+correction, protected assets, retained ancestry and successful corrected hosted
+`validate` and benchmark jobs. Its [final report](agents/60-remote-verification.md)
+and [root publication receipt](evidence/final-publication.json) retain the exact
+observation boundary; the remaining hosted jobs were running or queued. The
+[corrective publication receipt](evidence/final-publication-correction.json) records
+the later two-file delta without rewriting the original manifest.
+
+The pre-publication tree `5e9fea61ed17d0709a192e2106ef20e161788ffc` at `c9c94c7…`
+remains baseline provenance. Actual engine, documentation and correction commit
+identities are recorded above; concurrent CI-report successors were preserved.
 
 Assignment 52's final CPU audit measures 14,400 uninstrumented public steps, with
 case medians 0.02249–0.03745 ms and p99 0.38225–0.51140 ms on the shared executor.

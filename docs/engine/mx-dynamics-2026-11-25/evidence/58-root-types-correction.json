@@ -1,0 +1,285 @@
+{
+  "assignment": 58,
+  "phase": "post-publication root TypeScript coverage correction",
+  "startedUtc": "2026-11-26T00:39:18.856284+00:00",
+  "sourceFingerprintBefore": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "sourceFileCount": 1129,
+  "originalFiles": {
+    "scripts/bench/motocross-rider-acceleration.ts": {
+      "sha256": "4771c12423901d3db8ba8dfaca81a3a08abf4514d7578240d0286e785e1a7df1",
+      "bytes": 12527
+    },
+    "tests/motocross-planar-transport.test.ts": {
+      "sha256": "a662a399cc1170ff5dcc8b2bfef4bf1dff8e35f4d124eecce3c295ea232db15f",
+      "bytes": 14925
+    }
+  },
+  "hostedFailure": {
+    "runId": 45729738734,
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45729738734",
+    "job": "validate",
+    "attribution": "Errors introduced by this pass outside earlier production and selected dependency-group type checks; not baseline failures.",
+    "diagnosticCodes": [
+      "TS7034",
+      "TS7005",
+      "TS2345"
+    ],
+    "locations": [
+      "scripts/bench/motocross-rider-acceleration.ts:209 trace array inference",
+      "tests/motocross-planar-transport.test.ts:237 mock implementation return type"
+    ],
+    "diagnosticCountReportedByRoot": 4
+  },
+  "status": "minimal_correction_verified_locally_full_root_types_resource_blocked",
+  "commands": [
+    {
+      "label": "full-root-types",
+      "argv": [
+        "node",
+        "--max-old-space-size=2560",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "cwd": "/home/agent/motobound-579b454ae846",
+      "startedUtc": "2026-11-26T00:39:31.233521+00:00",
+      "finishedUtc": "2026-11-26T00:39:49.297888+00:00",
+      "wallSeconds": 18.06443416500406,
+      "exitCode": -9,
+      "log": "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types.log"
+    },
+    {
+      "label": "planar-test",
+      "argv": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/motocross-planar-transport.test.ts",
+        "--maxWorkers=1",
+        "--reporter=json",
+        "--outputFile=/home/agent/motobound-579b454ae846/docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.json"
+      ],
+      "cwd": "/home/agent/motobound-579b454ae846",
+      "startedUtc": "2026-11-26T00:40:30.352119+00:00",
+      "finishedUtc": "2026-11-26T00:40:33.686278+00:00",
+      "wallSeconds": 3.3342194329961785,
+      "exitCode": 0,
+      "stdout": "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.log",
+      "stderr": "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.log.stderr.log"
+    },
+    {
+      "label": "rider-acceleration-benchmark",
+      "argv": [
+        "node",
+        "--max-old-space-size=384",
+        "--experimental-transform-types",
+        "scripts/bench/motocross-rider-acceleration.ts"
+      ],
+      "cwd": "/home/agent/motobound-579b454ae846",
+      "startedUtc": "2026-11-26T00:40:33.687055+00:00",
+      "finishedUtc": "2026-11-26T00:40:38.694920+00:00",
+      "wallSeconds": 5.0079435520019615,
+      "exitCode": 0,
+      "stdout": "docs/engine/mx-dynamics-2026-11-25/evidence/58-rider-acceleration-output.json",
+      "stderr": "docs/engine/mx-dynamics-2026-11-25/evidence/58-rider-acceleration-output.json.stderr.log"
+    },
+    {
+      "label": "two-file-eslint",
+      "argv": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "scripts/bench/motocross-rider-acceleration.ts",
+        "tests/motocross-planar-transport.test.ts"
+      ],
+      "cwd": "/home/agent/motobound-579b454ae846",
+      "startedUtc": "2026-11-26T00:40:38.696015+00:00",
+      "finishedUtc": "2026-11-26T00:40:39.493248+00:00",
+      "wallSeconds": 0.7972500570031116,
+      "exitCode": 0,
+      "stdout": "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-eslint.log",
+      "stderr": "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-eslint.log.stderr.log"
+    },
+    {
+      "label": "full-root-types-2048-retry",
+      "argv": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "cwd": "/home/agent/motobound-579b454ae846",
+      "startedUtc": "2026-11-26T00:41:01.247854+00:00",
+      "finishedUtc": "2026-11-26T00:41:19.530880+00:00",
+      "wallSeconds": 18.28321843100275,
+      "exitCode": -9,
+      "log": "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types-2048.log",
+      "reason": "Root authorized one serial unchanged-config retry with lower heap after2560MiB attempt was SIGKILLed; available memory about3.1GiB and compiler overhead may exceed available memory."
+    },
+    {
+      "label": "strict-two-file-dependencies",
+      "argv": [
+        "node",
+        "--max-old-space-size=1536",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-tsconfig.json",
+        "--noEmit"
+      ],
+      "cwd": "/home/agent/motobound-579b454ae846",
+      "startedUtc": "2026-11-26T00:42:09.487329+00:00",
+      "finishedUtc": "2026-11-26T00:42:12.408288+00:00",
+      "wallSeconds": 2.920990188002179,
+      "exitCode": 0,
+      "log": "docs/engine/mx-dynamics-2026-11-25/evidence/58-two-file-types.log",
+      "scope": "Root compiler options inherited unchanged; only initial file inclusion narrows to the two corrected paths and their imported dependencies."
+    }
+  ],
+  "benchmarkRuntimeEquivalence": {
+    "transpiledJavaScriptEqual": true,
+    "transpiledJavaScriptSha256": "ce2f060645a4c3cc53865f793dfbb66cceb59a3dae48f34b752cfaf99086cb9c",
+    "transpiledJavaScriptBytes": 13055
+  },
+  "currentFiles": {
+    "scripts/bench/motocross-rider-acceleration.ts": {
+      "sha256": "653d23952fee00c4a0cc6e91daac6e8f646912f247aaab95f46136992d860e3d",
+      "bytes": 12648
+    },
+    "tests/motocross-planar-transport.test.ts": {
+      "sha256": "953a1d124ffc36b59d5ad3c1c48e86f26eb734a4985e5d25f13805fa262abcd2",
+      "bytes": 14965
+    }
+  },
+  "exactEditProof": {
+    "benchmarkOnlyExplicitSixNumberFieldArrayAnnotation": true,
+    "planarOnlyPreservesOriginalReturnAfterCoordinateSampling": true,
+    "testAssertionsAndTolerancesUnchanged": true,
+    "originalMethodCallCountUnchanged": true,
+    "noProductionEdits": true
+  },
+  "inputBoundaryAfterCorrection": {
+    "acceptedFullSweepInputCount": 1556,
+    "unchangedMaterializedInputs": 1554,
+    "changedMaterializedInputs": [
+      "tests/motocross-planar-transport.test.ts"
+    ],
+    "unchangedSparseFixture": {
+      "path": "docs/production/motocross-reference-review-20261017.json",
+      "expectedSha256": "b3f0d6c6c5d8711d2cb73c1c45aa500ba898342110a8214013261b5c2e2484b1",
+      "currentHeadBlobSha256": "b3f0d6c6c5d8711d2cb73c1c45aa500ba898342110a8214013261b5c2e2484b1",
+      "headMode": "100644",
+      "indexStatus": "S docs/production/motocross-reference-review-20261017.json",
+      "materialized": false
+    },
+    "priorFullSweepNotRerun": true,
+    "originalFullSweep155Files1736CasesIsHistoricalBeforeTypeCorrection": true,
+    "lintInputCount": 62,
+    "unchangedLintInputs": 60,
+    "changedLintInputs": [
+      "scripts/bench/motocross-rider-acceleration.ts",
+      "tests/motocross-planar-transport.test.ts"
+    ],
+    "focusedLintRechecksChangedFiles": true
+  },
+  "planarTest": {
+    "success": true,
+    "numTotalTests": 16,
+    "numPassedTests": 16,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0
+  },
+  "benchmark": {
+    "exitCode": 0,
+    "variants": [
+      "current-c1",
+      "bounded-c2",
+      "narrow-c2"
+    ],
+    "reversalTraces": 36,
+    "flightTraces": 6,
+    "allOriginalAssertionsRetained": true,
+    "currentRuntimeRunCompleted": true,
+    "outputSha256": "df7ea62cec2145b69533273e47beaaf054463292134c887b8aac0c34f19e6ab8"
+  },
+  "sourceFingerprintAfterFocusedChecks": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "rootTsconfig": {
+    "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9",
+    "include": [
+      "src",
+      "tests",
+      "e2e",
+      "scripts",
+      "*.ts"
+    ],
+    "unchanged": true
+  },
+  "completedUtc": "2026-11-26T00:43:25.659360+00:00",
+  "sourceFingerprintAfter": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "publishedBeforeCorrection": {
+    "engineCommit": "9b5fead87ae56902b138951e093c5f054b36d8a3",
+    "integrationCommit": "2904ea226590e4f9c75b7e4aecf544c7b7f8fb15",
+    "localCiReportSuccessorAtReview": "53f2abfe49bfa5042b0d1444387030603493ebb4",
+    "correctionPublication": "owned_by_root_not_yet_claimed"
+  },
+  "fullRootAcceptance": {
+    "status": "not_established_locally",
+    "attempts": 2,
+    "exits": [
+      -9,
+      -9
+    ],
+    "shellEquivalentExits": [
+      137,
+      137
+    ],
+    "diagnosticOutput": "Both logs empty; SIGKILL does not establish TypeScript success or absence of other diagnostics.",
+    "remainingGate": "Observe hosted validate against the actual correction commit."
+  },
+  "strictDependencyTypes": {
+    "exitCode": 0,
+    "rootCompilerOptionsInherited": true,
+    "entryPaths": [
+      "scripts/bench/motocross-rider-acceleration.ts",
+      "tests/motocross-planar-transport.test.ts"
+    ],
+    "newDiagnostics": [],
+    "scopeLimit": "This narrower pass confirms the corrected two-file dependency graph only; it is not the full root check."
+  },
+  "npmLifecycleHooksUsed": false,
+  "gitMutations": false,
+  "productionSourceEdits": false,
+  "protectedAssetEdits": false,
+  "broadPhysicsRerun": false,
+  "newTestCasesAdded": 0,
+  "coverageCorrection": "Earlier production/selected dependency-group checks did not type-check all entries included by root tsconfig (src, tests, e2e, scripts and root *.ts). These four hosted diagnostics came from this pass and are not baseline failures. The original 155-file/1736-case result belongs to the pre-correction test hash;16/16 affected cases pass on the correction without adding to that total.",
+  "artifactSha256": {
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.json": "452dcba40617178df49205b61080ab4f58ff75c71141c877b8b7221418ad5d51",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.log": "83fa66920185da8c79444018e7153e02b1adc55440116e759caa49acd66d9b1f",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.log.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-rider-acceleration-output.json": "df7ea62cec2145b69533273e47beaaf054463292134c887b8aac0c34f19e6ab8",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-rider-acceleration-output.json.stderr.log": "9e3324d29d59392d77bee0f996f73c1479843d62284d0b42d427798581538200",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types-2048.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-two-file-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-eslint.log.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-tsconfig.json": "248a3d7bc110249f43297152ce69dbef89fd3fa912dff1f43c788ab8a6bc91c1"
+  },
+  "filesWritten": [
+    "scripts/bench/motocross-rider-acceleration.ts",
+    "tests/motocross-planar-transport.test.ts",
+    "docs/engine/mx-dynamics-2026-11-25/agents/58-acceptance-reconciliation.md",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-acceptance-reconciliation.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types-correction.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.log.stderr.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-rider-acceleration-output.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-rider-acceleration-output.json.stderr.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types-2048.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-two-file-types.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-eslint.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-eslint.log.stderr.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-tsconfig.json"
+  ]
+}

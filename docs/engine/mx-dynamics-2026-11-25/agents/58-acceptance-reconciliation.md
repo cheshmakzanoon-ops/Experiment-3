@@ -71,3 +71,68 @@ Chromium still has no successful page startup under the observed OS socket
 restriction. No gameplay screenshot, framebuffer, GPU or device-FPS acceptance
 is claimed. The known compliant-work, cadence, sparse-pose and finite-margin
 limits remain in the master documents. [Browser record](44-native-browser.md)
+
+
+## Post-publication addendum — complete root TypeScript coverage
+
+The sections above record assignment 58's original pre-publication handoff. The
+engine was subsequently published as
+`9b5fead87ae56902b138951e093c5f054b36d8a3`, with the integration record at
+`2904ea226590e4f9c75b7e4aecf544c7b7f8fb15`. Hosted
+[Build and validation run 45729738734](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45729738734)
+then exposed four TypeScript diagnostics in two files from this pass. These are
+**our type-check coverage gaps, not the separately attributed baseline failures**.
+The previous full-production and selected dependency-group checks did not cover
+all entries of root `tsconfig.json`, whose includes are `src`, `tests`, `e2e`,
+`scripts` and root `*.ts` files. The earlier claims must be read with that scope.
+
+The correction is deliberately confined to two files:
+
+- `scripts/bench/motocross-rider-acceleration.ts`: `brakeReversal` now declares its
+  trace as an array of rows with six numeric fields: `p`, `v`, `displacement`,
+  `pose`, `rate` and `legacy`. Before/after TypeScript transpilation produces
+  **byte-identical JavaScript**, SHA256
+  `ce2f060645a4c3cc53865f793dfbb66cceb59a3dae48f34b752cfaf99086cb9c`.
+- `tests/motocross-planar-transport.test.ts`: the spy captures the result of its
+  single bound `original(...args)` call, samples the same `coreX`/`coreZ`, then
+  returns that result to preserve the actual `BikeState` method contract.
+  Every assertion, tolerance, fixture and original invocation order is unchanged.
+
+### Verification of the correction
+
+| Check | Actual result |
+| --- | --- |
+| Exact requested full root check, 2560 MiB heap | SIGKILL, subprocess exit −9 / shell equivalent 137, after 18.064 s; no diagnostics emitted. |
+| Authorized serial full root retry, 2048 MiB heap | SIGKILL, exit −9 / 137, after 18.283 s; no diagnostics emitted. The root project/configuration was unchanged. |
+| Strict two-file dependency check | Pass, exit 0, 2.921 s. Root compiler options inherited unchanged; initial inclusion narrowed to the two corrected files and their imports. |
+| Affected planar test file | **16/16 pass**, zero failures/skipped/todo, 3.334 s. No assertions or test cases were added or removed. |
+| Complete acceleration benchmark | Pass, exit 0, 5.008 s: three variants, 36 braking-reversal traces and six flight traces; all original assertions retained. |
+| Focused ESLint | Both corrected files pass, exit 0, 0.797 s. |
+| Runtime fingerprint | Still `4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790` across 1,129 inputs. |
+
+The two full root attempts are resource-blocked local attempts, not passes. Their
+empty logs do not prove that no further root-project diagnostics exist. Hosted
+`validate` against the actual correction commit must establish that gate. No
+further full-root retry, broad physics suite or npm lifecycle hook was run here.
+The narrower strict check validates the two corrected dependency paths only.
+
+The source boundary also changes for the earlier unit/lint receipts: exactly one
+of the 1,556 full-sweep inputs, the planar test, now has a new hash. There are
+1,554 unchanged materialized inputs plus one unchanged tracked sparse fixture,
+`docs/production/motocross-reference-review-20261017.json`; its HEAD blob content
+and mode match the accepted input, although it is no longer materialized after
+root's CI-report fast-forward. The former full-unit result remains **1,736/1,736
+at its original test hashes**. The corrected 16-case rerun is replacement evidence
+for that file and is not added to the full-suite count. Both changed files were
+among the 62 lint inputs: 60 retain their old hashes, and the other two now have a
+fresh passing focused lint result.
+
+The [correction receipt](../evidence/58-root-types-correction.json) records original
+and current hashes, exact commands, timing, exits, logs, emitted-JavaScript proof
+and the changed-input boundary. [Planar results](../evidence/58-planar-tests.json),
+[benchmark output](../evidence/58-rider-acceleration-output.json) and the
+[strict dependency configuration](../evidence/58-type-correction-tsconfig.json)
+retain the actual observations. Root owns correction publication, current master
+README/integration status and hosted-CI follow-up. This continuation edits no
+production source, model, character, environment or protected asset and performs
+no Git mutation.

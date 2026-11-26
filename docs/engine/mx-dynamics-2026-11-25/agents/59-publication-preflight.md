@@ -1,5 +1,10 @@
 # Assignment 59 — independent publication preflight
 
+**Later boundary:** the [post-publication type-correction addendum](#post-publication-type-correction-addendum)
+below supersedes the current-input claims for the corrected test and benchmark.
+The original preflight record remains historical evidence of its 00:25 UTC
+boundary, including the then-unchanged 1,556 inputs and pending initial publication.
+
 **Result: PASS for the observed final candidate; no engine or scope blocker.**
 This is a pre-publication result. It does not record a successful remote update,
 browser run, GPU measurement, or complete hosted CI workflow. The remaining
@@ -132,3 +137,78 @@ instead of overwriting it.
 
 These are publication steps, not unresolved engine defects. This assignment made
 no Git mutation, source/test/asset edit, browser attempt or remote write.
+
+## Post-publication type-correction addendum
+
+**Scoped correction review: PASS. Full root TypeScript acceptance remains
+unproven locally because both whole-project attempts were killed for resources.**
+This addendum reviews two defects reported after initial integration
+`2904ea226590e4f9c75b7e4aecf544c7b7f8fb15`. They belong to this pass and were outside
+the earlier production and selected dependency-group type checks; they are not
+classified as baseline CI failures. Assignment 58's
+[correction receipt](../evidence/58-root-types-correction.json) records the hosted
+diagnostics and focused verification.
+
+| Corrected file | Change | Independent semantic review |
+| --- | --- | --- |
+| `scripts/bench/motocross-rider-acceleration.ts` | Explicitly type the existing six-number-field trace array | TypeScript-erased JavaScript is byte-identical before/after, SHA-256 `ce2f060645a4c3cc53865f793dfbb66cceb59a3dae48f34b752cfaf99086cb9c`. No assertion, tolerance, loop or runtime instruction changed. |
+| `tests/motocross-planar-transport.test.ts` | Save the original step result, observe the same coordinates, then return that result from the spy | Exactly one call of the same bound original method, with the same arguments and observation order. All assertions, tolerances and cases remain unchanged. The production caller invokes this step as a statement and does not consume the return. |
+
+Exact whole-file replacement comparisons independently confirm that these are
+the only code edits. Current file hashes are
+`653d23952fee00c4a0cc6e91daac6e8f646912f247aaab95f46136992d860e3d`
+for the benchmark and
+`953a1d124ffc36b59d5ad3c1c48e86f26eb734a4985e5d25f13805fa262abcd2`
+for the planar test. Neither file's mode changed. The runtime source fingerprint
+remains `4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790`
+across 1,129 inputs.
+
+### Precise acceptance delta
+
+The earlier **155-file, 1,736-test pass remains historical acceptance before this
+test correction**. That complete suite was not rerun or relabeled as a fresh
+pass. One of its 1,556 accepted input hashes changed: the planar test moved from
+`a662a399cc1170ff5dcc8b2bfef4bf1dff8e35f4d124eecce3c295ea232db15f`
+to the new hash above. The benchmark was not one of those 1,556 inputs.
+
+The exact reconciliation is **1,554 unchanged materialized inputs, one unchanged
+sparse fixture verified from its Git content and mode, and one changed test**.
+The fixture `docs/production/motocross-reference-review-20261017.json` now has the
+legitimate skip-worktree flag; its Git content still has the original SHA-256
+`b3f0d6c6c5d8711d2cb73c1c45aa500ba898342110a8214013261b5c2e2484b1`
+and mode `100644`. Its absence is recorded separately from a content change.
+
+Both edited paths belonged to the old 62-file lint set, so **60 prior lint input
+hashes remain unchanged and the two edited paths received fresh focused lint**.
+All 1,387 inputs of the passing eleven-case default race matrix remain unchanged.
+
+The bounded correction checks are sufficient for publishing these two fixes:
+
+- The corrected planar test passes **16/16 tests**, with zero failed, pending or
+  todo cases. These cases overlap the historical 1,736 and are not added to it.
+- The original benchmark completes with all assertions retained: three variants,
+  **36 reversal traces and six flight traces**. Its recorded CPU scope remains.
+- Strict TypeScript checking passes for both corrected files and their imported
+  dependencies, inheriting the root compiler options without relaxing them.
+- Focused ESLint passes for both corrected files.
+- The root `tsconfig.json` itself is unchanged. Whole-project `tsc --noEmit`
+  attempts with 2,560 and 2,048 MiB heaps were both killed with exit `-9`, producing
+  no successful whole-project type-check receipt. This is a resource limit, not
+  evidence that the complete root check passed.
+
+The independent preservation refresh again confirms **291 authored/reference
+files unchanged from the initial and integrated baselines**, all **1,381
+materialized protected mode/blob checks** intact, and the same **36 legitimate
+sparse protected entries**. No untracked or ignored file was introduced in the
+source or protected asset roots. The local head observed during this refresh was
+`53f2abfe49bfa5042b0d1444387030603493ebb4`; six CI-report paths accumulated since the
+initial integration and were distinguished from the two corrected code paths.
+They are concurrent report output to preserve, not part of these type fixes.
+
+No runtime, asset, model, character or authored environment edit is required.
+Root should publish the two-file corrective commit while preserving fresh main
+successors, then publish updated evidence separately. Assignment 60's actual
+remote and hosted-check observations remain the publication authority. Until a
+new hosted root type check completes successfully, the full-root result stays
+unverified; no entire-workflow or browser/GPU success is inferred from these
+focused checks.

@@ -1,0 +1,2613 @@
+{
+  "assignment": 60,
+  "generatedUtc": "2026-11-26T00:50:51.959758+00:00",
+  "status": "PASS_PUBLICATION_INTEGRITY_AND_CORRECTED_HOSTED_VALIDATE",
+  "meaning": "Actual remote publication and the corrective full-root hosted validate job are verified. The broader hosted workflow is not claimed complete or green; no deployment claim is made.",
+  "initialPublication": {
+    "status": "PASS_PUBLISHED_CONTENT",
+    "baseCommit": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+    "codeCommit": "9b5fead87ae56902b138951e093c5f054b36d8a3",
+    "integrationCommit": "2904ea226590e4f9c75b7e4aecf544c7b7f8fb15",
+    "reconstructedTreeShas": {
+      "base": "5e9fea61ed17d0709a192e2106ef20e161788ffc",
+      "code": "48e2f2104d145ee02697f3232bfd663d6ba48aec",
+      "release": "a09181be63652ea508bcdfce9c04e13204ca7262"
+    },
+    "originalManifestSha256": "205ebd34842a3db7ad7918d6a26d6cf37d7646348359297deac2ec1455750efd",
+    "publishedManifestFiles": 188,
+    "codeFiles": 61,
+    "documentationFiles": 127,
+    "publishedManifestBytes": 4070210,
+    "sourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "localSourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "sourceInputs": 1129,
+    "directRemoteSourceBlobs": 1126,
+    "remoteSourceTreeTruncated": false,
+    "rootEntriesVerified": 31,
+    "runtimeChanges": [
+      "src/core/session-identity.ts",
+      "src/rendering/wheel-pose.ts",
+      "src/simulation/bike-vehicle.ts",
+      "src/simulation/bike.ts",
+      "src/simulation/offroad/ai.ts",
+      "src/simulation/offroad/contact-impulse.ts",
+      "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "src/simulation/offroad/mx-ground-physics.ts",
+      "src/simulation/offroad/session.ts"
+    ],
+    "unchangedRuntimeFiles": 1117,
+    "protectedStaticFiles": 256,
+    "outsideScopeTrackedFilesUnchanged": 10515,
+    "modeChanges": [],
+    "deletions": [],
+    "extraPaths": [],
+    "verificationMethod": "Independent Python SHA-1 Git blob/tree reconstruction and SHA-256 published-content verification using immutable fetched Git objects; remote commit/root/source-tree API reads match those objects. No Git writes.",
+    "protectedAuthoredAndReferenceRoots": [
+      "public",
+      "assets",
+      "authoring",
+      "reference",
+      "playable",
+      "lookdev-tmp",
+      "screenshots",
+      "scratch-tmp"
+    ],
+    "protectedAuthoredAndReferenceFiles": 291,
+    "protectedAuthoredAndReferenceDifferencesFromInitial": [],
+    "protectedAuthoredAndReferenceDifferencesFromBase": [],
+    "outsideScopeDefinition": "Every baseline tracked file outside the exact 188-path publication manifest; this is broader than assignment50/59 runtime-and-test scope grouping.",
+    "durableManifest": "docs/engine/mx-dynamics-2026-11-25/evidence/final-publication-manifest.json"
+  },
+  "initialHostedFailure": {
+    "sourceCommit": "2904ea226590e4f9c75b7e4aecf544c7b7f8fb15",
+    "observationUtc": "2026-11-26T00:38:37.318Z",
+    "diagnostics": [
+      {
+        "path": "scripts/bench/motocross-rider-acceleration.ts",
+        "diagnostics": [
+          "TS7034",
+          "TS7005"
+        ],
+        "locations": [
+          "209",
+          "229",
+          "242"
+        ],
+        "cause": "Trace array inferred as any[] in the full root TypeScript project."
+      },
+      {
+        "path": "tests/motocross-planar-transport.test.ts",
+        "diagnostics": [
+          "TS2345"
+        ],
+        "locations": [
+          "237"
+        ],
+        "cause": "Observer mock returned void instead of the original BikeState."
+      }
+    ],
+    "attribution": "Introduced by this task in benchmark/test files not covered by the earlier selected type projects; not baseline failures.",
+    "logUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/blob/e3cf1324c92b3957eaf6e6bd283055b55d7955b7/ci-reports/logs/scenery-shadow-budget/browser-day.log",
+    "observedFailedWorkflowIds": [
+      45729738907,
+      45729738729,
+      45729738993,
+      45729738887
+    ],
+    "browserAssertionsSkippedAfterBuildFailure": true
+  },
+  "correctivePublication": {
+    "status": "PASS_CORRECTIVE_CONTENT",
+    "commit": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+    "parent": "53f2abfe49bfa5042b0d1444387030603493ebb4",
+    "tree": "abd4e15505397b438459027ca244efe54f32916f",
+    "changedFiles": [
+      {
+        "path": "scripts/bench/motocross-rider-acceleration.ts",
+        "sha256": "653d23952fee00c4a0cc6e91daac6e8f646912f247aaab95f46136992d860e3d",
+        "blobSha": "46aa05c2f3dbec6cc166a1c584cfcee574df6fac",
+        "bytes": 12648,
+        "mode": "100644"
+      },
+      {
+        "path": "tests/motocross-planar-transport.test.ts",
+        "sha256": "953a1d124ffc36b59d5ad3c1c48e86f26eb734a4985e5d25f13805fa262abcd2",
+        "blobSha": "c8ce039a6cf3d1edd3f20615440747aec4ca4915",
+        "bytes": 14965,
+        "mode": "100644"
+      }
+    ],
+    "preservedCiReportPaths": [
+      "ci-reports/benchmark-smoke.md",
+      "ci-reports/logs/benchmark-smoke/smoke.log",
+      "ci-reports/logs/scenery-shadow-budget/browser-day.log",
+      "ci-reports/logs/scenery-shadow-budget/browser-night.log",
+      "ci-reports/logs/scenery-shadow-budget/browser-sunset.log",
+      "ci-reports/scenery-shadow-budget.md"
+    ],
+    "sourceInputsUnchanged": 1129,
+    "sourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "allOtherParentTreeEntriesUnchanged": true,
+    "modelCharacterEnvironmentChanges": [],
+    "modeChanges": [],
+    "deletions": [],
+    "durablePublicationReceipt": "docs/engine/mx-dynamics-2026-11-25/evidence/final-publication-correction.json"
+  },
+  "correctionAncestry": {
+    "status": "ahead",
+    "aheadBy": 2,
+    "commits": [
+      {
+        "sha": "e3cf1324c92b3957eaf6e6bd283055b55d7955b7",
+        "parents": [
+          "2904ea226590e4f9c75b7e4aecf544c7b7f8fb15"
+        ],
+        "message": "CI report: ci-reports/scenery-shadow-budget.md [skip ci]"
+      },
+      {
+        "sha": "53f2abfe49bfa5042b0d1444387030603493ebb4",
+        "parents": [
+          "e3cf1324c92b3957eaf6e6bd283055b55d7955b7"
+        ],
+        "message": "CI report: ci-reports/benchmark-smoke.md [skip ci]"
+      }
+    ],
+    "files": [
+      {
+        "path": "ci-reports/benchmark-smoke.md",
+        "status": "modified",
+        "blobSha": "77c16ae11ad8bb1dc3fe351baf268d5af1b30e0c"
+      },
+      {
+        "path": "ci-reports/logs/benchmark-smoke/smoke.log",
+        "status": "added",
+        "blobSha": "c007faf20d24a1993ec547c212e29821bde17a48"
+      },
+      {
+        "path": "ci-reports/logs/scenery-shadow-budget/browser-day.log",
+        "status": "added",
+        "blobSha": "19efb3ccf63ebcfe81308f0ffcb0a09e27d7e856"
+      },
+      {
+        "path": "ci-reports/logs/scenery-shadow-budget/browser-night.log",
+        "status": "added",
+        "blobSha": "d37e855002d6b6092a4981301eef5d2d4838961d"
+      },
+      {
+        "path": "ci-reports/logs/scenery-shadow-budget/browser-sunset.log",
+        "status": "added",
+        "blobSha": "4615bbe0d1495d54ee2bdaf33c07b1da68c99e6f"
+      },
+      {
+        "path": "ci-reports/scenery-shadow-budget.md",
+        "status": "modified",
+        "blobSha": "ad4596585d2a05468e51782165f799bb1ac5f86c"
+      }
+    ]
+  },
+  "correctionLocalVerification": {
+    "receipt": "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types-correction.json",
+    "receiptSha256": "46d5dd7c50cf6401f49dfdaa2ee49eb32c8eaaac19e15b906c8f8ee99d88f40f",
+    "focusedStrictTypesExit": 0,
+    "planarTests": {
+      "success": true,
+      "numTotalTests": 16,
+      "numPassedTests": 16,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0
+    },
+    "benchmark": {
+      "exitCode": 0,
+      "variants": [
+        "current-c1",
+        "bounded-c2",
+        "narrow-c2"
+      ],
+      "reversalTraces": 36,
+      "flightTraces": 6,
+      "allOriginalAssertionsRetained": true,
+      "currentRuntimeRunCompleted": true,
+      "outputSha256": "df7ea62cec2145b69533273e47beaaf054463292134c887b8aac0c34f19e6ab8"
+    },
+    "benchmarkRuntimeEquivalence": {
+      "transpiledJavaScriptEqual": true,
+      "transpiledJavaScriptSha256": "ce2f060645a4c3cc53865f793dfbb66cceb59a3dae48f34b752cfaf99086cb9c",
+      "transpiledJavaScriptBytes": 13055
+    },
+    "testAssertionsAndTolerancesUnchanged": true,
+    "fullRootTypesLocalExitCodes": [
+      -9,
+      -9
+    ],
+    "fullRootTypesLocalPass": false,
+    "originalFullSweepBoundary": "155 files / 1736 tests passed before the two-file type correction. The one changed test file was rerun: all 16 cases pass; this is not 16 additional distinct tests. All 1,129 runtime/build fingerprint inputs remain unchanged."
+  },
+  "hostedCorrection": {
+    "observedUtc": "2026-11-26T00:48:24.913Z",
+    "ciSourceCommit": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+    "main": {
+      "sha": "16247dfd16f2e14564f8cb0fff056870e48e5292",
+      "tree": "6cf2284faae72df232e7e98e4a4d8e2fb545cbb7"
+    },
+    "workflows": [
+      {
+        "id": 45730861449,
+        "name": "Publish validated playable release",
+        "status": "completed",
+        "conclusion": "skipped",
+        "headSha": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730861449",
+        "createdAt": "2026-11-26T00:44:19Z",
+        "updatedAt": "2026-11-26T00:44:20Z"
+      },
+      {
+        "id": 45730861446,
+        "name": "Deploy MOTOBOUND playable website",
+        "status": "completed",
+        "conclusion": "skipped",
+        "headSha": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730861446",
+        "createdAt": "2026-11-26T00:44:19Z",
+        "updatedAt": "2026-11-26T00:44:20Z"
+      },
+      {
+        "id": 45730861481,
+        "name": "CI report",
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730861481",
+        "createdAt": "2026-11-26T00:44:19Z",
+        "updatedAt": "2026-11-26T00:44:55Z"
+      },
+      {
+        "id": 45730817869,
+        "name": "Benchmark smoke",
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817869",
+        "createdAt": "2026-11-26T00:43:58Z",
+        "updatedAt": "2026-11-26T00:48:22Z"
+      },
+      {
+        "id": 45730817850,
+        "name": "Motocross committed-source review",
+        "status": "in_progress",
+        "conclusion": null,
+        "headSha": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817850",
+        "createdAt": "2026-11-26T00:43:58Z",
+        "updatedAt": "2026-11-26T00:44:04Z"
+      },
+      {
+        "id": 45730817858,
+        "name": "Build and validation",
+        "status": "queued",
+        "conclusion": null,
+        "headSha": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+        "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858",
+        "createdAt": "2026-11-26T00:43:58Z",
+        "updatedAt": "2026-11-26T00:47:55Z"
+      }
+    ],
+    "jobs": {
+      "build": [
+        {
+          "id": 139612194306,
+          "name": "offroad-scenarios",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:19Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194306",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:20Z",
+              "completedAt": "2026-11-26T00:44:20Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:20Z",
+              "completedAt": "2026-11-26T00:44:50Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:50Z",
+              "completedAt": "2026-11-26T00:44:53Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:53Z",
+              "completedAt": "2026-11-26T00:44:58Z"
+            },
+            {
+              "name": "Full offroad calibrations and races without source changes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:58Z",
+              "completedAt": null
+            },
+            {
+              "name": "Offroad evidence, including failures",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139612194577,
+          "name": "unit-tests (1)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:18Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194577",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:19Z",
+              "completedAt": "2026-11-26T00:44:22Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:22Z",
+              "completedAt": "2026-11-26T00:44:39Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:39Z",
+              "completedAt": "2026-11-26T00:44:46Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:46Z",
+              "completedAt": "2026-11-26T00:44:51Z"
+            },
+            {
+              "name": "Complete unit-suite partition without source changes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:51Z",
+              "completedAt": null
+            },
+            {
+              "name": "Unit results, including failures",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139612194647,
+          "name": "unit-tests (2)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:19Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194647",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:20Z",
+              "completedAt": "2026-11-26T00:44:23Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:23Z",
+              "completedAt": "2026-11-26T00:44:41Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:41Z",
+              "completedAt": "2026-11-26T00:44:48Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:48Z",
+              "completedAt": "2026-11-26T00:44:53Z"
+            },
+            {
+              "name": "Complete unit-suite partition without source changes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:53Z",
+              "completedAt": null
+            },
+            {
+              "name": "Unit results, including failures",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139612194656,
+          "name": "unit-tests (3)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:18Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194656",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:19Z",
+              "completedAt": "2026-11-26T00:44:21Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:21Z",
+              "completedAt": "2026-11-26T00:44:39Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:39Z",
+              "completedAt": "2026-11-26T00:44:44Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:44Z",
+              "completedAt": "2026-11-26T00:44:48Z"
+            },
+            {
+              "name": "Complete unit-suite partition without source changes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:48Z",
+              "completedAt": null
+            },
+            {
+              "name": "Unit results, including failures",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139612194664,
+          "name": "validate",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-11-26T00:44:19Z",
+          "completedAt": "2026-11-26T00:47:55Z",
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194664",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:20Z",
+              "completedAt": "2026-11-26T00:44:21Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:21Z",
+              "completedAt": "2026-11-26T00:44:41Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:41Z",
+              "completedAt": "2026-11-26T00:44:47Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:47Z",
+              "completedAt": "2026-11-26T00:44:52Z"
+            },
+            {
+              "name": "Lint, validate content, typecheck and build without source changes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:52Z",
+              "completedAt": "2026-11-26T00:46:15Z"
+            },
+            {
+              "name": "IP guard on the built output",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "startedAt": "2026-11-26T00:46:15Z",
+              "completedAt": "2026-11-26T00:46:18Z"
+            },
+            {
+              "name": "Steam demo build and IP guard",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "startedAt": "2026-11-26T00:46:18Z",
+              "completedAt": "2026-11-26T00:47:10Z"
+            },
+            {
+              "name": "Static application build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "startedAt": "2026-11-26T00:47:10Z",
+              "completedAt": "2026-11-26T00:47:15Z"
+            },
+            {
+              "name": "Preserve exact committed source",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "startedAt": "2026-11-26T00:47:15Z",
+              "completedAt": "2026-11-26T00:47:33Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "startedAt": "2026-11-26T00:47:33Z",
+              "completedAt": "2026-11-26T00:47:51Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "startedAt": "2026-11-26T00:47:51Z",
+              "completedAt": "2026-11-26T00:47:51Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "startedAt": "2026-11-26T00:47:51Z",
+              "completedAt": "2026-11-26T00:47:52Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "startedAt": "2026-11-26T00:47:52Z",
+              "completedAt": "2026-11-26T00:47:52Z"
+            }
+          ]
+        },
+        {
+          "id": 139612194679,
+          "name": "scenarios",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:18Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194679",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:19Z",
+              "completedAt": "2026-11-26T00:44:20Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:20Z",
+              "completedAt": "2026-11-26T00:44:36Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:36Z",
+              "completedAt": "2026-11-26T00:44:39Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:39Z",
+              "completedAt": "2026-11-26T00:44:45Z"
+            },
+            {
+              "name": "Run npm run test:physics",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:45Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/rotation-benchmark.ts",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/pit-integration.ts",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/race-classification.ts",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/vellamar-race.ts clear,changeable",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/reference-targets.ts",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npm run test:vehicles",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Scenario evidence, including failures",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 23,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 24,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139612194753,
+          "name": "unit-tests (4)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:19Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194753",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:20Z",
+              "completedAt": "2026-11-26T00:44:22Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:22Z",
+              "completedAt": "2026-11-26T00:44:42Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:42Z",
+              "completedAt": "2026-11-26T00:44:47Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:47Z",
+              "completedAt": "2026-11-26T00:44:52Z"
+            },
+            {
+              "name": "Complete unit-suite partition without source changes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:52Z",
+              "completedAt": null
+            },
+            {
+              "name": "Unit results, including failures",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650305,
+          "name": "owner-qa (3)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:58Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650305",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:01Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:48:01Z",
+              "completedAt": "2026-11-26T00:48:22Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:22Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "QA build (owner model and review tooling, not for release)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner-only and review-tool specs, plus the owner half of the dual-mode specs",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner QA screenshots and measurements (test results only, never the build)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 17,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 18,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650326,
+          "name": "wet-presentation",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:56Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650326",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:57Z",
+              "completedAt": "2026-11-26T00:47:58Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:15Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:15Z",
+              "completedAt": "2026-11-26T00:48:16Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:48:16Z",
+              "completedAt": "2026-11-26T00:48:20Z"
+            },
+            {
+              "name": "Download tested build (attempt 1 of 3)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "startedAt": "2026-11-26T00:48:20Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Clear partial download and back off before retry 2",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 6,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Download tested build (attempt 2 of 3)",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 7,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Clear partial download and back off before retry 3",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 8,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Download tested build (final attempt)",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 9,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Require downloaded build before continuing",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": "2026-11-26T00:48:22Z"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": "2026-11-26T00:48:22Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Wet presentation and original-player-car screenshots and GPU measurements",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 27,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 28,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650331,
+          "name": "owner-qa (1)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650331",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:47:59Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:48:00Z",
+              "completedAt": "2026-11-26T00:48:18Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:18Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "QA build (owner model and review tooling, not for release)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner-only and review-tool specs, plus the owner half of the dual-mode specs",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner QA screenshots and measurements (test results only, never the build)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 17,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 18,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650348,
+          "name": "owner-qa (4)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650348",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:57Z",
+              "completedAt": "2026-11-26T00:47:58Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:13Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:13Z",
+              "completedAt": "2026-11-26T00:48:15Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:48:15Z",
+              "completedAt": "2026-11-26T00:48:18Z"
+            },
+            {
+              "name": "QA build (owner model and review tooling, not for release)",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:48:18Z",
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner-only and review-tool specs, plus the owner half of the dual-mode specs",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner QA screenshots and measurements (test results only, never the build)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 17,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 18,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650406,
+          "name": "owner-qa (2)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650406",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:57Z",
+              "completedAt": "2026-11-26T00:47:58Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:15Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:15Z",
+              "completedAt": "2026-11-26T00:48:16Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:48:16Z",
+              "completedAt": "2026-11-26T00:48:20Z"
+            },
+            {
+              "name": "QA build (owner model and review tooling, not for release)",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:48:20Z",
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner-only and review-tool specs, plus the owner half of the dual-mode specs",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Owner QA screenshots and measurements (test results only, never the build)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 17,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 18,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650537,
+          "name": "browser (6)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650537",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:01Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 2,
+              "startedAt": "2026-11-26T00:48:01Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 3,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 1 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 2",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 2 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 3",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (final attempt)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Require downloaded build before continuing",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Install Mesa software graphics and virtual display",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/16",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Browser screenshots and diagnostics",
+              "status": "pending",
+              "conclusion": null,
+              "number": 15,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 30,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650540,
+          "name": "browser (2)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650540",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:00Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:48:00Z",
+              "completedAt": "2026-11-26T00:48:21Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:21Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 1 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 2",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 2 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 3",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (final attempt)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Require downloaded build before continuing",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Install Mesa software graphics and virtual display",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Browser screenshots and diagnostics",
+              "status": "pending",
+              "conclusion": null,
+              "number": 15,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 29,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 30,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650553,
+          "name": "browser (1)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650553",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:47:59Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 2,
+              "startedAt": "2026-11-26T00:47:59Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 3,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 1 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 2",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 2 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 3",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (final attempt)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Require downloaded build before continuing",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Install Mesa software graphics and virtual display",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/16",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Browser screenshots and diagnostics",
+              "status": "pending",
+              "conclusion": null,
+              "number": 15,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 30,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650569,
+          "name": "browser (4)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:48:23Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650569",
+          "steps": []
+        },
+        {
+          "id": 139613650602,
+          "name": "browser (5)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650602",
+          "steps": []
+        },
+        {
+          "id": 139613650719,
+          "name": "browser (8)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650719",
+          "steps": []
+        },
+        {
+          "id": 139613650726,
+          "name": "browser (9)",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:57Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650726",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:47:58Z",
+              "completedAt": "2026-11-26T00:48:01Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:48:01Z",
+              "completedAt": "2026-11-26T00:48:19Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 3,
+              "startedAt": "2026-11-26T00:48:19Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 1 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 2",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (attempt 2 of 3)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Clear partial download and back off before retry 3",
+              "status": "pending",
+              "conclusion": null,
+              "number": 8,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Download tested build (final attempt)",
+              "status": "pending",
+              "conclusion": null,
+              "number": 9,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Require downloaded build before continuing",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Install Mesa software graphics and virtual display",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Browser screenshots and diagnostics",
+              "status": "pending",
+              "conclusion": null,
+              "number": 15,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 29,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 30,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        },
+        {
+          "id": 139613650731,
+          "name": "browser (11)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650731",
+          "steps": []
+        },
+        {
+          "id": 139613650733,
+          "name": "browser (15)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650733",
+          "steps": []
+        },
+        {
+          "id": 139613650753,
+          "name": "browser (12)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650753",
+          "steps": []
+        },
+        {
+          "id": 139613650756,
+          "name": "browser (3)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650756",
+          "steps": []
+        },
+        {
+          "id": 139613650772,
+          "name": "browser (16)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650772",
+          "steps": []
+        },
+        {
+          "id": 139613650779,
+          "name": "browser (10)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650779",
+          "steps": []
+        },
+        {
+          "id": 139613650780,
+          "name": "browser (7)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650780",
+          "steps": []
+        },
+        {
+          "id": 139613650871,
+          "name": "browser (14)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650871",
+          "steps": []
+        },
+        {
+          "id": 139613650940,
+          "name": "browser (13)",
+          "status": "queued",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:47:55Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139613650940",
+          "steps": []
+        }
+      ],
+      "motocross": [
+        {
+          "id": 139612096028,
+          "name": "native-assets",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-11-26T00:44:03Z",
+          "completedAt": "2026-11-26T00:45:47Z",
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817850/job/139612096028",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:04Z",
+              "completedAt": "2026-11-26T00:44:06Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:06Z",
+              "completedAt": "2026-11-26T00:44:22Z"
+            },
+            {
+              "name": "Checksum-pinned Blender for original native asset verification",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:22Z",
+              "completedAt": "2026-11-26T00:45:41Z"
+            },
+            {
+              "name": "Reproduce the committed mesh and independently reopen its saved editable source",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:45:41Z",
+              "completedAt": "2026-11-26T00:45:45Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "startedAt": "2026-11-26T00:45:45Z",
+              "completedAt": "2026-11-26T00:45:46Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "startedAt": "2026-11-26T00:45:46Z",
+              "completedAt": "2026-11-26T00:45:46Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "startedAt": "2026-11-26T00:45:46Z",
+              "completedAt": "2026-11-26T00:45:46Z"
+            }
+          ]
+        },
+        {
+          "id": 139612096284,
+          "name": "prepare",
+          "status": "in_progress",
+          "conclusion": null,
+          "startedAt": "2026-11-26T00:44:03Z",
+          "completedAt": null,
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817850/job/139612096284",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:04Z",
+              "completedAt": "2026-11-26T00:44:05Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:05Z",
+              "completedAt": "2026-11-26T00:44:24Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:24Z",
+              "completedAt": "2026-11-26T00:44:28Z"
+            },
+            {
+              "name": "Install the locked tools",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:28Z",
+              "completedAt": "2026-11-26T00:44:30Z"
+            },
+            {
+              "name": "Lint, content, motocross contracts and the production build",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:30Z",
+              "completedAt": null
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 7,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13,
+              "startedAt": null,
+              "completedAt": null
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14,
+              "startedAt": null,
+              "completedAt": null
+            }
+          ]
+        }
+      ],
+      "benchmark": [
+        {
+          "id": 139612073837,
+          "name": "smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-11-26T00:44:00Z",
+          "completedAt": "2026-11-26T00:48:21Z",
+          "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817869/job/139612073837",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "startedAt": "2026-11-26T00:44:01Z",
+              "completedAt": "2026-11-26T00:44:03Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "startedAt": "2026-11-26T00:44:03Z",
+              "completedAt": "2026-11-26T00:44:24Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "startedAt": "2026-11-26T00:44:24Z",
+              "completedAt": "2026-11-26T00:44:32Z"
+            },
+            {
+              "name": "Run npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "startedAt": "2026-11-26T00:44:32Z",
+              "completedAt": "2026-11-26T00:44:35Z"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "startedAt": "2026-11-26T00:44:35Z",
+              "completedAt": "2026-11-26T00:45:18Z"
+            },
+            {
+              "name": "Install Mesa software graphics and virtual display",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "startedAt": "2026-11-26T00:45:18Z",
+              "completedAt": "2026-11-26T00:45:21Z"
+            },
+            {
+              "name": "Build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "startedAt": "2026-11-26T00:45:21Z",
+              "completedAt": "2026-11-26T00:46:06Z"
+            },
+            {
+              "name": "Benchmark smoke (one short cell, software renderer allowed)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "startedAt": "2026-11-26T00:46:06Z",
+              "completedAt": "2026-11-26T00:48:17Z"
+            },
+            {
+              "name": "Report must exist and say NOT HARDWARE",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "startedAt": "2026-11-26T00:48:17Z",
+              "completedAt": "2026-11-26T00:48:17Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "startedAt": "2026-11-26T00:48:17Z",
+              "completedAt": "2026-11-26T00:48:19Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "startedAt": "2026-11-26T00:48:19Z",
+              "completedAt": "2026-11-26T00:48:19Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "startedAt": "2026-11-26T00:48:19Z",
+              "completedAt": "2026-11-26T00:48:19Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "startedAt": "2026-11-26T00:48:19Z",
+              "completedAt": "2026-11-26T00:48:19Z"
+            }
+          ]
+        }
+      ]
+    },
+    "latestSuccessor": {
+      "status": "ahead",
+      "aheadBy": 1,
+      "behindBy": 0,
+      "commits": [
+        {
+          "sha": "16247dfd16f2e14564f8cb0fff056870e48e5292",
+          "parents": [
+            "b48249d2da1717e004f7f1c1b0f3501fa2c6739a"
+          ],
+          "message": "CI report: ci-reports/build-and-validation.md [skip ci]"
+        }
+      ],
+      "files": [
+        {
+          "path": "ci-reports/build-and-validation.md",
+          "status": "modified",
+          "blobSha": "396a91227eab13236529181c77ff7de1c46be570"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-1.log",
+          "status": "removed",
+          "blobSha": "33a1c98b56efc9179a65539b7ed3c35249e1bf7f"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-10.log",
+          "status": "removed",
+          "blobSha": "2a5f33545633746d9770d036e64b0fb6d6e1c71e"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-11.log",
+          "status": "removed",
+          "blobSha": "6fc2f46434812a5857f65fab372d7694616b2bac"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-12.log",
+          "status": "removed",
+          "blobSha": "111a843ad515765c35db5c5aee0cbb81739c2c55"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-13.log",
+          "status": "removed",
+          "blobSha": "d1efeb0db47bec8388148b0542897893c56528a9"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-14.log",
+          "status": "removed",
+          "blobSha": "99b7f362f7f3c5b3bfb3b7b95125741d1323ed19"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-15.log",
+          "status": "removed",
+          "blobSha": "e4810c0e8e5b16b0efbf8c36608678957313dc6a"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-16.log",
+          "status": "removed",
+          "blobSha": "5078061586bb6d59673d107c28febfc042849aa1"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-2.log",
+          "status": "removed",
+          "blobSha": "8f2dc897e3360aff215283fc5ffe80727f5238b8"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-3.log",
+          "status": "removed",
+          "blobSha": "ad35561e83ffa6a3727e749fa8775e083c08b2d7"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-4.log",
+          "status": "removed",
+          "blobSha": "4006ea13c2041c9c8c32ce9b27397629c78dfc13"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-5.log",
+          "status": "removed",
+          "blobSha": "e1b4970290c877f6657b6c434e9dc90015dac183"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-6.log",
+          "status": "removed",
+          "blobSha": "7f68d17d06adb0ebc643b3d97c7c3c86690a5af2"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-7.log",
+          "status": "removed",
+          "blobSha": "3b7a438df3d0c6d62afbd0088be23b7adb920deb"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-8.log",
+          "status": "removed",
+          "blobSha": "cbc85dfa851356b5d02a19262d4f51d0fe6043f0"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/browser-9.log",
+          "status": "removed",
+          "blobSha": "48e2f36addc8eb59dd28bf201e7a838dcb7ef636"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/offroad-scenarios.log",
+          "status": "removed",
+          "blobSha": "d14e91d4c0fbabed18e02b46acccf085595f8a67"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/owner-qa-1.log",
+          "status": "removed",
+          "blobSha": "373c684bc4ab0334236be136f62c8b69d7feb096"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/owner-qa-2.log",
+          "status": "removed",
+          "blobSha": "065ddd8aa1d536f4c2f776ac59c9ec5dca7b57a0"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/owner-qa-3.log",
+          "status": "removed",
+          "blobSha": "0778bc1e3a99ffbb67fb5f3fe8511f0860329fe8"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/owner-qa-4.log",
+          "status": "removed",
+          "blobSha": "4994e323407f4b0f09f48d84a390519423a930cd"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/publish.log",
+          "status": "added",
+          "blobSha": "592197560d416cde71567ef86f721d0a26d4a3c2"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/scenarios.log",
+          "status": "added",
+          "blobSha": "37dc8d779da920f5c27010670a9101fe4d7d0bb4"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/unit-tests-1.log",
+          "status": "modified",
+          "blobSha": "154535675927d44966418503809864a5907bacd4"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/unit-tests-2.log",
+          "status": "added",
+          "blobSha": "875598bface5a6107d6f87db06ea38510543f487"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/unit-tests-3.log",
+          "status": "modified",
+          "blobSha": "78b0745a4a2d5614ce142d7d7865b2e75cd42bcf"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/unit-tests-4.log",
+          "status": "added",
+          "blobSha": "b5793b1cf3f84c5e7dea8a647f35a48351ae6d04"
+        },
+        {
+          "path": "ci-reports/logs/build-and-validation/validate.log",
+          "status": "added",
+          "blobSha": "ea649f8d587778d04a9b9c0962da4a7c99d3ac8a"
+        }
+      ],
+      "allChangedPathsAreCiReports": true
+    }
+  },
+  "hostedFullRootGate": {
+    "sourceCommit": "b48249d2da1717e004f7f1c1b0f3501fa2c6739a",
+    "runId": 45730817858,
+    "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858",
+    "jobId": 139612194664,
+    "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45730817858/job/139612194664",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAt": "2026-11-26T00:47:55Z",
+    "fullRootStep": {
+      "name": "Lint, validate content, typecheck and build without source changes",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5,
+      "startedAt": "2026-11-26T00:44:52Z",
+      "completedAt": "2026-11-26T00:46:15Z"
+    },
+    "commandFromUnchangedWorkflow": "node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'",
+    "buildScript": "tsc --noEmit && vite build",
+    "rootTsconfigIncludes": [
+      "src",
+      "tests",
+      "e2e",
+      "scripts",
+      "*.ts"
+    ],
+    "fullRootCheckResolvedByHostedSuccess": true
+  },
+  "limitations": [
+    "The broader Build and validation workflow still has running/queued unit, race and browser jobs at the recorded snapshot.",
+    "The Motocross committed-source review prepare job is still in progress; only its native-assets job is recorded as successful.",
+    "Local native Chromium could not create a page due to the executor socket restriction. No local browser, GPU or FPS claim is made.",
+    "Hosted benchmark smoke permits software rendering and is not hardware performance evidence.",
+    "Publish and deploy workflows shown in the snapshot are skipped; this verification does not claim a deployed playable release.",
+    "The original188-file publication manifest is immutable historical evidence; the two corrected path hashes are separately recorded rather than retroactively substituted."
+  ],
+  "finalReceiptPublication": "Root owns the later documentation-only receipt commit and fresh remote lease. This report cannot assert the SHA of a commit that will contain itself.",
+  "actionsNotPerformed": [
+    "No Git mutations, commits, pushes or ref updates by assignment60.",
+    "No runtime, test, model, character, material, texture, venue or environment edits by assignment60.",
+    "No broad tests, race matrices, browser launches or asset generation by assignment60."
+  ]
+}

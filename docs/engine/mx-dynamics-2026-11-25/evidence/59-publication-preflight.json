@@ -639,5 +639,261 @@
     "No broad test rerun",
     "No browser attempt",
     "No remote object or ref write"
-  ]
+  ],
+  "latestBoundary": "postPublicationTypeCorrection",
+  "postPublicationTypeCorrection": {
+    "reviewedUtc": "2026-11-26T00:44:26.742449+00:00",
+    "status": "PASS_SCOPED_CORRECTION_FULL_ROOT_TYPES_RESOURCE_BLOCKED",
+    "initialPublishedIntegration": "2904ea226590e4f9c75b7e4aecf544c7b7f8fb15",
+    "blocksPublicationOfTheseTwoCorrections": false,
+    "historicalRecordBoundary": "All original top-level fields in this receipt describe the pre-publication 2026-11-26 00:25:51 UTC observation. This addendum supersedes the original current-input and initial-publication-pending claims after the two-file correction.",
+    "independentAudit": {
+      "auditedUtc": "2026-11-26T00:42:40.179022+00:00",
+      "localHeadObserved": "53f2abfe49bfa5042b0d1444387030603493ebb4",
+      "source": {
+        "fingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+        "files": 1129
+      },
+      "unitInputs": {
+        "total": 1556,
+        "unchangedContentAndModes": 1555,
+        "unchangedMaterializedInputs": 1554,
+        "unchangedSparseInputs": [
+          {
+            "path": "docs/production/motocross-reference-review-20261017.json",
+            "sha256": "b3f0d6c6c5d8711d2cb73c1c45aa500ba898342110a8214013261b5c2e2484b1",
+            "mode": "0o644",
+            "git": {
+              "mode": "100644",
+              "type": "blob",
+              "oid": "a4f050f5039c5a1402fe4fcc3624e2facfcb0ab1"
+            }
+          }
+        ],
+        "changes": [
+          {
+            "path": "tests/motocross-planar-transport.test.ts",
+            "before": {
+              "sha256": "a662a399cc1170ff5dcc8b2bfef4bf1dff8e35f4d124eecce3c295ea232db15f",
+              "mode": "0o644"
+            },
+            "after": {
+              "sha256": "953a1d124ffc36b59d5ad3c1c48e86f26eb734a4985e5d25f13805fa262abcd2",
+              "mode": "0o644"
+            }
+          }
+        ]
+      },
+      "lintInputs": {
+        "total": 62,
+        "unchanged": 60,
+        "changed": [
+          "scripts/bench/motocross-rider-acceleration.ts",
+          "tests/motocross-planar-transport.test.ts"
+        ]
+      },
+      "defaultRaceInputs": {
+        "total": 1387,
+        "changes": []
+      },
+      "protected": {
+        "authoredAssetFiles": 291,
+        "materialized": 1381,
+        "sparseSkipWorktree": 36,
+        "extraFiles": {
+          "untracked": [],
+          "ignored": []
+        }
+      },
+      "changedCodeSinceInitialPublication": [
+        "scripts/bench/motocross-rider-acceleration.ts",
+        "tests/motocross-planar-transport.test.ts"
+      ],
+      "concurrentCiReportChangesSinceInitialPublication": [
+        "ci-reports/benchmark-smoke.md",
+        "ci-reports/logs/benchmark-smoke/smoke.log",
+        "ci-reports/logs/scenery-shadow-budget/browser-day.log",
+        "ci-reports/logs/scenery-shadow-budget/browser-night.log",
+        "ci-reports/logs/scenery-shadow-budget/browser-sunset.log",
+        "ci-reports/scenery-shadow-budget.md"
+      ]
+    },
+    "fileChanges": {
+      "before": {
+        "scripts/bench/motocross-rider-acceleration.ts": {
+          "sha256": "4771c12423901d3db8ba8dfaca81a3a08abf4514d7578240d0286e785e1a7df1",
+          "bytes": 12527
+        },
+        "tests/motocross-planar-transport.test.ts": {
+          "sha256": "a662a399cc1170ff5dcc8b2bfef4bf1dff8e35f4d124eecce3c295ea232db15f",
+          "bytes": 14925
+        }
+      },
+      "after": {
+        "scripts/bench/motocross-rider-acceleration.ts": {
+          "sha256": "653d23952fee00c4a0cc6e91daac6e8f646912f247aaab95f46136992d860e3d",
+          "bytes": 12648
+        },
+        "tests/motocross-planar-transport.test.ts": {
+          "sha256": "953a1d124ffc36b59d5ad3c1c48e86f26eb734a4985e5d25f13805fa262abcd2",
+          "bytes": 14965
+        }
+      }
+    },
+    "exactPatchReview": {
+      "benchmarkMatchesOnlyExplicitSixNumericFieldTypeAnnotation": true,
+      "benchmarkEmittedJavaScriptBeforeAfterByteIdentical": true,
+      "benchmarkEmittedJavaScriptSha256": "ce2f060645a4c3cc53865f793dfbb66cceb59a3dae48f34b752cfaf99086cb9c",
+      "planarSpyMatchesOnlyOriginalResultCaptureAndReturn": true,
+      "singleBoundOriginalCallWithSameArgumentsAndCoordinateCaptureOrder": true,
+      "assertionsTolerancesAndCaseDefinitionsUnchanged": true,
+      "productionCallerInvokesStepAsStatementWithoutConsumingReturn": true,
+      "noProductionOrAssetChange": true
+    },
+    "acceptanceDelta": {
+      "historicalFullSweep": {
+        "files": 155,
+        "tests": 1736,
+        "passed": 1736,
+        "rerunAfterCorrection": false,
+        "meaning": "Historical accepted receipt; one test input hash has now changed."
+      },
+      "freshPlanarTest": {
+        "success": true,
+        "numTotalTests": 16,
+        "numPassedTests": 16,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "numTodoTests": 0
+      },
+      "freshPlanarCasesOverlapHistoricalFullSweep": true,
+      "benchmarkWasNotOneOf1556FullUnitInputs": true,
+      "freshBenchmark": {
+        "exitCode": 0,
+        "variants": [
+          "current-c1",
+          "bounded-c2",
+          "narrow-c2"
+        ],
+        "reversalTraces": 36,
+        "flightTraces": 6,
+        "allOriginalAssertionsRetained": true,
+        "currentRuntimeRunCompleted": true,
+        "outputSha256": "df7ea62cec2145b69533273e47beaaf054463292134c887b8aac0c34f19e6ab8"
+      },
+      "freshFocusedTypes": "Passed under unchanged inherited root compiler options for the two corrected files and their imported dependencies.",
+      "freshFocusedLint": "Both changed files passed; 60 of the original 62 lint input hashes remain unchanged.",
+      "fullRootTypes": "Two complete-root attempts were killed with exit -9 at 2560/2048 MiB; no full-root pass claimed.",
+      "commandResults": [
+        {
+          "label": "full-root-types",
+          "argv": [
+            "node",
+            "--max-old-space-size=2560",
+            "node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "exitCode": -9,
+          "wallSeconds": 18.06443416500406
+        },
+        {
+          "label": "planar-test",
+          "argv": [
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "tests/motocross-planar-transport.test.ts",
+            "--maxWorkers=1",
+            "--reporter=json",
+            "--outputFile=/home/agent/motobound-579b454ae846/docs/engine/mx-dynamics-2026-11-25/evidence/58-planar-tests.json"
+          ],
+          "exitCode": 0,
+          "wallSeconds": 3.3342194329961785
+        },
+        {
+          "label": "rider-acceleration-benchmark",
+          "argv": [
+            "node",
+            "--max-old-space-size=384",
+            "--experimental-transform-types",
+            "scripts/bench/motocross-rider-acceleration.ts"
+          ],
+          "exitCode": 0,
+          "wallSeconds": 5.0079435520019615
+        },
+        {
+          "label": "two-file-eslint",
+          "argv": [
+            "node",
+            "node_modules/eslint/bin/eslint.js",
+            "scripts/bench/motocross-rider-acceleration.ts",
+            "tests/motocross-planar-transport.test.ts"
+          ],
+          "exitCode": 0,
+          "wallSeconds": 0.7972500570031116
+        },
+        {
+          "label": "full-root-types-2048-retry",
+          "argv": [
+            "node",
+            "--max-old-space-size=2048",
+            "node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "exitCode": -9,
+          "wallSeconds": 18.28321843100275
+        },
+        {
+          "label": "strict-two-file-dependencies",
+          "argv": [
+            "node",
+            "--max-old-space-size=1536",
+            "node_modules/typescript/bin/tsc",
+            "--project",
+            "docs/engine/mx-dynamics-2026-11-25/evidence/58-type-correction-tsconfig.json",
+            "--noEmit"
+          ],
+          "exitCode": 0,
+          "wallSeconds": 2.920990188002179
+        }
+      ],
+      "rootTsconfig": {
+        "sha256": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9",
+        "include": [
+          "src",
+          "tests",
+          "e2e",
+          "scripts",
+          "*.ts"
+        ],
+        "unchanged": true
+      }
+    },
+    "sufficientBoundedVerification": "Exact whole-file patch comparisons, byte-identical benchmark JavaScript after TypeScript erasure, unchanged source/protected scope, 16 fresh planar tests, original benchmark assertions, strict imported dependency types, and focused lint establish the two corrections without rerunning broad suites.",
+    "evidence": {
+      "receipt58": {
+        "path": "docs/engine/mx-dynamics-2026-11-25/evidence/58-root-types-correction.json",
+        "sha256": "46d5dd7c50cf6401f49dfdaa2ee49eb32c8eaaac19e15b906c8f8ee99d88f40f"
+      },
+      "artifactHashes": {
+        "58-planar-tests.json": "452dcba40617178df49205b61080ab4f58ff75c71141c877b8b7221418ad5d51",
+        "58-rider-acceleration-output.json": "df7ea62cec2145b69533273e47beaaf054463292134c887b8aac0c34f19e6ab8",
+        "58-type-correction-tsconfig.json": "248a3d7bc110249f43297152ce69dbef89fd3fa912dff1f43c788ab8a6bc91c1",
+        "58-two-file-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "58-type-correction-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "58-root-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "58-root-types-2048.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "publicationConditions": [
+      "Root preserves fresh main successors and publishes the two-file correction with a fresh expected_sha and non-force update.",
+      "Root publishes corrected documentation/evidence separately, preserving the historical full-suite receipt.",
+      "Assignment 60 verifies the actual corrective remote commit/tree and hosted root-type result; local focused checks do not imply whole-root or entire-workflow success."
+    ],
+    "actionsBy59": [
+      "Read-only diff/type-erasure/hash/scope review",
+      "Updated only the existing assignment-59 report and receipt addendum"
+    ],
+    "noGitSourceTestAssetOrExternalMutationBy59": true
+  }
 }
